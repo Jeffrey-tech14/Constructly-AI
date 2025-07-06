@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,7 +85,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
   const setLaborRate = (laborName: string) => {
     const labor = laborTypes.find(l => l.name === laborName);
     if (labor) {
-      setCalculation(prev => ({ ...prev, rate: labor.dailyRate.toString() }));
+      setCalculation(prev => ({ ...prev, rate: labor.rate.toString() }));
     }
   };
 

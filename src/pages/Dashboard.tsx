@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import Calculator from '@/components/Calculator';
 import { 
   Plus, 
   FileText, 
@@ -16,14 +17,18 @@ import {
   Clock,
   DollarSign,
   Wrench,
-  LogOut
+  LogOut,
+  User,
+  Calculator as CalculatorIcon
 } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userTier] = useState('Free'); // Mock user tier
-  const [quotesUsed] = useState(2); // Mock usage
+  const [userTier] = useState('Free');
+  const [quotesUsed] = useState(2);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [isAdmin] = useState(false); // This would come from user authentication
   const quotesLimit = userTier === 'Free' ? 3 : userTier === 'Intermediate' ? Infinity : Infinity;
 
   const handleSignOut = () => {
@@ -68,6 +73,10 @@ const Dashboard = () => {
       title: "View Quote",
       description: `Opening quote #${quoteId}...`,
     });
+  };
+
+  const handleViewAllQuotes = () => {
+    navigate('/quotes/all');
   };
 
   const recentQuotes = [
@@ -153,12 +162,28 @@ const Dashboard = () => {
               <Badge variant="outline" className="text-primary border-primary">
                 {userTier} Plan
               </Badge>
-              <Link to="/admin">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsCalculatorOpen(true)}
+              >
+                <CalculatorIcon className="w-4 h-4 mr-2" />
+                Calculator
+              </Button>
+              <Link to="/profile">
                 <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Admin
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
                 </Button>
               </Link>
+              {isAdmin && (
+                <Link to="/admin">
+                  <Button variant="ghost" size="sm">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -224,9 +249,9 @@ const Dashboard = () => {
                   <FileText className="w-5 h-5 mr-2" />
                   Recent Quotes
                 </CardTitle>
-                <Link to="/quotes/new" className="text-primary hover:text-primary/80">
+                <Button variant="ghost" onClick={handleViewAllQuotes}>
                   View All
-                </Link>
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -318,6 +343,12 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Calculator Modal */}
+      <Calculator 
+        isOpen={isCalculatorOpen} 
+        onClose={() => setIsCalculatorOpen(false)} 
+      />
     </div>
   );
 };

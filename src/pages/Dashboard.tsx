@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, 
   FileText, 
@@ -15,13 +15,60 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
-  Wrench
+  Wrench,
+  LogOut
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [userTier] = useState('Free'); // Mock user tier
   const [quotesUsed] = useState(2); // Mock usage
   const quotesLimit = userTier === 'Free' ? 3 : userTier === 'Intermediate' ? Infinity : Infinity;
+
+  const handleSignOut = () => {
+    toast({
+      title: "Signed out successfully",
+      description: "You have been logged out of your account.",
+    });
+    navigate('/auth');
+  };
+
+  const handleUpgradePlan = () => {
+    toast({
+      title: "Upgrade Plan",
+      description: "Redirecting to upgrade options...",
+    });
+    // In a real app, this would redirect to a payment page
+  };
+
+  const handleManageClients = () => {
+    toast({
+      title: "Manage Clients",
+      description: "Client management feature coming soon!",
+    });
+  };
+
+  const handleScheduleMeeting = () => {
+    toast({
+      title: "Schedule Meeting",
+      description: "Meeting scheduler coming soon!",
+    });
+  };
+
+  const handleViewReports = () => {
+    toast({
+      title: "View Reports",
+      description: "Reports feature coming soon!",
+    });
+  };
+
+  const handleViewQuote = (quoteId: number) => {
+    toast({
+      title: "View Quote",
+      description: `Opening quote #${quoteId}...`,
+    });
+  };
 
   const recentQuotes = [
     {
@@ -112,7 +159,10 @@ const Dashboard = () => {
                   Admin
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm">Sign Out</Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
           </div>
         </div>
@@ -137,7 +187,7 @@ const Dashboard = () => {
                   </p>
                   <Progress value={(quotesUsed / quotesLimit) * 100} className="w-64 mt-2" />
                 </div>
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button className="bg-primary hover:bg-primary/90" onClick={handleUpgradePlan}>
                   Upgrade Plan
                 </Button>
               </div>
@@ -193,7 +243,7 @@ const Dashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">{quote.date}</p>
-                      <Button variant="ghost" size="sm" className="mt-2">
+                      <Button variant="ghost" size="sm" className="mt-2" onClick={() => handleViewQuote(quote.id)}>
                         View
                       </Button>
                     </div>
@@ -216,15 +266,15 @@ const Dashboard = () => {
                     New Quote
                   </Button>
                 </Link>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={handleManageClients}>
                   <Users className="w-4 h-4 mr-2" />
                   Manage Clients
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={handleScheduleMeeting}>
                   <Calendar className="w-4 h-4 mr-2" />
                   Schedule Meeting
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={handleViewReports}>
                   <TrendingUp className="w-4 h-4 mr-2" />
                   View Reports
                 </Button>

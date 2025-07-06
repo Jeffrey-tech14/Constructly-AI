@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -23,7 +23,11 @@ import {
 
 const QuoteBuilder = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedMaterials, setSelectedMaterials] = useState<{[key: number]: number}>({});
+  const [selectedLabor, setSelectedLabor] = useState<{[key: number]: number}>({});
+  const [selectedAddons, setSelectedAddons] = useState<{[key: number]: boolean}>({});
   const [quoteData, setQuoteData] = useState({
     // Step 1: Location
     location: '',
@@ -90,6 +94,14 @@ const QuoteBuilder = () => {
     { id: 5, name: 'General Laborer', dailyRate: 800, unit: 'days' }
   ];
 
+  const addons = [
+    { id: 1, name: 'Site Survey', price: 15000 },
+    { id: 2, name: 'Architectural Plans', price: 50000 },
+    { id: 3, name: 'Project Management', price: 100000 },
+    { id: 4, name: 'Quality Assurance', price: 75000 },
+    { id: 5, name: 'Cleanup Service', price: 25000 }
+  ];
+
   const nextStep = () => {
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
@@ -102,8 +114,71 @@ const QuoteBuilder = () => {
     }
   };
 
+  const handleMaterialQuantityChange = (materialId: number, quantity: number) => {
+    setSelectedMaterials(prev => ({
+      ...prev,
+      [materialId]: quantity
+    }));
+  };
+
+  const handleLaborQuantityChange = (laborId: number, days: number) => {
+    setSelectedLabor(prev => ({
+      ...prev,
+      [laborId]: days
+    }));
+  };
+
+  const handleAddonToggle = (addonId: number, checked: boolean) => {
+    setSelectedAddons(prev => ({
+      ...prev,
+      [addonId]: checked
+    }));
+  };
+
+  const calculateTotal = () => {
+    // Calculate materials cost
+    const materialsCost = Object.entries(selectedMaterials).reduce((total, [id, quantity]) => {
+      const material = materials.find(m => m.id === parseInt(id));
+      return total + (material ? material.basePrice * quantity : 0);
+    }, 0);
+
+    // Calculate labor cost
+    const laborCost = Object.entries(selectedLabor).reduce((total, [id, days]) => {
+      const labor = laborTypes.find(l => l.id === parseInt(id));
+      return total + (labor ? labor.dailyRate * days : 0);
+    }, 0);
+
+    // Calculate addons cost
+    const addonsCost = Object.entries(selectedAddons).reduce((total, [id, selected]) => {
+      if (selected) {
+        const addon = addons.find(a => a.id === parseInt(id));
+        return total + (addon ? addon.price : 0);
+      }
+      return total;
+    }, 0);
+
+    const subtotal = materialsCost + laborCost + addonsCost;
+    
+    // Apply regional multiplier
+    const regionMultiplier = regions.find(r => r.value === quoteData.region)?.multiplier || 1;
+    const total = subtotal * regionMultiplier;
+
+    return {
+      materialsCost,
+      laborCost,
+      addonsCost,
+      subtotal,
+      regionMultiplier,
+      total
+    };
+  };
+
   const handleFinish = () => {
-    // In real app, this would save the quote and generate PDF
+    const costs = calculateTotal();
+    toast({
+      title: "Quote Generated Successfully!",
+      description: `Total: KSh ${costs.total.toLocaleString()}`,
+    });
     navigate('/dashboard');
   };
 
@@ -187,9 +262,16 @@ const QuoteBuilder = () => {
                         type="number"
                         placeholder="Quantity"
                         className="w-24"
+                        value={selectedMaterials[material.id] || ''}
+                        onChange={(e) => handleMaterialQuantityChange(material.id, parseInt(e.target.value) || 0)}
                       />
                       <span className="text-sm text-gray-600">{material.unit}</span>
                     </div>
+                    {selectedMaterials[material.id] && (
+                      <div className="mt-2 text-sm font-medium text-primary">
+                        Total: KSh {(material.basePrice * selectedMaterials[material.id]).toLocaleString()}
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>
@@ -214,9 +296,16 @@ const QuoteBuilder = () => {
                         type="number"
                         placeholder="Days needed"
                         className="w-32"
+                        value={selectedLabor[labor.id] || ''}
+                        onChange={(e) => handleLaborQuantityChange(labor.id, parseInt(e.target.value) || 0)}
                       />
                       <span className="text-sm text-gray-600">{labor.unit}</span>
                     </div>
+                    {selectedLabor[labor.id] && (
+                      <div className="mt-2 text-sm font-medium text-primary">
+                        Total: KSh {(labor.dailyRate * selectedLabor[labor.id]).toLocaleString()}
+                      </div>
+                    )}
                   </Card>
                 ))}
               </div>
@@ -230,20 +319,19 @@ const QuoteBuilder = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Additional Services</h3>
               <div className="space-y-4">
-                {[
-                  { name: 'Site Survey', price: 15000 },
-                  { name: 'Architectural Plans', price: 50000 },
-                  { name: 'Project Management', price: 100000 },
-                  { name: 'Quality Assurance', price: 75000 },
-                  { name: 'Cleanup Service', price: 25000 }
-                ].map((addon, index) => (
-                  <Card key={index} className="p-4">
+                {addons.map((addon) => (
+                  <Card key={addon.id} className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">{addon.name}</h4>
                         <p className="text-sm text-gray-600">KSh {addon.price.toLocaleString()}</p>
                       </div>
-                      <input type="checkbox" className="w-5 h-5 text-primary" />
+                      <input 
+                        type="checkbox" 
+                        className="w-5 h-5 text-primary"
+                        checked={selectedAddons[addon.id] || false}
+                        onChange={(e) => handleAddonToggle(addon.id, e.target.checked)}
+                      />
                     </div>
                   </Card>
                 ))}
@@ -253,6 +341,7 @@ const QuoteBuilder = () => {
         );
 
       case 6:
+        const costs = calculateTotal();
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -295,24 +384,24 @@ const QuoteBuilder = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Materials:</span>
-                    <span className="font-semibold">KSh 850,000</span>
+                    <span className="font-semibold">KSh {costs.materialsCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Labor:</span>
-                    <span className="font-semibold">KSh 420,000</span>
+                    <span className="font-semibold">KSh {costs.laborCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Add-ons:</span>
-                    <span className="font-semibold">KSh 90,000</span>
+                    <span className="font-semibold">KSh {costs.addonsCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Regional Adjustment ({quoteData.region}):</span>
-                    <span>+15%</span>
+                    <span>{costs.regionMultiplier > 1 ? '+' : ''}{((costs.regionMultiplier - 1) * 100).toFixed(0)}%</span>
                   </div>
                   <hr className="my-2" />
                   <div className="flex justify-between text-lg font-bold text-primary">
                     <span>Total:</span>
-                    <span>KSh 1,564,000</span>
+                    <span>KSh {costs.total.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>

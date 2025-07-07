@@ -52,9 +52,9 @@ export const useQuotes = () => {
         status: item.status as 'draft' | 'pending' | 'approved' | 'rejected',
         client_email: item.client_email || undefined,
         custom_specs: item.custom_specs || undefined,
-        materials: item.materials || [],
-        labor: item.labor || [],
-        addons: item.addons || [],
+        materials: Array.isArray(item.materials) ? item.materials : [],
+        labor: Array.isArray(item.labor) ? item.labor : [],
+        addons: Array.isArray(item.addons) ? item.addons : [],
       }));
       
       setQuotes(quotesData);
@@ -82,9 +82,9 @@ export const useQuotes = () => {
       status: data.status as 'draft' | 'pending' | 'approved' | 'rejected',
       client_email: data.client_email || undefined,
       custom_specs: data.custom_specs || undefined,
-      materials: data.materials || [],
-      labor: data.labor || [],
-      addons: data.addons || [],
+      materials: Array.isArray(data.materials) ? data.materials : [],
+      labor: Array.isArray(data.labor) ? data.labor : [],
+      addons: Array.isArray(data.addons) ? data.addons : [],
     };
     
     setQuotes(prev => [newQuote, ...prev]);
@@ -107,9 +107,9 @@ export const useQuotes = () => {
       status: data.status as 'draft' | 'pending' | 'approved' | 'rejected',
       client_email: data.client_email || undefined,
       custom_specs: data.custom_specs || undefined,
-      materials: data.materials || [],
-      labor: data.labor || [],
-      addons: data.addons || [],
+      materials: Array.isArray(data.materials) ? data.materials : [],
+      labor: Array.isArray(data.labor) ? data.labor : [],
+      addons: Array.isArray(data.addons) ? data.addons : [],
     };
     
     setQuotes(prev => prev.map(quote => quote.id === id ? updatedQuote : quote));

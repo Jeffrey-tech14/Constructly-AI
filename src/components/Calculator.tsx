@@ -95,7 +95,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto gradient-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="flex items-center">
             <CalculatorIcon className="w-5 h-5 mr-2" />
@@ -164,7 +164,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
                 </div>
               </div>
               
-              <Button onClick={calculateMaterial} className="w-full">
+              <Button onClick={calculateMaterial} className="w-full text-white">
                 Calculate Total
               </Button>
               
@@ -220,7 +220,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
                 </div>
               </div>
               
-              <Button onClick={calculateMaterial} className="w-full">
+              <Button onClick={calculateMaterial} className="w-full text-white">
                 Calculate Total
               </Button>
               

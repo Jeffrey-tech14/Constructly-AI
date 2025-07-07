@@ -122,9 +122,9 @@ const PaymentPage = () => {
   const selectedPlanDetails = plans.find(plan => plan.id === selectedPlan);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
-      <nav className="bg-card shadow-sm border-b">
+      <nav className=" bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -156,7 +156,7 @@ const PaymentPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Plan Selection */}
           <div className="space-y-6">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle>Select Your Plan</CardTitle>
               </CardHeader>
@@ -218,7 +218,7 @@ const PaymentPage = () => {
 
           {/* Payment Methods & Summary */}
           <div className="space-y-6">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
               </CardHeader>
@@ -256,7 +256,7 @@ const PaymentPage = () => {
 
             {/* Order Summary */}
             {selectedPlanDetails && (
-              <Card>
+              <Card className='gradient-card'>
                 <CardHeader>
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
@@ -286,7 +286,7 @@ const PaymentPage = () => {
             )}
 
             <Button 
-              className="w-full" 
+              className="w-full text-gray-300" 
               size="lg"
               onClick={handlePayment}
               disabled={!selectedPlan || (selectedPlanDetails?.price === 0 && !paymentMethod) || selectedPlan === profile?.tier}

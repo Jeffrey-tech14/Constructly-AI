@@ -252,7 +252,7 @@ const QuoteBuilder = () => {
               <h3 className="text-lg font-semibold mb-4">Select Materials</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {materials.map((material) => (
-                  <Card key={material.id} className="p-4">
+                  <Card key={material.id} className="p-4 gradient-card">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium">{material.name}</h4>
                       <Badge variant="secondary">KSh {material.basePrice.toLocaleString()}</Badge>
@@ -286,7 +286,7 @@ const QuoteBuilder = () => {
               <h3 className="text-lg font-semibold mb-4">Labor Requirements</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {laborTypes.map((labor) => (
-                  <Card key={labor.id} className="p-4">
+                  <Card key={labor.id} className="p-4 gradient-card">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-medium">{labor.name}</h4>
                       <Badge variant="secondary">KSh {labor.dailyRate.toLocaleString()}/day</Badge>
@@ -320,7 +320,7 @@ const QuoteBuilder = () => {
               <h3 className="text-lg font-semibold mb-4">Additional Services</h3>
               <div className="space-y-4">
                 {addons.map((addon) => (
-                  <Card key={addon.id} className="p-4">
+                  <Card key={addon.id} className="p-4 gradient-card">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">{addon.name}</h4>
@@ -376,23 +376,23 @@ const QuoteBuilder = () => {
             </div>
             
             {/* Quote Summary */}
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-blue-100 border-blue-200 ">
               <CardHeader>
                 <CardTitle className="text-blue-900">Quote Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-black">
                     <span>Materials:</span>
-                    <span className="font-semibold">KSh {costs.materialsCost.toLocaleString()}</span>
+                    <span className="font-semibold text-black">KSh {costs.materialsCost.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-black">
                     <span>Labor:</span>
-                    <span className="font-semibold">KSh {costs.laborCost.toLocaleString()}</span>
+                    <span className="font-semibold text-black">KSh {costs.laborCost.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-black">
                     <span>Add-ons:</span>
-                    <span className="font-semibold">KSh {costs.addonsCost.toLocaleString()}</span>
+                    <span className="font-semibold text-black">KSh {costs.addonsCost.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Regional Adjustment ({quoteData.region}):</span>
@@ -415,9 +415,9 @@ const QuoteBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -439,7 +439,7 @@ const QuoteBuilder = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Quote Builder</h1>
+          <h1 className="text-3xl font-bold text-gray-350">Quote Builder</h1>
           <p className="text-gray-600 mt-2">Create a professional construction quote in 6 easy steps</p>
         </div>
 
@@ -474,7 +474,7 @@ const QuoteBuilder = () => {
         </div>
 
         {/* Step Content */}
-        <Card className="mb-8">
+        <Card className="mb-8 gradient-card">
           <CardHeader>
             <CardTitle className="flex items-center">
               {steps[currentStep - 1].icon}
@@ -489,21 +489,22 @@ const QuoteBuilder = () => {
         {/* Navigation Buttons */}
         <div className="flex justify-between">
           <Button
+            className='text-gray'
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 " />
             Previous
           </Button>
           
           {currentStep === 6 ? (
-            <Button onClick={handleFinish} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleFinish} className="bg-primary hover:bg-primary/90 text-white">
               Generate Quote
               <FileText className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button onClick={nextStep} className="bg-primary hover:bg-primary/90">
+            <Button onClick={nextStep} className="bg-primary hover:bg-primary/90 text-white">
               Next
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>

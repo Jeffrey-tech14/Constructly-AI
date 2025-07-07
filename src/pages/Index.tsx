@@ -140,7 +140,7 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-100/50 to-blue-100/50 dark:from-slate-800/50 dark:to-slate-700/50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 from-slate-100/50 to-blue-100/50 dark:from-slate-800/50 dark:to-slate-700/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-4">
@@ -198,7 +198,7 @@ const Index = () => {
                     ))}
                   </ul>
                   <Link to="/auth?mode=signup">
-                    <Button className={`w-full rounded-full transition-all duration-300 ${
+                    <Button className={`w-full rounded-full transition-all duration-300 text-gray ${
                       plan.popular 
                         ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl' 
                         : 'variant-outline border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800'

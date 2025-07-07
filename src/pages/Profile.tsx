@@ -86,9 +86,9 @@ const Profile = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
-      <nav className="bg-card shadow-sm border-b">
+      <nav className=" bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -101,7 +101,7 @@ const Profile = () => {
               <ThemeToggle />
               {profile.is_admin && (
                 <Link to="/admin">
-                  <Button variant="outline" size="sm">
+                  <Button variant="ghost" size="sm">
                     <Settings className="w-4 h-4 mr-2" />
                     Admin
                   </Button>
@@ -125,8 +125,8 @@ const Profile = () => {
             <h1 className="text-3xl font-bold text-foreground">Profile</h1>
             <p className="text-muted-foreground mt-2">Manage your account and subscription</p>
           </div>
-          <Button onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
-            {isEditing ? <Save className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
+          <Button className='text-white' onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
+            {isEditing ? <Save className="w-4 h-4 mr-2 text-white" /> : <Edit className="w-4 h-4 mr-2 text-white" />}
             {isEditing ? 'Save' : 'Edit'}
           </Button>
         </div>
@@ -134,7 +134,7 @@ const Profile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Personal Information */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="w-5 h-5 mr-2" />
@@ -196,7 +196,7 @@ const Profile = () => {
             </Card>
 
             {/* Statistics */}
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <TrendingUp className="w-5 h-5 mr-2" />
@@ -236,7 +236,7 @@ const Profile = () => {
 
           {/* Subscription & Usage */}
           <div className="space-y-6">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Current Plan
@@ -280,7 +280,7 @@ const Profile = () => {
                   </div>
 
                   <Button 
-                    className="w-full" 
+                    className="w-full text-white" 
                     onClick={handleUpgrade}
                   >
                     <CreditCard className="w-4 h-4 mr-2" />
@@ -290,7 +290,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />

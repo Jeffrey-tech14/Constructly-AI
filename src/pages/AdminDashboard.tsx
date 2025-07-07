@@ -169,9 +169,9 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className=" bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -206,7 +206,7 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-350">Admin Dashboard</h1>
           <p className="text-gray-600 mt-2">Manage users, pricing, and system settings</p>
           <p className="text-xs text-gray-500 mt-1">Last updated: {new Date(lastUpdateTime).toLocaleString()}</p>
         </div>
@@ -214,12 +214,12 @@ const AdminDashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {dynamicStats.map((stat, index) => (
-            <Card key={index}>
+            <Card className='gradient-card' key={index}>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-sm font-medium text-gray-350">{stat.title}</p>
+                    <p className="text-2xl font-bold text-gray-350">{stat.value}</p>
                     <p className="text-sm text-green-600">{stat.change}</p>
                   </div>
                   <div className="text-primary">
@@ -254,12 +254,12 @@ const AdminDashboard = () => {
 
           {/* Materials Management */}
           <TabsContent value="materials">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Material Pricing</span>
-                  <Button size="sm">
-                    <Edit3 className="w-4 h-4 mr-2" />
+                  <Button size="sm" className='text-white'>
+                    <Edit3 className="w-4 h-4 mr-2 text-" />
                     Bulk Update
                   </Button>
                 </CardTitle>
@@ -306,7 +306,7 @@ const AdminDashboard = () => {
 
           {/* Users Management */}
           <TabsContent value="users">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle>User Management</CardTitle>
               </CardHeader>
@@ -332,7 +332,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => changeTier(user.id, 'Free')}
-                              className={user.tier === 'Free' ? 'bg-gray-100' : ''}
+                              className={user.tier === 'Free' ? 'bg-gray-100  text-orange-900 ' : ''}
                             >
                               Free
                             </Button>
@@ -340,7 +340,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => changeTier(user.id, 'Intermediate')}
-                              className={user.tier === 'Intermediate' ? 'bg-blue-100' : ''}
+                              className={user.tier === 'Intermediate' ? 'bg-blue-100 text-blue-900' : ''}
                             >
                               Int.
                             </Button>
@@ -348,7 +348,7 @@ const AdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => changeTier(user.id, 'Premium')}
-                              className={user.tier === 'Premium' ? 'bg-purple-100' : ''}
+                              className={user.tier === 'Premium' ? 'bg-purple-100  text-purple-900' : ''}
                             >
                               Prem.
                             </Button>
@@ -364,7 +364,7 @@ const AdminDashboard = () => {
 
           {/* Regional Pricing */}
           <TabsContent value="regions">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle>Regional Price Multipliers</CardTitle>
               </CardHeader>
@@ -378,7 +378,7 @@ const AdminDashboard = () => {
                                       'bg-blue-100 text-blue-800';
                     
                     return (
-                      <Card key={index} className="p-4">
+                      <Card key={index} className="p-4 gradient-card">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-semibold">{region.name}</h4>
                           <Badge className={regionColor}>
@@ -410,7 +410,7 @@ const AdminDashboard = () => {
 
           {/* Price Alerts */}
           <TabsContent value="alerts">
-            <Card>
+            <Card className='gradient-card'>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600" />

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -175,9 +176,9 @@ const ViewAllQuotes = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className=" bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -187,8 +188,9 @@ const ViewAllQuotes = () => {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
+              <ThemeToggle />
               <Link to="/quotes/new">
-                <Button size="sm">
+                <Button size="sm" className='text-white'>
                   <Plus className="w-4 h-4 mr-2" />
                   New Quote
                 </Button>
@@ -207,54 +209,54 @@ const ViewAllQuotes = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">All Quotes</h1>
-          <p className="text-gray-600 mt-2">Manage and track all your construction quotes</p>
+          <h1 className="text-3xl font-bold text-gray">All Quotes</h1>
+          <p className="text-gray-450 mt-2">Manage and track all your construction quotes</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className='gradient-card'>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Quotes</p>
-                  <p className="text-2xl font-bold text-gray-900">{filteredQuotes.length}</p>
+                  <p className="text-sm font-medium text-gray-450">Total Quotes</p>
+                  <p className="text-2xl font-bold text-gray">{filteredQuotes.length}</p>
                 </div>
                 <FileText className="w-8 h-8 text-primary" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className='gradient-card'>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Value</p>
-                  <p className="text-2xl font-bold text-gray-900">KSh {(totalValue / 1000000).toFixed(1)}M</p>
+                  <p className="text-sm font-medium text-gray-450">Total Value</p>
+                  <p className="text-2xl font-bold text-gray">KSh {(totalValue / 1000000).toFixed(1)}M</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className='gradient-card'>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Approved Value</p>
-                  <p className="text-2xl font-bold text-gray-900">KSh {(approvedValue / 1000000).toFixed(1)}M</p>
+                  <p className="text-sm font-medium text-gray-450">Approved Value</p>
+                  <p className="text-2xl font-bold text-gray">KSh {(approvedValue / 1000000).toFixed(1)}M</p>
                 </div>
                 <User className="w-8 h-8 text-blue-600" />
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className='gradient-card'>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Approval Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">{Math.round(approvalRate)}%</p>
+                  <p className="text-sm font-medium text-gray-450">Approval Rate</p>
+                  <p className="text-2xl font-bold text-gray">{Math.round(approvalRate)}%</p>
                 </div>
                 <Calendar className="w-8 h-8 text-purple-600" />
               </div>
@@ -263,7 +265,7 @@ const ViewAllQuotes = () => {
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
+        <Card className="mb-6 gradient-card">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -311,16 +313,16 @@ const ViewAllQuotes = () => {
         {/* Quotes List */}
         <div className="space-y-4">
           {filteredQuotes.map((quote) => (
-            <Card key={quote.id} className="hover:shadow-md transition-shadow">
+            <Card key={quote.id} className="hover:shadow-md transition-shadow gradient-card">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-4 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{quote.title}</h3>
+                      <h3 className="text-lg font-semibold text-gray">{quote.title}</h3>
                       {getStatusBadge(quote.status)}
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-450">
                       <div>
                         <span className="font-medium">Client:</span> {quote.client}
                       </div>
@@ -339,7 +341,7 @@ const ViewAllQuotes = () => {
                       <div className="text-2xl font-bold text-primary">
                         KSh {quote.amount.toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray">
                         Modified: {new Date(quote.lastModified).toLocaleDateString()}
                       </div>
                     </div>
@@ -368,8 +370,8 @@ const ViewAllQuotes = () => {
             <Card>
               <CardContent className="pt-6 text-center py-8">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No quotes found</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-gray-400 mb-2">No quotes found</h3>
+                <p className="text-gray-450 mb-4">
                   {searchTerm || statusFilter !== 'all' 
                     ? 'Try adjusting your search or filter criteria'
                     : "You haven't created any quotes yet"

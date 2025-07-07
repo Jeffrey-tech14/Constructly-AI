@@ -51,7 +51,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Type cast the data to ensure proper types
+      const profileData: Profile = {
+        ...data,
+        tier: data.tier as 'Free' | 'Intermediate' | 'Premium',
+        phone: data.phone || undefined,
+        company: data.company || undefined,
+        location: data.location || undefined,
+      };
+      
+      setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
     }

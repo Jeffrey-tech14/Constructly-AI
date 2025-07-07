@@ -45,7 +45,19 @@ export const useQuotes = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
-      setQuotes(data || []);
+      
+      // Type cast the data to ensure proper types
+      const quotesData: Quote[] = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'draft' | 'pending' | 'approved' | 'rejected',
+        client_email: item.client_email || undefined,
+        custom_specs: item.custom_specs || undefined,
+        materials: item.materials || [],
+        labor: item.labor || [],
+        addons: item.addons || [],
+      }));
+      
+      setQuotes(quotesData);
     } catch (error) {
       console.error('Error fetching quotes:', error);
     } finally {
@@ -63,8 +75,20 @@ export const useQuotes = () => {
       .single();
     
     if (error) throw error;
-    setQuotes(prev => [data, ...prev]);
-    return data;
+    
+    // Type cast the returned data
+    const newQuote: Quote = {
+      ...data,
+      status: data.status as 'draft' | 'pending' | 'approved' | 'rejected',
+      client_email: data.client_email || undefined,
+      custom_specs: data.custom_specs || undefined,
+      materials: data.materials || [],
+      labor: data.labor || [],
+      addons: data.addons || [],
+    };
+    
+    setQuotes(prev => [newQuote, ...prev]);
+    return newQuote;
   };
 
   const updateQuote = async (id: string, updates: Partial<Quote>) => {
@@ -76,8 +100,20 @@ export const useQuotes = () => {
       .single();
     
     if (error) throw error;
-    setQuotes(prev => prev.map(quote => quote.id === id ? data : quote));
-    return data;
+    
+    // Type cast the returned data
+    const updatedQuote: Quote = {
+      ...data,
+      status: data.status as 'draft' | 'pending' | 'approved' | 'rejected',
+      client_email: data.client_email || undefined,
+      custom_specs: data.custom_specs || undefined,
+      materials: data.materials || [],
+      labor: data.labor || [],
+      addons: data.addons || [],
+    };
+    
+    setQuotes(prev => prev.map(quote => quote.id === id ? updatedQuote : quote));
+    return updatedQuote;
   };
 
   const deleteQuote = async (id: string) => {

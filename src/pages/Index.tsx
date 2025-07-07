@@ -1,151 +1,43 @@
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, Globe, Calculator, FileText, Users, Wrench, Zap } from 'lucide-react';
+import { 
+  Wrench, 
+  FileText, 
+  Calculator, 
+  Users, 
+  TrendingUp, 
+  CheckCircle,
+  ArrowRight,
+  Star,
+  Building,
+  Clock
+} from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Index = () => {
-  const [language, setLanguage] = useState<'en' | 'sw'>('en');
-
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'sw' : 'en');
-  };
-
-  const text = {
-    en: {
-      tagline: "Professional Construction Quotes Made Simple",
-      subtitle: "Create accurate construction quotes in minutes with our Kenya-focused platform. From materials to labor costs, we've got you covered.",
-      cta: "Start Building Quotes",
-      features: "Why Choose Constructly?",
-      pricing: "Simple, Transparent Pricing",
-      testimonials: "What Our Builders Say",
-      getStarted: "Get Started Today",
-      signIn: "Sign In",
-      language: "Kiswahili"
-    },
-    sw: {
-      tagline: "Karatasi za Ujenzi za Kitaalamu Zimepangwa Rahisi",
-      subtitle: "Unda karatasi za ujenzi sahihi katika dakika chache na jukwaa letu la Kenya. Kutoka vifaa hadi gharama za wafanyakazi, tumekufunikia.",
-      cta: "Anza Kuunda Karatasi",
-      features: "Kwa Nini Uchague Constructly?",
-      pricing: "Bei Rahisi na Wazi",
-      testimonials: "Wajenzi Wanasemaje",
-      getStarted: "Anza Leo",
-      signIn: "Ingia",
-      language: "English"
-    }
-  };
-
-  const features = [
-    {
-      icon: <Calculator className="w-8 h-8 text-primary" />,
-      title: language === 'en' ? "Smart Quote Builder" : "Muundaji wa Karatasi Mahiri",
-      description: language === 'en' ? "6-step wizard with Kenya-specific pricing" : "Hatua 6 za kuongoza na bei za Kenya"
-    },
-    {
-      icon: <Globe className="w-8 h-8 text-primary" />,
-      title: language === 'en' ? "Regional Pricing" : "Bei za Kikanda",
-      description: language === 'en' ? "Location-based cost adjustments for accuracy" : "Marekebisho ya gharama kulingana na eneo"
-    },
-    {
-      icon: <FileText className="w-8 h-8 text-primary" />,
-      title: language === 'en' ? "Professional PDFs" : "PDF za Kitaalamu",
-      description: language === 'en' ? "Export detailed quotes as polished documents" : "Hamisha karatasi za kina kama hati nzuri"
-    },
-    {
-      icon: <Users className="w-8 h-8 text-primary" />,
-      title: language === 'en' ? "Team Management" : "Usimamizi wa Timu",
-      description: language === 'en' ? "Collaborate with your construction team" : "Shirikiana na timu yako ya ujenzi"
-    }
-  ];
-
-  const pricingTiers = [
-    {
-      name: language === 'en' ? "Free" : "Bure",
-      price: "KSh 0",
-      period: language === 'en' ? "/month" : "/mwezi",
-      description: language === 'en' ? "Perfect for small projects" : "Bora kwa miradi midogo",
-      features: [
-        language === 'en' ? "3 quotes per month" : "Karatasi 3 kwa mwezi",
-        language === 'en' ? "Basic templates" : "Vifaa vya msingi",
-        language === 'en' ? "Email support" : "Msaada wa barua pepe"
-      ],
-      popular: false
-    },
-    {
-      name: language === 'en' ? "Intermediate" : "Wastani",
-      price: "KSh 2,500",
-      period: language === 'en' ? "/month" : "/mwezi",
-      description: language === 'en' ? "For growing businesses" : "Kwa biashara zinazokua",
-      features: [
-        language === 'en' ? "Unlimited quotes" : "Karatasi bila kikomo",
-        language === 'en' ? "PDF export" : "Hamisha PDF",
-        language === 'en' ? "5 blueprint uploads" : "Upakiaji wa michoro 5",
-        language === 'en' ? "Priority support" : "Msaada wa haraka"
-      ],
-      popular: true
-    },
-    {
-      name: language === 'en' ? "Premium" : "Bora",
-      price: "KSh 5,000",
-      period: language === 'en' ? "/month" : "/mwezi",
-      description: language === 'en' ? "Full-featured solution" : "Suluhisho kamili",
-      features: [
-        language === 'en' ? "Everything in Intermediate" : "Kila kitu katika Wastani",
-        language === 'en' ? "3D preview" : "Onyesho la 3D",
-        language === 'en' ? "Advanced analytics" : "Uchanganuzi wa hali ya juu",
-        language === 'en' ? "24/7 phone support" : "Msaada wa simu 24/7"
-      ],
-      popular: false
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: "James Kiprop",
-      role: language === 'en' ? "Construction Manager, Nairobi" : "Meneja wa Ujenzi, Nairobi",
-      content: language === 'en' ? "Constructly has transformed how we handle quotes. The Kenya-specific pricing is spot on!" : "Constructly imebadilisha jinsi tunavyoshughulikia karatasi. Bei za Kenya ni sahihi kabisa!",
-      rating: 5
-    },
-    {
-      name: "Mary Wanjiku",
-      role: language === 'en' ? "Architect, Mombasa" : "Muhandisi wa Michoro, Mombasa",
-      content: language === 'en' ? "The 3D preview feature helps my clients visualize projects before construction begins." : "Kipengele cha onyesho la 3D kinasaidia wateja wangu kuona miradi kabla ya ujenzi kuanza.",
-      rating: 5
-    },
-    {
-      name: "David Mutua",
-      role: language === 'en' ? "Building Contractor, Kisumu" : "Mkandarasi wa Ujenzi, Kisumu",
-      content: language === 'en' ? "Professional PDFs and M-Pesa integration make client interactions seamless." : "PDF za kitaalamu na muunganiko wa M-Pesa hufanya maongezi na wateja kuwa rahisi.",
-      rating: 5
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex-shrink-0 flex items-center">
-              <Wrench className="w-8 h-8 text-primary mr-2" />
-              <span className="text-2xl font-bold text-primary">Constructly</span>
+            <div className="flex items-center group">
+              <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg group-hover:scale-105 transition-transform">
+                <Wrench className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent ml-3">Constructly</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLanguage}
-                className="flex items-center space-x-2"
-              >
-                <Globe className="w-4 h-4" />
-                <span>{text[language].language}</span>
-              </Button>
-              <Link to="/auth">
-                <Button variant="outline" size="sm">
-                  {text[language].signIn}
+              <ThemeToggle />
+              <Link to="/auth?mode=signin">
+                <Button variant="ghost" className="rounded-full hover:bg-primary/10">Sign In</Button>
+              </Link>
+              <Link to="/auth?mode=signup">
+                <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+                  Get Started
                 </Button>
               </Link>
             </div>
@@ -154,52 +46,92 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8 fade-in">
         <div className="max-w-7xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-4 bg-yellow-100 text-yellow-800 border-yellow-200">
-            <Zap className="w-4 h-4 mr-1" />
-            {language === 'en' ? "Built for Kenya" : "Imejengwa kwa Kenya"}
+          <Badge variant="outline" className="mb-6 text-primary border-primary/30 bg-primary/5 rounded-full px-4 py-2">
+            Professional Construction Management
           </Badge>
-          <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
-            {text[language].tagline}
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-slate-900 via-blue-600 to-indigo-600 dark:from-white dark:via-blue-400 dark:to-indigo-400 bg-clip-text text-transparent mb-6 leading-tight">
+            Build Accurate Quotes in Minutes
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            {text[language].subtitle}
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
+            Streamline your construction business with professional quote generation, 
+            project management, and client communication tools designed for contractors in Kenya.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/auth?mode=signup">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg">
-                {text[language].cta}
+              <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                Start Free Trial
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
-              {language === 'en' ? "Watch Demo" : "Ona Demo"}
-            </Button>
+            <Link to="/auth?mode=signin">
+              <Button variant="outline" size="lg" className="rounded-full px-8 py-4 text-lg border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300">
+                Watch Demo
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              {text[language].features}
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-4">
+              Everything You Need to Manage Construction Projects
             </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              From initial quotes to project completion, we've got you covered with professional tools.
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <FileText className="w-8 h-8" />,
+                title: "Professional Quotes",
+                description: "Generate detailed, accurate quotes with material costs, labor estimates, and project timelines.",
+                gradient: "from-blue-500 to-blue-600"
+              },
+              {
+                icon: <Calculator className="w-8 h-8" />,
+                title: "Cost Calculator",
+                description: "Built-in calculator with current market rates for materials and labor in Kenya.",
+                gradient: "from-green-500 to-green-600"
+              },
+              {
+                icon: <Users className="w-8 h-8" />,
+                title: "Client Management",
+                description: "Keep track of all your clients, projects, and communication in one place.",
+                gradient: "from-purple-500 to-purple-600"
+              },
+              {
+                icon: <TrendingUp className="w-8 h-8" />,
+                title: "Business Analytics",
+                description: "Track your revenue, project success rates, and business growth over time.",
+                gradient: "from-orange-500 to-orange-600"
+              },
+              {
+                icon: <Building className="w-8 h-8" />,
+                title: "Project Types",
+                description: "Support for residential, commercial, and infrastructure construction projects.",
+                gradient: "from-red-500 to-red-600"
+              },
+              {
+                icon: <Clock className="w-8 h-8" />,
+                title: "Time Tracking",
+                description: "Monitor project timelines and ensure deliveries are on schedule.",
+                gradient: "from-indigo-500 to-indigo-600"
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="gradient-card rounded-2xl border-0 shadow-lg card-hover slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <CardContent className="pt-6">
-                  <div className="flex justify-center mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${feature.gradient} text-white shadow-lg w-fit mb-4`}>
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600">
-                    {feature.description}
-                  </p>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -208,70 +140,72 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-slate-100/50 to-blue-100/50 dark:from-slate-800/50 dark:to-slate-700/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              {text[language].pricing}
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-4">
+              Choose Your Plan
             </h2>
+            <p className="text-xl text-muted-foreground">
+              Start free, upgrade when you need more features.
+            </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {pricingTiers.map((tier, index) => (
-              <Card key={index} className={`relative p-6 ${tier.popular ? 'ring-2 ring-primary shadow-xl' : 'hover:shadow-lg'} transition-all duration-300`}>
-                {tier.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-white">
-                    {language === 'en' ? "Most Popular" : "Maarufu Zaidi"}
+            {[
+              {
+                name: "Free",
+                price: "KSh 0",
+                period: "forever",
+                features: ["3 quotes per month", "Basic templates", "Email support"],
+                popular: false
+              },
+              {
+                name: "Intermediate",
+                price: "KSh 2,500",
+                period: "per month",
+                features: ["Unlimited quotes", "Advanced templates", "Priority support", "Analytics dashboard"],
+                popular: true
+              },
+              {
+                name: "Premium",
+                price: "KSh 5,000",
+                period: "per month",
+                features: ["Everything in Intermediate", "Custom branding", "API access", "Dedicated support"],
+                popular: false
+              }
+            ].map((plan, index) => (
+              <Card key={index} className={`gradient-card rounded-2xl border-0 shadow-lg card-hover slide-up relative ${plan.popular ? 'ring-2 ring-primary' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                {plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full px-4 py-1">
+                    Most Popular
                   </Badge>
                 )}
                 <CardContent className="pt-6">
                   <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{tier.name}</h3>
-                    <div className="flex items-baseline justify-center">
-                      <span className="text-4xl font-bold text-primary">{tier.price}</span>
-                      <span className="text-gray-600 ml-1">{tier.period}</span>
+                    <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
+                    <div className="mb-4">
+                      <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{plan.price}</span>
+                      <span className="text-muted-foreground ml-2">/{plan.period}</span>
                     </div>
-                    <p className="text-gray-600 mt-2">{tier.description}</p>
                   </div>
                   <ul className="space-y-3 mb-6">
-                    {tier.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center">
                         <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
+                        <span className="text-muted-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                  <Button className={`w-full ${tier.popular ? 'bg-primary hover:bg-primary/90' : 'bg-gray-900 hover:bg-gray-800'} text-white`}>
-                    {text[language].getStarted}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              {text[language].testimonials}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="pt-6">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-4 italic">"{testimonial.content}"</p>
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-gray-600 text-sm">{testimonial.role}</p>
-                  </div>
+                  <Link to="/auth?mode=signup">
+                    <Button className={`w-full rounded-full transition-all duration-300 ${
+                      plan.popular 
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl' 
+                        : 'variant-outline border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}>
+                      Get Started
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}
@@ -280,19 +214,20 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <Wrench className="w-8 h-8 text-primary mr-2" />
-              <span className="text-2xl font-bold">Constructly</span>
+      <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-t border-white/20 dark:border-slate-700/20">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="flex items-center justify-center mb-6">
+            <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
+              <Wrench className="w-6 h-6 text-white" />
             </div>
-            <div className="text-center md:text-right">
-              <p className="text-gray-400">© 2024 Constructly. All rights reserved.</p>
-              <p className="text-gray-400 text-sm mt-1">
-                {language === 'en' ? "Built for Kenyan Construction Professionals" : "Imejengwa kwa Wataalamu wa Ujenzi wa Kenya"}
-              </p>
-            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent ml-3">Constructly</span>
+          </div>
+          <p className="text-muted-foreground mb-4">
+            Empowering construction professionals across Kenya with modern project management tools.
+          </p>
+          <div className="flex items-center justify-center space-x-6">
+            <Link to="/auth" className="text-muted-foreground hover:text-primary transition-colors">Sign In</Link>
+            <Link to="/auth?mode=signup" className="text-muted-foreground hover:text-primary transition-colors">Get Started</Link>
           </div>
         </div>
       </footer>

@@ -79,11 +79,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, name: string) => {
+    const redirectUrl = `${window.location.origin}/dashboard`;
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name }
+        data: { name },
+        emailRedirectTo: redirectUrl
       }
     });
     if (error) throw error;
@@ -111,22 +114,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        fetchProfile(session.user.id);
+        // Defer profile fetching to avoid blocking auth state change
+        setTimeout(() => {
+          fetchProfile(session.user.id);
+        }, 0);
+      } else {
+        setProfile(null);
       }
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
+        fetchProfile(session.user.id);
       }
       setLoading(false);
     });

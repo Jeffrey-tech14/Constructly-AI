@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -29,12 +30,36 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/payment" element={<PaymentPage />} />
-              <Route path="/quotes/new" element={<QuoteBuilder />} />
-              <Route path="/quotes/all" element={<ViewAllQuotes />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment" element={
+                <ProtectedRoute>
+                  <PaymentPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/quotes/new" element={
+                <ProtectedRoute>
+                  <QuoteBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/quotes/all" element={
+                <ProtectedRoute>
+                  <ViewAllQuotes />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

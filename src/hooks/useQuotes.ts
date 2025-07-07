@@ -49,7 +49,7 @@ export const useQuotes = () => {
       // Type cast the data to ensure proper types
       const quotesData: Quote[] = (data || []).map(item => ({
         ...item,
-        status: item.status as 'draft' | 'pending' | 'approved' | 'rejected',
+        status: (item.status as 'draft' | 'pending' | 'approved' | 'rejected') || 'draft',
         client_email: item.client_email || undefined,
         custom_specs: item.custom_specs || undefined,
         materials: Array.isArray(item.materials) ? item.materials : [],
@@ -79,7 +79,7 @@ export const useQuotes = () => {
     // Type cast the returned data
     const newQuote: Quote = {
       ...data,
-      status: data.status as 'draft' | 'pending' | 'approved' | 'rejected',
+      status: (data.status as 'draft' | 'pending' | 'approved' | 'rejected') || 'draft',
       client_email: data.client_email || undefined,
       custom_specs: data.custom_specs || undefined,
       materials: Array.isArray(data.materials) ? data.materials : [],
@@ -104,7 +104,7 @@ export const useQuotes = () => {
     // Type cast the returned data
     const updatedQuote: Quote = {
       ...data,
-      status: data.status as 'draft' | 'pending' | 'approved' | 'rejected',
+      status: (data.status as 'draft' | 'pending' | 'approved' | 'rejected') || 'draft',
       client_email: data.client_email || undefined,
       custom_specs: data.custom_specs || undefined,
       materials: Array.isArray(data.materials) ? data.materials : [],

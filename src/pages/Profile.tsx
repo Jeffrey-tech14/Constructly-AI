@@ -7,43 +7,43 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   User, 
   Settings, 
-  FileText, 
   TrendingUp, 
   Calendar,
-  DollarSign,
   Wrench,
   ArrowLeft,
   Edit,
   Save,
   Crown,
-  Shield
+  Shield,
+  CreditCard
 } from 'lucide-react';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { profile, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  
-  // User data - in real app this would come from API/database
-  const [userData, setUserData] = useState({
-    name: 'John Kamau',
-    email: 'john@example.com',
-    phone: '+254 712 345 678',
-    company: 'Kamau Construction Ltd',
-    location: 'Nairobi, Kenya',
-    joinDate: '2024-01-15',
-    tier: 'Free', // Free, Intermediate, Premium
-    isAdmin: false, // This would be fetched from database
-    quotesUsed: 2,
-    totalProjects: 5,
-    completedProjects: 3,
-    totalRevenue: 8500000, // KSh
-    lastLogin: new Date().toISOString().split('T')[0]
+  const [formData, setFormData] = useState({
+    name: profile?.name || '',
+    phone: profile?.phone || '',
+    company: profile?.company || '',
+    location: profile?.location || ''
   });
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Loading Profile...</h2>
+          <p className="text-muted-foreground">Please wait while we load your profile information.</p>
+        </div>
+      </div>
+    );
+  }
 
   const tierLimits = {
     Free: { quotes: 3, price: 0, features: ['3 quotes/month', 'Basic templates', 'Email support'] },
@@ -51,28 +51,17 @@ const Profile = () => {
     Premium: { quotes: Infinity, price: 5000, features: ['All Intermediate features', '3D preview', 'Advanced analytics', 'White-label reports', '24/7 support'] }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    });
+  const handleSave = async () => {
+    try {
+      await updateProfile(formData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
-  const handleUpgrade = (newTier: string) => {
-    // In real app, this would integrate with payment system
-    toast({
-      title: "Upgrade Request",
-      description: `Upgrading to ${newTier} plan. Redirecting to payment...`,
-    });
-    // Simulate upgrade - in real app this would be handled by payment flow
-    setTimeout(() => {
-      setUserData(prev => ({ ...prev, tier: newTier }));
-      toast({
-        title: "Plan Upgraded!",
-        description: `Welcome to ${newTier} plan!`,
-      });
-    }, 2000);
+  const handleUpgrade = () => {
+    navigate('/payment');
   };
 
   const getTierBadge = (tier: string) => {
@@ -80,26 +69,26 @@ const Profile = () => {
       case 'Free':
         return <Badge variant="secondary">Free</Badge>;
       case 'Intermediate':
-        return <Badge className="bg-blue-100 text-blue-800"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
       case 'Premium':
-        return <Badge className="bg-purple-100 text-purple-800"><Shield className="w-3 h-3 mr-1" />Premium</Badge>;
+        return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Premium</Badge>;
       default:
         return <Badge>{tier}</Badge>;
     }
   };
 
-  const quotaUsagePercentage = userData.tier === 'Free' 
-    ? (userData.quotesUsed / tierLimits.Free.quotes) * 100 
+  const quotaUsagePercentage = profile.tier === 'Free' 
+    ? (profile.quotes_used / tierLimits.Free.quotes) * 100 
     : 0;
 
-  const projectCompletionRate = userData.totalProjects > 0 
-    ? (userData.completedProjects / userData.totalProjects) * 100 
+  const projectCompletionRate = profile.total_projects > 0 
+    ? (profile.completed_projects / profile.total_projects) * 100 
     : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -109,7 +98,8 @@ const Profile = () => {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              {userData.isAdmin && (
+              <ThemeToggle />
+              {profile.is_admin && (
                 <Link to="/admin">
                   <Button variant="outline" size="sm">
                     <Settings className="w-4 h-4 mr-2" />
@@ -132,8 +122,8 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-            <p className="text-gray-600 mt-2">Manage your account and subscription</p>
+            <h1 className="text-3xl font-bold text-foreground">Profile</h1>
+            <p className="text-muted-foreground mt-2">Manage your account and subscription</p>
           </div>
           <Button onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
             {isEditing ? <Save className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
@@ -157,8 +147,8 @@ const Profile = () => {
                     <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
-                      value={userData.name}
-                      onChange={(e) => setUserData(prev => ({ ...prev, name: e.target.value }))}
+                      value={isEditing ? formData.name : profile.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       disabled={!isEditing}
                     />
                   </div>
@@ -167,27 +157,28 @@ const Profile = () => {
                     <Input
                       id="email"
                       type="email"
-                      value={userData.email}
-                      onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
-                      disabled={!isEditing}
+                      value={profile.email}
+                      disabled
                     />
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone</Label>
                     <Input
                       id="phone"
-                      value={userData.phone}
-                      onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
+                      value={isEditing ? formData.phone : (profile.phone || '')}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                       disabled={!isEditing}
+                      placeholder="Enter your phone number"
                     />
                   </div>
                   <div>
                     <Label htmlFor="company">Company</Label>
                     <Input
                       id="company"
-                      value={userData.company}
-                      onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
+                      value={isEditing ? formData.company : (profile.company || '')}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                       disabled={!isEditing}
+                      placeholder="Enter your company name"
                     />
                   </div>
                 </div>
@@ -195,9 +186,10 @@ const Profile = () => {
                   <Label htmlFor="location">Location</Label>
                   <Input
                     id="location"
-                    value={userData.location}
-                    onChange={(e) => setUserData(prev => ({ ...prev, location: e.target.value }))}
+                    value={isEditing ? formData.location : (profile.location || '')}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                     disabled={!isEditing}
+                    placeholder="Enter your location"
                   />
                 </div>
               </CardContent>
@@ -214,20 +206,20 @@ const Profile = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{userData.totalProjects}</p>
-                    <p className="text-sm text-gray-600">Total Projects</p>
+                    <p className="text-2xl font-bold text-primary">{profile.total_projects}</p>
+                    <p className="text-sm text-muted-foreground">Total Projects</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{userData.completedProjects}</p>
-                    <p className="text-sm text-gray-600">Completed</p>
+                    <p className="text-2xl font-bold text-green-600">{profile.completed_projects}</p>
+                    <p className="text-sm text-muted-foreground">Completed</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-600">{Math.round(projectCompletionRate)}%</p>
-                    <p className="text-sm text-gray-600">Success Rate</p>
+                    <p className="text-sm text-muted-foreground">Success Rate</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">KSh {(userData.totalRevenue / 1000000).toFixed(1)}M</p>
-                    <p className="text-sm text-gray-600">Total Revenue</p>
+                    <p className="text-2xl font-bold text-purple-600">KSh {(profile.total_revenue / 100000).toFixed(1)}K</p>
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
                   </div>
                 </div>
                 
@@ -248,25 +240,25 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Current Plan
-                  {getTierBadge(userData.tier)}
+                  {getTierBadge(profile.tier)}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
                     <p className="text-3xl font-bold text-primary">
-                      {userData.tier === 'Free' ? 'Free' : `KSh ${tierLimits[userData.tier as keyof typeof tierLimits].price.toLocaleString()}`}
+                      {profile.tier === 'Free' ? 'Free' : `KSh ${tierLimits[profile.tier as keyof typeof tierLimits].price.toLocaleString()}`}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      {userData.tier === 'Free' ? 'per month' : 'per month'}
+                    <p className="text-sm text-muted-foreground">
+                      per month
                     </p>
                   </div>
 
-                  {userData.tier === 'Free' && (
+                  {profile.tier === 'Free' && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Quotes Used</span>
-                        <span>{userData.quotesUsed}/{tierLimits.Free.quotes}</span>
+                        <span>{profile.quotes_used}/{tierLimits.Free.quotes}</span>
                       </div>
                       <Progress value={quotaUsagePercentage} className="w-full" />
                       {quotaUsagePercentage > 80 && (
@@ -277,8 +269,8 @@ const Profile = () => {
 
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Features:</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      {tierLimits[userData.tier as keyof typeof tierLimits].features.map((feature, idx) => (
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {tierLimits[profile.tier as keyof typeof tierLimits].features.map((feature, idx) => (
                         <li key={idx} className="flex items-center">
                           <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                           {feature}
@@ -287,25 +279,13 @@ const Profile = () => {
                     </ul>
                   </div>
 
-                  {userData.tier !== 'Premium' && (
-                    <div className="space-y-2">
-                      {userData.tier === 'Free' && (
-                        <Button 
-                          className="w-full" 
-                          onClick={() => handleUpgrade('Intermediate')}
-                        >
-                          Upgrade to Intermediate
-                        </Button>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        onClick={() => handleUpgrade('Premium')}
-                      >
-                        {userData.tier === 'Free' ? 'Upgrade to Premium' : 'Upgrade to Premium'}
-                      </Button>
-                    </div>
-                  )}
+                  <Button 
+                    className="w-full" 
+                    onClick={handleUpgrade}
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    {profile.tier === 'Premium' ? 'Manage Subscription' : 'Upgrade Plan'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -320,15 +300,19 @@ const Profile = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span>Member since:</span>
-                  <span>{new Date(userData.joinDate).toLocaleDateString()}</span>
+                  <span>{new Date(profile.created_at).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Last login:</span>
-                  <span>{new Date(userData.lastLogin).toLocaleDateString()}</span>
+                  <span>Last updated:</span>
+                  <span>{new Date(profile.updated_at).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Account type:</span>
-                  <span>{userData.isAdmin ? 'Administrator' : 'User'}</span>
+                  <span>{profile.is_admin ? 'Administrator' : 'User'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Quotes used:</span>
+                  <span>{profile.quotes_used}</span>
                 </div>
               </CardContent>
             </Card>

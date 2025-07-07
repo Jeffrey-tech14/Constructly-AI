@@ -9,7 +9,192 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      addons: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      labor_types: {
+        Row: {
+          created_at: string
+          daily_rate: number
+          id: string
+          name: string
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate: number
+          id?: string
+          name: string
+          unit?: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number
+          id?: string
+          name?: string
+          unit?: string
+        }
+        Relationships: []
+      }
+      materials: {
+        Row: {
+          base_price: number
+          created_at: string
+          id: string
+          name: string
+          unit: string
+        }
+        Insert: {
+          base_price: number
+          created_at?: string
+          id?: string
+          name: string
+          unit: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          id?: string
+          name?: string
+          unit?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company: string | null
+          completed_projects: number
+          created_at: string
+          email: string
+          id: string
+          is_admin: boolean
+          location: string | null
+          name: string
+          phone: string | null
+          quotes_used: number
+          tier: string
+          total_projects: number
+          total_revenue: number
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          completed_projects?: number
+          created_at?: string
+          email: string
+          id: string
+          is_admin?: boolean
+          location?: string | null
+          name: string
+          phone?: string | null
+          quotes_used?: number
+          tier?: string
+          total_projects?: number
+          total_revenue?: number
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          completed_projects?: number
+          created_at?: string
+          email?: string
+          id?: string
+          is_admin?: boolean
+          location?: string | null
+          name?: string
+          phone?: string | null
+          quotes_used?: number
+          tier?: string
+          total_projects?: number
+          total_revenue?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          addons: Json | null
+          addons_cost: number
+          client_email: string | null
+          client_name: string
+          created_at: string
+          custom_specs: string | null
+          id: string
+          labor: Json | null
+          labor_cost: number
+          location: string
+          materials: Json | null
+          materials_cost: number
+          project_type: string
+          region: string
+          status: string
+          title: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          addons?: Json | null
+          addons_cost?: number
+          client_email?: string | null
+          client_name: string
+          created_at?: string
+          custom_specs?: string | null
+          id?: string
+          labor?: Json | null
+          labor_cost?: number
+          location: string
+          materials?: Json | null
+          materials_cost?: number
+          project_type: string
+          region: string
+          status?: string
+          title: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          addons?: Json | null
+          addons_cost?: number
+          client_email?: string | null
+          client_name?: string
+          created_at?: string
+          custom_specs?: string | null
+          id?: string
+          labor?: Json | null
+          labor_cost?: number
+          location?: string
+          materials?: Json | null
+          materials_cost?: number
+          project_type?: string
+          region?: string
+          status?: string
+          title?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

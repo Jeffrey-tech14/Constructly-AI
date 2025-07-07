@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuotes } from '@/hooks/useQuotes';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import Calculator from '@/components/Calculator';
 import { 
   Plus, 
@@ -24,110 +26,72 @@ import {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [userTier] = useState('Free');
-  const [quotesUsed] = useState(2);
+  const { profile, signOut } = useAuth();
+  const { quotes, loading: quotesLoading } = useQuotes();
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [isAdmin] = useState(false); // This would come from user authentication
-  const quotesLimit = userTier === 'Free' ? 3 : userTier === 'Intermediate' ? Infinity : Infinity;
 
-  const handleSignOut = () => {
-    toast({
-      title: "Signed out successfully",
-      description: "You have been logged out of your account.",
-    });
-    navigate('/auth');
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const handleUpgradePlan = () => {
-    toast({
-      title: "Upgrade Plan",
-      description: "Redirecting to upgrade options...",
-    });
-    // In a real app, this would redirect to a payment page
+    navigate('/payment');
   };
 
-  const handleManageClients = () => {
-    toast({
-      title: "Manage Clients",
-      description: "Client management feature coming soon!",
-    });
-  };
-
-  const handleScheduleMeeting = () => {
-    toast({
-      title: "Schedule Meeting",
-      description: "Meeting scheduler coming soon!",
-    });
-  };
-
-  const handleViewReports = () => {
-    toast({
-      title: "View Reports",
-      description: "Reports feature coming soon!",
-    });
-  };
-
-  const handleViewQuote = (quoteId: number) => {
-    toast({
-      title: "View Quote",
-      description: `Opening quote #${quoteId}...`,
-    });
+  const handleViewQuote = (quoteId: string) => {
+    navigate(`/quotes/${quoteId}`);
   };
 
   const handleViewAllQuotes = () => {
     navigate('/quotes/all');
   };
 
-  const recentQuotes = [
-    {
-      id: 1,
-      title: "Residential House - Nairobi",
-      amount: "KSh 2,850,000",
-      status: "approved",
-      date: "2024-01-05",
-      client: "John Kamau"
-    },
-    {
-      id: 2,
-      title: "Office Building Extension",
-      amount: "KSh 4,200,000",
-      status: "pending",
-      date: "2024-01-03",
-      client: "Safaricom Ltd"
-    },
-    {
-      id: 3,
-      title: "School Renovation - Kisumu",
-      amount: "KSh 1,650,000",
-      status: "draft",
-      date: "2024-01-02",
-      client: "Kisumu County"
-    }
-  ];
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Loading Dashboard...</h2>
+          <p className="text-muted-foreground">Please wait while we load your dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const tierLimits = {
+    Free: { quotes: 3 },
+    Intermediate: { quotes: Infinity },
+    Premium: { quotes: Infinity }
+  };
+
+  const recentQuotes = quotes.slice(0, 3);
 
   const stats = [
     {
       title: "Total Quotes",
-      value: "24",
+      value: quotes.length.toString(),
       change: "+12%",
       icon: <FileText className="w-5 h-5" />
     },
     {
       title: "This Month Revenue",
-      value: "KSh 12.5M",
+      value: `KSh ${(profile.total_revenue / 100000).toFixed(1)}K`,
       change: "+8%",
       icon: <DollarSign className="w-5 h-5" />
     },
     {
-      title: "Active Projects",
-      value: "8",
-      change: "+3",
+      title: "Total Projects",
+      value: profile.total_projects.toString(),
+      change: `+${profile.completed_projects}`,
       icon: <TrendingUp className="w-5 h-5" />
     },
     {
       title: "Success Rate",
-      value: "76%",
+      value: profile.total_projects > 0 ? `${Math.round((profile.completed_projects / profile.total_projects) * 100)}%` : "0%",
       change: "+4%",
       icon: <CheckCircle className="w-5 h-5" />
     }
@@ -136,20 +100,20 @@ const Dashboard = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Approved</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Pending</Badge>;
       case 'draft':
-        return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Draft</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-card shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -160,8 +124,9 @@ const Dashboard = () => {
             </div>
             <div className="flex items-center space-x-4">
               <Badge variant="outline" className="text-primary border-primary">
-                {userTier} Plan
+                {profile.tier} Plan
               </Badge>
+              <ThemeToggle />
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -176,7 +141,7 @@ const Dashboard = () => {
                   Profile
                 </Button>
               </Link>
-              {isAdmin && (
+              {profile.is_admin && (
                 <Link to="/admin">
                   <Button variant="ghost" size="sm">
                     <Settings className="w-4 h-4 mr-2" />
@@ -196,21 +161,21 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your projects.</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Welcome back, {profile.name}! Here's what's happening with your projects.</p>
         </div>
 
         {/* Usage Alert for Free Tier */}
-        {userTier === 'Free' && (
-          <Card className="mb-6 border-yellow-200 bg-yellow-50">
+        {profile.tier === 'Free' && (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-yellow-800">Quote Usage</h3>
-                  <p className="text-yellow-700 text-sm">
-                    You've used {quotesUsed} of {quotesLimit} quotes this month
+                  <h3 className="font-semibold text-yellow-800 dark:text-yellow-200">Quote Usage</h3>
+                  <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+                    You've used {profile.quotes_used} of {tierLimits.Free.quotes} quotes this month
                   </p>
-                  <Progress value={(quotesUsed / quotesLimit) * 100} className="w-64 mt-2" />
+                  <Progress value={(profile.quotes_used / tierLimits.Free.quotes) * 100} className="w-64 mt-2" />
                 </div>
                 <Button className="bg-primary hover:bg-primary/90" onClick={handleUpgradePlan}>
                   Upgrade Plan
@@ -227,8 +192,8 @@ const Dashboard = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                     <p className="text-sm text-green-600">{stat.change}</p>
                   </div>
                   <div className="text-primary">
@@ -255,26 +220,42 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentQuotes.map((quote) => (
-                  <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{quote.title}</h4>
-                      <p className="text-sm text-gray-600">{quote.client}</p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-lg font-bold text-primary">{quote.amount}</span>
-                        {getStatusBadge(quote.status)}
+              {quotesLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Loading quotes...</p>
+                </div>
+              ) : recentQuotes.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No quotes yet. Create your first quote!</p>
+                  <Link to="/quotes/new">
+                    <Button className="mt-4">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Quote
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentQuotes.map((quote) => (
+                    <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{quote.title}</h4>
+                        <p className="text-sm text-muted-foreground">{quote.client_name}</p>
+                        <div className="flex items-center mt-2 space-x-4">
+                          <span className="text-lg font-bold text-primary">KSh {(quote.total_amount / 100).toLocaleString()}</span>
+                          {getStatusBadge(quote.status)}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">{new Date(quote.created_at).toLocaleDateString()}</p>
+                        <Button variant="ghost" size="sm" className="mt-2" onClick={() => handleViewQuote(quote.id)}>
+                          View
+                        </Button>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">{quote.date}</p>
-                      <Button variant="ghost" size="sm" className="mt-2" onClick={() => handleViewQuote(quote.id)}>
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -291,15 +272,15 @@ const Dashboard = () => {
                     New Quote
                   </Button>
                 </Link>
-                <Button variant="outline" className="w-full" onClick={handleManageClients}>
+                <Button variant="outline" className="w-full" onClick={() => alert('Feature coming soon!')}>
                   <Users className="w-4 h-4 mr-2" />
                   Manage Clients
                 </Button>
-                <Button variant="outline" className="w-full" onClick={handleScheduleMeeting}>
+                <Button variant="outline" className="w-full" onClick={() => alert('Feature coming soon!')}>
                   <Calendar className="w-4 h-4 mr-2" />
                   Schedule Meeting
                 </Button>
-                <Button variant="outline" className="w-full" onClick={handleViewReports}>
+                <Button variant="outline" className="w-full" onClick={() => alert('Feature coming soon!')}>
                   <TrendingUp className="w-4 h-4 mr-2" />
                   View Reports
                 </Button>
@@ -316,25 +297,25 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">Follow up with Safaricom</p>
-                      <p className="text-xs text-gray-500">Due today</p>
+                      <p className="text-sm font-medium">Follow up with clients</p>
+                      <p className="text-xs text-muted-foreground">Due today</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-3 bg-yellow-50 rounded-lg">
+                  <div className="flex items-center p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">Update material costs</p>
-                      <p className="text-xs text-gray-500">Due tomorrow</p>
+                      <p className="text-xs text-muted-foreground">Due tomorrow</p>
                     </div>
                   </div>
-                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">Site visit - Kisumu</p>
-                      <p className="text-xs text-gray-500">Jan 8, 2024</p>
+                      <p className="text-sm font-medium">Site visit scheduled</p>
+                      <p className="text-xs text-muted-foreground">Next week</p>
                     </div>
                   </div>
                 </div>

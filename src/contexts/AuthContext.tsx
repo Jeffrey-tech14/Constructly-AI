@@ -42,15 +42,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retryCount = 0) => {
     try {
+      console.log('Fetching profile for user:', userId);
+      
+      // Add a small delay to avoid potential race conditions
+      if (retryCount > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42P17' && retryCount < 3) {
+          // Retry with exponential backoff for recursion errors
+          console.log(`Retrying profile fetch, attempt ${retryCount + 1}`);
+          return fetchProfile(userId, retryCount + 1);
+        }
+        throw error;
+      }
       
       // Type cast the data to ensure proper types
       const profileData: Profile = {
@@ -61,9 +75,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         location: data.location || undefined,
       };
       
+      console.log('Profile fetched successfully:', profileData);
       setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Don't throw error to prevent auth flow from breaking
+      if (retryCount >= 3) {
+        toast({
+          title: 'Profile Error',
+          description: 'Unable to load profile data. Please refresh the page.',
+          variant: 'destructive'
+        });
+      }
     }
   };
 
@@ -114,35 +137,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener first
+    let isMounted = true;
+    
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+      
       console.log('Auth state changed:', event, session?.user?.id);
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Defer profile fetching to avoid blocking auth state change
+        // Fetch profile with a small delay to ensure database is ready
         setTimeout(() => {
-          fetchProfile(session.user.id);
-        }, 0);
+          if (isMounted) {
+            fetchProfile(session.user.id);
+          }
+        }, 500);
       } else {
         setProfile(null);
       }
+      
       setLoading(false);
     });
 
-    // Then check for existing session
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      
       console.log('Initial session:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         fetchProfile(session.user.id);
       }
+      
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

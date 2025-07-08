@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuotes } from '@/hooks/useQuotes';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Calculator from '@/components/Calculator';
+import DashboardSettings from '@/components/DashboardSettings';
 import { 
   Plus, 
   FileText, 
@@ -22,7 +23,8 @@ import {
   Wrench,
   LogOut,
   User,
-  Calculator as CalculatorIcon
+  Calculator as CalculatorIcon,
+  Cog
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -30,6 +32,7 @@ const Dashboard = () => {
   const { profile, signOut } = useAuth();
   const { quotes, loading: quotesLoading } = useQuotes();
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -117,6 +120,42 @@ const Dashboard = () => {
     }
   };
 
+  if (showSettings) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
+        {/* Navigation */}
+        <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <Link to="/" className="flex items-center group">
+                  <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg group-hover:scale-105 transition-transform">
+                    <Wrench className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent ml-3">Constructly</span>
+                </Link>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowSettings(false)}
+                  className="rounded-full hover:bg-primary/10"
+                >
+                  Back to Dashboard
+                </Button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <DashboardSettings />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
       {/* Navigation */}
@@ -144,6 +183,15 @@ const Dashboard = () => {
               >
                 <CalculatorIcon className="w-4 h-4 mr-2" />
                 Calculator
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowSettings(true)}
+                className="rounded-full hover:bg-primary/10"
+              >
+                <Cog className="w-4 h-4 mr-2" />
+                Settings
               </Button>
               <Link to="/profile">
                 <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10">
@@ -330,7 +378,7 @@ const Dashboard = () => {
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">Site visit scheduled</p>
-                      <p className="text-xs text-muted-foreground">Next week</p>
+                      <p className="text-xs text-muted-foregroup">Next week</p>
                     </div>
                   </div>
                 </div>

@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuoteCalculations, CalculationResult } from '@/hooks/useQuoteCalculations';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useQuotes } from '@/hooks/useQuotes';
+import { usePlanUpload, PlanAnalysis } from '@/hooks/usePlanUpload';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -25,7 +26,11 @@ import {
   FileText,
   Wrench,
   Calculator,
-  Truck
+  Truck,
+  Upload,
+  Building,
+  Bed,
+  Bath
 } from 'lucide-react';
 
 const EnhancedQuoteBuilder = () => {
@@ -34,9 +39,11 @@ const EnhancedQuoteBuilder = () => {
   const { calculateQuote, loading: calculationLoading } = useQuoteCalculations();
   const { equipmentTypes, additionalServices, loading: settingsLoading } = useUserSettings();
   const { createQuote } = useQuotes();
+  const { uploadPlan, analyzePlan, uploading, analyzing } = usePlanUpload();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
+  const [planAnalysis, setPlanAnalysis] = useState<PlanAnalysis | null>(null);
   const [quoteData, setQuoteData] = useState({
     // Step 1: Project Details
     projectName: '',
@@ -45,10 +52,15 @@ const EnhancedQuoteBuilder = () => {
     location: '',
     region: '',
     
-    // Step 2: Dimensions
+    // Step 2: House Details
+    houseType: '',
+    bedrooms: '',
+    bathrooms: '',
+    floors: '',
     length: '',
     width: '',
     height: '',
+    planFileUrl: '',
     
     // Step 3: Contract Type & Distance
     contractType: 'full_contract' as 'full_contract' | 'labor_only',
@@ -66,7 +78,7 @@ const EnhancedQuoteBuilder = () => {
 
   const steps = [
     { id: 1, name: 'Project Details', icon: <FileText className="w-5 h-5" /> },
-    { id: 2, name: 'Dimensions', icon: <Home className="w-5 h-5" /> },
+    { id: 2, name: 'House Details', icon: <Building className="w-5 h-5" /> },
     { id: 3, name: 'Contract & Distance', icon: <MapPin className="w-5 h-5" /> },
     { id: 4, name: 'Equipment', icon: <Wrench className="w-5 h-5" /> },
     { id: 5, name: 'Services', icon: <Plus className="w-5 h-5" /> },
@@ -83,6 +95,15 @@ const EnhancedQuoteBuilder = () => {
     { value: 'Machakos', label: 'Machakos' }
   ];
 
+  const houseTypes = [
+    { value: 'bungalow', label: 'Bungalow' },
+    { value: 'maisonette', label: 'Maisonette' },
+    { value: 'apartment', label: 'Apartment' },
+    { value: 'villa', label: 'Villa' },
+    { value: 'townhouse', label: 'Townhouse' },
+    { value: 'mansion', label: 'Mansion' }
+  ];
+
   const nextStep = () => {
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
@@ -92,6 +113,36 @@ const EnhancedQuoteBuilder = () => {
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handlePlanUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadPlan(file);
+    if (url) {
+      setQuoteData(prev => ({ ...prev, planFileUrl: url }));
+      
+      const analysis = await analyzePlan(url);
+      if (analysis) {
+        setPlanAnalysis(analysis);
+        // Auto-fill data from analysis
+        setQuoteData(prev => ({
+          ...prev,
+          bedrooms: analysis.bedrooms.toString(),
+          bathrooms: analysis.bathrooms.toString(),
+          floors: analysis.floors.toString(),
+          length: Math.sqrt(analysis.totalArea).toFixed(1),
+          width: Math.sqrt(analysis.totalArea).toFixed(1),
+          height: (analysis.estimatedVolume / analysis.totalArea).toFixed(1)
+        }));
+        
+        toast({
+          title: "Plan Analyzed",
+          description: `Detected ${analysis.bedrooms} bedrooms, ${analysis.bathrooms} bathrooms`
+        });
+      }
     }
   };
 
@@ -153,7 +204,12 @@ const EnhancedQuoteBuilder = () => {
         additional_services_cost: Math.round(calculation.services_cost),
         overall_profit_amount: Math.round(calculation.profit_amount),
         selected_equipment: calculation.detailed_breakdown.equipment,
-        selected_services: calculation.detailed_breakdown.services
+        selected_services: calculation.detailed_breakdown.services,
+        house_type: quoteData.houseType,
+        bedrooms: parseInt(quoteData.bedrooms) || null,
+        bathrooms: parseInt(quoteData.bathrooms) || null,
+        floors: parseInt(quoteData.floors) || null,
+        plan_file_url: quoteData.planFileUrl || null
       });
       
       toast({
@@ -236,6 +292,139 @@ const EnhancedQuoteBuilder = () => {
       case 2:
         return (
           <div className="space-y-6">
+            {/* Plan Upload Section */}
+            <Card className="border-2 border-dashed border-gray-300 hover:border-primary/50 transition-colors">
+              <CardHeader>
+                <CardTitle className="flex items-center text-lg">
+                  <Upload className="w-5 h-5 mr-2" />
+                  Upload House Plan (Optional)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <input
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.pdf,.dwg"
+                    onChange={handlePlanUpload}
+                    className="hidden"
+                    id="planUpload"
+                  />
+                  <label
+                    htmlFor="planUpload"
+                    className="cursor-pointer flex flex-col items-center space-y-2"
+                  >
+                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Click to upload plan</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, PDF, DWG up to 10MB</p>
+                    </div>
+                  </label>
+                  {uploading && <p className="text-sm text-primary mt-2">Uploading...</p>}
+                  {analyzing && <p className="text-sm text-primary mt-2">Analyzing plan...</p>}
+                  {quoteData.planFileUrl && (
+                    <p className="text-sm text-green-600 mt-2">✓ Plan uploaded successfully</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Plan Analysis Results */}
+            {planAnalysis && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-blue-800">Plan Analysis Results</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.bedrooms}</p>
+                      <p className="text-sm text-blue-800">Bedrooms</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.bathrooms}</p>
+                      <p className="text-sm text-blue-800">Bathrooms</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.totalArea.toFixed(1)}m²</p>
+                      <p className="text-sm text-blue-800">Total Area</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.estimatedVolume.toFixed(1)}m³</p>
+                      <p className="text-sm text-blue-800">Est. Volume</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-blue-800 mb-2">Detected Rooms:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {planAnalysis.rooms.map((room, index) => (
+                        <div key={index} className="bg-white p-2 rounded text-sm">
+                          <span className="font-medium">{room.type}:</span> {room.length}m × {room.width}m ({room.area.toFixed(1)}m²)
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* House Details Form */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="houseType">House Type</Label>
+                <Select onValueChange={(value) => setQuoteData(prev => ({ ...prev, houseType: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select house type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {houseTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="floors">Number of Floors</Label>
+                <Input
+                  id="floors"
+                  type="number"
+                  placeholder="1"
+                  value={quoteData.floors}
+                  onChange={(e) => setQuoteData(prev => ({ ...prev, floors: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <Bed className="w-5 h-5 text-muted-foreground" />
+                <Label htmlFor="bedrooms">Bedrooms</Label>
+                <Input
+                  id="bedrooms"
+                  type="number"
+                  placeholder="3"
+                  value={quoteData.bedrooms}
+                  onChange={(e) => setQuoteData(prev => ({ ...prev, bedrooms: e.target.value }))}
+                  className="w-20"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Bath className="w-5 h-5 text-muted-foreground" />
+                <Label htmlFor="bathrooms">Bathrooms</Label>
+                <Input
+                  id="bathrooms"
+                  type="number"
+                  placeholder="2"
+                  value={quoteData.bathrooms}
+                  onChange={(e) => setQuoteData(prev => ({ ...prev, bathrooms: e.target.value }))}
+                  className="w-20"
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="length">Length (meters)</Label>
@@ -268,8 +457,9 @@ const EnhancedQuoteBuilder = () => {
                 />
               </div>
             </div>
+
             {quoteData.length && quoteData.width && quoteData.height && (
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-green-50 border-green-200">
                 <CardContent className="pt-6">
                   <div className="text-center">
                     <h4 className="font-semibold">Calculated Volume</h4>
@@ -446,6 +636,18 @@ const EnhancedQuoteBuilder = () => {
                     <span className="font-medium">{quoteData.location}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span>House Type:</span>
+                    <span className="font-medium">{quoteData.houseType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Bedrooms:</span>
+                    <span className="font-medium">{quoteData.bedrooms}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Bathrooms:</span>
+                    <span className="font-medium">{quoteData.bathrooms}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span>Dimensions:</span>
                     <span className="font-medium">
                       {quoteData.length}m × {quoteData.width}m × {quoteData.height}m
@@ -560,7 +762,7 @@ const EnhancedQuoteBuilder = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Enhanced Quote Builder</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Create accurate construction quotes with advanced calculations</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Create accurate construction quotes with advanced calculations and plan analysis</p>
         </div>
 
         {/* Progress */}

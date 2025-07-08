@@ -60,7 +60,7 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
       if (data) {
         setProgressData({
           id: data.id,
-          status: data.status,
+          status: data.status as 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold',
           progress_percentage: data.progress_percentage,
           notes: data.notes || '',
           milestone_date: data.milestone_date || ''

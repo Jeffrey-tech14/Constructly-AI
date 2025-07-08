@@ -1,477 +1,449 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Calculator from '@/components/Calculator';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Settings, 
   Users, 
-  TrendingUp, 
-  AlertTriangle, 
-  DollarSign,
-  Package,
-  MapPin,
-  Wrench,
-  Edit3,
-  Eye,
-  UserCheck,
+  DollarSign, 
+  Activity, 
+  TrendingUp,
   UserX,
-  Calculator as CalculatorIcon
+  UserCheck,
+  Crown,
+  Ban,
+  Search,
+  MoreHorizontal,
+  Settings
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  tier: string;
+  quotes_used: number;
+  total_projects: number;
+  total_revenue: number;
+  created_at: string;
+  is_admin: boolean;
+}
+
+interface DashboardStats {
+  totalUsers: number;
+  totalRevenue: number;
+  totalQuotes: number;
+  activeProjects: number;
+}
 
 const AdminDashboard = () => {
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [lastUpdateTime] = useState(new Date().toISOString());
-  
-  const [materials, setMaterials] = useState([
-    { id: 1, name: 'Cement (50kg bag)', basePrice: 850, lastUpdated: '2024-01-05', previousPrice: 810 },
-    { id: 2, name: 'Steel Bars (12mm)', basePrice: 1200, lastUpdated: '2024-01-04', previousPrice: 1045 },
-    { id: 3, name: 'Sand (Lorry)', basePrice: 4500, lastUpdated: '2024-01-03', previousPrice: 4400 },
-    { id: 4, name: 'Ballast (Lorry)', basePrice: 4000, lastUpdated: '2024-01-03', previousPrice: 4120 }
-  ]);
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalRevenue: 0,
+    totalQuotes: 0,
+    activeProjects: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTier, setSelectedTier] = useState('all');
 
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Kamau', email: 'john@example.com', tier: 'Free', quotesUsed: 2, lastActive: '2024-01-05', joinDate: '2023-12-01' },
-    { id: 2, name: 'Mary Wanjiku', email: 'mary@example.com', tier: 'Intermediate', quotesUsed: 12, lastActive: '2024-01-05', joinDate: '2023-11-15' },
-    { id: 3, name: 'David Mutua', email: 'david@example.com', tier: 'Premium', quotesUsed: 25, lastActive: '2024-01-04', joinDate: '2023-10-20' },
-    { id: 4, name: 'Sarah Achieng', email: 'sarah@example.com', tier: 'Free', quotesUsed: 3, lastActive: '2024-01-03', joinDate: '2024-01-01' }
-  ]);
+  useEffect(() => {
+    if (profile?.is_admin) {
+      fetchDashboardData();
+    }
+  }, [profile]);
 
-  const [regions, setRegions] = useState([
-    { name: 'Nairobi', multiplier: 1.2, previousMultiplier: 1.15 },
-    { name: 'Mombasa', multiplier: 1.15, previousMultiplier: 1.12 },
-    { name: 'Kisumu', multiplier: 1.05, previousMultiplier: 1.03 },
-    { name: 'Nakuru', multiplier: 1.0, previousMultiplier: 1.0 },
-    { name: 'Eldoret', multiplier: 0.95, previousMultiplier: 0.97 }
-  ]);
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Fetch all users
+      const { data: usersData } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  // Calculate dynamic statistics
-  const calculateStats = () => {
-    const totalUsers = users.length;
-    const activeSubscriptions = users.filter(user => user.tier !== 'Free').length;
-    
-    // Calculate monthly revenue based on user tiers
-    const monthlyRevenue = users.reduce((total, user) => {
-      switch (user.tier) {
-        case 'Intermediate': return total + 2500;
-        case 'Premium': return total + 5000;
-        default: return total;
-      }
-    }, 0);
-    
-    // Calculate growth metrics
-    const newUsersThisMonth = users.filter(user => {
-      const joinDate = new Date(user.joinDate);
-      const currentMonth = new Date().getMonth();
-      return joinDate.getMonth() === currentMonth;
-    }).length;
-    
-    // Count active price alerts
-    const priceAlerts = materials.filter(material => {
-      const changePercent = ((material.basePrice - material.previousPrice) / material.previousPrice) * 100;
-      return Math.abs(changePercent) >= 5; // Alert if price changed by 5% or more
-    }).length;
+      // Fetch quotes for stats
+      const { data: quotesData } = await supabase
+        .from('quotes')
+        .select('total_amount, status');
 
-    return {
-      totalUsers,
-      activeSubscriptions,
-      monthlyRevenue,
-      newUsersThisMonth,
-      priceAlerts
-    };
-  };
+      // Calculate stats
+      const totalUsers = usersData?.length || 0;
+      const totalRevenue = quotesData?.reduce((sum, quote) => sum + quote.total_amount, 0) || 0;
+      const totalQuotes = quotesData?.length || 0;
+      const activeProjects = quotesData?.filter(q => q.status === 'started' || q.status === 'in_progress').length || 0;
 
-  const stats = calculateStats();
-
-  const calculatePriceChange = (current: number, previous: number) => {
-    const change = ((current - previous) / previous) * 100;
-    return {
-      percentage: change.toFixed(1),
-      isIncrease: change > 0,
-      isSignificant: Math.abs(change) >= 5
-    };
-  };
-
-  const updateMaterialPrice = (materialId: number, newPrice: number) => {
-    setMaterials(materials.map(material => 
-      material.id === materialId 
-        ? { 
-            ...material, 
-            previousPrice: material.basePrice,
-            basePrice: newPrice,
-            lastUpdated: new Date().toISOString().split('T')[0]
-          } 
-        : material
-    ));
-  };
-
-  const updateRegionMultiplier = (regionName: string, newMultiplier: number) => {
-    setRegions(regions.map(region => 
-      region.name === regionName 
-        ? { 
-            ...region, 
-            previousMultiplier: region.multiplier,
-            multiplier: newMultiplier 
-          } 
-        : region
-    ));
-  };
-
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case 'Free':
-        return <Badge variant="secondary">Free</Badge>;
-      case 'Intermediate':
-        return <Badge className="bg-blue-100 text-blue-800">Intermediate</Badge>;
-      case 'Premium':
-        return <Badge className="bg-purple-100 text-purple-800">Premium</Badge>;
-      default:
-        return <Badge>{tier}</Badge>;
+      setUsers(usersData || []);
+      setStats({
+        totalUsers,
+        totalRevenue,
+        totalQuotes,
+        activeProjects
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const changeTier = (userId: number, newTier: string) => {
-    setUsers(users.map(user => 
-      user.id === userId ? { ...user, tier: newTier } : user
-    ));
+  const updateUserTier = async (userId: string, newTier: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ tier: newTier })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? { ...user, tier: newTier } : user
+      ));
+
+      toast({
+        title: "Success",
+        description: "User tier updated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update user tier",
+        variant: "destructive"
+      });
+    }
   };
 
-  const dynamicStats = [
-    { 
-      title: 'Total Users', 
-      value: stats.totalUsers.toString(), 
-      change: `+${stats.newUsersThisMonth}`, 
-      icon: <Users className="w-5 h-5" /> 
-    },
-    { 
-      title: 'Active Subscriptions', 
-      value: stats.activeSubscriptions.toString(), 
-      change: `${Math.round((stats.activeSubscriptions/stats.totalUsers)*100)}%`, 
-      icon: <UserCheck className="w-5 h-5" /> 
-    },
-    { 
-      title: 'Monthly Revenue', 
-      value: `KSh ${stats.monthlyRevenue.toLocaleString()}`, 
-      change: `${stats.activeSubscriptions > 0 ? '+' : ''}${Math.round((stats.monthlyRevenue/50000)*100)}%`, 
-      icon: <DollarSign className="w-5 h-5" /> 
-    },
-    { 
-      title: 'Price Alerts', 
-      value: stats.priceAlerts.toString(), 
-      change: 'Active', 
-      icon: <AlertTriangle className="w-5 h-5" /> 
+  const toggleAdminStatus = async (userId: string, isAdmin: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_admin: !isAdmin })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? { ...user, is_admin: !isAdmin } : user
+      ));
+
+      toast({
+        title: "Success",
+        description: `User ${!isAdmin ? 'promoted to' : 'removed from'} admin`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update admin status",
+        variant: "destructive"
+      });
     }
-  ];
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTier = selectedTier === 'all' || user.tier.toLowerCase() === selectedTier;
+    return matchesSearch && matchesTier;
+  });
+
+  if (!profile?.is_admin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
+          <p className="text-muted-foreground">You don't have permission to access the admin dashboard.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
-      {/* Navigation */}
-      <nav className=" bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <Wrench className="w-8 h-8 text-primary mr-2" />
-                <span className="text-2xl font-bold text-primary">Constructly</span>
-              </Link>
-              <Badge variant="outline" className="ml-4 text-red-600 border-red-600">
-                ADMIN
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setIsCalculatorOpen(true)}
-              >
-                <CalculatorIcon className="w-4 h-4 mr-2" />
-                Calculator
-              </Button>
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  User Dashboard
-                </Button>
-              </Link>
-              <Button variant="ghost" size="sm">Sign Out</Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-350">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manage users, pricing, and system settings</p>
-          <p className="text-xs text-gray-500 mt-1">Last updated: {new Date(lastUpdateTime).toLocaleString()}</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Manage users, monitor system performance, and control platform settings</p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {dynamicStats.map((stat, index) => (
-            <Card className='gradient-card' key={index}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-350">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-350">{stat.value}</p>
-                    <p className="text-sm text-green-600">{stat.change}</p>
-                  </div>
-                  <div className="text-primary">
-                    {stat.icon}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="gradient-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <p className="text-xs text-muted-foreground">Registered contractors</p>
+            </CardContent>
+          </Card>
+
+          <Card className="gradient-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">KSh {(stats.totalRevenue / 100).toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Platform revenue</p>
+            </CardContent>
+          </Card>
+
+          <Card className="gradient-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Quotes</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalQuotes}</div>
+              <p className="text-xs text-muted-foreground">Generated quotes</p>
+            </CardContent>
+          </Card>
+
+          <Card className="gradient-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activeProjects}</div>
+              <p className="text-xs text-muted-foreground">In progress</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="materials" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="materials" className="flex items-center">
-              <Package className="w-4 h-4 mr-2" />
-              Materials
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center">
-              <Users className="w-4 h-4 mr-2" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="regions" className="flex items-center">
-              <MapPin className="w-4 h-4 mr-2" />
-              Regions
-            </TabsTrigger>
-            <TabsTrigger value="alerts" className="flex items-center">
-              <AlertTriangle className="w-4 h-4 mr-2" />
-              Alerts
-            </TabsTrigger>
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="system">System Settings</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          {/* Materials Management */}
-          <TabsContent value="materials">
-            <Card className='gradient-card'>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Material Pricing</span>
-                  <Button size="sm" className='text-white'>
-                    <Edit3 className="w-4 h-4 mr-2 text-" />
-                    Bulk Update
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {materials.map((material) => {
-                    const priceChange = calculatePriceChange(material.basePrice, material.previousPrice);
-                    return (
-                      <div key={material.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{material.name}</h4>
-                          <p className="text-sm text-gray-600">Last updated: {material.lastUpdated}</p>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <Badge className={
-                            priceChange.isIncrease 
-                              ? (priceChange.isSignificant ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800')
-                              : (priceChange.isSignificant ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800')
-                          }>
-                            {priceChange.isIncrease ? '+' : ''}{priceChange.percentage}%
-                          </Badge>
-                          <div className="flex items-center space-x-2">
-                            <Label htmlFor={`price-${material.id}`} className="text-sm">KSh</Label>
-                            <Input
-                              id={`price-${material.id}`}
-                              type="number"
-                              value={material.basePrice}
-                              onChange={(e) => updateMaterialPrice(material.id, parseInt(e.target.value))}
-                              className="w-32"
-                            />
-                          </div>
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Users Management */}
-          <TabsContent value="users">
-            <Card className='gradient-card'>
+          <TabsContent value="users" className="space-y-6">
+            {/* Search and Filter */}
+            <Card className="gradient-card">
               <CardHeader>
                 <CardTitle>User Management</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search users..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={selectedTier} onValueChange={setSelectedTier}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by tier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Tiers</SelectItem>
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="basic">Basic</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Users Table */}
                 <div className="space-y-4">
-                  {users.map((user) => {
-                    const daysSinceJoin = Math.floor((new Date().getTime() - new Date(user.joinDate).getTime()) / (1000 * 60 * 60 * 24));
-                    const daysSinceActive = Math.floor((new Date().getTime() - new Date(user.lastActive).getTime()) / (1000 * 60 * 60 * 24));
-                    
-                    return (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{user.name}</h4>
-                          <p className="text-sm text-gray-600">{user.email}</p>
-                          <p className="text-sm text-gray-500">
-                            {user.quotesUsed} quotes used • Active {daysSinceActive === 0 ? 'today' : `${daysSinceActive} days ago`} • Member for {daysSinceJoin} days
-                          </p>
-                        </div>
+                  {filteredUsers.map((user) => (
+                    <Card key={user.id} className="p-4">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          {getTierBadge(user.tier)}
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => changeTier(user.id, 'Free')}
-                              className={user.tier === 'Free' ? 'bg-gray-100  text-orange-900 ' : ''}
-                            >
-                              Free
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => changeTier(user.id, 'Intermediate')}
-                              className={user.tier === 'Intermediate' ? 'bg-blue-100 text-blue-900' : ''}
-                            >
-                              Int.
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => changeTier(user.id, 'Premium')}
-                              className={user.tier === 'Premium' ? 'bg-purple-100  text-purple-900' : ''}
-                            >
-                              Prem.
-                            </Button>
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Users className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h3 className="font-medium">{user.name}</h3>
+                              {user.is_admin && (
+                                <Badge variant="destructive">
+                                  <Crown className="w-3 h-3 mr-1" />
+                                  Admin
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <div className="flex items-center space-x-4 mt-1">
+                              <Badge variant="secondary">{user.tier}</Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {user.quotes_used} quotes • {user.total_projects} projects
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Select 
+                            value={user.tier} 
+                            onValueChange={(value) => updateUserTier(user.id, value)}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Free">Free</SelectItem>
+                              <SelectItem value="Basic">Basic</SelectItem>
+                              <SelectItem value="Intermediate">Intermediate</SelectItem>
+                              <SelectItem value="Professional">Professional</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => toggleAdminStatus(user.id, user.is_admin)}
+                              >
+                                {user.is_admin ? (
+                                  <>
+                                    <UserX className="w-4 h-4 mr-2" />
+                                    Remove Admin
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserCheck className="w-4 h-4 mr-2" />
+                                    Make Admin
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">
+                                <Ban className="w-4 h-4 mr-2" />
+                                Suspend User
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
-                    );
-                  })}
+                    </Card>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Regional Pricing */}
-          <TabsContent value="regions">
-            <Card className='gradient-card'>
-              <CardHeader>
-                <CardTitle>Regional Price Multipliers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {regions.map((region, index) => {
-                    const multiplierChange = calculatePriceChange(region.multiplier, region.previousMultiplier);
-                    const regionColor = region.multiplier > 1.1 ? 'bg-red-100 text-red-800' : 
-                                      region.multiplier > 1.0 ? 'bg-orange-100 text-orange-800' :
-                                      region.multiplier === 1.0 ? 'bg-green-100 text-green-800' :
-                                      'bg-blue-100 text-blue-800';
-                    
-                    return (
-                      <Card key={index} className="p-4 gradient-card">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-semibold">{region.name}</h4>
-                          <Badge className={regionColor}>
-                            {region.multiplier > 1 ? '+' : ''}{((region.multiplier - 1) * 100).toFixed(0)}%
-                          </Badge>
-                        </div>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Label className="text-sm">Multiplier:</Label>
-                          <Input
-                            type="number"
-                            step="0.05"
-                            value={region.multiplier}
-                            onChange={(e) => updateRegionMultiplier(region.name, parseFloat(e.target.value))}
-                            className="w-24"
-                          />
-                        </div>
-                        {Math.abs(parseFloat(multiplierChange.percentage)) > 0 && (
-                          <p className="text-xs text-gray-500">
-                            Change: {multiplierChange.isIncrease ? '+' : ''}{multiplierChange.percentage}%
-                          </p>
-                        )}
-                      </Card>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Price Alerts */}
-          <TabsContent value="alerts">
-            <Card className='gradient-card'>
+          <TabsContent value="system" className="space-y-6">
+            <Card className="gradient-card">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <AlertTriangle className="w-5 h-5 mr-2 text-yellow-600" />
-                  Price Alerts
+                  <Settings className="w-5 h-5 mr-2" />
+                  System Settings
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {materials.map((material) => {
-                    const priceChange = calculatePriceChange(material.basePrice, material.previousPrice);
-                    if (!priceChange.isSignificant) return null;
-                    
-                    const alertLevel = Math.abs(parseFloat(priceChange.percentage)) >= 15 ? 'HIGH' :
-                                     Math.abs(parseFloat(priceChange.percentage)) >= 10 ? 'MEDIUM' : 'LOW';
-                    const alertColor = alertLevel === 'HIGH' ? 'border-red-200 bg-red-50' :
-                                      alertLevel === 'MEDIUM' ? 'border-yellow-200 bg-yellow-50' :
-                                      'border-green-200 bg-green-50';
-                    const badgeColor = alertLevel === 'HIGH' ? 'bg-red-100 text-red-800' :
-                                      alertLevel === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                                      'bg-green-100 text-green-800';
-                    
-                    return (
-                      <div key={material.id} className={`p-4 border rounded-lg ${alertColor}`}>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-semibold text-gray-900">
-                              {material.name} Price {priceChange.isIncrease ? 'Spike' : 'Drop'}
-                            </h4>
-                            <p className="text-gray-700 text-sm">
-                              Price {priceChange.isIncrease ? 'increased' : 'decreased'} by {Math.abs(parseFloat(priceChange.percentage))}% 
-                              from KSh {material.previousPrice.toLocaleString()} to KSh {material.basePrice.toLocaleString()}
-                            </p>
-                            <p className="text-gray-600 text-xs mt-1">
-                              Triggered: {material.lastUpdated}
-                            </p>
-                          </div>
-                          <Badge className={badgeColor}>{alertLevel}</Badge>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  {materials.filter(m => calculatePriceChange(m.basePrice, m.previousPrice).isSignificant).length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>No significant price changes detected</p>
-                      <p className="text-sm">Alerts will appear when materials change by 5% or more</p>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Platform Configuration</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="p-4">
+                        <h4 className="font-medium mb-2">Default Profit Margins</h4>
+                        <p className="text-sm text-muted-foreground mb-3">Set system-wide default profit margins</p>
+                        <Button variant="outline" size="sm">Configure</Button>
+                      </Card>
+                      
+                      <Card className="p-4">
+                        <h4 className="font-medium mb-2">Regional Pricing</h4>
+                        <p className="text-sm text-muted-foreground mb-3">Manage regional price multipliers</p>
+                        <Button variant="outline" size="sm">Configure</Button>
+                      </Card>
+                      
+                      <Card className="p-4">
+                        <h4 className="font-medium mb-2">Material Prices</h4>
+                        <p className="text-sm text-muted-foreground mb-3">Update base material prices</p>
+                        <Button variant="outline" size="sm">Configure</Button>
+                      </Card>
+                      
+                      <Card className="p-4">
+                        <h4 className="font-medium mb-2">Subscription Tiers</h4>
+                        <p className="text-sm text-muted-foreground mb-3">Manage subscription plans</p>
+                        <Button variant="outline" size="sm">Configure</Button>
+                      </Card>
                     </div>
-                  )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            <Card className="gradient-card">
+              <CardHeader>
+                <CardTitle>Platform Analytics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="p-4">
+                    <h3 className="font-medium mb-4">User Growth</h3>
+                    <div className="h-32 bg-gradient-to-r from-blue-50 to-indigo-50 rounded flex items-center justify-center">
+                      <p className="text-muted-foreground">Chart placeholder</p>
+                    </div>
+                  </Card>
+                  
+                  <Card className="p-4">
+                    <h3 className="font-medium mb-4">Revenue Trends</h3>
+                    <div className="h-32 bg-gradient-to-r from-green-50 to-emerald-50 rounded flex items-center justify-center">
+                      <p className="text-muted-foreground">Chart placeholder</p>
+                    </div>
+                  </Card>
+                  
+                  <Card className="p-4">
+                    <h3 className="font-medium mb-4">Quote Activity</h3>
+                    <div className="h-32 bg-gradient-to-r from-purple-50 to-pink-50 rounded flex items-center justify-center">
+                      <p className="text-muted-foreground">Chart placeholder</p>
+                    </div>
+                  </Card>
+                  
+                  <Card className="p-4">
+                    <h3 className="font-medium mb-4">Regional Distribution</h3>
+                    <div className="h-32 bg-gradient-to-r from-orange-50 to-red-50 rounded flex items-center justify-center">
+                      <p className="text-muted-foreground">Chart placeholder</p>
+                    </div>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Calculator Modal */}
-      <Calculator 
-        isOpen={isCalculatorOpen} 
-        onClose={() => setIsCalculatorOpen(false)} 
-      />
     </div>
   );
 };

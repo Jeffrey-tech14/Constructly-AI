@@ -82,11 +82,11 @@ export const useQuoteCalculations = () => {
       const perimeter = 2 * (params.length + params.width);
       
       // Calculate costs based on volume and other factors
-      const materialsCost = volume * 150000; // 1500 KSh per m3
+      const materialsCost = volume * 15000000; // 150,000 KSh per m3 (stored in cents)
       const laborCost = materialsCost * 0.25; // 25% of materials
-      const equipmentCost = params.selected_equipment.length * 100000 * Math.ceil(volume / 10); // Equipment cost per day
-      const transportCost = params.distance_km * 5000; // 50 KSh per km
-      const servicesCost = params.selected_services.length * 50000; // 500 KSh per service
+      const equipmentCost = params.selected_equipment.length * 10000000 * Math.ceil(volume / 10); // Equipment cost per day (stored in cents)
+      const transportCost = params.distance_km * 500000; // 5,000 KSh per km (stored in cents)
+      const servicesCost = params.selected_services.length * 5000000; // 50,000 KSh per service (stored in cents)
       
       const subtotal = materialsCost + laborCost + equipmentCost + transportCost + servicesCost;
       
@@ -110,21 +110,21 @@ export const useQuoteCalculations = () => {
             {
               name: 'Concrete',
               quantity: Math.ceil(volume * 0.5),
-              unit_price: 25000,
+              unit_price: 2500000, // 25,000 KSh in cents
               total_price: materialsCost * 0.4,
               profit_margin: 15
             },
             {
               name: 'Steel',
               quantity: Math.ceil(volume * 0.1),
-              unit_price: 120000,
+              unit_price: 12000000, // 120,000 KSh in cents
               total_price: materialsCost * 0.3,
               profit_margin: 15
             },
             {
               name: 'Bricks',
               quantity: Math.ceil(perimeter * 100),
-              unit_price: 15,
+              unit_price: 1500, // 15 KSh in cents
               total_price: materialsCost * 0.3,
               profit_margin: 15
             }
@@ -132,12 +132,12 @@ export const useQuoteCalculations = () => {
           equipment: params.selected_equipment.map(id => ({
             name: `Equipment ${id}`,
             days: Math.ceil(volume / 10),
-            daily_rate: 100000,
-            total_cost: 100000 * Math.ceil(volume / 10)
+            daily_rate: 10000000, // 100,000 KSh in cents
+            total_cost: 10000000 * Math.ceil(volume / 10)
           })),
           services: params.selected_services.map(id => ({
             name: `Service ${id}`,
-            price: 50000
+            price: 5000000 // 50,000 KSh in cents
           }))
         }
       };

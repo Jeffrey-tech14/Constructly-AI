@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuoteCalculations, CalculationResult } from '@/hooks/useQuoteCalculations';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useQuotes } from '@/hooks/useQuotes';
-import { usePlanUpload, PlanAnalysis } from '@/hooks/usePlanUpload';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -26,7 +26,6 @@ import {
   Wrench,
   Calculator,
   Truck,
-  Upload,
   Building,
   Bed,
   Bath
@@ -38,11 +37,9 @@ const EnhancedQuoteBuilder = () => {
   const { calculateQuote, loading: calculationLoading } = useQuoteCalculations();
   const { equipmentTypes, additionalServices, loading: settingsLoading } = useUserSettings();
   const { createQuote } = useQuotes();
-  const { uploadPlan, analyzePlan, uploading, analyzing } = usePlanUpload();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
-  const [planAnalysis, setPlanAnalysis] = useState<PlanAnalysis | null>(null);
   const [quoteData, setQuoteData] = useState({
     // Step 1: Project Details
     projectName: '',
@@ -59,7 +56,6 @@ const EnhancedQuoteBuilder = () => {
     length: '',
     width: '',
     height: '',
-    planFileUrl: '',
     
     // Step 3: Contract Type & Distance
     contractType: 'full_contract' as 'full_contract' | 'labor_only',
@@ -115,36 +111,6 @@ const EnhancedQuoteBuilder = () => {
     }
   };
 
-  const handlePlanUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const url = await uploadPlan(file);
-    if (url) {
-      setQuoteData(prev => ({ ...prev, planFileUrl: url }));
-      
-      const analysis = await analyzePlan(url);
-      if (analysis) {
-        setPlanAnalysis(analysis);
-        // Auto-fill data from analysis
-        setQuoteData(prev => ({
-          ...prev,
-          bedrooms: analysis.bedrooms.toString(),
-          bathrooms: analysis.bathrooms.toString(),
-          floors: analysis.floors.toString(),
-          length: Math.sqrt(analysis.totalArea).toFixed(1),
-          width: Math.sqrt(analysis.totalArea).toFixed(1),
-          height: (analysis.estimatedVolume / analysis.totalArea).toFixed(1)
-        }));
-        
-        toast({
-          title: "Plan Analyzed",
-          description: `Detected ${analysis.bedrooms} bedrooms, ${analysis.bathrooms} bathrooms`
-        });
-      }
-    }
-  };
-
   const handleCalculate = async () => {
     try {
       const result = await calculateQuote({
@@ -191,19 +157,7 @@ const EnhancedQuoteBuilder = () => {
         total_amount: Math.round(calculation.total_amount),
         materials: calculation.detailed_breakdown.materials,
         labor: [{ type: 'calculated', percentage: 25, cost: calculation.labor_cost }],
-        addons: calculation.detailed_breakdown.services,
-        distance_km: parseFloat(quoteData.distanceKm || '0'),
-        equipment_costs: Math.round(calculation.equipment_cost),
-        transport_costs: Math.round(calculation.transport_cost),
-        additional_services_cost: Math.round(calculation.services_cost),
-        overall_profit_amount: Math.round(calculation.profit_amount),
-        selected_equipment: calculation.detailed_breakdown.equipment,
-        selected_services: calculation.detailed_breakdown.services,
-        house_type: quoteData.houseType,
-        bedrooms: parseInt(quoteData.bedrooms) || undefined,
-        bathrooms: parseInt(quoteData.bathrooms) || undefined,
-        floors: parseInt(quoteData.floors) || undefined,
-        plan_file_url: quoteData.planFileUrl || undefined
+        addons: calculation.detailed_breakdown.services
       });
       
       toast({
@@ -286,84 +240,6 @@ const EnhancedQuoteBuilder = () => {
       case 2:
         return (
           <div className="space-y-6">
-            {/* Plan Upload Section */}
-            <Card className="border-2 border-dashed border-gray-300 hover:border-primary/50 transition-colors">
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <Upload className="w-5 h-5 mr-2" />
-                  Upload House Plan (Optional)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center">
-                  <input
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.pdf,.dwg"
-                    onChange={handlePlanUpload}
-                    className="hidden"
-                    id="planUpload"
-                  />
-                  <label
-                    htmlFor="planUpload"
-                    className="cursor-pointer flex flex-col items-center space-y-2"
-                  >
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Click to upload plan</p>
-                      <p className="text-xs text-muted-foreground">PNG, JPG, PDF, DWG up to 10MB</p>
-                    </div>
-                  </label>
-                  {uploading && <p className="text-sm text-primary mt-2">Uploading...</p>}
-                  {analyzing && <p className="text-sm text-primary mt-2">Analyzing plan...</p>}
-                  {quoteData.planFileUrl && (
-                    <p className="text-sm text-green-600 mt-2">✓ Plan uploaded successfully</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Plan Analysis Results */}
-            {planAnalysis && (
-              <Card className="bg-blue-50 border-blue-200">
-                <CardHeader>
-                  <CardTitle className="text-blue-800">Plan Analysis Results</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.bedrooms}</p>
-                      <p className="text-sm text-blue-800">Bedrooms</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.bathrooms}</p>
-                      <p className="text-sm text-blue-800">Bathrooms</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.totalArea.toFixed(1)}m²</p>
-                      <p className="text-sm text-blue-800">Total Area</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{planAnalysis.estimatedVolume.toFixed(1)}m³</p>
-                      <p className="text-sm text-blue-800">Est. Volume</p>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-blue-800 mb-2">Detected Rooms:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {planAnalysis.rooms.map((room, index) => (
-                        <div key={index} className="bg-white p-2 rounded text-sm">
-                          <span className="font-medium">{room.type}:</span> {room.length}m × {room.width}m ({room.area.toFixed(1)}m²)
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* House Details Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="houseType">House Type</Label>
@@ -612,7 +488,7 @@ const EnhancedQuoteBuilder = () => {
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="gradient-card">
+              <Card>
                 <CardHeader>
                   <CardTitle>Project Summary</CardTitle>
                 </CardHeader>
@@ -731,7 +607,7 @@ const EnhancedQuoteBuilder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
       {/* Navigation */}
       <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -756,7 +632,7 @@ const EnhancedQuoteBuilder = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Enhanced Quote Builder</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Create accurate construction quotes with advanced calculations and plan analysis</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Create accurate construction quotes with advanced calculations</p>
         </div>
 
         {/* Progress */}
@@ -790,7 +666,7 @@ const EnhancedQuoteBuilder = () => {
         </div>
 
         {/* Step Content */}
-        <Card className="mb-8 gradient-card">
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
               {steps[currentStep - 1].icon}

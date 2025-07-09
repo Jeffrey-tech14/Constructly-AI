@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      additional_services: {
+        Row: {
+          category: string | null
+          created_at: string
+          default_price: number
+          description: string | null
+          id: string
+          name: string
+          unit: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          default_price: number
+          description?: string | null
+          id?: string
+          name: string
+          unit?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          id?: string
+          name?: string
+          unit?: string
+        }
+        Relationships: []
+      }
       addons: {
         Row: {
           created_at: string
@@ -32,6 +62,33 @@ export type Database = {
           id?: string
           name?: string
           price?: number
+        }
+        Relationships: []
+      }
+      equipment_types: {
+        Row: {
+          created_at: string
+          daily_rate: number
+          description: string | null
+          id: string
+          name: string
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate: number
+          description?: string | null
+          id?: string
+          name: string
+          unit?: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number
+          description?: string | null
+          id?: string
+          name?: string
+          unit?: string
         }
         Relationships: []
       }
@@ -93,6 +150,7 @@ export type Database = {
           is_admin: boolean
           location: string | null
           name: string
+          overall_profit_margin: number | null
           phone: string | null
           quotes_used: number
           tier: string
@@ -109,6 +167,7 @@ export type Database = {
           is_admin?: boolean
           location?: string | null
           name: string
+          overall_profit_margin?: number | null
           phone?: string | null
           quotes_used?: number
           tier?: string
@@ -125,6 +184,7 @@ export type Database = {
           is_admin?: boolean
           location?: string | null
           name?: string
+          overall_profit_margin?: number | null
           phone?: string | null
           quotes_used?: number
           tier?: string
@@ -134,71 +194,255 @@ export type Database = {
         }
         Relationships: []
       }
+      project_progress: {
+        Row: {
+          created_at: string
+          id: string
+          milestone_date: string | null
+          notes: string | null
+          progress_percentage: number | null
+          quote_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          milestone_date?: string | null
+          notes?: string | null
+          progress_percentage?: number | null
+          quote_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          milestone_date?: string | null
+          notes?: string | null
+          progress_percentage?: number | null
+          quote_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_progress_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: true
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
+          additional_services_cost: number | null
           addons: Json | null
           addons_cost: number
           client_email: string | null
           client_name: string
           created_at: string
           custom_specs: string | null
+          distance_km: number | null
+          equipment_costs: number | null
           id: string
           labor: Json | null
           labor_cost: number
           location: string
           materials: Json | null
           materials_cost: number
+          overall_profit_amount: number | null
           project_type: string
           region: string
+          selected_equipment: Json | null
+          selected_services: Json | null
           status: string
           title: string
           total_amount: number
+          transport_costs: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          additional_services_cost?: number | null
           addons?: Json | null
           addons_cost?: number
           client_email?: string | null
           client_name: string
           created_at?: string
           custom_specs?: string | null
+          distance_km?: number | null
+          equipment_costs?: number | null
           id?: string
           labor?: Json | null
           labor_cost?: number
           location: string
           materials?: Json | null
           materials_cost?: number
+          overall_profit_amount?: number | null
           project_type: string
           region: string
+          selected_equipment?: Json | null
+          selected_services?: Json | null
           status?: string
           title: string
           total_amount?: number
+          transport_costs?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          additional_services_cost?: number | null
           addons?: Json | null
           addons_cost?: number
           client_email?: string | null
           client_name?: string
           created_at?: string
           custom_specs?: string | null
+          distance_km?: number | null
+          equipment_costs?: number | null
           id?: string
           labor?: Json | null
           labor_cost?: number
           location?: string
           materials?: Json | null
           materials_cost?: number
+          overall_profit_amount?: number | null
           project_type?: string
           region?: string
+          selected_equipment?: Json | null
+          selected_services?: Json | null
           status?: string
           title?: string
           total_amount?: number
+          transport_costs?: number | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      user_equipment_rates: {
+        Row: {
+          created_at: string
+          daily_rate: number
+          equipment_type_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate: number
+          equipment_type_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number
+          equipment_type_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_equipment_rates_equipment_type_id_fkey"
+            columns: ["equipment_type_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_equipment_rates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_service_rates: {
+        Row: {
+          created_at: string
+          id: string
+          price: number
+          service_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price: number
+          service_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price?: number
+          service_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_service_rates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "additional_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_service_rates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_transport_rates: {
+        Row: {
+          base_cost: number
+          cost_per_km: number
+          created_at: string
+          id: string
+          region: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_cost?: number
+          cost_per_km: number
+          created_at?: string
+          id?: string
+          region: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_cost?: number
+          cost_per_km?: number
+          created_at?: string
+          id?: string
+          region?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_transport_rates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

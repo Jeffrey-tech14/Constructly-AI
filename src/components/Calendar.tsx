@@ -32,30 +32,9 @@ const Calendar = () => {
     if (!user) return;
 
     try {
-      // Fetch project progress milestones
-      const { data: progressData } = await supabase
-        .from('project_progress')
-        .select(`
-          id,
-          milestone_date,
-          quote_id,
-          quotes!inner(title, location, user_id)
-        `)
-        .eq('quotes.user_id', user.id)
-        .not('milestone_date', 'is', null);
-
-      const milestoneEvents: CalendarEvent[] = (progressData || []).map(item => ({
-        id: item.id,
-        title: `${item.quotes.title} - Milestone`,
-        date: item.milestone_date!,
-        type: 'milestone' as const,
-        quote_id: item.quote_id,
-        location: item.quotes.location
-      }));
-
-      // Add project start dates from quotes
+      // Create project events from quotes
       const projectEvents: CalendarEvent[] = quotes
-        .filter(quote => quote.status === 'started' || quote.status === 'in_progress')
+        .filter(quote => quote.status === 'started' || quote.status === 'in_progress' || quote.status === 'completed')
         .map(quote => ({
           id: `start-${quote.id}`,
           title: `${quote.title} - Start`,
@@ -65,7 +44,7 @@ const Calendar = () => {
           location: quote.location
         }));
 
-      setEvents([...milestoneEvents, ...projectEvents]);
+      setEvents(projectEvents);
     } catch (error) {
       console.error('Error fetching calendar events:', error);
     }

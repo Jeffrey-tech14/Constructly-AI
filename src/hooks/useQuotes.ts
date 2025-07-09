@@ -13,7 +13,7 @@ export interface Quote {
   region: string;
   project_type: string;
   custom_specs?: string;
-  status: 'draft' | 'pending' | 'approved' | 'rejected';
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'started' | 'in_progress' | 'completed';
   materials_cost: number;
   labor_cost: number;
   addons_cost: number;
@@ -23,6 +23,24 @@ export interface Quote {
   addons: any[];
   created_at: string;
   updated_at: string;
+  // Additional fields for enhanced functionality
+  distance_km?: number;
+  equipment_costs?: number;
+  transport_costs?: number;
+  additional_services_cost?: number;
+  overall_profit_amount?: number;
+  selected_equipment?: any[];
+  selected_services?: any[];
+  house_length?: number;
+  house_width?: number;
+  house_height?: number;
+  total_volume?: number;
+  contract_type?: 'full_contract' | 'labor_only';
+  house_type?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  floors?: number;
+  plan_file_url?: string;
 }
 
 export const useQuotes = () => {
@@ -65,12 +83,14 @@ export const useQuotes = () => {
       // Type cast the data to ensure proper types
       const quotesData: Quote[] = (data || []).map(item => ({
         ...item,
-        status: (item.status as 'draft' | 'pending' | 'approved' | 'rejected') || 'draft',
+        status: item.status as Quote['status'],
         client_email: item.client_email || undefined,
         custom_specs: item.custom_specs || undefined,
         materials: Array.isArray(item.materials) ? item.materials : [],
         labor: Array.isArray(item.labor) ? item.labor : [],
         addons: Array.isArray(item.addons) ? item.addons : [],
+        selected_equipment: Array.isArray(item.selected_equipment) ? item.selected_equipment : [],
+        selected_services: Array.isArray(item.selected_services) ? item.selected_services : [],
       }));
       
       console.log('Quotes fetched successfully:', quotesData.length);
@@ -100,12 +120,14 @@ export const useQuotes = () => {
     // Type cast the returned data
     const newQuote: Quote = {
       ...data,
-      status: (data.status as 'draft' | 'pending' | 'approved' | 'rejected') || 'draft',
+      status: data.status as Quote['status'],
       client_email: data.client_email || undefined,
       custom_specs: data.custom_specs || undefined,
       materials: Array.isArray(data.materials) ? data.materials : [],
       labor: Array.isArray(data.labor) ? data.labor : [],
       addons: Array.isArray(data.addons) ? data.addons : [],
+      selected_equipment: Array.isArray(data.selected_equipment) ? data.selected_equipment : [],
+      selected_services: Array.isArray(data.selected_services) ? data.selected_services : [],
     };
     
     setQuotes(prev => [newQuote, ...prev]);
@@ -125,12 +147,14 @@ export const useQuotes = () => {
     // Type cast the returned data
     const updatedQuote: Quote = {
       ...data,
-      status: (data.status as 'draft' | 'pending' | 'approved' | 'rejected') || 'draft',
+      status: data.status as Quote['status'],
       client_email: data.client_email || undefined,
       custom_specs: data.custom_specs || undefined,
       materials: Array.isArray(data.materials) ? data.materials : [],
       labor: Array.isArray(data.labor) ? data.labor : [],
       addons: Array.isArray(data.addons) ? data.addons : [],
+      selected_equipment: Array.isArray(data.selected_equipment) ? data.selected_equipment : [],
+      selected_services: Array.isArray(data.selected_services) ? data.selected_services : [],
     };
     
     setQuotes(prev => prev.map(quote => quote.id === id ? updatedQuote : quote));

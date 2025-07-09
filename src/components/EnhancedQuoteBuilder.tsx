@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -193,11 +192,6 @@ const EnhancedQuoteBuilder = () => {
         materials: calculation.detailed_breakdown.materials,
         labor: [{ type: 'calculated', percentage: 25, cost: calculation.labor_cost }],
         addons: calculation.detailed_breakdown.services,
-        house_length: parseFloat(quoteData.length),
-        house_width: parseFloat(quoteData.width),
-        house_height: parseFloat(quoteData.height),
-        total_volume: calculation.volume,
-        contract_type: quoteData.contractType,
         distance_km: parseFloat(quoteData.distanceKm || '0'),
         equipment_costs: Math.round(calculation.equipment_cost),
         transport_costs: Math.round(calculation.transport_cost),
@@ -206,10 +200,10 @@ const EnhancedQuoteBuilder = () => {
         selected_equipment: calculation.detailed_breakdown.equipment,
         selected_services: calculation.detailed_breakdown.services,
         house_type: quoteData.houseType,
-        bedrooms: parseInt(quoteData.bedrooms) || null,
-        bathrooms: parseInt(quoteData.bathrooms) || null,
-        floors: parseInt(quoteData.floors) || null,
-        plan_file_url: quoteData.planFileUrl || null
+        bedrooms: parseInt(quoteData.bedrooms) || undefined,
+        bathrooms: parseInt(quoteData.bathrooms) || undefined,
+        floors: parseInt(quoteData.floors) || undefined,
+        plan_file_url: quoteData.planFileUrl || undefined
       });
       
       toast({

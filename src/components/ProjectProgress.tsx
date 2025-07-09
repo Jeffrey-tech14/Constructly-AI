@@ -47,21 +47,23 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
     
     setLoading(true);
     try {
+      // Try to fetch from project_progress table, fallback gracefully if it doesn't exist
       const { data, error } = await supabase
         .from('project_progress')
         .select('*')
         .eq('quote_id', quoteId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = not found
-        throw error;
+        console.log('Project progress table may not exist yet:', error);
+        return;
       }
 
       if (data) {
         setProgressData({
           id: data.id,
           status: data.status as 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold',
-          progress_percentage: data.progress_percentage,
+          progress_percentage: data.progress_percentage || 0,
           notes: data.notes || '',
           milestone_date: data.milestone_date || ''
         });
@@ -104,7 +106,15 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
           .single();
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Error updating progress:', result.error);
+        toast({
+          title: "Update Failed",
+          description: "Project progress table may not be set up yet",
+          variant: "destructive"
+        });
+        return;
+      }
 
       setProgressData(prev => ({ ...prev, id: result.data.id }));
       

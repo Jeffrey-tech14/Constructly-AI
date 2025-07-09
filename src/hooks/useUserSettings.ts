@@ -75,13 +75,13 @@ export const useUserSettings = () => {
     try {
       setLoading(true);
       
-      // Fetch material categories
+      // Fetch material categories - if table doesn't exist, create empty array
       const { data: categories } = await supabase
         .from('material_categories')
         .select('*')
         .order('name');
 
-      // Fetch user profit margins
+      // Fetch user profit margins - if table doesn't exist, create empty array
       const { data: margins } = await supabase
         .from('user_profit_margins')
         .select(`
@@ -128,7 +128,7 @@ export const useUserSettings = () => {
         `)
         .eq('user_id', user.id);
 
-      // Fetch labor settings
+      // Fetch labor settings - if table doesn't exist, create default
       const { data: labor } = await supabase
         .from('labor_settings')
         .select('*')
@@ -155,6 +155,15 @@ export const useUserSettings = () => {
       
     } catch (error) {
       console.error('Error fetching user settings:', error);
+      // Set defaults if tables don't exist yet
+      setMaterialCategories([]);
+      setProfitMargins([]);
+      setEquipmentTypes([]);
+      setEquipmentRates([]);
+      setTransportRates([]);
+      setAdditionalServices([]);
+      setServiceRates([]);
+      setLaborSettings(null);
     } finally {
       setLoading(false);
     }

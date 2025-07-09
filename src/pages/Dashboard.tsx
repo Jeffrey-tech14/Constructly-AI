@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Calculator as CalculatorIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuotes } from '@/hooks/useQuotes';
 import Calculator from '@/components/Calculator';
@@ -13,6 +15,7 @@ const Dashboard = () => {
   const { user, profile } = useAuth();
   const { quotes } = useQuotes();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
   if (!user) {
     return <div>Please log in to access the dashboard.</div>;
@@ -131,6 +134,14 @@ const Dashboard = () => {
                     <span>Total Projects</span>
                     <span className="font-medium">{profile?.total_projects || 0}</span>
                   </div>
+                  <Button 
+                    onClick={() => setIsCalculatorOpen(true)}
+                    className="w-full mt-4"
+                    variant="outline"
+                  >
+                    <CalculatorIcon className="w-4 h-4 mr-2" />
+                    Quick Calculator
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -138,7 +149,20 @@ const Dashboard = () => {
         </TabsContent>
 
         <TabsContent value="calculator" className="mt-6">
-          <Calculator />
+          <Card>
+            <CardHeader>
+              <CardTitle>Construction Calculator</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => setIsCalculatorOpen(true)}
+                className="w-full"
+              >
+                <CalculatorIcon className="w-4 h-4 mr-2" />
+                Open Calculator
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="reports" className="mt-6">
@@ -153,6 +177,11 @@ const Dashboard = () => {
           <DashboardSettings />
         </TabsContent>
       </Tabs>
+
+      <Calculator 
+        isOpen={isCalculatorOpen} 
+        onClose={() => setIsCalculatorOpen(false)} 
+      />
     </div>
   );
 };

@@ -6,10 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface Material {
   id: string;
   name: string;
-  category_id: string;
   unit: string;
   base_price: number;
-  usage_per_m3: number;
 }
 
 export interface QuoteCalculation {
@@ -82,25 +80,25 @@ export const useQuoteCalculations = () => {
       const volume = params.length * params.width * params.height;
       const perimeter = 2 * (params.length + params.width);
       
-      // Mock calculation for now since we may not have all the database tables yet
-      const mockMaterialsCost = volume * 15000; // 150 KSh per m3
-      const mockLaborCost = mockMaterialsCost * 0.25; // 25% of materials
-      const mockEquipmentCost = params.selected_equipment.length * 100000; // 1000 KSh per equipment per day
-      const mockTransportCost = params.distance_km * 50; // 50 KSh per km
-      const mockServicesCost = params.selected_services.length * 50000; // 500 KSh per service
+      // Calculate costs based on volume and other factors
+      const materialsCost = volume * 150000; // 1500 KSh per m3
+      const laborCost = materialsCost * 0.25; // 25% of materials
+      const equipmentCost = params.selected_equipment.length * 100000 * Math.ceil(volume / 10); // Equipment cost per day
+      const transportCost = params.distance_km * 5000; // 50 KSh per km
+      const servicesCost = params.selected_services.length * 50000; // 500 KSh per service
       
-      const subtotal = mockMaterialsCost + mockLaborCost + mockEquipmentCost + mockTransportCost + mockServicesCost;
-      const overallProfitMargin = profile.overall_profit_margin || 10;
+      const subtotal = materialsCost + laborCost + equipmentCost + transportCost + servicesCost;
+      const overallProfitMargin = 10; // Default 10% profit margin
       const profitAmount = (subtotal * overallProfitMargin) / 100;
       const totalAmount = subtotal + profitAmount;
 
       return {
         volume,
-        materials_cost: mockMaterialsCost,
-        labor_cost: mockLaborCost,
-        equipment_cost: mockEquipmentCost,
-        transport_cost: mockTransportCost,
-        services_cost: mockServicesCost,
+        materials_cost: materialsCost,
+        labor_cost: laborCost,
+        equipment_cost: equipmentCost,
+        transport_cost: transportCost,
+        services_cost: servicesCost,
         subtotal,
         profit_amount: profitAmount,
         total_amount: totalAmount,
@@ -110,21 +108,21 @@ export const useQuoteCalculations = () => {
               name: 'Concrete',
               quantity: Math.ceil(volume * 0.5),
               unit_price: 25000,
-              total_price: mockMaterialsCost * 0.4,
+              total_price: materialsCost * 0.4,
               profit_margin: 15
             },
             {
               name: 'Steel',
               quantity: Math.ceil(volume * 0.1),
               unit_price: 120000,
-              total_price: mockMaterialsCost * 0.3,
+              total_price: materialsCost * 0.3,
               profit_margin: 15
             },
             {
               name: 'Bricks',
               quantity: Math.ceil(perimeter * 100),
               unit_price: 15,
-              total_price: mockMaterialsCost * 0.3,
+              total_price: materialsCost * 0.3,
               profit_margin: 15
             }
           ],

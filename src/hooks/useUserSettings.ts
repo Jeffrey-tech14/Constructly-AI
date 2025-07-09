@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -46,14 +46,14 @@ export const useUserSettings = () => {
   const [serviceRates, setServiceRates] = useState<UserServiceRate[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchEquipmentTypes = async () => {
+  const fetchEquipmentTypes = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('equipment_types')
         .select('*')
         .order('name');
       
-      if (data) {
+      if (data && data.length > 0) {
         setEquipmentTypes(data);
       } else {
         // Fallback to mock data if no data in database
@@ -76,16 +76,16 @@ export const useUserSettings = () => {
       ];
       setEquipmentTypes(mockEquipment);
     }
-  };
+  }, []);
 
-  const fetchAdditionalServices = async () => {
+  const fetchAdditionalServices = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('additional_services')
         .select('*')
         .order('name');
       
-      if (data) {
+      if (data && data.length > 0) {
         setAdditionalServices(data);
       } else {
         // Fallback to mock data
@@ -112,9 +112,9 @@ export const useUserSettings = () => {
       ];
       setAdditionalServices(mockServices);
     }
-  };
+  }, []);
 
-  const fetchUserRates = async () => {
+  const fetchUserRates = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -144,7 +144,7 @@ export const useUserSettings = () => {
     } catch (error) {
       console.error('Error fetching user rates:', error);
     }
-  };
+  }, [user?.id]);
 
   const updateEquipmentRate = async (equipmentTypeId: string, rate: number) => {
     if (!user) return { error: 'User not authenticated' };
@@ -241,6 +241,8 @@ export const useUserSettings = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
+      
       setLoading(true);
       await Promise.all([
         fetchEquipmentTypes(),
@@ -251,7 +253,7 @@ export const useUserSettings = () => {
     };
     
     fetchData();
-  }, [user]);
+  }, [fetchEquipmentTypes, fetchAdditionalServices, fetchUserRates]);
 
   return {
     equipmentTypes,

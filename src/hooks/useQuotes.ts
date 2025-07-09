@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -48,7 +48,7 @@ export const useQuotes = () => {
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
 
-  const fetchQuotes = async (retryCount = 0) => {
+  const fetchQuotes = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -57,11 +57,6 @@ export const useQuotes = () => {
     try {
       setLoading(true);
       console.log('Fetching quotes for user:', user.id, 'is_admin:', profile?.is_admin);
-      
-      // Add delay for retries
-      if (retryCount > 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-      }
       
       let query = supabase.from('quotes').select('*');
       
@@ -73,11 +68,9 @@ export const useQuotes = () => {
       const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) {
-        if (error.code === '42P17' && retryCount < 3) {
-          console.log(`Retrying quotes fetch, attempt ${retryCount + 1}`);
-          return fetchQuotes(retryCount + 1);
-        }
-        throw error;
+        console.error('Error fetching quotes:', error);
+        setQuotes([]);
+        return;
       }
       
       // Type cast the data to ensure proper types
@@ -97,14 +90,11 @@ export const useQuotes = () => {
       setQuotes(quotesData);
     } catch (error) {
       console.error('Error fetching quotes:', error);
-      // Don't throw error to prevent component from crashing
-      if (retryCount >= 3) {
-        setQuotes([]);
-      }
+      setQuotes([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, profile?.is_admin]);
 
   const createQuote = async (quoteData: Omit<Quote, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     if (!user) throw new Error('User not authenticated');
@@ -172,17 +162,11 @@ export const useQuotes = () => {
   };
 
   useEffect(() => {
-    // Only fetch quotes if we have both user and profile data
+    // Only fetch quotes once when user and profile are available
     if (user && profile !== null) {
       fetchQuotes();
-    } else if (user && profile === null) {
-      // If we have user but no profile yet, wait a bit
-      const timer = setTimeout(() => {
-        fetchQuotes();
-      }, 1000);
-      return () => clearTimeout(timer);
     }
-  }, [user, profile?.is_admin]);
+  }, [fetchQuotes]);
 
   return {
     quotes,

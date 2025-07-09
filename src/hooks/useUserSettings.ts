@@ -3,31 +3,22 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-export interface MaterialCategory {
-  id: string;
-  name: string;
-  description?: string;
-}
-
-export interface UserProfitMargin {
-  id: string;
-  category_id: string;
-  profit_percentage: number;
-  category_name?: string;
-}
-
 export interface EquipmentType {
   id: string;
   name: string;
   daily_rate: number;
   description?: string;
+  unit: string;
+  created_at: string;
 }
 
 export interface UserEquipmentRate {
   id: string;
   equipment_type_id: string;
   daily_rate: number;
-  equipment_name?: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserTransportRate {
@@ -35,6 +26,9 @@ export interface UserTransportRate {
   region: string;
   cost_per_km: number;
   base_cost: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AdditionalService {
@@ -43,31 +37,27 @@ export interface AdditionalService {
   default_price: number;
   description?: string;
   category: string;
+  unit: string;
+  created_at: string;
 }
 
 export interface UserServiceRate {
   id: string;
   service_id: string;
   price: number;
-  service_name?: string;
-}
-
-export interface LaborSetting {
-  id: string;
-  labor_percentage_of_materials: number;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useUserSettings = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [materialCategories, setMaterialCategories] = useState<MaterialCategory[]>([]);
-  const [profitMargins, setProfitMargins] = useState<UserProfitMargin[]>([]);
   const [equipmentTypes, setEquipmentTypes] = useState<EquipmentType[]>([]);
   const [equipmentRates, setEquipmentRates] = useState<UserEquipmentRate[]>([]);
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
   const [additionalServices, setAdditionalServices] = useState<AdditionalService[]>([]);
   const [serviceRates, setServiceRates] = useState<UserServiceRate[]>([]);
-  const [laborSettings, setLaborSettings] = useState<LaborSetting | null>(null);
 
   const fetchSettings = async () => {
     if (!user) return;
@@ -75,101 +65,114 @@ export const useUserSettings = () => {
     try {
       setLoading(true);
       
-      // Fetch equipment types - these exist in the database
-      const { data: equipment } = await supabase
+      // Fetch equipment types
+      const { data: equipment, error: equipmentError } = await supabase
         .from('equipment_types')
         .select('*')
         .order('name');
 
-      // Fetch user equipment rates - these exist in the database
-      const { data: userEquipment } = await supabase
+      if (equipmentError) {
+        console.error('Error fetching equipment types:', equipmentError);
+      } else {
+        setEquipmentTypes(equipment || []);
+      }
+
+      // Fetch user equipment rates
+      const { data: userEquipment, error: userEquipmentError } = await supabase
         .from('user_equipment_rates')
-        .select(`
-          *,
-          equipment_types!inner(name)
-        `)
+        .select('*')
         .eq('user_id', user.id);
 
-      // Fetch user transport rates - these exist in the database
-      const { data: transport } = await supabase
+      if (userEquipmentError) {
+        console.error('Error fetching user equipment rates:', userEquipmentError);
+      } else {
+        setEquipmentRates(userEquipment || []);
+      }
+
+      // Fetch user transport rates
+      const { data: transport, error: transportError } = await supabase
         .from('user_transport_rates')
         .select('*')
         .eq('user_id', user.id)
         .order('region');
 
-      // Fetch additional services - these exist in the database
-      const { data: services } = await supabase
+      if (transportError) {
+        console.error('Error fetching transport rates:', transportError);
+      } else {
+        setTransportRates(transport || []);
+      }
+
+      // Fetch additional services
+      const { data: services, error: servicesError } = await supabase
         .from('additional_services')
         .select('*')
         .order('category', { ascending: true })
         .order('name', { ascending: true });
 
-      // Fetch user service rates - these exist in the database
-      const { data: userServices } = await supabase
+      if (servicesError) {
+        console.error('Error fetching additional services:', servicesError);
+      } else {
+        setAdditionalServices(services || []);
+      }
+
+      // Fetch user service rates
+      const { data: userServices, error: userServicesError } = await supabase
         .from('user_service_rates')
-        .select(`
-          *,
-          additional_services!inner(name)
-        `)
+        .select('*')
         .eq('user_id', user.id);
 
-      // Set default empty arrays for non-existent tables
-      setMaterialCategories([]);
-      setProfitMargins([]);
-      setEquipmentTypes(equipment || []);
-      setEquipmentRates((userEquipment || []).map(e => ({
-        ...e,
-        equipment_name: e.equipment_types?.name
-      })));
-      setTransportRates(transport || []);
-      setAdditionalServices(services || []);
-      setServiceRates((userServices || []).map(s => ({
-        ...s,
-        service_name: s.additional_services?.name
-      })));
-      setLaborSettings({ id: 'default', labor_percentage_of_materials: 25 });
+      if (userServicesError) {
+        console.error('Error fetching user service rates:', userServicesError);
+      } else {
+        setServiceRates(userServices || []);
+      }
       
     } catch (error) {
       console.error('Error fetching user settings:', error);
-      // Set defaults if tables don't exist yet
-      setMaterialCategories([]);
-      setProfitMargins([]);
-      setEquipmentTypes([]);
-      setEquipmentRates([]);
-      setTransportRates([]);
-      setAdditionalServices([]);
-      setServiceRates([]);
-      setLaborSettings({ id: 'default', labor_percentage_of_materials: 25 });
     } finally {
       setLoading(false);
     }
-  };
-
-  const updateProfitMargin = async (categoryId: string, percentage: number) => {
-    // Mock function since table doesn't exist
-    console.log('Mock update profit margin:', categoryId, percentage);
-    return { error: null };
   };
 
   const updateEquipmentRate = async (equipmentTypeId: string, dailyRate: number) => {
     if (!user) return { error: new Error('User not authenticated') };
     
     try {
-      const { error } = await supabase
-        .from('user_equipment_rates')
-        .update({ daily_rate: dailyRate })
-        .eq('user_id', user.id)
-        .eq('equipment_type_id', equipmentTypeId);
-
-      if (!error) {
-        setEquipmentRates(prev => prev.map(rate => 
-          rate.equipment_type_id === equipmentTypeId 
-            ? { ...rate, daily_rate: dailyRate }
-            : rate
-        ));
-      }
+      // Check if rate exists, update or insert
+      const existingRate = equipmentRates.find(r => r.equipment_type_id === equipmentTypeId);
       
-      return { error };
+      if (existingRate) {
+        const { error } = await supabase
+          .from('user_equipment_rates')
+          .update({ daily_rate: dailyRate * 100 }) // Convert to cents
+          .eq('id', existingRate.id);
+
+        if (!error) {
+          setEquipmentRates(prev => prev.map(rate => 
+            rate.id === existingRate.id 
+              ? { ...rate, daily_rate: dailyRate * 100 }
+              : rate
+          ));
+        }
+        
+        return { error };
+      } else {
+        const { data, error } = await supabase
+          .from('user_equipment_rates')
+          .insert([{
+            user_id: user.id,
+            equipment_type_id: equipmentTypeId,
+            daily_rate: dailyRate * 100
+          }])
+          .select()
+          .single();
+
+        if (!error && data) {
+          setEquipmentRates(prev => [...prev, data]);
+        }
+        
+        return { error };
+      }
     } catch (error) {
       return { error };
     }
@@ -179,21 +182,44 @@ export const useUserSettings = () => {
     if (!user) return { error: new Error('User not authenticated') };
     
     try {
-      const { error } = await supabase
-        .from('user_transport_rates')
-        .update({ cost_per_km: costPerKm, base_cost: baseCost })
-        .eq('user_id', user.id)
-        .eq('region', region);
-
-      if (!error) {
-        setTransportRates(prev => prev.map(rate => 
-          rate.region === region 
-            ? { ...rate, cost_per_km: costPerKm, base_cost: baseCost }
-            : rate
-        ));
-      }
+      const existingRate = transportRates.find(r => r.region === region);
       
-      return { error };
+      if (existingRate) {
+        const { error } = await supabase
+          .from('user_transport_rates')
+          .update({ 
+            cost_per_km: costPerKm * 100, 
+            base_cost: baseCost * 100 
+          })
+          .eq('id', existingRate.id);
+
+        if (!error) {
+          setTransportRates(prev => prev.map(rate => 
+            rate.id === existingRate.id 
+              ? { ...rate, cost_per_km: costPerKm * 100, base_cost: baseCost * 100 }
+              : rate
+          ));
+        }
+        
+        return { error };
+      } else {
+        const { data, error } = await supabase
+          .from('user_transport_rates')
+          .insert([{
+            user_id: user.id,
+            region,
+            cost_per_km: costPerKm * 100,
+            base_cost: baseCost * 100
+          }])
+          .select()
+          .single();
+
+        if (!error && data) {
+          setTransportRates(prev => [...prev, data]);
+        }
+        
+        return { error };
+      }
     } catch (error) {
       return { error };
     }
@@ -203,33 +229,43 @@ export const useUserSettings = () => {
     if (!user) return { error: new Error('User not authenticated') };
     
     try {
-      const { error } = await supabase
-        .from('user_service_rates')
-        .update({ price })
-        .eq('user_id', user.id)
-        .eq('service_id', serviceId);
-
-      if (!error) {
-        setServiceRates(prev => prev.map(rate => 
-          rate.service_id === serviceId 
-            ? { ...rate, price }
-            : rate
-        ));
-      }
+      const existingRate = serviceRates.find(r => r.service_id === serviceId);
       
-      return { error };
+      if (existingRate) {
+        const { error } = await supabase
+          .from('user_service_rates')
+          .update({ price: price * 100 })
+          .eq('id', existingRate.id);
+
+        if (!error) {
+          setServiceRates(prev => prev.map(rate => 
+            rate.id === existingRate.id 
+              ? { ...rate, price: price * 100 }
+              : rate
+          ));
+        }
+        
+        return { error };
+      } else {
+        const { data, error } = await supabase
+          .from('user_service_rates')
+          .insert([{
+            user_id: user.id,
+            service_id: serviceId,
+            price: price * 100
+          }])
+          .select()
+          .single();
+
+        if (!error && data) {
+          setServiceRates(prev => [...prev, data]);
+        }
+        
+        return { error };
+      }
     } catch (error) {
       return { error };
     }
-  };
-
-  const updateLaborSettings = async (laborPercentage: number) => {
-    // Mock function since table doesn't exist
-    console.log('Mock update labor settings:', laborPercentage);
-    if (laborSettings) {
-      setLaborSettings({ ...laborSettings, labor_percentage_of_materials: laborPercentage });
-    }
-    return { error: null };
   };
 
   const updateOverallProfitMargin = async (margin: number) => {
@@ -253,19 +289,14 @@ export const useUserSettings = () => {
 
   return {
     loading,
-    materialCategories,
-    profitMargins,
     equipmentTypes,
     equipmentRates,
     transportRates,
     additionalServices,
     serviceRates,
-    laborSettings,
-    updateProfitMargin,
     updateEquipmentRate,
     updateTransportRate,
     updateServiceRate,
-    updateLaborSettings,
     updateOverallProfitMargin,
     refetch: fetchSettings
   };

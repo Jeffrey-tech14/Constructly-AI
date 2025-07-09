@@ -8,6 +8,7 @@ export interface Material {
   name: string;
   unit: string;
   base_price: number;
+  created_at: string;
 }
 
 export interface QuoteCalculation {
@@ -88,7 +89,9 @@ export const useQuoteCalculations = () => {
       const servicesCost = params.selected_services.length * 50000; // 500 KSh per service
       
       const subtotal = materialsCost + laborCost + equipmentCost + transportCost + servicesCost;
-      const overallProfitMargin = 10; // Default 10% profit margin
+      
+      // Get profit margin from profile, default to 10%
+      const overallProfitMargin = (profile.overall_profit_margin as number) || 10;
       const profitAmount = (subtotal * overallProfitMargin) / 100;
       const totalAmount = subtotal + profitAmount;
 

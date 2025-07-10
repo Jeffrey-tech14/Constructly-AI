@@ -1,6 +1,8 @@
-
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { Quote } from '@/hooks/useQuotes';
+import { Button } from '@/components/ui/button';
+import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText } from 'lucide-react';
 
 // Create styles with green theme
 const styles = StyleSheet.create({
@@ -121,13 +123,17 @@ const styles = StyleSheet.create({
 
 interface PDFGeneratorProps {
   quote: Quote;
+  contractorName?: string;
+  contractorCompany?: string;
+  contractorPhone?: string;
+  contractorEmail?: string;
 }
 
 const formatCurrency = (amount: number) => {
   return `KSh ${(amount / 100).toLocaleString()}`;
 };
 
-export const QuotePDF = ({ quote }: PDFGeneratorProps) => (
+export const QuotePDF = ({ quote }: { quote: Quote }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
@@ -345,3 +351,45 @@ export const generateQuotePDF = async (quote: Quote) => {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 };
+
+const PDFGenerator = ({ quote, contractorName, contractorCompany, contractorPhone, contractorEmail }: PDFGeneratorProps) => {
+  const handleGeneratePDF = async () => {
+    await generateQuotePDF(quote);
+  };
+
+  return (
+    <div className="space-y-4">
+      <DialogHeader>
+        <DialogTitle>Generate PDF Quote</DialogTitle>
+      </DialogHeader>
+      
+      <div className="space-y-4">
+        <div className="p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-medium mb-2">Quote Details</h4>
+          <div className="text-sm space-y-1">
+            <p><strong>Title:</strong> {quote.title}</p>
+            <p><strong>Client:</strong> {quote.client_name}</p>
+            <p><strong>Total:</strong> {formatCurrency(quote.total_amount)}</p>
+          </div>
+        </div>
+
+        <div className="p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-medium mb-2">Contractor Information</h4>
+          <div className="text-sm space-y-1">
+            <p><strong>Name:</strong> {contractorName || 'Not provided'}</p>
+            <p><strong>Company:</strong> {contractorCompany || 'Not provided'}</p>
+            <p><strong>Phone:</strong> {contractorPhone || 'Not provided'}</p>
+            <p><strong>Email:</strong> {contractorEmail || 'Not provided'}</p>
+          </div>
+        </div>
+
+        <Button onClick={handleGeneratePDF} className="w-full">
+          <FileText className="w-4 h-4 mr-2" />
+          Generate & Download PDF
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default PDFGenerator;

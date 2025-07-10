@@ -241,8 +241,8 @@ const Calendar = () => {
               ) : (
                 <p className="text-sm text-muted-foreground">No upcoming events</p>
               )}
-            </div>
-          </CardContent>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

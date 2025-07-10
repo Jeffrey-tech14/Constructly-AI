@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calculator as CalculatorIcon, X } from 'lucide-react';
 
 interface CalculatorProps {
@@ -31,7 +30,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onValueChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="gradient-card animate-scale-in">
         <DialogHeader>
           <DialogTitle className="flex items-center">

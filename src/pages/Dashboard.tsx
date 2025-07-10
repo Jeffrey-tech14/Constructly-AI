@@ -10,7 +10,7 @@ import {
   Eye, 
   BarChart, 
   Settings, 
-  Calendar,
+  Calendar as CalendarIcon,
   TrendingUp,
   FileText,
   Users,
@@ -24,7 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuotes } from '@/hooks/useQuotes';
 import Calculator from '@/components/Calculator';
 import Reports from '@/components/Reports';
-import Calendar from '@/components/Calendar';
+import CalendarComponent from '@/components/Calendar';
 import DashboardSettings from '@/components/DashboardSettings';
 
 const Dashboard = () => {
@@ -198,7 +198,7 @@ const Dashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fade-in">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="overview" className="flex items-center">
               <BarChart className="w-4 h-4 mr-2" />
               Overview
@@ -208,7 +208,7 @@ const Dashboard = () => {
               Reports
             </TabsTrigger>
             <TabsTrigger value="calendar" className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2" />
+              <CalendarIcon className="w-4 h-4 mr-2" />
               Calendar
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center">
@@ -293,7 +293,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <Calendar />
+            <CalendarComponent />
           </TabsContent>
 
           <TabsContent value="settings">

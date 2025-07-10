@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { MaterialPricesDialog, RegionalPricingDialog } from '@/components/AdminConfigDialogs';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   Users, 
   DollarSign, 
@@ -46,17 +48,20 @@ interface DashboardStats {
   totalRevenue: number;
   totalQuotes: number;
   activeProjects: number;
+  subscriptionRevenue: number;
 }
 
 const AdminDashboard = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [quotes, setQuotes] = useState<any[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalRevenue: 0,
     totalQuotes: 0,
-    activeProjects: 0
+    activeProjects: 0,
+    subscriptionRevenue: 0
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,29 +76,33 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch all users
-      const { data: usersData } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch all users and quotes
+      const [usersResponse, quotesResponse] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('quotes').select('*')
+      ]);
 
-      // Fetch quotes for stats
-      const { data: quotesData } = await supabase
-        .from('quotes')
-        .select('total_amount, status');
+      const usersData = usersResponse.data || [];
+      const quotesData = quotesResponse.data || [];
 
       // Calculate stats
-      const totalUsers = usersData?.length || 0;
-      const totalRevenue = quotesData?.reduce((sum, quote) => sum + quote.total_amount, 0) || 0;
-      const totalQuotes = quotesData?.length || 0;
-      const activeProjects = quotesData?.filter(q => q.status === 'started' || q.status === 'in_progress').length || 0;
+      const totalUsers = usersData.length;
+      const activeQuotes = quotesData.filter(q => q.status !== 'draft');
+      const totalRevenue = activeQuotes.reduce((sum, quote) => sum + quote.total_amount, 0);
+      const totalQuotes = quotesData.length;
+      const activeProjects = quotesData.filter(q => q.status === 'started' || q.status === 'in_progress').length;
+      
+      // Mock subscription revenue calculation (you can implement actual subscription logic)
+      const subscriptionRevenue = usersData.filter(u => u.tier !== 'Free').length * 5000000; // 50,000 KSh per paid user
 
-      setUsers(usersData || []);
+      setUsers(usersData);
+      setQuotes(quotesData);
       setStats({
         totalUsers,
         totalRevenue,
         totalQuotes,
-        activeProjects
+        activeProjects,
+        subscriptionRevenue
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -166,6 +175,35 @@ const AdminDashboard = () => {
     return matchesSearch && matchesTier;
   });
 
+  // Chart data
+  const monthlyData = quotes.reduce((acc, quote) => {
+    const month = new Date(quote.created_at).toLocaleDateString('en-US', { month: 'short' });
+    const existing = acc.find(item => item.name === month);
+    if (existing) {
+      existing.quotes += 1;
+      if (quote.status !== 'draft') {
+        existing.revenue += quote.total_amount / 100;
+      }
+    } else {
+      acc.push({
+        name: month,
+        quotes: 1,
+        revenue: quote.status !== 'draft' ? quote.total_amount / 100 : 0
+      });
+    }
+    return acc;
+  }, [] as any[]).slice(-6);
+
+  const tierData = users.reduce((acc, user) => {
+    const existing = acc.find(item => item.name === user.tier);
+    if (existing) {
+      existing.value += 1;
+    } else {
+      acc.push({ name: user.tier, value: 1 });
+    }
+    return acc;
+  }, [] as any[]);
+
   if (!profile?.is_admin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -186,7 +224,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
+    <div className="min-h-screen gradient-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
@@ -194,7 +232,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card className="gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -208,12 +246,23 @@ const AdminDashboard = () => {
 
           <Card className="gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">Project Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">KSh {(stats.totalRevenue / 100).toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Platform revenue</p>
+              <p className="text-xs text-muted-foreground">From active projects</p>
+            </CardContent>
+          </Card>
+
+          <Card className="gradient-card">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Subscription Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">KSh {(stats.subscriptionRevenue / 100).toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Monthly subscriptions</p>
             </CardContent>
           </Card>
 
@@ -375,26 +424,26 @@ const AdminDashboard = () => {
                     <h3 className="text-lg font-medium mb-4">Platform Configuration</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Card className="p-4">
-                        <h4 className="font-medium mb-2">Default Profit Margins</h4>
-                        <p className="text-sm text-muted-foreground mb-3">Set system-wide default profit margins</p>
-                        <Button variant="outline" size="sm">Configure</Button>
+                        <h4 className="font-medium mb-2">Material Base Prices</h4>
+                        <p className="text-sm text-muted-foreground mb-3">Manage base material prices for all contractors</p>
+                        <MaterialPricesDialog />
                       </Card>
                       
                       <Card className="p-4">
                         <h4 className="font-medium mb-2">Regional Pricing</h4>
                         <p className="text-sm text-muted-foreground mb-3">Manage regional price multipliers</p>
-                        <Button variant="outline" size="sm">Configure</Button>
+                        <RegionalPricingDialog />
                       </Card>
                       
                       <Card className="p-4">
-                        <h4 className="font-medium mb-2">Material Prices</h4>
-                        <p className="text-sm text-muted-foreground mb-3">Update base material prices</p>
+                        <h4 className="font-medium mb-2">Equipment Types</h4>
+                        <p className="text-sm text-muted-foreground mb-3">Manage available equipment types</p>
                         <Button variant="outline" size="sm">Configure</Button>
                       </Card>
                       
                       <Card className="p-4">
                         <h4 className="font-medium mb-2">Subscription Tiers</h4>
-                        <p className="text-sm text-muted-foreground mb-3">Manage subscription plans</p>
+                        <p className="text-sm text-muted-foreground mb-3">Manage subscription plans and limits</p>
                         <Button variant="outline" size="sm">Configure</Button>
                       </Card>
                     </div>
@@ -405,42 +454,49 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <Card className="gradient-card">
-              <CardHeader>
-                <CardTitle>Platform Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="p-4">
-                    <h3 className="font-medium mb-4">User Growth</h3>
-                    <div className="h-32 bg-gradient-to-r from-blue-50 to-indigo-50 rounded flex items-center justify-center">
-                      <p className="text-muted-foreground">Chart placeholder</p>
-                    </div>
-                  </Card>
-                  
-                  <Card className="p-4">
-                    <h3 className="font-medium mb-4">Revenue Trends</h3>
-                    <div className="h-32 bg-gradient-to-r from-green-50 to-emerald-50 rounded flex items-center justify-center">
-                      <p className="text-muted-foreground">Chart placeholder</p>
-                    </div>
-                  </Card>
-                  
-                  <Card className="p-4">
-                    <h3 className="font-medium mb-4">Quote Activity</h3>
-                    <div className="h-32 bg-gradient-to-r from-purple-50 to-pink-50 rounded flex items-center justify-center">
-                      <p className="text-muted-foreground">Chart placeholder</p>
-                    </div>
-                  </Card>
-                  
-                  <Card className="p-4">
-                    <h3 className="font-medium mb-4">Regional Distribution</h3>
-                    <div className="h-32 bg-gradient-to-r from-orange-50 to-red-50 rounded flex items-center justify-center">
-                      <p className="text-muted-foreground">Chart placeholder</p>
-                    </div>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="gradient-card">
+                <CardHeader>
+                  <CardTitle>Monthly Revenue</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={monthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `KSh ${Number(value).toLocaleString()}`} />
+                      <Bar dataKey="revenue" fill="#22c55e" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="gradient-card">
+                <CardHeader>
+                  <CardTitle>User Tier Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={tierData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                      >
+                        {tierData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][index % 4]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

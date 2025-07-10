@@ -1,113 +1,251 @@
 
 import { useState } from 'react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, CalendarDays, Clock, MapPin, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
 
 const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const { events, createEvent, deleteEvent, loading } = useCalendarEvents();
+  const { toast } = useToast();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    event_time: ''
+  });
 
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDate) return;
 
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    try {
+      await createEvent({
+        title: formData.title,
+        description: formData.description,
+        event_date: format(selectedDate, 'yyyy-MM-dd'),
+        event_time: formData.event_time || undefined
+      });
 
-  const getDaysInMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  };
+      toast({
+        title: "Success",
+        description: "Event created successfully"
+      });
 
-  const getFirstDayOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
-
-  const previousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-  };
-
-  const renderCalendarDays = () => {
-    const daysInMonth = getDaysInMonth(currentDate);
-    const firstDay = getFirstDayOfMonth(currentDate);
-    const calendarDays = [];
-
-    // Empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      calendarDays.push(
-        <div key={`empty-${i}`} className="h-10 w-10"></div>
-      );
+      setFormData({ title: '', description: '', event_time: '' });
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create event",
+        variant: "destructive"
+      });
     }
-
-    // Days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-      
-      calendarDays.push(
-        <Button
-          key={day}
-          variant={isToday ? "default" : "ghost"}
-          className={`h-10 w-10 p-0 ${isToday ? 'bg-primary text-primary-foreground' : ''}`}
-        >
-          {day}
-        </Button>
-      );
-    }
-
-    return calendarDays;
   };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      await deleteEvent(eventId);
+      toast({
+        title: "Success",
+        description: "Event deleted successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete event",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const upcomingEvents = events
+    .filter(event => new Date(event.event_date) >= new Date())
+    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
+    .slice(0, 5);
+
+  const eventsForSelectedDate = selectedDate 
+    ? events.filter(event => 
+        format(new Date(event.event_date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
+      )
+    : [];
 
   return (
-    <Card className="gradient-card animate-fade-in">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <CalendarIcon className="w-5 h-5 mr-2" />
-          Project Calendar
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="outline" size="sm" onClick={previousMonth}>
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <h3 className="text-lg font-semibold">
-            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </h3>
-          <Button variant="outline" size="sm" onClick={nextMonth}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Calendar</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Event</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreateEvent} className="space-y-4">
+              <div>
+                <Label htmlFor="title">Event Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="time">Time (optional)</Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={formData.event_time}
+                  onChange={(e) => setFormData({ ...formData, event_time: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Date</Label>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDate ? format(selectedDate, 'PPP') : 'No date selected'}
+                </p>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  Create Event
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card className="gradient-card">
+            <CardHeader>
+              <CardTitle>Calendar View</CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border"
+                modifiers={{
+                  hasEvent: events.map(event => new Date(event.event_date))
+                }}
+                modifiersStyles={{
+                  hasEvent: { 
+                    backgroundColor: 'hsl(var(--primary))', 
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          {selectedDate && eventsForSelectedDate.length > 0 && (
+            <Card className="gradient-card mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CalendarDays className="w-5 h-5 mr-2" />
+                  Events for {format(selectedDate, 'PPP')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {eventsForSelectedDate.map((event) => (
+                    <div key={event.id} className="flex items-center justify-between p-3 border rounded">
+                      <div>
+                        <div className="font-medium">{event.title}</div>
+                        {event.event_time && (
+                          <div className="text-sm text-muted-foreground flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {event.event_time}
+                          </div>
+                        )}
+                        {event.description && (
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {event.description}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteEvent(event.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {days.map(day => (
-            <div key={day} className="h-10 flex items-center justify-center text-sm font-medium text-muted-foreground">
-              {day}
+        <div>
+          <Card className="gradient-card">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Clock className="w-5 h-5 mr-2" />
+                Upcoming Events
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {upcomingEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingEvents.map((event) => (
+                    <div key={event.id} className="p-3 border rounded-lg">
+                      <div className="font-medium">{event.title}</div>
+                      <div className="text-sm text-muted-foreground flex items-center mt-1">
+                        <CalendarDays className="w-3 h-3 mr-1" />
+                        {format(new Date(event.event_date), 'MMM d, yyyy')}
+                      </div>
+                      {event.event_time && (
+                        <div className="text-sm text-muted-foreground flex items-center">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {event.event_time}
+                        </div>
+                      )}
+                      {event.description && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {event.description}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No upcoming events</p>
+              )}
             </div>
-          ))}
+          </CardContent>
         </div>
-
-        <div className="grid grid-cols-7 gap-1">
-          {renderCalendarDays()}
-        </div>
-
-        <div className="mt-6 space-y-2">
-          <h4 className="font-medium">Upcoming Projects</h4>
-          <div className="space-y-2">
-            <div className="flex items-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-              <span className="text-sm">Foundation work - Tomorrow</span>
-            </div>
-            <div className="flex items-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-sm">Site inspection - Friday</span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

@@ -65,6 +65,88 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_date: string
+          event_time: string | null
+          id: string
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_date: string
+          event_time?: string | null
+          id?: string
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_reviews: {
+        Row: {
+          client_email: string
+          client_name: string
+          created_at: string | null
+          id: string
+          project_completion_date: string | null
+          quote_id: string | null
+          rating: number | null
+          review_text: string | null
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          created_at?: string | null
+          id?: string
+          project_completion_date?: string | null
+          quote_id?: string | null
+          rating?: number | null
+          review_text?: string | null
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          created_at?: string | null
+          id?: string
+          project_completion_date?: string | null
+          quote_id?: string | null
+          rating?: number | null
+          review_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_reviews_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_types: {
         Row: {
           created_at: string
@@ -113,6 +195,39 @@ export type Database = {
           id?: string
           name?: string
           unit?: string
+        }
+        Relationships: []
+      }
+      material_base_prices: {
+        Row: {
+          base_price: number
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_price: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          unit?: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          unit?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -322,6 +437,30 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_multipliers: {
+        Row: {
+          created_at: string | null
+          id: string
+          multiplier: number
+          region: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          multiplier?: number
+          region: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          multiplier?: number
+          region?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_equipment_rates: {
         Row: {
           created_at: string
@@ -452,6 +591,14 @@ export type Database = {
       jwt_claims: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      send_review_email: {
+        Args: {
+          p_quote_id: string
+          p_client_email: string
+          p_client_name: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

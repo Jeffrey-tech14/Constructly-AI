@@ -421,7 +421,7 @@ const Variables = () => {
                           <Save className="w-4 h-4" />
                         </Button>
                       </div>
-                    </Card>
+                    </CardContent>
                   </Card>
 
                   <Card className="gradient-card">
@@ -445,7 +445,7 @@ const Variables = () => {
                           <Save className="w-4 h-4" />
                         </Button>
                       </div>
-                    </Card>
+                    </CardContent>
                   </Card>
                 </div>
               </CardContent>

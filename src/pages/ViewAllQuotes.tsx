@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { useQuotes } from '@/hooks/useQuotes';
 import { useAuth } from '@/contexts/AuthContext';
 import ProjectProgress from '@/components/ProjectProgress';
 import PDFGenerator from '@/components/PDFGenerator';
-import { Search, Eye, FileText, TrendingUp } from 'lucide-react';
+import { Search, Eye, FileText, TrendingUp, Building2, MapPin, Calendar } from 'lucide-react';
 
 const ViewAllQuotes = () => {
   const { quotes, loading } = useQuotes();
@@ -58,59 +57,84 @@ const ViewAllQuotes = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 gradient-bg min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">All Quotes</h1>
-          <p className="text-muted-foreground">Manage and track all your construction quotes</p>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Building2 className="w-8 h-8 text-primary" />
+            All Construction Quotes
+          </h1>
+          <p className="text-muted-foreground mt-2">Manage and track all your construction quotes with ease</p>
+        </div>
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
+          <Badge variant="secondary" className="px-3 py-1">
+            Total: {filteredQuotes.length}
+          </Badge>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search quotes by title or client name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full md:w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="started">Started</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Card className="gradient-card mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search quotes by title or client name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-11"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-48 h-11">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="started">Started</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6">
         {filteredQuotes.length === 0 ? (
-          <Card>
+          <Card className="gradient-card">
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No quotes found matching your criteria.</p>
+              <Building2 className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-muted-foreground text-lg">No quotes found matching your criteria.</p>
+              <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filter settings.</p>
             </CardContent>
           </Card>
         ) : (
           filteredQuotes.map((quote) => (
-            <Card key={quote.id} className="gradient-card">
+            <Card key={quote.id} className="gradient-card card-hover">
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
-                    <CardTitle className="text-xl mb-2">{quote.title}</CardTitle>
+                    <CardTitle className="text-xl mb-2 flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-primary" />
+                      {quote.title}
+                    </CardTitle>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <span>Client: {quote.client_name}</span>
-                      <span>Location: {quote.location}</span>
-                      <span>Created: {new Date(quote.created_at).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-medium">Client:</span> {quote.client_name}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {quote.location}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(quote.created_at).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                   <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
@@ -127,44 +151,55 @@ const ViewAllQuotes = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-4 bg-background/50 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Materials</div>
-                    <div className="text-lg font-semibold">
-                      KSh {(quote.materials_cost / 100).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="text-center p-4 bg-background/50 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Labor</div>
-                    <div className="text-lg font-semibold">
-                      KSh {(quote.labor_cost / 100).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="text-center p-4 bg-background/50 rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Add-ons</div>
-                    <div className="text-lg font-semibold">
-                      KSh {(quote.addons_cost / 100).toLocaleString()}
-                    </div>
-                  </div>
+                  <Card className="bg-background/50">
+                    <CardContent className="text-center p-4">
+                      <div className="text-sm text-muted-foreground mb-1">Materials</div>
+                      <div className="text-lg font-semibold text-green-600">
+                        KSh {(quote.materials_cost / 100).toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-background/50">
+                    <CardContent className="text-center p-4">
+                      <div className="text-sm text-muted-foreground mb-1">Labor</div>
+                      <div className="text-lg font-semibold text-blue-600">
+                        KSh {(quote.labor_cost / 100).toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-background/50">
+                    <CardContent className="text-center p-4">
+                      <div className="text-sm text-muted-foreground mb-1">Add-ons</div>
+                      <div className="text-lg font-semibold text-purple-600">
+                        KSh {(quote.addons_cost / 100).toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
                 {quote.custom_specs && (
-                  <div className="mb-6 p-4 bg-background/30 rounded-lg">
-                    <h4 className="font-medium mb-2">Custom Specifications</h4>
-                    <p className="text-sm text-muted-foreground">{quote.custom_specs}</p>
-                  </div>
+                  <Card className="bg-background/30 mb-6">
+                    <CardContent className="p-4">
+                      <h4 className="font-medium mb-2">Custom Specifications</h4>
+                      <p className="text-sm text-muted-foreground">{quote.custom_specs}</p>
+                    </CardContent>
+                  </Card>
                 )}
 
                 <div className="flex flex-wrap gap-3">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Quote Details - {quote.title}</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5" />
+                          Quote Details - {quote.title}
+                        </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
@@ -235,7 +270,7 @@ const ViewAllQuotes = () => {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                         <TrendingUp className="w-4 h-4 mr-2" />
                         Progress
                       </Button>
@@ -250,18 +285,18 @@ const ViewAllQuotes = () => {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button size="sm" className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
                         <FileText className="w-4 h-4 mr-2" />
                         Generate PDF
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-lg">
                       <PDFGenerator
                         quote={quote}
-                        contractorName={profile?.name || 'Contractor'}
-                        contractorCompany={profile?.company}
-                        contractorPhone={profile?.phone}
-                        contractorEmail={profile?.email}
+                        contractorName={profile?.name || 'Constructly Kenya'}
+                        contractorCompany={profile?.company || 'Constructly Kenya Ltd'}
+                        contractorPhone={profile?.phone || '+254 700 000 000'}
+                        contractorEmail={profile?.email || 'info@constructly.co.ke'}
                       />
                     </DialogContent>
                   </Dialog>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState , useEffect} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,12 +15,19 @@ import { Search, Eye, FileText, TrendingUp, Building2, MapPin, Calendar, Trash2 
 
 const ViewAllQuotes = () => {
   const { quotes, loading, deleteQuote } = useQuotes();
-  const { profile } = useAuth();
+  const { profile } = useAuth(); // Assuming profile contains the current user's ID
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
+  
+    useEffect(() => {
+      if (!sessionStorage.getItem('profile_reloaded')) {
+        sessionStorage.setItem('profile_reloaded', 'true');
+        window.location.reload();
+      }
+    }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -43,31 +50,39 @@ const ViewAllQuotes = () => {
     }
   };
 
-  const filteredQuotes = quotes.filter(quote => {
+   const filteredQuotes = quotes.filter(quote => {
+    const belongsToUser = quote.user_id === profile?.id;
     const matchesSearch = quote.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          quote.client_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    return belongsToUser && matchesSearch && matchesStatus;
   });
 
   const handleDeleteQuote = async (quoteId: string, quoteTitle: string) => {
-    setDeletingQuote(quoteId);
-    try {
-      await deleteQuote(quoteId);
+  setDeletingQuote(quoteId);
+  try {
+    const success = await deleteQuote(quoteId);
+    
+    if (success) {
       toast({
         title: "Quote Deleted",
-        description: `"${quoteTitle}" has been deleted successfully.`
+        description: `"${quoteTitle}" has been deleted successfully.`,
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete quote. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setDeletingQuote(null);
+    } else {
+      throw new Error("Failed to delete quote");
     }
-  };
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error instanceof Error ? error.message : "Failed to delete quote",
+      variant: "destructive",
+    });
+    // Re-fetch quotes to ensure consistency
+  } finally {
+    setDeletingQuote(null);
+  }
+};
 
   if (loading) {
     return (
@@ -80,17 +95,18 @@ const ViewAllQuotes = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 gradient-bg min-h-screen">
+    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950'>
+    <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+          <h1 className="text-3xl font-bold flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             <Building2 className="w-8 h-8 text-primary" />
             All Construction Quotes
           </h1>
           <p className="text-muted-foreground mt-2">Manage and track all your construction quotes with ease</p>
         </div>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
-          <Badge variant="secondary" className="px-3 py-1">
+          <Badge variant="secondary" className="px-3 py-1 text-black">
             Total: {filteredQuotes.length}
           </Badge>
         </div>
@@ -298,7 +314,7 @@ const ViewAllQuotes = () => {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                      <Button variant="outline" size="sm" className="text-white flex-1 sm:flex-none">
                         <TrendingUp className="w-4 h-4 mr-2" />
                         Progress
                       </Button>
@@ -313,8 +329,8 @@ const ViewAllQuotes = () => {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button size="sm" className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
-                        <FileText className="w-4 h-4 mr-2" />
+                      <Button size="sm" className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
+                        <FileText className="w-4 h-4 mr-2 text-white" />
                         Generate PDF
                       </Button>
                     </DialogTrigger>
@@ -365,6 +381,7 @@ const ViewAllQuotes = () => {
           ))
         )}
       </div>
+    </div>
     </div>
   );
 };

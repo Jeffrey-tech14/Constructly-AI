@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// In your useQuotes.ts file
 export interface Quote {
   id: string;
   user_id: string;
@@ -23,7 +24,6 @@ export interface Quote {
   addons: any[];
   created_at: string;
   updated_at: string;
-  // Additional fields for enhanced functionality
   distance_km?: number;
   equipment_costs?: number;
   transport_costs?: number;
@@ -41,6 +41,13 @@ export interface Quote {
   bathrooms?: number;
   floors?: number;
   plan_file_url?: string;
+  // Add the rooms property
+  rooms?: Array<{
+    room_type_id: string;
+    length: number;
+    width: number;
+    height?: number;
+  }>;
 }
 
 export const useQuotes = () => {
@@ -154,15 +161,31 @@ export const useQuotes = () => {
     return updatedQuote;
   };
 
-  const deleteQuote = async (id: string) => {
+  const deleteQuote = async (id: string): Promise<boolean> => {
+  try {
     const { error } = await supabase
       .from('quotes')
       .delete()
       .eq('id', id);
+
+    if (error) {
+      console.error('Supabase delete error:', error);
+      return false;
+    }
+
+    // Optimistic update
+    setQuotes(prev => {
+      const newQuotes = prev.filter(quote => quote.id !== id);
+      console.log('Quotes after deletion:', newQuotes.length); // Debug log
+      return newQuotes;
+    });
     
-    if (error) throw error;
-    setQuotes(prev => prev.filter(quote => quote.id !== id));
-  };
+    return true;
+  } catch (error) {
+    console.error('Unexpected error in deleteQuote:', error);
+    return false;
+  }
+};
 
   useEffect(() => {
     // Only fetch quotes once when user and profile are available

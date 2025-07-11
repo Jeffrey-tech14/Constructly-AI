@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,12 +46,56 @@ const Profile = () => {
     );
   }
 
-  const tierLimits = {
-    Free: { quotes: 3, price: 0, features: ['3 quotes/month', 'Basic templates', 'Email support'] },
-    Intermediate: { quotes: Infinity, price: 2500, features: ['Unlimited quotes', 'PDF export', '5 blueprint uploads', 'Priority support'] },
-    Premium: { quotes: Infinity, price: 5000, features: ['All Intermediate features', '3D preview', 'Advanced analytics', 'White-label reports', '24/7 support'] }
-  };
+  useEffect(() => {
+    if (!sessionStorage.getItem('profile_reloaded')) {
+      sessionStorage.setItem('profile_reloaded', 'true');
+      window.location.reload();
+    }
+  }, []);
 
+const [tierLimits, setTierLimits] = useState<{
+  [key: string]: {
+    quotes: number ;
+    price: number;
+    features: string[];
+  };
+}>({
+  Free: {
+    quotes: 3,
+    price: 0,
+    features: ['3 quotes/month', 'Basic templates', 'Email support']
+  }
+});
+
+  useEffect(() => {
+    const fetchTiers = async () => {
+      const { data, error } = await supabase.from('tiers').select('*');
+      if (error) {
+        console.error('Failed to fetch tiers:', error);
+        return;
+      }
+
+      // Build tierLimits from Supabase data
+      const limits = data.reduce((acc: any, tier: any) => {
+        acc[tier.name] = {
+          quotes: tier.quotes_limit ?? Infinity, // fallback if null
+          price: tier.price,
+          features: tier.features || [] // assuming Supabase has a features column (JSON/text[]), else you can hardcode
+        };
+        return acc;
+      }, {});
+
+      setTierLimits({
+        ...tierLimits,
+        ...limits
+      });
+    };
+
+    fetchTiers();
+  }, []);
+
+
+  const tierData = tierLimits[profile.tier as keyof typeof tierLimits];
   const handleSave = async () => {
     try {
       await updateProfile(formData);
@@ -68,9 +113,11 @@ const Profile = () => {
     switch (tier) {
       case 'Free':
         return <Badge variant="secondary">Free</Badge>;
+      case 'Basic':
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
       case 'Intermediate':
         return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
-      case 'Premium':
+      case 'Professional':
         return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Premium</Badge>;
       default:
         return <Badge>{tier}</Badge>;
@@ -87,36 +134,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 smooth-transition">
-      {/* Navigation */}
-      <nav className=" bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <Wrench className="w-8 h-8 text-primary mr-2" />
-                <span className="text-2xl font-bold text-primary">Constructly</span>
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <ThemeToggle />
-              {profile.is_admin && (
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Admin
-                  </Button>
-                </Link>
-              )}
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Dashboard
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -247,7 +264,9 @@ const Profile = () => {
                 <div className="space-y-4">
                   <div className="text-center">
                     <p className="text-3xl font-bold text-primary">
-                      {profile.tier === 'Free' ? 'Free' : `KSh ${tierLimits[profile.tier as keyof typeof tierLimits].price.toLocaleString()}`}
+                      {profile.tier === 'Free'
+                        ? 'Free'
+                        : `KSh ${tierData?.price?.toLocaleString() || '0'}`}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       per month
@@ -269,14 +288,12 @@ const Profile = () => {
 
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Features:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      {tierLimits[profile.tier as keyof typeof tierLimits].features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center">
-                          <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
+                    {tierData?.features?.map((feature, idx) => (
+                      <li key={idx} className="flex items-center">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        {feature}
+                      </li>
+                    )) || <p className="text-sm text-red-500">No features found</p>}
                   </div>
 
                   <Button 

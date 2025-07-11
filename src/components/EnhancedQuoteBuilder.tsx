@@ -608,30 +608,11 @@ const EnhancedQuoteBuilder = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
-      {/* Navigation */}
-      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm border-b border-white/20 dark:border-slate-700/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/dashboard" className="flex items-center">
-                <Wrench className="w-8 h-8 text-primary mr-2" />
-                <span className="text-2xl font-bold text-primary">Constructly</span>
-              </Link>
-            </div>
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Enhanced Quote Builder</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Enhanced Quote Builder</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">Create accurate construction quotes with advanced calculations</p>
         </div>
 
@@ -666,7 +647,7 @@ const EnhancedQuoteBuilder = () => {
         </div>
 
         {/* Step Content */}
-        <Card className="mb-8">
+        <Card className="mb-8 gradient-card">
           <CardHeader>
             <CardTitle className="flex items-center">
               {steps[currentStep - 1].icon}
@@ -690,9 +671,9 @@ const EnhancedQuoteBuilder = () => {
           </Button>
           
           {currentStep < 6 && (
-            <Button onClick={nextStep}>
+            <Button className='text-white' onClick={nextStep}>
               Next
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRight className="w-4 h-4 ml-2 text-white" />
             </Button>
           )}
         </div>

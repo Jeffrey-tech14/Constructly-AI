@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +25,12 @@ const Auth = () => {
 
   const { user, signIn, signUp } = useAuth();
 
+  useEffect(() => {
+    if (!sessionStorage.getItem('profile_reloaded')) {
+      sessionStorage.setItem('profile_reloaded', 'true');
+      window.location.reload();
+    }
+  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -73,10 +79,10 @@ const Auth = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8 fade-in">
-          <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 transition-colors">
+          <a href="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
-          </Link>
+          </a>
           <div className="flex items-center justify-center mb-4">
             <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
               <Wrench className="w-8 h-8 text-white" />

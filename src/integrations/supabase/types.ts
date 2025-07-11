@@ -14,6 +14,52 @@ export type Database = {
   }
   public: {
     Tables: {
+      pricing_data: {
+            Row: {
+              id: string;
+              room_type_id: string;
+              material_id: string;
+              quantity_per_unit: number;
+              created_at: string;
+            };
+            Insert: {
+              id?: string;
+              room_type_id: string;
+              material_id: string;
+              quantity_per_unit: number;
+              created_at?: string;
+            };
+            Update: {
+              id?: string;
+              room_type_id?: string;
+              material_id?: string;
+              quantity_per_unit?: number;
+              created_at?: string;
+            };
+          };
+          room_types: {
+            Row: {
+              id: string;
+              name: string;
+              unit: 'volume' | 'area';
+              description: string;
+              created_at: string;
+            };
+            Insert: {
+              id?: string;
+              name: string;
+              unit: 'volume' | 'area';
+              description: string;
+              created_at?: string;
+            };
+            Update: {
+              id?: string;
+              name?: string;
+              unit?: 'volume' | 'area';
+              description?: string;
+              created_at?: string;
+            };
+          };
       additional_services: {
         Row: {
           category: string | null
@@ -498,30 +544,7 @@ export type Database = {
           },
         ]
       }
-      room_types: {
-        Row: {
-          calculation_method: string
-          created_at: string | null
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          calculation_method?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          calculation_method?: string
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
+     
       user_equipment_overrides: {
         Row: {
           created_at: string | null

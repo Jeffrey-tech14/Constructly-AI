@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Link } from 'react-router-dom';
 import { 
   DollarSign, 
   FileText, 
@@ -15,7 +16,7 @@ import {
   Users,
   Star,
   Clock,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuotes } from '@/hooks/useQuotes';
@@ -34,6 +35,13 @@ const Dashboard = () => {
   const { events } = useCalendarEvents();
   const [activeTab, setActiveTab] = useState('overview');
   const [showCalculator, setShowCalculator] = useState(false);
+  useEffect(() => {
+    if (!sessionStorage.getItem('profile_reloaded')) {
+      sessionStorage.setItem('profile_reloaded', 'true');
+      window.location.reload();
+    }
+  }, []);
+
 
   // Calculate dashboard metrics
   const totalQuotesValue = quotes.reduce((sum, quote) => sum + quote.total_amount, 0);
@@ -72,13 +80,13 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-bg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Welcome back, {profile?.name}!
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
@@ -87,7 +95,7 @@ const Dashboard = () => {
             </div>
             <Button 
               onClick={() => setShowCalculator(true)}
-              className="animate-bounce-gentle"
+              className="animate-bounce-gentle text-white"
             >
               Quick Calculator
             </Button>
@@ -203,10 +211,12 @@ const Dashboard = () => {
                               KSh {(quote.total_amount / 100).toLocaleString()}
                             </p>
                           </div>
+                          <a href='/quotes/all'>
                           <Button variant="outline" size="sm">
                             <Eye className="w-4 h-4 mr-1" />
                             View
                           </Button>
+                          </a>
                         </div>
                       ))
                     ) : (

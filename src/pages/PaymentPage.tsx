@@ -74,6 +74,11 @@ const PaymentPage = () => {
     if (profile) {
       setSelectedPlan(profile.tier === 'Free' ? 'Intermediate' : 'Premium');
     }
+        if (!sessionStorage.getItem('profile_reloaded')) {
+          sessionStorage.setItem('profile_reloaded', 'true');
+          window.location.reload();
+        }
+      
   }, [profile]);
 
   const handlePayment = async () => {
@@ -128,19 +133,19 @@ const PaymentPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center">
+              <a href="/" className="flex items-center">
                 <Wrench className="w-8 h-8 text-primary mr-2" />
                 <span className="text-2xl font-bold text-primary">Constructly</span>
-              </Link>
+              </a>
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <Link to="/profile">
+              <a href="/profile">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Profile
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>

@@ -59,14 +59,14 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link to="/dashboard" className="flex items-center space-x-2 group">
+            <a href="/dashboard" className="flex items-center space-x-2 group">
               <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
                 <Wrench className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Constructly
               </span>
-            </Link>
+            </a>
 
             {/* Desktop Navigation */}
             {user && (
@@ -78,12 +78,12 @@ const Navbar = () => {
                       key={item.path}
                       asChild
                       variant={isActive(item.path) ? "default" : "ghost"}
-                      className={`card-hover ${isActive(item.path) ? 'gradient-primary' : ''}`}
+                      className={`card-hover ${isActive(item.path) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : ''}`}
                     >
-                      <Link to={item.path}>
+                      <a href={item.path}>
                         <Icon className="w-4 h-4 mr-2" />
                         {item.label}
-                      </Link>
+                      </a>
                     </Button>
                   );
                 })}
@@ -136,23 +136,23 @@ const Navbar = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuItem asChild>
-                        <Link to="/profile">
+                        <a href="/profile">
                           <User className="w-4 h-4 mr-2" />
                           Profile
-                        </Link>
+                        </a>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/variables">
+                        <a href="/variables">
                           <Settings className="w-4 h-4 mr-2" />
                           Variables
-                        </Link>
+                        </a>
                       </DropdownMenuItem>
                       {profile?.is_admin && (
                         <DropdownMenuItem asChild>
-                          <Link to="/admin">
+                          <a href="/admin">
                             <BarChart className="w-4 h-4 mr-2" />
                             Admin Dashboard
-                          </Link>
+                          </a>
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />
@@ -165,7 +165,7 @@ const Navbar = () => {
                 </>
               ) : (
                 <Button asChild>
-                  <Link to="/auth">Sign In</Link>
+                  <a href="/auth">Sign In</a>
                 </Button>
               )}
             </div>
@@ -185,10 +185,10 @@ const Navbar = () => {
                       className={`justify-start ${isActive(item.path) ? 'gradient-primary' : ''}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Link to={item.path}>
+                      <a href={item.path}>
                         <Icon className="w-4 h-4 mr-2" />
                         {item.label}
-                      </Link>
+                      </a>
                     </Button>
                   );
                 })}

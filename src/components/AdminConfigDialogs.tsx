@@ -123,7 +123,7 @@ export const MaterialPricesDialog = () => {
               />
             </div>
             <div className="flex gap-2">
-              <Button type="submit" disabled={loading}>
+              <Button className='text-gray-50' type="submit" disabled={loading}>
                 {editingMaterial ? 'Update' : 'Create'} Material
               </Button>
               {editingMaterial && (
@@ -148,7 +148,7 @@ export const MaterialPricesDialog = () => {
                       KSh {(material.base_price / 100).toLocaleString()} per {material.unit} • {material.category}
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => startEdit(material)}>
+                  <Button className='text-white' size="sm" variant="outline" onClick={() => startEdit(material)}>
                     <Edit className="w-4 h-4" />
                   </Button>
                 </div>
@@ -213,6 +213,7 @@ export const RegionalPricingDialog = () => {
                 />
                 <Button 
                   size="sm" 
+                  className='text-white'
                   onClick={() => handleUpdate(multiplier.id, multiplier.region)}
                   disabled={loading || !editValues[multiplier.id]}
                 >

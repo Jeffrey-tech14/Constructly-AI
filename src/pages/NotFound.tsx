@@ -35,12 +35,12 @@ const NotFound = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/">
+              <a href="/">
                 <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                   <Home className="w-4 h-4 mr-2" />
                   Go Home
                 </Button>
-              </Link>
+              </a>
               
               <Button 
                 variant="outline" 

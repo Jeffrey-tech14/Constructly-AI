@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,13 @@ const Variables = () => {
   } = useDynamicPricing();
 
   const [tempValues, setTempValues] = useState<{[key: string]: number}>({});
+  
+    useEffect(() => {
+      if (!sessionStorage.getItem('profile_reloaded')) {
+        sessionStorage.setItem('profile_reloaded', 'true');
+        window.location.reload();
+      }
+    }, []);
 
   const handleSave = async (type: string, id: string, value: number) => {
     setLoading(true);
@@ -95,7 +102,7 @@ const Variables = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold flex items-center">
+          <h1 className="text-3xl font-bold flex items-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             <Settings className="w-8 h-8 mr-3 text-primary" />
             Variables & Pricing
           </h1>
@@ -167,7 +174,7 @@ const Variables = () => {
                               )}
                             </div>
                             <div className="text-right">
-                              <Badge variant="secondary">{material.unit}</Badge>
+                              <Badge className='text-black' variant="secondary">{material.unit}</Badge>
                               {isCustomPrice && (
                                 <Badge variant="outline" className="ml-1 text-xs">Custom</Badge>
                               )}
@@ -197,7 +204,7 @@ const Variables = () => {
                                 onClick={() => handleSave('material', material.id, tempValues[`material-${material.id}`] || effectivePrice)}
                                 disabled={loading}
                               >
-                                <Save className="w-4 h-4" />
+                                <Save className="w-4 h-4 text-white" />
                               </Button>
                             </div>
                             <div className="text-xs text-emerald-600 font-medium">
@@ -232,7 +239,7 @@ const Variables = () => {
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{equipment.name}</h4>
-                            <Badge>KSh {currentRate.toLocaleString()}/day</Badge>
+                            <Badge className='text-white'>KSh {currentRate.toLocaleString()}/day</Badge>
                           </div>
                           {equipment.description && (
                             <p className="text-sm text-muted-foreground mb-3">{equipment.description}</p>
@@ -252,7 +259,7 @@ const Variables = () => {
                               onClick={() => handleSave('equipment', equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate)}
                               disabled={loading}
                             >
-                              <Save className="w-4 h-4" />
+                              <Save className="w-4 h-4 text-white" />
                             </Button>
                           </div>
                         </CardContent>
@@ -301,7 +308,7 @@ const Variables = () => {
                                   onClick={() => handleSave('transport', `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm)}
                                   disabled={loading}
                                 >
-                                  <Save className="w-4 h-4" />
+                                  <Save className="w-4 h-4 text-white" />
                                 </Button>
                               </div>
                             </div>
@@ -322,7 +329,7 @@ const Variables = () => {
                                   onClick={() => handleSave('transport', `${region}-base`, tempValues[`transport-${region}-base`] || baseCost)}
                                   disabled={loading}
                                 >
-                                  <Save className="w-4 h-4" />
+                                  <Save className="w-4 h-4 text-white" />
                                 </Button>
                               </div>
                             </div>
@@ -355,7 +362,7 @@ const Variables = () => {
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{service.name}</h4>
-                            <Badge variant="secondary">{service.category}</Badge>
+                            <Badge className='text-black' variant="secondary">{service.category}</Badge>
                           </div>
                           {service.description && (
                             <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
@@ -375,7 +382,7 @@ const Variables = () => {
                               onClick={() => handleSave('service', service.id, tempValues[`service-${service.id}`] || currentPrice)}
                               disabled={loading}
                             >
-                              <Save className="w-4 h-4" />
+                              <Save className="w-4 h-4 text-white" />
                             </Button>
                           </div>
                         </CardContent>
@@ -409,7 +416,7 @@ const Variables = () => {
                       <CardContent className="p-4">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-medium">{sub.name}</h4>
-                          <Badge>KSh {sub.rate.toLocaleString()}/{sub.unit}</Badge>
+                          <Badge className='text-white'>KSh {sub.rate.toLocaleString()}/{sub.unit}</Badge>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Input
@@ -426,7 +433,7 @@ const Variables = () => {
                             onClick={() => handleSave('subcontractor', sub.name, tempValues[`sub-${sub.name}`] || sub.rate)}
                             disabled={loading}
                           >
-                            <Save className="w-4 h-4" />
+                            <Save className="w-4 h-4 text-white" />
                           </Button>
                         </div>
                       </CardContent>
@@ -465,7 +472,7 @@ const Variables = () => {
                           onClick={() => handleSave('profit', 'overall', tempValues['overall-profit'] || 15)}
                           disabled={loading}
                         >
-                          <Save className="w-4 h-4" />
+                          <Save className="w-4 h-4 text-white" />
                         </Button>
                       </div>
                     </CardContent>
@@ -489,7 +496,7 @@ const Variables = () => {
                           onClick={() => handleSave('labor', 'percentage', tempValues['labor-percentage'] || 25)}
                           disabled={loading}
                         >
-                          <Save className="w-4 h-4" />
+                          <Save className="w-4 h-4 text-white" />
                         </Button>
                       </div>
                     </CardContent>

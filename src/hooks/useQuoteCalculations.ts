@@ -82,11 +82,11 @@ export const useQuoteCalculations = () => {
       const perimeter = 2 * (params.length + params.width);
       
       // Calculate costs based on volume and other factors
-      const materialsCost = volume * 15000000; // 150,000 KSh per m3 (stored in cents)
+      const materialsCost = volume * 1500000; // 150,000 KSh per m3 (stored in cents)
       const laborCost = materialsCost * 0.25; // 25% of materials
-      const equipmentCost = params.selected_equipment.length * 10000000 * Math.ceil(volume / 10); // Equipment cost per day (stored in cents)
-      const transportCost = params.distance_km * 500000; // 5,000 KSh per km (stored in cents)
-      const servicesCost = params.selected_services.length * 5000000; // 50,000 KSh per service (stored in cents)
+      const equipmentCost = params.selected_equipment.length * 1000000 * Math.ceil(volume / 10); // Equipment cost per day (stored in cents)
+      const transportCost = params.distance_km * 50000; // 5,000 KSh per km (stored in cents)
+      const servicesCost = params.selected_services.length * 500000; // 50,000 KSh per service (stored in cents)
       
       const subtotal = materialsCost + laborCost + equipmentCost + transportCost + servicesCost;
       
@@ -110,14 +110,14 @@ export const useQuoteCalculations = () => {
             {
               name: 'Concrete',
               quantity: Math.ceil(volume * 0.5),
-              unit_price: 2500000, // 25,000 KSh in cents
+              unit_price: 250000, // 25,000 KSh in cents
               total_price: materialsCost * 0.4,
               profit_margin: 15
             },
             {
               name: 'Steel',
               quantity: Math.ceil(volume * 0.1),
-              unit_price: 12000000, // 120,000 KSh in cents
+              unit_price: 1200000, // 120,000 KSh in cents
               total_price: materialsCost * 0.3,
               profit_margin: 15
             },
@@ -132,12 +132,12 @@ export const useQuoteCalculations = () => {
           equipment: params.selected_equipment.map(id => ({
             name: `Equipment ${id}`,
             days: Math.ceil(volume / 10),
-            daily_rate: 10000000, // 100,000 KSh in cents
-            total_cost: 10000000 * Math.ceil(volume / 10)
+            daily_rate: 5000000, // 100,000 KSh in cents
+            total_cost: 5000000 * Math.ceil(volume / 10)
           })),
           services: params.selected_services.map(id => ({
             name: `Service ${id}`,
-            price: 5000000 // 50,000 KSh in cents
+            price: 2000000 // 50,000 KSh in cents
           }))
         }
       };

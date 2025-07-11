@@ -244,7 +244,7 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
         <Button 
           onClick={updateProgress} 
           disabled={updating}
-          className="w-full"
+          className="w-full text-white"
         >
           {updating ? 'Updating...' : 'Update Progress'}
         </Button>

@@ -90,7 +90,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
           )}
 
           <div className="flex space-x-2">
-            <Button onClick={calculateVolume} className="flex-1">
+            <Button onClick={calculateVolume} className="flex-1 text-white">
               Calculate
             </Button>
             <Button onClick={reset} variant="outline" className="flex-1">

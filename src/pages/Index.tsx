@@ -32,14 +32,14 @@ const Index = () => {
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <Link to="/auth?mode=signin">
+              <a href="/auth?mode=signin">
                 <Button variant="ghost" className="rounded-full hover:bg-primary/10">Sign In</Button>
-              </Link>
-              <Link to="/auth?mode=signup">
+              </a>
+              <a href="/auth?mode=signup">
                 <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
                   Get Started
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -59,17 +59,17 @@ const Index = () => {
             project management, and client communication tools designed for contractors in Kenya.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/auth?mode=signup">
+            <a href="/auth?mode=signup">
               <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full px-8 py-4 text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
                 Start Free Trial
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-            </Link>
-            <Link to="/auth?mode=signin">
+            </a>
+            <a href="/auth?mode=signin">
               <Button variant="outline" size="lg" className="rounded-full px-8 py-4 text-lg border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300">
                 Watch Demo
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -197,7 +197,7 @@ const Index = () => {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/auth?mode=signup">
+                  <a href="/auth?mode=signup">
                     <Button className={`w-full rounded-full transition-all duration-300 text-gray ${
                       plan.popular 
                         ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl' 
@@ -205,7 +205,7 @@ const Index = () => {
                     }`}>
                       Get Started
                     </Button>
-                  </Link>
+                  </a>
                 </CardContent>
               </Card>
             ))}
@@ -226,8 +226,8 @@ const Index = () => {
             Empowering construction professionals across Kenya with modern project management tools.
           </p>
           <div className="flex items-center justify-center space-x-6">
-            <Link to="/auth" className="text-muted-foreground hover:text-primary transition-colors">Sign In</Link>
-            <Link to="/auth?mode=signup" className="text-muted-foreground hover:text-primary transition-colors">Get Started</Link>
+            <a href="/auth" className="text-muted-foreground hover:text-primary transition-colors">Sign In</a>
+            <a href="/auth?mode=signup" className="text-muted-foreground hover:text-primary transition-colors">Get Started</a>
           </div>
         </div>
       </footer>

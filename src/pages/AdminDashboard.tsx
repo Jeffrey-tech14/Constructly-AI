@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaterialPricesDialog, RegionalPricingDialog } from '@/components/AdminConfigDialogs';
+import QuotesTab from '../components/QuotesTab';
+import TiersTab from '../components/TiersTab';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
   Users, 
@@ -51,6 +53,7 @@ interface DashboardStats {
   subscriptionRevenue: number;
 }
 
+
 const AdminDashboard = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -63,6 +66,8 @@ const AdminDashboard = () => {
     activeProjects: 0,
     subscriptionRevenue: 0
   });
+  const [refreshKey, setRefreshKey] = useState(0);
+  const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
@@ -74,47 +79,60 @@ const AdminDashboard = () => {
   }, [profile]);
 
   const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      // Fetch all users and quotes - Admin should see all data
-      const [usersResponse, quotesResponse] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('quotes').select('*').order('created_at', { ascending: false })
-      ]);
+  setLoading(true);
+  try {
+    // Fetch users, quotes, and tiers
+    const [usersResponse, quotesResponse, tiersResponse] = await Promise.all([
+      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+      supabase.from('quotes').select('*').order('created_at', { ascending: false }),
+      supabase.from('tiers').select('name, price')
+    ]);
 
-      const usersData = usersResponse.data || [];
-      const quotesData = quotesResponse.data || [];
+    const usersData = usersResponse.data || [];
+    const quotesData = quotesResponse.data || [];
+    const tiersData = tiersResponse.data || [];
 
-      // Calculate stats
-      const totalUsers = usersData.length;
-      const activeQuotes = quotesData.filter(q => q.status !== 'draft');
-      const totalRevenue = activeQuotes.reduce((sum, quote) => sum + quote.total_amount, 0);
-      const totalQuotes = quotesData.length;
-      const activeProjects = quotesData.filter(q => q.status === 'started' || q.status === 'in_progress').length;
-      
-      // Mock subscription revenue calculation (you can implement actual subscription logic)
-      const subscriptionRevenue = usersData.filter(u => u.tier !== 'Free').length * 5000000; // 50,000 KSh per paid user
+    // Map tiers to prices: { Free: 0, Basic: 2500, ... }
+    const tierPrices: Record<string, number> = tiersData.reduce((acc, tier) => {
+      acc[tier.name] = tier.price;
+      return acc;
+    }, {} as Record<string, number>);
 
-      setUsers(usersData);
-      setQuotes(quotesData);
-      setStats({
-        totalUsers,
-        totalRevenue,
-        totalQuotes,
-        activeProjects,
-        subscriptionRevenue
-      });
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Calculate stats
+    const totalUsers = usersData.length;
+    const activeQuotes = quotesData.filter(q => q.status !== 'draft');
+    const totalRevenue = activeQuotes.reduce((sum, quote) => sum + quote.total_amount, 0);
+    const totalQuotes = quotesData.length;
+    const activeProjects = quotesData.filter(q => q.status === 'started' || q.status === 'in_progress').length;
+
+    // Calculate subscription revenue dynamically
+    const subscriptionRevenue = usersData.reduce((sum, user) => {
+      const tier = user.tier || 'Free';
+      const price = tierPrices[tier] || 0; // fallback to 0
+      return sum + price;
+    }, 0);
+
+    setUsers(usersData);
+    setQuotes(quotesData);
+    setStats({
+      totalUsers,
+      totalRevenue,
+      totalQuotes,
+      activeProjects,
+      subscriptionRevenue
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    toast({
+      title: "Error",
+      description: "Failed to load dashboard data",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const updateUserTier = async (userId: string, newTier: string) => {
     try {
@@ -128,6 +146,7 @@ const AdminDashboard = () => {
       setUsers(prev => prev.map(user => 
         user.id === userId ? { ...user, tier: newTier } : user
       ));
+      triggerRefresh();
 
       toast({
         title: "Success",
@@ -154,6 +173,7 @@ const AdminDashboard = () => {
       setUsers(prev => prev.map(user => 
         user.id === userId ? { ...user, is_admin: !isAdmin } : user
       ));
+      triggerRefresh();
 
       toast({
         title: "Success",
@@ -169,11 +189,12 @@ const AdminDashboard = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTier = selectedTier === 'all' || user.tier.toLowerCase() === selectedTier;
-    return matchesSearch && matchesTier;
-  });
+  const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesTier = selectedTier === 'all' || user.tier.toLowerCase() === selectedTier;
+  return matchesSearch && matchesTier;
+});
+
 
   // Chart data
   const monthlyData = quotes.reduce((acc, quote) => {
@@ -182,13 +203,13 @@ const AdminDashboard = () => {
     if (existing) {
       existing.quotes += 1;
       if (quote.status !== 'draft') {
-        existing.revenue += quote.total_amount / 100;
+        existing.revenue += quote.total_amount;
       }
     } else {
       acc.push({
         name: month,
         quotes: 1,
-        revenue: quote.status !== 'draft' ? quote.total_amount / 100 : 0
+        revenue: quote.status !== 'draft' ? quote.total_amount : 0
       });
     }
     return acc;
@@ -203,6 +224,13 @@ const AdminDashboard = () => {
     }
     return acc;
   }, [] as any[]);
+  
+    useEffect(() => {
+      if (!sessionStorage.getItem('profile_reloaded')) {
+        sessionStorage.setItem('profile_reloaded', 'true');
+        window.location.reload();
+      }
+    }, []);
 
   if (!profile?.is_admin) {
     return (
@@ -224,10 +252,10 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-bg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Admin Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">Manage users, monitor system performance, and control platform settings</p>
         </div>
 
@@ -250,7 +278,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {(stats.totalRevenue / 100).toLocaleString()}</div>
+              <div className="text-2xl font-bold">KSh {(stats.totalRevenue).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">From active projects</p>
             </CardContent>
           </Card>
@@ -261,7 +289,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {(stats.subscriptionRevenue / 100).toLocaleString()}</div>
+              <div className="text-2xl font-bold">KSh {(stats.subscriptionRevenue).toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Monthly subscriptions</p>
             </CardContent>
           </Card>
@@ -291,9 +319,11 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users">User Management</TabsTrigger>
             <TabsTrigger value="system">System Settings</TabsTrigger>
+            <TabsTrigger value="quotes">Quotes</TabsTrigger>
+            <TabsTrigger value="tiers">Tiers</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -453,6 +483,15 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="quotes" className="space-y-6">
+            <QuotesTab refreshKey={refreshKey} />
+          </TabsContent>
+
+          <TabsContent value="tiers" className="space-y-6">
+            <TiersTab refreshKey={refreshKey}/>
+          </TabsContent>
+
+
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="gradient-card">
@@ -505,3 +544,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

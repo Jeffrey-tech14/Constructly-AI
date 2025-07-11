@@ -84,6 +84,7 @@ export const useQuotes = () => {
         addons: Array.isArray(item.addons) ? item.addons : [],
         selected_equipment: Array.isArray(item.selected_equipment) ? item.selected_equipment : [],
         selected_services: Array.isArray(item.selected_services) ? item.selected_services : [],
+        contract_type: (item.contract_type as Quote['contract_type']) || 'full_contract',
       }));
       
       console.log('Quotes fetched successfully:', quotesData.length);
@@ -118,6 +119,7 @@ export const useQuotes = () => {
       addons: Array.isArray(data.addons) ? data.addons : [],
       selected_equipment: Array.isArray(data.selected_equipment) ? data.selected_equipment : [],
       selected_services: Array.isArray(data.selected_services) ? data.selected_services : [],
+      contract_type: (data.contract_type as Quote['contract_type']) || 'full_contract',
     };
     
     setQuotes(prev => [newQuote, ...prev]);
@@ -145,6 +147,7 @@ export const useQuotes = () => {
       addons: Array.isArray(data.addons) ? data.addons : [],
       selected_equipment: Array.isArray(data.selected_equipment) ? data.selected_equipment : [],
       selected_services: Array.isArray(data.selected_services) ? data.selected_services : [],
+      contract_type: (data.contract_type as Quote['contract_type']) || 'full_contract',
     };
     
     setQuotes(prev => prev.map(quote => quote.id === id ? updatedQuote : quote));

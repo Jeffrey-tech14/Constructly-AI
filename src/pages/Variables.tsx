@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useUserSettings } from '@/hooks/useUserSettings';
+import { useDynamicPricing } from '@/hooks/useDynamicPricing';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Settings, 
   DollarSign, 
@@ -22,6 +24,7 @@ import {
 
 const Variables = () => {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const {
     equipmentTypes,
@@ -34,13 +37,26 @@ const Variables = () => {
     updateServiceRate,
     updateOverallProfitMargin
   } = useUserSettings();
+  
+  const {
+    materialBasePrices,
+    userMaterialPrices,
+    regionalMultipliers,
+    updateMaterialPrice,
+    getEffectiveMaterialPrice
+  } = useDynamicPricing();
 
   const [tempValues, setTempValues] = useState<{[key: string]: number}>({});
 
   const handleSave = async (type: string, id: string, value: number) => {
     setLoading(true);
     try {
+      const userRegion = profile?.location || 'Nairobi';
+      
       switch (type) {
+        case 'material':
+          await updateMaterialPrice(id, value, userRegion);
+          break;
         case 'equipment':
           await updateEquipmentRate(id, value);
           break;
@@ -125,42 +141,73 @@ const Variables = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>Region:</strong> {profile?.location || 'Nairobi'} - 
+                    Prices shown include regional multipliers. Custom prices will override defaults.
+                  </p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[
-                    { name: 'Concrete', price: 25000, unit: 'm³' },
-                    { name: 'Steel Bars', price: 120000, unit: 'ton' },
-                    { name: 'Bricks', price: 15, unit: 'piece' },
-                    { name: 'Cement', price: 800, unit: 'bag' },
-                    { name: 'Sand', price: 3000, unit: 'm³' },
-                    { name: 'Gravel', price: 3500, unit: 'm³' }
-                  ].map((material) => (
-                    <Card key={material.name} className="gradient-card card-hover">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">{material.name}</h4>
-                          <Badge variant="secondary">{material.unit}</Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="number"
-                            defaultValue={material.price}
-                            onChange={(e) => setTempValues({
-                              ...tempValues,
-                              [`material-${material.name}`]: parseFloat(e.target.value) || 0
-                            })}
-                            className="flex-1"
-                          />
-                          <Button 
-                            size="sm"
-                            onClick={() => handleSave('material', material.name, tempValues[`material-${material.name}`] || material.price)}
-                            disabled={loading}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {materialBasePrices.map((material) => {
+                    const userRegion = profile?.location || 'Nairobi';
+                    const userOverride = userMaterialPrices.find(
+                      p => p.material_id === material.id && p.region === userRegion
+                    );
+                    const effectivePrice = getEffectiveMaterialPrice(material.id, userRegion);
+                    const isCustomPrice = !!userOverride;
+                    
+                    return (
+                      <Card key={material.id} className="gradient-card card-hover">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <div>
+                              <h4 className="font-medium">{material.name}</h4>
+                              {material.description && (
+                                <p className="text-xs text-muted-foreground">{material.description}</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="secondary">{material.unit}</Badge>
+                              {isCustomPrice && (
+                                <Badge variant="outline" className="ml-1 text-xs">Custom</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-sm text-muted-foreground">
+                              Base: KSh {(material.base_price / 100).toLocaleString()}
+                              {!isCustomPrice && (
+                                <span className="text-xs ml-1">
+                                  (×{regionalMultipliers.find(r => r.region === userRegion)?.multiplier || 1})
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Input
+                                type="number"
+                                placeholder={effectivePrice.toString()}
+                                onChange={(e) => setTempValues({
+                                  ...tempValues,
+                                  [`material-${material.id}`]: parseFloat(e.target.value) || 0
+                                })}
+                                className="flex-1"
+                              />
+                              <Button 
+                                size="sm"
+                                onClick={() => handleSave('material', material.id, tempValues[`material-${material.id}`] || effectivePrice)}
+                                disabled={loading}
+                              >
+                                <Save className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <div className="text-xs text-emerald-600 font-medium">
+                              Current: KSh {effectivePrice.toLocaleString()}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

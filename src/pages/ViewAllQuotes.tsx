@@ -5,18 +5,22 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuotes } from '@/hooks/useQuotes';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import ProjectProgress from '@/components/ProjectProgress';
 import PDFGenerator from '@/components/PDFGenerator';
-import { Search, Eye, FileText, TrendingUp, Building2, MapPin, Calendar } from 'lucide-react';
+import { Search, Eye, FileText, TrendingUp, Building2, MapPin, Calendar, Trash2 } from 'lucide-react';
 
 const ViewAllQuotes = () => {
-  const { quotes, loading } = useQuotes();
+  const { quotes, loading, deleteQuote } = useQuotes();
   const { profile } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -45,6 +49,25 @@ const ViewAllQuotes = () => {
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleDeleteQuote = async (quoteId: string, quoteTitle: string) => {
+    setDeletingQuote(quoteId);
+    try {
+      await deleteQuote(quoteId);
+      toast({
+        title: "Quote Deleted",
+        description: `"${quoteTitle}" has been deleted successfully.`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete quote. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingQuote(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -189,7 +212,12 @@ const ViewAllQuotes = () => {
                 <div className="flex flex-wrap gap-3">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 sm:flex-none"
+                        onClick={() => setSelectedQuote(quote)}
+                      >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </Button>
@@ -300,6 +328,37 @@ const ViewAllQuotes = () => {
                       />
                     </DialogContent>
                   </Dialog>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 sm:flex-none text-red-600 hover:text-red-700 hover:bg-red-50"
+                        disabled={deletingQuote === quote.id}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        {deletingQuote === quote.id ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Quote</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{quote.title}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeleteQuote(quote.id, quote.title)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

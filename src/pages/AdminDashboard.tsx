@@ -76,10 +76,10 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Fetch all users and quotes
+      // Fetch all users and quotes - Admin should see all data
       const [usersResponse, quotesResponse] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('quotes').select('*')
+        supabase.from('quotes').select('*').order('created_at', { ascending: false })
       ]);
 
       const usersData = usersResponse.data || [];

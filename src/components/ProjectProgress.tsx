@@ -47,24 +47,24 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
     
     setLoading(true);
     try {
-      // Try to fetch from project_progress table, fallback gracefully if it doesn't exist
+      // Fetch from quotes table since we consolidated progress data there
       const { data, error } = await supabase
-        .from('project_progress')
-        .select('*')
-        .eq('quote_id', quoteId)
+        .from('quotes')
+        .select('progress_percentage, progress_notes, milestone_date, status')
+        .eq('id', quoteId)
+        .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = not found
-        console.log('Project progress table may not exist yet:', error);
+      if (error) {
+        console.error('Error fetching quote progress:', error);
         return;
       }
 
       if (data) {
         setProgressData({
-          id: data.id,
           status: data.status as 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold',
           progress_percentage: data.progress_percentage || 0,
-          notes: data.notes || '',
+          notes: data.progress_notes || '',
           milestone_date: data.milestone_date || ''
         });
       }
@@ -81,42 +81,27 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
     setUpdating(true);
     try {
       const updateData = {
-        quote_id: quoteId,
         status: progressData.status,
         progress_percentage: progressData.progress_percentage,
-        notes: progressData.notes || null,
+        progress_notes: progressData.notes || null,
         milestone_date: progressData.milestone_date || null
       };
 
-      let result;
-      if (progressData.id) {
-        // Update existing
-        result = await supabase
-          .from('project_progress')
-          .update(updateData)
-          .eq('id', progressData.id)
-          .select()
-          .single();
-      } else {
-        // Create new
-        result = await supabase
-          .from('project_progress')
-          .insert([updateData])
-          .select()
-          .single();
-      }
+      const { error } = await supabase
+        .from('quotes')
+        .update(updateData)
+        .eq('id', quoteId)
+        .eq('user_id', user.id);
 
-      if (result.error) {
-        console.error('Error updating progress:', result.error);
+      if (error) {
+        console.error('Error updating progress:', error);
         toast({
           title: "Update Failed",
-          description: "Project progress table may not be set up yet",
+          description: "Failed to update project progress",
           variant: "destructive"
         });
         return;
       }
-
-      setProgressData(prev => ({ ...prev, id: result.data.id }));
       
       toast({
         title: "Progress Updated",

@@ -309,65 +309,36 @@ export type Database = {
         }
         Relationships: []
       }
-      project_progress: {
-        Row: {
-          created_at: string
-          id: string
-          milestone_date: string | null
-          notes: string | null
-          progress_percentage: number | null
-          quote_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          milestone_date?: string | null
-          notes?: string | null
-          progress_percentage?: number | null
-          quote_id: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          milestone_date?: string | null
-          notes?: string | null
-          progress_percentage?: number | null
-          quote_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_progress_quote_id_fkey"
-            columns: ["quote_id"]
-            isOneToOne: true
-            referencedRelation: "quotes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       quotes: {
         Row: {
           additional_services_cost: number | null
           addons: Json | null
           addons_cost: number
+          bathrooms: number | null
+          bedrooms: number | null
           client_email: string | null
           client_name: string
+          contract_type: string | null
           created_at: string
           custom_specs: string | null
           distance_km: number | null
           equipment_costs: number | null
+          floors: number | null
+          house_height: number | null
+          house_length: number | null
+          house_type: string | null
+          house_width: number | null
           id: string
           labor: Json | null
           labor_cost: number
           location: string
           materials: Json | null
           materials_cost: number
+          milestone_date: string | null
           overall_profit_amount: number | null
+          plan_file_url: string | null
+          progress_notes: string | null
+          progress_percentage: number | null
           project_type: string
           region: string
           selected_equipment: Json | null
@@ -375,6 +346,7 @@ export type Database = {
           status: string
           title: string
           total_amount: number
+          total_volume: number | null
           transport_costs: number | null
           updated_at: string
           user_id: string
@@ -383,19 +355,31 @@ export type Database = {
           additional_services_cost?: number | null
           addons?: Json | null
           addons_cost?: number
+          bathrooms?: number | null
+          bedrooms?: number | null
           client_email?: string | null
           client_name: string
+          contract_type?: string | null
           created_at?: string
           custom_specs?: string | null
           distance_km?: number | null
           equipment_costs?: number | null
+          floors?: number | null
+          house_height?: number | null
+          house_length?: number | null
+          house_type?: string | null
+          house_width?: number | null
           id?: string
           labor?: Json | null
           labor_cost?: number
           location: string
           materials?: Json | null
           materials_cost?: number
+          milestone_date?: string | null
           overall_profit_amount?: number | null
+          plan_file_url?: string | null
+          progress_notes?: string | null
+          progress_percentage?: number | null
           project_type: string
           region: string
           selected_equipment?: Json | null
@@ -403,6 +387,7 @@ export type Database = {
           status?: string
           title: string
           total_amount?: number
+          total_volume?: number | null
           transport_costs?: number | null
           updated_at?: string
           user_id: string
@@ -411,19 +396,31 @@ export type Database = {
           additional_services_cost?: number | null
           addons?: Json | null
           addons_cost?: number
+          bathrooms?: number | null
+          bedrooms?: number | null
           client_email?: string | null
           client_name?: string
+          contract_type?: string | null
           created_at?: string
           custom_specs?: string | null
           distance_km?: number | null
           equipment_costs?: number | null
+          floors?: number | null
+          house_height?: number | null
+          house_length?: number | null
+          house_type?: string | null
+          house_width?: number | null
           id?: string
           labor?: Json | null
           labor_cost?: number
           location?: string
           materials?: Json | null
           materials_cost?: number
+          milestone_date?: string | null
           overall_profit_amount?: number | null
+          plan_file_url?: string | null
+          progress_notes?: string | null
+          progress_percentage?: number | null
           project_type?: string
           region?: string
           selected_equipment?: Json | null
@@ -431,6 +428,7 @@ export type Database = {
           status?: string
           title?: string
           total_amount?: number
+          total_volume?: number | null
           transport_costs?: number | null
           updated_at?: string
           user_id?: string
@@ -460,6 +458,114 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      room_material_requirements: {
+        Row: {
+          created_at: string | null
+          id: string
+          material_id: string | null
+          quantity_per_unit: number
+          room_type_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          material_id?: string | null
+          quantity_per_unit: number
+          room_type_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          material_id?: string | null
+          quantity_per_unit?: number
+          room_type_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_material_requirements_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "material_base_prices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_material_requirements_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_types: {
+        Row: {
+          calculation_method: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          calculation_method?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          calculation_method?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      user_equipment_overrides: {
+        Row: {
+          created_at: string | null
+          custom_rate: number
+          equipment_id: string | null
+          id: string
+          region: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_rate: number
+          equipment_id?: string | null
+          id?: string
+          region: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_rate?: number
+          equipment_id?: string | null
+          id?: string
+          region?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_equipment_overrides_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_equipment_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_equipment_rates: {
         Row: {
@@ -496,6 +602,141 @@ export type Database = {
           },
           {
             foreignKeyName: "user_equipment_rates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_labor_overrides: {
+        Row: {
+          created_at: string | null
+          custom_rate: number
+          id: string
+          labor_type_id: string | null
+          region: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_rate: number
+          id?: string
+          labor_type_id?: string | null
+          region: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_rate?: number
+          id?: string
+          labor_type_id?: string | null
+          region?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_labor_overrides_labor_type_id_fkey"
+            columns: ["labor_type_id"]
+            isOneToOne: false
+            referencedRelation: "labor_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_labor_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_material_prices: {
+        Row: {
+          created_at: string | null
+          custom_price: number
+          id: string
+          material_id: string | null
+          region: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_price: number
+          id?: string
+          material_id?: string | null
+          region: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_price?: number
+          id?: string
+          material_id?: string | null
+          region?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_material_prices_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "material_base_prices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_material_prices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_service_overrides: {
+        Row: {
+          created_at: string | null
+          custom_price: number
+          id: string
+          region: string
+          service_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_price: number
+          id?: string
+          region: string
+          service_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_price?: number
+          id?: string
+          region?: string
+          service_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_service_overrides_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "additional_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_service_overrides_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -588,6 +829,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_contractor_price_table_if_not_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       jwt_claims: {
         Args: Record<PropertyKey, never>
         Returns: Json

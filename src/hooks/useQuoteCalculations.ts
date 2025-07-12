@@ -92,7 +92,7 @@ export const useQuoteCalculations = () => {
       
       // Get profit margin from profile, default to 10%
       const overallProfitMargin = (profile.overall_profit_margin as number) || 10;
-      const profitAmount = (subtotal * overallProfitMargin) / 100;
+      const profitAmount = (subtotal * overallProfitMargin);
       const totalAmount = subtotal + profitAmount;
 
       return {

@@ -143,7 +143,7 @@ const DashboardSettings = () => {
             <CardContent className="space-y-4">
               {equipmentTypes.map((equipmentType) => {
                 const userRate = equipmentRates.find(r => r.equipment_type_id === equipmentType.id);
-                const currentRate = userRate ? userRate.daily_rate / 100 : equipmentType.daily_rate / 100;
+                const currentRate = userRate ? userRate.daily_rate : equipmentType.daily_rate;
                 
                 return (
                   <div key={equipmentType.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -196,8 +196,8 @@ const DashboardSettings = () => {
             <CardContent className="space-y-4">
               {['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'].map((region) => {
                 const rate = transportRates.find(r => r.region === region);
-                const costPerKm = rate ? rate.cost_per_km / 100 : 50;
-                const baseCost = rate ? rate.base_cost / 100 : 500;
+                const costPerKm = rate ? rate.cost_per_km : 50;
+                const baseCost = rate ? rate.base_cost : 500;
                 
                 return (
                   <div key={region} className="p-4 border rounded-lg">
@@ -263,7 +263,7 @@ const DashboardSettings = () => {
             <CardContent className="space-y-4">
               {additionalServices.map((service) => {
                 const userRate = serviceRates.find(r => r.service_id === service.id);
-                const currentPrice = userRate ? userRate.price / 100 : service.default_price / 100;
+                const currentPrice = userRate ? userRate.price : service.default_price;
                 
                 return (
                   <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">

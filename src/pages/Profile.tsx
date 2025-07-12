@@ -235,7 +235,7 @@ const [tierLimits, setTierLimits] = useState<{
                     <p className="text-sm text-muted-foreground">Success Rate</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">KSh {(profile.total_revenue / 100000).toFixed(1)}K</p>
+                    <p className="text-2xl font-bold text-purple-600">KSh {(profile.total_revenue000).toFixed(1)}K</p>
                     <p className="text-sm text-muted-foreground">Total Revenue</p>
                   </div>
                 </div>

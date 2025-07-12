@@ -32,7 +32,7 @@ const Reports = () => {
       .map(([name, stats]) => ({
         name,
         quotes: stats.quotes,
-        revenue: stats.revenue / 100 // Convert from cents
+        revenue: stats.revenue // Convert from cents
       }))
       .slice(-6); // Last 6 months
   }, [quotes]);
@@ -100,7 +100,7 @@ const Reports = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
                 <p className="text-2xl font-bold">
-                  KSh {(totalRevenue / 100).toLocaleString()}
+                  KSh {(totalRevenue).toLocaleString()}
                 </p>
               </div>
             </div>

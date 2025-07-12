@@ -413,7 +413,7 @@ const EnhancedQuoteBuilder = () => {
                       <div className="flex-1">
                         <h4 className="font-medium">{equipment.name}</h4>
                         <p className="text-sm text-muted-foreground">
-                          KSh {(equipment.daily_rate / 100).toLocaleString()}/day
+                          KSh {(equipment.daily_rate).toLocaleString()}/day
                         </p>
                         {equipment.description && (
                           <p className="text-xs text-muted-foreground">{equipment.description}</p>
@@ -462,7 +462,7 @@ const EnhancedQuoteBuilder = () => {
                       </div>
                       <div className="text-right">
                         <Badge variant="secondary">
-                          KSh {(service.default_price / 100).toLocaleString()}
+                          KSh {(service.default_price).toLocaleString()}
                         </Badge>
                         <p className="text-xs text-muted-foreground">{service.category}</p>
                       </div>
@@ -539,33 +539,33 @@ const EnhancedQuoteBuilder = () => {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex justify-between">
-                      <span>Materials:</span>
-                      <span className="font-medium">KSh {(calculation.materials_cost / 100).toLocaleString()}</span>
+                      <span className="font-medium text-green-900">Materials:</span>
+                      <span className="font-medium text-green-900">KSh {(calculation.materials_cost).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Labor:</span>
-                      <span className="font-medium">KSh {(calculation.labor_cost / 100).toLocaleString()}</span>
+                      <span className="font-medium text-green-900">Labor:</span>
+                      <span className="font-medium text-green-900">KSh {(calculation.labor_cost).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Equipment:</span>
-                      <span className="font-medium">KSh {(calculation.equipment_cost / 100).toLocaleString()}</span>
+                      <span className="font-medium text-green-900">Equipment:</span>
+                      <span className="font-medium text-green-900">KSh {(calculation.equipment_cost).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Transport:</span>
-                      <span className="font-medium">KSh {(calculation.transport_cost / 100).toLocaleString()}</span>
+                      <span className="font-medium text-green-900">Transport:</span>
+                      <span className="font-medium text-green-900">KSh {(calculation.transport_cost).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Services:</span>
-                      <span className="font-medium">KSh {(calculation.services_cost / 100).toLocaleString()}</span>
+                      <span className="font-medium text-green-900">Services:</span>
+                      <span className="font-medium text-green-900">KSh {(calculation.services_cost).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Profit Margin:</span>
-                      <span className="font-medium">KSh {(calculation.profit_amount / 100).toLocaleString()}</span>
+                      <span className="font-medium text-green-900">Profit Margin:</span>
+                      <span className="font-medium text-green-900">KSh {(calculation.profit_amount).toLocaleString()}</span>
                     </div>
                     <hr className="my-2" />
                     <div className="flex justify-between text-lg font-bold text-green-800">
                       <span>Total:</span>
-                      <span>KSh {(calculation.total_amount / 100).toLocaleString()}</span>
+                      <span>KSh {(calculation.total_amount).toLocaleString()}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -576,14 +576,14 @@ const EnhancedQuoteBuilder = () => {
               <Button
                 onClick={handleCalculate}
                 disabled={calculationLoading}
-                className="flex-1"
+                className="flex-1 text-white"
               >
                 {calculationLoading ? 'Calculating...' : 'Calculate Quote'}
               </Button>
               {calculation && (
                 <Button
                   onClick={handleSaveQuote}
-                  className="flex-1"
+                  className="flex-1 text-white"
                   variant="default"
                 >
                   Save Quote

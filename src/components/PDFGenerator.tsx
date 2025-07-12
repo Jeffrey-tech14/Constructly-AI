@@ -225,7 +225,7 @@ interface PDFGeneratorProps {
 }
 
 const formatCurrency = (amount: number) => {
-  return `KSh ${(amount / 100).toLocaleString()}`;
+  return `KSh ${(amount).toLocaleString()}`;
 };
 
 export const QuotePDF = ({ quote }: { quote: Quote }) => (

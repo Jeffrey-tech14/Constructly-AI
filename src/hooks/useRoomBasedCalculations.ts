@@ -255,7 +255,7 @@ export const useRoomBasedCalculations = () => {
     const servicesCost = selected_services.length * 5000000; // 50,000 per service (in cents)
 
     const subtotal = materialsCost + laborCost + equipmentCost + transportCost + servicesCost;
-    const profitAmount = (subtotal * overallProfitMargin) / 100;
+    const profitAmount = (subtotal * overallProfitMargin);
     const totalAmount = subtotal + profitAmount;
 
     return {

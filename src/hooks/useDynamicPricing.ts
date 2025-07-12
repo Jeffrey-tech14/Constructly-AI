@@ -233,13 +233,13 @@ export const useDynamicPricing = () => {
     );
     
     if (userOverride) {
-      return userOverride.custom_price / 100;
+      return userOverride.custom_price;
     }
 
     const basePrice = materialBasePrices.find(m => m.id === materialId)?.base_price || 0;
     const multiplier = regionalMultipliers.find(r => r.region === region)?.multiplier || 1;
     
-    return (basePrice * multiplier) / 100;
+    return (basePrice * multiplier);
   };
 
   useEffect(() => {

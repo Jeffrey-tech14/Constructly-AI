@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Settings, 
   DollarSign, 
@@ -26,6 +27,7 @@ const Variables = () => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState<any[]>([]);
   const {
     equipmentTypes,
     additionalServices,
@@ -35,7 +37,8 @@ const Variables = () => {
     updateEquipmentRate,
     updateTransportRate,
     updateServiceRate,
-    updateOverallProfitMargin
+    updateOverallProfitMargin,
+    updateSubcontractorRate
   } = useUserSettings();
   
   const {
@@ -46,16 +49,64 @@ const Variables = () => {
     getEffectiveMaterialPrice
   } = useDynamicPricing();
 
-  const [tempValues, setTempValues] = useState<{[key: string]: number}>({});
   
     useEffect(() => {
-      if (!sessionStorage.getItem('profile_reloaded')) {
-        sessionStorage.setItem('profile_reloaded', 'true');
+      if (!sessionStorage.getItem('variables_reloaded')) {
+        sessionStorage.setItem('variables_reloaded', 'true');
         window.location.reload();
       }
     }, []);
+    const [tempValues, setTempValues] = useState<{ [key: string]: number }>({});
 
-  const handleSave = async (type: string, id: string, value: number) => {
+  useEffect(() => {
+    const fetchRates = async () => {
+      setLoading(true);
+      const { data: baseServices, error: baseError } = await supabase
+        .from('subcontractor_prices')
+        .select('*');
+
+      const { data: overrides, error: overrideError } = await supabase
+        .from('user_subcontractor_rates')
+        .select('service_id, price')
+        .eq('user_id', profile.id);
+
+      if (baseError) console.error('Base rates error:', baseError);
+      if (overrideError) console.error('Overrides error:', overrideError);
+
+      // Merge base rates with user overrides
+      const merged = baseServices.map((service) => {
+      // Try to find user-specific override
+      const userRate = overrides?.find(o => o.service_id === service.id);
+
+      // Prioritize user rate → fallback to base default → fallback to null
+      const rawRate = userRate?.price ?? service.default_price ?? null;
+
+      // Final rate: force to number only if rawRate is not null
+      const rate = rawRate != null ? Number(rawRate) : 0;
+
+      const unit = service.unit ?? "unit";
+
+      if (rawRate == null) {
+        console.warn(`⚠️ No price found for service: ${service.name} (${service.id})`);
+      }
+
+      return {
+        ...service,
+        rate,
+        unit,
+        source: userRate ? 'user' : (service.default_price != null ? 'base' : 'none') // track source of price
+      };
+    });
+
+
+      setServices(merged);
+      setLoading(false);
+    };
+
+    fetchRates();
+  }, [profile.id]);
+
+  const handleSave = async (type: string, user_id:string, id: string, value: number) => {
     setLoading(true);
     try {
       const userRegion = profile?.location || 'Nairobi';
@@ -69,6 +120,9 @@ const Variables = () => {
           break;
         case 'service':
           await updateServiceRate(id, value);
+          break;
+        case 'subcontractor':
+          await updateSubcontractorRate(id, value);
           break;
         case 'transport':
           const [region, field] = id.split('-');
@@ -182,7 +236,7 @@ const Variables = () => {
                           </div>
                           <div className="space-y-2">
                             <div className="text-sm text-muted-foreground">
-                              Base: KSh {(material.base_price / 100).toLocaleString()}
+                              Base: KSh {(material.base_price).toLocaleString()}
                               {!isCustomPrice && (
                                 <span className="text-xs ml-1">
                                   (×{regionalMultipliers.find(r => r.region === userRegion)?.multiplier || 1})
@@ -201,7 +255,7 @@ const Variables = () => {
                               />
                               <Button 
                                 size="sm"
-                                onClick={() => handleSave('material', material.id, tempValues[`material-${material.id}`] || effectivePrice)}
+                                onClick={() => handleSave('material',null, material.id, tempValues[`material-${material.id}`] || effectivePrice)}
                                 disabled={loading}
                               >
                                 <Save className="w-4 h-4 text-white" />
@@ -232,7 +286,7 @@ const Variables = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {equipmentTypes.map((equipment) => {
                     const userRate = equipmentRates.find(r => r.equipment_type_id === equipment.id);
-                    const currentRate = userRate ? userRate.daily_rate / 100 : equipment.daily_rate / 100;
+                    const currentRate = userRate ? userRate.daily_rate: equipment.daily_rate ;
                     
                     return (
                       <Card key={equipment.id} className="gradient-card card-hover">
@@ -256,7 +310,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave('equipment', equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate)}
+                              onClick={() => handleSave('equipment',null, equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -281,10 +335,10 @@ const Variables = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'].map((region) => {
+                  {[profile.location].map((region) => {
                     const rate = transportRates.find(r => r.region === region);
-                    const costPerKm = rate ? rate.cost_per_km / 100 : 50;
-                    const baseCost = rate ? rate.base_cost / 100 : 500;
+                    const costPerKm = rate ? rate.cost_per_km : 50;
+                    const baseCost = rate ? rate.base_cost : 500;
                     
                     return (
                       <Card key={region} className="gradient-card card-hover">
@@ -305,7 +359,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave('transport', `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm)}
+                                  onClick={() => handleSave('transport',null, `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -326,7 +380,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave('transport', `${region}-base`, tempValues[`transport-${region}-base`] || baseCost)}
+                                  onClick={() => handleSave('transport',null, `${region}-base`, tempValues[`transport-${region}-base`] || baseCost)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -355,7 +409,7 @@ const Variables = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {additionalServices.map((service) => {
                     const userRate = serviceRates.find(r => r.service_id === service.id);
-                    const currentPrice = userRate ? userRate.price / 100 : service.default_price / 100;
+                    const currentPrice = userRate ? userRate.price : service.default_price;
                     
                     return (
                       <Card key={service.id} className="gradient-card card-hover">
@@ -379,7 +433,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave('service', service.id, tempValues[`service-${service.id}`] || currentPrice)}
+                              onClick={() => handleSave('service',null, service.id, tempValues[`service-${service.id}`] || currentPrice)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -394,55 +448,54 @@ const Variables = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="subcontractors" className="space-y-4">
-            <Card className="gradient-card animate-slide-in">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Subcontractor Rates
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { name: 'Electrical Work', rate: 5000, unit: 'day' },
-                    { name: 'Plumbing', rate: 4500, unit: 'day' },
-                    { name: 'Painting', rate: 3000, unit: 'day' },
-                    { name: 'Roofing', rate: 6000, unit: 'day' },
-                    { name: 'Tiling', rate: 4000, unit: 'day' },
-                    { name: 'Carpentry', rate: 5500, unit: 'day' }
-                  ].map((sub) => (
-                    <Card key={sub.name} className="gradient-card card-hover">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-medium">{sub.name}</h4>
-                          <Badge className='text-white'>KSh {sub.rate.toLocaleString()}/{sub.unit}</Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="number"
-                            defaultValue={sub.rate}
-                            onChange={(e) => setTempValues({
-                              ...tempValues,
-                              [`sub-${sub.name}`]: parseFloat(e.target.value) || 0
-                            })}
-                            className="flex-1"
-                          />
-                          <Button 
-                            size="sm"
-                            onClick={() => handleSave('subcontractor', sub.name, tempValues[`sub-${sub.name}`] || sub.rate)}
-                            disabled={loading}
-                          >
-                            <Save className="w-4 h-4 text-white" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+           <TabsContent value="subcontractors" className="space-y-4">
+      <Card className="gradient-card animate-slide-in">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Users className="w-5 h-5 mr-2" />
+            Subcontractor Rates
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {services.map((sub) => (
+              <Card key={sub.id} className="gradient-card card-hover">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">{sub.name}</h4>
+                    <Badge className="text-white">
+                      KSh {Number(sub.price || 0).toLocaleString()}/{sub.unit ?? "unit"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      defaultValue={Number(sub.price || 0)}
+                      onChange={(e) =>
+                        setTempValues({
+                          ...tempValues,
+                          [sub.id]: parseFloat(e.target.value) || 0
+                        })
+                      }
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        handleSave('subcontractor',profile.id, sub.id, tempValues[sub.id] || sub.rate)
+                      }
+                      disabled={loading}
+                    >
+                      <Save className="w-4 h-4 text-white" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
 
           <TabsContent value="profit" className="space-y-4">
             <Card className="gradient-card animate-slide-in">
@@ -469,7 +522,7 @@ const Variables = () => {
                         />
                         <Button 
                           size="sm"
-                          onClick={() => handleSave('profit', 'overall', tempValues['overall-profit'] || 15)}
+                          onClick={() => handleSave('profit',null, 'overall', tempValues['overall-profit'] || 15)}
                           disabled={loading}
                         >
                           <Save className="w-4 h-4 text-white" />
@@ -493,7 +546,7 @@ const Variables = () => {
                         />
                         <Button 
                           size="sm"
-                          onClick={() => handleSave('labor', 'percentage', tempValues['labor-percentage'] || 25)}
+                          onClick={() => handleSave('labor',null, 'percentage', tempValues['labor-percentage'] || 25)}
                           disabled={loading}
                         >
                           <Save className="w-4 h-4 text-white" />

@@ -51,7 +51,7 @@ export const MaterialPricesDialog = () => {
     setFormData({
       name: material.name,
       unit: material.unit,
-      base_price: (material.base_price / 100).toString(),
+      base_price: (material.base_price).toString(),
       category: material.category,
       description: material.description || ''
     });
@@ -145,7 +145,7 @@ export const MaterialPricesDialog = () => {
                   <div>
                     <div className="font-medium">{material.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      KSh {(material.base_price / 100).toLocaleString()} per {material.unit} • {material.category}
+                      KSh {(material.base_price).toLocaleString()} per {material.unit} • {material.category}
                     </div>
                   </div>
                   <Button className='text-white' size="sm" variant="outline" onClick={() => startEdit(material)}>

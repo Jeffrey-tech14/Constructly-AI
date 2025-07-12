@@ -182,7 +182,7 @@ const ViewAllQuotes = () => {
                     </Badge>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary">
-                        KSh {(quote.total_amount / 100).toLocaleString()}
+                        KSh {(quote.total_amount).toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ const ViewAllQuotes = () => {
                     <CardContent className="text-center p-4">
                       <div className="text-sm text-muted-foreground mb-1">Materials</div>
                       <div className="text-lg font-semibold text-green-600">
-                        KSh {(quote.materials_cost / 100).toLocaleString()}
+                        KSh {(quote.materials_cost).toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
@@ -202,7 +202,7 @@ const ViewAllQuotes = () => {
                     <CardContent className="text-center p-4">
                       <div className="text-sm text-muted-foreground mb-1">Labor</div>
                       <div className="text-lg font-semibold text-blue-600">
-                        KSh {(quote.labor_cost / 100).toLocaleString()}
+                        KSh {(quote.labor_cost).toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
@@ -210,7 +210,7 @@ const ViewAllQuotes = () => {
                     <CardContent className="text-center p-4">
                       <div className="text-sm text-muted-foreground mb-1">Add-ons</div>
                       <div className="text-lg font-semibold text-purple-600">
-                        KSh {(quote.addons_cost / 100).toLocaleString()}
+                        KSh {(quote.addons_cost).toLocaleString()}
                       </div>
                     </CardContent>
                   </Card>
@@ -284,7 +284,7 @@ const ViewAllQuotes = () => {
                                     </span>
                                   </div>
                                   <span className="font-semibold">
-                                    KSh {((material.total_price || 0) / 100).toLocaleString()}
+                                    KSh {((material.total_price || 0)).toLocaleString()}
                                   </span>
                                 </div>
                               ))}
@@ -301,7 +301,7 @@ const ViewAllQuotes = () => {
                                 <div key={index} className="flex justify-between items-center p-3 bg-background/50 rounded">
                                   <span className="font-medium">{equipment.name || `Equipment ${index + 1}`}</span>
                                   <span className="font-semibold">
-                                    KSh {((equipment.total_cost || 0) / 100).toLocaleString()}
+                                    KSh {((equipment.total_cost || 0)).toLocaleString()}
                                   </span>
                                 </div>
                               ))}
@@ -314,7 +314,7 @@ const ViewAllQuotes = () => {
 
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-white flex-1 sm:flex-none">
+                      <Button variant="outline" size="sm" className=" flex-1 sm:flex-none">
                         <TrendingUp className="w-4 h-4 mr-2" />
                         Progress
                       </Button>

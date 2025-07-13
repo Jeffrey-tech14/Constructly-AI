@@ -40,6 +40,16 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
     return matchesSearch && matchesStatus;
   });
 
+  const formatCurrency = (value: number) => {
+    if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (value >= 1_000) {
+      return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+    return value.toString();
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-10">
@@ -69,8 +79,11 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="started">Started</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
@@ -101,14 +114,14 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-lg">KSh {quote.total_amount.toLocaleString()}</p>
+                <p className="font-bold text-lg">KSh {formatCurrency(quote.total_amount).toLocaleString()}</p>
               </div>
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">
-                Progress: {quote.progress || 0}%
+                Progress: {quote.progress_percentage || 0}%
               </p>
-              <Progress value={quote.progress || 0} />
+              <Progress value={quote.progress_percentage  || 0} />
             </div>
           </div>
         ))}

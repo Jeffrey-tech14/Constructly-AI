@@ -208,20 +208,76 @@ export const useUserSettings = () => {
   };
 
   const updateOverallProfitMargin = async (margin: number) => {
-    if (!user) return { error: 'User not authenticated' };
-    try {
-      const { error } = await supabase.from('profiles').upsert({
+  if (!user) return { error: 'User not authenticated' };
+
+  try {
+    // First get existing profile to maintain required fields
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('name, email') // Add other required fields
+      .eq('id', user.id)
+      .single();
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
         id: user.id,
-        overall_profit_margin: margin
+        name: existingProfile?.name || '', // Provide default if missing
+        email: existingProfile?.email || user.email || '',
+        overall_profit_margin: margin,
+        updated_at: new Date().toISOString()
       }, {
         onConflict: 'id'
-      });
-      return { error };
-    } catch (err) {
-      console.error('Error updating overall profit margin:', err);
-      return { error: err };
-    }
-  };
+      })
+      .select('overall_profit_margin')
+      .single();
+
+    if (error) throw error;
+    return { data: data?.overall_profit_margin, error: null };
+
+  } catch (err) {
+    console.error('Error updating profit margin:', err);
+    return { 
+      data: null,
+      error: err instanceof Error ? err.message : 'Failed to update margin'
+    };
+  }
+};
+
+  const updateLabourPercent = async (margin: number) => {
+  if (!user) return { error: 'User not authenticated' };
+
+  try {
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('name, email')
+      .eq('id', user.id)
+      .single();
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        name: existingProfile?.name || '',
+        email: existingProfile?.email || user.email || '',
+        labour_percent: margin,
+      }, {
+        onConflict: 'id'
+      })
+      .select('labour_percent')
+      .single();
+
+    if (error) throw error;
+    return { data: data?.labour_percent, error: null };
+
+  } catch (err) {
+    console.error('Error updating labour:', err);
+    return { 
+      data: null,
+      error: err instanceof Error ? err.message : 'Failed to update labour'
+    };
+  }
+};
 
   useEffect(() => {
     if (!user) return;
@@ -248,6 +304,7 @@ export const useUserSettings = () => {
     updateServiceRate,
     updateSubcontractorRate,
     updateMaterialPrice,
+    updateLabourPercent,
     updateOverallProfitMargin
   };
 };

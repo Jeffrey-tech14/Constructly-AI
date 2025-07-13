@@ -10,6 +10,16 @@ const Reports = () => {
   const { quotes } = useQuotes();
   const { reviews, averageRating } = useClientReviews();
 
+  const formatCurrency = (value: number) => {
+    if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (value >= 1_000) {
+      return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+    return value.toString();
+  };
+
   // Calculate monthly data from actual quotes
   const monthlyData = useMemo(() => {
     const monthlyStats: { [key: string]: { quotes: number; revenue: number } } = {};
@@ -100,7 +110,7 @@ const Reports = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
                 <p className="text-2xl font-bold">
-                  KSh {(totalRevenue).toLocaleString()}
+                  KSh {(formatCurrency(totalRevenue)).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -143,7 +153,7 @@ const Reports = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`KSh ${Number(value).toLocaleString()}`, 'Revenue']} />
+                <Tooltip formatter={(value) => [`KSh ${formatCurrency(Number(value)).toLocaleString()}`, 'Revenue']} />
                 <Bar dataKey="revenue" fill="#22c55e" />
               </BarChart>
             </ResponsiveContainer>

@@ -53,6 +53,16 @@ const Profile = () => {
     }
   }, []);
 
+const formatCurrency = (value: number) => {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+  }
+  return value.toString();
+};
+
 const [tierLimits, setTierLimits] = useState<{
   [key: string]: {
     quotes: number ;
@@ -67,6 +77,53 @@ const [tierLimits, setTierLimits] = useState<{
   }
 });
 
+
+const [stats, setStats] = useState({
+  totalProjects: 0,
+  completedProjects: 0,
+  totalRevenue: 0,
+  completionRate: 0,
+});
+
+useEffect(() => {
+  if (profile?.id) {
+    fetchDashboardStats(profile.id).then(setStats);
+  }
+}, [profile?.id]);
+
+
+const fetchDashboardStats = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('quotes')
+    .select('status, total_amount')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      totalProjects: 0,
+      completedProjects: 0,
+      totalRevenue: 0,
+      completionRate: 0,
+    };
+  }
+
+  const totalProjects = data.length;
+  const completedProjects = data.filter(q => q.status === 'completed').length;
+  const totalRevenue = data.reduce((sum, q) => sum + (q.total_amount || 0), 0);
+  const completionRate = totalProjects > 0
+    ? (completedProjects / totalProjects) * 100
+    : 0;
+
+  return {
+    totalProjects,
+    completedProjects,
+    totalRevenue,
+    completionRate,
+  };
+};
+
+
   useEffect(() => {
     const fetchTiers = async () => {
       const { data, error } = await supabase.from('tiers').select('*');
@@ -75,12 +132,11 @@ const [tierLimits, setTierLimits] = useState<{
         return;
       }
 
-      // Build tierLimits from Supabase data
       const limits = data.reduce((acc: any, tier: any) => {
         acc[tier.name] = {
-          quotes: tier.quotes_limit ?? Infinity, // fallback if null
+          quotes: tier.quotes_limit ?? Infinity, 
           price: tier.price,
-          features: tier.features || [] // assuming Supabase has a features column (JSON/text[]), else you can hardcode
+          features: tier.features || [] 
         };
         return acc;
       }, {});
@@ -109,27 +165,27 @@ const [tierLimits, setTierLimits] = useState<{
     navigate('/payment');
   };
 
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case 'Free':
-        return <Badge variant="secondary">Free</Badge>;
-      case 'Basic':
-        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
-      case 'Intermediate':
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
-      case 'Professional':
-        return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Premium</Badge>;
-      default:
-        return <Badge>{tier}</Badge>;
-    }
-  };
+ const getTierBadge = (tier: string) => {
+      switch (tier) {
+        case 'Free':
+          return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200">Free</Badge>;
+        case 'Basic':
+          return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200"><Crown className="w-3 h-3 mr-1" />Basic</Badge>;
+        case 'Intermediate':
+          return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
+        case 'Professional':
+          return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Professional</Badge>;
+        default:
+          return <Badge>{tier}</Badge>;
+      }
+    };
 
   const quotaUsagePercentage = profile.tier === 'Free' 
-    ? (profile.quotes_used / tierLimits.Free.quotes) * 100 
+    ? (profile.quotes_used / tierLimits.Free.quotes)  
     : 0;
 
   const projectCompletionRate = profile.total_projects > 0 
-    ? (profile.completed_projects / profile.total_projects) * 100 
+    ? (profile.completed_projects / profile.total_projects)  
     : 0;
 
   return (
@@ -223,30 +279,47 @@ const [tierLimits, setTierLimits] = useState<{
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{profile.total_projects}</p>
+                    <p className="text-2xl font-bold text-primary">{stats.totalProjects}</p>
                     <p className="text-sm text-muted-foreground">Total Projects</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{profile.completed_projects}</p>
+                    <p className="text-2xl font-bold text-green-600">{stats.completedProjects}</p>
                     <p className="text-sm text-muted-foreground">Completed</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{Math.round(projectCompletionRate)}%</p>
+                    <p className="text-2xl font-bold text-blue-600">{Math.round(stats.completionRate)}%</p>
                     <p className="text-sm text-muted-foreground">Success Rate</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">KSh {(profile.total_revenue000).toFixed(1)}K</p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      KSh {formatCurrency(stats.totalRevenue)}
+                    </p>
                     <p className="text-sm text-muted-foreground">Total Revenue</p>
                   </div>
                 </div>
+
                 
-                <div className="mt-6">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Project Completion Rate</span>
-                    <span>{Math.round(projectCompletionRate)}%</span>
-                  </div>
-                  <Progress value={projectCompletionRate} className="w-full" />
+               <div className="mt-6">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Project Completion Rate</span>
+                  <span>{Math.round(projectCompletionRate)}%</span>
                 </div>
+
+                {/* Dynamic progress bar color */}
+                <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      projectCompletionRate >= 75
+                        ? 'bg-green-500'
+                        : projectCompletionRate >= 50
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
+                    }`}
+                    style={{ width: `${projectCompletionRate}%` }}
+                  ></div>
+                </div>
+              </div>
+
               </CardContent>
             </Card>
           </div>

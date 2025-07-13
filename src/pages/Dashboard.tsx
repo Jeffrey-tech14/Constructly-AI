@@ -42,6 +42,15 @@ const Dashboard = () => {
     }
   }, []);
 
+const formatCurrency = (value: number) => {
+    if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (value >= 1_000) {
+      return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+    return value.toString();
+  };
 
   // Calculate dashboard metrics
   const totalQuotesValue = quotes.reduce((sum, quote) => sum + quote.total_amount, 0);
@@ -132,7 +141,7 @@ const Dashboard = () => {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">KSh {(totalQuotesValue).toLocaleString()}</div>
+                  <div className="text-2xl font-bold">KSh {(formatCurrency(totalQuotesValue)).toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     +{quotes.length} quotes generated
                   </p>
@@ -208,7 +217,7 @@ const Dashboard = () => {
                               {quote.client_name} • {quote.location}
                             </p>
                             <p className="text-sm font-medium mt-1">
-                              KSh {(quote.total_amount).toLocaleString()}
+                              KSh {(formatCurrency(quote.total_amount)).toLocaleString()}
                             </p>
                           </div>
                           <a href='/quotes/all'>

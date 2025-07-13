@@ -126,7 +126,7 @@ export const useDynamicPricing = () => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
-      const priceInCents = Math.round(customPrice * 100);
+      const priceInCents = Math.round(customPrice );
       
       const { error } = await supabase
         .from('user_material_prices')
@@ -135,6 +135,8 @@ export const useDynamicPricing = () => {
           material_id: materialId,
           custom_price: priceInCents,
           region
+        },{
+          onConflict: 'user_id, material_id,region'
         });
 
       if (!error) {
@@ -152,7 +154,7 @@ export const useDynamicPricing = () => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
-      const rateInCents = Math.round(customRate * 100);
+      const rateInCents = Math.round(customRate );
       
       const { error } = await supabase
         .from('user_labor_overrides')
@@ -178,7 +180,7 @@ export const useDynamicPricing = () => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
-      const priceInCents = Math.round(customPrice * 100);
+      const priceInCents = Math.round(customPrice );
       
       const { error } = await supabase
         .from('user_service_overrides')

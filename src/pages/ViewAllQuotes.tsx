@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import ProjectProgress from '@/components/ProjectProgress';
 import PDFGenerator from '@/components/PDFGenerator';
 import { Search, Eye, FileText, TrendingUp, Building2, MapPin, Calendar, Trash2 } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const ViewAllQuotes = () => {
   const { quotes, loading, deleteQuote } = useQuotes();
@@ -83,6 +84,16 @@ const ViewAllQuotes = () => {
     setDeletingQuote(null);
   }
 };
+const formatCurrency = (value: number) => {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (value >= 1_000) {
+    return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+  }
+  return value.toString();
+};
+
 
   if (loading) {
     return (
@@ -182,7 +193,7 @@ const ViewAllQuotes = () => {
                     </Badge>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary">
-                        KSh {(quote.total_amount).toLocaleString()}
+                        KSh {(formatCurrency(quote.total_amount).toLocaleString())}
                       </div>
                     </div>
                   </div>
@@ -194,7 +205,7 @@ const ViewAllQuotes = () => {
                     <CardContent className="text-center p-4">
                       <div className="text-sm text-muted-foreground mb-1">Materials</div>
                       <div className="text-lg font-semibold text-green-600">
-                        KSh {(quote.materials_cost).toLocaleString()}
+                        KSh {(formatCurrency(quote.materials_cost).toLocaleString())}
                       </div>
                     </CardContent>
                   </Card>
@@ -202,7 +213,7 @@ const ViewAllQuotes = () => {
                     <CardContent className="text-center p-4">
                       <div className="text-sm text-muted-foreground mb-1">Labor</div>
                       <div className="text-lg font-semibold text-blue-600">
-                        KSh {(quote.labor_cost).toLocaleString()}
+                        KSh {(formatCurrency(quote.labor_cost).toLocaleString())}
                       </div>
                     </CardContent>
                   </Card>
@@ -210,7 +221,7 @@ const ViewAllQuotes = () => {
                     <CardContent className="text-center p-4">
                       <div className="text-sm text-muted-foreground mb-1">Add-ons</div>
                       <div className="text-lg font-semibold text-purple-600">
-                        KSh {(quote.addons_cost).toLocaleString()}
+                        KSh {(formatCurrency(quote.addons_cost).toLocaleString())}
                       </div>
                     </CardContent>
                   </Card>
@@ -284,7 +295,7 @@ const ViewAllQuotes = () => {
                                     </span>
                                   </div>
                                   <span className="font-semibold">
-                                    KSh {((material.total_price || 0)).toLocaleString()}
+                                    KSh {(formatCurrency((material.total_price || 0)).toLocaleString())}
                                   </span>
                                 </div>
                               ))}
@@ -301,7 +312,7 @@ const ViewAllQuotes = () => {
                                 <div key={index} className="flex justify-between items-center p-3 bg-background/50 rounded">
                                   <span className="font-medium">{equipment.name || `Equipment ${index + 1}`}</span>
                                   <span className="font-semibold">
-                                    KSh {((equipment.total_cost || 0)).toLocaleString()}
+                                    KSh {(formatCurrency((equipment.total_cost || 0)).toLocaleString())}
                                   </span>
                                 </div>
                               ))}
@@ -320,6 +331,8 @@ const ViewAllQuotes = () => {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
+                    <DialogTitle>Subcontractor Rate
+                    </DialogTitle>
                       <ProjectProgress 
                         quoteId={quote.id} 
                         quoteName={quote.title}

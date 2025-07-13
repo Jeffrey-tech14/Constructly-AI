@@ -643,7 +643,7 @@ const EnhancedQuoteBuilder = () => {
               </div>
             ))}
           </div>
-          <Progress value={(currentStep / 6) * 100} className="w-full" />
+          <Progress value={(currentStep / 6) } className="w-full" />
         </div>
 
         {/* Step Content */}

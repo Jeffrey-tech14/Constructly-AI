@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { MaterialPricesDialog, RegionalPricingDialog } from '@/components/AdminConfigDialogs';
+import { MaterialPricesDialog, RegionalPricingDialog, EquipmentTypesDialog } from '@/components/AdminConfigDialogs';
 import QuotesTab from '../components/QuotesTab';
 import TiersTab from '../components/TiersTab';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -22,6 +22,7 @@ import {
   UserCheck,
   Crown,
   Ban,
+  Shield,
   Search,
   MoreHorizontal,
   Settings
@@ -52,7 +53,6 @@ interface DashboardStats {
   activeProjects: number;
   subscriptionRevenue: number;
 }
-
 
 const AdminDashboard = () => {
   const { user, profile } = useAuth();
@@ -232,6 +232,31 @@ const AdminDashboard = () => {
       }
     }, []);
 
+  const formatCurrency = (value: number) => {
+    if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (value >= 1_000) {
+      return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+    return value.toString();
+  };
+
+   const getTierBadge = (tier: string) => {
+      switch (tier) {
+        case 'Free':
+          return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200">Free</Badge>;
+        case 'Basic':
+          return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200"><Crown className="w-3 h-3 mr-1" />Basic</Badge>;
+        case 'Intermediate':
+          return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
+        case 'Professional':
+          return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Professional</Badge>;
+        default:
+          return <Badge>{tier}</Badge>;
+      }
+    };
+  
   if (!profile?.is_admin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -278,7 +303,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {(stats.totalRevenue).toLocaleString()}</div>
+              <div className="text-2xl font-bold">KSh {formatCurrency((stats.totalRevenue))}</div>
               <p className="text-xs text-muted-foreground">From active projects</p>
             </CardContent>
           </Card>
@@ -289,7 +314,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {(stats.subscriptionRevenue).toLocaleString()}</div>
+              <div className="text-2xl font-bold">KSh {(formatCurrency((stats.subscriptionRevenue)))}</div>
               <p className="text-xs text-muted-foreground">Monthly subscriptions</p>
             </CardContent>
           </Card>
@@ -379,7 +404,9 @@ const AdminDashboard = () => {
                             </div>
                             <p className="text-sm text-muted-foreground">{user.email}</p>
                             <div className="flex items-center space-x-4 mt-1">
-                              <Badge variant="secondary">{user.tier}</Badge>
+                              <Badge variant='secondary' className=' bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent'>
+                                {getTierBadge(user.tier)}
+                              </Badge>
                               <span className="text-xs text-muted-foreground">
                                 {user.quotes_used} quotes • {user.total_projects} projects
                               </span>
@@ -468,14 +495,9 @@ const AdminDashboard = () => {
                       <Card className="p-4">
                         <h4 className="font-medium mb-2">Equipment Types</h4>
                         <p className="text-sm text-muted-foreground mb-3">Manage available equipment types</p>
-                        <Button variant="outline" size="sm">Configure</Button>
+                        <EquipmentTypesDialog/>
                       </Card>
-                      
-                      <Card className="p-4">
-                        <h4 className="font-medium mb-2">Subscription Tiers</h4>
-                        <p className="text-sm text-muted-foreground mb-3">Manage subscription plans and limits</p>
-                        <Button variant="outline" size="sm">Configure</Button>
-                      </Card>
+                     
                     </div>
                   </div>
                 </div>
@@ -504,7 +526,7 @@ const AdminDashboard = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip formatter={(value) => `KSh ${Number(value).toLocaleString()}`} />
+                      <Tooltip formatter={(value) => formatCurrency(Number(value))} />
                       <Bar dataKey="revenue" fill="#22c55e" />
                     </BarChart>
                   </ResponsiveContainer>

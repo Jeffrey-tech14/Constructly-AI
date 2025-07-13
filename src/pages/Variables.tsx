@@ -38,6 +38,7 @@ const Variables = () => {
     updateTransportRate,
     updateServiceRate,
     updateOverallProfitMargin,
+    updateLabourPercent,
     updateSubcontractorRate
   } = useUserSettings();
   
@@ -55,10 +56,9 @@ const Variables = () => {
         sessionStorage.setItem('variables_reloaded', 'true');
         window.location.reload();
       }
-    }, []);
+    }, [profile.id]);
     const [tempValues, setTempValues] = useState<{ [key: string]: number }>({});
-
-  useEffect(() => {
+      
     const fetchRates = async () => {
       setLoading(true);
       const { data: baseServices, error: baseError } = await supabase
@@ -73,40 +73,68 @@ const Variables = () => {
       if (baseError) console.error('Base rates error:', baseError);
       if (overrideError) console.error('Overrides error:', overrideError);
 
-      // Merge base rates with user overrides
       const merged = baseServices.map((service) => {
-      // Try to find user-specific override
       const userRate = overrides?.find(o => o.service_id === service.id);
+      const rate = userRate
+        ? Number(userRate.price) 
+        : (service.price != null ? Number(service.price) : 0); 
 
-      // Prioritize user rate → fallback to base default → fallback to null
-      const rawRate = userRate?.price ?? service.default_price ?? null;
-
-      // Final rate: force to number only if rawRate is not null
-      const rate = rawRate != null ? Number(rawRate) : 0;
-
-      const unit = service.unit ?? "unit";
-
-      if (rawRate == null) {
-        console.warn(`⚠️ No price found for service: ${service.name} (${service.id})`);
-      }
-
-      return {
-        ...service,
-        rate,
-        unit,
-        source: userRate ? 'user' : (service.default_price != null ? 'base' : 'none') // track source of price
-      };
-    });
-
+        return {
+          ...service,
+          price: rate,
+          unit: service.unit ?? "unit",
+          source: userRate ? 'user' : (service.price != null ? 'base' : 'none')
+        };
+      });
 
       setServices(merged);
       setLoading(false);
     };
 
+  useEffect(() => {
     fetchRates();
   }, [profile.id]);
 
-  const handleSave = async (type: string, user_id:string, id: string, value: number) => {
+const [overallProfitMargin, setOverallProfitMargin] = useState<number | null>(null);
+const [labourPercent, setLabourPercent] = useState<number | null>(null);
+
+const fetchOverallProfitMargin = async () => {
+  const { data, error } = await supabase
+    .from('profiles') 
+    .select('overall_profit_margin')
+    .eq('id', profile.id) 
+    .single();
+
+  if (error) {
+    console.error('Error fetching overall profit margin:', error);
+  } else {
+    setOverallProfitMargin(data?.overall_profit_margin || 0);
+  }
+};
+
+useEffect(() => {
+  fetchOverallProfitMargin();
+}, [profile.id]);
+
+const fetchLabourPercent = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('labour_percent')
+    .eq('id', profile.id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching overall profit margin:', error);
+  } else {
+    setLabourPercent(data?.labour_percent || 0);
+  }
+};
+
+useEffect(() => {
+  fetchLabourPercent();
+}, [profile.id]); 
+
+  const handleSave = async (type: string, id: string, value: number) => {
     setLoading(true);
     try {
       const userRegion = profile?.location || 'Nairobi';
@@ -123,6 +151,7 @@ const Variables = () => {
           break;
         case 'subcontractor':
           await updateSubcontractorRate(id, value);
+          await fetchRates();
           break;
         case 'transport':
           const [region, field] = id.split('-');
@@ -135,6 +164,11 @@ const Variables = () => {
           break;
         case 'profit':
           await updateOverallProfitMargin(value);
+          await fetchOverallProfitMargin();
+          break;
+        case 'labour':
+          await updateLabourPercent(value);
+          await fetchLabourPercent();
           break;
       }
       toast({
@@ -239,7 +273,7 @@ const Variables = () => {
                               Base: KSh {(material.base_price).toLocaleString()}
                               {!isCustomPrice && (
                                 <span className="text-xs ml-1">
-                                  (×{regionalMultipliers.find(r => r.region === userRegion)?.multiplier || 1})
+                                  ({regionalMultipliers.find(r => r.region === userRegion)?.multiplier || 1})
                                 </span>
                               )}
                             </div>
@@ -255,7 +289,7 @@ const Variables = () => {
                               />
                               <Button 
                                 size="sm"
-                                onClick={() => handleSave('material',null, material.id, tempValues[`material-${material.id}`] || effectivePrice)}
+                                onClick={() => handleSave('material', material.id, tempValues[`material-${material.id}`] || effectivePrice)}
                                 disabled={loading}
                               >
                                 <Save className="w-4 h-4 text-white" />
@@ -310,7 +344,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave('equipment',null, equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate)}
+                              onClick={() => handleSave('equipment', equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -359,7 +393,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave('transport',null, `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm)}
+                                  onClick={() => handleSave('transport', `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -380,7 +414,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave('transport',null, `${region}-base`, tempValues[`transport-${region}-base`] || baseCost)}
+                                  onClick={() => handleSave('transport', `${region}-base`, tempValues[`transport-${region}-base`] || baseCost)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -433,7 +467,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave('service',null, service.id, tempValues[`service-${service.id}`] || currentPrice)}
+                              onClick={() => handleSave('service', service.id, tempValues[`service-${service.id}`] || currentPrice)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -482,7 +516,7 @@ const Variables = () => {
                     <Button
                       size="sm"
                       onClick={() =>
-                        handleSave('subcontractor',profile.id, sub.id, tempValues[sub.id] || sub.rate)
+                        handleSave('subcontractor', sub.id, tempValues[sub.id] || sub.rate)
                       }
                       disabled={loading}
                     >
@@ -513,7 +547,11 @@ const Variables = () => {
                       <div className="flex items-center space-x-2">
                         <Input
                           type="number"
-                          placeholder="15"
+                          placeholder={
+                           overallProfitMargin !== null && overallProfitMargin !== undefined
+                            ? overallProfitMargin.toLocaleString()
+                            : "0" // Default fallback value 
+                            }
                           onChange={(e) => setTempValues({
                             ...tempValues,
                             'overall-profit': parseFloat(e.target.value) || 0
@@ -522,7 +560,7 @@ const Variables = () => {
                         />
                         <Button 
                           size="sm"
-                          onClick={() => handleSave('profit',null, 'overall', tempValues['overall-profit'] || 15)}
+                          onClick={() => handleSave('profit', 'overall', tempValues['overall-profit'] ?? overallProfitMargin)}
                           disabled={loading}
                         >
                           <Save className="w-4 h-4 text-white" />
@@ -537,17 +575,26 @@ const Variables = () => {
                       <div className="flex items-center space-x-2">
                         <Input
                           type="number"
-                          placeholder="25"
-                          onChange={(e) => setTempValues({
-                            ...tempValues,
-                            'labor-percentage': parseFloat(e.target.value) || 0
-                          })}
+                          placeholder={
+                           labourPercent !== null && labourPercent !== undefined
+                            ? labourPercent.toLocaleString()
+                            : "0" 
+                            }
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            setTempValues({
+                              ...tempValues,
+                              'labor-percentage': isNaN(value) ? 0 : value
+                            });
+                          }}
                           className="flex-1"
                         />
                         <Button 
                           size="sm"
-                          onClick={() => handleSave('labor',null, 'percentage', tempValues['labor-percentage'] || 25)}
-                          disabled={loading}
+                          onClick={() => handleSave('labor', 'percentage',tempValues['labor-percent'] ?? labourPercent)}
+                          disabled={loading || (
+                            (tempValues['labor-percentage'] ?? labourPercent) === labourPercent
+                          )}
                         >
                           <Save className="w-4 h-4 text-white" />
                         </Button>

@@ -12,12 +12,15 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import Calculator from '@/components/Calculator';
+import { Badge } from '@/components/ui/badge';
 import {
   Wrench,
   User,
   LogOut,
   Moon,
   Sun,
+  Shield,
+  Crown,
   Calculator as CalculatorIcon,
   Plus,
   BarChart,
@@ -52,6 +55,20 @@ const Navbar = () => {
   if (location.pathname === '/' || location.pathname === '/auth') {
     return null;
   }
+const getTierBadge = (tier: string) => {
+      switch (tier) {
+        case 'Free':
+          return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200">Free</Badge>;
+        case 'Basic':
+          return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200"><Crown className="w-3 h-3 mr-1" />Basic</Badge>;
+        case 'Intermediate':
+          return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
+        case 'Professional':
+          return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Professional</Badge>;
+        default:
+          return <Badge>{tier}</Badge>;
+      }
+    };
 
   return (
     <>
@@ -95,6 +112,11 @@ const Navbar = () => {
                 >
                   <CalculatorIcon className="w-4 h-4" />
                 </Button>
+
+                <Badge className="  bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent">
+                  {getTierBadge(profile?.tier)}
+                </Badge>
+
               </div>
             )}
 

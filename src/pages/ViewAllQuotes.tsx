@@ -16,7 +16,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 const ViewAllQuotes = () => {
   const { quotes, loading, deleteQuote } = useQuotes();
-  const { profile } = useAuth(); // Assuming profile contains the current user's ID
+  const { profile } = useAuth(); 
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

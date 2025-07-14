@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { 
   DollarSign, 
   FileText, 
@@ -30,17 +31,29 @@ import { format } from 'date-fns';
 
 const Dashboard = () => {
   const { profile } = useAuth();
+  const { toast } = useToast();
   const { quotes, loading: quotesLoading } = useQuotes();
   const { reviews, averageRating, totalReviews } = useClientReviews();
   const { events } = useCalendarEvents();
   const [activeTab, setActiveTab] = useState('overview');
   const [showCalculator, setShowCalculator] = useState(false);
-  useEffect(() => {
-    if (!sessionStorage.getItem('profile_reloaded')) {
-      sessionStorage.setItem('profile_reloaded', 'true');
-      window.location.reload();
-    }
-  }, []);
+  const [dashboardData, setDashboardData] = useState({
+  totalQuotesValue: 0,
+  completedProjects: 0,
+  activeProjects: 0,
+  pendingQuotes: 0,
+  upcomingEvents: [],
+  recentQuotes: []
+});
+
+
+useEffect(() => {
+  fetchDashboardData();
+  const interval = setInterval(() => {
+    fetchDashboardData();
+  }, 5000); 
+  return () => clearInterval(interval);
+}, []);
 
 const formatCurrency = (value: number) => {
     if (value >= 1_000_000) {
@@ -52,20 +65,74 @@ const formatCurrency = (value: number) => {
     return value.toString();
   };
 
-  // Calculate dashboard metrics
-  const totalQuotesValue = quotes.reduce((sum, quote) => sum + quote.total_amount, 0);
-  const completedProjects = quotes.filter(quote => quote.status === 'completed').length;
-  const activeProjects = quotes.filter(quote => ['started', 'in_progress'].includes(quote.status)).length;
-  const pendingQuotes = quotes.filter(quote => quote.status === 'pending').length;
+  const fetchDashboardData = async () => {
+  try {
+    // Fetch quotes from Supabase
+    const { data: quotes, error: quotesError } = await supabase
+      .from('quotes')
+      .select('*')
+      .eq('user_id', profile.id); // adjust filter as needed
 
-  const upcomingEvents = events
-    .filter(event => new Date(event.event_date) >= new Date())
-    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
-    .slice(0, 3);
+    if (quotesError) throw quotesError;
 
-  const recentQuotes = quotes
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+    // Fetch events from Supabase
+    const { data: events, error: eventsError } = await supabase
+      .from('calendar_events')
+      .select('*')
+      .eq('user_id', profile.id); // adjust filter as needed
+
+    if (eventsError) throw eventsError;
+
+    // 💡 Calculate dashboard metrics
+    const totalQuotesValue = quotes.reduce(
+      (sum, quote) => sum + quote.total_amount, 
+      0
+    );
+
+    const completedProjects = quotes.filter(
+      quote => quote.status === 'completed'
+    ).length;
+
+    const activeProjects = quotes.filter(
+      quote => ['started', 'in_progress'].includes(quote.status)
+    ).length;
+
+    const pendingQuotes = quotes.filter(
+      quote => quote.status === 'pending'
+    ).length;
+
+    const upcomingEvents = events
+      .filter(event => new Date(event.event_date) >= new Date())
+      .sort(
+        (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+      )
+      .slice(0, 3);
+
+    const recentQuotes = quotes
+      .sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      .slice(0, 5);
+
+    // ✅ Set state or return data
+    setDashboardData({
+      totalQuotesValue,
+      completedProjects,
+      activeProjects,
+      pendingQuotes,
+      upcomingEvents,
+      recentQuotes
+    });
+
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    toast({
+      title: "Error",
+      description: "Failed to load dashboard data",
+      variant: "destructive"
+    });
+  }
+};
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -141,7 +208,7 @@ const formatCurrency = (value: number) => {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">KSh {(formatCurrency(totalQuotesValue)).toLocaleString()}</div>
+                  <div className="text-2xl font-bold">KSh {(formatCurrency(dashboardData.totalQuotesValue)).toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     +{quotes.length} quotes generated
                   </p>
@@ -154,9 +221,9 @@ const formatCurrency = (value: number) => {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{activeProjects}</div>
+                  <div className="text-2xl font-bold">{dashboardData.activeProjects}</div>
                   <p className="text-xs text-muted-foreground">
-                    {pendingQuotes} pending approval
+                    {dashboardData.pendingQuotes} pending approval
                   </p>
                 </CardContent>
               </Card>
@@ -167,7 +234,7 @@ const formatCurrency = (value: number) => {
                   <CheckCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{completedProjects}</div>
+                  <div className="text-2xl font-bold">{dashboardData.completedProjects}</div>
                   <p className="text-xs text-muted-foreground">
                     Projects finished
                   </p>
@@ -203,8 +270,8 @@ const formatCurrency = (value: number) => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {recentQuotes.length > 0 ? (
-                      recentQuotes.map((quote) => (
+                    {dashboardData.recentQuotes.length > 0 ? (
+                      dashboardData.recentQuotes.map((quote) => (
                         <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow">
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
@@ -249,9 +316,9 @@ const formatCurrency = (value: number) => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {upcomingEvents.length > 0 ? (
+                    {dashboardData.upcomingEvents.length > 0 ? (
                       <div className="space-y-3">
-                        {upcomingEvents.map((event) => (
+                        {dashboardData.upcomingEvents.map((event) => (
                           <div key={event.id} className="p-3 border rounded">
                             <div className="font-medium text-sm">{event.title}</div>
                             <div className="text-xs text-muted-foreground">

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Database } from '@/integrations/supabase/types'; // Make sure this is your updated Quote interface
 
 // In your useQuotes.ts file
 export interface Quote {
@@ -19,9 +20,74 @@ export interface Quote {
   labor_cost: number;
   addons_cost: number;
   total_amount: number;
-  materials: any[];
-  labor: any[];
-  addons: any[];
+  materials: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    profit_margin: number;
+  }> | null;
+  labor: Array<{
+    type: string;
+    percentage: number;
+    cost: number;
+  }> | null;
+  addons: Array<{
+    name: string;
+    price: number;
+  }> | null;
+  equipment: Array<{
+    name: string;
+    days: number;
+    daily_rate: number;
+    total_cost: number;
+  }> | null;
+  concrete: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    profit_margin: number;
+  }> | null;
+  formwork: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    profit_margin: number;
+  }> | null;
+  rebar: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    profit_margin: number;
+  }> | null;
+  plaster: Array<{
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    profit_margin: number;
+  }> | null;
+  painting: Array<{
+      name: string;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+      profit_margin: number;
+  }> | null;
+     ceiling: Array<{
+      name: string;
+      quantity: number;
+      unit_price: number;
+      total_price: number;
+      profit_margin: number;
+    }> | null;
+  overhead_amount: number;
+  contingency_amount: number;
+  permit_cost: number;
+  profit_amount: number;
   created_at: string;
   updated_at: string;
   distance_km?: number;
@@ -105,33 +171,21 @@ export const useQuotes = () => {
   }, [user?.id, profile?.is_admin]);
 
   const createQuote = async (quoteData: Omit<Quote, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) throw new Error('User not authenticated');
-    
-    const { data, error } = await supabase
-      .from('quotes')
-      .insert([{ ...quoteData, user_id: user.id }])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    // Type cast the returned data
-    const newQuote: Quote = {
-      ...data,
-      status: data.status as Quote['status'],
-      client_email: data.client_email || undefined,
-      custom_specs: data.custom_specs || undefined,
-      materials: Array.isArray(data.materials) ? data.materials : [],
-      labor: Array.isArray(data.labor) ? data.labor : [],
-      addons: Array.isArray(data.addons) ? data.addons : [],
-      selected_equipment: Array.isArray(data.selected_equipment) ? data.selected_equipment : [],
-      selected_services: Array.isArray(data.selected_services) ? data.selected_services : [],
-      contract_type: (data.contract_type as Quote['contract_type']) || 'full_contract',
-    };
-    
-    setQuotes(prev => [newQuote, ...prev]);
-    return newQuote;
-  };
+  if (!user) throw new Error('User not authenticated');
+
+  const { data, error } = await supabase
+    .from('quotes')
+    .insert([{
+      ...quoteData,
+      user_id: user.id
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data as Database;
+};
 
   const updateQuote = async (id: string, updates: Partial<Quote>) => {
     const { data, error } = await supabase

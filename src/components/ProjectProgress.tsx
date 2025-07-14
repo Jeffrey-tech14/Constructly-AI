@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Calendar, CheckCircle, Clock, Play, Pause } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Play, Pause, Pencil } from 'lucide-react';
 
 interface ProjectProgressProps {
   quoteId: string;
@@ -20,7 +20,7 @@ interface ProjectProgressProps {
 
 interface ProjectProgressData {
   id?: string;
-  status: 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold';
+  status: 'draft' | 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold';
   progress_percentage: number;
   notes?: string;
   milestone_date?: string;
@@ -62,7 +62,7 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
 
       if (data) {
         setProgressData({
-          status: data.status as 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold',
+          status: data.status as 'draft' | 'planning' | 'started' | 'in_progress' | 'completed' | 'on_hold',
           progress_percentage: data.progress_percentage || 0,
           notes: data.progress_notes || '',
           milestone_date: data.milestone_date || ''
@@ -107,6 +107,7 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
         title: "Progress Updated",
         description: "Project progress has been updated successfully"
       });
+      fetchProjectProgress();
     } catch (error) {
       console.error('Error updating progress:', error);
       toast({
@@ -121,6 +122,8 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case 'draft':
+        return <Pencil className="w-4 h-4" />;
       case 'planning':
         return <Calendar className="w-4 h-4" />;
       case 'started':
@@ -138,8 +141,10 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'planning':
+      case 'draft':
         return 'bg-gray-100 text-gray-800';
+      case 'planning':
+        return 'bg-puple-300 text-purple-800';
       case 'started':
         return 'bg-blue-100 text-blue-800';
       case 'in_progress':
@@ -195,6 +200,7 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="planning">Planning</SelectItem>
                 <SelectItem value="started">Started</SelectItem>
                 <SelectItem value="in_progress">In Progress</SelectItem>

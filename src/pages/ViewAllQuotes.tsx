@@ -34,18 +34,16 @@ const ViewAllQuotes = () => {
     switch (status) {
       case 'draft':
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'approved':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'rejected':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'planning':
+        return 'bg-puple-600 text-purple-800 hover:bg-purple-200';
       case 'started':
         return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       case 'in_progress':
-        return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
       case 'completed':
-        return 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200';
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'on_hold':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
@@ -142,12 +140,11 @@ const formatCurrency = (value: number) => {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="planning">Planning</SelectItem>
                 <SelectItem value="started">Started</SelectItem>
                 <SelectItem value="in_progress">In Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="on_hold">On Hold</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -331,7 +328,7 @@ const formatCurrency = (value: number) => {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
-                    <DialogTitle>Subcontractor Rate
+                    <DialogTitle>
                     </DialogTitle>
                       <ProjectProgress 
                         quoteId={quote.id} 

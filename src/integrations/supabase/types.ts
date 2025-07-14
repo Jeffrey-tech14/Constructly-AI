@@ -387,7 +387,7 @@ export type Database = {
           progress_percentage: number | null
           project_type: string
           region: string
-          selected_equipment: Json | null
+          equipment: Json | null
           selected_services: Json | null
           status: string
           title: string

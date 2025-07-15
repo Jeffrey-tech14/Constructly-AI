@@ -84,8 +84,8 @@ const Calendar = () => {
         <h2 className="text-2xl font-bold">Calendar</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
+            <Button className='text-white'>
+              <Plus className="w-4 h-4 mr-2 text-white" />
               Add Event
             </Button>
           </DialogTrigger>
@@ -130,7 +130,7 @@ const Calendar = () => {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" className='text-white' disabled={loading}>
                   Create Event
                 </Button>
               </div>

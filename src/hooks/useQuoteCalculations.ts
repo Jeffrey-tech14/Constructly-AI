@@ -312,6 +312,7 @@ export const useQuoteCalculations = () => {
         profit_percentage,
         contingency_percentage,
         permit_cost,
+        contract_type,
         plaster_thickness,
         rebar_percentage
       } = params;
@@ -509,10 +510,10 @@ export const useQuoteCalculations = () => {
 
       // Step 8: Equipment Cost
       const equipmentCost = selected_equipment.reduce((total, id) => {
-        const item = materials.find(m => m.id === id && m.category === 'equipment');
+        const item = equipmentRates.find(m => m.id === id);
         if (!item) return total;
         const days = Math.ceil(wallArea / 10); // example logic
-        return total + (item.base_price * days);
+        return total + (item.daily_rate * days);
       }, 0);
 
       // Step 8.5: Painting
@@ -599,17 +600,22 @@ export const useQuoteCalculations = () => {
 
       // Step 10: Services Cost
       const servicesCost = selected_services.reduce((total, id) => {
-        const item = materials.find(m => m.id === id && m.category === 'service');
+        const item = services.find(m => m.id === id);
         if (!item) return total;
-        return total + item.base_price;
+        return total + item.price;
       }, 0);
 
       // Step 11: Permit Cost
       const permitCost = permit_cost || 0;
 
       // Step 12: Subtotal before extras
-      const subtotalBeforeExtras = totalMaterialCost + laborCost + equipmentCost + transportCost + servicesCost + totalConcreteCost + formworkCost + rebarCost + totalPlasterCost + paintCost + ceilingCost;
-
+      var subtotalBeforeExtras;
+      if(contract_type === 'full_contract'){
+        subtotalBeforeExtras = totalMaterialCost + laborCost + equipmentCost + transportCost + servicesCost + totalConcreteCost + formworkCost + rebarCost + totalPlasterCost + paintCost + ceilingCost;
+      }
+      else{
+        subtotalBeforeExtras = laborCost + equipmentCost + servicesCost + formworkCost + rebarCost ;
+      }
       // Step 13: Overhead
       const overheadAmount = subtotalBeforeExtras * (parseFloat(overhead_percentage.toString()) || 10) / 100;
 
@@ -646,9 +652,9 @@ export const useQuoteCalculations = () => {
           materials: materialBreakdown,
           labor: [{ type: 'calculated', percentage: labor_percentage, cost: laborCost }],
           equipment: selected_equipment.map(id => {
-            const item = materials.find(m => m.id === id && m.category === 'equipment');
+            const item = equipmentRates.find(m => m.id === id);
             const days = Math.ceil(wallArea / 10);
-            const dailyRate = item?.base_price || 0;
+            const dailyRate = item?.daily_rate || 0;
             return {
               name: item?.name || `Equipment ${id}`,
               days,
@@ -657,10 +663,10 @@ export const useQuoteCalculations = () => {
             };
           }),
           services: selected_services.map(id => {
-            const item = materials.find(m => m.id === id && m.category === 'service');
+            const item = serviceRates.find(m => m.id === id);
             return {
               name: item?.name || `Service ${id}`,
-              price: item?.base_price || 0
+              price: item?.price || 0
             };
           }),
           concrete: concreteBreakdown,

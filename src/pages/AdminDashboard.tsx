@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,18 +13,7 @@ import QuotesTab from '../components/QuotesTab';
 import TiersTab from '../components/TiersTab';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { 
-  Users, 
-  DollarSign, 
-  Activity, 
-  TrendingUp,
-  UserX,
-  UserCheck,
-  Crown,
-  Ban,
-  Shield,
-  Search,
-  MoreHorizontal,
-  Settings
+  Users, DollarSign, Activity, TrendingUp, UserX, UserCheck, Crown, Ban, Shield, Search, MoreHorizontal, Settings
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -66,11 +54,12 @@ const AdminDashboard = () => {
     activeProjects: 0,
     subscriptionRevenue: 0
   });
-  const [refreshKey, setRefreshKey] = useState(0);
-  const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTier, setSelectedTier] = useState('all');
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
 
   useEffect(() => {
     if (profile?.is_admin) {
@@ -78,70 +67,49 @@ const AdminDashboard = () => {
     }
   }, [profile]);
 
-   useEffect(() => {
-      fetchDashboardData();
-
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 5000); 
-    return () => clearInterval(interval);
-  }, []);
-
   const fetchDashboardData = async () => {
-  setLoading(true);
-  try {
-    // Fetch users, quotes, and tiers
-    const [usersResponse, quotesResponse, tiersResponse] = await Promise.all([
-      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-      supabase.from('quotes').select('*').order('created_at', { ascending: false }),
-      supabase.from('tiers').select('name, price')
-    ]);
+    setLoading(true);
+    try {
+      const [usersRes, quotesRes, tiersRes] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('quotes').select('*').order('created_at', { ascending: false }),
+        supabase.from('tiers').select('name, price')
+      ]);
 
-    const usersData = usersResponse.data || [];
-    const quotesData = quotesResponse.data || [];
-    const tiersData = tiersResponse.data || [];
+      const usersData = usersRes.data || [];
+      const quotesData = quotesRes.data || [];
+      const tiersData = tiersRes.data || [];
 
-    // Map tiers to prices: { Free: 0, Basic: 2500, ... }
-    const tierPrices: Record<string, number> = tiersData.reduce((acc, tier) => {
-      acc[tier.name] = tier.price;
-      return acc;
-    }, {} as Record<string, number>);
+      const tierPrices = tiersData.reduce((acc, tier) => {
+        acc[tier.name] = tier.price;
+        return acc;
+      }, {} as Record<string, number>);
 
-    // Calculate stats
-    const totalUsers = usersData.length;
-    const activeQuotes = quotesData.filter(q => q.status !== 'draft');
-    const totalRevenue = activeQuotes.reduce((sum, quote) => sum + quote.total_amount, 0);
-    const totalQuotes = quotesData.length;
-    const activeProjects = quotesData.filter(q => q.status === 'started' || q.status === 'in_progress').length;
+      const totalUsers = usersData.length;
+      const activeQuotes = quotesData.filter(q => q.status !== 'draft');
+      const totalRevenue = activeQuotes.reduce((sum, quote) => sum + quote.total_amount, 0);
+      const totalQuotes = quotesData.length;
+      const activeProjects = quotesData.filter(q => ['started', 'in_progress'].includes(q.status)).length;
 
-    // Calculate subscription revenue dynamically
-    const subscriptionRevenue = usersData.reduce((sum, user) => {
-      const tier = user.tier || 'Free';
-      const price = tierPrices[tier] || 0; // fallback to 0
-      return sum + price;
-    }, 0);
+      const subscriptionRevenue = usersData.reduce((sum, user) => {
+        const tier = user.tier || 'Free';
+        return sum + (tierPrices[tier] || 0);
+      }, 0);
 
-    setUsers(usersData);
-    setQuotes(quotesData);
-    setStats({
-      totalUsers,
-      totalRevenue,
-      totalQuotes,
-      activeProjects,
-      subscriptionRevenue
-    });
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    toast({
-      title: "Error",
-      description: "Failed to load dashboard data",
-      variant: "destructive"
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setUsers(usersData);
+      setQuotes(quotesData);
+      setStats({ totalUsers, totalRevenue, totalQuotes, activeProjects, subscriptionRevenue });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard data',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updateUserTier = async (userId: string, newTier: string) => {
     try {
@@ -152,21 +120,11 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
-      setUsers(prev => prev.map(user => 
-        user.id === userId ? { ...user, tier: newTier } : user
-      ));
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, tier: newTier } : u));
       triggerRefresh();
-
-      toast({
-        title: "Success",
-        description: "User tier updated successfully"
-      });
+      toast({ title: 'Success', description: 'User tier updated successfully' });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update user tier",
-        variant: "destructive"
-      });
+      toast({ title: 'Error', description: 'Failed to update user tier', variant: 'destructive' });
     }
   };
 
@@ -179,30 +137,22 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
-      setUsers(prev => prev.map(user => 
-        user.id === userId ? { ...user, is_admin: !isAdmin } : user
-      ));
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_admin: !isAdmin } : u));
       triggerRefresh();
-
       toast({
-        title: "Success",
+        title: 'Success',
         description: `User ${!isAdmin ? 'promoted to' : 'removed from'} admin`
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update admin status",
-        variant: "destructive"
-      });
+      toast({ title: 'Error', description: 'Failed to update admin status', variant: 'destructive' });
     }
   };
 
-  const filteredUsers = users.filter(user => {
-  const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-  const matchesTier = selectedTier === 'all' || user.tier.toLowerCase() === selectedTier;
-  return matchesSearch && matchesTier;
-});
+  const filteredUsers = users.filter(user =>
+    (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (selectedTier === 'all' || user.tier.toLowerCase() === selectedTier)
+  );
 
 
   // Chart data
@@ -234,13 +184,6 @@ const AdminDashboard = () => {
     return acc;
   }, [] as any[]);
   
-    useEffect(() => {
-      if (!sessionStorage.getItem('profile_reloaded')) {
-        sessionStorage.setItem('profile_reloaded', 'true');
-        window.location.reload();
-      }
-    }, []);
-
   const formatCurrency = (value: number) => {
     if (value >= 1_000_000) {
       return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;

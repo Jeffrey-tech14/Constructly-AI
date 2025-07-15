@@ -125,7 +125,7 @@ const EnhancedQuoteBuilder = () => {
     try {
       const result = await calculateQuote({
         rooms: quoteData.rooms,
-         projectName: quoteData.projectName,
+        projectName: quoteData.projectName,
         clientName: quoteData.clientName,
         clientEmail: quoteData.clientEmail,
         location: quoteData.location,
@@ -173,10 +173,6 @@ const EnhancedQuoteBuilder = () => {
      return;
     }
     try {
-      toast({
-        title: "Save clicked",
-        description: "Quote has been clicked successfully"
-      });
       await createQuote({
         title: quoteData.projectName,
         client_name: quoteData.clientName,

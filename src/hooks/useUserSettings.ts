@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +19,7 @@ export interface AdditionalService {
 
 export interface UserEquipmentRate {
   id: string;
+  name: string;
   equipment_type_id: string;
   daily_rate: number;
 }
@@ -32,24 +33,27 @@ export interface UserTransportRate {
 
 export interface UserServiceRate {
   id: string;
+  name: string;
   service_id: string;
   price: number;
 }
 
 export interface UserSubcontractorRate {
   id: string;
+  name: string;
   service_id: string;
   price: number;
 }
 
 export interface UserMaterialPrice {
   id: string;
+  name: string;
   material_id: string;
   price: number;
 }
 
 export const useUserSettings = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [equipmentTypes, setEquipmentTypes] = useState<EquipmentType[]>([]);
   const [additionalServices, setAdditionalServices] = useState<AdditionalService[]>([]);
   const [equipmentRates, setEquipmentRates] = useState<UserEquipmentRate[]>([]);
@@ -58,7 +62,8 @@ export const useUserSettings = () => {
   const [subcontractorRates, setSubcontractorRates] = useState<UserSubcontractorRate[]>([]);
   const [materialPrices, setMaterialPrices] = useState<UserMaterialPrice[]>([]);
   const [loading, setLoading] = useState(false);
-  const { profile } = useAuth();
+  const isInitialLoad = useRef(true);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchEquipmentTypes = useCallback(async () => {
     try {
@@ -95,13 +100,13 @@ export const useUserSettings = () => {
         { data: transportData },
         { data: serviceData },
         { data: subcontractorData },
-        { data: materialData }
+        { data: materialData },
       ] = await Promise.all([
         supabase.from('user_equipment_rates').select('*').eq('user_id', user.id),
         supabase.from('user_transport_rates').select('*').eq('user_id', user.id),
         supabase.from('user_service_rates').select('*').eq('user_id', user.id),
         supabase.from('user_subcontractor_rates').select('*').eq('user_id', user.id),
-        supabase.from('user_material_prices').select('*').eq('user_id', user.id)
+        supabase.from('user_material_prices').select('*').eq('user_id', user.id),
       ]);
 
       setEquipmentRates(equipmentData || []);
@@ -114,16 +119,70 @@ export const useUserSettings = () => {
     }
   }, [user?.id]);
 
+  const fetchAll = useCallback(
+    async (silent = false) => {
+      if (!silent && isInitialLoad.current) setLoading(true);
+      await Promise.allSettled([
+        fetchEquipmentTypes(),
+        fetchAdditionalServices(),
+        fetchSubcontractors(),
+        fetchUserRates(),
+      ]);
+      if (!silent && isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+      }
+    },
+    [fetchEquipmentTypes, fetchAdditionalServices, fetchSubcontractors, fetchUserRates]
+  );
+
+  useEffect(() => {
+    if (!user) return;
+
+    const startInterval = () => {
+      if (!intervalRef.current) {
+        intervalRef.current = setInterval(() => fetchAll(true), 5000);
+      }
+    };
+
+    const stopInterval = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+
+    fetchAll(); // Initial fetch with loading
+    startInterval();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAll(true);
+        startInterval();
+      } else {
+        stopInterval();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopInterval();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, fetchAll]);
+
   const updateEquipmentRate = async (equipmentTypeId: string, rate: number) => {
     if (!user) return { error: 'User not authenticated' };
     try {
-      const { error } = await supabase.from('user_equipment_rates').upsert({
-        user_id: user.id,
-        equipment_type_id: equipmentTypeId,
-        daily_rate: rate
-      }, {
-        onConflict: 'user_id,equipment_type_id'
-      });
+      const { error } = await supabase.from('user_equipment_rates').upsert(
+        {
+          user_id: user.id,
+          equipment_type_id: equipmentTypeId,
+          daily_rate: rate,
+        },
+        { onConflict: 'user_id,equipment_type_id' }
+      );
       if (!error) await fetchUserRates();
       return { error };
     } catch (err) {
@@ -135,14 +194,15 @@ export const useUserSettings = () => {
   const updateTransportRate = async (region: string, costPerKm: number, baseCost: number) => {
     if (!user) return { error: 'User not authenticated' };
     try {
-      const { error } = await supabase.from('user_transport_rates').upsert({
-        user_id: user.id,
-        region,
-        cost_per_km: costPerKm,
-        base_cost: baseCost
-      }, {
-        onConflict: 'user_id,region'
-      });
+      const { error } = await supabase.from('user_transport_rates').upsert(
+        {
+          user_id: user.id,
+          region,
+          cost_per_km: costPerKm,
+          base_cost: baseCost,
+        },
+        { onConflict: 'user_id,region' }
+      );
       if (!error) await fetchUserRates();
       return { error };
     } catch (err) {
@@ -154,13 +214,14 @@ export const useUserSettings = () => {
   const updateServiceRate = async (serviceId: string, price: number) => {
     if (!user) return { error: 'User not authenticated' };
     try {
-      const { error } = await supabase.from('user_service_rates').upsert({
-        user_id: user.id,
-        service_id: serviceId,
-        price
-      }, {
-        onConflict: 'user_id,service_id'
-      });
+      const { error } = await supabase.from('user_service_rates').upsert(
+        {
+          user_id: user.id,
+          service_id: serviceId,
+          price,
+        },
+        { onConflict: 'user_id,service_id' }
+      );
       if (!error) await fetchUserRates();
       return { error };
     } catch (err) {
@@ -172,13 +233,14 @@ export const useUserSettings = () => {
   const updateSubcontractorRate = async (serviceId: string, price: number) => {
     if (!user) return { error: 'User not authenticated' };
     try {
-      const { error } = await supabase.from('user_subcontractor_rates').upsert({
-        user_id: user.id,
-        service_id: serviceId,
-        price
-      }, {
-        onConflict: 'user_id,service_id'
-      });
+      const { error } = await supabase.from('user_subcontractor_rates').upsert(
+        {
+          user_id: user.id,
+          service_id: serviceId,
+          price,
+        },
+        { onConflict: 'user_id,service_id' }
+      );
       if (!error) await fetchUserRates();
       return { error };
     } catch (err) {
@@ -191,14 +253,15 @@ export const useUserSettings = () => {
     if (!user) return { error: 'User not authenticated' };
     try {
       const region = profile.location;
-      const { error } = await supabase.from('user_material_prices').upsert({
-        user_id: user.id,
-        material_id: materialId,
-        region,
-        price
-      }, {
-        onConflict: 'user_id,material_id, region'
-      });
+      const { error } = await supabase.from('user_material_prices').upsert(
+        {
+          user_id: user.id,
+          material_id: materialId,
+          region,
+          price,
+        },
+        { onConflict: 'user_id,material_id,region' }
+      );
       if (!error) await fetchUserRates();
       return { error };
     } catch (err) {
@@ -208,87 +271,65 @@ export const useUserSettings = () => {
   };
 
   const updateOverallProfitMargin = async (margin: number) => {
-  if (!user) return { error: 'User not authenticated' };
+    if (!user) return { error: 'User not authenticated' };
+    try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('name, email')
+        .eq('id', user.id)
+        .single();
 
-  try {
-    // First get existing profile to maintain required fields
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('name, email') // Add other required fields
-      .eq('id', user.id)
-      .single();
+      const { data, error } = await supabase.from('profiles').upsert(
+        {
+          id: user.id,
+          name: existingProfile?.name || '',
+          email: existingProfile?.email || user.email || '',
+          overall_profit_margin: margin,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      ).select('overall_profit_margin').single();
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        name: existingProfile?.name || '', // Provide default if missing
-        email: existingProfile?.email || user.email || '',
-        overall_profit_margin: margin,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'id'
-      })
-      .select('overall_profit_margin')
-      .single();
-
-    if (error) throw error;
-    return { data: data?.overall_profit_margin, error: null };
-
-  } catch (err) {
-    console.error('Error updating profit margin:', err);
-    return { 
-      data: null,
-      error: err instanceof Error ? err.message : 'Failed to update margin'
-    };
-  }
-};
+      if (error) throw error;
+      return { data: data?.overall_profit_margin, error: null };
+    } catch (err) {
+      console.error('Error updating profit margin:', err);
+      return {
+        data: null,
+        error: err instanceof Error ? err.message : 'Failed to update margin',
+      };
+    }
+  };
 
   const updateLabourPercent = async (margin: number) => {
-  if (!user) return { error: 'User not authenticated' };
+    if (!user) return { error: 'User not authenticated' };
+    try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('name, email')
+        .eq('id', user.id)
+        .single();
 
-  try {
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('name, email')
-      .eq('id', user.id)
-      .single();
+      const { data, error } = await supabase.from('profiles').upsert(
+        {
+          id: user.id,
+          name: existingProfile?.name || '',
+          email: existingProfile?.email || user.email || '',
+          labour_percent: margin,
+        },
+        { onConflict: 'id' }
+      ).select('labour_percent').single();
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        name: existingProfile?.name || '',
-        email: existingProfile?.email || user.email || '',
-        labour_percent: margin,
-      }, {
-        onConflict: 'id'
-      })
-      .select('labour_percent')
-      .single();
-
-    if (error) throw error;
-    return { data: data?.labour_percent, error: null };
-
-  } catch (err) {
-    console.error('Error updating labour:', err);
-    return { 
-      data: null,
-      error: err instanceof Error ? err.message : 'Failed to update labour'
-    };
-  }
-};
-
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-    Promise.allSettled([
-      fetchEquipmentTypes(),
-      fetchAdditionalServices(),
-      fetchSubcontractors(),
-      fetchUserRates()
-    ]).finally(() => setLoading(false));
-  }, [fetchEquipmentTypes, fetchAdditionalServices, fetchSubcontractors, fetchUserRates]);
+      if (error) throw error;
+      return { data: data?.labour_percent, error: null };
+    } catch (err) {
+      console.error('Error updating labour:', err);
+      return {
+        data: null,
+        error: err instanceof Error ? err.message : 'Failed to update labour',
+      };
+    }
+  };
 
   return {
     equipmentTypes,
@@ -305,6 +346,6 @@ export const useUserSettings = () => {
     updateSubcontractorRate,
     updateMaterialPrice,
     updateLabourPercent,
-    updateOverallProfitMargin
+    updateOverallProfitMargin,
   };
 };

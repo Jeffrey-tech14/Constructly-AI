@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -17,11 +16,12 @@ export interface CalendarEvent {
 export const useCalendarEvents = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasLoadedOnce = useRef(false); // 👈 Track if we’ve already loaded
   const { user } = useAuth();
 
   const fetchEvents = async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('calendar_events')
@@ -30,11 +30,18 @@ export const useCalendarEvents = () => {
         .order('event_date', { ascending: true });
 
       if (error) throw error;
+
+      // ✅ Only set loading true for first load
+      if (!hasLoadedOnce.current) setLoading(true);
+
       setEvents(data || []);
     } catch (error) {
       console.error('Error fetching calendar events:', error);
     } finally {
-      setLoading(false);
+      if (!hasLoadedOnce.current) {
+        setLoading(false);       // ✅ End first load animation
+        hasLoadedOnce.current = true; // ✅ Mark first load complete
+      }
     }
   };
 
@@ -49,6 +56,7 @@ export const useCalendarEvents = () => {
         .single();
 
       if (error) throw error;
+
       setEvents(prev => [...prev, data].sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime()));
       return data;
     } catch (error) {
@@ -65,6 +73,7 @@ export const useCalendarEvents = () => {
         .eq('id', id);
 
       if (error) throw error;
+
       setEvents(prev => prev.filter(event => event.id !== id));
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -74,6 +83,8 @@ export const useCalendarEvents = () => {
 
   useEffect(() => {
     fetchEvents();
+    const interval = setInterval(fetchEvents, 5000); // 🔄 Refresh every 5s
+    return () => clearInterval(interval);
   }, [user]);
 
   return {

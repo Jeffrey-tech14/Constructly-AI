@@ -1,50 +1,43 @@
-
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, RefreshCw, TrendingUp, DollarSign, FileText, CheckCircle, Star } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useQuotes } from '@/hooks/useQuotes';
 import { useClientReviews } from '@/hooks/useClientReviews';
-import { TrendingUp, DollarSign, FileText, CheckCircle, Star } from 'lucide-react';
 import { useMemo } from 'react';
 
 const Reports = () => {
-  const { quotes } = useQuotes();
-  const { reviews, averageRating } = useClientReviews();
+  const { quotes, fetchQuotes, loading: quotesLoading } = useQuotes();
+  const { reviews, averageRating, loading: reviewsLoading } = useClientReviews();
+  const [refreshing, setRefreshing] = useState(false);
 
   const formatCurrency = (value: number) => {
-    if (value >= 1_000_000) {
-      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
-    }
-    if (value >= 1_000) {
-      return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
-    }
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (value >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
     return value.toString();
   };
 
-  // Calculate monthly data from actual quotes
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      fetchQuotes(),
+    ]);
+    setRefreshing(false);
+  };
+
   const monthlyData = useMemo(() => {
     const monthlyStats: { [key: string]: { quotes: number; revenue: number } } = {};
-    
     quotes.forEach(quote => {
       const date = new Date(quote.created_at);
       const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      
-      if (!monthlyStats[monthKey]) {
-        monthlyStats[monthKey] = { quotes: 0, revenue: 0 };
-      }
-      
+      if (!monthlyStats[monthKey]) monthlyStats[monthKey] = { quotes: 0, revenue: 0 };
       monthlyStats[monthKey].quotes += 1;
-      if (quote.status !== 'draft') {
-        monthlyStats[monthKey].revenue += quote.total_amount;
-      }
+      if (quote.status !== 'draft') monthlyStats[monthKey].revenue += quote.total_amount;
     });
-
     return Object.entries(monthlyStats)
-      .map(([name, stats]) => ({
-        name,
-        quotes: stats.quotes,
-        revenue: stats.revenue // Convert from cents
-      }))
-      .slice(-6); // Last 6 months
+      .map(([name, stats]) => ({ name, quotes: stats.quotes, revenue: stats.revenue }))
+      .slice(-6);
   }, [quotes]);
 
   const statusData = useMemo(() => {
@@ -72,12 +65,27 @@ const Reports = () => {
 
   const activeProjects = quotes.filter(q => ['started', 'in_progress'].includes(q.status));
   const completedProjects = quotes.filter(q => q.status === 'completed');
-  const totalRevenue = quotes
-    .filter(q => q.status !== 'draft')
-    .reduce((sum, q) => sum + q.total_amount, 0);
+  const totalRevenue = quotes.filter(q => q.status !== 'draft').reduce((sum, q) => sum + q.total_amount, 0);
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* 🌟 Top Bar with Refresh Button */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Reports Dashboard</h1>
+        <Button onClick={handleRefresh} disabled={refreshing || quotesLoading || reviewsLoading}>
+          {refreshing || quotesLoading || reviewsLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* 📊 Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
@@ -90,7 +98,6 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -102,7 +109,6 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -116,7 +122,6 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -128,7 +133,6 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">

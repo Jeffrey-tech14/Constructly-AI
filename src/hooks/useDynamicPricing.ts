@@ -258,6 +258,11 @@ export const useDynamicPricing = () => {
     };
     
     fetchData();
+    
+     const interval = setInterval(() => {
+      fetchData();
+    }, 5000); 
+    return () => clearInterval(interval);
   }, [fetchMaterialBasePrices, fetchRegionalMultipliers, fetchUserOverrides]);
 
   return {

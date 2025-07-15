@@ -14,10 +14,12 @@ import {
   Plus,
   DollarSign
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DashboardSettings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const {profile} = useAuth();
   const {
     loading: settingsLoading,
     equipmentTypes,
@@ -28,7 +30,6 @@ const DashboardSettings = () => {
     updateEquipmentRate,
     updateTransportRate,
     updateServiceRate,
-    updateOverallProfitMargin
   } = useUserSettings();
 
   const [tempValues, setTempValues] = useState<{[key: string]: number}>({});
@@ -90,25 +91,6 @@ const DashboardSettings = () => {
     setLoading(false);
   };
 
-  const handleUpdateOverallProfit = async (margin: number) => {
-    setLoading(true);
-    const { error } = await updateOverallProfitMargin(margin);
-    
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update overall profit margin",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Overall profit margin updated successfully"
-      });
-    }
-    setLoading(false);
-  };
-
   if (settingsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -125,11 +107,10 @@ const DashboardSettings = () => {
       </div>
 
       <Tabs defaultValue="equipment" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="equipment">Equipment</TabsTrigger>
           <TabsTrigger value="transport">Transport</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="profit">Profit</TabsTrigger>
         </TabsList>
 
         <TabsContent value="equipment" className="space-y-4">
@@ -169,6 +150,7 @@ const DashboardSettings = () => {
                       />
                       <Button
                         size="sm"
+                        className='text-white'
                         onClick={() => handleUpdateEquipmentRate(
                           equipmentType.id,
                           tempValues[`equipment-${equipmentType.id}`] || currentRate
@@ -194,7 +176,7 @@ const DashboardSettings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'].map((region) => {
+              {[profile.location].map((region) => {
                 const rate = transportRates.find(r => r.region === region);
                 const costPerKm = rate ? rate.cost_per_km : 50;
                 const baseCost = rate ? rate.base_cost : 500;
@@ -234,7 +216,7 @@ const DashboardSettings = () => {
                       </div>
                     </div>
                     <Button
-                      className="mt-4"
+                      className="mt-4 text-white"
                       size="sm"
                       onClick={() => handleUpdateTransportRate(
                         region,
@@ -290,6 +272,7 @@ const DashboardSettings = () => {
                       />
                       <Button
                         size="sm"
+                        className='text-white'
                         onClick={() => handleUpdateServiceRate(
                           service.id,
                           tempValues[`service-${service.id}`] || currentPrice
@@ -302,45 +285,6 @@ const DashboardSettings = () => {
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="profit" className="space-y-4">
-          <Card className="gradient-card">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                Profit Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-medium mb-2">Overall Profit Margin</h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Additional percentage added to total project cost
-                </p>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="number"
-                    placeholder="Overall profit %"
-                    className="w-24"
-                    onChange={(e) => setTempValues({
-                      ...tempValues,
-                      'overall-profit': parseFloat(e.target.value) || 0
-                    })}
-                  />
-                  <Button
-                    size="sm"
-                    onClick={() => handleUpdateOverallProfit(
-                      tempValues['overall-profit'] || 0
-                    )}
-                    disabled={loading}
-                  >
-                    Update Overall Profit
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

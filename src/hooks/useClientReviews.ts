@@ -43,6 +43,10 @@ export const useClientReviews = () => {
 
   useEffect(() => {
     fetchReviews();
+     const interval = setInterval(() => {
+      fetchReviews();
+    }, 5000); 
+    return () => clearInterval(interval);
   }, [user]);
 
   return {

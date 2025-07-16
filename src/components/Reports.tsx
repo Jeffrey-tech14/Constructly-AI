@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, TrendingUp, DollarSign, FileText, CheckCircle, Star } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useQuotes } from '@/hooks/useQuotes';
 import { useClientReviews } from '@/hooks/useClientReviews';
-import { useMemo } from 'react';
+import { useAuth } from '@/contexts/AuthContext'; // 👈 Import useAuth to get current user
 
 const Reports = () => {
+  const { user } = useAuth(); // 👈 Get the current logged-in user
   const { quotes, fetchQuotes, loading: quotesLoading } = useQuotes();
   const { reviews, averageRating, loading: reviewsLoading } = useClientReviews();
   const [refreshing, setRefreshing] = useState(false);
+
+  // 📝 Filter quotes for current user only
+  const userQuotes = useMemo(() => {
+    if (!user) return []; // If user not loaded yet
+    return quotes.filter((quote) => quote.user_id === user.id);
+  }, [quotes, user]);
 
   const formatCurrency = (value: number) => {
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
@@ -20,15 +27,13 @@ const Reports = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([
-      fetchQuotes(),
-    ]);
+    await Promise.all([fetchQuotes()]);
     setRefreshing(false);
   };
 
   const monthlyData = useMemo(() => {
     const monthlyStats: { [key: string]: { quotes: number; revenue: number } } = {};
-    quotes.forEach(quote => {
+    userQuotes.forEach((quote) => {
       const date = new Date(quote.created_at);
       const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
       if (!monthlyStats[monthKey]) monthlyStats[monthKey] = { quotes: 0, revenue: 0 };
@@ -38,22 +43,21 @@ const Reports = () => {
     return Object.entries(monthlyStats)
       .map(([name, stats]) => ({ name, quotes: stats.quotes, revenue: stats.revenue }))
       .slice(-6);
-  }, [quotes]);
+  }, [userQuotes]);
 
   const statusData = useMemo(() => {
-    const statusCounts = quotes.reduce((acc, quote) => {
+    const statusCounts = userQuotes.reduce((acc, quote) => {
       acc[quote.status] = (acc[quote.status] || 0) + 1;
       return acc;
     }, {} as { [key: string]: number });
 
     const colors = {
-      approved: '#10b981',
+      planning: '#10b981',
       completed: '#059669',
       in_progress: '#3b82f6',
       started: '#6366f1',
       pending: '#f59e0b',
-      draft: '#6b7280',
-      rejected: '#ef4444'
+      draft: '#6b7280'
     };
 
     return Object.entries(statusCounts).map(([status, count]) => ({
@@ -61,25 +65,31 @@ const Reports = () => {
       value: count,
       color: colors[status as keyof typeof colors] || '#6b7280'
     }));
-  }, [quotes]);
+  }, [userQuotes]);
 
-  const activeProjects = quotes.filter(q => ['started', 'in_progress'].includes(q.status));
-  const completedProjects = quotes.filter(q => q.status === 'completed');
-  const totalRevenue = quotes.filter(q => q.status !== 'draft').reduce((sum, q) => sum + q.total_amount, 0);
+  const activeProjects = userQuotes.filter((q) => ['started', 'in_progress'].includes(q.status));
+  const completedProjects = userQuotes.filter((q) => q.status === 'completed');
+  const totalRevenue = userQuotes
+    .filter((q) => q.status !== 'draft')
+    .reduce((sum, q) => sum + q.total_amount, 0);
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* 🌟 Top Bar with Refresh Button */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Reports Dashboard</h1>
-        <Button onClick={handleRefresh} disabled={refreshing || quotesLoading || reviewsLoading}>
+        <Button
+          className="text-white"
+          onClick={handleRefresh}
+          disabled={refreshing || quotesLoading || reviewsLoading}
+        >
           {refreshing || quotesLoading || reviewsLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Refreshing...
+              <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" /> Refreshing...
             </>
           ) : (
             <>
-              <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+              <RefreshCw className="w-4 h-4 mr-2 text-white" /> Refresh
             </>
           )}
         </Button>
@@ -93,11 +103,12 @@ const Reports = () => {
               <FileText className="w-8 h-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Quotes</p>
-                <p className="text-2xl font-bold">{quotes.length}</p>
+                <p className="text-2xl font-bold">{userQuotes.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -109,6 +120,7 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
+
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -122,6 +134,7 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
+
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -133,6 +146,7 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
+
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -146,7 +160,9 @@ const Reports = () => {
         </Card>
       </div>
 
+      {/* 📊 Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart */}
         <Card className="gradient-card">
           <CardHeader>
             <CardTitle>Monthly Revenue Trend</CardTitle>
@@ -164,6 +180,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
+        {/* Pie Chart */}
         <Card className="gradient-card">
           <CardHeader>
             <CardTitle>Project Status Distribution</CardTitle>
@@ -189,6 +206,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
+        {/* Line Chart */}
         {monthlyData.length > 0 && (
           <Card className="gradient-card lg:col-span-2">
             <CardHeader>
@@ -208,38 +226,6 @@ const Reports = () => {
           </Card>
         )}
       </div>
-
-      {reviews.length > 0 && (
-        <Card className="gradient-card">
-          <CardHeader>
-            <CardTitle>Recent Client Reviews</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {reviews.slice(0, 5).map((review) => (
-                <div key={review.id} className="border rounded p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium">{review.client_name}</div>
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  {review.review_text && (
-                    <p className="text-sm text-muted-foreground">{review.review_text}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

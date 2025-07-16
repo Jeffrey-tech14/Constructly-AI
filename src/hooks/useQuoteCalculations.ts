@@ -18,7 +18,7 @@ export interface Material {
   id: string;
   name: string;
   unit: string;
-  base_price: number;
+  price: number;
   category: string;
 }
 
@@ -71,6 +71,7 @@ export interface CalculationResult {
   equipment_cost: number;
   transport_cost: number;
   services_cost: number;
+  distance_km: number;
   permit_cost: number;
   contingency_amount: number;
   subtotal: number;
@@ -157,7 +158,7 @@ export const useQuoteCalculations = () => {
   const fetchMaterials = useCallback(async () => {
   // Fetch base material prices
   const { data: baseMaterials, error: baseError } = await supabase
-    .from('material_base_prices')
+    .from('material_prices')
     .select('*');
 
   // Fetch user-specific overrides for materials in their region
@@ -175,12 +176,12 @@ export const useQuoteCalculations = () => {
     const userRate = overrides?.find(
       o => o.material_id === material.id && o.region === userRegion
     );
-    const price = userRate ? userRate.custom_price : material.base_price ?? 0;
+    const price = userRate ? userRate.custom_price : material.price ?? 0;
 
     return {
       ...material,
       price,
-      source: userRate ? 'user' : (material.base_price != null ? 'base' : 'none')
+      source: userRate ? 'user' : (material.price != null ? 'base' : 'none')
     };
   });
 
@@ -358,30 +359,30 @@ export const useQuoteCalculations = () => {
         const cementRequired = Math.round((CEMENT_PER_SQM * wallArea * wastageFactor) * 50); // bags to kg
         const sandRequired = parseFloat((SAND_PER_SQM * wallArea * wastageFactor).toFixed(2));
 
-        const brickCost = brickMat ? bricksRequired * brickMat.base_price : 0;
-        const cementCost = cementMat ? cementRequired * cementMat.base_price : 0;
-        const sandCost = sandMat ? sandRequired * sandMat.base_price : 0;
+        const brickCost = brickMat ? bricksRequired * brickMat.price : 0;
+        const cementCost = cementMat ? cementRequired * cementMat.price : 0;
+        const sandCost = sandMat ? sandRequired * sandMat.price : 0;
 
         return {
           materials: [
             {
               name: 'Bricks',
               quantity: bricksRequired,
-              unit_price: brickMat?.base_price || 0,
+              unit_price: brickMat?.price || 0,
               total_price: brickCost,
               profit_margin: defaultProfitMargin
             },
             {
               name: 'Cement',
               quantity: cementRequired,
-              unit_price: cementMat?.base_price || 0,
+              unit_price: cementMat?.price || 0,
               total_price: cementCost,
               profit_margin: defaultProfitMargin
             },
             {
               name: 'Sand',
               quantity: sandRequired,
-              unit_price: sandMat?.base_price || 0,
+              unit_price: sandMat?.price || 0,
               total_price: sandCost,
               profit_margin: defaultProfitMargin
             }
@@ -409,9 +410,9 @@ export const useQuoteCalculations = () => {
       const sandRequired = parseFloat((foundationVolume * sandPerCubicMeter).toFixed(2));
       const ballastRequired = parseFloat((foundationVolume * ballastPerCubicMeter).toFixed(2));
 
-      const cementCost = cementMat ? cementRequired * cementMat.base_price : 0;
-      const sandCost = sandMat ? sandRequired * sandMat.base_price : 0;
-      const ballastCost = ballastMat ? ballastRequired * ballastMat.base_price : 0;
+      const cementCost = cementMat ? cementRequired * cementMat.price : 0;
+      const sandCost = sandMat ? sandRequired * sandMat.price : 0;
+      const ballastCost = ballastMat ? ballastRequired * ballastMat.price : 0;
 
       const totalConcreteCost = cementCost + sandCost + ballastCost;
 
@@ -419,21 +420,21 @@ export const useQuoteCalculations = () => {
         {
           name: 'Cement (Foundation)',
           quantity: cementRequired,
-          unit_price: cementMat?.base_price || 0,
+          unit_price: cementMat?.price || 0,
           total_price: cementCost,
           profit_margin: defaultProfitMargin
         },
         {
           name: 'Sand (Foundation)',
           quantity: sandRequired,
-          unit_price: sandMat?.base_price || 0,
+          unit_price: sandMat?.price || 0,
           total_price: sandCost,
           profit_margin: defaultProfitMargin
         },
         {
           name: 'Ballast (Foundation)',
           quantity: ballastRequired,
-          unit_price: ballastMat?.base_price || 0,
+          unit_price: ballastMat?.price || 0,
           total_price: ballastCost,
           profit_margin: defaultProfitMargin
         }
@@ -442,13 +443,13 @@ export const useQuoteCalculations = () => {
       // Step 4: Formwork Area
       const formworkArea = wallArea + (params.foundation_length * params.foundation_width);
       const formworkMat = materials.find(m => m.name.toLowerCase() === 'formwork');
-      const formworkCost = formworkArea * (formworkMat?.base_price || 0);
+      const formworkCost = formworkArea * (formworkMat?.price || 0);
 
       const formworkBreakdown = [
         {
           name: 'Formwork',
           quantity: formworkArea,
-          unit_price: formworkMat?.base_price || 0,
+          unit_price: formworkMat?.price || 0,
           total_price: formworkCost,
           profit_margin: defaultProfitMargin
         }
@@ -459,13 +460,13 @@ export const useQuoteCalculations = () => {
       const rebarVolume = foundationVolume * (rebar_percentage / 100);
       const rebarWeight = (rebarVolume * rebarDensity) / 1000;
       const rebarMat = materials.find(m => m.name.toLowerCase() === 'rebar');
-      const rebarCost = rebarMat ? rebarWeight * rebarMat.base_price : 0;
+      const rebarCost = rebarMat ? rebarWeight * rebarMat.price : 0;
 
       const rebarBreakdown = [
         {
           name: 'Rebar',
           quantity: rebarWeight,
-          unit_price: rebarMat?.base_price || 0,
+          unit_price: rebarMat?.price || 0,
           total_price: rebarCost,
           profit_margin: defaultProfitMargin
         }
@@ -483,8 +484,8 @@ export const useQuoteCalculations = () => {
       const plasterCementMat = materials.find(m => m.name.toLowerCase() === 'cement');
       const plasterSandMat = materials.find(m => m.name.toLowerCase() === 'sand');
 
-      const plasterCementCost = plasterCementMat ? plasterCementRequired * plasterCementMat.base_price : 0;
-      const plasterSandCost = plasterSandMat ? plasterSandRequired * plasterSandMat.base_price : 0;
+      const plasterCementCost = plasterCementMat ? plasterCementRequired * plasterCementMat.price : 0;
+      const plasterSandCost = plasterSandMat ? plasterSandRequired * plasterSandMat.price : 0;
 
       const totalPlasterCost = plasterCementCost + plasterSandCost;
 
@@ -492,14 +493,14 @@ export const useQuoteCalculations = () => {
         {
           name: 'Cement (Plaster)',
           quantity: plasterCementRequired,
-          unit_price: plasterCementMat?.base_price || 0,
+          unit_price: plasterCementMat?.price || 0,
           total_price: plasterCementCost,
           profit_margin: defaultProfitMargin
         },
         {
           name: 'Sand (Plaster)',
           quantity: plasterSandRequired,
-          unit_price: plasterSandMat?.base_price || 0,
+          unit_price: plasterSandMat?.price || 0,
           total_price: plasterSandCost,
           profit_margin: defaultProfitMargin
         }
@@ -524,13 +525,13 @@ export const useQuoteCalculations = () => {
       const totalPaintArea = wallArea * coats;
       const paintRequired = parseFloat((totalPaintArea / paintCoveragePerLiter).toFixed(2));
 
-      const paintCost = paintingMat ? paintRequired * paintingMat.base_price : 0;
+      const paintCost = paintingMat ? paintRequired * paintingMat.price : 0;
 
       const paintingBreakdown = [
         {
           name: 'Paint',
           quantity: paintRequired,
-          unit_price: paintingMat?.base_price || 0,
+          unit_price: paintingMat?.price || 0,
           total_price: paintCost,
           profit_margin: defaultProfitMargin
         }
@@ -544,13 +545,13 @@ export const useQuoteCalculations = () => {
         return total + (l * w);
       }, 0);
 
-      const ceilingCost = ceilingMat ? ceilingArea * ceilingMat.base_price : 0;
+      const ceilingCost = ceilingMat ? ceilingArea * ceilingMat.price : 0;
 
       const ceilingBreakdown = [
         {
           name: 'Ceiling Board',
           quantity: ceilingArea,
-          unit_price: ceilingMat?.base_price || 0,
+          unit_price: ceilingMat?.price || 0,
           total_price: ceilingCost,
           profit_margin: defaultProfitMargin
         }
@@ -564,13 +565,13 @@ export const useQuoteCalculations = () => {
         return total + (l * w);
       }, 0);
 
-      const flooringCost = flooringMat ? flooringArea * flooringMat.base_price : 0;
+      const flooringCost = flooringMat ? flooringArea * flooringMat.price : 0;
 
       const flooringBreakdown = [
         {
           name: 'Ceiling Board',
           quantity: flooringArea,
-          unit_price: flooringMat?.base_price || 0,
+          unit_price: flooringMat?.price || 0,
           total_price: flooringCost,
           profit_margin: defaultProfitMargin
         }
@@ -589,7 +590,7 @@ export const useQuoteCalculations = () => {
 
       const costPerKm = rateForRegion?.cost_per_km ?? defaultTransportRate.cost_per_km;
       const baseCost = rateForRegion?.base_cost ?? defaultTransportRate.base_cost;
-      const transportCost = distance_km * costPerKm + baseCost;
+      const transportCost = (distance_km * costPerKm) + baseCost;
 
 
       if (!rateForRegion) {
@@ -640,6 +641,7 @@ export const useQuoteCalculations = () => {
         equipment_cost: equipmentCost,
         transport_cost: transportCost,
         services_cost: servicesCost,
+        distance_km: distance_km,
 
         permit_cost: permitCost,
         contingency_amount: contingencyAmount,

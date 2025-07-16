@@ -204,7 +204,7 @@ const getTierBadge = (tier: string) => {
                       key={item.path}
                       asChild
                       variant={isActive(item.path) ? "default" : "ghost"}
-                      className={`justify-start ${isActive(item.path) ? 'gradient-primary' : ''}`}
+                      className={`justify-start ${isActive(item.path) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : ''}`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <a href={item.path}>

@@ -10,6 +10,7 @@ export interface Quote {
   client_name: string;
   client_email?: string;
   location: string;
+  house_type: string;
   region: string;
   project_type: string;
   custom_specs?: string;
@@ -18,6 +19,8 @@ export interface Quote {
   labor_cost: number;
   addons_cost: number;
   total_amount: number;
+  transport_costs: number;
+  profit_amount: number;
   materials: Array<{
     name: string;
     quantity: number;

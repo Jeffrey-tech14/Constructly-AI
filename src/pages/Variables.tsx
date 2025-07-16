@@ -162,14 +162,6 @@ useEffect(() => {
             await updateTransportRate(region, currentRate?.cost_per_km || 50, value);
           }
           break;
-        case 'profit':
-          await updateOverallProfitMargin(value);
-          await fetchOverallProfitMargin();
-          break;
-        case 'labour':
-          await updateLabourPercent(value);
-          await fetchLabourPercent();
-          break;
       }
       toast({
         title: "Success",
@@ -200,7 +192,7 @@ useEffect(() => {
         </div>
 
         <Tabs defaultValue="materials" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="materials" className="flex items-center">
               <Building className="w-4 h-4 mr-2" />
               Materials
@@ -220,10 +212,6 @@ useEffect(() => {
             <TabsTrigger value="subcontractors" className="flex items-center">
               <Users className="w-4 h-4 mr-2" />
               Subcontractors
-            </TabsTrigger>
-            <TabsTrigger value="profit" className="flex items-center">
-              <DollarSign className="w-4 h-4 mr-2" />
-              Profit
             </TabsTrigger>
           </TabsList>
 
@@ -531,80 +519,6 @@ useEffect(() => {
       </Card>
     </TabsContent>
 
-          <TabsContent value="profit" className="space-y-4">
-            <Card className="gradient-card animate-slide-in">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2" />
-                  Profit Margins & Percentages
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="gradient-card">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium mb-3">Overall Profit Margin (%)</h4>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          placeholder={
-                           overallProfitMargin !== null && overallProfitMargin !== undefined
-                            ? overallProfitMargin.toLocaleString()
-                            : "0" // Default fallback value 
-                            }
-                          onChange={(e) => setTempValues({
-                            ...tempValues,
-                            'overall-profit': parseFloat(e.target.value) || 0
-                          })}
-                          className="flex-1"
-                        />
-                        <Button 
-                          size="sm"
-                          onClick={() => handleSave('profit', 'overall', tempValues['overall-profit'] ?? overallProfitMargin)}
-                          disabled={loading}
-                        >
-                          <Save className="w-4 h-4 text-white" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="gradient-card">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium mb-3">Labor Percentage of Materials (%)</h4>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          placeholder={
-                           labourPercent !== null && labourPercent !== undefined
-                            ? labourPercent.toLocaleString()
-                            : "0" 
-                            }
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value);
-                            setTempValues({
-                              ...tempValues,
-                              'labor-percentage': isNaN(value) ? 0 : value
-                            });
-                          }}
-                          className="flex-1"
-                        />
-                        <Button 
-                          size="sm"
-                          onClick={() => handleSave('labor', 'percentage',tempValues['labor-percent'] ?? labourPercent)}
-                          disabled={loading || (
-                            (tempValues['labor-percentage'] ?? labourPercent) === labourPercent
-                          )}
-                        >
-                          <Save className="w-4 h-4 text-white" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </div>

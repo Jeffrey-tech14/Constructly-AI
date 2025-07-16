@@ -29,10 +29,12 @@ import {
   Bed,
   Bath
 } from 'lucide-react';
+import { QuoteExportDialog } from './QuoteExportDialog';
 
 const EnhancedQuoteBuilder = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const { calculateQuote, loading: calculationLoading } = useQuoteCalculations();
   const { equipmentTypes, additionalServices, loading: settingsLoading } = useUserSettings();
   const { createQuote } = useQuotes();
@@ -182,6 +184,9 @@ const EnhancedQuoteBuilder = () => {
         project_type: 'construction',
         custom_specs: quoteData.customSpecs || null,
         status: 'draft',
+        house_type: quoteData.house_type,
+        transport_costs: calculation.transport_cost,
+        distance_km: calculation.distance_km,
         materials_cost: Math.round(calculation.materials_cost),
         labor_cost: Math.round(calculation.labor_cost),
         addons_cost: Math.round(calculation.services_cost),
@@ -847,12 +852,19 @@ const EnhancedQuoteBuilder = () => {
                     Save Quote
                   </Button>
                   <Button
-                    onClick={() => alert("Export coming soon!")}
                     variant="outline"
                     className="flex-1"
+                    onClick={() => setShowExportDialog(true)}
                   >
                     Export BOQ
                   </Button>
+
+                  {/* Export Dialog */}
+                  <QuoteExportDialog
+                    open={showExportDialog}
+                    onOpenChange={setShowExportDialog}
+                    quote={calculation}
+                  />
                 </div>
               
               </>

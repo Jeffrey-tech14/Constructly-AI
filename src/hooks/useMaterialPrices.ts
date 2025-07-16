@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from './use-toast';
 
 export interface MaterialBasePrice {
   id: string;
   name: string;
   unit: string;
-  base_price: number;
+  price: number;
   category: string;
   description?: string;
   created_at: string;
@@ -56,6 +57,10 @@ export const useMaterialPrices = () => {
       await fetchData();
     } catch (error) {
       console.error('Error updating material price:', error);
+      toast({
+        variant: 'destructive',
+        title:'Error updating price'
+      });
       throw error;
     }
   };
@@ -71,6 +76,10 @@ export const useMaterialPrices = () => {
       await fetchData();
     } catch (error) {
       console.error('Error updating regional multiplier:', error);
+      toast({
+        variant: 'destructive',
+        title:'Error updating multiplier'
+      });
       throw error;
     }
   };
@@ -85,6 +94,10 @@ export const useMaterialPrices = () => {
       await fetchData();
     } catch (error) {
       console.error('Error creating material:', error);
+      toast({
+        variant: 'destructive',
+        title:'Error creating material'
+      });
       throw error;
     }
   };

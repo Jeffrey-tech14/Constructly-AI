@@ -366,7 +366,7 @@ export const EquipmentTypesDialog = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button type="submit" disabled={loading}>
+              <Button className='text-white' type="submit" disabled={loading}>
                 {editingEquipment ? 'Update' : 'Create'} Equipment
               </Button>
               {editingEquipment && (

@@ -6,7 +6,7 @@ export interface MaterialBasePrice {
   id: string;
   name: string;
   unit: string;
-  base_price: number;
+  price: number;
   category: string;
   description?: string;
 }
@@ -14,7 +14,7 @@ export interface MaterialBasePrice {
 export interface UserMaterialPrice {
   id: string;
   material_id: string;
-  custom_price: number;
+  price: number;
   region: string;
 }
 
@@ -206,7 +206,7 @@ export const useDynamicPricing = () => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
-      const rateInCents = Math.round(customRate * 100);
+      const rateInCents = Math.round(customRate);
       
       const { error } = await supabase
         .from('user_equipment_overrides')
@@ -235,10 +235,10 @@ export const useDynamicPricing = () => {
     );
     
     if (userOverride) {
-      return userOverride.custom_price;
+      return userOverride.price;
     }
 
-    const basePrice = materialBasePrices.find(m => m.id === materialId)?.base_price || 0;
+    const basePrice = materialBasePrices.find(m => m.id === materialId)?.price || 0;
     const multiplier = regionalMultipliers.find(r => r.region === region)?.multiplier || 1;
     
     return (basePrice * multiplier);

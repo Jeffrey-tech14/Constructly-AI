@@ -10,9 +10,8 @@ import { useQuotes } from '@/hooks/useQuotes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import ProjectProgress from '@/components/ProjectProgress';
-import PDFGenerator from '@/components/PDFGenerator';
 import { Search, Eye, FileText, TrendingUp, Building2, MapPin, Calendar, Trash2 } from 'lucide-react';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { QuoteExportDialog } from '@/components/QuoteExportDialog';
 
 const ViewAllQuotes = () => {
   const { quotes, loading, deleteQuote } = useQuotes();
@@ -22,6 +21,7 @@ const ViewAllQuotes = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   
     useEffect(() => {
       if (!sessionStorage.getItem('profile_reloaded')) {
@@ -338,21 +338,19 @@ const formatCurrency = (value: number) => {
                   </Dialog>
 
                   <Dialog>
+                    <DialogTitle>
+                    </DialogTitle>
                     <DialogTrigger asChild>
-                      <Button size="sm" className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
+                      <Button size="sm" onClick={() => setShowExportDialog(true)} className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
                         <FileText className="w-4 h-4 mr-2 text-white" />
                         Generate PDF
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-lg">
-                      <PDFGenerator
+                      <QuoteExportDialog
+                        open={showExportDialog}
+                        onOpenChange={setShowExportDialog}
                         quote={quote}
-                        contractorName={profile?.name || 'Constructly Kenya'}
-                        contractorCompany={profile?.company || 'Constructly Kenya Ltd'}
-                        contractorPhone={profile?.phone || '+254 700 000 000'}
-                        contractorEmail={profile?.email || 'info@constructly.co.ke'}
                       />
-                    </DialogContent>
                   </Dialog>
 
                   <AlertDialog>
@@ -378,7 +376,7 @@ const formatCurrency = (value: number) => {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={() => handleDeleteQuote(quote.id, quote.title)}
-                          className="bg-red-600 hover:bg-red-700"
+                          className="bg-red-600 hover:bg-red-200 hover:text-red-800 text-white"
                         >
                           Delete
                         </AlertDialogAction>

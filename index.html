@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950" lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,11 +7,27 @@
     <meta name="description" content="Kenya's leading construction management platform. Create professional quotes, manage projects, and grow your construction business with Constructly." />
     <meta name="author" content="Constructly" />
 
+    <!-- 🌙 Fix white flash on load (dark mode theme preload) -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          if (saved === 'dark' || saved === 'light') {
+            document.documentElement.classList.add(saved);
+          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.add('light');
+          }
+        } catch (_) {}
+      })();
+    </script>
+
+    <!-- OpenGraph and SEO -->
     <meta property="og:title" content="Constructly - Professional Construction Management SaaS" />
     <meta property="og:description" content="Kenya's leading construction management platform. Create professional quotes, manage projects, and grow your construction business." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@constructly_ke" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />

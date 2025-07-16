@@ -133,7 +133,7 @@ export const useDynamicPricing = () => {
         .upsert({
           user_id: user.id,
           material_id: materialId,
-          custom_price: priceInCents,
+          price: priceInCents,
           region
         },{
           onConflict: 'user_id, material_id,region'

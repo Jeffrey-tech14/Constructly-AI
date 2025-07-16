@@ -231,6 +231,7 @@ const EnhancedQuoteBuilder = () => {
               <Label htmlFor="projectName">Project Name</Label>
               <Input
                 id="projectName"
+                required
                 placeholder="Enter project name"
                 value={quoteData.projectName}
                 onChange={(e) => setQuoteData(prev => ({ ...prev, projectName: e.target.value }))}
@@ -241,16 +242,18 @@ const EnhancedQuoteBuilder = () => {
                 <Label htmlFor="clientName">Client Name</Label>
                 <Input
                   id="clientName"
+                  required
                   placeholder="Enter client name"
                   value={quoteData.clientName}
                   onChange={(e) => setQuoteData(prev => ({ ...prev, clientName: e.target.value }))}
                 />
               </div>
               <div>
-                <Label htmlFor="clientEmail">Client Email (Optional)</Label>
+                <Label htmlFor="clientEmail">Client Email</Label>
                 <Input
                   id="clientEmail"
                   type="email"
+                  required
                   placeholder="client@example.com"
                   value={quoteData.clientEmail}
                   onChange={(e) => setQuoteData(prev => ({ ...prev, clientEmail: e.target.value }))}
@@ -262,13 +265,14 @@ const EnhancedQuoteBuilder = () => {
               <Input
                 id="location"
                 placeholder="Enter specific location or address"
+                  required
                 value={quoteData.location}
                 onChange={(e) => setQuoteData(prev => ({ ...prev, location: e.target.value }))}
               />
             </div>
             <div>
               <Label htmlFor="region">Region</Label>
-              <Select onValueChange={(value) => setQuoteData(prev => ({ ...prev, region: value }))}>
+              <Select required onValueChange={(value) => setQuoteData(prev => ({ ...prev, region: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select region for pricing" />
                 </SelectTrigger>
@@ -290,7 +294,7 @@ const EnhancedQuoteBuilder = () => {
             {/* Room Editor */}
             <div className="">
               <h3 className="text-lg font-semibold mb-3">House Type</h3>
-              <Select onValueChange={(value) => setQuoteData(prev => ({ ...prev, house_type: value }))}>
+              <Select required onValueChange={(value) => setQuoteData(prev => ({ ...prev, house_type: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select house type" />
                 </SelectTrigger>
@@ -308,6 +312,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     placeholder="Name"
                     value={room.name}
+                  required
                     onChange={(e) => {
                       const updatedRooms = [...quoteData.rooms];
                       updatedRooms[index].name = e.target.value;
@@ -318,6 +323,7 @@ const EnhancedQuoteBuilder = () => {
                     placeholder="Length (m)"
                     type="number"
                     value={room.length}
+                  required
                     onChange={(e) => {
                       const updatedRooms = [...quoteData.rooms];
                       updatedRooms[index].length = e.target.value;
@@ -327,6 +333,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     placeholder="Width (m)"
                     type="number"
+                  required
                     value={room.width}
                     onChange={(e) => {
                       const updatedRooms = [...quoteData.rooms];
@@ -337,6 +344,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     placeholder="Height (m)"
                     type="number"
+                  required
                     value={room.height}
                     onChange={(e) => {
                       const updatedRooms = [...quoteData.rooms];
@@ -347,6 +355,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     placeholder="Doors"
                     type="number"
+                  required
                     value={room.doors}
                     onChange={(e) => {
                       const updatedRooms = [...quoteData.rooms];
@@ -357,6 +366,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     placeholder="Windows"
                     type="number"
+                  required
                     value={room.windows}
                     onChange={(e) => {
                       const updatedRooms = [...quoteData.rooms];
@@ -443,6 +453,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     id="concreteMixRatio"
                     placeholder="e.g., 1:2:4"
+                  required
                     value={quoteData.concrete_mix_ratio}
                     onChange={(e) =>
                       setQuoteData(prev => ({ ...prev, concrete_mix_ratio: e.target.value }))
@@ -456,6 +467,7 @@ const EnhancedQuoteBuilder = () => {
                     type="number"
                     step="0.001"
                     placeholder="e.g., 0.012"
+                  required
                     value={quoteData.plaster_thickness}
                     onChange={(e) =>
                       setQuoteData(prev => ({ ...prev, plaster_thickness: parseFloat(e.target.value) || 0.012 }))
@@ -468,6 +480,7 @@ const EnhancedQuoteBuilder = () => {
                     id="rebarPercentage"
                     type="number"
                     placeholder="e.g., 1"
+                  required
                     value={quoteData.rebar_percentage}
                     onChange={(e) =>
                       setQuoteData(prev => ({ ...prev, rebar_percentage: parseFloat(e.target.value) || 1 }))
@@ -487,6 +500,7 @@ const EnhancedQuoteBuilder = () => {
                 <Input
                   type="number"
                   placeholder="5%"
+                  required
                   value={quoteData.wastage_percentage}
                   onChange={(e) =>
                     setQuoteData(prev => ({ ...prev, wastage_percentage: parseFloat(e.target.value)}))
@@ -505,6 +519,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     id="laborPercentage"
                     type="number"
+                  required
                     placeholder="e.g., 25"
                     value={quoteData.labor_percentage}
                     onChange={(e) =>
@@ -517,6 +532,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     id="overheadPercentage"
                     type="number"
+                  required
                     placeholder="e.g., 10"
                     value={quoteData.overhead_percentage}
                     onChange={(e) =>
@@ -529,6 +545,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     id="profitPercentage"
                     type="number"
+                  required
                     placeholder="e.g., 10"
                     value={quoteData.profit_percentage}
                     onChange={(e) =>
@@ -541,6 +558,7 @@ const EnhancedQuoteBuilder = () => {
                   <Input
                     id="contingencyPercentage"
                     type="number"
+                  required
                     placeholder="e.g., 5"
                     value={quoteData.contingency_percentage}
                     onChange={(e) =>
@@ -555,6 +573,7 @@ const EnhancedQuoteBuilder = () => {
                 <Input
                   id="permitCost"
                   type="number"
+                  required
                   placeholder="e.g., 50000"
                   value={quoteData.permit_cost}
                   onChange={(e) =>
@@ -584,6 +603,7 @@ const EnhancedQuoteBuilder = () => {
               <Label>Contract Type</Label>
               <Select 
                 value={quoteData.contract_type} 
+                  required
                 onValueChange={(value: 'full_contract' | 'labor_only') => 
                   setQuoteData(prev => ({ ...prev, contract_type: value }))
                 }
@@ -608,6 +628,7 @@ const EnhancedQuoteBuilder = () => {
               <Input
                 id="distanceKm"
                 type="number"
+                required
                 placeholder="Distance in kilometers"
                 value={quoteData.distance_km}
                 onChange={(e) => setQuoteData(prev => ({ ...prev, distance_km: parseFloat(e.target.value) || 0 }))}
@@ -870,7 +891,6 @@ const EnhancedQuoteBuilder = () => {
               </>
             ): (
             <div className="text-center py-8 text-gray-350">
-              No calculation found. Please click "Calculate Quote" first.
               
             </div>
             

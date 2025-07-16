@@ -153,7 +153,6 @@ export const useQuoteCalculations = () => {
   const [loading, setLoading] = useState(false);
   const [equipmentRates, setEquipmentRates] = useState<UserEquipmentRate[]>([]);
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
-  const [serviceRates, setServiceRates] = useState<UserServiceRate[]>([]);
 
   const fetchMaterials = useCallback(async () => {
   // Fetch base material prices
@@ -164,7 +163,7 @@ export const useQuoteCalculations = () => {
   // Fetch user-specific overrides for materials in their region
   const { data: overrides, error: overrideError } = await supabase
     .from('user_material_prices')
-    .select('material_id, region, custom_price')
+    .select('material_id, region, price')
     .eq('user_id', profile.id);
 
   if (baseError) console.error('Base materials error:', baseError);
@@ -176,7 +175,7 @@ export const useQuoteCalculations = () => {
     const userRate = overrides?.find(
       o => o.material_id === material.id && o.region === userRegion
     );
-    const price = userRate ? userRate.custom_price : material.price ?? 0;
+    const price = userRate ? userRate.price : material.price ?? 0;
 
     return {
       ...material,
@@ -665,7 +664,7 @@ export const useQuoteCalculations = () => {
             };
           }),
           services: selected_services.map(id => {
-            const item = serviceRates.find(m => m.id === id);
+            const item = services.find(m => m.id === id);
             return {
               name: item?.name || `Service ${id}`,
               price: item?.price || 0

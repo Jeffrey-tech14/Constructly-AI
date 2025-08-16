@@ -1,0 +1,1877 @@
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { v4 as uuidv4 } from "uuid"; // install with: npm install uuid
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
+import { useQuoteCalculations, CalculationResult, QuoteCalculation, Percentage } from '@/hooks/useQuoteCalculations';
+import { RoomType, useUserSettings } from '@/hooks/useUserSettings';
+import { useQuotes } from '@/hooks/useQuotes';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  FileText,
+  Wrench,
+  Calculator,
+  Building,
+  CreditCard,
+  Shell,
+  Crown,
+  Shield,
+  Star,
+  BuildingIcon,
+  FileSpreadsheet,
+  Zap
+} from 'lucide-react';
+import { usePlan } from '../contexts/PlanContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface Room {
+  room_name: string;
+  length: string;
+  width: string;
+  height: string;
+  doors: string;
+  windows: string;
+}
+
+const EnhancedQuoteBuilder = ({quote}) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { equipmentRates, services, calculateQuote, loading: calculationLoading } = useQuoteCalculations();
+  const { extractedPlan } = usePlan();
+  const [rooms, setRooms] = useState<Array<{ room_name: string; length: string; width: string; height: string; doors: string; windows: string }>>([]);
+  const { loading: settingsLoading } = useUserSettings();
+  const { createQuote, updateQuote } = useQuotes();
+  const { roomTypes } = useUserSettings();
+  const { profile, user } = useAuth();
+  const [direction, setDirection] = useState<"left" | "right">("right");
+
+  const variants = {
+    enter: (direction: "left" | "right") => ({
+      x: direction === "right" ? 300 : -300,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: "left" | "right") => ({
+      x: direction === "right" ? -300 : 300,
+      opacity: 0,
+    }),
+  };
+
+  const regions = [
+    { value: 'Nairobi', label: 'Nairobi' },
+    { value: 'Mombasa', label: 'Mombasa' },
+    { value: 'Kisumu', label: 'Kisumu' },
+    { value: 'Nakuru', label: 'Nakuru' },
+    { value: 'Eldoret', label: 'Eldoret' },
+    { value: 'Thika', label: 'Thika' },
+    { value: 'Machakos', label: 'Machakos' }
+  ];
+
+   const projects = [
+    { value: 'construction', label: 'Construction' },
+    { value: 'renovation', label: 'Renovation' }
+  ];
+
+  const houseTypes = [
+    { value: 'Bungalow', label: 'Bungalow' },
+    { value: 'Maisonette', label: 'Maisonette' },
+    { value: 'Apartment', label: 'Apartment' },
+    { value: 'Villa', label: 'Villa' },
+    { value: 'Townhouse', label: 'Townhouse' },
+    { value: 'Warehouse', label: 'Warehouse' },
+    { value: 'Mansion', label: 'Mansion' }
+  ];
+
+  const [currentStep, setCurrentStep] = useState(1);
+  const [calculation, setCalculation] = useState<CalculationResult | null>(null);
+  const [subContractors, setServices] = useState<any[]>([]);
+  const location = useLocation();
+  const [limit, setLimit] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+   const fetchLimit = async () => {
+      if (!profile?.tier) return;
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("tiers")
+        .select("quotes_limit")
+        .eq("name", profile.tier)
+        .single();
+
+      if (error) {
+        console.error("Error fetching tier limit:", error);
+        setLimit(0);
+      } else {
+        setLimit(data?.quotes_limit || 0);
+      }
+      setLoading(false);
+    };
+
+
+  const fetchRates = async () => {
+        const { data: baseServices, error: baseError } = await supabase
+          .from('subcontractor_prices')
+          .select('*');
+  
+        const { data: overrides, error: overrideError } = await supabase
+          .from('user_subcontractor_rates')
+          .select('service_id, price')
+          .eq('user_id', profile.id);
+  
+        if (baseError) console.error('Base rates error:', baseError);
+        if (overrideError) console.error('Overrides error:', overrideError);
+  
+        const merged = baseServices.map((service) => {
+        const userRate = overrides?.find(o => o.service_id === service.id);
+        const rate = userRate
+          ? Number(userRate.price) 
+          : (service.price != null ? Number(service.price) : 0); 
+  
+          return {
+            ...service,
+            price: rate,
+            unit: service.unit ?? "unit",
+            source: userRate ? 'user' : (service.price != null ? 'base' : 'none')
+          };
+        });
+  
+        setServices(merged);
+      };
+
+  const [quoteData, setQuoteData] = useState<QuoteCalculation>({
+    rooms: [] as Room[],
+    client_name: '',
+    client_email: '',
+    title: '',
+    location: '',
+    id:'',
+    subcontractors: [],
+    user_id:'',
+    floors: 1,
+    custom_specs: '',
+    foundation_length: 0,
+    foundation_width: 0,
+    status: 'draft',
+    foundation_depth: 0,
+    mortar_ratio: '1:6',
+    concrete_mix_ratio: '1:2:4',
+    plaster_thickness: 0.012, 
+    rebar_percentages: 0,
+    include_wastage: true,
+    wastage_percentages: 0,
+    equipment: [],
+    services: [],
+    percentages: [],
+    addons: [],
+    distance_km: 0,
+    contract_type: 'full_contract',
+    region: '',
+    show_profit_to_client: false,
+    equipment_costs: 0 ,
+    transport_costs: 0,
+    additional_services_cost:0,
+    house_type: '',
+    project_type: '',
+    addons_cost: 0,
+
+    labor_percentages: 0,
+    overhead_percentages: 0,
+    profit_percentages: 0,
+    contingency_percentages: 0,
+    permit_cost: 0
+  });
+
+   useEffect(() => {
+    if (quote) {
+      setQuoteData(prev => ({
+        ...prev,
+        ...quote,
+        rooms: quote.rooms || [], 
+        selected_equipment: quote.selected_equipment || [],
+        selected_services: quote.selected_services || [],
+      }));
+    }
+  }, [quote]);
+
+  useEffect(() => {
+    fetchRates();
+    fetchLimit();
+  }, [user, location.key]);
+
+  const steps = [
+    { id: 1, name: 'Project Details', icon: <FileText className="w-5 h-5" /> },
+    { id: 2, name: 'House & Materials', icon: <Building className="w-5 h-5" /> },
+    { id: 3, name: 'Equipment Usage', icon: <Wrench className="w-5 h-5" /> },
+    { id: 4, name: 'Services and Extras', icon: <Plus className="w-5 h-5" /> },
+    { id: 5, name: 'Subcontractor Rates', icon: <Zap className="w-5 h-5" /> },
+    { id: 6, name: 'Subcontractor Materials', icon: <FileSpreadsheet className="w-5 h-5" /> },
+    { id: 7, name: 'Review & Export', icon: <Calculator className="w-5 h-5" /> }
+  ];
+
+  const updatePercentageField = (field: keyof Percentage, value: number) => {
+  setQuoteData(prev => ({
+    ...prev,
+    ...(field === 'labour' && { labor_percentages: value }),
+    ...(field === 'overhead' && { overhead_percentages: value }),
+    ...(field === 'profit' && { profit_percentages: value }),
+    ...(field === 'contingency' && { contingency_percentages: value }),
+    ...(field === 'rebar' && { rebar_percentages: value }),
+    ...(field === 'wastage' && { wastage_percentages: value }),
+    percentages: prev.percentages.length > 0
+      ? prev.percentages.map((p, i) =>
+          i === 0 ? { ...p, [field]: value } : p
+        )
+      : [{ labour: 0, rebar: 0, wastage: 0, overhead: 0, profit: 0, contingency: 0, [field]: value }]
+  }));
+};
+
+  const nextStep = () => {
+    if (!validateStep(currentStep)) {
+      toast({
+          title: "Input invalid",
+          description: "Please fill in all required fields",
+          variant: "destructive"
+        });
+      return;
+    }
+    
+    if (currentStep < steps.length) {
+      setDirection("right");
+      setCurrentStep(currentStep + 1);
+      if(currentStep+1 === 7){
+        handleCalculate();
+      }
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setDirection("left");
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  useEffect(() => {
+    if (extractedPlan?.rooms.length) {
+      const formattedRooms = extractedPlan.rooms.map(room => ({
+        room_name: room.name,
+        length: room.length.toFixed(2),
+        width: room.width.toFixed(2),
+        height: room.height?.toFixed(2) || '3.00',
+        doors: room.doors?.toString() || '1',
+        windows: room.windows?.toString() || '1'
+      }));
+      setRooms(formattedRooms);
+    } else {
+      setRooms([{ room_name: '', length: '', width: '', height: '3', doors: '1', windows: '1' }]);
+    }
+  }, [extractedPlan]);
+
+  const handleCalculate = async () => {
+    try {
+      const result = await calculateQuote({
+        user_id: quoteData.user_id,
+        id: quoteData.id,
+        rooms: quoteData.rooms,
+        title: quoteData.title,
+        client_name: quoteData.client_name,
+        client_email: quoteData.client_email,
+        location: quoteData.location,
+        status:quoteData.status,
+        custom_specs: quoteData.custom_specs,
+        floors: quoteData.floors,
+        foundation_length: parseFloat(quoteData.foundation_length.toString()) || 0,
+        foundation_width: parseFloat(quoteData.foundation_width.toString()) || 0,
+        foundation_depth: parseFloat(quoteData.foundation_depth.toString()) || 0,
+        mortar_ratio: quoteData.mortar_ratio,
+        concrete_mix_ratio: quoteData.concrete_mix_ratio,
+        subcontractors: quoteData.subcontractors,
+        percentages: quoteData.percentages,
+        addons: quoteData.addons,
+        addons_cost: quoteData.addons_cost,
+        plaster_thickness: parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
+        rebar_percentages: parseFloat(quoteData.percentages[0].rebar.toString()) || 0,
+        include_wastage: quoteData.include_wastage,
+        wastage_percentages: parseFloat(quoteData.percentages[0].wastage.toString()) || 0,
+        equipment: quoteData.equipment,
+        services: quoteData.services,
+        distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
+        contract_type: quoteData.contract_type,
+        region: quoteData.region,
+        project_type: quoteData.project_type,
+        equipment_costs: quoteData.equipment_costs,
+        transport_costs: quoteData.transport_costs,
+        additional_services_cost: quoteData.additional_services_cost,
+        show_profit_to_client: quoteData.show_profit_to_client,
+        house_type: quoteData.house_type,
+        labor_percentages: parseFloat(quoteData.percentages[0].labour.toString()) || 0,
+        overhead_percentages: parseFloat(quoteData.percentages[0].overhead.toString()) || 0,
+        profit_percentages: parseFloat(quoteData.percentages[0].profit.toString()) || 0,
+        contingency_percentages: parseFloat(quoteData.percentages[0].contingency.toString()) || 0,
+        permit_cost: parseFloat(quoteData.permit_cost.toString()) || 0,
+      });
+      setCalculation(result);
+      toast({
+        title: "Calculation Complete",
+        description: "Quote has been calculated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Calculation Error",
+        description: "Failed to calculate quote",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSaveQuote = async () => {
+    if (!calculation){
+      console.error('calculation is empty '+ calculation)
+     return;
+    }
+
+    if(quoteData.id){
+      try{
+        await updateQuote (quoteData.id,{
+        title: quoteData.title,
+        client_name: quoteData.client_name,
+        client_email: quoteData.client_email || null,
+        location: quoteData.location,
+        rooms: quoteData.rooms,
+        region: quoteData.region,
+        project_type: quoteData.project_type,
+        custom_specs: quoteData.custom_specs || null,
+        status: quoteData.status,
+        house_type: quoteData.house_type,
+        transport_costs: calculation.transport_cost,
+        foundation_length: quoteData.foundation_length,
+        foundation_depth: quoteData.foundation_depth,
+        foundation_width: quoteData.foundation_width,
+        distance_km: calculation.distance_km,
+        materials_cost: Math.round(calculation.materials_cost),
+        labor_cost: Math.round(calculation.labor_cost),
+        additional_services_cost: Math.round(calculation.selected_services_cost),
+        total_amount: Math.round(calculation.total_amount),
+        materials: calculation.materials,
+        labor: calculation.labor,
+        floors: quoteData.floors,
+        equipment_costs: Math.round(calculation.equipment_cost),
+        services: calculation.services,
+        equipment: calculation.equipment,
+        concrete: calculation.concrete,
+        formwork: calculation.formwork,
+        addons: quoteData.addons,
+        rebar: calculation.rebar,
+        plaster: calculation.plaster,
+        overhead_amount: calculation.overhead_amount,
+        contingency_amount: calculation.contingency_amount,
+        permit_cost: calculation.permit_cost,
+        concrete_mix_ratio: quoteData.concrete_mix_ratio,
+        plaster_thickness: quoteData.plaster_thickness,
+        profit_amount: calculation.profit_amount,
+        ceiling: calculation.ceiling,
+        addons_cost: calculation.addons_cost,
+        subcontractors: quoteData.subcontractors,
+        percentages: calculation.percentages
+        })
+        toast({
+          title: "Quote Updated",
+          description: "Quote has been updated successfully"
+        });
+        navigate('/dashboard');
+      }
+      catch (error) {
+        console.error('Error updating quote:', error);
+        toast({
+          title: "Update Error",
+          description: "Failed to update quote",
+          variant: "destructive"
+        });
+      }
+    }
+    else{
+      try {
+        await createQuote({
+          title: quoteData.title,
+          client_name: quoteData.client_name,
+          client_email: quoteData.client_email || null,
+          location: quoteData.location,
+          rooms: quoteData.rooms,
+          region: quoteData.region,
+          project_type: quoteData.project_type,
+          custom_specs: quoteData.custom_specs || null,
+          status: 'draft',
+          house_type: quoteData.house_type,
+          transport_costs: calculation.transport_cost,
+          distance_km: calculation.distance_km,
+          foundation_length: quoteData.foundation_length,
+          foundation_depth: quoteData.foundation_depth,
+          foundation_width: quoteData.foundation_width,
+          materials_cost: Math.round(calculation.materials_cost),
+          labor_cost: Math.round(calculation.labor_cost),
+          additional_services_cost: Math.round(calculation.selected_services_cost),
+          equipment_costs: Math.round(calculation.equipment_cost),
+          total_amount: Math.round(calculation.total_amount),
+          floors: quoteData.floors,
+          materials: calculation.materials,
+          labor: calculation.labor,
+          services: calculation.services,
+          equipment: calculation.equipment,
+          concrete: calculation.concrete,
+          formwork: calculation.formwork,
+          rebar: calculation.rebar,
+          plaster: calculation.plaster,
+          overhead_amount: calculation.overhead_amount,
+          contingency_amount: calculation.contingency_amount,
+          permit_cost: calculation.permit_cost,
+          concrete_mix_ratio: quoteData.concrete_mix_ratio,
+          plaster_thickness: quoteData.plaster_thickness,
+          profit_amount: calculation.profit_amount,
+          ceiling: calculation.ceiling,
+          addons_cost: calculation.addons_cost,
+          subcontractors: calculation.subcontractors,
+          percentages: calculation.percentages
+        });
+        toast({
+          title: "Quote Saved",
+          description: "Quote has been saved successfully"
+        });
+        navigate('/dashboard');
+      }
+      catch (error) {
+        console.error('Error saving quote:', error);
+        toast({
+          title: "Save Error",
+          description: "Failed to save quote",
+          variant: "destructive"
+        });
+      }
+    };
+  };
+
+  const validateStep = (step: number): boolean => {
+  switch (step) {
+    case 1:
+      return (
+        !!quoteData.title &&
+        !!quoteData.client_name &&
+        !!quoteData.client_email &&
+        !!quoteData.location &&
+        !!quoteData.project_type &&
+        !!quoteData.region
+      );
+    case 2:
+      return (
+        !!quoteData.house_type &&
+        quoteData.rooms.length > 0 &&
+        quoteData.rooms.every(room => 
+          !!room.room_name &&
+          !!room.length &&
+          !!room.width &&
+          !!room.height &&
+          !!room.doors &&
+          !!room.windows
+        )         
+      );
+    case 3:
+      return (
+        !!quoteData.contract_type 
+      );
+    case 4:
+    case 5:
+    case 6:
+      return true;
+    default:
+      return false;
+  }
+};
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="projectName">Project Name *</Label>
+              <Input
+                id="projectName"
+                required
+                placeholder="Enter project name"
+                value={quoteData.title}
+                onChange={(e) => setQuoteData(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="clientName">Client Name *</Label>
+                <Input
+                  id="clientName"
+                  required
+                  placeholder="Enter client name"
+                  value={quoteData.client_name}
+                  onChange={(e) => setQuoteData(prev => ({ ...prev, client_name: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="clientEmail">Client Email *</Label>
+                <Input
+                  id="clientEmail"
+                  type="email"
+                  required
+                  placeholder="client@example.com"
+                  value={quoteData.client_email}
+                  onChange={(e) => setQuoteData(prev => ({ ...prev, client_email: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="projectType">Project Type *</Label>
+              <Select value={quoteData.project_type} required onValueChange={(value) => setQuoteData(prev => ({ ...prev, project_type: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select project type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((region) => (
+                    <SelectItem
+                      key={region.value} 
+                      value={region.value}>
+                      {region.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="location">Project Location *</Label>
+              <Input
+                id="location"
+                placeholder="Enter specific location or address"
+                  required
+                value={quoteData.location}
+                onChange={(e) => setQuoteData(prev => ({ ...prev, location: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="region">Region *</Label>
+              <Select value={quoteData.region} required onValueChange={(value) => setQuoteData(prev => ({ ...prev, region: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select region for pricing" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((region) => (
+                    <SelectItem
+                      key={region.value} 
+                      value={region.value}>
+                      {region.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Contract Type *</Label>
+              <Select
+                value={quoteData.contract_type || ''} 
+                required
+                onValueChange={(value: 'full_contract' | 'labor_only') =>
+                  setQuoteData(prev => ({ ...prev, contract_type: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select contract type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full_contract">
+                    Full Contract (Materials + Labor)
+                  </SelectItem>
+                  <SelectItem value="labor_only">
+                    Labor Only (Client Provides Materials)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              <p className="text-sm text-muted-foreground mt-2">
+                {quoteData.contract_type === 'full_contract' 
+                  ? 'You provide all materials and labor'
+                  : 'Client provides materials, you provide labor only'
+                }
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="distanceKm">Distance from site location (KM)</Label>
+              <Input
+                id="distanceKm"
+                type="number"
+                    min='0'
+                required
+                placeholder="Distance in kilometers"
+                value={quoteData.distance_km}
+                onChange={(e) => setQuoteData(prev => ({ ...prev, distance_km: parseFloat(e.target.value) || 0 }))}
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Used to calculate transport costs
+              </p>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div> 
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">House Type *</h3>
+              {profile.tier !== "Free" && (
+              <Button
+                onClick={() => navigate('/uploadplan')}
+                className="mb-3 animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              >
+                Upload Plan
+              </Button>
+              )}
+              </div>
+              <Select required value={quoteData.house_type} onValueChange={(value) => setQuoteData(prev => ({ ...prev, house_type: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select house type"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {houseTypes.map((region) => (
+                    <SelectItem key={region.value} value={region.value}>
+                      {region.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <h3 className="text-l font-semibold mt-3">Floors *</h3>
+                  <Input
+                    id='floors'
+                    placeholder="Floors"
+                    type="number"
+                    min='0'
+                    value={quoteData.floors}
+                    required
+                    onChange={(e) => {
+                      setQuoteData(prev => ({ ...prev, floors: parseFloat(e.target.value)}));
+                    }}
+                  />
+
+              <h3 className="text-lg font-semibold mb-3 mt-6">Room Details *</h3>
+              {quoteData.rooms.map((room, index) => (
+                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3 items-center">
+                  <Select
+                    required
+                    value={room.room_name ? room.room_name : undefined}
+                    onValueChange={(value) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        rooms: prev.rooms.map((room, room_index) =>
+                          room_index === index
+                            ? { ...room, room_name: value } 
+                            : room 
+                        ),
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select room type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roomTypes.map((region) => (
+                        <SelectItem key={region.id} value={region.name}>
+                          {region.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    placeholder="Length (m)"
+                    type="number"
+                    min='0'
+                    value={room.length}
+                    required
+                    onChange={(e) => {
+                      const updatedRooms = [...quoteData.rooms];
+                      updatedRooms[index].length = e.target.value;
+                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
+                    }}
+                  />
+                  <Input
+                    placeholder="Width (m)"
+                    type="number"
+                    min='0'
+                    required
+                    value={room.width}
+                    onChange={(e) => {
+                      const updatedRooms = [...quoteData.rooms];
+                      updatedRooms[index].width = e.target.value;
+                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
+                    }}
+                  />
+                  <Input
+                    placeholder="Height (m)"
+                    type="number"
+                    min='0'
+                    required
+                    value={room.height}
+                    onChange={(e) => {
+                      const updatedRooms = [...quoteData.rooms];
+                      updatedRooms[index].height = e.target.value;
+                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
+                    }}
+                  />
+                  <Input
+                    placeholder="Doors"
+                    type="number"
+                    min='0'
+                    required
+                    value={room.doors}
+                    onChange={(e) => {
+                      const updatedRooms = [...quoteData.rooms];
+                      updatedRooms[index].doors = e.target.value;
+                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
+                    }}
+                  />
+                  <Input
+                    placeholder="Windows"
+                    type="number"
+                    min='0'
+                    required
+                    value={room.windows}
+                    onChange={(e) => {
+                      const updatedRooms = [...quoteData.rooms];
+                      updatedRooms[index].windows = e.target.value;
+                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
+                    }}
+                  />
+                  {/* <Input
+                    placeholder="Number of identical rooms"
+                    type="number"
+                    min='0'
+                    required
+                    value={room.number}
+                    onChange={(e) => {
+                      const updatedRooms = [...quoteData.rooms];
+                      updatedRooms[index].number = e.target.value;
+                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
+                    }}
+                  /> */}
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setQuoteData(prev => ({
+                    ...prev,
+                    rooms: [
+                      ...prev.rooms,
+                      {
+                        room_name: '',
+                        length: '',
+                        width: '',
+                        height: '',
+                        doors: '',
+                        windows: '',
+                        number: ''
+                      }
+                    ]
+                  }))
+                }
+                className="mt-2 bg-blue-100 dark:bg-blue-600 hover:bg-blue-400 dark:hover:bg-blue-900"
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add Room
+              </Button>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3">Foundation Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="foundationLength">Length (m)</Label>
+                  <Input
+                    id="foundationLength"
+                    type="number"
+                    min='0'
+                    placeholder="e.g., 20"
+                    value={quoteData.foundation_length}
+                    onChange={(e) =>
+                      setQuoteData(prev => ({ ...prev, foundation_length: parseFloat(e.target.value) || 0 }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="foundationWidth">Width (m)</Label>
+                  <Input
+                    id="foundationWidth"
+                    type="number"
+                    min='0'
+                    placeholder="e.g., 0.6"
+                    value={quoteData.foundation_width}
+                    onChange={(e) =>
+                      setQuoteData(prev => ({ ...prev, foundation_width: parseFloat(e.target.value) || 0 }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="foundationDepth">Depth (m)</Label>
+                  <Input
+                    id="foundationDepth"
+                    type="number"
+                    min='0'
+                    placeholder="e.g., 0.6"
+                    value={quoteData.foundation_depth}
+                    onChange={(e) =>
+                      setQuoteData(prev => ({ ...prev, foundation_depth: parseFloat(e.target.value) || 0 }))
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3">Material Estimation Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="concreteMixRatio">Concrete Mix Ratio (C:S:B)</Label>
+                  <Input
+                    id="concreteMixRatio"
+                    placeholder="e.g., 1:2:4"
+                    required
+                    value={quoteData.concrete_mix_ratio}
+                    onChange={(e) =>
+                      setQuoteData(prev => ({ ...prev, concrete_mix_ratio: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="plasterThickness">Plaster Thickness (m)</Label>
+                  <Input
+                    id="plasterThickness"
+                    type="number"
+                    min='0'
+                    step="0.001"
+                    placeholder="e.g., 0.012"
+                    required
+                    value={quoteData.plaster_thickness}
+                    onChange={(e) =>
+                      setQuoteData(prev => ({ ...prev, plaster_thickness: parseFloat(e.target.value) || 0.012 }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rebarPercentage">Rebar Percentage (%)</Label>
+                  <Input
+                    id="rebarPercentage"
+                    type="number"
+                    min='0'
+                    placeholder="e.g., 1"
+                    required
+                    value={quoteData.percentages[0]?.rebar ?? ''}
+                    onChange={(e) => updatePercentageField("rebar", parseFloat(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 mt-4">
+                <Checkbox
+                  id='check'
+                  checked={quoteData.include_wastage}
+                  onCheckedChange={(checked) =>
+                    setQuoteData(prev => ({ ...prev, include_wastage: Boolean(checked) }))
+                  }
+                />
+                <Label>Include Wastage (%)</Label>
+                <Input
+                  type="number"
+                    min='0'
+                  placeholder="5%"
+                  required
+                  value={quoteData.percentages[0]?.wastage ?? ''}
+                  onChange={(e) => updatePercentageField("wastage", parseFloat(e.target.value))}
+                  className="w-20 ml-4"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3">Financial Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="laborPercentage">Labor % of Materials</Label>
+                  <Input
+                    id="laborPercentage"
+                    type="number"
+                    min='0'
+                    required
+                    placeholder="e.g., 10"
+                    value={quoteData.percentages[0]?.labour ?? ''}
+                    onChange={(e) => updatePercentageField("labour", parseFloat(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="overheadPercentage">Overhead (%)</Label>
+                  <Input
+                    id="overheadPercentage"
+                    type="number"
+                    min='0'
+                    required
+                    placeholder="e.g., 10"
+                    value={quoteData.percentages[0]?.overhead ?? ''}
+                    onChange={(e) => updatePercentageField("overhead", parseFloat(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="profitPercentage">Profit (%)</Label>
+                  <Input
+                    id="profitPercentage"
+                    type="number"
+                    min='0'
+                    required
+                    placeholder="e.g., 5"
+                    value={quoteData.percentages[0]?.profit ?? ''}
+                      onChange={(e) => 
+                        updatePercentageField("profit", parseFloat(e.target.value))
+                      }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contingencyPercentage">Contingency (%)</Label>
+                  <Input
+                    id="contingencyPercentage"
+                    type="number"
+                    min='0'
+                    required
+                    placeholder="e.g., 5"
+                    value={quoteData.percentages[0]?.contingency ?? ''}
+                    onChange={(e) => updatePercentageField("contingency", parseFloat(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Label htmlFor="permitCost">Permit Cost (KSh)</Label>
+                <Input
+                  id="permitCost"
+                  type="number"
+                    min='0'
+                  required
+                  placeholder="e.g., 50000"
+                  value={quoteData.permit_cost}
+                  onChange={(e) =>
+                    setQuoteData(prev => ({ ...prev, permit_cost: parseFloat(e.target.value) || 0 }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+case 3:
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Select Required Equipment</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {equipmentRates
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((equipment) => {
+            const isChecked = quoteData.equipment.some(
+              (eq) => eq.equipment_type_id === equipment.id
+            );
+
+            return (
+              <Card key={equipment.id} className="p-4 gradient-card">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setQuoteData((prev) => ({
+                              ...prev,
+                              equipment: [
+                                ...prev.equipment,
+                                {
+                                  equipment_type_id: equipment.id,
+                                  name: equipment.name,
+                                  daily_rate: equipment.daily_rate,
+                                  total_cost: equipment.daily_rate,
+                                  days: 1,
+                                },
+                              ],
+                            }));
+                          } else {
+                            setQuoteData((prev) => ({
+                              ...prev,
+                              equipment: prev.equipment.filter(
+                                (eq) => eq.equipment_type_id !== equipment.id
+                              ),
+                            }));
+                          }
+                        }}
+                      />
+                      <div>
+                        <h4 className="font-medium">{equipment.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          KSh {equipment.daily_rate.toLocaleString()}/day
+                        </p>
+                      </div>
+                      <div>
+                       {quoteData.equipment.some(e => e.equipment_type_id === equipment.id) && (
+                        <div className='ml-7 mt-2 justify-center'>
+                          <Label htmlFor="days">Days</Label>
+                            <Input
+                              id={`days-${equipment.id}`}
+                              type="number"
+                              required
+                              placeholder="e.g., 5"
+                              value={
+                                quoteData.equipment.find(e => e.equipment_type_id === equipment.id)?.days || '1'
+                              }
+                              onChange={(e) => {
+                                const newDays = parseInt(e.target.value) || 0;
+                                setQuoteData(prev => ({
+                                  ...prev,
+                                  equipment: prev.equipment.map(eq =>
+                                    eq.equipment_type_id === equipment.id
+                                      ? {
+                                          ...eq,
+                                          days: newDays,
+                                          total_cost: eq.daily_rate * newDays
+                                        }
+                                      : eq
+                                  )
+                                }));
+                              }}
+                            />
+                        </div>
+                       )}
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </Card>
+            );
+          })}
+
+          {/* Custom Equipment Section */}
+          {quoteData.equipment
+            .filter(
+              (eq) =>
+                !equipmentRates.some((e) => e.id === eq.equipment_type_id)
+            )
+            .map((eq) => (
+              <Card
+                key={eq.equipment_type_id}
+                className="p-4 gradient-card flex flex-col space-y-2"
+              >
+                {/* Editable Name */}
+                <Input
+                  type="text"
+                  value={eq.name}
+                  onChange={(e) =>
+                    setQuoteData((prev) => ({
+                      ...prev,
+                      equipment: prev.equipment.map((item) =>
+                        item.equipment_type_id === eq.equipment_type_id
+                          ? { ...item, name: e.target.value }
+                          : item
+                      ),
+                    }))
+                  }
+                  placeholder="Custom Equipment Name"
+                />
+
+                {/* Editable Daily Rate */}
+                <div>
+                  <Label htmlFor={`rate-${eq.equipment_type_id}`}>
+                    Daily Rate
+                  </Label>
+                  <Input
+                    id={`rate-${eq.equipment_type_id}`}
+                    type="number"
+                    min="0"
+                    value={eq.daily_rate}
+                    onChange={(e) => {
+                      const newRate = parseInt(e.target.value) || 0;
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        equipment: prev.equipment.map((item) =>
+                          item.equipment_type_id === eq.equipment_type_id
+                            ? {
+                                ...item,
+                                daily_rate: newRate,
+                                total_cost: newRate * item.days,
+                              }
+                            : item
+                        ),
+                      }));
+                    }}
+                  />
+                </div>
+
+                {/* Editable Days */}
+                <div>
+                  <Label htmlFor={`days-${eq.equipment_type_id}`}>Days</Label>
+                  <Input
+                    id={`days-${eq.equipment_type_id}`}
+                    type="number"
+                    min="1"
+                    value={eq.days}
+                    onChange={(e) => {
+                      const newDays = parseInt(e.target.value) || 1;
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        equipment: prev.equipment.map((item) =>
+                          item.equipment_type_id === eq.equipment_type_id
+                            ? {
+                                ...item,
+                                days: newDays,
+                                total_cost: item.daily_rate * newDays,
+                              }
+                            : item
+                        ),
+                      }));
+                    }}
+                  />
+                </div>
+
+                {/* Remove button */}
+                <button
+                  className="self-end text-red-500 hover:text-red-700"
+                  onClick={() =>
+                    setQuoteData((prev) => ({
+                      ...prev,
+                      equipment: prev.equipment.filter(
+                        (item) =>
+                          item.equipment_type_id !== eq.equipment_type_id
+                      ),
+                    }))
+                  }
+                >
+                  ✕
+                </button>
+              </Card>
+            ))}
+
+          {/* Add Custom Equipment Button */}
+          <Card className="p-4 gradient-card flex flex-col items-center justify-center">
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              onClick={() => {
+                const customId = uuidv4();
+                setQuoteData((prev) => ({
+                  ...prev,
+                  equipment: [
+                    ...prev.equipment,
+                    {
+                      equipment_type_id: customId,
+                      name: "Custom Equipment",
+                      daily_rate: 0,
+                      total_cost: 0,
+                      days: 1,
+                    },
+                  ],
+                }));
+              }}
+            >
+              + Add Custom Equipment
+            </button>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+
+      case 4:
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Additional Services</h3>
+        <div className="space-y-4 grid w-full grid-cols-2">
+          {services
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((service) => {
+              const checked = quoteData.services.some((s) => s.id === service.id);
+
+              return (
+                <Card key={service.id} className="p-4 m-1 gradient-card">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setQuoteData((prev) => ({
+                              ...prev,
+                              services: [...prev.services, service],
+                            }));
+                          } else {
+                            setQuoteData((prev) => ({
+                              ...prev,
+                              services: prev.services.filter((s) => s.id !== service.id),
+                            }));
+                          }
+                        }}
+                      />
+                      <div>
+                        <h4 className="font-medium">{service.name}</h4>
+                        {service.description && (
+                          <p className="text-sm text-muted-foreground">{service.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge className="text-black" variant="secondary">
+                        KSh {service.price.toLocaleString()}
+                      </Badge>
+                      <p className="text-xs text-black text-muted-foreground">{service.category}</p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+
+          {/* Custom services */}
+          {quoteData.services
+            .filter((s) => !services.some((srv) => srv.id === s.id))
+            .map((service) => (
+              <Card key={service.id} className="p-4 m-1 gradient-card">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={true}
+                      onCheckedChange={() =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          services: prev.services.filter((s) => s.id !== service.id),
+                        }))
+                      }
+                    />
+                    <div className="space-y-2">
+                      <Input
+                        type="text"
+                        value={service.name}
+                        onChange={(e) =>
+                          setQuoteData((prev) => ({
+                            ...prev,
+                            services: prev.services.map((s) =>
+                              s.id === service.id ? { ...s, name: e.target.value } : s
+                            ),
+                          }))
+                        }
+                        placeholder="Custom Service Name"
+                      />
+                      <Input
+                        type="text"
+                        value={service.category}
+                        onChange={(e) =>
+                          setQuoteData((prev) => ({
+                            ...prev,
+                            services: prev.services.map((s) =>
+                              s.id === service.id ? { ...s, category: e.target.value } : s
+                            ),
+                          }))
+                        }
+                        placeholder="Category"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-right space-y-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      value={service.price}
+                      onChange={(e) => {
+                        const newPrice = parseInt(e.target.value) || 0;
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          services: prev.services.map((s) =>
+                            s.id === service.id ? { ...s, price: newPrice } : s
+                          ),
+                        }));
+                      }}
+                    />
+                    {/* Remove only for custom */}
+                    <button
+                      className="text-red-500 hover:text-red-700 text-xs"
+                      onClick={() =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          services: prev.services.filter((s) => s.id !== service.id),
+                        }))
+                      }
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+
+          {/* Add Custom Service Button */}
+          <Card className="p-4 m-1 gradient-card flex flex-col items-center justify-center">
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              onClick={() => {
+                const customId = uuidv4();
+                setQuoteData((prev) => ({
+                  ...prev,
+                  services: [
+                    ...prev.services,
+                    {
+                      id: customId,
+                      name: "Custom Service",
+                      description: "",
+                      category: "General",
+                      price: 0,
+                    },
+                  ],
+                }));
+              }}
+            >
+              + Add Custom Service
+            </button>
+          </Card>
+        </div>
+      </div>
+
+      {/* Additional Specifications */}
+      <div>
+        <Label htmlFor="customSpecs">Additional Specifications</Label>
+        <Textarea
+          id="customSpecs"
+          placeholder="Any additional requirements or specifications..."
+          rows={4}
+          value={quoteData.custom_specs}
+          onChange={(e) =>
+            setQuoteData((prev) => ({ ...prev, custom_specs: e.target.value }))
+          }
+        />
+      </div>
+    </div>
+  );
+        case 5:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Subcontractor Charges</h3>
+              <div className="space-y-4">
+                {subContractors.sort((a, b) => a.name.localeCompare(b.name)).map((service) => {
+                  return(
+                  <Card key={service.id} className="p-4 gradient-card m-2">
+                    <div className='flex w-full grid grid-cols-2'>
+                     <div className="flex items-center space-x-3">
+                        <Checkbox
+                          className='text-white'
+                          checked={quoteData.subcontractors.some(s => s.name === service.name)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setQuoteData(prev => ({
+                                ...prev,
+                                subcontractors: [...prev.subcontractors, service]
+                              }));
+                            } else {
+                              setQuoteData(prev => ({
+                                ...prev,
+                                subcontractors: prev.subcontractors.filter(s => s.name !== service.name)
+                              }));
+                            }
+                          }}
+                        />
+                      <div className="flex justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <h4 className="font-medium">{service.name}</h4>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                      <div className="text-right justify-right">
+                        <Badge className="text-black" variant="secondary">
+                          KSh {(service.price).toLocaleString()}/{service.unit}
+                        </Badge>
+                      </div>
+                    </div>
+                    {quoteData.subcontractors.some(s => s.id === service.id) && (
+                      <div className='mt-3 animate-fade-in'>
+                        <Label>Payment Plan *</Label>
+                        <Select
+                          value={
+                            quoteData.subcontractors.find(s => s.id === service.id)?.subcontractor_payment_plan || ''
+                          }
+                          required
+                          onValueChange={(value: 'daily' | 'full') =>
+                            setQuoteData((prev) => {
+                              const updated = prev.subcontractors.map((sub) =>
+                                sub.id === service.id
+                                  ? { ...sub, subcontractor_payment_plan: value }
+                                  : sub
+                              );
+                              return { ...prev, subcontractors: updated };
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Payment Plan" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="full">Full Amount</SelectItem>
+                            <SelectItem value="daily">Daily Payments</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Label htmlFor={`contractorCost-${service.id}`}>Contractor Cost</Label>
+                        <Input
+                          id={`contractorCost-${service.id}`}
+                          type="number"
+                    min='0'
+                          required
+                          value={
+                            quoteData.subcontractors.find(s => s.id === service.id)?.subcontractor_payment_plan === 'full'
+                              ? quoteData.subcontractors.find(s => s.id === service.id)?.total || ''
+                              : quoteData.subcontractors.find(s => s.id === service.id)?.price || service.price
+                          }
+                          placeholder={
+                            quoteData.subcontractors.find(s => s.id === service.id)?.subcontractor_payment_plan === 'full'
+                              ? 'Total cost'
+                              : 'Daily rate'
+                          }
+                          onChange={(e) =>
+                            setQuoteData((prev) => {
+                              const updated = prev.subcontractors.map((sub) =>
+                                sub.id === service.id
+                                  ? {
+                                      ...sub,
+                                      total:
+                                        sub.subcontractor_payment_plan === 'full'
+                                          ? parseFloat(e.target.value) || 0
+                                          : sub.total,
+                                      price:
+                                        sub.subcontractor_payment_plan === 'daily'
+                                          ? parseFloat(e.target.value) || 0
+                                          : sub.price,
+                                    }
+                                  : sub
+                              );
+                              return { ...prev, subcontractors: updated };
+                            })
+                          }
+                        />
+                        {quoteData.subcontractors.find(s => s.id === service.id)?.subcontractor_payment_plan === 'daily' && (
+                          <>
+                            <Label htmlFor={`days-${service.id}`}>Number of Days</Label>
+                            <Input
+                              id={`days-${service.id}`}
+                              type="number"
+                              min="1"
+                              value={quoteData.subcontractors.find(s => s.id === service.id)?.days || ''}
+                              placeholder="e.g., 5"
+                              onChange={(e) =>
+                                setQuoteData((prev) => {
+                                  const updated = prev.subcontractors.map((sub) =>
+                                    sub.id === service.id
+                                      ? { ...sub, days: parseInt(e.target.value) || 0 }
+                                      : sub
+                                  );
+                                  return { ...prev, subcontractors: updated };
+                                })
+                              }
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                )})}
+              </div>
+            </div>
+          </div>
+        );
+
+        
+      case 6:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Subcontractor Materials</h3>
+              <div className="space-y-4">
+                {subContractors.sort((a, b) => a.name.localeCompare(b.name)).map((service) => {
+                  return(
+                  <Card key={service.id} className="p-4 gradient-card m-2">
+                    <div className='flex w-full grid grid-cols-2'>
+                     <div className="flex items-center space-x-3">
+                        <Checkbox
+                          className='text-white'
+                          checked={quoteData.subcontractors.some(s => s.name === service.name)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setQuoteData(prev => ({
+                                ...prev,
+                                subcontractors: [...prev.subcontractors, service]
+                              }));
+                            } else {
+                              setQuoteData(prev => ({
+                                ...prev,
+                                subcontractors: prev.subcontractors.filter(s => s.name !== service.name)
+                              }));
+                            }
+                          }}
+                        />
+                      <div className="flex justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <h4 className="font-medium">{service.name}</h4>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                    {quoteData.subcontractors.some(s => s.id === service.id) && (
+                      <div className='mt-3 animate-fade-in'>
+                        <Label htmlFor={'subMaterialCost'}>Material Cost</Label>
+                        <Input
+                          id='subMaterialCost'
+                          type="number"
+                    min='0'
+                          placeholder="e.g., 10000"
+                          required
+                          value={
+                            quoteData.addons.find(a => a.name === service.name)?.price ?? ''
+                          }
+                          onChange={(e) =>
+                            setQuoteData(prev => {
+                              const updatedAddons = [...prev.addons];
+                              const index = updatedAddons.findIndex(a => a.name === service.name);
+
+                              if (index !== -1) {
+                                updatedAddons[index] = {
+                                  ...updatedAddons[index],
+                                  price: parseFloat(e.target.value) || 0
+                                };
+                              } else {
+                                updatedAddons.push({
+                                  name: service.name,
+                                  price: parseFloat(e.target.value) || 0
+                                });
+                              }
+
+                              return { ...prev, addons: updatedAddons };
+                            })
+                          }
+                        />
+                      </div>
+                    )}
+                  </Card>
+                )})}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            {calculation? (
+              <>
+                {/* <pre className="text-blue-700 bg-blue-100 p-4 rounded-md overflow-auto max-h-96">
+                {JSON.stringify(calculation, null, 2)}
+              </pre> */}
+                <Card  className='gradient-card'>
+                  <CardHeader>
+                    <CardTitle>Quote Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Total Wall Area:</span>
+                      <span>{calculation.total_wall_area.toFixed(2)} m²</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Concrete Volume:</span>
+                      <span>{calculation.total_concrete_volume.toFixed(2)} m³</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Formwork Area:</span>
+                      <span>{calculation.total_formwork_area.toFixed(2)} m²</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rebar Weight:</span>
+                      <span>{calculation.total_rebar_weight.toFixed(2)} kg</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Plaster Volume:</span>
+                      <span>{calculation.total_plaster_volume.toFixed(2)} m³</span>
+                    </div>
+                    <hr className="my-2" />
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>KSh {calculation.total_amount.toLocaleString()}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {calculation.materials.length > 0 && (
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Materials</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {calculation.materials.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.total_price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {calculation.concrete.length > 0 && (
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Concrete</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {calculation.concrete.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.total_price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {calculation.formwork.length > 0 && (
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Formwork</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {calculation.formwork.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.total_price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {calculation.rebar.length > 0 && (
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Rebar</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {calculation.rebar.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.total_price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {calculation.plaster.length > 0 && (
+                  <Card className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Plastering</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {calculation.plaster.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.total_price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                 <div className="flex space-x-4">
+                  <Button
+                    onClick={handleSaveQuote}
+                    className="flex-1 text-white"
+                    variant="default"
+                  >
+                    Save Quote
+                  </Button>
+                </div>
+              
+              </>
+            ): (
+            <div className="text-center py-5 text-gray-350">
+              No calculation done. Click on calculate to generate quotation
+            </div>
+            
+            )}
+            <div className="flex space-x-4">
+                  <Button
+                    onClick={handleCalculate}
+                    disabled={calculationLoading}
+                    className="flex-1 text-white"
+                  >
+                    {calculationLoading ? 'Calculating...' : 'Recalculate'}
+                  </Button>
+                </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (settingsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+   const getTierBadge = (tier: string) => {
+        switch (tier) {
+          case 'Free':
+            return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200"><Shell className="w-3 h-3 mr-1" /> Free</Badge>;
+          case 'Intermediate':
+            return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
+          case 'Professional':
+            return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Professional</Badge>;
+          default:
+            return <Badge>{tier}</Badge>;
+        }
+      };
+
+   if (limit !== null && profile?.quotes_used >= limit) {
+    return (
+      <div className="min-h-screen flex items-center justify-center animate-fade-in">
+        <Card className="gradient-card p-10 rounded-lg">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">
+              You have used up the allocated monthly quotes
+            </h2>
+            <p className="text-muted-foreground">
+              Please upgrade your plan to access more quote allocations and features.
+            </p>
+            <div className="text-muted-foreground">
+              Current Plan: {getTierBadge(profile.tier)}
+            </div>
+            <Button
+              className="w-full mt-10 text-white"
+              onClick={() => navigate("/payment")}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Upgrade Plan
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen animate-fade-in">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="flex text-3xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <BuildingIcon className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
+            Enhanced Quote Builder</div>
+          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Create accurate construction quotes with advanced calculations</p>
+        </div>
+
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            {steps.map((step) => (
+              <div key={step.id} className={`flex items-center ${step.id < steps.length ? 'flex-1' : ''}`}>
+                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                  currentStep >= step.id 
+                    ? 'bg-primary border-primary text-white' 
+                    : 'border-gray-300 text-gray-400'
+                }`}>
+                  {step.icon}
+                </div>
+                <div className="ml-2 hidden sm:block">
+                  <p className={`text-sm font-medium ${
+                    currentStep >= step.id ? 'text-primary dark:text-blue-500' : 'text-gray-400'
+                  }`}>
+                    {step.name}
+                  </p>
+                </div>
+                {step.id < steps.length && (
+                  <div className={`flex-1 h-0.5 mx-4 ${
+                    currentStep > step.id ? 'bg-primary' : 'bg-gray-300'
+                  }`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <Progress value={(currentStep / 7) * 100} className="w-full" />
+        </div>
+
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={currentStep}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.1 }}
+          >
+            <Card className="mb-8 gradient-card">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  {steps[currentStep - 1].icon}
+                  <span className="ml-2">{steps[currentStep - 1].name}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>{renderStepContent()}</CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous
+          </Button>
+          {currentStep < 7 && (
+            <Button onClick={nextStep} className="text-white">
+              Next
+              <ArrowRight className="w-4 h-4 ml-2 text-white" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EnhancedQuoteBuilder;

@@ -46,23 +46,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     setLoading(true);
-    try {
-      console.log('Fetching profile:');
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-        console.log(data)
-      console.log('Fetching profile12:');
+    console.log("Fetching profile for:", userId);
+try {
+  const query = supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        setProfile(null);
-      } else {
-        setProfile(data);
-      }
-    } finally {
+  console.log("Query built:", query); // 👈 should print an object, not hang
+  const { data, error } = await query;
+
+  console.log("Supabase responded:", { data, error });
+
+  if (error) {
+    console.error('Error fetching profile:', error);
+    setProfile(null);
+  } else {
+    setProfile(data);
+  }
+} catch (err) {
+  console.error("Query threw an exception:", err);
+} finally {
       setLoading(false); // ✅ Always reset loading
     }
   };

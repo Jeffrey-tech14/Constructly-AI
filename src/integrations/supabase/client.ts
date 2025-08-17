@@ -18,6 +18,9 @@ const supabaseUrl =
   getEnv("NEXT_PUBLIC_SUPABASE_URL") || getEnv("VITE_SUPABASE_URL")
 const supabaseAnonKey =
   getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") || getEnv("VITE_SUPABASE_ANON_KEY")
+  console.log("Supabase URL:", supabaseUrl)
+console.log("Supabase Key exists:", !!supabaseAnonKey)
+
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
@@ -27,6 +30,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
   },

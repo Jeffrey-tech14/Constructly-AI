@@ -45,49 +45,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const prevUserId = useRef<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setProfile(null);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setProfile(null);
+      } else {
+        setProfile(data);
+      }
     } finally {
-      setLoading(false);
+      setLoading(false); // ✅ Always reset loading
     }
   };
 
+
   useEffect(() => {
-    let isMounted = true;
+     let isMounted = true;
 
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
+  const initAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!isMounted) return;
 
-       if (session?.user) {
-  prevUserId.current = session.user.id;
-  setUser(session.user);
-  await fetchProfile(session.user.id); // always fetch profile
-} else {
-          prevUserId.current = null;
-          setUser(null);
-          setProfile(null);
-        }
-      } catch (err) {
-        console.error('Error getting initial session:', err);
-      } finally {
-        if (isMounted) setAuthReady(true);
+      if (session?.user) {
+        prevUserId.current = session.user.id;
+        setUser(session.user);
+        await fetchProfile(session.user.id); // fetch profile immediately
+      } else {
+        prevUserId.current = null;
+        setUser(null);
+        setProfile(null);
+        setLoading(false); // ✅ important for "no session"
       }
-    };
+    } catch (err) {
+      console.error('Error getting initial session:', err);
+      setLoading(false); // ✅ important for error cases
+    } finally {
+      if (isMounted) setAuthReady(true);
+    }
+  };
 
-    initAuth();
+  initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!isMounted) return;

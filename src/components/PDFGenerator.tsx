@@ -1,5 +1,7 @@
 // components/QuotePDF.tsx
 import React from 'react';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 import {
   Document,
   Page,
@@ -141,7 +143,6 @@ export const QuotePDF = ({ quote, isClientExport = false }: QuotePDFProps) => {
         {renderList('Formwork', quote.formwork, true)}
         {renderList('Rebar', quote.rebar, true)}
         {renderList('Plaster', quote.plaster, true)}
-        {renderList('Painting', quote.painting, true)}
         {renderList('Ceiling', quote.ceiling, true)}
 
         {/* SERVICES & SUBCONTRACTORS */}
@@ -203,26 +204,65 @@ export const QuotePDF = ({ quote, isClientExport = false }: QuotePDFProps) => {
 };
 
 // Utility to generate & download PDF
-export const generateQuotePDF = async (quote: QuoteCalculation & CalculationResult, isClientExport = false) => {
+export const generateQuotePDF = async (
+  quote: QuoteCalculation & CalculationResult,
+  isClientExport = false
+) => {
   try {
     if (!quote?.id) throw new Error('Invalid quote data');
 
-    const safeQuote = {
-      ...quote,
-    };
+    const safeQuote = { ...quote };
     const asPdf = pdf();
-    asPdf.updateContainer(<QuotePDF quote={safeQuote} isClientExport={isClientExport} />);
+    asPdf.updateContainer(
+      <QuotePDF quote={safeQuote} isClientExport={isClientExport} />
+    );
     const blob = await asPdf.toBlob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${isClientExport ? 'Client' : 'Contractor'}_Quote_${quote.title?.replace(/\s+/g, '_') || 'Untitled'}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    const fileName = `${
+      isClientExport ? 'Client' : 'Contractor'
+    }_Quote_${quote.title?.replace(/\s+/g, '_') || 'Untitled'}.pdf`;
+
+    if (Capacitor.getPlatform() === 'web') {
+      // ✅ Browser download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      // ✅ Native Android/iOS: save using Capacitor Filesystem
+      const base64Data = await blobToBase64(blob);
+
+      await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Documents, // Downloads folder
+      });
+
+      console.log('PDF saved to Downloads:', fileName);
+       toast({
+        variant: 'default',
+        title: 'PDF generated',
+      });
+    }
   } catch (error) {
     console.error('Error generating PDF:', error);
-    toast({ variant: 'destructive', title: 'Failed to generate PDF', description: 'Please check your quote data and try again.' });
+    toast({
+      variant: 'destructive',
+      title: 'Failed to generate PDF',
+      description: 'Please check your quote data and try again.',
+    });
   }
 };
+
+// helper: convert blob → base64
+const blobToBase64 = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => resolve((reader.result as string).split(',')[1]); // remove data: prefix
+    reader.readAsDataURL(blob);
+  });

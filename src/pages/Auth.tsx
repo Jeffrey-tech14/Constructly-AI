@@ -137,9 +137,9 @@ const Auth = () => {
               <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
                 <Wrench className="w-8 h-8 text-white" />
               </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">Constructly</span>
+            <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">Constructly</span>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
             {mode === 'signin' ? 'Welcome Back' : 'Get Started'}
           </h1>
           <p className="text-muted-foreground mt-2">

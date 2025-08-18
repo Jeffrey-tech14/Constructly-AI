@@ -163,10 +163,10 @@ const PaymentPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl flex items-center justify-center font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl sm:text-2xl text-lg flex items-center justify-center font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
             <ArrowUpFromDot className="w-8 h-8 mr-2 text-blue-900 dark:text-blue-300" />
             Upgrade Your Plan</h1>
-          <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Choose the plan that fits your construction business needs</p>
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Choose the plan that fits your construction business needs</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -205,7 +205,7 @@ const PaymentPage = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg">{plan.name}</h3>
-                          <p className="text-2xl font-bold font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                          <p className="sm:text-2xl text-lg font-bold font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                             {plan.price === 0 ? 'Free' : `KSh ${plan.price.toLocaleString()}`}
                             {plan.price > 0 && <span className="text-sm font-normal text-muted-foreground">/month</span>}
                           </p>

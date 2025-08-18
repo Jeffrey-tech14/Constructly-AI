@@ -1770,7 +1770,7 @@ case 3:
       <div className="min-h-screen flex items-center justify-center animate-fade-in">
         <Card className="gradient-card p-10 rounded-lg">
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="sm:text-2xl text-lg font-bold mb-4">
               You have used up the allocated monthly quotes
             </h2>
             <p className="text-muted-foreground">
@@ -1796,10 +1796,10 @@ case 3:
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex text-3xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <BuildingIcon className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
+          <div className="flex sm:text-3xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <BuildingIcon className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
             Enhanced Quote Builder</div>
-          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Create accurate construction quotes with advanced calculations</p>
+          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-sm sm:text-lg text-transparent mt-2">Create accurate construction quotes with advanced calculations</p>
         </div>
 
         <div className="mb-8">
@@ -1813,15 +1813,15 @@ case 3:
                 }`}>
                   {step.icon}
                 </div>
-                <div className="ml-2 hidden sm:block">
-                  <p className={`text-sm font-medium ${
+                <div className="hidden lg:inline">
+                  <p className={`ml-2 text-sm font-medium ${
                     currentStep >= step.id ? 'text-primary dark:text-blue-500' : 'text-gray-400'
                   }`}>
                     {step.name}
                   </p>
                 </div>
                 {step.id < steps.length && (
-                  <div className={`flex-1 h-0.5 mx-4 ${
+                  <div className={`flex-1 h-0.5 xs:mx-4 mx-1 -pl-1 -pr-1 ${
                     currentStep > step.id ? 'bg-primary' : 'bg-gray-300'
                   }`} />
                 )}

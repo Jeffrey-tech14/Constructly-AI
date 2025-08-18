@@ -204,7 +204,7 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
         <div>
           <div className="flex items-center justify-between mb-2">
             <Label className='text-white'>Progress Percentage</Label>
-            <span className={`text-2xl font-bold hover:bg-transparent ${getStatusColor(progressData.status)} bg-transparent`}>{progressData.progress_percentage}%</span>
+            <span className={`sm:text-2xl text-lg font-bold hover:bg-transparent ${getStatusColor(progressData.status)} bg-transparent`}>{progressData.progress_percentage}%</span>
           </div>
           <Progress indicatorColor={`${getIndicatorColor(progressData.status)} `} value={progressData.progress_percentage} className="w-full h-3 bg-white" />
         </div>

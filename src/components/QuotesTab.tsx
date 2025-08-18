@@ -155,7 +155,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
           <p className="text-center text-muted-foreground">No quotes found</p>
         )}
 
-        <div className='grid w-full grid-cols-2'>
+        <div className='grid w-full grid-cols-1 md:grid-cols-2'>
         {filteredQuotes.map((quote) => (
           <div key={quote.id} className="border rounded-lg p-4 m-2 space-y-2">
             <div className="flex justify-between items-center">

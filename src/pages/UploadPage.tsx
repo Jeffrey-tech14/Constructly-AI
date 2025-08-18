@@ -134,7 +134,7 @@ const UploadPlan = () => {
       <div className="min-h-screen bg-background flex items-center justify-center animate-fade-in">
         <Card className="gradient-card p-10 rounded-lg">
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="sm:text-2xl text-lg font-bold mb-4">
               You do not have permission to use this feature
             </h2>
             <p className="text-muted-foreground">
@@ -160,14 +160,14 @@ const UploadPlan = () => {
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
          <div className="mb-8">
-          <h1 className="text-3xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl sm:text-2xl text-lg flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent">
             <UploadCloud className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
             Upload Plan</h1>
           <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent mt-2">Automatically derive dimentions, rooms e.t.c from your plan</p>
         </div>
         <Card className="gradient-card rounded-2xl border-0 shadow-2xl">
           <CardHeader>
-            <CardTitle className="text-center text-2xl">Upload Your Plan</CardTitle>
+            <CardTitle className="text-center sm:text-2xl text-lg">Upload Your Plan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {!selectedFile ? (

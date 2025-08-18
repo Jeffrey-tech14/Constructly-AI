@@ -81,7 +81,7 @@ const Calendar = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Calendar</h2>
+        <h2 className="sm:text-2xl text-lg font-bold">Calendar</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className='text-white hover:bg-blue-500'>

@@ -103,7 +103,7 @@ const DashboardSettings = () => {
     <div className="space-y-6">
       <div className="flex items-center space-x-2">
         <Settings className="w-6 h-6" />
-        <h2 className="text-2xl font-bold">Settings & Rates</h2>
+        <h2 className="sm:text-2xl text-lg font-bold">Settings & Rates</h2>
       </div>
 
       <Tabs defaultValue="equipment" className="w-full">

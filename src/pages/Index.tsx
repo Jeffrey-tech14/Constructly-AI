@@ -90,7 +90,7 @@ const Index = () => {
             <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
               <Wrench className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">
+            <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">
               Constructly
             </span>
           </div>
@@ -336,7 +336,7 @@ const Index = () => {
       {/* FAQ */}
       <section id='faq' className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent ">
+          <h2 className="sm:text-3xl sm:text-2xl text-lg font-bold mb-12 text-center bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent ">
             Frequently Asked Questions
           </h2>
           <div className="space-y-6">
@@ -401,7 +401,7 @@ const Index = () => {
               )}
               <div>
               <CardContent className="pt-10 pb-8 px-6 text-center">
-                <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
+                <h3 className="sm:text-2xl text-lg font-bold text-foreground mb-2">{plan.name}</h3>
                 <div className="mb-6">
                   <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {plan.price}
@@ -442,7 +442,7 @@ const Index = () => {
               <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
                 <Wrench className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">
+              <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">
                 Constructly
               </span>
             </div>

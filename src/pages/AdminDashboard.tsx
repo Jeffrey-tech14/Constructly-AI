@@ -227,7 +227,7 @@ quotes.forEach((quote) => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
+          <h2 className="sm:text-2xl text-lg font-bold text-red-600 mb-4">Access Denied</h2>
           <p className="text-muted-foreground">You don't have permission to access the admin dashboard.</p>
         </Card>
       </div>
@@ -246,10 +246,10 @@ quotes.forEach((quote) => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
         <div className="mb-8">
-          <div className="flex text-3xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <div className="flex sm:text-3xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
             <Crown className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
             Admin Dashboard</div>
-          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage users, monitor system performance, and control platform settings</p>
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage users, monitor system performance, and control platform settings</p>
         </div>
 
         {/* Stats Overview */}
@@ -260,7 +260,7 @@ quotes.forEach((quote) => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <div className="sm:text-2xl text-lg font-bold">{stats.totalUsers}</div>
               <p className="text-xs text-muted-foreground">Registered contractors</p>
             </CardContent>
           </Card>
@@ -271,7 +271,7 @@ quotes.forEach((quote) => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {formatCurrency((stats.totalRevenue))}</div>
+              <div className="sm:text-2xl text-lg font-bold">KSh {formatCurrency((stats.totalRevenue))}</div>
               <p className="text-xs text-muted-foreground">From active projects</p>
             </CardContent>
           </Card>
@@ -282,7 +282,7 @@ quotes.forEach((quote) => {
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {(formatCurrency((stats.subscriptionRevenue)))}</div>
+              <div className="sm:text-2xl text-lg font-bold">KSh {(formatCurrency((stats.subscriptionRevenue)))}</div>
               <p className="text-xs text-muted-foreground">Monthly subscriptions</p>
             </CardContent>
           </Card>
@@ -293,7 +293,7 @@ quotes.forEach((quote) => {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalQuotes}</div>
+              <div className="sm:text-2xl text-lg font-bold">{stats.totalQuotes}</div>
               <p className="text-xs text-muted-foreground">Generated quotes</p>
             </CardContent>
           </Card>
@@ -304,7 +304,7 @@ quotes.forEach((quote) => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeProjects}</div>
+              <div className="sm:text-2xl text-lg font-bold">{stats.activeProjects}</div>
               <p className="text-xs text-muted-foreground">In progress</p>
             </CardContent>
           </Card>
@@ -351,35 +351,51 @@ quotes.forEach((quote) => {
                 </div>
 
                 {/* Users Table */}
-                <div className="space-y-4">
-                  {filteredUsers.map((user) => (
-                    <Card key={user.id} className={`p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 relative ${user.id === profile.id ? 'ring-2 ring-primary' : ''}`}>
-                      <div>
-                         {user.id === profile.id && (
-                            <Badge className="absolute -top-3 transform translate-x-1/8 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full px-4 py-1">
-                              Me
-                            </Badge>
-                          )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                            <Users className="w-5 h-5 text-primary" />
+                   <div className="space-y-3 md:space-y-4">
+                {filteredUsers.map((user) => (
+                  <Card 
+                    key={user.id} 
+                    className={`p-3 md:p-4 bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 relative ${user.id === profile.id ? 'ring-2 ring-primary dark:ring-white' : ''}`}
+                  >
+                    <div>
+                      {user.id === profile.id && (
+                        <Badge className="absolute -top-2 md:-top-3 transform translate-x-1/8 bg-primary text-white dark:bg-white dark:text-primary rounded-full px-3 md:px-4 py-0.5 md:py-1 text-xs md:text-sm">
+                          Me
+                        </Badge>
+                      )}
+                      
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        {/* User Info Section */}
+                        <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
+                          <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <Users className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                           </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-medium">{user.name}</h3>
+                          
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-medium text-sm md:text-base truncate">
+                                {user.name}
+                              </h3>
                               {user.is_admin && (
-                                <Badge variant="destructive">
+                                <Badge variant="destructive" className="text-xs md:text-sm">
                                   <Crown className="w-3 h-3 mr-1" />
                                   Admin
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <Badge variant='secondary' className=' bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent'>
+                            
+                            <p className="text-xs md:text-sm text-muted-foreground truncate">
+                              {user.email}
+                            </p>
+                            
+                            <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                              <Badge 
+                                variant='secondary' 
+                                className='text-xs md:text-sm bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent'
+                              >
                                 {getTierBadge(user.tier)}
                               </Badge>
+                              
                               <span className="text-xs text-muted-foreground">
                                 {user.quotes_used} quotes • {user.total_projects} projects
                               </span>
@@ -387,28 +403,29 @@ quotes.forEach((quote) => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center space-x-2">
+                        {/* Actions Section */}
+                        <div className="flex items-center justify-end md:justify-normal space-x-2">
                           <Select 
                             value={user.tier} 
                             onValueChange={(value) => updateUserTier(user.id, value)}
                           >
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-24 md:w-32 text-xs md:text-sm">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Free">Free</SelectItem>
-                              <SelectItem value="Intermediate">Intermediate</SelectItem>
-                              <SelectItem value="Professional">Professional</SelectItem>
+                              <SelectItem value="Free" className="text-xs md:text-sm">Free</SelectItem>
+                              <SelectItem value="Intermediate" className="text-xs md:text-sm">Intermediate</SelectItem>
+                              <SelectItem value="Professional" className="text-xs md:text-sm">Professional</SelectItem>
                             </SelectContent>
                           </Select>
 
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 md:h-9 md:w-auto md:px-2">
                                 <MoreHorizontal className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" className="text-xs md:text-sm">
                               <DropdownMenuItem
                                 onClick={() => toggleAdminStatus(user.id, user.is_admin)}
                               >

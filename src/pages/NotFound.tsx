@@ -29,7 +29,7 @@ const NotFound = () => {
               404
             </h1>
             
-            <h2 className="text-2xl font-bold text-foreground mb-4">
+            <h2 className="sm:text-2xl text-lg font-bold text-foreground mb-4">
               Page Not Found
             </h2>
             

@@ -141,55 +141,51 @@ const Variables = () => {
     <div className=" scrollbar-hide min-h-screen animate-fade-in">
       <div className="container  scrollbar-hide mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold flex items-center bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl sm:text-2xl text-lg font-bold flex items-center bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
             <Settings className="w-8 h-8 mr-3 text-purple-900 dark:text-white" />
             Variables & Pricing
           </h1>
-          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
             Configure all pricing variables and settings for your construction projects
           </p>
         </div>
 
         <Tabs defaultValue="materials" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="materials" className="flex items-center">
-              <Building className="w-4 h-4 mr-2" />
-              Materials
+         <TabsList className="grid w-full grid-cols-5 md:gap-2 mb-2 h-full">
+          {[
+            { value: "materials", icon: Building, label: "Materials" },
+            { value: "equipment", icon: Wrench, label: "Equipment" },
+            { value: "transport", icon: Truck, label: "Transport" },
+            { value: "services", icon: Plus, label: "Services" },
+            { value: "subcontractors", icon: Users, label: "Subcontractors" }
+          ].map((tab) => (
+            <TabsTrigger 
+              key={tab.value}
+              value={tab.value}
+              className="flex flex-col sm:flex-row items-center justify-center p-2 sm:p-2 text-sm"
+            >
+              <tab.icon className="w-4 h-4 sm:mr-2 sm:mb-0" />
+              <span className='hidden md:inline'>{tab.label}</span>
             </TabsTrigger>
-            <TabsTrigger value="equipment" className="flex items-center">
-              <Wrench className="w-4 h-4 mr-2" />
-              Equipment
-            </TabsTrigger>
-            <TabsTrigger value="transport" className="flex items-center">
-              <Truck className="w-4 h-4 mr-2" />
-              Transport
-            </TabsTrigger>
-            <TabsTrigger value="services" className="flex items-center">
-              <Plus className="w-4 h-4 mr-2" />
-              Services
-            </TabsTrigger>
-            <TabsTrigger value="subcontractors" className="flex items-center">
-              <Users className="w-4 h-4 mr-2" />
-              Subcontractors
-            </TabsTrigger>
-          </TabsList>
+          ))}
+        </TabsList>
 
-          <TabsContent value="materials" className="space-y-4 animate-fade-in">
-            <Card className="gradient-card animate-slide-in">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Building className="w-5 h-5 mr-2" />
-                  Material Prices
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <strong>Region:</strong> {profile?.location || 'Nairobi'} - 
-                    Prices shown include regional multipliers. Custom prices will override defaults.
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <TabsContent value="materials" className="space-y-3 sm:space-y-4 animate-fade-in">
+          <Card className="gradient-card animate-slide-in">
+            <CardHeader>
+              <CardTitle className="flex items-center text-sm sm:text-base">
+                <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                Material Prices
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Region:</strong> {profile?.location || 'Nairobi'} - 
+                  Prices shown include regional multipliers.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {materialBasePrices.map((material) => {
                     const userRegion = profile?.location || 'Nairobi';
                     const userOverride = userMaterialPrices.find(

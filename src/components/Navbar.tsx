@@ -92,7 +92,7 @@ const getTierBadge = (tier: string) => {
               <div className="p-2 mr-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
                 <Wrench className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-xl md:sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Constructly
               </span>
             </div>

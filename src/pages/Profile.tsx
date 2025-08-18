@@ -176,7 +176,7 @@ const fetchDashboardStats = async (userId: string) => {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Loading Profile...</h2>
+            <h2 className="sm:text-2xl text-lg font-bold mb-4">Loading Profile...</h2>
             <p className="text-muted-foreground">Please wait while we load your profile information.</p>
           </div>
         </div>
@@ -190,9 +190,9 @@ const fetchDashboardStats = async (userId: string) => {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <h1 className="sm:text-3xl sm:text-2xl text-lg flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
               <LucidePersonStanding className="w-8 h-8 mr-2 text-blue-900 dark:text-blue-300" />Profile</h1>
-            <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">Manage your account and subscription</p>
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">Manage your account and subscription</p>
           </div>
           <Button className='text-white' onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
             {isEditing ? <Save className="w-4 h-4 mr-2 text-white" /> : <Edit className="w-4 h-4 mr-2 text-white" />}
@@ -277,19 +277,19 @@ const fetchDashboardStats = async (userId: string) => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-primary">{stats.total_projects}</p>
+                    <p className="sm:text-2xl text-lg font-bold text-primary">{stats.total_projects}</p>
                     <p className="text-sm text-muted-foreground">Total Projects</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{stats.completed_projects}</p>
+                    <p className="sm:text-2xl text-lg font-bold text-green-600">{stats.completed_projects}</p>
                     <p className="text-sm text-muted-foreground">Completed</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{Math.round(stats.completionRate)}%</p>
+                    <p className="sm:text-2xl text-lg font-bold text-blue-600">{Math.round(stats.completionRate)}%</p>
                     <p className="text-sm text-muted-foreground">Success Rate</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600">
+                    <p className="sm:text-2xl text-lg font-bold text-purple-600">
                       KSh {formatCurrency(stats.total_revenue)}
                     </p>
                     <p className="text-sm text-muted-foreground">Total Revenue</p>
@@ -335,7 +335,7 @@ const fetchDashboardStats = async (userId: string) => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="text-3xl text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <p className="sm:text-3xl sm:text-2xl text-lg sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       {profile.tier === 'Free'
                         ? 'Free'
                         : `KSh ${tierData?.price?.toLocaleString() || '0'}`}

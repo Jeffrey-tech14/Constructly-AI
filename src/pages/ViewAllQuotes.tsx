@@ -115,11 +115,11 @@ if(!user){
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3 bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl sm:text-2xl text-lg font-bold flex items-center gap-3 bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
             <Building2 className="w-8 h-8 text-purple-900 dark:text-white" />
             All Construction Quotes
           </h1>
-          <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage and track all your construction quotes with ease</p>
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage and track all your construction quotes with ease</p>
         </div>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
           <Badge variant="secondary" className="px-3 py-1 text-gray-700">
@@ -198,7 +198,7 @@ if(!user){
                     </Badge>
                     )}
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-primary">
+                      <div className="sm:text-2xl text-lg font-bold text-primary">
                         KSh {(formatCurrency(quote.total_amount).toLocaleString())}
                       </div>
                     </div>

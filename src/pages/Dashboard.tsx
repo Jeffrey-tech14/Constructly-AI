@@ -176,11 +176,11 @@ const formatCurrency = (value: number) => {
         <div className="mb-8 animate-fade-in">
           <div className="flex justify-between items-center">
             <div>
-              <div className="text-3xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <div className="sm:text-3xl sm:text-2xl text-lg flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                 <LayoutDashboard className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
                 Welcome back, {profile?.name}!
               </div>
-              <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">
+              <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">
                 Here's what's happening with your construction business today.
               </p>
             </div>
@@ -223,7 +223,7 @@ const formatCurrency = (value: number) => {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">KSh {(formatCurrency(dashboardData.totalQuotesValue)).toLocaleString()}</div>
+                  <div className="sm:text-2xl text-lg font-bold">KSh {(formatCurrency(dashboardData.totalQuotesValue)).toLocaleString()}</div>
                   <p className="text-xs text-muted-foreground">
                     {quotes.length} quotes generated
                   </p>
@@ -236,7 +236,7 @@ const formatCurrency = (value: number) => {
                   <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{dashboardData.activeProjects}</div>
+                  <div className="sm:text-2xl text-lg font-bold">{dashboardData.activeProjects}</div>
                   <p className="text-xs text-muted-foreground">
                     {dashboardData.pendingQuotes} pending approval
                   </p>
@@ -249,7 +249,7 @@ const formatCurrency = (value: number) => {
                   <CheckCircle className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{dashboardData.completedProjects}</div>
+                  <div className="sm:text-2xl text-lg font-bold">{dashboardData.completedProjects}</div>
                   <p className="text-xs text-muted-foreground">
                     Projects finished
                   </p>
@@ -263,7 +263,7 @@ const formatCurrency = (value: number) => {
                   <Star className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold flex items-center">
+                  <div className="sm:text-2xl text-lg font-bold flex items-center">
                     {averageRating > 0 ? averageRating.toFixed(1) : 'N/A'}
                     {averageRating > 0 && <Star className="w-5 h-5 ml-1 text-blue-400 fill-current" />}
                   </div>

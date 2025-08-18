@@ -94,7 +94,7 @@ const Reports = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Reports Dashboard</h1>
+        <h1 className="sm:text-2xl text-lg font-bold">Reports Dashboard</h1>
         <Button
           className="text-white"
           onClick={handleRefresh}
@@ -119,7 +119,7 @@ const Reports = () => {
               <FileText className="w-8 h-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Quotes</p>
-                <p className="text-2xl font-bold">{userQuotes.length}</p>
+                <p className="sm:text-2xl text-lg font-bold">{userQuotes.length}</p>
               </div>
             </div>
           </CardContent>
@@ -131,7 +131,7 @@ const Reports = () => {
               <CheckCircle className="w-8 h-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Active Projects</p>
-                <p className="text-2xl font-bold">{activeProjects.length}</p>
+                <p className="sm:text-2xl text-lg font-bold">{activeProjects.length}</p>
               </div>
             </div>
           </CardContent>
@@ -143,7 +143,7 @@ const Reports = () => {
               <DollarSign className="w-8 h-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold">
+                <p className="sm:text-2xl text-lg font-bold">
                   KSh {(formatCurrency(totalRevenue)).toLocaleString()}
                 </p>
               </div>
@@ -157,7 +157,7 @@ const Reports = () => {
               <TrendingUp className="w-8 h-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold">{completedProjects.length}</p>
+                <p className="sm:text-2xl text-lg font-bold">{completedProjects.length}</p>
               </div>
             </div>
           </CardContent>
@@ -169,7 +169,7 @@ const Reports = () => {
               <Star className="w-8 h-8 text-amber-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Avg Rating</p>
-                <p className="text-2xl font-bold">{averageRating.toFixed(1)}</p>
+                <p className="sm:text-2xl text-lg font-bold">{averageRating.toFixed(1)}</p>
               </div>
             </div>
           </CardContent>

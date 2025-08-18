@@ -195,7 +195,7 @@ const formatCurrency = (value: number) => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fade-in">
-          <TabsList className={`grid w-full ${profile.tier === 'Professional' ? 'grid-cols-3': 'grid-cols-2'} mb-6`}>
+          <TabsList className={`grid w-full ${profile.tier === 'Professional' ? 'grid-cols-3': 'grid-cols-2'} ${profile.tier === 'Free' ? 'grid-cols-1': 'grid-cols-3'} mb-6`}>
             <TabsTrigger value="overview" className="flex items-center">
               <BarChart className="w-4 h-4 mr-2" />
               Overview
@@ -216,7 +216,7 @@ const formatCurrency = (value: number) => {
 
           <TabsContent value="overview" className="space-y-6 animate-fade-in">
             {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-3 ${profile.tier === "Free" ? "lg-grid-cols-3" : "lg:grid-cols-4"} gap-6`}>
               <Card className="gradient-card card-hover">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Quotes Value</CardTitle>
@@ -256,6 +256,7 @@ const formatCurrency = (value: number) => {
                 </CardContent>
               </Card>
 
+              {profile.tier !== "Free" && (
               <Card className="gradient-card card-hover">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Client Rating</CardTitle>
@@ -271,6 +272,7 @@ const formatCurrency = (value: number) => {
                   </p>
                 </CardContent>
               </Card>
+              )}
             </div>
 
             {/* Content Grid */}
@@ -300,9 +302,11 @@ const formatCurrency = (value: number) => {
                             </p>
                           </div>
                           <div className='flex'>
+                          {profile.tier !== "Free" && (
                           <Badge className={getStatusColor(quote.status)}>
                             {quote.status.charAt(0).toUpperCase() + quote.status.slice(1).replace('_', ' ')}
                           </Badge>
+                          )}
                           <Button className='ml-3 bg-secondary hover:bg-secondary/20 text-white hover:dark:bg-primary/60 dark:bg-primary/20' onClick={() => navigate('/quotes/all')} variant="outline" size="sm">
                             <Eye className="w-4 h-4 mr-1" />
                             View

@@ -192,9 +192,11 @@ if(!user){
                     </div>
                   </div>
                   <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                    {profile.tier !== "Free" && (
                     <Badge className={getStatusColor(quote.status)}>
                       {quote.status.charAt(0).toUpperCase() + quote.status.slice(1).replace('_', ' ')}
                     </Badge>
+                    )}
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary">
                         KSh {(formatCurrency(quote.total_amount).toLocaleString())}
@@ -327,6 +329,7 @@ if(!user){
                     </DialogContent>
                   </Dialog>
 
+                  {profile.tier !== "Free" && (
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm" className=" flex-1 sm:flex-none">
@@ -343,6 +346,7 @@ if(!user){
                       />
                     </DialogContent>
                   </Dialog>
+                  )}
 
                   <Dialog>
                     <DialogTitle>
@@ -373,11 +377,13 @@ if(!user){
                     </DialogContent>
                   </Dialog>
 
+                  {profile.tier !== "Free" && (
                   <Button size="sm" onClick={() => navigate('/quotes/new', { state: { quote } })} 
                     className="text-white flex-1 sm:flex-none bg-gradient-to-r from-green-800 to-green-600 hover:from-green-900 hover:to-green-700">
                     <Pen className="w-4 h-4 mr-2 text-white" />
                     Edit Quote
                   </Button>
+                  )}
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

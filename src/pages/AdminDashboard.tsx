@@ -16,7 +16,10 @@ import {
   Users, DollarSign, Activity, TrendingUp, UserX, UserCheck, Crown, Ban, Shield, Search, MoreHorizontal, Settings,
   Star,
   ThumbsUp,
-  Shell
+  Shell,
+  Bitcoin,
+  BitcoinIcon,
+  Coins
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -268,7 +271,7 @@ quotes.forEach((quote) => {
           <Card className="gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Project Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <Coins className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="sm:text-2xl text-lg font-bold">KSh {formatCurrency((stats.totalRevenue))}</div>

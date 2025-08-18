@@ -44,86 +44,121 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const prevUserId = useRef<string | null>(null);
 
-  const fetchProfile = async (userId: string) => {
-    setLoading(true);
-    console.log("Fetching profile for:", userId);
-try {
-  const query = supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  console.log("Query built:", query); // 👈 should print an object, not hang
-  const { data, error } = await query;
-
-  console.log("Supabase responded:", { data, error });
-
-  if (error) {
-    console.error('Error fetching profile:', error);
+const fetchProfile = async (userId: string) => {
+  if (!userId) {
     setProfile(null);
-  } else {
-    setProfile(data);
+    setLoading(false);
+    return;
   }
-} catch (err) {
-  console.error("Query threw an exception:", err);
-} finally {
-      setLoading(false); // ✅ Always reset loading
+
+  setLoading(true);
+  console.log("Fetching profile for:", userId);
+
+  try {
+    // Create properly typed timeout promise
+    const timeoutPromise = new Promise<{ error: Error }>((_, reject) => 
+      setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
+    );
+
+    const query = supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    // Handle the race result properly
+    const result = await Promise.race([
+      query.then((res) => ({ type: 'success', res } as const)),
+      timeoutPromise.then(() => ({ type: 'timeout' } as const)).catch((err) => ({ type: 'error', err } as const))
+    ]);
+
+    if (result.type === 'timeout') {
+      throw new Error('Profile fetch timed out');
     }
-  };
+    if (result.type === 'error') {
+      throw result.err;
+    }
 
+    // Now we know it's the success case
+    const { data, error } = result.res;
 
-  useEffect(() => {
-     let isMounted = true;
+    if (error) {
+      console.error('Profile fetch error:', error);
+      setProfile(null);
+    } else {
+      console.log('Profile data:', data);
+      setProfile(data);
+    }
+  } catch (err) {
+    console.error("Profile fetch exception:", err);
+    setProfile(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  let isMounted = true;
 
   const initAuth = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // First check for existing session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
       if (!isMounted) return;
+      
+      if (error) {
+        console.error('Session restoration error:', error);
+      }
 
       if (session?.user) {
+        console.log('Restored session:', session.user);
         prevUserId.current = session.user.id;
         setUser(session.user);
-        await fetchProfile(session.user.id); // fetch profile immediately
-      } else {
-        prevUserId.current = null;
-        setUser(null);
-        setProfile(null);
-        setLoading(false); // ✅ important for "no session"
+        await fetchProfile(session.user.id);
       }
     } catch (err) {
-      console.error('Error getting initial session:', err);
-      setLoading(false); // ✅ important for error cases
+      console.error('Initial auth error:', err);
     } finally {
-      if (isMounted) setAuthReady(true);
+      if (isMounted) {
+        setAuthReady(true);
+        setLoading(false);
+      }
     }
+
+    // Then set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+        
+        console.log('Auth state changed:', event);
+        
+        if (session?.user) {
+          if (session.user.id !== prevUserId.current) {
+            prevUserId.current = session.user.id;
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+          }
+        } else {
+          prevUserId.current = null;
+          setUser(null);
+          setProfile(null);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
   };
 
   initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!isMounted) return;
-
-      if (session?.user) {
-        if (session.user.id !== prevUserId.current) {
-          prevUserId.current = session.user.id;
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        }
-      } else {
-        prevUserId.current = null;
-        setUser(null);
-        setProfile(null);
-      }
-
-      setAuthReady(true);
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+  return () => {
+    isMounted = false;
+  };
+}, []);
 
   const signIn = async (email: string, password: string) => {
     const {data, error } = await supabase.auth.signInWithPassword({ email, password });

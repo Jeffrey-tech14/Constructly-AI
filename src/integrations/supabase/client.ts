@@ -33,5 +33,13 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce', // Recommended for all browsers
   },
-})
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: { 'x-application-name': 'your-app-name' }
+  }
+});

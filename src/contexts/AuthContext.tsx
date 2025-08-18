@@ -52,10 +52,8 @@ const fetchProfile = async (userId: string) => {
   }
 
   setLoading(true);
-  console.log("Fetching profile for:", userId);
 
   try {
-    // Create properly typed timeout promise
     const timeoutPromise = new Promise<{ error: Error }>((_, reject) => 
       setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
     );
@@ -66,7 +64,6 @@ const fetchProfile = async (userId: string) => {
       .eq('id', userId)
       .single();
 
-    // Handle the race result properly
     const result = await Promise.race([
       query.then((res) => ({ type: 'success', res } as const)),
       timeoutPromise.then(() => ({ type: 'timeout' } as const)).catch((err) => ({ type: 'error', err } as const))
@@ -79,14 +76,12 @@ const fetchProfile = async (userId: string) => {
       throw result.err;
     }
 
-    // Now we know it's the success case
     const { data, error } = result.res;
 
     if (error) {
       console.error('Profile fetch error:', error);
       setProfile(null);
     } else {
-      console.log('Profile data:', data);
       setProfile(data);
     }
   } catch (err) {
@@ -102,7 +97,6 @@ useEffect(() => {
 
   const initAuth = async () => {
     try {
-      // First check for existing session
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (!isMounted) return;
@@ -112,7 +106,6 @@ useEffect(() => {
       }
 
       if (session?.user) {
-        console.log('Restored session:', session.user);
         prevUserId.current = session.user.id;
         setUser(session.user);
         await fetchProfile(session.user.id);
@@ -126,12 +119,9 @@ useEffect(() => {
       }
     }
 
-    // Then set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
-        
-        console.log('Auth state changed:', event);
         
         if (session?.user) {
           if (session.user.id !== prevUserId.current) {

@@ -129,6 +129,7 @@ const AdminDashboard = () => {
 
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, tier: newTier } : u));
       triggerRefresh();
+      window.location.reload();
       toast({ title: 'Success', description: 'User tier updated successfully' });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to update user tier', variant: 'destructive' });
@@ -146,6 +147,7 @@ const AdminDashboard = () => {
 
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_admin: !isAdmin } : u));
       triggerRefresh();
+      window.location.reload();
       toast({
         title: 'Success',
         description: `User ${!isAdmin ? 'promoted to' : 'removed from'} admin`
@@ -422,10 +424,10 @@ quotes.forEach((quote) => {
                                   </>
                                 )}
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
+                              {/* <DropdownMenuItem className="text-red-600">
                                 <Ban className="w-4 h-4 mr-2" />
                                 Suspend User
-                              </DropdownMenuItem>
+                              </DropdownMenuItem> */}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>

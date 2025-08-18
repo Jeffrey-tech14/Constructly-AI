@@ -160,7 +160,7 @@ const UploadPlan = () => {
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
          <div className="mb-8">
-          <h1 className="sm:text-3xl sm:text-2xl text-lg flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent">
             <UploadCloud className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
             Upload Plan</h1>
           <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent mt-2">Automatically derive dimentions, rooms e.t.c from your plan</p>

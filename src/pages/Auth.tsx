@@ -29,13 +29,6 @@ const Auth = () => {
 
   const { user, profile, signIn, signUp, signInWithGoogle } = useAuth();
 
-  useEffect(() => {
-    if (!sessionStorage.getItem('profile_reloaded')) {
-      sessionStorage.setItem('profile_reloaded', 'true');
-      window.location.reload();
-    }
-  }, []);
-
     const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setError('');
@@ -139,7 +132,7 @@ const Auth = () => {
               </div>
             <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">Constructly</span>
           </div>
-          <h1 className="sm:text-3xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
             {mode === 'signin' ? 'Welcome Back' : 'Get Started'}
           </h1>
           <p className="text-muted-foreground mt-2">

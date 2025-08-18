@@ -176,7 +176,7 @@ const formatCurrency = (value: number) => {
         <div className="mb-8 animate-fade-in">
           <div className="flex justify-between items-center">
             <div>
-              <div className="sm:text-3xl sm:text-2xl text-lg flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <div className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                 <LayoutDashboard className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
                 Welcome back, {profile?.name}!
               </div>
@@ -307,7 +307,7 @@ const formatCurrency = (value: number) => {
                             {quote.status.charAt(0).toUpperCase() + quote.status.slice(1).replace('_', ' ')}
                           </Badge>
                           )}
-                          <Button className='ml-3 bg-secondary hover:bg-secondary/20 text-white hover:dark:bg-primary/60 dark:bg-primary/20' onClick={() => navigate('/quotes/all')} variant="outline" size="sm">
+                          <Button className='ml-3 bg-primary hover:bg-primary/90 hover:text-white text-white hover:dark:bg-primary/60 dark:bg-primary/20' onClick={() => navigate('/quotes/all')} variant="outline" size="sm">
                             <Eye className="w-4 h-4 mr-1" />
                             View
                           </Button>

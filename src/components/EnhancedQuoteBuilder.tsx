@@ -1796,8 +1796,8 @@ case 3:
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-3xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <BuildingIcon className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
+          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-purple-900 dark:text-white" />
             Enhanced Quote Builder</div>
           <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-sm sm:text-lg text-transparent mt-2">Create accurate construction quotes with advanced calculations</p>
         </div>
@@ -1821,7 +1821,7 @@ case 3:
                   </p>
                 </div>
                 {step.id < steps.length && (
-                  <div className={`flex-1 h-0.5 xs:mx-4 mx-1 -pl-1 -pr-1 ${
+                  <div className={`flex-1 h-0.5 xs:mx-4 mx-2 -pl-1 -pr-1 ${
                     currentStep > step.id ? 'bg-primary' : 'bg-gray-300'
                   }`} />
                 )}

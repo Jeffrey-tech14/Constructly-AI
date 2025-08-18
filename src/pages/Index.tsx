@@ -336,7 +336,7 @@ const Index = () => {
       {/* FAQ */}
       <section id='faq' className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="sm:text-3xl sm:text-2xl text-lg font-bold mb-12 text-center bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent ">
+          <h2 className="sm:text-3xl text-2xl font-bold mb-12 text-center bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent ">
             Frequently Asked Questions
           </h2>
           <div className="space-y-6">

@@ -190,7 +190,7 @@ const fetchDashboardStats = async (userId: string) => {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="sm:text-3xl sm:text-2xl text-lg flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <h1 className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
               <LucidePersonStanding className="w-8 h-8 mr-2 text-blue-900 dark:text-blue-300" />Profile</h1>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">Manage your account and subscription</p>
           </div>
@@ -335,7 +335,7 @@ const fetchDashboardStats = async (userId: string) => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="sm:text-3xl sm:text-2xl text-lg sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <p className="sm:text-3xl text-2xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       {profile.tier === 'Free'
                         ? 'Free'
                         : `KSh ${tierData?.price?.toLocaleString() || '0'}`}

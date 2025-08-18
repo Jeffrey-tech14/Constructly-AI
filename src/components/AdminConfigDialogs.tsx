@@ -75,7 +75,7 @@ export const MaterialPricesDialog = () => {
         
         <div className="space-y-6 scrollbar-hide">
           <form onSubmit={handleSubmit} className="space-y-4 p-4 border border-white/20 dark:border-slate-600/20 rounded-lg">
-            <h3 className="font-medium text-white">{editingMaterial ? 'Edit Material' : 'Add New Material'}</h3>
+            <h3 className="font-medium sm:text-lg text-white">{editingMaterial ? 'Edit Material' : 'Add New Material'}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className='text-white'>Name</Label>
@@ -142,7 +142,7 @@ export const MaterialPricesDialog = () => {
           </form>
 
           <div className="space-y-2  scrollbar-hide">
-            <h3 className="font-medium text-white">Existing Materials</h3>
+            <h3 className="font-medium text-sm sm:text-lg text-white">Existing Materials</h3>
             <div className="max-h-60 overflow-y-auto space-y-2  scrollbar-hide">
               {materials.map((material) => (
                 <div key={material.id} className="flex items-center justify-between p-3 border border-white/20 dark:border-slate-600/20 rounded-sm">

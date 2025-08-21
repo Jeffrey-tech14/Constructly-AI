@@ -61,6 +61,7 @@ export default function renderMaterialEditor(material, tempValues, setTempValues
                         }
                         />
                         <Button
+                     className="text-white"
                         size="sm"
                         onClick={() =>
                             handleSave(
@@ -110,7 +111,7 @@ if (material.name === "Bricks" || material.name.includes("Block")) {
 
       <CollapsibleContent className="space-y-2 animate-fade-in mt-2">
         <div className="space-y-2 mt-2">
-          {material.type.map((block, idx) => {
+          {effectivePrice.type.map((block, idx) => {
             const overridePrice =
                 tempValues[`block-${idx}`] !== undefined
                 ? tempValues[`block-${idx}`]
@@ -137,6 +138,7 @@ if (material.name === "Bricks" || material.name.includes("Block")) {
                     }
                     />
                     <Button
+                     className="text-white"
                     size="sm"
                     onClick={() =>
                         handleSave(
@@ -183,7 +185,7 @@ if (material.name === "Doors" || material.name === "Windows") {
 
       <CollapsibleContent className="space-y-2 animate-fade-in mt-2">
         <div className="space-y-2 mt-2">
-          {material.type.map((item, idx) => (
+          {effectivePrice.type.map((item, idx) => (
             <div key={idx} className="p-2 border rounded">
                 <span className="font-medium">
                 {material.name === "Doors" ? item.type : item.glass_type}
@@ -198,6 +200,7 @@ if (material.name === "Doors" || material.name === "Windows") {
                     tempValues[key] !== undefined ? tempValues[key] : price;
 
                 return (
+                    <div key={size} className="flex items-center space-x-2 mt-1">
                     <Input
                     key={size}
                     type="number"
@@ -209,6 +212,22 @@ if (material.name === "Doors" || material.name === "Windows") {
                         })
                     }
                     />
+                     <Button
+                     className="text-white"
+                    size="sm"
+                    onClick={() =>
+                    handleSave(
+                        material.name,
+                        "material",
+                        material.id,
+                        tempValues[key] ?? price,
+                        `${idx}-${size}` // pass both index & size for uniqueness
+                    )
+                    }
+                >
+                    Save
+                </Button>
+                </div>
                 );
                 })}
             </div>

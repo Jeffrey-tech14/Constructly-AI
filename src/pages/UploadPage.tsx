@@ -48,7 +48,7 @@ const UploadPlan = () => {
     formData.append('file', file);
 
     try {
-      const res = await fetch('http://192.168.100.2:8000/api/plan/upload', {
+      const res = await fetch('https://192.168.100.2:8000/api/plan/upload', {
         method: 'POST',
         body: formData,
       });
@@ -75,7 +75,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    const response = await fetch('http://192.168.100.2:8000/api/plan/upload', {
+    const response = await fetch('https://192.168.100.2:8000/api/plan/upload', {
       method: 'POST',
       body: formData,
     });

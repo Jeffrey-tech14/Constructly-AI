@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { ElementType, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,28 +29,46 @@ import {
   Star,
   BuildingIcon,
   FileSpreadsheet,
-  Zap
+  Zap,
+  Trash
 } from 'lucide-react';
 import { usePlan } from '../contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ElementTypes } from "@/hooks/useRebarCalculator";
+import RebarCalculatorForm from './RebarCalculationForm';
+import MasonryCalculatorForm from './MasonryCalculatorForm';
+import useMasonryCalculator from '@/hooks/useMasonryCalculator';
+import ConcreteCalculatorForm from './ConcreteCalculatorForm';
 
 interface Room {
   room_name: string;
   length: string;
   width: string;
   height: string;
-  doors: string;
-  windows: string;
-}
+  doors: any[]; // array of door objects
+  windows: any[]; // array of window objects
+  blockType: string;
+  wallArea: number;
+  openings: number;
+  netArea: number;
+  blocks: number;
+  mortar: number;
+  plaster: number;
+  blockCost: number;
+  mortarCost: number;
+  plasterCost: number;
+  openingsCost: number;
+  totalCost: number;
+};
+
 
 const EnhancedQuoteBuilder = ({quote}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { equipmentRates, services, calculateQuote, loading: calculationLoading } = useQuoteCalculations();
   const { extractedPlan } = usePlan();
-  const [rooms, setRooms] = useState<Array<{ room_name: string; length: string; width: string; height: string; doors: string; windows: string }>>([]);
   const { loading: settingsLoading } = useUserSettings();
   const { createQuote, updateQuote } = useQuotes();
   const { roomTypes } = useUserSettings();
@@ -164,10 +182,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
     user_id:'',
     floors: 1,
     custom_specs: '',
-    foundation_length: 0,
-    foundation_width: 0,
     status: 'draft',
-    foundation_depth: 0,
     mortar_ratio: '1:6',
     concrete_mix_ratio: '1:2:4',
     plaster_thickness: 0.012, 
@@ -188,6 +203,15 @@ const EnhancedQuoteBuilder = ({quote}) => {
     house_type: '',
     project_type: '',
     addons_cost: 0,
+    materials_cost: 0,
+    masonry_materials: [],
+    concrete_materials: [],
+    rebar_calculations: [],
+    total_wall_area: 0,
+    total_concrete_volume: 0,
+    total_formwork_area: 0,
+    total_rebar_weight: 0,
+    total_plaster_volume: 0,
 
     labor_percentages: 0,
     overhead_percentages: 0,
@@ -253,6 +277,9 @@ const EnhancedQuoteBuilder = ({quote}) => {
     if (currentStep < steps.length) {
       setDirection("right");
       setCurrentStep(currentStep + 1);
+      // if(currentStep + 1 === 3){
+      //   calculateMasonry()
+      // }
       if(currentStep+1 === 7){
         handleCalculate();
       }
@@ -266,21 +293,21 @@ const EnhancedQuoteBuilder = ({quote}) => {
     }
   };
 
-  useEffect(() => {
-    if (extractedPlan?.rooms.length) {
-      const formattedRooms = extractedPlan.rooms.map(room => ({
-        room_name: room.name,
-        length: room.length.toFixed(2),
-        width: room.width.toFixed(2),
-        height: room.height?.toFixed(2) || '3.00',
-        doors: room.doors?.toString() || '1',
-        windows: room.windows?.toString() || '1'
-      }));
-      setRooms(formattedRooms);
-    } else {
-      setRooms([{ room_name: '', length: '', width: '', height: '3', doors: '1', windows: '1' }]);
-    }
-  }, [extractedPlan]);
+  // useEffect(() => {
+  //   if (extractedPlan?.rooms.length) {
+  //     const formattedRooms = extractedPlan.rooms.map(room => ({
+  //       room_name: room.name,
+  //       length: room.length.toFixed(2),
+  //       width: room.width.toFixed(2),
+  //       height: room.height?.toFixed(2) || '3.00',
+  //       doors: room.doors?.toString() || '1',
+  //       windows: room.windows?.toString() || '1'
+  //     }));
+  //     setRooms(formattedRooms);
+  //   } else {
+  //     setRooms([{ room_name: '', length: '', width: '', height: '3', doors: '1', windows: '1' }]);
+  //   }
+  // }, [extractedPlan]);
 
   const handleCalculate = async () => {
     try {
@@ -295,9 +322,6 @@ const EnhancedQuoteBuilder = ({quote}) => {
         status:quoteData.status,
         custom_specs: quoteData.custom_specs,
         floors: quoteData.floors,
-        foundation_length: parseFloat(quoteData.foundation_length.toString()) || 0,
-        foundation_width: parseFloat(quoteData.foundation_width.toString()) || 0,
-        foundation_depth: parseFloat(quoteData.foundation_depth.toString()) || 0,
         mortar_ratio: quoteData.mortar_ratio,
         concrete_mix_ratio: quoteData.concrete_mix_ratio,
         subcontractors: quoteData.subcontractors,
@@ -313,6 +337,15 @@ const EnhancedQuoteBuilder = ({quote}) => {
         distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
         contract_type: quoteData.contract_type,
         region: quoteData.region,
+        materials_cost: Math.round(quoteData.materials_cost),
+        rebar_calculations: quoteData.rebar_calculations,
+        masonry_materials: quoteData.masonry_materials,
+        concrete_materials: quoteData.concrete_materials,
+        total_concrete_volume: Math.round(quoteData.total_concrete_volume),
+        total_formwork_area: Math.round(quoteData.total_formwork_area),
+        total_plaster_volume: Math.round(quoteData.total_plaster_volume),
+        total_rebar_weight: Math.round(quoteData.total_rebar_weight),
+        total_wall_area: Math.round(quoteData.total_rebar_weight),
         project_type: quoteData.project_type,
         equipment_costs: quoteData.equipment_costs,
         transport_costs: quoteData.transport_costs,
@@ -359,32 +392,25 @@ const EnhancedQuoteBuilder = ({quote}) => {
         status: quoteData.status,
         house_type: quoteData.house_type,
         transport_costs: calculation.transport_cost,
-        foundation_length: quoteData.foundation_length,
-        foundation_depth: quoteData.foundation_depth,
-        foundation_width: quoteData.foundation_width,
         distance_km: calculation.distance_km,
-        materials_cost: Math.round(calculation.materials_cost),
+        materials_cost: quoteData.materials_cost,
         labor_cost: Math.round(calculation.labor_cost),
         additional_services_cost: Math.round(calculation.selected_services_cost),
         total_amount: Math.round(calculation.total_amount),
-        materials: calculation.materials,
+        masonry_materials: quoteData.masonry_materials,
+        concrete_materials: quoteData.concrete_materials,
         labor: calculation.labor,
         floors: quoteData.floors,
         equipment_costs: Math.round(calculation.equipment_cost),
         services: calculation.services,
         equipment: calculation.equipment,
-        concrete: calculation.concrete,
-        formwork: calculation.formwork,
         addons: quoteData.addons,
-        rebar: calculation.rebar,
-        plaster: calculation.plaster,
         overhead_amount: calculation.overhead_amount,
         contingency_amount: calculation.contingency_amount,
         permit_cost: calculation.permit_cost,
         concrete_mix_ratio: quoteData.concrete_mix_ratio,
         plaster_thickness: quoteData.plaster_thickness,
         profit_amount: calculation.profit_amount,
-        ceiling: calculation.ceiling,
         addons_cost: calculation.addons_cost,
         subcontractors: quoteData.subcontractors,
         percentages: calculation.percentages
@@ -419,30 +445,23 @@ const EnhancedQuoteBuilder = ({quote}) => {
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           distance_km: calculation.distance_km,
-          foundation_length: quoteData.foundation_length,
-          foundation_depth: quoteData.foundation_depth,
-          foundation_width: quoteData.foundation_width,
-          materials_cost: Math.round(calculation.materials_cost),
+          materials_cost: quoteData.materials_cost,
           labor_cost: Math.round(calculation.labor_cost),
           additional_services_cost: Math.round(calculation.selected_services_cost),
           equipment_costs: Math.round(calculation.equipment_cost),
           total_amount: Math.round(calculation.total_amount),
           floors: quoteData.floors,
-          materials: calculation.materials,
+          concrete_materials: quoteData.concrete_materials,
           labor: calculation.labor,
           services: calculation.services,
           equipment: calculation.equipment,
-          concrete: calculation.concrete,
-          formwork: calculation.formwork,
-          rebar: calculation.rebar,
-          plaster: calculation.plaster,
+          masonry_materials: quoteData.masonry_materials,
           overhead_amount: calculation.overhead_amount,
           contingency_amount: calculation.contingency_amount,
           permit_cost: calculation.permit_cost,
           concrete_mix_ratio: quoteData.concrete_mix_ratio,
           plaster_thickness: quoteData.plaster_thickness,
           profit_amount: calculation.profit_amount,
-          ceiling: calculation.ceiling,
           addons_cost: calculation.addons_cost,
           subcontractors: calculation.subcontractors,
           percentages: calculation.percentages
@@ -477,16 +496,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
       );
     case 2:
       return (
-        !!quoteData.house_type &&
-        quoteData.rooms.length > 0 &&
-        quoteData.rooms.every(room => 
-          !!room.room_name &&
-          !!room.length &&
-          !!room.width &&
-          !!room.height &&
-          !!room.doors &&
-          !!room.windows
-        )         
+        !!quoteData.house_type         
       );
     case 3:
       return (
@@ -634,6 +644,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
         return (
           <div className="space-y-6">
             <div> 
+              <div className='border dark:border-white/10 border-primary/30 mb-3 p-3 rounded-lg'>
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">House Type *</h3>
               {profile.tier !== "Free" && (
@@ -670,247 +681,23 @@ const EnhancedQuoteBuilder = ({quote}) => {
                       setQuoteData(prev => ({ ...prev, floors: parseFloat(e.target.value)}));
                     }}
                   />
+                  </div>
 
-              <h3 className="text-lg font-semibold mb-3 mt-6">Room Details *</h3>
-              {quoteData.rooms.map((room, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-3 items-center">
-                  <Select
-                    required
-                    value={room.room_name ? room.room_name : undefined}
-                    onValueChange={(value) =>
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        rooms: prev.rooms.map((room, room_index) =>
-                          room_index === index
-                            ? { ...room, room_name: value } 
-                            : room 
-                        ),
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select room type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roomTypes.map((region) => (
-                        <SelectItem key={region.id} value={region.name}>
-                          {region.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    placeholder="Length (m)"
-                    type="number"
-                    min='0'
-                    value={room.length}
-                    required
-                    onChange={(e) => {
-                      const updatedRooms = [...quoteData.rooms];
-                      updatedRooms[index].length = e.target.value;
-                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
-                    }}
-                  />
-                  <Input
-                    placeholder="Width (m)"
-                    type="number"
-                    min='0'
-                    required
-                    value={room.width}
-                    onChange={(e) => {
-                      const updatedRooms = [...quoteData.rooms];
-                      updatedRooms[index].width = e.target.value;
-                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
-                    }}
-                  />
-                  <Input
-                    placeholder="Height (m)"
-                    type="number"
-                    min='0'
-                    required
-                    value={room.height}
-                    onChange={(e) => {
-                      const updatedRooms = [...quoteData.rooms];
-                      updatedRooms[index].height = e.target.value;
-                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
-                    }}
-                  />
-                  <Input
-                    placeholder="Doors"
-                    type="number"
-                    min='0'
-                    required
-                    value={room.doors}
-                    onChange={(e) => {
-                      const updatedRooms = [...quoteData.rooms];
-                      updatedRooms[index].doors = e.target.value;
-                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
-                    }}
-                  />
-                  <Input
-                    placeholder="Windows"
-                    type="number"
-                    min='0'
-                    required
-                    value={room.windows}
-                    onChange={(e) => {
-                      const updatedRooms = [...quoteData.rooms];
-                      updatedRooms[index].windows = e.target.value;
-                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
-                    }}
-                  />
-                  {/* <Input
-                    placeholder="Number of identical rooms"
-                    type="number"
-                    min='0'
-                    required
-                    value={room.number}
-                    onChange={(e) => {
-                      const updatedRooms = [...quoteData.rooms];
-                      updatedRooms[index].number = e.target.value;
-                      setQuoteData(prev => ({ ...prev, rooms: updatedRooms }));
-                    }}
-                  /> */}
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setQuoteData(prev => ({
-                    ...prev,
-                    rooms: [
-                      ...prev.rooms,
-                      {
-                        room_name: '',
-                        length: '',
-                        width: '',
-                        height: '',
-                        doors: '',
-                        windows: '',
-                        number: ''
-                      }
-                    ]
-                  }))
-                }
-                className="mt-2 bg-blue-100 dark:bg-blue-600 hover:bg-blue-400 dark:hover:bg-blue-900"
-              >
-                <Plus className="w-4 h-4 mr-1" /> Add Room
-              </Button>
+              <div className='border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg' >
+              <h3 className="text-lg font-semibold mb-3 mt-1">Room Details *</h3>
+              <MasonryCalculatorForm  quote={quoteData}
+                setQuote={setQuoteData}/>
+              </div>
+              <ConcreteCalculatorForm  quote={quoteData}
+                setQuote={setQuoteData}/>
             </div>
 
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-3">Foundation Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="foundationLength">Length (m)</Label>
-                  <Input
-                    id="foundationLength"
-                    type="number"
-                    min='0'
-                    placeholder="e.g., 20"
-                    value={quoteData.foundation_length}
-                    onChange={(e) =>
-                      setQuoteData(prev => ({ ...prev, foundation_length: parseFloat(e.target.value) || 0 }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="foundationWidth">Width (m)</Label>
-                  <Input
-                    id="foundationWidth"
-                    type="number"
-                    min='0'
-                    placeholder="e.g., 0.6"
-                    value={quoteData.foundation_width}
-                    onChange={(e) =>
-                      setQuoteData(prev => ({ ...prev, foundation_width: parseFloat(e.target.value) || 0 }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="foundationDepth">Depth (m)</Label>
-                  <Input
-                    id="foundationDepth"
-                    type="number"
-                    min='0'
-                    placeholder="e.g., 0.6"
-                    value={quoteData.foundation_depth}
-                    onChange={(e) =>
-                      setQuoteData(prev => ({ ...prev, foundation_depth: parseFloat(e.target.value) || 0 }))
-                    }
-                  />
-                </div>
-              </div>
+            <div className="mt-6 border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg">
+              <h3 className="text-lg font-semibold mb-3">Rebar Calculator</h3>
+              <RebarCalculatorForm quote={quoteData} setQuote={setQuoteData} onExport={(json) => console.log("Exported JSON:", json)} />
             </div>
 
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-3">Material Estimation Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="concreteMixRatio">Concrete Mix Ratio (C:S:B)</Label>
-                  <Input
-                    id="concreteMixRatio"
-                    placeholder="e.g., 1:2:4"
-                    required
-                    value={quoteData.concrete_mix_ratio}
-                    onChange={(e) =>
-                      setQuoteData(prev => ({ ...prev, concrete_mix_ratio: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="plasterThickness">Plaster Thickness (m)</Label>
-                  <Input
-                    id="plasterThickness"
-                    type="number"
-                    min='0'
-                    step="0.001"
-                    placeholder="e.g., 0.012"
-                    required
-                    value={quoteData.plaster_thickness}
-                    onChange={(e) =>
-                      setQuoteData(prev => ({ ...prev, plaster_thickness: parseFloat(e.target.value) || 0.012 }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rebarPercentage">Rebar Percentage (%)</Label>
-                  <Input
-                    id="rebarPercentage"
-                    type="number"
-                    min='0'
-                    placeholder="e.g., 1"
-                    required
-                    value={quoteData.percentages[0]?.rebar ?? ''}
-                    onChange={(e) => updatePercentageField("rebar", parseFloat(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 mt-4">
-                <Checkbox
-                  id='check'
-                  checked={quoteData.include_wastage}
-                  onCheckedChange={(checked) =>
-                    setQuoteData(prev => ({ ...prev, include_wastage: Boolean(checked) }))
-                  }
-                />
-                <Label>Include Wastage (%)</Label>
-                <Input
-                  type="number"
-                    min='0'
-                  placeholder="5%"
-                  required
-                  value={quoteData.percentages[0]?.wastage ?? ''}
-                  onChange={(e) => updatePercentageField("wastage", parseFloat(e.target.value))}
-                  className="w-20 ml-4"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6">
+            <div className="mt-6 border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg">
               <h3 className="text-lg font-semibold mb-3">Financial Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -999,8 +786,8 @@ case 3:
 
             return (
               <Card key={equipment.id} className="p-4 gradient-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 space-y-2">
+                <div className="items-center justify-between">
+                  <div className="grid grid-cols-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
                         checked={isChecked}
@@ -1013,9 +800,8 @@ case 3:
                                 {
                                   equipment_type_id: equipment.id,
                                   name: equipment.name,
-                                  daily_rate: equipment.daily_rate,
-                                  total_cost: equipment.daily_rate,
-                                  days: 1,
+                                  desc: equipment.description,
+                                  total_cost: equipment.total_cost,
                                 },
                               ],
                             }));
@@ -1031,32 +817,32 @@ case 3:
                       />
                       <div>
                         <h4 className="font-medium">{equipment.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          KSh {equipment.daily_rate.toLocaleString()}/day
-                        </p>
+                        {equipment.description && (
+                          <p className="text-sm text-muted-foreground">{equipment.description}</p>
+                        )}
+                      </div>
                       </div>
                       <div>
                        {quoteData.equipment.some(e => e.equipment_type_id === equipment.id) && (
                         <div className='ml-7 mt-2 justify-center'>
-                          <Label htmlFor="days">Days</Label>
+                          <Label htmlFor="cost">Cost</Label>
                             <Input
-                              id={`days-${equipment.id}`}
+                              id={`cost-${equipment.id}`}
                               type="number"
                               required
-                              placeholder="e.g., 5"
+                              placeholder="e.g., 5000"
                               value={
-                                quoteData.equipment.find(e => e.equipment_type_id === equipment.id)?.days || '1'
+                                quoteData.equipment.find(e => e.equipment_type_id === equipment.id)?.total_cost || '1'
                               }
                               onChange={(e) => {
-                                const newDays = parseInt(e.target.value) || 0;
+                                const total = parseInt(e.target.value) || 0;
                                 setQuoteData(prev => ({
                                   ...prev,
                                   equipment: prev.equipment.map(eq =>
                                     eq.equipment_type_id === equipment.id
                                       ? {
                                           ...eq,
-                                          days: newDays,
-                                          total_cost: eq.daily_rate * newDays
+                                          total_cost: total
                                         }
                                       : eq
                                   )
@@ -1067,7 +853,6 @@ case 3:
                        )}
                     </div>
                   </div>
-                </div>
                 </div>
               </Card>
             );
@@ -1082,10 +867,14 @@ case 3:
             .map((eq) => (
               <Card
                 key={eq.equipment_type_id}
-                className="p-4 gradient-card flex flex-col space-y-2"
+                className="p-4 gradient-card flex items-center space-x-2"
               >
                 {/* Editable Name */}
+                <Label htmlFor={`name-${eq.equipment_type_id}`}>
+                  Name
+                </Label>
                 <Input
+                  id={`name-${eq.equipment_type_id}`}
                   type="text"
                   value={eq.name}
                   onChange={(e) =>
@@ -1102,15 +891,15 @@ case 3:
                 />
 
                 {/* Editable Daily Rate */}
-                <div>
-                  <Label htmlFor={`rate-${eq.equipment_type_id}`}>
-                    Daily Rate
+                <div className='flex items-center'>
+                  <Label className='mr-1 items-center justify-center' htmlFor={`cost-${eq.equipment_type_id}`}>
+                    Cost
                   </Label>
                   <Input
-                    id={`rate-${eq.equipment_type_id}`}
+                    id={`cost-${eq.equipment_type_id}`}
                     type="number"
                     min="0"
-                    value={eq.daily_rate}
+                    value={eq.total_cost}
                     onChange={(e) => {
                       const newRate = parseInt(e.target.value) || 0;
                       setQuoteData((prev) => ({
@@ -1119,34 +908,7 @@ case 3:
                           item.equipment_type_id === eq.equipment_type_id
                             ? {
                                 ...item,
-                                daily_rate: newRate,
-                                total_cost: newRate * item.days,
-                              }
-                            : item
-                        ),
-                      }));
-                    }}
-                  />
-                </div>
-
-                {/* Editable Days */}
-                <div>
-                  <Label htmlFor={`days-${eq.equipment_type_id}`}>Days</Label>
-                  <Input
-                    id={`days-${eq.equipment_type_id}`}
-                    type="number"
-                    min="1"
-                    value={eq.days}
-                    onChange={(e) => {
-                      const newDays = parseInt(e.target.value) || 1;
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        equipment: prev.equipment.map((item) =>
-                          item.equipment_type_id === eq.equipment_type_id
-                            ? {
-                                ...item,
-                                days: newDays,
-                                total_cost: item.daily_rate * newDays,
+                                total_cost: newRate 
                               }
                             : item
                         ),
@@ -1156,8 +918,10 @@ case 3:
                 </div>
 
                 {/* Remove button */}
-                <button
-                  className="self-end text-red-500 hover:text-red-700"
+                <div className='flex items-center'>
+                <Button
+                  className="self-end"
+                  variant='destructive'
                   onClick={() =>
                     setQuoteData((prev) => ({
                       ...prev,
@@ -1168,15 +932,16 @@ case 3:
                     }))
                   }
                 >
-                  ✕
-                </button>
+                  <Trash/>
+                </Button>
+                </div>
               </Card>
             ))}
 
           {/* Add Custom Equipment Button */}
           <Card className="p-4 gradient-card flex flex-col items-center justify-center">
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            <Button
+              className="px-4 py-2 text-white hover:bg-blue-600"
               onClick={() => {
                 const customId = uuidv4();
                 setQuoteData((prev) => ({
@@ -1185,17 +950,15 @@ case 3:
                     ...prev.equipment,
                     {
                       equipment_type_id: customId,
-                      name: "Custom Equipment",
-                      daily_rate: 0,
+                      name: "",
                       total_cost: 0,
-                      days: 1,
                     },
                   ],
                 }));
               }}
             >
               + Add Custom Equipment
-            </button>
+            </Button>
           </Card>
         </div>
       </div>
@@ -1313,8 +1076,8 @@ case 3:
                       }}
                     />
                     {/* Remove only for custom */}
-                    <button
-                      className="text-red-500 hover:text-red-700 text-xs"
+                    <Button
+                      variant='destructive'
                       onClick={() =>
                         setQuoteData((prev) => ({
                           ...prev,
@@ -1322,8 +1085,8 @@ case 3:
                         }))
                       }
                     >
-                      ✕ Remove
-                    </button>
+                      <Trash/>
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -1331,8 +1094,8 @@ case 3:
 
           {/* Add Custom Service Button */}
           <Card className="p-4 m-1 gradient-card flex flex-col items-center justify-center">
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            <Button
+              className="px-4 py-2 text-white hover:bg-blue-600"
               onClick={() => {
                 const customId = uuidv4();
                 setQuoteData((prev) => ({
@@ -1341,9 +1104,9 @@ case 3:
                     ...prev.services,
                     {
                       id: customId,
-                      name: "Custom Service",
+                      name: "",
                       description: "",
-                      category: "General",
+                      category: "",
                       price: 0,
                     },
                   ],
@@ -1351,7 +1114,7 @@ case 3:
               }}
             >
               + Add Custom Service
-            </button>
+            </Button>
           </Card>
         </div>
       </div>
@@ -1371,6 +1134,7 @@ case 3:
       </div>
     </div>
   );
+
         case 5:
         return (
           <div className="space-y-6">
@@ -1604,23 +1368,23 @@ case 3:
                   <CardContent className="space-y-2">
                     <div className="flex justify-between">
                       <span>Total Wall Area:</span>
-                      <span>{calculation.total_wall_area.toFixed(2)} m²</span>
+                      <span>{quoteData.total_wall_area.toFixed(2)} m²</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Concrete Volume:</span>
-                      <span>{calculation.total_concrete_volume.toFixed(2)} m³</span>
+                      <span>{quoteData.total_concrete_volume.toFixed(2)} m³</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Formwork Area:</span>
-                      <span>{calculation.total_formwork_area.toFixed(2)} m²</span>
+                      <span>{quoteData.total_formwork_area.toFixed(2)} m²</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Rebar Weight:</span>
-                      <span>{calculation.total_rebar_weight.toFixed(2)} kg</span>
+                      <span>{quoteData.total_rebar_weight.toFixed(2)} kg</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Plaster Volume:</span>
-                      <span>{calculation.total_plaster_volume.toFixed(2)} m³</span>
+                      <span>{quoteData.total_plaster_volume.toFixed(2)} m³</span>
                     </div>
                     <hr className="my-2" />
                     <div className="flex justify-between font-bold text-lg">
@@ -1630,13 +1394,13 @@ case 3:
                   </CardContent>
                 </Card>
 
-                {calculation.materials.length > 0 && (
+                {quoteData.concrete_materials.length > 0 && (
                   <Card  className='gradient-card'>
                     <CardHeader>
-                      <CardTitle>Materials</CardTitle>
+                      <CardTitle>Concrete Materials</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {calculation.materials.map((item, idx) => (
+                      {quoteData.concrete_materials.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>{item.name}</span>
                           <span>KSh {item.total_price.toLocaleString()}</span>
@@ -1646,13 +1410,13 @@ case 3:
                   </Card>
                 )}
 
-                {calculation.concrete.length > 0 && (
+                {quoteData.masonry_materials.length > 0 && (
                   <Card  className='gradient-card'>
                     <CardHeader>
-                      <CardTitle>Concrete</CardTitle>
+                      <CardTitle>Masonry Concrete</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {calculation.concrete.map((item, idx) => (
+                      {quoteData.masonry_materials.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>{item.name}</span>
                           <span>KSh {item.total_price.toLocaleString()}</span>
@@ -1662,7 +1426,7 @@ case 3:
                   </Card>
                 )}
 
-                {calculation.formwork.length > 0 && (
+                {/* {calculation.formwork.length > 0 && (
                   <Card  className='gradient-card'>
                     <CardHeader>
                       <CardTitle>Formwork</CardTitle>
@@ -1708,7 +1472,7 @@ case 3:
                       ))}
                     </CardContent>
                   </Card>
-                )}
+                )} */}
 
                  <div className="flex space-x-4">
                   <Button
@@ -1794,7 +1558,7 @@ case 3:
 
   return (
     <div className="min-h-screen animate-fade-in">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
             <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-purple-900 dark:text-white" />
@@ -1809,22 +1573,22 @@ case 3:
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                   currentStep >= step.id 
                     ? 'bg-primary border-primary text-white' 
-                    : 'border-gray-300 text-gray-400'
+                    : 'border-gray-300 text-gray-400' 
                 }`}>
                   {step.icon}
                 </div>
                 <div className="hidden lg:inline">
-                  <p className={`ml-2 text-sm font-medium ${
+                  <p className={`ml-2 mr-2 text-sm font-medium ${
                     currentStep >= step.id ? 'text-primary dark:text-blue-500' : 'text-gray-400'
                   }`}>
                     {step.name}
                   </p>
                 </div>
-                {step.id < steps.length && (
+                {/* {step.id < steps.length && (
                   <div className={`flex-1 h-0.5 xs:mx-4 mx-2 -pl-1 -pr-1 ${
                     currentStep > step.id ? 'bg-primary' : 'bg-gray-300'
                   }`} />
-                )}
+                )} */}
               </div>
             ))}
           </div>

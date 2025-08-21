@@ -23,6 +23,7 @@ import {
   Save
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import renderMaterialEditor from '@/components/RenderMaterialEditor';
 
 const Variables = () => {
   const { toast } = useToast();
@@ -48,7 +49,9 @@ const Variables = () => {
     userMaterialPrices,
     regionalMultipliers,
     updateMaterialPrice,
-    getEffectiveMaterialPrice
+    getEffectiveMaterialPrice,
+    getEffectiveMaterialPriceSingle,
+    updateMaterialPriceSingle
   } = useDynamicPricing();
 
     const [tempValues, setTempValues] = useState<{ [key: string]: number }>({});
@@ -89,35 +92,52 @@ const Variables = () => {
     fetchRates();
   }, [user, location.key]);
 
-  const handleSave = async (type: string, id: string, value: number) => {
+  type SaveType = "material" | "equipment" | "service" | "subcontractor" | "transport" | "material_no_type";
+
+  const handleSave = async (
+    material_type: string | undefined, // only used for materials
+    type: SaveType,
+    id: string,
+    value: any,
+    index?: number
+  ) => {
     setLoading(true);
     try {
-      const userRegion = profile?.location || 'Nairobi';
-      
-      switch (type) {
-        case 'material':
-          await updateMaterialPrice(id, value, userRegion);
-          break;
-        case 'equipment':
-          await updateEquipmentRate(id, value);
-          break;
-        case 'service':
-          await updateServiceRate(id, value);
-          break;
-        case 'subcontractor':
-          await updateSubcontractorRate(id, value);
-          await fetchRates();
-          break;
-        case 'transport':
-          const [region, field] = id.split('-');
-          const currentRate = transportRates.find(r => r.region === region);
-          if (field === 'km') {
-            await updateTransportRate(region, value, currentRate?.base_cost || 500);
-          } else {
-            await updateTransportRate(region, currentRate?.cost_per_km || 50, value);
-          }
-          break;
+    const userRegion = profile?.location || 'Nairobi';
+
+    switch (type) {
+      case "material_no_type":
+        await updateMaterialPriceSingle(id, value, userRegion);
+        break;
+        
+      case "material":
+        await updateMaterialPrice(material_type, id, userRegion, value, index);
+        break;
+
+      case "equipment":
+        await updateEquipmentRate(id, value);
+        break;
+
+      case "service":
+        await updateServiceRate(id, value);
+        break;
+
+      case "subcontractor":
+        await updateSubcontractorRate(id, value);
+        await fetchRates();
+        break;
+
+      case "transport": {
+        const [region, field] = id.split("-");
+        const currentRate = transportRates.find(r => r.region === region);
+        if (field === "km") {
+          await updateTransportRate(region, value, currentRate?.base_cost || 500);
+        } else {
+          await updateTransportRate(region, currentRate?.cost_per_km || 50, value);
+        }
+        break;
       }
+    }
       toast({
         title: "Success",
         description: "Variable updated successfully"
@@ -191,7 +211,10 @@ const Variables = () => {
                     const userOverride = userMaterialPrices.find(
                       p => p.material_id === material.id && p.region === userRegion
                     );
-                    const effectivePrice = getEffectiveMaterialPrice(material.id, userRegion);
+                    const effectivePrice = getEffectiveMaterialPriceSingle(
+                      material.id,
+                      userRegion,
+                    );
                     const isCustomPrice = !!userOverride;
                     
                     return (
@@ -212,6 +235,7 @@ const Variables = () => {
                             </div>
                           </div>
                           <div className="space-y-2">
+                              {!["Bricks", "Doors", "Windows", "Rebar"].includes(material.name) && (
                             <div className="text-sm text-muted-foreground">
                               Base: KSh {(material.price).toLocaleString()}
                               {!isCustomPrice && (
@@ -220,6 +244,8 @@ const Variables = () => {
                                 </span>
                               )}
                             </div>
+                              )}
+                              {!["Bricks", "Doors", "Windows", "Rebar"].includes(material.name) && (
                             <div className="flex items-center space-x-2">
                               <Input
                                 type="number"
@@ -233,16 +259,20 @@ const Variables = () => {
                               />
                               <Button 
                                 size="sm"
-                                onClick={() => handleSave('material', material.id, tempValues[`material-${material.id}`] || effectivePrice)}
+                                onClick={() => handleSave(undefined,'material_no_type', material.id, tempValues[`material-${material.id}`] || effectivePrice, 0)}
                                 disabled={loading}
                               >
                                 <Save className="w-4 h-4 text-white" />
                               </Button>
                             </div>
+                              )}
+                              {!["Bricks", "Doors", "Windows", "Rebar"].includes(material.name) && (
                             <div className="text-xs text-emerald-600 font-medium">
                               Current: KSh {effectivePrice.toLocaleString()}
                             </div>
+                              )}
                           </div>
+                           {renderMaterialEditor(material, tempValues, setTempValues, handleSave, materialBasePrices, userMaterialPrices, regionalMultipliers, userRegion, getEffectiveMaterialPrice)}
                         </CardContent>
                       </Card>
                     );
@@ -264,14 +294,14 @@ const Variables = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {equipmentTypes.map((equipment) => {
                     const userRate = equipmentRates.find(r => r.equipment_type_id === equipment.id);
-                    const currentRate = userRate ? userRate.daily_rate: equipment.daily_rate ;
+                    const currentRate = userRate ? userRate.total_cost: equipment.total_cost ;
                     
                     return (
                       <Card key={equipment.id} className="gradient-card card-hover">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{equipment.name}</h4>
-                            <Badge className='text-gray-700' variant="secondary">KSh {currentRate.toLocaleString()}/day</Badge>
+                            <Badge className='text-gray-700' variant="secondary">KSh {currentRate.toLocaleString()}</Badge>
                           </div>
                           {equipment.description && (
                             <p className="text-sm text-muted-foreground mb-3">{equipment.description}</p>
@@ -289,7 +319,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave('equipment', equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate)}
+                              onClick={() => handleSave(undefined,'equipment', equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate, 0)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -345,7 +375,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave('transport', `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm)}
+                                  onClick={() => handleSave(undefined,'transport', `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm, 0)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -367,7 +397,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave('transport', `${region}-base`, tempValues[`transport-${region}-base`] || baseCost)}
+                                  onClick={() => handleSave(undefined,'transport', `${region}-base`, tempValues[`transport-${region}-base`] || baseCost, 0)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -421,7 +451,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave('service', service.id, tempValues[`service-${service.id}`] || currentPrice)}
+                              onClick={() => handleSave(undefined,'service', service.id, tempValues[`service-${service.id}`] || currentPrice, 0)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -471,7 +501,7 @@ const Variables = () => {
                           <Button
                             size="sm"
                             onClick={() =>
-                              handleSave('subcontractor', sub.id, tempValues[sub.id] || sub.rate)
+                              handleSave(undefined,'subcontractor', sub.id, tempValues[sub.id] || sub.rate, 0)
                             }
                             disabled={loading}
                           >

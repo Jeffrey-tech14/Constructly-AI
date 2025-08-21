@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom';
 export interface EquipmentType {
   id: string;
   name: string;
-  daily_rate: number;
+  total_cost: number;
   description?: string;
 }
 
@@ -30,7 +30,7 @@ export interface UserEquipmentRate {
   name: string;
   description: string;
   equipment_type_id: string;
-  daily_rate: number;
+  total_cost: number;
 }
 
 export interface UserTransportRate {
@@ -172,7 +172,7 @@ export const useUserSettings = () => {
         {
           user_id: user.id,
           equipment_type_id: equipmentTypeId,
-          daily_rate: rate,
+          total_cost: rate,
         },
         { onConflict: 'user_id,equipment_type_id' }
       );

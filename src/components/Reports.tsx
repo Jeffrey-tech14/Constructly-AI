@@ -36,7 +36,7 @@ const Reports = () => {
     const months = Array.from({ length: 12 }).map((_, i) => {
       const date = new Date();
       date.setMonth(date.getMonth() - (11 - i));
-      return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     });
 
     const monthlyStats: { [key: string]: { quotes: number; revenue: number } } = {};
@@ -46,7 +46,7 @@ const Reports = () => {
 
     userQuotes.forEach((quote) => {
       const date = new Date(quote.created_at);
-      const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       if (monthlyStats[monthKey]) {
         monthlyStats[monthKey].quotes += 1;
         if (quote.status !== 'draft') {

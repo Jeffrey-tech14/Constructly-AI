@@ -6,13 +6,26 @@ import { useLocation } from 'react-router-dom';
 
 export interface Quote {
   rooms: Array<{
-    room_name: string;
-    length: string;
-    width: string;
-    height: string;
-    doors: string;
-    windows: string;
-  }>;
+  room_name: string;
+  length: string;
+  width: string;
+  height: string;
+  doors: any[]; // array of door objects
+  windows: any[]; // array of window objects
+  blockType: string;
+  wallArea: number;
+  openings: number;
+  netArea: number;
+  blocks: number;
+  mortar: number;
+  plaster: number;
+  blockCost: number;
+  mortarCost: number;
+  plasterCost: number;
+  openingsCost: number;
+  totalCost: number;
+}>;
+
   id: string;
   user_id: string;
   title: string;
@@ -48,8 +61,6 @@ export interface Quote {
   }> | null;
   equipment: Array<{
     name: string;
-    days: number;
-    daily_rate: number;
     total_cost: number;
   }> | null;
   created_at: string;

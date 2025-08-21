@@ -13,13 +13,12 @@
     }
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build": "vite build",
     "preview": "vite preview",
     "secure-build": "node --max-old-space-size=8192 node_modules/vite/bin/vite.js build",
     "dev:frontend": "vite",
     "dev:backend": "tsx watch constructly-plan-api/src/index.ts",
-    "dev:full": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build:dev": "vite build --mode development",
     "lint": "eslint ."
   },

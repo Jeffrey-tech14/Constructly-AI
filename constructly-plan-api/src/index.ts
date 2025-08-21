@@ -21,5 +21,5 @@ app.use((req, res) => {
 
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ API running at https://192.168.100.2:${PORT}`);
+  console.log(`✅ API running at http://192.168.0.100:${PORT}`);
 });

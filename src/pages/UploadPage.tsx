@@ -48,7 +48,7 @@ const UploadPlan = () => {
     formData.append('file', file);
 
     try {
-      const res = await fetch('https://192.168.100.2:8000/api/plan/upload', {
+      const res = await fetch('http://192.168.0.100:8000/api/plan/upload', {
         method: 'POST',
         body: formData,
       });
@@ -75,7 +75,9 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    const response = await fetch('https://192.168.100.2:8000/api/plan/upload', {
+    //make sure this url is same as network http://192.168.0.100 part only, the prt number 8000 should not be the same as network port number
+    //do this for this file and index.ts in constructly-api-plan folder
+    const response = await fetch('http://192.168.0.100:8000/api/plan/upload', {
       method: 'POST',
       body: formData,
     });

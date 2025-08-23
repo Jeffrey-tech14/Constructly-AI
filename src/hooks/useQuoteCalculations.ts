@@ -32,8 +32,6 @@ export interface EquipmentItem {
 
 export interface Percentage {
   labour: number;
-  rebar: number;
-  wastage: number;
   overhead: number;
   profit: number;
   contingency: number;
@@ -55,25 +53,38 @@ export interface Addons {
 
 export interface QuoteCalculation {
   rooms: Array<{
-    room_name: string;
-    length: string;
-    width: string;
+  room_name: string;
+  length: string;
+  width: string;
+  height: string;
+  doors: any[];
+  windows: any[];
+  blockType: string;
+  thickness: string;
+  customBlock: {
+    price: string;
     height: string;
-    doors: any[]; // array of door objects
-    windows: any[]; // array of window objects
-    blockType: string;
-    wallArea: number;
-    openings: number;
-    netArea: number;
-    blocks: number;
-    mortar: number;
-    plaster: number;
-    blockCost: number;
-    mortarCost: number;
-    plasterCost: number;
-    openingsCost: number;
-    totalCost: number;
-  }>;
+    length: string;
+    thickness: string;
+  };
+  roomArea: number;
+  plasterArea: number;
+  openings: number;
+  netArea: number;
+  blocks: number;
+  mortar: number;
+  plaster: number;
+  blockCost: number;
+  mortarCost: number;
+  plasterCost: number;
+  openingsCost: number;
+  cementBags: number;
+  cementCost: number;
+  sandVolume: number;
+  sandCost: number;
+  stoneVolume: number;
+  totalCost: number;
+}>;
 
   id: string;
   user_id: string;
@@ -88,12 +99,12 @@ export interface QuoteCalculation {
   custom_specs:string;
   floors: number;
   status: string;
+  concrete_rows: [],
+  rebar_rows: [],
   mortar_ratio: string;
   concrete_mix_ratio: string;
   plaster_thickness: number;
-  rebar_percentages: number;
   include_wastage: boolean;
-  wastage_percentages: number;
   equipment: EquipmentItem[];
   services: AdditionalService[];
   distance_km: number;
@@ -138,15 +149,9 @@ export interface CalculationResult {
   overhead_amount: number;
   profit_amount: number;
   total_amount: number;
+  materials_cost: number;
   subcontractors: Subcontractors[];
     percentages: Percentage[]
-    // materials: Array<{
-    //   name: string;
-    //   quantity: number;
-    //   unit_price: number;
-    //   total_price: number;
-    //   profit_margin: number;
-    // }>;
     labor: Array<{
       type: string;
       percentage: number;
@@ -160,13 +165,6 @@ export interface CalculationResult {
       name: string;
       price: number;
     }>;
-    // concrete: Array<{
-    //   name: string;
-    //   quantity: number;
-    //   unit_price: number;
-    //   total_price: number;
-    //   profit_margin: number;
-    // }>;
 }
 
 export type FullQuoteCalculation = QuoteCalculation & CalculationResult;
@@ -349,7 +347,6 @@ export const useQuoteCalculations = () => {
     try {
       const {
         include_wastage,
-        wastage_percentages,
         equipment,
         services,
         subcontractors,
@@ -361,19 +358,29 @@ export const useQuoteCalculations = () => {
         contingency_percentages,
         permit_cost,
         contract_type,
-        plaster_thickness,
-        materials_cost,
-        rooms,
         masonry_materials,
         concrete_materials,
         rebar_calculations,
-        rebar_percentages
       } = params;
 
-      const wastageFactor = include_wastage ? 1 + parseFloat(wastage_percentages.toString()) / 100 : 1;
-      const defaultProfitMargin = parseFloat(profit_percentages.toString()) || 5;
+      const defaultProfitMargin = parseFloat(profit_percentages.toString())/100;
 
-      const laborCost =  (labor_percentages / 100);
+      // ✅ Sum all totalPrice values
+      const rebarCost = rebar_calculations.reduce(
+        (sum, item) => sum + (item.totalPrice || 0),
+        0
+      );
+
+      // ✅ Apply profit margin
+      const rebarProfits = rebarCost * defaultProfitMargin;
+
+      const masonryProfits = 1000
+      const concreteProfits = concrete_materials[0].total_price * defaultProfitMargin
+      const concretePrice = concrete_materials[0].total_price;
+
+      const totalMaterialPrice = Math.round(concretePrice + 1000 + rebarCost)
+
+      const laborCost =  Math.round(totalMaterialPrice * (labor_percentages / 100));
 
       const equipmentCost = equipment.reduce((total, item) => {
         return total + (item.total_cost);
@@ -381,8 +388,6 @@ export const useQuoteCalculations = () => {
 
       const percentages = [{
         labour: labor_percentages,
-        rebar: rebar_percentages,
-        wastage: wastage_percentages,
         overhead: overhead_percentages,
         profit: profit_percentages,
         contingency: contingency_percentages,
@@ -444,18 +449,18 @@ export const useQuoteCalculations = () => {
 
       var subtotalBeforeExtras;
       if(contract_type === 'full_contract'){
-        subtotalBeforeExtras =  transportCost + laborCost + equipmentCost + servicesCost;
+        subtotalBeforeExtras =  totalMaterialPrice + transportCost + laborCost + equipmentCost + servicesCost + subcontractorRates + addonsPrices;
       }
       else{
-        subtotalBeforeExtras = laborCost + equipmentCost + servicesCost +  subcontractorRates ;
+        subtotalBeforeExtras = laborCost + equipmentCost + servicesCost +  subcontractorRates + addonsPrices ;
       }
       const overheadAmount = subtotalBeforeExtras * (parseFloat(overhead_percentages.toString()) || 0) / 100;
 
       const contingencyAmount = subtotalBeforeExtras * (parseFloat(contingency_percentages.toString()) || 0) / 100;
 
-      const subtotalWithExtras = subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost + addonsPrices;
+      const subtotalWithExtras = subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost ;
 
-      const profitAmount = subcontractorProfit;
+      const profitAmount = subcontractorProfit + rebarProfits + masonryProfits + concreteProfits;
 
       const totalAmount = subtotalWithExtras + profitAmount;
 
@@ -472,6 +477,7 @@ export const useQuoteCalculations = () => {
         overhead_amount: overheadAmount,
         profit_amount: profitAmount,
         total_amount: totalAmount,
+        materials_cost: totalMaterialPrice,
 
         subcontractors: updatedSubcontractors,
 

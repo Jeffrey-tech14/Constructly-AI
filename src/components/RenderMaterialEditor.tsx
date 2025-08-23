@@ -3,6 +3,8 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { Save } from "lucide-react";
+import { Label } from "./ui/label";
 
 export default function renderMaterialEditor(material, tempValues, setTempValues, handleSave, materialBasePrices,
     userMaterialPrices,
@@ -73,7 +75,7 @@ export default function renderMaterialEditor(material, tempValues, setTempValues
                             )
                         }
                         >
-                        Save
+                          <Save className="w-4 h-4 text-white" />
                         </Button>
                     </div>
                     </div>
@@ -150,7 +152,7 @@ if (material.name === "Bricks" || material.name.includes("Block")) {
                         )
                     }
                     >
-                    Save
+                      <Save className="w-4 h-4 text-white" />
                     </Button>
                 </div>
                 </div>
@@ -200,32 +202,34 @@ if (material.name === "Doors" || material.name === "Windows") {
                     tempValues[key] !== undefined ? tempValues[key] : price;
 
                 return (
-                    <div key={size} className="flex items-center space-x-2 mt-1">
+                    <div key={size} className="flex items-center justify-center mt-1">
+                    <p className="min-w-[80px] items-center">{size}</p>
                     <Input
-                    key={size}
-                    type="number"
-                    value={overridePrice}
-                    onChange={(e) =>
-                        setTempValues({
-                        ...tempValues,
-                        [key]: parseFloat(e.target.value) || 0,
-                        })
-                    }
+                      key={size}
+                      className="mr-2"
+                      type="number"
+                      value={overridePrice}
+                      onChange={(e) =>
+                          setTempValues({
+                          ...tempValues,
+                          [key]: parseFloat(e.target.value) || 0,
+                          })
+                      }
                     />
-                     <Button
-                     className="text-white"
-                    size="sm"
-                    onClick={() =>
-                    handleSave(
-                        material.name,
-                        "material",
-                        material.id,
-                        tempValues[key] ?? price,
-                        `${idx}-${size}` // pass both index & size for uniqueness
-                    )
+                    <Button
+                      className="text-white"
+                      size="sm"
+                      onClick={() =>
+                      handleSave(
+                          material.name,
+                          "material",
+                          material.id,
+                          tempValues[key] ?? price,
+                          `${idx}-${size}` // pass both index & size for uniqueness
+                      )
                     }
                 >
-                    Save
+                  <Save className="w-4 h-4 text-white" />
                 </Button>
                 </div>
                 );

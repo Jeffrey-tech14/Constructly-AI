@@ -1,14 +1,37 @@
 import { ParsedPlan } from '@/pages/UploadPage';
 import React, { createContext, useContext, useState } from 'react';
 
+export interface Door {
+  sizeType: string; // "standard" | "custom"
+  standardSize: string;
+  custom: { height: string; width: string; price?: string };
+  type: string; // Panel | Flush | Metal
+  frame: string; // Wood | Steel | Aluminum
+  count: number;
+}
+
+export interface Window {
+  sizeType: string; // "standard" | "custom"
+  standardSize: string;
+  custom: { height: string; width: string; price?: string };
+  glass: string; // Clear | Frosted | Tinted
+  frame: string; // Wood | Steel | Aluminum
+  count: number;
+}
+
 interface ExtractedPlan {
   rooms: {
-    name: string;
-    length: number;
-    width: number;
-    height: number;
-    doors: number;
-    windows: number;
+     roomType: string;
+  room_name: string;
+  width: string;
+  thickness: string;
+  blockType: string; // Hollow, Solid, etc
+  length: string;
+  height: string;
+  customBlock: { length: string; height: string; thickness: string; price: string };
+  plaster: string; // "None" | "One Side" | "Both Sides"
+  doors: Door[];
+  windows: Window[];
   }[];
   floors: number;
   file_url?: string;

@@ -18,7 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="gradient-card rounded-2xl border-0 shadow-2xl">
           <CardContent className="pt-6 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+            <Loader2 className="sm:w-8 sm:h-8 animate-spin mx-auto mb-4 text-primary" />
             <h2 className="sm:text-2xl text-lg font-bold mb-4">Loading...</h2>
             <p className="text-muted-foreground">Please wait while we authenticate you.</p>
             <p className="text-muted-foreground text-sm">If this takes too long please refresh page manually.</p>

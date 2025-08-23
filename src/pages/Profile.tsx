@@ -188,10 +188,10 @@ const fetchDashboardStats = async (userId: string) => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-              <LucidePersonStanding className="w-8 h-8 mr-2 text-blue-900 dark:text-blue-300" />Profile</h1>
+        <div className="mb-8 flex items-center justify-between items-start">
+          <div className='items-center'>
+            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <LucidePersonStanding className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-blue-300" />Profile</h1>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">Manage your account and subscription</p>
           </div>
           <Button className='text-white' onClick={() => isEditing ? handleSave() : setIsEditing(true)}>

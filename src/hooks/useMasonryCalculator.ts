@@ -1,14 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
-import { Material, useQuoteCalculations } from "./useQuoteCalculations";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { RegionalMultiplier } from "./useMaterialPrices";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Material } from "./useQuoteCalculations";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Door {
   sizeType: string; // "standard" | "custom"
   standardSize: string;
-  custom: { height: string; width: string };
+  custom: { height: string; width: string; price?: string };
   type: string; // Panel | Flush | Metal
   frame: string; // Wood | Steel | Aluminum
   count: number;
@@ -17,13 +15,13 @@ export interface Door {
 export interface Window {
   sizeType: string; // "standard" | "custom"
   standardSize: string;
-  custom: { height: string; width: string };
+  custom: { height: string; width: string; price?: string };
   glass: string; // Clear | Frosted | Tinted
   frame: string; // Wood | Steel | Aluminum
   count: number;
 }
 
-interface Wall {
+export interface Room {
   roomType: string;
   room_name: string;
   width: string;
@@ -31,109 +29,91 @@ interface Wall {
   blockType: string; // Hollow, Solid, etc
   length: string;
   height: string;
-  customBlock: { length: string; height: string; thickness: string };
+  customBlock: { length: string; height: string; thickness: string; price: string };
   plaster: string; // "None" | "One Side" | "Both Sides"
   doors: Door[];
   windows: Window[];
 }
 
-interface Quote {
-  walls: Wall[];
-  rooms: any[];
-  total_wall_area: number;
-  total_plaster_volume: number;
-  materials_cost: number;
-  percentages: any[];
-}
-
-export default function useMasonryCalculator({ setQuote, quote }) {
-  const { user, profile } = useAuth();
+export default function useMasonryCalculator({
+  setQuote,
+  quote,
+  materialBasePrices,
+  userMaterialPrices,
+  regionalMultipliers,
+  userRegion,
+  getEffectiveMaterialPrice
+}) {
   const [results, setResults] = useState<any>({});
-  const location = useLocation();
-  const [regionalMultipliers] = useState<RegionalMultiplier[]>([]);
-  const [materials, setMaterials] = useState<Material[]>([]);
+    const [materials, setMaterials] = useState<Material[]>([]);
+    const { user, profile } = useAuth();
+  const blockTypes = [
+    { id: 1, name: "Standard Block", size: { length: 0.4, height: 0.2, thickness: 0.2 } },
+    { id: 2, name: "Half Block", size: { length: 0.4, height: 0.2, thickness: 0.1 } },
+    { id: 3, name: "Brick", size: { length: 0.225, height: 0.075, thickness: 0.1125 } },
+    { id: 4, name: "Custom", size: null },
+    ];
 
-  // Use walls from quote instead of local state
-  const walls = quote.walls || [];
+  // Use rooms from quote instead of local state
+  const rooms = quote?.rooms ?? [];
 
   // Constants for calculation
-  const BLOCK_AREA = 0.225 * 0.075;
   const BRICKS_PER_SQM = 50;
   const CEMENT_PER_SQM = 0.03;
   const SAND_PER_SQM = 0.07;
   const MORTAR_PER_SQM = 0.02;
 
-  const parseSize = useCallback((str: string) => {
+  const parseSize = useCallback((str: string): number => {
     if (!str) return 0;
-    const [w, h] = str.split("x").map((s) => Number(s.trim()));
+    // Normalize string: replace Unicode × with x, remove "m" or units
+    const cleaned = str.replace(/[×x]/g, "x").replace(/[^\d.x]/g, "");
+    const [w, h] = cleaned.split("x").map(s => parseFloat(s.trim()));
+    if (isNaN(w) || isNaN(h)) return 0;
     return w * h;
   }, []);
 
-  const fetchMaterials = useCallback(async () => {
-    if (!profile?.id) return;
-
-    const { data: baseMaterials, error: baseError } = await supabase
-      .from('material_base_prices')
-      .select('*');
-  
-    const { data: overrides, error: overrideError } = await supabase
-      .from('user_material_prices')
-      .select('material_id, region, price, type')
-      .eq('user_id', profile.id);
-  
-    if (baseError) console.error('Base materials error:', baseError);
-    if (overrideError) console.error('Overrides error:', overrideError);
-  
-    const merged = baseMaterials?.map((material) => {
-      const userRegion = profile?.location || 'Nairobi'; 
-      const userRate = overrides?.find(
-        o => o.material_id === material.id && o.region === userRegion
-      );
-      const multiplier = regionalMultipliers.find(r => r.region === userRegion)?.multiplier || 1;
-      const materialP = material.price * multiplier;
-      const price = userRate ? userRate.price : materialP ?? 0;
-      
-      return {
-        ...material,
-        price,
-        source: userRate ? 'user' : (material.price != null ? 'base' : 'none')
-      };
-    }) || [];
-  
-    setMaterials(merged);
-  }, [profile, regionalMultipliers]);
-
-  useEffect(() => {
-    if (user && profile) {
-      fetchMaterials();
+  const getBlockArea = (room: Room): number => {
+    if (room.blockType === "Custom" && room.customBlock?.length && room.customBlock?.height) {
+      const l = Number(room.customBlock.length) || 0;
+      const h = Number(room.customBlock.height) || 0;
+      return l * h;
     }
-  }, [user, profile, fetchMaterials]);
+
+    // find the selected block in blockTypes
+    const blockDef = blockTypes.find(b => b.name === room.blockType);
+    if (blockDef && blockDef.size) {
+      return blockDef.size.length * blockDef.size.height;
+    }
+
+    // fallback default (standard brick face)
+    return 0.225 * 0.075;
+  };
 
   const removeEntry = (
-    wallIndex: number,
+    roomIndex: number,
     type: "doors" | "windows",
     entryIndex: number
   ) => {
     setQuote(prev => {
-      const updatedWalls = [...(prev.walls || [])];
+      const updatedRooms = [...(prev.rooms || [])];
       if (type === "doors") {
-        updatedWalls[wallIndex].doors = updatedWalls[wallIndex].doors.filter(
+        updatedRooms[roomIndex].doors = updatedRooms[roomIndex].doors.filter(
           (_, i) => i !== entryIndex
         );
       } else {
-        updatedWalls[wallIndex].windows = updatedWalls[wallIndex].windows.filter(
+        updatedRooms[roomIndex].windows = updatedRooms[roomIndex].windows.filter(
           (_, i) => i !== entryIndex
         );
       }
-      return { ...prev, walls: updatedWalls };
+      return { ...prev, rooms: updatedRooms };
     });
   };
 
-  const addWall = () => {
+  const addRoom = () => {
     setQuote(prev => ({
       ...prev,
-      walls: [
-        ...(prev.walls || []),
+      rooms: [
+        ...(prev.rooms || []),
         {
           room_name: "",
           roomType: "",
@@ -142,8 +122,8 @@ export default function useMasonryCalculator({ setQuote, quote }) {
           height: "",
           width: "",
           thickness: "",
-          customBlock: { length: "", height: "", thickness: "" },
-          plaster: "",
+          customBlock: { length: "", height: "", thickness: "", price: "" },
+          plaster: "One Side",
           doors: [],
           windows: [],
         }
@@ -151,88 +131,224 @@ export default function useMasonryCalculator({ setQuote, quote }) {
     }));
   };
 
-  const removeWall = (i: number) => {
+  const removeRoom = (i: number) => {
     setQuote(prev => ({
       ...prev,
-      walls: (prev.walls || []).filter((_, index) => index !== i)
+      rooms: (prev.rooms || []).filter((_, index) => index !== i)
     }));
   };
 
-  const handleWallChange = (i: number, field: keyof Wall, value: any) => {
-    setQuote(prev => {
-      const updatedWalls = [...(prev.walls || [])];
-      (updatedWalls[i][field] as any) = value;
-      return { ...prev, walls: updatedWalls };
-    });
-  };
+  const handleRoomChange = (i: number, field: keyof Room, value: any) => {
+  setQuote(prev => {
+    const updatedRooms = [...(prev.rooms || [])];
+    if (!updatedRooms[i]) return prev; // safeguard
+
+    updatedRooms[i] = {
+      ...updatedRooms[i],
+      [field]: value,
+    };
+
+    return { ...prev, rooms: updatedRooms };
+  });
+};
+
 
   const handleNestedChange = (
-    i: number,
-    field: "doors" | "windows",
-    idx: number,
-    key: string,
-    value: any
-  ) => {
-    setQuote(prev => {
-      const updatedWalls = [...(prev.walls || [])];
-      (updatedWalls[i][field][idx] as any)[key] = value;
-      return { ...prev, walls: updatedWalls };
-    });
-  };
+  i: number,
+  field: "doors" | "windows",
+  idx: number,
+  key: string,
+  value: any
+) => {
+  setQuote(prev => {
+    const updatedRooms = [...(prev.rooms || [])];
+    const roomCopy = { ...updatedRooms[i], [field]: [...updatedRooms[i][field]] };
+    const nestedItem = { ...roomCopy[field][idx], [key]: value };
+
+    roomCopy[field][idx] = nestedItem;
+    updatedRooms[i] = roomCopy;
+
+    return { ...prev, rooms: updatedRooms };
+  });
+};
 
   const addDoor = (i: number) => {
-    setQuote(prev => {
-      const updatedWalls = [...(prev.walls || [])];
-      updatedWalls[i].doors.push({
-        sizeType: "",
-        standardSize: "",
-        custom: { height: "", width: "" },
-        type: "",
-        frame: "",
-        count: 1,
-      });
-      return { ...prev, walls: updatedWalls };
-    });
-  };
+  setQuote(prev => {
+    const updatedRooms = [...(prev.rooms || [])];
+    const roomCopy = {
+      ...updatedRooms[i],
+      doors: [...updatedRooms[i].doors],
+      windows: [...updatedRooms[i].windows], // keep windows intact
+    };
 
-  const addWindow = (i: number) => {
-    setQuote(prev => {
-      const updatedWalls = [...(prev.walls || [])];
-      updatedWalls[i].windows.push({
-        sizeType: "",
-        standardSize: "",
-        custom: { height: "", width: "" },
-        glass: "",
-        frame: "",
-        count: 1,
-      });
-      return { ...prev, walls: updatedWalls };
+    roomCopy.doors.push({
+      sizeType: "",
+      standardSize: "",
+      custom: { height: "", width: "", price: "" },
+      type: "",
+      frame: "",
+      count: 1,
     });
-  };
+
+    updatedRooms[i] = roomCopy;
+    return { ...prev, rooms: updatedRooms };
+  });
+};
+
+const addWindow = (i: number) => {
+  setQuote(prev => {
+    const updatedRooms = [...(prev.rooms || [])];
+    const roomCopy = {
+      ...updatedRooms[i],
+      doors: [...updatedRooms[i].doors],
+      windows: [...updatedRooms[i].windows],
+    };
+
+    roomCopy.windows.push({
+      sizeType: "",
+      standardSize: "",
+      custom: { height: "", width: "", price: "" },
+      glass: "",
+      frame: "",
+      count: 1,
+    });
+
+    updatedRooms[i] = roomCopy;
+    return { ...prev, rooms: updatedRooms };
+  });
+};
 
   const removeNested = (i: number, field: "doors" | "windows", idx: number) => {
     setQuote(prev => {
-      const updatedWalls = [...(prev.walls || [])];
-      updatedWalls[i][field].splice(idx, 1);
-      return { ...prev, walls: updatedWalls };
+      const updatedRooms = [...(prev.rooms || [])];
+      updatedRooms[i][field].splice(idx, 1);
+      return { ...prev, rooms: updatedRooms };
     });
   };
 
-  const getMaterialPrice = useCallback((materialName: string): number => {
-    if (!materials || materials.length === 0) return 0;
-    
-    const material = materials.find(m => 
-      m.name && m.name.toLowerCase().includes(materialName.toLowerCase())
-    );
-    
-    return material ? material.price : 0;
-  }, [materials]);
+  const getMaterialPrice = useCallback((materialName: string, specificType?: string): number => {
+  if (!materialBasePrices || materialBasePrices.length === 0) return 0;
+
+  // Find the base material
+  const material = materialBasePrices.find(m =>
+    m.name && m.name.toLowerCase().includes(materialName.toLowerCase())
+  );
+
+  if (!material) return 0;
+
+  // Get user override if exists
+  const userOverride = userMaterialPrices.find(
+    (p) => p.material_id === material.id && p.region === userRegion
+  );
+
+  // Get effective material with applied regional multiplier
+  const effectiveMaterial = getEffectiveMaterialPrice(
+    material.id,
+    userRegion,
+    userOverride,
+    materialBasePrices,
+    regionalMultipliers
+  );
+
+  if (!effectiveMaterial) return 0;
+
+  else if (effectiveMaterial.name === "Bricks" || effectiveMaterial.name.includes("Block")) {
+    // For blocks/bricks, return the price of the first type or a specific type
+    if (effectiveMaterial.type && effectiveMaterial.type.length > 0) {
+      const blockType = specificType 
+        ? effectiveMaterial.type.find(t => t.name === specificType)
+        : effectiveMaterial.type[0];
+      
+      return blockType?.price_kes || 0;
+    }
+  }
+  else if (effectiveMaterial.name === "Doors") {
+    // For doors, return the price of the first type and first size
+    if (effectiveMaterial.type && effectiveMaterial.type.length > 0) {
+      const doorType = specificType 
+        ? effectiveMaterial.type.find(t => t.type === specificType)
+        : effectiveMaterial.type[0];
+      
+      if (doorType && doorType.price_kes) {
+        return doorType?.price_kes || 0
+        // Return the first price in the price_kes object
+      }
+      else{
+        return Object.values(doorType.price_kes)[0] as number || 0;
+      }
+    }
+  }
+  else if (effectiveMaterial.name === "Windows") {
+    // For windows, return the price of the first type and first size
+    if (effectiveMaterial.type && effectiveMaterial.type.length > 0) {
+      const windowType = specificType 
+        ? effectiveMaterial.type.find(t => t.glass_type === specificType)
+        : effectiveMaterial.type[0];
+      
+      if (windowType && windowType.price_kes) {
+        // Return the first price in the price_kes object
+        return windowType?.price_kes || 0
+      }
+      else{
+        return Object.values(windowType.price_kes)[0] as number || 0;
+      }
+    }
+  }
+  else {
+    // For other materials with simple pricing
+    return effectiveMaterial.price_kes || 0;
+  }
+
+  return 0;
+}, [materialBasePrices, userRegion, userMaterialPrices, regionalMultipliers, getEffectiveMaterialPrice]);
+
+   const fetchMaterials = useCallback(async () => {
+      if (!profile?.id) return;
+  
+      const { data: baseMaterials, error: baseError } = await supabase
+        .from("material_base_prices")
+        .select("*");
+  
+      const { data: overrides, error: overrideError } = await supabase
+        .from("user_material_prices")
+        .select("material_id, region, price")
+        .eq("user_id", profile.id);
+  
+      if (baseError) console.error("Base materials error:", baseError);
+      if (overrideError) console.error("Overrides error:", overrideError);
+  
+      const merged =
+        baseMaterials?.map((material) => {
+          const userRegion = profile?.location || "Nairobi";
+          const userRate = overrides?.find(
+            (o) => o.material_id === material.id && o.region === userRegion
+          );
+          const multiplier =
+            regionalMultipliers.find((r) => r.region === userRegion)?.multiplier || 1;
+          const materialP = (material.price || 0) * multiplier;
+          const price = userRate ? userRate.price : materialP ?? 0;
+  
+          return {
+            ...material,
+            price,
+            source: userRate ? "user" : material.price != null ? "base" : "none",
+          };
+        }) || [];
+  
+      setMaterials(merged);
+    }, [profile, regionalMultipliers]);
+  
+    useEffect(() => {
+      if (user && profile !== null) {
+        fetchMaterials();
+      }
+    }, [user, profile, fetchMaterials]);
 
   const calculateMasonry = useCallback(() => {
-    if (!walls.length) return;
+    if (!rooms.length) return;
 
     let totals = {
-      wallArea: 0,
+      roomArea: 0,
       openingsArea: 0,
       netArea: 0,
       blocks: 0,
@@ -240,20 +356,22 @@ export default function useMasonryCalculator({ setQuote, quote }) {
       plaster: 0,
       cost: 0,
       breakdown: [] as any[],
-    };
+    };    
 
-    const updatedRooms = walls.map((wall, index) => {
-      const blockPrice = getMaterialPrice(wall.blockType);
-      const plasterPrice = getMaterialPrice("Plaster");
-      const cementPrice = getMaterialPrice("Cement");
-      const sandPrice = getMaterialPrice("Sand");
-      
-      const wallArea = Number(wall.length) * Number(wall.height);
+    const updatedRooms = rooms.map((room, index) => {
+      const blockPrice = room.customBlock?.price
+      ? Number(room.customBlock.price)
+      : getMaterialPrice("Bricks", room.blockType); 
+
+      const cementPrice = materials.find((m) => m.name?.toLowerCase() === "cement")?.price;
+      const sandPrice = materials.find((m) => m.name?.toLowerCase() === "sand")?.price;
+
+      const roomArea = Number(room.length) * Number(room.height)* 4;
       let openings = 0;
       let openingsCost = 0;
 
       // Calculate door openings and costs
-      wall.doors.forEach((door) => {
+      room.doors.forEach((door) => {
         const area = door.sizeType === "standard"
           ? parseSize(door.standardSize)
           : Number(door.custom.height) * Number(door.custom.width);
@@ -261,13 +379,23 @@ export default function useMasonryCalculator({ setQuote, quote }) {
         const totalArea = area * door.count;
         openings += totalArea;
 
-        const doorLeafPrice = getMaterialPrice(`${door.type} Door`);
-        const doorFramePrice = getMaterialPrice(`${door.frame} Frame`);
-        openingsCost += door.count * (doorLeafPrice + doorFramePrice);
+        // Door leaf price
+        const doorLeafPrice = door.custom?.price
+        ? Number(door.custom.price)
+        : getMaterialPrice(`Door`, door.type);
+
+        const doorPrice = door.custom?.price
+        ? Number(door.custom.price)
+        : doorLeafPrice[door.standardSize]
+        // Frame price
+        const doorFramePrice = getMaterialPrice(`Door`, door.frame_options);
+        door.price = door.count * (doorPrice + doorPrice);
+
+        openingsCost += door.count * (doorPrice + doorPrice);
       });
 
       // Calculate window openings and costs
-      wall.windows.forEach((window) => {
+      room.windows.forEach((window) => {
         const area = window.sizeType === "standard"
           ? parseSize(window.standardSize)
           : Number(window.custom.height) * Number(window.custom.width);
@@ -275,51 +403,61 @@ export default function useMasonryCalculator({ setQuote, quote }) {
         const totalArea = area * window.count;
         openings += totalArea;
 
-        const windowFramePrice = getMaterialPrice(`${window.frame} Frame`);
-        const glassPrice = getMaterialPrice(`${window.glass} Glass`);
-        openingsCost += window.count * (windowFramePrice + glassPrice);
+        const glassPrice = window.custom?.price
+        ? Number(window.custom.price)
+        : getMaterialPrice(`Windows`, window.glass_type);
+        
+        const windowPrice = window.custom?.price
+        ? Number(window.custom.price)
+        : glassPrice[window.standardSize]
+        // Frame price
+        const windowFramePrice = windowPrice
+
+        window.price = window.count * (windowPrice + windowFramePrice);
+
+        openingsCost += window.count * (windowPrice + windowFramePrice);
       });
 
-      const netArea = wallArea - openings;
-      const blocks = netArea / BLOCK_AREA;
+      const netArea = roomArea - openings;
+      const blocks = Math.round(netArea / getBlockArea(room));
       const mortar = netArea * MORTAR_PER_SQM;
-      
-      let plasterArea = 0;
-      if (wall.plaster === "One Side") {
+
+      let plasterArea = 1;
+      if (room.plaster === "One Side") {
         plasterArea = netArea;
-      } else if (wall.plaster === "Both Sides") {
+      } else if (room.plaster === "Both Sides") {
         plasterArea = netArea * 2;
       }
-      
+
       const plasterCement = plasterArea * CEMENT_PER_SQM;
       const plasterSand = plasterArea * SAND_PER_SQM;
-      
+
       const blockCost = blocks * blockPrice;
       const mortarCost = mortar * (cementPrice * 0.4 + sandPrice * 0.6);
-      const plasterCost = plasterArea > 0 
+      const plasterCost = plasterArea > 0
         ? plasterCement * cementPrice + plasterSand * sandPrice
         : 0;
 
-      const wallTotalCost = blockCost + mortarCost + plasterCost + openingsCost;
+      const roomTotalCost = blockCost + mortarCost + plasterCost + openingsCost + Math.round((plasterCement * cementPrice) + (mortar * (cementPrice * 0.4))) + Math.round((plasterSand * sandPrice) + (mortar * (sandPrice * 0.6)));
 
       // Update totals
-      totals.wallArea += wallArea;
+      totals.roomArea += roomArea;
       totals.openingsArea += openings;
       totals.netArea += netArea;
       totals.blocks += blocks;
       totals.mortar += mortar;
       totals.plaster += plasterArea;
-      totals.cost += wallTotalCost;
+      totals.cost += roomTotalCost;
 
       // Add to breakdown
       totals.breakdown.push({
-        wallIndex: index + 1,
-        roomType: wall.roomType,
-        blockType: wall.blockType,
-        height: wall.height,
-        width: wall.width,
-        length: wall.length,
-        wallArea,
+        roomIndex: index + 1,
+        roomType: room.roomType,
+        blockType: room.blockType,
+        height: room.height,
+        width: room.width,
+        length: room.length,
+        roomArea,
         openings,
         netArea,
         blocks,
@@ -329,24 +467,24 @@ export default function useMasonryCalculator({ setQuote, quote }) {
         mortarCost,
         plasterCost,
         openingsCost,
-        totalCost: wallTotalCost,
+        totalCost: roomTotalCost,
       });
 
       // Return complete room data with calculations
       return {
-        room_name: wall.room_name,
-        roomType: wall.roomType,
-        blockType: wall.blockType,
-        length: wall.length,
-        width: wall.width,
-        height: wall.height,
-        thickness: wall.thickness,
-        customBlock: wall.customBlock,
-        plaster: wall.plaster,
-        doors: wall.doors,
-        windows: wall.windows,
+        room_name: room.room_name || "Unnamed",
+        roomType: room.roomType,
+        blockType: room.blockType,
+        length: room.length,
+        width: room.width,
+        height: room.height,
+        thickness: room.thickness,
+        customBlock: room.customBlock,
+        plaster: room.plaster,
+        doors: room.doors,
+        windows: room.windows,
         // Calculations
-        wallArea,
+        roomArea,
         openings,
         netArea,
         blocks,
@@ -356,43 +494,40 @@ export default function useMasonryCalculator({ setQuote, quote }) {
         mortarCost,
         plasterCost,
         openingsCost,
-        totalCost: wallTotalCost * (quote.percentages?.[0]?.profit || 1),
+        totalCost: Math.round(roomTotalCost),
         // Material costs
-        cementCost: plasterCement * cementPrice,
-        sandCost: plasterSand * sandPrice,
+        cementCost: Math.round((plasterCement * cementPrice) + (mortar * (cementPrice * 0.4))),
+        sandCost: Math.round((plasterSand * sandPrice) + (mortar * (sandPrice * 0.6))),
         // Quantities
-        cementBags: plasterCement,
-        sandVolume: plasterSand,
+        cementBags: Math.round(plasterCement),
+        sandVolume: Math.round(plasterSand),
         stoneVolume: 0, // Add if you calculate stone for concrete
       };
     });
 
-    console.log("Updated Rooms:", JSON.stringify(updatedRooms, null, 2));
-    console.log("Totals:", JSON.stringify(totals, null, 2));
-
     // Update quote with all calculations
     setQuote(prev => ({
       ...prev,
-      total_wall_area: totals.wallArea,
-      total_plaster_volume: totals.plaster,
-      materials_cost: totals.cost,
       masonry_materials: totals,
       rooms: updatedRooms
     }));
 
     setResults(totals);
-  }, [walls, materials, getMaterialPrice, parseSize, BLOCK_AREA, MORTAR_PER_SQM, CEMENT_PER_SQM, SAND_PER_SQM, quote.percentages, setQuote]);
+  }, [rooms, getMaterialPrice, parseSize, MORTAR_PER_SQM, CEMENT_PER_SQM, SAND_PER_SQM, quote.percentages, setQuote]);
 
-  // Auto-calculate when walls change
+  // Auto-calculate when rooms change
   useEffect(() => {
+  // Run calc only when user edits values, not after calc sets results
+  if (quote?.rooms && quote.rooms.length > 0) {
     calculateMasonry();
-  }, [walls, calculateMasonry]);
+  }
+}, [quote.rooms]); // notice no calculateMasonry in deps
 
   return {
-    walls,
-    addWall,
-    removeWall,
-    handleWallChange,
+    rooms,
+    addRoom,
+    removeRoom,
+    handleRoomChange,
     handleNestedChange,
     addDoor,
     addWindow,
@@ -400,6 +535,6 @@ export default function useMasonryCalculator({ setQuote, quote }) {
     removeEntry,
     results,
     calculateMasonry,
-    materials
+    materialBasePrices
   };
 }

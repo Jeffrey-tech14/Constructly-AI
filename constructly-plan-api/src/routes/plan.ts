@@ -18,11 +18,18 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   }
 
   try {
-    const result = await parsePlanFile(req.file);
+    // Multer provides req.file with buffer and originalname properties
+    const result = await parsePlanFile({
+      buffer: req.file.buffer,
+      originalname: req.file.originalname
+    });
     return res.status(200).json(result);
   } catch (err) {
     console.error('Parse error:', err);
-    return res.status(500).json({ error: 'Failed to parse plan file' });
+    return res.status(500).json({ 
+      error: 'Failed to parse plan file',
+      details: err instanceof Error ? err.message : 'Unknown error'
+    });
   }
 });
 

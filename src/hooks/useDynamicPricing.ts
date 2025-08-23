@@ -172,94 +172,100 @@ export const useDynamicPricing = () => {
     }
   }, [user?.id, profile?.location]);
 
-  const updateMaterialPrice = async (type: string, materialId: string, region:string, newData: any, index?: number) => {
-    if (!user) return { error: 'User not authenticated' };
+  const updateMaterialPrice = async (
+  materialName: string,
+  materialId: string,
+  region: string,
+  newData: any,
+  index?: number | string // index for array or "idx-size" for nested
+) => {
+  if (!user) return { error: "User not authenticated" };
 
-    try {
-
-      const { data } = await supabase
-      .from("material_base_prices")
+  try {
+    // 1. Check if user already has an override
+    const { data: userOverride } = await supabase
+      .from("user_material_prices")
       .select("type")
-      .eq("id", materialId)
+      .eq("user_id", user.id)
+      .eq("material_id", materialId)
+      .eq("region", region)
       .single();
 
-    let updatedType = data.type;
+    // 2. Fallback to base if no override
+    let updatedType = userOverride?.type;
+    if (!updatedType) {
+      const { data: base } = await supabase
+        .from("material_base_prices")
+        .select("type")
+        .eq("id", materialId)
+        .single();
+      updatedType = base?.type || [];
+    } else {
+      // clone to avoid mutating supabase ref
+      updatedType = JSON.parse(JSON.stringify(updatedType));
+    }
 
-    // Update correct item inside array
-    console.log("Before update:", updatedType[index]);
-    console.log("Incoming newData:", newData);
-
-    if (Array.isArray(updatedType) && typeof index === "number") {
-      const item = updatedType[index];
-
-      if (typeof newData === "number") {
-        // simple case → update just the price_kes value
+    // 3. Apply changes depending on material shape
+    if (Array.isArray(updatedType)) {
+      if (materialName === "Rebar" && typeof index === "number") {
+        // rebar has price_kes_per_m
         updatedType[index] = {
-          ...item,
-          price_kes: newData
+          ...updatedType[index],
+          price_kes_per_m: newData,
         };
-      } else if (typeof newData === "object" && newData !== null) {
-        // nested case (doors/windows)
+      } 
+      else if (
+        (materialName === "Bricks" || materialName.includes("Block")) &&
+        typeof index === "number"
+      ) {
+        // blocks/bricks → flat price_kes
         updatedType[index] = {
-          ...item,
-          ...newData,
+          ...updatedType[index],
+          price_kes: newData,
+        };
+      } 
+      else if (
+        (materialName === "Doors" || materialName === "Windows") &&
+        typeof index === "string"
+      ) {
+        // doors/windows → index = "idx-size"
+        const [arrIdx, size] = index.split("-");
+        const idxNum = parseInt(arrIdx, 10);
+
+        updatedType[idxNum] = {
+          ...updatedType[idxNum],
           price_kes: {
-            ...item.price_kes,
-            ...newData.price_kes
-          }
+            ...updatedType[idxNum].price_kes,
+            [size]: newData,
+          },
         };
       }
     }
-      const { error } = await supabase
-        .from('user_material_prices')
-        .upsert({
-          material_id: materialId,
-          user_id: user.id,
-          region,
-          price: 0,
-          type: updatedType 
-        },{
-          onConflict: 'user_id, material_id,region'
-        });
 
-      if (!error) {
-        await fetchUserOverrides();
+    // 4. Save back
+    const { error } = await supabase.from("user_material_prices").upsert(
+      {
+        material_id: materialId,
+        user_id: user.id,
+        region,
+        price: 0,
+        type: updatedType,
+      },
+      {
+        onConflict: "user_id, material_id, region",
       }
+    );
 
-      return { error };
-    } catch (error) {
-      console.error('Error updating material price:', error);
-      return { error };
+    if (!error) {
+      await fetchUserOverrides();
     }
-  };
 
-  // utils/pricing.ts
-
-function pickPriceFromVariant(
-  variant: any,
-  opts: { priceField?: "price_kes" | "price_kes_per_m"; sizeKey?: string }
-): number {
-  const { priceField, sizeKey } = opts || {};
-
-  // Rebar: price_kes_per_m (number)
-  if (priceField === "price_kes_per_m" && typeof variant?.price_kes_per_m === "number") {
-    return variant.price_kes_per_m;
+    return { error };
+  } catch (error) {
+    console.error("Error updating material price:", error);
+    return { error };
   }
-
-  // Blocks/Bricks: price_kes (number)
-  if (priceField === "price_kes" && typeof variant?.price_kes === "number") {
-    return variant.price_kes;
-  }
-
-  // Doors/Windows: price_kes is an object keyed by size
-  if (priceField === "price_kes" && sizeKey && variant?.price_kes && typeof variant.price_kes === "object") {
-    const v = variant.price_kes[sizeKey];
-    return typeof v === "number" ? v : 0;
-  }
-
-  return 0;
-}
-
+};
 
   const updateLaborRate = async (laborTypeId: string, customRate: number, region: string) => {
     if (!user) return { error: 'User not authenticated' };

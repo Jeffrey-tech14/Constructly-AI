@@ -9,10 +9,10 @@ import useMasonryCalculator from "@/hooks/useMasonryCalculator";
 import { useUserSettings } from "@/hooks/useUserSettings";
 
     const blockTypes = [
-    { id: 1, name: "Standard Block (400×200×200mm)", size: { length: 0.4, height: 0.2, thickness: 0.2 } },
-    { id: 2, name: "Half Block (400×200×100mm)", size: { length: 0.4, height: 0.2, thickness: 0.1 } },
-    { id: 3, name: "Brick (225×112.5×75mm)", size: { length: 0.225, height: 0.075, thickness: 0.1125 } },
-    { id: 4, name: "Custom", size: null },
+    { id: 1, displayName: "Standard Block (400×200×200mm)", name: "Standard Block", size: { length: 0.4, height: 0.2, thickness: 0.2 } },
+    { id: 2, displayName: "Half Block (400×200×100mm)",name: "Half Block", size: { length: 0.4, height: 0.2, thickness: 0.1 } },
+    { id: 3, displayName: "Brick (225×112.5×75mm)",name: "Brick",  size: { length: 0.225, height: 0.075, thickness: 0.1125 } },
+    { id: 4, displayName: "Custom",name: "Custom", size: null },
     ];
 
     const doorTypes = ["Flush", "Panel", "Metal", "Glass"];
@@ -22,21 +22,31 @@ import { useUserSettings } from "@/hooks/useUserSettings";
     const standardDoorSizes = ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"];
     const standardWindowSizes = ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"];
 
-export default function MasonryCalculatorForm({quote, setQuote}) {
-  const { addWall, removeEntry, addDoor, addWindow, removeNested, removeWall, handleNestedChange, calculateMasonry, handleWallChange }= useMasonryCalculator({setQuote, quote})
+export default function MasonryCalculatorForm({quote, setQuote, materialBasePrices, userMaterialPrices, regionalMultipliers, userRegion, getEffectiveMaterialPrice}) {
+  const { results,addRoom, removeEntry, addDoor, addWindow, removeNested, removeRoom, handleNestedChange, calculateMasonry, handleRoomChange }= useMasonryCalculator({setQuote, quote, materialBasePrices, userMaterialPrices,  regionalMultipliers, userRegion, getEffectiveMaterialPrice})
   const { roomTypes } = useUserSettings();
 
   return (
     <div>
-      {quote.rooms.map((wall, index) => (
+      <div>
+        <h3>Total Cost: Ksh {results.cost?.toLocaleString() || 0}</h3>
+        <h4>Breakdown:</h4>
+        <ul>
+          <li>Blocks: {results.blocks || 0}</li>
+          <li>Mortar: {results.mortar?.toFixed(2) || 0} m³</li>
+          <li>Plaster Area: {results.plaster?.toFixed(2) || 0} m²</li>
+          <li>Total Area: {results.netArea?.toFixed(2) || 0} m²</li>
+        </ul>
+      </div>
+      {quote.rooms.map((room, index) => (
         <div
           key={index}
           className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
         >
           {/* Room Type */}
           <Select
-            value={wall.room_name || undefined}
-            onValueChange={(value) => handleWallChange(index, "room_name", value)}
+            value={room.room_name || "Unnamed"}
+            onValueChange={(value) => handleRoomChange(index, "room_name", value)}
           >
             <SelectTrigger><SelectValue placeholder="Select room type" /></SelectTrigger>
             <SelectContent>
@@ -51,8 +61,8 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
             placeholder="Length (m)"
             type="number"
             min="0"
-            value={wall.length}
-            onChange={(e) => handleWallChange(index, "length", e.target.value)}
+            value={room.length}
+            onChange={(e) => handleRoomChange(index, "length", e.target.value)}
           />
 
            {/* Width */}
@@ -60,8 +70,8 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
             placeholder="Width (m)"
             type="number"
             min="0"
-            value={wall.width}
-            onChange={(e) => handleWallChange(index, "width", e.target.value)}
+            value={room.width}
+            onChange={(e) => handleRoomChange(index, "width", e.target.value)}
           />
 
           {/* Height */}
@@ -69,51 +79,57 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
             placeholder="Height (m)"
             type="number"
             min="0"
-            value={wall.height}
-            onChange={(e) => handleWallChange(index, "height", e.target.value)}
+            value={room.height}
+            onChange={(e) => handleRoomChange(index, "height", e.target.value)}
           />
 
           {/* Block Type */}
           <Select
-            value={wall.blockType || undefined}
-            onValueChange={(value) => handleWallChange(index, "blockType", value)}
+            value={room.blockType || undefined}
+            onValueChange={(value) => handleRoomChange(index, "blockType", value)}
           >
             <SelectTrigger><SelectValue placeholder="Block Type" /></SelectTrigger>
             <SelectContent>
               {blockTypes.map((b) => (
-                <SelectItem key={b.id} value={b.name}>{b.name}</SelectItem>
+                <SelectItem key={b.id} value={b.name}>{b.displayName}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           {/* Custom Block Input (if chosen) */}
-          {wall.blockType === "Custom" && (
+          {room.blockType === "Custom" && (
             <div className="col-span-3 grid grid-cols-3 gap-2">
               <Input
                 placeholder="Length (m)"
                 type="number"
-                value={wall.customBlock.length}
-                onChange={(e) => handleWallChange(index, "customBlock", { ...wall.customBlock, length: e.target.value })}
+                value={room.customBlock.length}
+                onChange={(e) => handleRoomChange(index, "customBlock", { ...room.customBlock, length: e.target.value })}
               />
               <Input
                 placeholder="Height (m)"
                 type="number"
-                value={wall.customBlock.height}
-                onChange={(e) => handleWallChange(index, "customBlock", { ...wall.customBlock, height: e.target.value })}
+                value={room.customBlock.height}
+                onChange={(e) => handleRoomChange(index, "customBlock", { ...room.customBlock, height: e.target.value })}
               />
               <Input
                 placeholder="Thickness (m)"
                 type="number"
-                value={wall.customBlock.thickness}
-                onChange={(e) => handleWallChange(index, "customBlock", { ...wall.customBlock, thickness: e.target.value })}
+                value={room.customBlock.thickness}
+                onChange={(e) => handleRoomChange(index, "customBlock", { ...room.customBlock, thickness: e.target.value })}
+              />
+              <Input
+                placeholder="Price (Ksh)"
+                type="number"
+                value={room.customBlock.price}
+                onChange={(e) => handleRoomChange(index, "customBlock", { ...room.customBlock, price: e.target.value })}
               />
             </div>
           )}
 
           {/* Plaster */}
           <Select
-            value={wall.plaster || undefined}
-            onValueChange={(value) => handleWallChange(index, "plaster", value)}
+            value={room.plaster || undefined}
+            onValueChange={(value) => handleRoomChange(index, "plaster", value)}
           >
             <SelectTrigger><SelectValue placeholder="Plastering" /></SelectTrigger>
             <SelectContent>
@@ -124,7 +140,7 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
           {/* --- Doors --- */}
           <div className="col-span-3 space-y-2 mt-3">
             <h3 className="font-medium">Doors</h3>
-            {wall.doors.map((door: any, dIndex: number) => (
+            {room.doors.map((door: any, dIndex: number) => (
               <div key={dIndex} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center border p-2 rounded-lg">
                 {/* Size Type */}
                 <Select
@@ -163,6 +179,12 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
                       type="number"
                       value={door.custom.width}
                       onChange={(e) => handleNestedChange(index, "doors", dIndex, "custom", { ...door.custom, width: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Price (Ksh)"
+                      type="number"
+                      value={door.custom.price}
+                      onChange={(e) => handleNestedChange(index, "doors", dIndex, "custom", { ...door.custom, price: e.target.value })}
                     />
                   </>
                 )}
@@ -211,7 +233,7 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
           {/* --- Windows --- */}
           <div className="col-span-3 space-y-2 mt-3">
             <h3 className="font-medium">Windows</h3>
-            {wall.windows.map((win: any, wIndex: number) => (
+            {room.windows.map((win: any, wIndex: number) => (
               <div key={wIndex} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center border p-2 rounded-lg">
                 {/* Size Type */}
                 <Select
@@ -250,6 +272,12 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
                       type="number"
                       value={win.custom.width}
                       onChange={(e) => handleNestedChange(index, "windows", wIndex, "custom", { ...win.custom, width: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Price (Ksh)"
+                      type="number"
+                      value={win.custom.price}
+                      onChange={(e) => handleNestedChange(index, "windows", wIndex, "custom", { ...win.custom, price: e.target.value })}
                     />
                   </>
                 )}
@@ -295,16 +323,16 @@ export default function MasonryCalculatorForm({quote, setQuote}) {
             </Button>
           </div>
 
-          {/* Remove Wall */}
+          {/* Remove Room */}
           <div className="col-span-3 flex justify-end">
-            <Button variant="destructive" size="sm" onClick={() => removeWall(index)}>
+            <Button variant="destructive" size="sm" onClick={() => removeRoom(index)}>
               <Trash className="w-4 h-4" /> Remove Room
             </Button>
           </div>
         </div>
       ))}
 
-      <Button onClick={addWall} variant="outline" size="sm">
+      <Button onClick={addRoom} variant="outline" size="sm">
         <Plus className="w-4 h-4 mr-1" /> Add Room
       </Button>
 

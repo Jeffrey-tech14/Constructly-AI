@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useMemo, useEffect, useState } from "react";
 
 /** --------------------
  * Types & Constants
@@ -29,45 +31,45 @@ export interface CalcInput {
   element: ElementTypes;
 
   /** Geometry (m) */
-  length: string;        // slab/beam span; column height if no columnHeight provided
-  width: string;         // plan width OR section width b
-  depth: string;         // slab/foundation thickness OR section depth h
-  columnHeight?: string; // explicit column height (m). If provided, used instead of length for vertical bars.
+  length: string;
+  width: string;
+  depth: string;
+  columnHeight?: string;
 
   /** Spacing (mm) */
-  barSpacing?: string;       // slabs/foundations (mesh c/c, applies both directions unless overridden below)
-  meshXSpacing?:string;     // optional override (mm) for slab/foundation X-direction bars
-  meshYSpacing?: string;     // optional override (mm) for slab/foundation Y-direction bars
-  stirrupSpacing?: string;   // beams
-  tieSpacing?: string;       // columns
+  barSpacing?: string;
+  meshXSpacing?: string;
+  meshYSpacing?: string;
+  stirrupSpacing?: string;
+  tieSpacing?: string;
 
   /** Counts */
-  longitudinalBars?: string; // beams (default 4)
-  verticalBars?: string;     // columns (default 4)
+  longitudinalBars?: string;
+  verticalBars?: string;
 
   /** Slab layers */
-  slabLayers?: string;       // 1 or 2 (top+bottom). Default 1.
+  slabLayers?: string;
 
   /** Steel sizes */
-  primaryBarSize: RebarSize; // longitudinal (beam) / vertical (column) / default mesh/ties sizes
-  meshXSize?: RebarSize;     // slab/foundation X-direction bars
-  meshYSize?: RebarSize;     // slab/foundation Y-direction bars
-  stirrupSize?: RebarSize;   // beam stirrups
-  tieSize?: RebarSize;       // column ties
+  primaryBarSize: RebarSize;
+  meshXSize?: RebarSize;
+  meshYSize?: RebarSize;
+  stirrupSize?: RebarSize;
+  tieSize?: RebarSize;
 
   /** Allowances (multiples of bar diameter d) */
-  devLenFactorDLong?: string;   // development length for beam longitudinal bars (default 12d)
-  devLenFactorDVert?: string;   // development length for column vertical bars (default 12d)
-  hookFactorDStirrups?: string; // additional length per stirrup (e.g., 6d) (default 6d)
-  hookFactorDTies?: string;     // additional length per tie (default 6d)
+  devLenFactorDLong?: string;
+  devLenFactorDVert?: string;
+  hookFactorDStirrups?: string;
+  hookFactorDTies?: string;
 
   /** Global wastage (%) applied to all lengths */
-  wastagePercent?: number;   // default 5%
+  wastagePercent?: number;
 }
 
 export interface CalcBreakdown {
-  meshX?: number;     // meters
-  meshY?: number;     // meters
+  meshX?: number;
+  meshY?: number;
   longitudinal?: number;
   verticals?: number;
   stirrups?: number;
@@ -81,21 +83,25 @@ export interface WeightBreakdownKg {
   verticals?: number;
   stirrups?: number;
   ties?: number;
+  totalPricePerItem: number;
 }
 
 export interface CalcResult {
+  primaryBarSize: string;
   totalBars: number;
-  totalLengthM: number;    // with wastage
-  totalWeightKg: number;   // with wastage
-  breakdown: CalcBreakdown;          // raw meters (pre-wastage)
-  weightBreakdownKg: WeightBreakdownKg; // post-wastage weights
+  totalLengthM: number;
+  totalWeightKg: number;
+  pricePerM: number;
+  totalPrice: number;
+  breakdown: CalcBreakdown;
+  weightBreakdownKg: WeightBreakdownKg;
 }
 
 /** --------------------
  * Helpers
  * -------------------- */
 const mmToM = (mm: number) => mm / 1000;
-const withWaste = (lenM: number, wastePct: number) => lenM * (1 + wastePct / 100);
+const withWaste = (lenM: number, wastePct: number) => lenM * (1 + (wastePct || 0) / 100);
 
 /** Compute a hook/dev length in meters from factor*d */
 function lenFromFactorD(factorD: number, size: RebarSize): number {
@@ -104,9 +110,81 @@ function lenFromFactorD(factorD: number, size: RebarSize): number {
 }
 
 /** --------------------
+ * Pricing hook
+ * -------------------- */
+type PriceMap = Record<string, number>; // { Y8: 40, Y10: 70, ... }
+
+export const useRebarPrices = (region: string) => {
+  const { user } = useAuth();
+  const [priceMap, setPriceMap] = useState<PriceMap>({});
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        let prices: PriceMap = {};
+
+        // 1. Base prices
+        const { data: base } = await supabase
+          .from("material_base_prices")
+          .select("type")
+          .eq("name", "Rebar") 
+          .single();
+
+        if (base?.type) {
+          base.type.forEach((item: any) => {
+            prices[item.size] = item.price_kes_per_m;
+          });
+        }
+
+        // 2. User overrides
+        if (user) {
+          const { data: userOverride } = await supabase
+            .from("user_material_prices")
+            .select("type")
+            .eq("user_id", user.id)
+            .eq("region", region)
+            .maybeSingle();
+
+          if (userOverride?.type) {
+            userOverride.type.forEach((item: any) => {
+              prices[item.size] = item.price_kes_per_m; // override
+            });
+          }
+        }
+
+        // 3. Regional multiplier
+        const { data: regionMult } = await supabase
+          .from("regional_multipliers")
+          .select("multiplier")
+          .eq("region", region)
+          .maybeSingle();
+
+        if (regionMult?.multiplier) {
+          Object.keys(prices).forEach((key) => {
+            prices[key] = prices[key] * regionMult.multiplier;
+          });
+        }
+
+        setPriceMap(prices);
+      } catch (err) {
+        console.error("Error fetching rebar prices:", err);
+      }
+    };
+
+    fetchPrices();
+  }, [user, region]);
+
+  return priceMap;
+};
+
+const getPriceForSize = (size: RebarSize, priceMap: PriceMap): number => {
+  return priceMap[size] ?? 0;
+};
+
+/** --------------------
  * Core calculator (PURE)
  * -------------------- */
-export function calculateRebar(input: CalcInput): CalcResult {
+export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult {
   const {
     element,
     length,
@@ -114,14 +192,14 @@ export function calculateRebar(input: CalcInput): CalcResult {
     depth,
     columnHeight,
 
-    barSpacing ,
+    barSpacing,
     meshXSpacing,
     meshYSpacing,
-    stirrupSpacing ,
-    tieSpacing ,
+    stirrupSpacing,
+    tieSpacing,
 
     longitudinalBars,
-    verticalBars ,
+    verticalBars,
 
     slabLayers,
 
@@ -131,25 +209,25 @@ export function calculateRebar(input: CalcInput): CalcResult {
     stirrupSize,
     tieSize,
 
-    devLenFactorDLong ,   // e.g., 12d default
-    devLenFactorDVert ,   // e.g., 12d default
-    hookFactorDStirrups ,  // e.g., 6d default
-    hookFactorDTies ,      // e.g., 6d default
+    devLenFactorDLong,
+    devLenFactorDVert,
+    hookFactorDStirrups,
+    hookFactorDTies,
 
-    wastagePercent ,
+    wastagePercent = 5,
   } = input;
 
-  // Resolve sizes per role
-  const sizeMeshX: RebarSize = meshXSize ?? (meshXSpacing || meshYSpacing ? primaryBarSize : primaryBarSize);
-  const sizeMeshY: RebarSize = meshYSize ?? (meshXSpacing || meshYSpacing ? primaryBarSize : primaryBarSize);
+  // Resolve sizes
+  const sizeMeshX: RebarSize = meshXSize ?? primaryBarSize;
+  const sizeMeshY: RebarSize = meshYSize ?? primaryBarSize;
   const sizeStirrup: RebarSize = stirrupSize ?? primaryBarSize;
   const sizeTie: RebarSize = tieSize ?? primaryBarSize;
 
   const kgPerMPrimary = UNIT_WEIGHT_KG_PER_M[primaryBarSize];
-  const kgPerMMeshX  = UNIT_WEIGHT_KG_PER_M[sizeMeshX];
-  const kgPerMMeshY  = UNIT_WEIGHT_KG_PER_M[sizeMeshY];
-  const kgPerMStir   = UNIT_WEIGHT_KG_PER_M[sizeStirrup];
-  const kgPerMTie    = UNIT_WEIGHT_KG_PER_M[sizeTie];
+  const kgPerMMeshX = UNIT_WEIGHT_KG_PER_M[sizeMeshX];
+  const kgPerMMeshY = UNIT_WEIGHT_KG_PER_M[sizeMeshY];
+  const kgPerMStir = UNIT_WEIGHT_KG_PER_M[sizeStirrup];
+  const kgPerMTie = UNIT_WEIGHT_KG_PER_M[sizeTie];
 
   let totalBars = 0;
   let lenMeshX = 0;
@@ -158,78 +236,92 @@ export function calculateRebar(input: CalcInput): CalcResult {
   let lenVerticals = 0;
   let lenStirrups = 0;
   let lenTies = 0;
+  let totalPriceperitem;
 
-  /** SLAB / FOUNDATION: Mesh in two directions, times slabLayers */
+  /** SLAB / FOUNDATION */
   if (element === "slab" || element === "foundation") {
-    const sx = mmToM(parseFloat(meshXSpacing)) ?? parseFloat(barSpacing);
-    const sy = mmToM(parseFloat(meshYSpacing)) ?? parseFloat(barSpacing);
+    const sx = meshXSpacing ? mmToM(parseFloat(meshXSpacing)) : mmToM(parseFloat(barSpacing || "0"));
+    const sy = meshYSpacing ? mmToM(parseFloat(meshYSpacing)) : mmToM(parseFloat(barSpacing || "0"));
 
-    const barsX = Math.floor(parseFloat(width )/ sx) * parseFloat(depth) + 1;   // running along length
-    const barsY = Math.floor(parseFloat(length) / sy) * parseFloat(depth) + 1;  // running along width
+    const barsX = Math.floor(parseFloat(width) / sx) + 1;
+    const barsY = Math.floor(parseFloat(length) / sy) + 1;
 
-    lenMeshX = parseFloat(slabLayers) * (barsX * parseFloat(length));
-    lenMeshY = parseFloat(slabLayers) * (barsY * parseFloat(width));
-    totalBars += parseFloat(slabLayers) * (barsX + barsY);
+    lenMeshX = parseFloat(slabLayers || "1") * (barsX * parseFloat(length)) * parseFloat(depth);
+    lenMeshY = parseFloat(slabLayers || "1") * (barsY * parseFloat(width)) * parseFloat(depth);
+    totalBars += parseFloat(slabLayers || "1") * (barsX + barsY);
+    const totalLengthM = totalBars * 12;
+    const pricePerM = getPriceForSize(primaryBarSize, priceMap);
+    totalPriceperitem = totalLengthM * pricePerM;
   }
 
-  /** BEAM: longitudinal + stirrups with dev/hooks */
+  /** BEAM */
   if (element === "beam") {
-    // Longitudinal: length plus development both ends
-    const devLenLong = lenFromFactorD(parseFloat(devLenFactorDLong), primaryBarSize);
-    const longBarLen = length + 2 * devLenLong;
-    lenLongitudinal = parseFloat(longitudinalBars) * parseFloat(longBarLen);
-    totalBars += parseFloat(longitudinalBars);
+    const devLenLong = lenFromFactorD(parseFloat(devLenFactorDLong || "0"), primaryBarSize);
+    const longBarLen = parseFloat(length) + 2 * devLenLong;
+    lenLongitudinal = parseFloat(longitudinalBars || "0") * longBarLen;
+    totalBars += parseFloat(longitudinalBars || "0");
 
-    // Stirrups: 2(b+h) + hooks
-    const s = mmToM(parseFloat(stirrupSpacing));
+    const s = mmToM(parseFloat(stirrupSpacing || "0"));
     const stirrupCount = Math.floor(parseFloat(length) / s) + 1;
-    const hookLen = lenFromFactorD(parseFloat(hookFactorDStirrups), sizeStirrup);
-    const stirrupPerimeter = 2 * (parseFloat(width) + parseFloat(depth) + 2 * hookLen);
+    const hookLen = lenFromFactorD(parseFloat(hookFactorDStirrups || "0"), sizeStirrup);
+    const stirrupPerimeter = 2 * (parseFloat(width) + parseFloat(depth)) + 2 * hookLen;
     lenStirrups = stirrupCount * stirrupPerimeter;
     totalBars += stirrupCount;
+    const totalLengthM = totalBars * 12;
+    const pricePerM = getPriceForSize(primaryBarSize, priceMap);
+    totalPriceperitem = totalLengthM * pricePerM;
   }
 
-  /** COLUMN: verticals + ties with dev/hooks */
+  /** COLUMN */
   if (element === "column") {
-    const h = parseFloat(columnHeight) ?? parseFloat(length);
+    const h = parseFloat(columnHeight || length);
 
-    // Verticals: height + dev both ends
-    const devLenVert = lenFromFactorD(parseFloat(devLenFactorDVert), primaryBarSize);
+    const devLenVert = lenFromFactorD(parseFloat(devLenFactorDVert || "12"), primaryBarSize);
     const vertBarLen = h + 2 * devLenVert;
-    lenVerticals = parseFloat(verticalBars) * vertBarLen;
-    totalBars += parseFloat(verticalBars);
+    lenVerticals = parseFloat(verticalBars || "0") * vertBarLen;
+    totalBars += parseFloat(verticalBars || "0");
 
-    // Ties: 2(b+h) + hooks
-    const s = mmToM(parseFloat(tieSpacing));
+    const s = mmToM(parseFloat(tieSpacing || "0"));
     const tieCount = Math.floor(h / s) + 1;
-    const tieHook = lenFromFactorD(parseFloat(hookFactorDTies), sizeTie);
-    const tiePerimeter = 2 * (parseFloat(width + depth) + 2 * tieHook);
+    const tieHook = lenFromFactorD(parseFloat(hookFactorDTies || "0"), sizeTie);
+    const tiePerimeter = 2 * (parseFloat(width) + parseFloat(depth)) + 2 * tieHook;
     lenTies = tieCount * tiePerimeter;
     totalBars += tieCount;
+    const totalLengthM = totalBars * 12;
+    const pricePerM = getPriceForSize(primaryBarSize, priceMap);
+    totalPriceperitem = totalLengthM * pricePerM;
   }
 
-  // Totals (apply wastage per category for fairer weights)
-  const meshXWithWaste  = withWaste(lenMeshX, wastagePercent);
-  const meshYWithWaste  = withWaste(lenMeshY, wastagePercent);
-  const longWithWaste   = withWaste(lenLongitudinal, wastagePercent);
-  const vertWithWaste   = withWaste(lenVerticals, wastagePercent);
-  const stirWithWaste   = withWaste(lenStirrups, wastagePercent);
-  const tiesWithWaste   = withWaste(lenTies, wastagePercent);
+  // Totals with wastage
+  const meshXWithWaste = withWaste(lenMeshX, wastagePercent);
+  const meshYWithWaste = withWaste(lenMeshY, wastagePercent);
+  const longWithWaste = withWaste(lenLongitudinal, wastagePercent);
+  const vertWithWaste = withWaste(lenVerticals, wastagePercent);
+  const stirWithWaste = withWaste(lenStirrups, wastagePercent);
+  const tiesWithWaste = withWaste(lenTies, wastagePercent);
 
   const wMeshX = meshXWithWaste * kgPerMMeshX;
   const wMeshY = meshYWithWaste * kgPerMMeshY;
-  const wLong  = longWithWaste  * kgPerMPrimary;
-  const wVert  = vertWithWaste  * kgPerMPrimary;
-  const wStir  = stirWithWaste  * kgPerMStir;
-  const wTie   = tiesWithWaste  * kgPerMTie;
+  const wLong = longWithWaste * kgPerMPrimary;
+  const wVert = vertWithWaste * kgPerMPrimary;
+  const wStir = stirWithWaste * kgPerMStir;
+  const wTie = tiesWithWaste * kgPerMTie;
 
-  const totalLengthM = meshXWithWaste + meshYWithWaste + longWithWaste + vertWithWaste + stirWithWaste + tiesWithWaste;
+  const totalLengthM =
+    (meshXWithWaste + meshYWithWaste + longWithWaste + vertWithWaste + stirWithWaste + tiesWithWaste);
   const totalWeightKg = wMeshX + wMeshY + wLong + wVert + wStir + wTie;
 
+  // Pricing
+  const pricePerM = getPriceForSize(primaryBarSize, priceMap);
+  const totalPrice = Math.round(totalLengthM * pricePerM);
+
   return {
+    primaryBarSize,
     totalBars,
     totalLengthM,
     totalWeightKg,
+    pricePerM,
+    totalPrice,
     breakdown: {
       meshX: lenMeshX,
       meshY: lenMeshY,
@@ -245,13 +337,15 @@ export function calculateRebar(input: CalcInput): CalcResult {
       verticals: lenVerticals ? wVert : undefined,
       stirrups: lenStirrups ? wStir : undefined,
       ties: lenTies ? wTie : undefined,
+      totalPricePerItem: totalPriceperitem
     },
   };
 }
 
-/** Optional memoized wrapper for any single row object */
-export function useRebarCalculatorRow(input: CalcInput) {
-  return useMemo(() => calculateRebar(input), [input]);
+/** Optional memoized wrapper */
+export function useRebarCalculatorRow(input: CalcInput, region: string) {
+  const priceMap = useRebarPrices(region);
+  return useMemo(() => calculateRebar(input, priceMap), [input, priceMap]);
 }
 
 /** --------------------
@@ -264,7 +358,6 @@ export interface RebarProjectSnapshot {
   rows: RebarRow[];
 }
 
-/** Create a JSON-safe snapshot of current rows */
 export function createSnapshot(rows: RebarRow[]): RebarProjectSnapshot {
   return {
     version: 1,
@@ -273,7 +366,6 @@ export function createSnapshot(rows: RebarRow[]): RebarProjectSnapshot {
   };
 }
 
-/** Parse/validate a snapshot JSON string back into rows */
 export function parseSnapshot(json: string): RebarRow[] {
   const parsed = JSON.parse(json) as RebarProjectSnapshot;
   if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.rows)) {

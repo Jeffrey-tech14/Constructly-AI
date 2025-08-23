@@ -21,7 +21,7 @@ const NotFound = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-center mb-6">
               <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <Wrench className="w-8 h-8 text-white" />
+                <Wrench className="sm:w-8 sm:h-8 text-white" />
               </div>
             </div>
             

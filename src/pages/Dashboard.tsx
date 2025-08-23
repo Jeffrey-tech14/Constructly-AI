@@ -176,8 +176,8 @@ const formatCurrency = (value: number) => {
         <div className="mb-8 animate-fade-in">
           <div className="flex justify-between items-center">
             <div>
-              <div className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                <LayoutDashboard className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
+              <div className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                <LayoutDashboard className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
                 Welcome back, {profile?.name}!
               </div>
               <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">
@@ -186,7 +186,7 @@ const formatCurrency = (value: number) => {
             </div>
             <Button 
               onClick={() => setShowCalculator(true)}
-              className="animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              className="text-xs sm:text-sm animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
             >
               Quick Calculator
             </Button>

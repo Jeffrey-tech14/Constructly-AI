@@ -116,7 +116,7 @@ const Reports = () => {
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <FileText className="w-8 h-8 text-blue-600" />
+              <FileText className="sm:w-8 sm:h-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Quotes</p>
                 <p className="sm:text-2xl text-lg font-bold">{userQuotes.length}</p>
@@ -128,7 +128,7 @@ const Reports = () => {
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+              <CheckCircle className="sm:w-8 sm:h-8 text-green-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Active Projects</p>
                 <p className="sm:text-2xl text-lg font-bold">{activeProjects.length}</p>
@@ -140,7 +140,7 @@ const Reports = () => {
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <DollarSign className="w-8 h-8 text-blue-600" />
+              <DollarSign className="sm:w-8 sm:h-8 text-blue-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
                 <p className="sm:text-2xl text-lg font-bold">
@@ -154,7 +154,7 @@ const Reports = () => {
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-purple-600" />
+              <TrendingUp className="sm:w-8 sm:h-8 text-purple-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Completed</p>
                 <p className="sm:text-2xl text-lg font-bold">{completedProjects.length}</p>
@@ -166,7 +166,7 @@ const Reports = () => {
         <Card className="gradient-card card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <Star className="w-8 h-8 text-amber-600" />
+              <Star className="sm:w-8 sm:h-8 text-amber-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Avg Rating</p>
                 <p className="sm:text-2xl text-lg font-bold">{averageRating.toFixed(1)}</p>

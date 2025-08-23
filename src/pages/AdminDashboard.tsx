@@ -249,8 +249,8 @@ quotes.forEach((quote) => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
         <div className="mb-8">
-          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <Crown className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
+          <div className="flex items-center sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <Crown className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
             Admin Dashboard</div>
           <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage users, monitor system performance, and control platform settings</p>
         </div>
@@ -370,7 +370,7 @@ quotes.forEach((quote) => {
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         {/* User Info Section */}
                         <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
-                          <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                             <Users className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                           </div>
                           

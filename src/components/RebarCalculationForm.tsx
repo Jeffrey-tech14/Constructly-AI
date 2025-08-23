@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   calculateRebar,
   CalcInput,
@@ -6,6 +6,7 @@ import {
   RebarSize,
   RebarRow,
   createSnapshot,
+  useRebarPrices,
 } from "@/hooks/useRebarCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   quote: any;
@@ -43,11 +45,11 @@ const makeDefaultRow = (): RebarRow => ({
 
   slabLayers: undefined,
 
-  primaryBarSize: "Y12",
+  primaryBarSize: undefined,
   meshXSize: undefined,
   meshYSize: undefined,
-  stirrupSize: "Y8",
-  tieSize: "Y8",
+  stirrupSize: undefined,
+  tieSize: undefined,
 
   devLenFactorDLong: undefined,
   devLenFactorDVert: undefined,
@@ -86,48 +88,65 @@ export default function RebarCalculatorForm({
   quote, 
   setQuote, 
   onExport, 
-  initialRows = [] 
 }: Props) {
-  const rows = quote.rebar_calculations || ([]);
+  const rows = quote?.rebar_rows || ([]);
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const { profile } = useAuth();
 
   const update = <K extends keyof RebarRow>(id: number, key: K, value: RebarRow[K]) =>
     setQuote(prev => ({
         ...prev,
-        rebar_calculations: prev.rebar_calculations.map(r => 
+        rebar_rows: prev.rebar_rows.map(r => 
         r.id === id ? { ...r, [key]: value } : r
         )
-    }));
+  }));
 
     const addRow = () => 
-    setQuote(prev => ({
+      setQuote(prev => ({
         ...prev,
-        rebar_calculations: [
-        ...(prev.rebar_calculations || []),
+        rebar_rows: [
+        ...(prev.rebar_rows || []),
         makeDefaultRow()
         ]
     }));
 
     const removeRow = (id: number) =>
-    setQuote(prev => ({
+      setQuote(prev => ({
         ...prev,
-        rebar_calculations: prev.rebar_calculations.filter(r => r.id !== id)
+        rebar_rows: prev.rebar_rows.filter(r => r.id !== id)
     }));
 
-  const results = useMemo(() => rows.map(r => ({ id: r.id, result: calculateRebar(r), errors: validateRow(r) })), [rows]);
+  const prices = useRebarPrices(profile.location)
+
+  const results = useMemo(() => rows.map(r => ({ id: r.id, result: calculateRebar(r, prices), errors: validateRow(r) })), [rows, prices]);
+
+  useEffect(() => {
+  if (!results) return;
+
+  // Strip down to only result
+  const onlyResults = results.map(r => r.result);
+
+  setQuote(prev => ({
+    ...prev,
+    rebar_calculations: onlyResults,
+  }));
+}, [results, setQuote]);
+
 
   const grand = useMemo(() => {
-    return results.reduce(
-      (acc, { result, errors }) => {
-        if (errors.length === 0) {
-          acc.length += result.totalLengthM;
-          acc.weight += result.totalWeightKg;
-        }
-        return acc;
-      },
-      { length: 0, weight: 0 }
-    );
-  }, [results]);
+  return results.reduce(
+    (acc, { result, errors }) => {
+      if (errors.length === 0) {
+        acc.length += result.totalLengthM;
+        acc.weight += result.totalWeightKg;
+        acc.price += result.totalPrice;   // ✅ sum, not overwrite
+      }
+      return acc;
+    },
+    { length: 0, weight: 0, price: 0 }   // ✅ also init price = 0
+  );
+}, [results]);
+
 
   const exportJSON = () => {
     const snapshot = createSnapshot(rows);
@@ -135,7 +154,7 @@ export default function RebarCalculatorForm({
     if (onExport) onExport(json);
     else console.log("Rebar Project Snapshot:", json);
 
-    console.log(results)
+    console.log(JSON.stringify(results))
   };
 
   return (
@@ -151,6 +170,7 @@ export default function RebarCalculatorForm({
           <div className="font-semibold">Grand Total</div>
           <div>Length: {grand.length.toFixed(2)} m</div>
           <div>Weight: {grand.weight.toFixed(2)} kg</div>
+          <div>Total: Ksh {Math.round(grand.price)}</div>
         </div>
       </div>
 
@@ -335,7 +355,7 @@ export default function RebarCalculatorForm({
                 <AccordionItem value="allowances">
                   <AccordionTrigger>Advanced: Development & Hook Allowances (×d)</AccordionTrigger>
                   <AccordionContent>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid pl-1 pr-1 grid-cols-1 md:grid-cols-4 gap-4">
                       <Label>
                         Dev. Longitudinal (×d)
                         <Input type="number" value={row.devLenFactorDLong ?? 12}

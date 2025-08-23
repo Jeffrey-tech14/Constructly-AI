@@ -33,11 +33,14 @@ const SAND_DENSITY = 1600;   // kg/m3
 const STONE_DENSITY = 1500;  // kg/m3
 const CEMENT_BAG_KG = 50;    // 1 bag = 50kg
 
-export function parseMix(mix: string): [number, number, number] {
+export function parseMix(mix?: string): [number, number, number] {
+  if (!mix) return [1, 2, 4]; // fallback if undefined or empty
+
   const parts = mix.split(":").map(p => parseFloat(p));
   if (parts.length !== 3 || parts.some(isNaN)) return [1, 2, 4]; // fallback
   return [parts[0], parts[1], parts[2]];
 }
+
 
 export function calculateConcrete(row: ConcreteRow): ConcreteResult {
   const { length, width, height, mix, id, name, element } = row;

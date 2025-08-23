@@ -41,16 +41,25 @@ import RebarCalculatorForm from './RebarCalculationForm';
 import MasonryCalculatorForm from './MasonryCalculatorForm';
 import useMasonryCalculator from '@/hooks/useMasonryCalculator';
 import ConcreteCalculatorForm from './ConcreteCalculatorForm';
+import { useDynamicPricing } from '@/hooks/useDynamicPricing';
 
 interface Room {
   room_name: string;
   length: string;
   width: string;
   height: string;
-  doors: any[]; // array of door objects
-  windows: any[]; // array of window objects
+  doors: any[];
+  windows: any[];
   blockType: string;
-  wallArea: number;
+  thickness: string;
+  customBlock: {
+    price: string;
+    height: string;
+    length: string;
+    thickness: string;
+  };
+  roomArea: number;
+  plasterArea: number;
   openings: number;
   netArea: number;
   blocks: number;
@@ -60,6 +69,11 @@ interface Room {
   mortarCost: number;
   plasterCost: number;
   openingsCost: number;
+  cementBags: number;
+  cementCost: number;
+  sandVolume: number;
+  sandCost: number;
+  stoneVolume: number;
   totalCost: number;
 };
 
@@ -68,6 +82,15 @@ const EnhancedQuoteBuilder = ({quote}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { equipmentRates, services, calculateQuote, loading: calculationLoading } = useQuoteCalculations();
+  const {
+      materialBasePrices,
+      userMaterialPrices,
+      regionalMultipliers,
+      updateMaterialPrice,
+      getEffectiveMaterialPrice,
+      getEffectiveMaterialPriceSingle,
+      updateMaterialPriceSingle
+    } = useDynamicPricing();
   const { extractedPlan } = usePlan();
   const { loading: settingsLoading } = useUserSettings();
   const { createQuote, updateQuote } = useQuotes();
@@ -179,6 +202,8 @@ const EnhancedQuoteBuilder = ({quote}) => {
     location: '',
     id:'',
     subcontractors: [],
+    concrete_rows:[],
+    rebar_rows:[],
     user_id:'',
     floors: 1,
     custom_specs: '',
@@ -186,9 +211,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
     mortar_ratio: '1:6',
     concrete_mix_ratio: '1:2:4',
     plaster_thickness: 0.012, 
-    rebar_percentages: 0,
     include_wastage: true,
-    wastage_percentages: 0,
     equipment: [],
     services: [],
     percentages: [],
@@ -254,8 +277,6 @@ const EnhancedQuoteBuilder = ({quote}) => {
     ...(field === 'overhead' && { overhead_percentages: value }),
     ...(field === 'profit' && { profit_percentages: value }),
     ...(field === 'contingency' && { contingency_percentages: value }),
-    ...(field === 'rebar' && { rebar_percentages: value }),
-    ...(field === 'wastage' && { wastage_percentages: value }),
     percentages: prev.percentages.length > 0
       ? prev.percentages.map((p, i) =>
           i === 0 ? { ...p, [field]: value } : p
@@ -329,14 +350,14 @@ const EnhancedQuoteBuilder = ({quote}) => {
         addons: quoteData.addons,
         addons_cost: quoteData.addons_cost,
         plaster_thickness: parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
-        rebar_percentages: parseFloat(quoteData.percentages[0].rebar.toString()) || 0,
         include_wastage: quoteData.include_wastage,
-        wastage_percentages: parseFloat(quoteData.percentages[0].wastage.toString()) || 0,
         equipment: quoteData.equipment,
         services: quoteData.services,
         distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
         contract_type: quoteData.contract_type,
         region: quoteData.region,
+        concrete_rows: quoteData.concrete_rows,
+        rebar_rows: quoteData.rebar_rows,
         materials_cost: Math.round(quoteData.materials_cost),
         rebar_calculations: quoteData.rebar_calculations,
         masonry_materials: quoteData.masonry_materials,
@@ -366,7 +387,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
     } catch (error) {
       toast({
         title: "Calculation Error",
-        description: "Failed to calculate quote",
+        description: "Failed to calculate quote -  " + error,
         variant: "destructive"
       });
     }
@@ -393,7 +414,10 @@ const EnhancedQuoteBuilder = ({quote}) => {
         house_type: quoteData.house_type,
         transport_costs: calculation.transport_cost,
         distance_km: calculation.distance_km,
-        materials_cost: quoteData.materials_cost,
+        concrete_rows: quoteData.concrete_rows,
+        materials_cost: calculation.materials_cost,
+        rebar_rows: quoteData.rebar_rows,
+        rebar_calculations: quoteData.rebar_calculations,
         labor_cost: Math.round(calculation.labor_cost),
         additional_services_cost: Math.round(calculation.selected_services_cost),
         total_amount: Math.round(calculation.total_amount),
@@ -445,7 +469,9 @@ const EnhancedQuoteBuilder = ({quote}) => {
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           distance_km: calculation.distance_km,
-          materials_cost: quoteData.materials_cost,
+          materials_cost: Math.round(calculation.materials_cost),
+          concrete_rows: quoteData.concrete_rows,
+          rebar_rows: quoteData.rebar_rows,
           labor_cost: Math.round(calculation.labor_cost),
           additional_services_cost: Math.round(calculation.selected_services_cost),
           equipment_costs: Math.round(calculation.equipment_cost),
@@ -456,6 +482,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
           services: calculation.services,
           equipment: calculation.equipment,
           masonry_materials: quoteData.masonry_materials,
+          rebar_calculations: quoteData.rebar_calculations,
           overhead_amount: calculation.overhead_amount,
           contingency_amount: calculation.contingency_amount,
           permit_cost: calculation.permit_cost,
@@ -686,7 +713,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
               <div className='border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg' >
               <h3 className="text-lg font-semibold mb-3 mt-1">Room Details *</h3>
               <MasonryCalculatorForm  quote={quoteData}
-                setQuote={setQuoteData}/>
+                setQuote={setQuoteData} materialBasePrices={materialBasePrices} userMaterialPrices={userMaterialPrices} regionalMultipliers={regionalMultipliers} userRegion={profile.location} getEffectiveMaterialPrice={getEffectiveMaterialPrice}/>
               </div>
               <ConcreteCalculatorForm  quote={quoteData}
                 setQuote={setQuoteData}/>
@@ -1361,38 +1388,6 @@ case 3:
                 {/* <pre className="text-blue-700 bg-blue-100 p-4 rounded-md overflow-auto max-h-96">
                 {JSON.stringify(calculation, null, 2)}
               </pre> */}
-                <Card  className='gradient-card'>
-                  <CardHeader>
-                    <CardTitle>Quote Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Total Wall Area:</span>
-                      <span>{quoteData.total_wall_area.toFixed(2)} m²</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Concrete Volume:</span>
-                      <span>{quoteData.total_concrete_volume.toFixed(2)} m³</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Formwork Area:</span>
-                      <span>{quoteData.total_formwork_area.toFixed(2)} m²</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Rebar Weight:</span>
-                      <span>{quoteData.total_rebar_weight.toFixed(2)} kg</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Plaster Volume:</span>
-                      <span>{quoteData.total_plaster_volume.toFixed(2)} m³</span>
-                    </div>
-                    <hr className="my-2" />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span>KSh {calculation.total_amount.toLocaleString()}</span>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {quoteData.concrete_materials.length > 0 && (
                   <Card  className='gradient-card'>
@@ -1403,7 +1398,7 @@ case 3:
                       {quoteData.concrete_materials.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>{item.name}</span>
-                          <span>KSh {item.total_price.toLocaleString()}</span>
+                          <span>KSh {item.total_price}</span>
                         </div>
                       ))}
                     </CardContent>
@@ -1419,60 +1414,287 @@ case 3:
                       {quoteData.masonry_materials.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>{item.name}</span>
-                          <span>KSh {item.total_price.toLocaleString()}</span>
+                          <span>KSh {item.total_price}</span>
                         </div>
                       ))}
                     </CardContent>
                   </Card>
                 )}
 
-                {/* {calculation.formwork.length > 0 && (
+                {quoteData.equipment.length > 0 && (
                   <Card  className='gradient-card'>
                     <CardHeader>
-                      <CardTitle>Formwork</CardTitle>
+                      <CardTitle>Equipment</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      {calculation.formwork.map((item, idx) => (
+                      {quoteData.equipment.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>{item.name}</span>
-                          <span>KSh {item.total_price.toLocaleString()}</span>
+                          <span>KSh {item.total_cost}</span>
                         </div>
                       ))}
                     </CardContent>
                   </Card>
                 )}
 
-                {calculation.rebar.length > 0 && (
+                {quoteData.subcontractors.length > 0 && (
                   <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Subcontractors</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {quoteData.subcontractors.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.price}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+
+                {quoteData.addons.length > 0 && (
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Subcontractor materials</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {quoteData.addons.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.price}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                 {quoteData.services.length > 0 && (
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Services</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {quoteData.services.map((item, idx) => (
+                        <div key={idx} className="flex justify-between">
+                          <span>{item.name}</span>
+                          <span>KSh {item.price}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {quoteData.rebar_calculations?.length > 0 && (
+                  <Card className="gradient-card">
                     <CardHeader>
                       <CardTitle>Rebar</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                      {calculation.rebar.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.total_price.toLocaleString()}</span>
+                    <CardContent className="space-y-4">
+                      {quoteData.rebar_calculations.map((item, idx) => (
+                        <div key={idx} className="flex flex-col gap-2 border-b pb-3 last:border-none">
+                          {/* Top-level summary */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <p>Total Bars:</p>
+                              <p>{item?.totalBars}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Total length:</p>
+                              <p>{item?.totalLengthM} m</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Total weight:</p>
+                              <p>{item?.totalWeightKg} kg</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Price per m:</p>
+                              <p>Ksh {item?.pricePerM}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Total price:</p>
+                              <p>Ksh {item?.totalPrice}</p>
+                            </div>
+                          </div>
+
+                          {/* Breakdown */}
+                          {item?.breakdown && (
+                            <div className="mt-2">
+                              <p className="font-semibold">Breakdown:</p>
+                              <ul className="list-disc pl-6">
+                                <li>Ties: {item.breakdown.ties}</li>
+                                <li>Mesh X: {item.breakdown.meshX}</li>
+                                <li>Mesh Y: {item.breakdown.meshY}</li>
+                                <li>Stirrups: {item.breakdown.stirrups}</li>
+                                <li>Verticals: {item.breakdown.verticals}</li>
+                                <li>Longitudinal: {item.breakdown.longitudinal}</li>
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Weight breakdown */}
+                          {item?.weightBreakdownKg && (
+                            <div className="mt-2">
+                              <p className="font-semibold">Weight Breakdown (Kg):</p>
+                              <ul className="list-disc pl-6">
+                                <li>Mesh X: {item.weightBreakdownKg.meshX}</li>
+                                <li>Mesh Y: {item.weightBreakdownKg.meshY}</li>
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </CardContent>
                   </Card>
                 )}
 
-                {calculation.plaster.length > 0 && (
-                  <Card className='gradient-card'>
+                {quoteData.rooms?.length > 0 && (
+                  <Card className="gradient-card">
                     <CardHeader>
-                      <CardTitle>Plastering</CardTitle>
+                      <CardTitle>Rooms & Walls</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                      {calculation.plaster.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.total_price.toLocaleString()}</span>
+                    <CardContent className="space-y-4">
+                      {quoteData.rooms.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex flex-col gap-2 border-b pb-3 last:border-none"
+                        >
+                          {/* Room summary */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <p>Room:</p>
+                              <p>{item?.room_name || "Unnamed"}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Dimensions (L × W × H):</p>
+                              <p>
+                                {item?.length} × {item?.width} × {item?.height} m
+                              </p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Wall Area:</p>
+                              <p>{item?.roomArea || 0} m²</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Plaster Area:</p>
+                              <p>{item?.plasterArea} m²</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Total Cost:</p>
+                              <p>Ksh {item?.totalCost || 0}</p>
+                            </div>
+                          </div>
+
+                          {/* Doors */}
+                          {item?.doors?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="font-semibold">Doors:</p>
+                              <ul className="list-disc pl-6">
+                                {item.doors.map((door, dIdx) => (
+                                  <li key={dIdx} className="flex justify-between">
+                                    <span>
+                                      {door.count} × {door.type} ({door.frame} frame) —{" "}
+                                      {door.sizeType === "standard"
+                                        ? door.standardSize
+                                        : `${door.custom.width} × ${door.custom.height} m`}
+                                    </span>
+                                    <span>Ksh {door.price || door.custom.price || "—"}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Windows */}
+                          {item?.windows?.length > 0 && (
+                            <div className="mt-2">
+                              <p className="font-semibold">Windows:</p>
+                              <ul className="list-disc pl-6">
+                                {item.windows.map((window, wIdx) => (
+                                  <li key={wIdx} className="flex justify-between">
+                                    <span>
+                                      {window.count} × {window.glass} ({window.frame} frame) —{" "}
+                                      {window.sizeType === "standard"
+                                        ? window.standardSize
+                                        : `${window.custom.width} × ${window.custom.height} m`}
+                                    </span>
+                                    <span>Ksh {window.price || window.custom.price || "—"}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Costs breakdown */}
+                          <div className="mt-2 space-y-1">
+                            <p className="font-semibold">Cost Breakdown:</p>
+                            <div className="flex justify-between">
+                              <p>Blocks:</p>
+                              <p>Ksh {item?.blockCost || 0}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Cement:</p>
+                              <p>
+                                {item?.cementBags} bags — Ksh {item?.cementCost || 0}
+                              </p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Sand:</p>
+                              <p>
+                                {item?.sandVolume} m³ — Ksh {item?.sandCost || 0}
+                              </p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Mortar:</p>
+                              <p>Ksh {item?.mortarCost || 0}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Plaster:</p>
+                              <p>Ksh {item?.plasterCost || 0}</p>
+                            </div>
+                            <div className="flex justify-between">
+                              <p>Openings:</p>
+                              <p>Ksh {item?.openingsCost || 0}</p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </CardContent>
                   </Card>
-                )} */}
+                )}
+
+                  <Card  className='gradient-card'>
+                    <CardHeader>
+                      <CardTitle>Labour</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <p>Labour</p>
+                            <p>KSh {calculation.labor_cost}</p>
+                          </div>
+                          <div className="flex justify-between">
+                            <p>Total</p>
+                            <p>KSh {calculation.total_amount}</p>
+                          </div>
+                          <div className="flex justify-between">
+                            <p>Profit</p>
+                            <p>KSh {calculation.profit_amount}</p>
+                          </div>
+                          <div className="flex justify-between">
+                            <p>Materials</p>
+                            <p>KSh {calculation.materials_cost}</p>
+                          </div>
+                        </div>
+                    </CardContent>
+                  </Card>
+
+                  
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>KSh {calculation.total_amount.toLocaleString()}</span>
+                    </div>
 
                  <div className="flex space-x-4">
                   <Button

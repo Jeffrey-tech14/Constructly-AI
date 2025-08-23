@@ -12,13 +12,36 @@ import { useAuth } from '@/contexts/AuthContext';
 import Dashboard from './Dashboard';
 import { Badge } from '@/components/ui/badge';
 
+export interface Door {
+  sizeType: string; // "standard" | "custom"
+  standardSize: string;
+  custom: { height: string; width: string; price?: string };
+  type: string; // Panel | Flush | Metal
+  frame: string; // Wood | Steel | Aluminum
+  count: number;
+}
+
+export interface Window {
+  sizeType: string; // "standard" | "custom"
+  standardSize: string;
+  custom: { height: string; width: string; price?: string };
+  glass: string; // Clear | Frosted | Tinted
+  frame: string; // Wood | Steel | Aluminum
+  count: number;
+}
+
 export interface Room {
-  name: string;
-  length: number;
-  width: number;
-  height: number;
-  doors: number;
-  windows: number;
+  roomType: string;
+  room_name: string;
+  width: string;
+  thickness: string;
+  blockType: string; // Hollow, Solid, etc
+  length: string;
+  height: string;
+  customBlock: { length: string; height: string; thickness: string; price: string };
+  plaster: string; // "None" | "One Side" | "Both Sides"
+  doors: Door[];
+  windows: Window[];
 }
 
 export interface ParsedPlan {
@@ -54,6 +77,7 @@ const UploadPlan = () => {
       });
       if (res.ok) {
         const data = await res.json();
+        console.log(data)
         setExtractedDataPreview(data);
       }
     } catch (err) {
@@ -75,7 +99,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    //make sure this url is same as network http://192.168.0.100 part only, the prt number 8000 should not be the same as network port number
+    //make sure this url is same as network http://192.168.0.100 part only, the port number 8000 should not be the same as network port number
     //do this for this file and index.ts in constructly-api-plan folder
     const response = await fetch('http://192.168.0.100:8000/api/plan/upload', {
       method: 'POST',
@@ -163,7 +187,7 @@ const UploadPlan = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
          <div className="mb-8">
           <h1 className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent">
-            <UploadCloud className="w-8 h-8 mr-2 text-purple-900 dark:text-white" />
+            <UploadCloud className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
             Upload Plan</h1>
           <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent mt-2">Automatically derive dimentions, rooms e.t.c from your plan</p>
         </div>
@@ -208,7 +232,7 @@ const UploadPlan = () => {
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {extractedDataPreview.rooms.map((room, i) => (
                         <div key={i} className="flex justify-between text-sm p-2 bg-white dark:bg-slate-700 rounded">
-                          <span>{room.name}</span>
+                          <span>{room.room_name}</span>
                           <span>{room.length}m × {room.width}m</span>
                         </div>
                       ))}

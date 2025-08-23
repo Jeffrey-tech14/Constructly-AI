@@ -128,7 +128,7 @@ const Auth = () => {
           </Button>
             <div className="flex items-center justify-center mb-4">
               <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <Wrench className="w-8 h-8 text-white" />
+                <Wrench className="sm:w-8 sm:h-8 text-white" />
               </div>
             <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">Constructly</span>
           </div>

@@ -116,7 +116,7 @@ if(!user){
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
           <h1 className="sm:text-3xl text-2xl font-bold flex items-center gap-3 bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <Building2 className="w-8 h-8 text-purple-900 dark:text-white" />
+            <Building2 className="sm:w-8 sm:h-8 text-purple-900 dark:text-white" />
             All Construction Quotes
           </h1>
           <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage and track all your construction quotes with ease</p>

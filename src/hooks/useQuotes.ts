@@ -6,24 +6,37 @@ import { useLocation } from 'react-router-dom';
 
 export interface Quote {
   rooms: Array<{
-  room_name: string;
-  length: string;
-  width: string;
-  height: string;
-  doors: any[]; // array of door objects
-  windows: any[]; // array of window objects
-  blockType: string;
-  wallArea: number;
-  openings: number;
-  netArea: number;
-  blocks: number;
-  mortar: number;
-  plaster: number;
-  blockCost: number;
-  mortarCost: number;
-  plasterCost: number;
-  openingsCost: number;
-  totalCost: number;
+    room_name: string;
+    length: string;
+    width: string;
+    height: string;
+    doors: any[];
+    windows: any[];
+    blockType: string;
+    thickness: string;
+    customBlock: {
+      price: string;
+      height: string;
+      length: string;
+      thickness: string;
+    };
+    roomArea: number;
+    plasterArea: number;
+    openings: number;
+    netArea: number;
+    blocks: number;
+    mortar: number;
+    plaster: number;
+    blockCost: number;
+    mortarCost: number;
+    plasterCost: number;
+    openingsCost: number;
+    cementBags: number;
+    cementCost: number;
+    sandVolume: number;
+    sandCost: number;
+    stoneVolume: number;
+    totalCost: number;
 }>;
 
   id: string;

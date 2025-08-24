@@ -678,7 +678,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
               <h3 className="text-lg font-semibold">House Type *</h3>
               {profile.tier !== "Free" && (
               <Button
-                onClick={() => navigate('/uploadplan')}
+                onClick={() => navigate('/uploadplan', { state: { quoteData }})}
                 className="mb-3 animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
               >
                 Upload Plan

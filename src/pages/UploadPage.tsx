@@ -11,6 +11,7 @@ import { usePlanUpload } from '@/hooks/usePlanUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import Dashboard from './Dashboard';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Door {
   sizeType: string; // "standard" | "custom"
@@ -56,6 +57,8 @@ const UploadPlan = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const location = useLocation();
+  const { quote } = location.state || {};
   const [extractedDataPreview, setExtractedDataPreview] = useState<ParsedPlan | null>(null);
   const { uploadPlan, uploading } = usePlanUpload();
   const { setExtractedPlan } = usePlan();
@@ -95,6 +98,10 @@ const UploadPlan = () => {
 
   try {
     const fileUrl = await uploadPlan(selectedFile);
+    await supabase
+      .from("quotes")
+      .update({ plan_file_url: fileUrl })
+      .eq("id", quote.id);
 
     const formData = new FormData();
     formData.append('file', selectedFile);

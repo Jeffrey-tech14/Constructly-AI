@@ -432,13 +432,13 @@ const addWindow = (i: number) => {
       const plasterCement = plasterArea * CEMENT_PER_SQM;
       const plasterSand = plasterArea * SAND_PER_SQM;
 
-      const blockCost = blocks * blockPrice;
-      const mortarCost = mortar * (cementPrice * 0.4 + sandPrice * 0.6);
+      const blockCost = Math.round(blocks * blockPrice);
+      const mortarCost = Math.round(mortar * (cementPrice * 0.4 + sandPrice * 0.6));
       const plasterCost = plasterArea > 0
-        ? plasterCement * cementPrice + plasterSand * sandPrice
+        ? Math.round(plasterCement * cementPrice + plasterSand * sandPrice)
         : 0;
 
-      const roomTotalCost = blockCost + mortarCost + plasterCost + openingsCost + Math.round((plasterCement * cementPrice) + (mortar * (cementPrice * 0.4))) + Math.round((plasterSand * sandPrice) + (mortar * (sandPrice * 0.6)));
+      const roomTotalCost = Math.round(blockCost + mortarCost + plasterCost + openingsCost + Math.round((plasterCement * cementPrice) + (mortar * (cementPrice * 0.4))) + Math.round((plasterSand * sandPrice) + (mortar * (sandPrice * 0.6))));
 
       // Update totals
       totals.roomArea += roomArea;

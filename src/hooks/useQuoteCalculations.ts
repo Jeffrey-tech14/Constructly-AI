@@ -58,7 +58,7 @@ export interface QuoteCalculation {
   width: string;
   height: string;
   doors: any[];
-  windows: any[];
+  windows: any[]; 
   blockType: string;
   thickness: string;
   customBlock: {
@@ -114,7 +114,7 @@ export interface QuoteCalculation {
   region: string;
   addons_cost: number;
   materials_cost: number;
-  masonry_materials: any[];
+  masonry_materials: any;
   concrete_materials: any[];
   rebar_calculations: any[];
   total_wall_area: number;
@@ -374,11 +374,11 @@ export const useQuoteCalculations = () => {
       // ✅ Apply profit margin
       const rebarProfits = rebarCost * defaultProfitMargin;
 
-      const masonryProfits = 1000
+      const masonryProfits = masonry_materials.cost * defaultProfitMargin
       const concreteProfits = concrete_materials[0].total_price * defaultProfitMargin
       const concretePrice = concrete_materials[0].total_price;
 
-      const totalMaterialPrice = Math.round(concretePrice + 1000 + rebarCost)
+      const totalMaterialPrice = Math.round(concretePrice + masonry_materials.cost + rebarCost)
 
       const laborCost =  Math.round(totalMaterialPrice * (labor_percentages / 100));
 
@@ -460,9 +460,9 @@ export const useQuoteCalculations = () => {
 
       const subtotalWithExtras = subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost ;
 
-      const profitAmount = subcontractorProfit + rebarProfits + masonryProfits + concreteProfits;
+      const profitAmount =  Math.round(subcontractorProfit + rebarProfits + masonryProfits + concreteProfits);
 
-      const totalAmount = subtotalWithExtras + profitAmount;
+      const totalAmount =  Math.round(subtotalWithExtras + profitAmount);
 
       return {
         labor_cost: laborCost,

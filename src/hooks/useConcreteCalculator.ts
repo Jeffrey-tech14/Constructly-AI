@@ -1,9 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { Material } from "./useQuoteCalculations";
-import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
-import { RegionalMultiplier } from "./useDynamicPricing";
-import { supabase } from "@/integrations/supabase/client";
 
 // hooks/useConcreteCalculator.ts
 export type ElementType = "slab" | "beam" | "column" | "foundation";

@@ -30,7 +30,8 @@ import {
   BuildingIcon,
   FileSpreadsheet,
   Zap,
-  Trash
+  Trash,
+  House
 } from 'lucide-react';
 import { usePlan } from '../contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -262,12 +263,13 @@ const EnhancedQuoteBuilder = ({quote}) => {
 
   const steps = [
     { id: 1, name: 'Project Details', icon: <FileText className="w-5 h-5" /> },
-    { id: 2, name: 'House & Materials', icon: <Building className="w-5 h-5" /> },
-    { id: 3, name: 'Equipment Usage', icon: <Wrench className="w-5 h-5" /> },
-    { id: 4, name: 'Services and Extras', icon: <Plus className="w-5 h-5" /> },
-    { id: 5, name: 'Subcontractor Rates', icon: <Zap className="w-5 h-5" /> },
-    { id: 6, name: 'Subcontractor Materials', icon: <FileSpreadsheet className="w-5 h-5" /> },
-    { id: 7, name: 'Review & Export', icon: <Calculator className="w-5 h-5" /> }
+    { id: 2, name: 'Concrete and Rebar', icon: <Building className="w-5 h-5" /> },
+    { id: 3, name: 'House and Materials', icon: <House className='w-5 h-5'/>},
+    { id: 4, name: 'Equipment Usage', icon: <Wrench className="w-5 h-5" /> },
+    { id: 5, name: 'Services and Extras', icon: <Plus className="w-5 h-5" /> },
+    { id: 6, name: 'Subcontractor Rates', icon: <Zap className="w-5 h-5" /> },
+    { id: 7, name: 'Subcontractor Materials', icon: <FileSpreadsheet className="w-5 h-5" /> },
+    { id: 8, name: 'Review & Export', icon: <Calculator className="w-5 h-5" /> }
   ];
 
   const updatePercentageField = (field: keyof Percentage, value: number) => {
@@ -710,11 +712,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
                   />
                   </div>
 
-              <div className='border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg' >
-              <h3 className="text-lg font-semibold mb-3 mt-1">Room Details *</h3>
-              <MasonryCalculatorForm  quote={quoteData}
-                setQuote={setQuoteData} materialBasePrices={materialBasePrices} userMaterialPrices={userMaterialPrices} regionalMultipliers={regionalMultipliers} userRegion={profile.location} getEffectiveMaterialPrice={getEffectiveMaterialPrice}/>
-              </div>
+              
               <ConcreteCalculatorForm  quote={quoteData}
                 setQuote={setQuoteData}/>
             </div>
@@ -797,202 +795,211 @@ const EnhancedQuoteBuilder = ({quote}) => {
           </div>
         );
 
-case 3:
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Select Required Equipment</h3>
+        case 3: 
+        return(
+          <div className='border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg' >
+            <h3 className="text-lg font-semibold mb-3 mt-1">Room Details *</h3>
+            <MasonryCalculatorForm  quote={quoteData}
+              setQuote={setQuoteData} materialBasePrices={materialBasePrices} userMaterialPrices={userMaterialPrices} regionalMultipliers={regionalMultipliers} userRegion={profile.location} getEffectiveMaterialPrice={getEffectiveMaterialPrice}/>
+          </div>
+        );
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {equipmentRates
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((equipment) => {
-            const isChecked = quoteData.equipment.some(
-              (eq) => eq.equipment_type_id === equipment.id
-            );
+    case 4:
+      return (
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Select Required Equipment</h3>
 
-            return (
-              <Card key={equipment.id} className="p-4 gradient-card">
-                <div className="items-center justify-between">
-                  <div className="grid grid-cols-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={isChecked}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setQuoteData((prev) => ({
-                              ...prev,
-                              equipment: [
-                                ...prev.equipment,
-                                {
-                                  equipment_type_id: equipment.id,
-                                  name: equipment.name,
-                                  desc: equipment.description,
-                                  total_cost: equipment.total_cost,
-                                },
-                              ],
-                            }));
-                          } else {
-                            setQuoteData((prev) => ({
-                              ...prev,
-                              equipment: prev.equipment.filter(
-                                (eq) => eq.equipment_type_id !== equipment.id
-                              ),
-                            }));
-                          }
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {equipmentRates
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((equipment) => {
+                const isChecked = quoteData.equipment.some(
+                  (eq) => eq.equipment_type_id === equipment.id
+                );
+
+                return (
+                  <Card key={equipment.id} className="p-4 gradient-card">
+                    <div className="items-center justify-between">
+                      <div className="grid grid-cols-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setQuoteData((prev) => ({
+                                  ...prev,
+                                  equipment: [
+                                    ...prev.equipment,
+                                    {
+                                      equipment_type_id: equipment.id,
+                                      name: equipment.name,
+                                      desc: equipment.description,
+                                      total_cost: equipment.total_cost,
+                                    },
+                                  ],
+                                }));
+                              } else {
+                                setQuoteData((prev) => ({
+                                  ...prev,
+                                  equipment: prev.equipment.filter(
+                                    (eq) => eq.equipment_type_id !== equipment.id
+                                  ),
+                                }));
+                              }
+                            }}
+                          />
+                          <div>
+                            <h4 className="font-medium">{equipment.name}</h4>
+                            {equipment.description && (
+                              <p className="text-sm text-muted-foreground">{equipment.description}</p>
+                            )}
+                          </div>
+                          </div>
+                          <div>
+                          {quoteData.equipment.some(e => e.equipment_type_id === equipment.id) && (
+                            <div className='ml-7 mt-2 justify-center'>
+                              <Label htmlFor="cost">Cost</Label>
+                                <Input
+                                  id={`cost-${equipment.id}`}
+                                  type="number"
+                                  required
+                                  placeholder="e.g., 5000"
+                                  value={
+                                    quoteData.equipment.find(e => e.equipment_type_id === equipment.id)?.total_cost || '1'
+                                  }
+                                  onChange={(e) => {
+                                    const total = parseInt(e.target.value) || 0;
+                                    setQuoteData(prev => ({
+                                      ...prev,
+                                      equipment: prev.equipment.map(eq =>
+                                        eq.equipment_type_id === equipment.id
+                                          ? {
+                                              ...eq,
+                                              total_cost: total
+                                            }
+                                          : eq
+                                      )
+                                    }));
+                                  }}
+                                />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+
+              {/* Custom Equipment Section */}
+              {quoteData.equipment
+                .filter(
+                  (eq) =>
+                    !equipmentRates.some((e) => e.id === eq.equipment_type_id)
+                )
+                .map((eq) => (
+                  <Card
+                    key={eq.equipment_type_id}
+                    className="p-4 gradient-card flex items-center space-x-2"
+                  >
+                    {/* Editable Name */}
+                    <Label htmlFor={`name-${eq.equipment_type_id}`}>
+                      Name
+                    </Label>
+                    <Input
+                      id={`name-${eq.equipment_type_id}`}
+                      type="text"
+                      value={eq.name}
+                      onChange={(e) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          equipment: prev.equipment.map((item) =>
+                            item.equipment_type_id === eq.equipment_type_id
+                              ? { ...item, name: e.target.value }
+                              : item
+                          ),
+                        }))
+                      }
+                      placeholder="Custom Equipment Name"
+                    />
+
+                    {/* Editable Daily Rate */}
+                    <div className='flex items-center'>
+                      <Label className='mr-1 items-center justify-center' htmlFor={`cost-${eq.equipment_type_id}`}>
+                        Cost
+                      </Label>
+                      <Input
+                        id={`cost-${eq.equipment_type_id}`}
+                        type="number"
+                        min="0"
+                        value={eq.total_cost}
+                        onChange={(e) => {
+                          const newRate = parseInt(e.target.value) || 0;
+                          setQuoteData((prev) => ({
+                            ...prev,
+                            equipment: prev.equipment.map((item) =>
+                              item.equipment_type_id === eq.equipment_type_id
+                                ? {
+                                    ...item,
+                                    total_cost: newRate 
+                                  }
+                                : item
+                            ),
+                          }));
                         }}
                       />
-                      <div>
-                        <h4 className="font-medium">{equipment.name}</h4>
-                        {equipment.description && (
-                          <p className="text-sm text-muted-foreground">{equipment.description}</p>
-                        )}
-                      </div>
-                      </div>
-                      <div>
-                       {quoteData.equipment.some(e => e.equipment_type_id === equipment.id) && (
-                        <div className='ml-7 mt-2 justify-center'>
-                          <Label htmlFor="cost">Cost</Label>
-                            <Input
-                              id={`cost-${equipment.id}`}
-                              type="number"
-                              required
-                              placeholder="e.g., 5000"
-                              value={
-                                quoteData.equipment.find(e => e.equipment_type_id === equipment.id)?.total_cost || '1'
-                              }
-                              onChange={(e) => {
-                                const total = parseInt(e.target.value) || 0;
-                                setQuoteData(prev => ({
-                                  ...prev,
-                                  equipment: prev.equipment.map(eq =>
-                                    eq.equipment_type_id === equipment.id
-                                      ? {
-                                          ...eq,
-                                          total_cost: total
-                                        }
-                                      : eq
-                                  )
-                                }));
-                              }}
-                            />
-                        </div>
-                       )}
                     </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
 
-          {/* Custom Equipment Section */}
-          {quoteData.equipment
-            .filter(
-              (eq) =>
-                !equipmentRates.some((e) => e.id === eq.equipment_type_id)
-            )
-            .map((eq) => (
-              <Card
-                key={eq.equipment_type_id}
-                className="p-4 gradient-card flex items-center space-x-2"
-              >
-                {/* Editable Name */}
-                <Label htmlFor={`name-${eq.equipment_type_id}`}>
-                  Name
-                </Label>
-                <Input
-                  id={`name-${eq.equipment_type_id}`}
-                  type="text"
-                  value={eq.name}
-                  onChange={(e) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      equipment: prev.equipment.map((item) =>
-                        item.equipment_type_id === eq.equipment_type_id
-                          ? { ...item, name: e.target.value }
-                          : item
-                      ),
-                    }))
-                  }
-                  placeholder="Custom Equipment Name"
-                />
+                    {/* Remove button */}
+                    <div className='flex items-center'>
+                    <Button
+                      className="self-end"
+                      variant='destructive'
+                      onClick={() =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          equipment: prev.equipment.filter(
+                            (item) =>
+                              item.equipment_type_id !== eq.equipment_type_id
+                          ),
+                        }))
+                      }
+                    >
+                      <Trash/>
+                    </Button>
+                    </div>
+                  </Card>
+                ))}
 
-                {/* Editable Daily Rate */}
-                <div className='flex items-center'>
-                  <Label className='mr-1 items-center justify-center' htmlFor={`cost-${eq.equipment_type_id}`}>
-                    Cost
-                  </Label>
-                  <Input
-                    id={`cost-${eq.equipment_type_id}`}
-                    type="number"
-                    min="0"
-                    value={eq.total_cost}
-                    onChange={(e) => {
-                      const newRate = parseInt(e.target.value) || 0;
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        equipment: prev.equipment.map((item) =>
-                          item.equipment_type_id === eq.equipment_type_id
-                            ? {
-                                ...item,
-                                total_cost: newRate 
-                              }
-                            : item
-                        ),
-                      }));
-                    }}
-                  />
-                </div>
-
-                {/* Remove button */}
-                <div className='flex items-center'>
+              {/* Add Custom Equipment Button */}
+              <Card className="p-4 gradient-card flex flex-col items-center justify-center">
                 <Button
-                  className="self-end"
-                  variant='destructive'
-                  onClick={() =>
+                  className="px-4 py-2 text-white hover:bg-blue-600"
+                  onClick={() => {
+                    const customId = uuidv4();
                     setQuoteData((prev) => ({
                       ...prev,
-                      equipment: prev.equipment.filter(
-                        (item) =>
-                          item.equipment_type_id !== eq.equipment_type_id
-                      ),
-                    }))
-                  }
+                      equipment: [
+                        ...prev.equipment,
+                        {
+                          equipment_type_id: customId,
+                          name: "",
+                          total_cost: 0,
+                        },
+                      ],
+                    }));
+                  }}
                 >
-                  <Trash/>
+                  + Add Custom Equipment
                 </Button>
-                </div>
               </Card>
-            ))}
-
-          {/* Add Custom Equipment Button */}
-          <Card className="p-4 gradient-card flex flex-col items-center justify-center">
-            <Button
-              className="px-4 py-2 text-white hover:bg-blue-600"
-              onClick={() => {
-                const customId = uuidv4();
-                setQuoteData((prev) => ({
-                  ...prev,
-                  equipment: [
-                    ...prev.equipment,
-                    {
-                      equipment_type_id: customId,
-                      name: "",
-                      total_cost: 0,
-                    },
-                  ],
-                }));
-              }}
-            >
-              + Add Custom Equipment
-            </Button>
-          </Card>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      );
 
-      case 4:
+      case 5:
   return (
     <div className="space-y-6">
       <div>
@@ -1162,7 +1169,7 @@ case 3:
     </div>
   );
 
-        case 5:
+        case 6:
         return (
           <div className="space-y-6">
             <div>
@@ -1301,7 +1308,7 @@ case 3:
         );
 
         
-      case 6:
+      case 7:
         return (
           <div className="space-y-6">
             <div>
@@ -1380,7 +1387,7 @@ case 3:
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="space-y-6">
             {calculation? (
@@ -1814,7 +1821,7 @@ case 3:
               </div>
             ))}
           </div>
-          <Progress value={(currentStep / 7) * 100} className="w-full" />
+          <Progress value={(currentStep / 8) * 100} className="w-full" />
         </div>
 
         <AnimatePresence mode="wait" custom={direction}>
@@ -1848,7 +1855,7 @@ case 3:
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 7 && (
+          {currentStep < 8 && (
             <Button onClick={nextStep} className="text-white">
               Next
               <ArrowRight className="w-4 h-4 ml-2 text-white" />

@@ -420,13 +420,14 @@ export const useQuoteCalculations = () => {
         let profitSub = 0;
 
         const updated = selectedSubcontractors.map(sub => {
-          let total = 100;
+          let total = 0;
 
           if (sub.subcontractor_payment_plan?.toLowerCase() === "daily") {
             total = (Number(sub.price) || 10) * (Number(sub.days) || 0);
           } else if (sub.subcontractor_payment_plan?.toLowerCase() === "full") {
             total = Number(sub.total) || 0;
           }
+          sub.total = total
 
           profitSub =  (total * profit_percentages);
           totalAll += total

@@ -137,6 +137,19 @@ export default function MasonryCalculatorForm({quote, setQuote, materialBasePric
             </SelectContent>
           </Select>
 
+          <Input
+            type="text"
+            value={quote.mortarRatio || "1:3"}
+            onChange={(e) => setQuote({ ...quote, mortarRatio: e.target.value })}
+          />
+
+          <Input
+            type="number"
+            step="0.001"
+            value={quote.jointThickness || 0.01}
+            onChange={(e) => setQuote({ ...quote, jointThickness: parseFloat(e.target.value) })}
+          />
+
           {/* --- Doors --- */}
           <div className="col-span-3 space-y-2 mt-3">
             <h3 className="font-medium">Doors</h3>

@@ -63,7 +63,7 @@ export const QuotePDF = ({ quote, isClientExport = false }: QuotePDFProps) => {
 };
 
   // Helper: Render key-value list
-  const renderList = (title: string, items: any[], valueKey: 'price' | 'total_price' | 'cost' | 'total_cost' = 'price') => {
+  const renderList = (title: string, items: any[], valueKey: 'price' | 'total_price' | 'cost' | 'total_cost' | 'total' = 'price') => {
     return renderSection(title, items, (item, i) => (
       <View style={styles.row} key={i}>
         <Text style={styles.name}>{item.name || item.type || 'Item'}</Text>
@@ -292,7 +292,7 @@ export const QuotePDF = ({ quote, isClientExport = false }: QuotePDFProps) => {
         {renderList('Equipment', quote.equipment, 'total_cost')}
 
         {/* SUBCONTRACTORS */}
-        {renderList('Subcontractors', quote.subcontractors, 'price')}
+        {renderList('Subcontractors', quote.subcontractors, 'total')}
 
         {/* ADDONS (Subcontractor Materials) */}
         {renderList('Subcontractor Materials', quote.addons, 'price')}

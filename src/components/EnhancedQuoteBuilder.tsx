@@ -1453,7 +1453,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
                       {quoteData.subcontractors.map((item, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>{item.name}</span>
-                          <span>KSh {item.price}</span>
+                          <span>KSh {item.total}</span>
                         </div>
                       ))}
                     </CardContent>
@@ -1680,10 +1680,6 @@ const EnhancedQuoteBuilder = ({quote}) => {
                           <div className="flex justify-between">
                             <p>Labour</p>
                             <p>KSh {calculation.labor_cost}</p>
-                          </div>
-                          <div className="flex justify-between">
-                            <p>Total</p>
-                            <p>KSh {calculation.total_amount}</p>
                           </div>
                           <div className="flex justify-between">
                             <p>Profit</p>

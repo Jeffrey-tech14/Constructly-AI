@@ -58,10 +58,13 @@ export default function useMasonryCalculator({
   const rooms = quote?.rooms ?? [];
 
   // Constants for calculation
-  const BRICKS_PER_SQM = 50;
-  const CEMENT_PER_SQM = 0.03;
-  const SAND_PER_SQM = 0.07;
+  const JOINT_THICKNESS = 0.01; // 10mm mortar joint
+  const CEMENT_PER_SQM_PLASTER = 0.03;
+  const SAND_PER_SQM_PLASTER = 0.07;
   const MORTAR_PER_SQM = 0.02;
+  const PAINT_PER_SQM = 0.15;
+  const CEILING_PER_SQM = 1;
+  const FLOORING_PER_SQM = 1;
 
   const parseSize = useCallback((str: string): number => {
     if (!str) return 0;
@@ -344,8 +347,35 @@ const addWindow = (i: number) => {
       }
     }, [user, profile, fetchMaterials]);
 
+    const parseMortarRatio = (ratio: string) => {
+      if (!ratio) return { cementPart: 1, sandPart: 3 };
+      const [c, s] = ratio.split(":").map(Number);
+      return {
+        cementPart: isNaN(c) ? 1 : c,
+        sandPart: isNaN(s) ? 3 : s,
+      };
+    };
+
+    const getBlockAreaWithJoint = (room: Room): number => {
+      const joint = quote?.jointThickness || 0.01; // default 10mm
+
+      if (room.blockType === "Custom" && room.customBlock?.length && room.customBlock?.height) {
+        const l = Number(room.customBlock.length) + joint;
+        const h = Number(room.customBlock.height) + joint;
+        return l * h;
+      }
+
+      const blockDef = blockTypes.find((b) => b.name === room.blockType);
+      if (blockDef && blockDef.size) {
+        return (blockDef.size.length + joint) * (blockDef.size.height + joint);
+      }
+
+      return (0.225 + joint) * (0.075 + joint); // brick default
+    };
+
   const calculateMasonry = useCallback(() => {
     if (!rooms.length) return;
+    const { cementPart, sandPart } = parseMortarRatio(quote?.mortarRatio || "1:3");
 
     let totals = {
       roomArea: 0,
@@ -365,8 +395,13 @@ const addWindow = (i: number) => {
 
       const cementPrice = materials.find((m) => m.name?.toLowerCase() === "cement")?.price;
       const sandPrice = materials.find((m) => m.name?.toLowerCase() === "sand")?.price;
+      const paintPrice = materials.find((m) => m.name?.toLowerCase().includes("paint"))?.price || 0;
+      const ceilingPrice =
+        materials.find((m) => m.name?.toLowerCase().includes("ceiling"))?.price || 0;
+      const flooringPrice =
+        materials.find((m) => m.name?.toLowerCase().includes("floor"))?.price || 0;
 
-      const roomArea = Number(room.length) * Number(room.height)* 4;
+      const roomArea = (Number(room.length) * Number(room.height) * 2) + (Number(room.width) * Number(room.height) * 2);
       let openings = 0;
       let openingsCost = 0;
 
@@ -419,8 +454,13 @@ const addWindow = (i: number) => {
       });
 
       const netArea = roomArea - openings;
-      const blocks = Math.round(netArea / getBlockArea(room));
-      const mortar = netArea * MORTAR_PER_SQM;
+      const blocks = Math.ceil(netArea / getBlockAreaWithJoint(room));
+      const mortar = Math.round(netArea * MORTAR_PER_SQM);
+      const totalParts = cementPart + sandPart;
+      const cementQty = mortar * (cementPart / totalParts);
+      const sandQty = mortar * (sandPart / totalParts);
+
+      const mortarCost = cementQty * cementPrice + sandQty * sandPrice;
 
       let plasterArea = 1;
       if (room.plaster === "One Side") {
@@ -429,16 +469,23 @@ const addWindow = (i: number) => {
         plasterArea = netArea * 2;
       }
 
-      const plasterCement = plasterArea * CEMENT_PER_SQM;
-      const plasterSand = plasterArea * SAND_PER_SQM;
+      const plasterCement = plasterArea * CEMENT_PER_SQM_PLASTER;
+      const plasterSand = plasterArea * SAND_PER_SQM_PLASTER;
 
       const blockCost = Math.round(blocks * blockPrice);
-      const mortarCost = Math.round(mortar * (cementPrice * 0.4 + sandPrice * 0.6));
       const plasterCost = plasterArea > 0
         ? Math.round(plasterCement * cementPrice + plasterSand * sandPrice)
         : 0;
 
-      const roomTotalCost = Math.round(blockCost + mortarCost + plasterCost + openingsCost + Math.round((plasterCement * cementPrice) + (mortar * (cementPrice * 0.4))) + Math.round((plasterSand * sandPrice) + (mortar * (sandPrice * 0.6))));
+      const floorArea = Number(room.length) * Number(room.width);
+      const paintArea = netArea + plasterArea;
+      const ceilingArea = floorArea;
+
+      const paintCost = paintArea * PAINT_PER_SQM * paintPrice;
+      const ceilingCost = ceilingArea * CEILING_PER_SQM * ceilingPrice;
+      const flooringCost = floorArea * FLOORING_PER_SQM * flooringPrice;
+
+      const roomTotalCost = Math.round(blockCost + mortarCost + plasterCost + openingsCost + Math.round((plasterCement * cementPrice) + Math.round((plasterSand * sandPrice))));
 
       // Update totals
       totals.roomArea += roomArea;
@@ -496,11 +543,11 @@ const addWindow = (i: number) => {
         openingsCost,
         totalCost: Math.round(roomTotalCost),
         // Material costs
-        cementCost: Math.round((plasterCement * cementPrice) + (mortar * (cementPrice * 0.4))),
-        sandCost: Math.round((plasterSand * sandPrice) + (mortar * (sandPrice * 0.6))),
+        cementCost: Math.round((plasterCement * cementPrice) + (cementQty * cementPrice)),
+        sandCost: Math.round((plasterSand * sandPrice) + (sandQty * sandPrice)),
         // Quantities
-        cementBags: Math.round(plasterCement),
-        sandVolume: Math.round(plasterSand),
+        cementBags: (plasterCement + cementQty).toFixed(2),
+        sandVolume: (plasterSand + sandQty).toFixed(2),
         stoneVolume: 0, // Add if you calculate stone for concrete
       };
     });
@@ -513,7 +560,7 @@ const addWindow = (i: number) => {
     }));
 
     setResults(totals);
-  }, [rooms, getMaterialPrice, parseSize, MORTAR_PER_SQM, CEMENT_PER_SQM, SAND_PER_SQM, quote.percentages, setQuote]);
+  }, [rooms, getMaterialPrice, parseSize, MORTAR_PER_SQM, CEMENT_PER_SQM_PLASTER, SAND_PER_SQM_PLASTER, quote.percentages, setQuote]);
 
   // Auto-calculate when rooms change
   useEffect(() => {

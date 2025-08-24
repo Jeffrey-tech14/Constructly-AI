@@ -45,7 +45,7 @@ const makeDefaultRow = (): RebarRow => ({
 
   slabLayers: undefined,
 
-  primaryBarSize: undefined,
+  primaryBarSize: "Y12",
   meshXSize: undefined,
   meshYSize: undefined,
   stirrupSize: undefined,

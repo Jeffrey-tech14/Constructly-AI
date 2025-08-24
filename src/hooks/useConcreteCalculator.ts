@@ -11,6 +11,7 @@ export interface ConcreteRow {
   width: string;  // meters
   height: string; // meters (for slab this is thickness)
   mix: string;    // e.g. "1:2:4"
+  formwork?: string;
 }
 
 export interface ConcreteResult {
@@ -21,6 +22,7 @@ export interface ConcreteResult {
   cementBags: number;
   sandM3: number;
   stoneM3: number;
+  formworkM2: number;
 }
 
 const CEMENT_DENSITY = 1440; // kg/m3
@@ -36,18 +38,16 @@ export function parseMix(mix?: string): [number, number, number] {
   return [parts[0], parts[1], parts[2]];
 }
 
-
 export function calculateConcrete(row: ConcreteRow): ConcreteResult {
-  const { length, width, height, mix, id, name, element } = row;
+  const { length, width, height, mix, id, name, element, formwork } = row;
 
-  // Volume of element
-  const volume = parseFloat(length) * parseFloat(width) * parseFloat(height); // m³
+  // Volume
+  const volume = parseFloat(length) * parseFloat(width) * parseFloat(height);
 
-  // Mix ratio breakdown
+  // Mix ratio
   const [c, s, st] = parseMix(mix);
   const totalParts = c + s + st;
 
-  // Assume 1 m³ concrete ~ 2400 kg (approx density of concrete)
   const totalMass = 2400 * volume;
 
   // Cement
@@ -62,6 +62,28 @@ export function calculateConcrete(row: ConcreteRow): ConcreteResult {
   const stoneMass = (st / totalParts) * totalMass;
   const stoneM3 = stoneMass / STONE_DENSITY;
 
+  // Formwork: either user-input, or approximate surface area
+  let formworkM2 = 0;
+
+  if (formwork && !isNaN(parseFloat(formwork))) {
+    formworkM2 = parseFloat(formwork);
+  } else {
+    if (element === "slab") {
+      formworkM2 = parseFloat(length) * parseFloat(width);
+    } else if (element === "beam") {
+      formworkM2 =
+        2 * parseFloat(height) * parseFloat(length) +
+        parseFloat(width) * parseFloat(length);
+    } else if (element === "column") {
+      formworkM2 =
+        2 * (parseFloat(width) + parseFloat(length)) * parseFloat(height);
+    } else if (element === "foundation") {
+      formworkM2 =
+        2 * parseFloat(height) * parseFloat(length) +
+        parseFloat(width) * parseFloat(length);
+    }
+  }
+
   return {
     id,
     name,
@@ -70,5 +92,6 @@ export function calculateConcrete(row: ConcreteRow): ConcreteResult {
     cementBags,
     sandM3,
     stoneM3,
+    formworkM2,
   };
 }

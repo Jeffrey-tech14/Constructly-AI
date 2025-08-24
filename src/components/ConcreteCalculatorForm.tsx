@@ -158,14 +158,16 @@
         acc.cement += r.cementBags;
         acc.sand += r.sandM3;
         acc.stone += r.stoneM3;
+        acc.formworkM2 += r.formworkM2;
         return acc;
       },
-      { volume: 0, cement: 0, sand: 0, stone: 0 }
+      { volume: 0, cement: 0, sand: 0, stone: 0, formworkM2:0 }
     );
 
     const cementMat = materials.find((m) => m.name?.toLowerCase() === "cement");
     const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
     const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
+    const formworkMat = materials.find((m) => m.name?.toLowerCase() === "formwork");
 
     // ---- Build line items into quote.concrete_materials (guarded to avoid loop)
     useEffect(() => {
@@ -201,6 +203,13 @@
           unit_price: ballastMat.price,
           total_price: Math.round(r.stoneM3 * ballastMat.price),
         },
+        {
+          rowId: r.id,
+          name: `Formwork (${r.name})`,
+          quantity: r.formworkM2,
+          unit_price: formworkMat?.price || 0,
+          total_price: Math.round(r.formworkM2 * (formworkMat?.price || 0)),
+        },
       ]);
 
       const totalsRows = [
@@ -227,16 +236,25 @@
         },
         {
           rowId: "totals",
+          name: "Total Formwork",
+          quantity: totals.formworkM2,
+          unit_price: formworkMat?.price || 0,
+          total_price: Math.round(totals.formworkM2 * (formworkMat?.price || 0)),
+        },
+        {
+          rowId: "totals",
           name: "Grand Total",
           quantity: 1,
           unit_price:Math.round(
             totals.cement * cementMat.price +
             totals.sand * sandMat.price +
-            totals.stone * ballastMat.price),
+            totals.stone * ballastMat.price + 
+            totals.formworkM2 * formworkMat.price),
           total_price:Math.round(
             totals.cement * cementMat.price +
             totals.sand * sandMat.price +
-            totals.stone * ballastMat.price,),
+            totals.stone * ballastMat.price + 
+            totals.formworkM2 * formworkMat.price),
         },
       ];
 
@@ -334,6 +352,10 @@
                     <b>Ballast:</b> {result.stoneM3.toFixed(2)} m³ —{" "}
                     <b>Ksh {Math.round(result.stoneM3 * (ballastMat?.price || 0))}</b>
                   </p>
+                  <p>
+                    <b>Formwork:</b> {result.formworkM2.toFixed(2)} m³ —{" "}
+                    <b>Ksh {Math.round(result.formworkM2 * (formworkMat?.price || 0))}</b>
+                  </p>
                 </div>
               )}
             </div>
@@ -360,6 +382,10 @@
           <p>
             <b>Total Ballast:</b> {totals.stone.toFixed(2)} m³ —{" "}
             <b>Ksh {Math.round(totals.stone * (ballastMat?.price || 0))}</b>
+          </p>
+          <p>
+            <b>Total Formwork:</b> {totals.formworkM2.toFixed(2)} m³ —{" "}
+            <b>Ksh {Math.round(totals.formworkM2 * (formworkMat?.price || 0))}</b>
           </p>
         </div>
       </div>

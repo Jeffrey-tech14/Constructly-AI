@@ -303,7 +303,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
       // if(currentStep + 1 === 3){
       //   calculateMasonry()
       // }
-      if(currentStep+1 === 7){
+      if(currentStep+1 === 8){
         handleCalculate();
       }
     }
@@ -319,7 +319,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
   // useEffect(() => {
   //   if (extractedPlan?.rooms.length) {
   //     const formattedRooms = extractedPlan.rooms.map(room => ({
-  //       room_name: room.name,
+  //       room_name: room.room_name,
   //       length: room.length.toFixed(2),
   //       width: room.width.toFixed(2),
   //       height: room.height?.toFixed(2) || '3.00',
@@ -521,19 +521,19 @@ const EnhancedQuoteBuilder = ({quote}) => {
         !!quoteData.client_email &&
         !!quoteData.location &&
         !!quoteData.project_type &&
-        !!quoteData.region
+        !!quoteData.region &&
+        !!quoteData.contract_type 
       );
     case 2:
       return (
         !!quoteData.house_type         
       );
     case 3:
-      return (
-        !!quoteData.contract_type 
-      );
     case 4:
     case 5:
     case 6:
+    case 7:
+    case 8:
       return true;
     default:
       return false;

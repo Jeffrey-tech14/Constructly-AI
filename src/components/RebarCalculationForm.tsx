@@ -165,7 +165,7 @@ export default function RebarCalculatorForm({
         <Button variant="secondary" className="text-white" onClick={() => setShowAdvanced(v => !v)}>
           {showAdvanced ? "Hide Advanced" : "Show Advanced"}
         </Button>
-        <Button variant="outline" onClick={exportJSON}>Export JSON</Button>
+        {/* <Button variant="outline" onClick={exportJSON}>Export JSON</Button> */}
         <div className="ml-auto text-right">
           <div className="font-semibold">Grand Total</div>
           <div>Length: {grand.length.toFixed(2)} m</div>

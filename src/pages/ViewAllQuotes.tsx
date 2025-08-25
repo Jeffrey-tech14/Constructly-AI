@@ -288,11 +288,11 @@ if(!user){
                         </div>
 
                         {/* Materials breakdown */}
-                        {quote.materials && quote.materials.length > 0 && (
+                        {quote.masonry_materials && quote.masonry_materials.length > 0 && (
                           <div>
                             <h4 className="font-semibold mb-3 text-white">Materials</h4>
                             <div className="space-y-2">
-                              {quote.materials.map((material: any, index: number) => (
+                              {quote.masonry_materials.map((material: any, index: number) => (
                                 <div key={index} className="flex justify-between items-center p-3 rounded">
                                   <div>
                                     <span className="font-medium text-white">{material.name}</span>
@@ -309,20 +309,78 @@ if(!user){
                           </div>
                         )}
 
+
                         {/* Equipment breakdown */}
                         {quote.equipment && quote.equipment.length > 0 && (
-                          <div>
-                            <h4 className="font-semibold mb-3 text-white">Equipment</h4>
-                            <div className="space-y-2">
-                              {quote.equipment.map((equipment: any, index: number) => (
-                                <div key={index} className="flex justify-between items-center p-3 rounded">
-                                  <span className="font-medium text-white">{equipment.name || `Equipment ${index + 1}`}</span>
-                                  <span className="font-semibold text-white">
-                                    KSh {(formatCurrency((equipment.total_cost || 0)).toLocaleString())}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Equipment costs</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.equipment_costs) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.transport_costs && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Transport costs</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.transport_costs) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.profit_amount && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Profits</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.profit_amount) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.additional_services_cost && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Additonal services</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.additional_services_cost) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.addons_cost && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Subcontractor costs</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.addons_cost) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.materials_cost && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Materials</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.materials_cost) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.permit_cost && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Permit costs</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.permit_cost) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.overhead_amount && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Overhead amount</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.overhead_amount) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.contingency_amount && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Contingency</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.contingency_amount) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.labor_cost && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Labour</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.labor_cost) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.profit_amount && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Profit</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.profit_amount) || 0}</strong></p>
+                          </div>
+                        )}
+                        {quote.total_amount && (
+                          <div className="flex justify-between">
+                            <p className='text-white'><strong>Total</strong></p>
+                            <p className='text-white'><strong>KSh {formatCurrency(quote.total_amount) || 0}</strong></p>
                           </div>
                         )}
                       </div>

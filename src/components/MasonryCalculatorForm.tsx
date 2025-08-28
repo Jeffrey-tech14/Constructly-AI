@@ -44,17 +44,12 @@ export default function MasonryCalculatorForm({quote, setQuote, materialBasePric
           className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
         >
           {/* Room Type */}
-          <Select
-            value={room.room_name || "Unnamed"}
-            onValueChange={(value) => handleRoomChange(index, "room_name", value)}
-          >
-            <SelectTrigger><SelectValue placeholder="Select room type" /></SelectTrigger>
-            <SelectContent>
-              {roomTypes.map((r) => (
-                <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            type="text"
+            value={room.room_name || ""}
+            onChange={(e) => handleRoomChange(index, "room_name", e.target.value)}
+            placeholder="Enter room name"
+          />
 
           {/* Length */}
           <Input

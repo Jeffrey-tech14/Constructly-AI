@@ -372,11 +372,11 @@ export const useQuoteCalculations = () => {
       );
 
       // ✅ Apply profit margin
-      const rebarProfits = rebarCost * defaultProfitMargin;
+      const rebarProfits = rebarCost * defaultProfitMargin || 0;
 
-      const masonryProfits = masonry_materials.cost * defaultProfitMargin
-      const concreteProfits = concrete_materials[0].total_price * defaultProfitMargin
-      const concretePrice = concrete_materials[0].total_price;
+      const masonryProfits = masonry_materials.cost * defaultProfitMargin|| 0
+      const concreteProfits = concrete_materials[0].total_price * defaultProfitMargin|| 0
+      const concretePrice = concrete_materials[0].total_price || 0;
 
       const totalMaterialPrice = Math.round(concretePrice + masonry_materials.cost + rebarCost)
 

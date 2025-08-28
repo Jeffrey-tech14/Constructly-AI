@@ -2,7 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Home, ArrowLeft, Wrench } from 'lucide-react';
+import { Home, ArrowLeft, DraftingCompass } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,7 +21,7 @@ const NotFound = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-center mb-6">
               <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <Wrench className="sm:w-8 sm:h-8 text-white" />
+                <DraftingCompass className="sm:w-8 sm:h-8 text-white" />
               </div>
             </div>
             

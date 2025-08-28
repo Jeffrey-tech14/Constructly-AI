@@ -249,10 +249,10 @@ quotes.forEach((quote) => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
         <div className="mb-8">
-          <div className="flex items-center sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <div className="flex items-center sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
             <Crown className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
             Admin Dashboard</div>
-          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">Manage users, monitor system performance, and control platform settings</p>
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent mt-2">Manage users, monitor system performance, and control platform settings</p>
         </div>
 
         {/* Stats Overview */}

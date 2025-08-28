@@ -15,7 +15,7 @@ import {
   Settings, 
   TrendingUp, 
   Calendar,
-  Wrench,
+  DraftingCompass,
   ArrowLeft,
   Edit,
   Save,
@@ -190,9 +190,9 @@ const fetchDashboardStats = async (userId: string) => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between items-start">
           <div className='items-center'>
-            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
               <LucidePersonStanding className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-blue-300" />Profile</h1>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">Manage your account and subscription</p>
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">Manage your account and subscription</p>
           </div>
           <Button className='text-white' onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
             {isEditing ? <Save className="w-4 h-4 mr-2 text-white" /> : <Edit className="w-4 h-4 mr-2 text-white" />}

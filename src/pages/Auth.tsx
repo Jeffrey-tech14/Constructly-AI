@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Wrench, ArrowLeft, Loader2 } from 'lucide-react';
+import { DraftingCompass, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from '@/hooks/use-toast';
@@ -128,7 +128,7 @@ const Auth = () => {
           </Button>
             <div className="flex items-center justify-center mb-4">
               <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <Wrench className="sm:w-8 sm:h-8 text-white" />
+                <DraftingCompass className="sm:w-8 sm:h-8 text-white" />
               </div>
             <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">Constructly</span>
           </div>

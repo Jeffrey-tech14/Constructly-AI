@@ -255,7 +255,7 @@ const addWindow = (i: number) => {
 
   if (!effectiveMaterial) return 0;
 
-  else if (effectiveMaterial.name === "Bricks" || effectiveMaterial.name.includes("Block")) {
+  else if (effectiveMaterial.name === "Bricks" ) {
     // For blocks/bricks, return the price of the first type or a specific type
     if (effectiveMaterial.type && effectiveMaterial.type.length > 0) {
       const blockType = specificType 
@@ -357,7 +357,7 @@ const addWindow = (i: number) => {
     };
 
     const getBlockAreaWithJoint = (room: Room): number => {
-      const joint = quote?.jointThickness || 0.01; // default 10mm
+      const joint = quote?.jointThickness || JOINT_THICKNESS; // default 10mm
 
       if (room.blockType === "Custom" && room.customBlock?.length && room.customBlock?.height) {
         const l = Number(room.customBlock.length) + joint;

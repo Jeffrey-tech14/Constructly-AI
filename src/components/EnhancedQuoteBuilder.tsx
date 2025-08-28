@@ -201,7 +201,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
     client_email: '',
     title: '',
     location: '',
-    id:'',
+    id: uuidv4(),
     subcontractors: [],
     concrete_rows:[],
     rebar_rows:[],
@@ -261,6 +261,44 @@ const EnhancedQuoteBuilder = ({quote}) => {
     fetchLimit();
   }, [user, location.key]);
 
+  // When an extracted plan exists, seed rooms and floors
+  useEffect(() => {
+    if (extractedPlan && extractedPlan.rooms?.length) {
+      setQuoteData(prev => ({
+        ...prev,
+        floors: extractedPlan.floors || prev.floors,
+        rooms: extractedPlan.rooms.map((room) => ({
+          room_name: room.room_name,
+          length: room.length,
+          width: room.width,
+          height: room.height || '2.7',
+          doors: room.doors || [],
+          windows: room.windows || [],
+          blockType: room.blockType || 'Standard Block (400×200×200mm)',
+          thickness: room.thickness || '0.2',
+          customBlock: room.customBlock || { price: '', height: '', length: '', thickness: '' },
+          roomArea: 0,
+          plasterArea: 0,
+          openings: 0,
+          netArea: 0,
+          blocks: 0,
+          mortar: 0,
+          plaster: 0,
+          blockCost: 0,
+          mortarCost: 0,
+          plasterCost: 0,
+          openingsCost: 0,
+          cementBags: 0,
+          cementCost: 0,
+          sandVolume: 0,
+          sandCost: 0,
+          stoneVolume: 0,
+          totalCost: 0,
+        })),
+      }));
+    }
+  }, [extractedPlan]);
+
   const steps = [
     { id: 1, name: 'Project Details', icon: <FileText className="w-5 h-5" /> },
     { id: 2, name: 'Concrete and Rebar', icon: <Building className="w-5 h-5" /> },
@@ -315,22 +353,6 @@ const EnhancedQuoteBuilder = ({quote}) => {
       setCurrentStep(currentStep - 1);
     }
   };
-
-  // useEffect(() => {
-  //   if (extractedPlan?.rooms.length) {
-  //     const formattedRooms = extractedPlan.rooms.map(room => ({
-  //       room_name: room.room_name,
-  //       length: room.length.toFixed(2),
-  //       width: room.width.toFixed(2),
-  //       height: room.height?.toFixed(2) || '3.00',
-  //       doors: room.doors?.toString() || '1',
-  //       windows: room.windows?.toString() || '1'
-  //     }));
-  //     setRooms(formattedRooms);
-  //   } else {
-  //     setRooms([{ room_name: '', length: '', width: '', height: '3', doors: '1', windows: '1' }]);
-  //   }
-  // }, [extractedPlan]);
 
   const handleCalculate = async () => {
     try {
@@ -545,6 +567,15 @@ const EnhancedQuoteBuilder = ({quote}) => {
       case 1:
         return (
           <div className="space-y-6">
+            {profile.tier !== "Free" && (
+              <Button
+                onClick={() => 
+                  navigate('/upload/plan', { state: { quoteData }})}
+                className="-mb-3 animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              >
+                Upload Plan
+              </Button>
+              )}
             <div>
               <Label htmlFor="projectName">Project Name *</Label>
               <Input
@@ -676,14 +707,6 @@ const EnhancedQuoteBuilder = ({quote}) => {
               <div className='border dark:border-white/10 border-primary/30 mb-3 p-3 rounded-lg'>
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">House Type *</h3>
-              {profile.tier !== "Free" && (
-              <Button
-                onClick={() => navigate('/uploadplan', { state: { quoteData }})}
-                className="mb-3 animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-              >
-                Upload Plan
-              </Button>
-              )}
               </div>
               <Select required value={quoteData.house_type} onValueChange={(value) => setQuoteData(prev => ({ ...prev, house_type: value }))}>
                 <SelectTrigger>
@@ -1524,32 +1547,6 @@ const EnhancedQuoteBuilder = ({quote}) => {
                               <p>Ksh {item?.totalPrice}</p>
                             </div>
                           </div>
-
-                          {/* Breakdown */}
-                          {item?.breakdown && (
-                            <div className="mt-2">
-                              <p className="font-semibold">Breakdown:</p>
-                              <ul className="list-disc pl-6">
-                                <li>Ties: {item.breakdown.ties}</li>
-                                <li>Mesh X: {item.breakdown.meshX}</li>
-                                <li>Mesh Y: {item.breakdown.meshY}</li>
-                                <li>Stirrups: {item.breakdown.stirrups}</li>
-                                <li>Verticals: {item.breakdown.verticals}</li>
-                                <li>Longitudinal: {item.breakdown.longitudinal}</li>
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Weight breakdown */}
-                          {item?.weightBreakdownKg && (
-                            <div className="mt-2">
-                              <p className="font-semibold">Weight Breakdown (Kg):</p>
-                              <ul className="list-disc pl-6">
-                                <li>Mesh X: {item.weightBreakdownKg.meshX}</li>
-                                <li>Mesh Y: {item.weightBreakdownKg.meshY}</li>
-                              </ul>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </CardContent>
@@ -1673,7 +1670,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
 
                   <Card  className='gradient-card'>
                     <CardHeader>
-                      <CardTitle>Labour</CardTitle>
+                      <CardTitle>Labour and Total</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         <div className="space-y-2">
@@ -1785,10 +1782,10 @@ const EnhancedQuoteBuilder = ({quote}) => {
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
             <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-purple-900 dark:text-white" />
             Enhanced Quote Builder</div>
-          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-sm sm:text-lg text-transparent mt-2">Create accurate construction quotes with advanced calculations</p>
+          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-sm sm:text-lg text-transparent mt-2">Create accurate construction quotes with advanced calculations</p>
         </div>
 
         <div className="mb-8">

@@ -1,4 +1,3 @@
-import { ParsedPlan } from '@/pages/UploadPage';
 import React, { createContext, useContext, useState } from 'react';
 
 export interface Door {
@@ -19,7 +18,7 @@ export interface Window {
   count: number;
 }
 
-interface ExtractedPlan {
+export interface ExtractedPlan {
   rooms: {
      roomType: string;
   room_name: string;
@@ -47,7 +46,7 @@ interface PlanContextType {
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
 
 export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [extractedPlan, setExtractedPlan] = useState<ParsedPlan | null>(null);
+  const [extractedPlan, setExtractedPlan] = useState<ExtractedPlan | null>(null);
 
   return (
     <PlanContext.Provider value={{ extractedPlan, setExtractedPlan }}>

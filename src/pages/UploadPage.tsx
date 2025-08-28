@@ -1,33 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { UploadCloud, FileText, CheckCircle, Trash2, LayoutDashboard, Shell, Crown, Shield } from 'lucide-react';
-import { usePlan } from '@/contexts/PlanContext';
+import { UploadCloud, FileText, CheckCircle, Trash2, Loader2, Shield, Crown, Shell, LayoutDashboard, DoorOpen, RefreshCw, Image as ImageIcon, LucideAppWindow } from 'lucide-react';
+import { ExtractedPlan, usePlan } from '@/contexts/PlanContext';
 import { usePlanUpload } from '@/hooks/usePlanUpload';
 import { useAuth } from '@/contexts/AuthContext';
-import Dashboard from './Dashboard';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 
+// --- Interfaces ---
 export interface Door {
-  sizeType: string; // "standard" | "custom"
+  sizeType: string;
   standardSize: string;
   custom: { height: string; width: string; price?: string };
-  type: string; // Panel | Flush | Metal
-  frame: string; // Wood | Steel | Aluminum
+  type: string;
+  frame: string;
   count: number;
 }
 
 export interface Window {
-  sizeType: string; // "standard" | "custom"
+  sizeType: string;
   standardSize: string;
   custom: { height: string; width: string; price?: string };
-  glass: string; // Clear | Frosted | Tinted
-  frame: string; // Wood | Steel | Aluminum
+  glass: string;
+  frame: string;
   count: number;
 }
 
@@ -36,11 +36,11 @@ export interface Room {
   room_name: string;
   width: string;
   thickness: string;
-  blockType: string; // Hollow, Solid, etc
+  blockType: string;
   length: string;
   height: string;
   customBlock: { length: string; height: string; thickness: string; price: string };
-  plaster: string; // "None" | "One Side" | "Both Sides"
+  plaster: string;
   doors: Door[];
   windows: Window[];
 }
@@ -55,219 +55,461 @@ export interface ParsedPlan {
 
 const UploadPlan = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<'idle' | 'uploading' | 'analyzing' | 'complete'>('idle');
+  const [confidence, setConfidence] = useState<number>(0);
+  const [extractedDataPreview, setExtractedDataPreview] = useState<ParsedPlan | null>(null);
+  const [editablePlan, setEditablePlan] = useState<ExtractedPlan | null>(null);
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const location = useLocation();
-  const { quote } = location.state || {};
-  const [extractedDataPreview, setExtractedDataPreview] = useState<ParsedPlan | null>(null);
-  const { uploadPlan, uploading } = usePlanUpload();
+  const { quoteData } = location.state || {};
+  const { uploadPlan, deletePlan } = usePlanUpload();
   const { setExtractedPlan } = usePlan();
   const { toast } = useToast();
 
+  // Load existing plan from quote
+  useEffect(() => {
+    if (quoteData?.plan_file_url) {
+      setFileUrl(quoteData.plan_file_url);
+      setPreviewUrl(quoteData.plan_file_url);
+    }
+  }, [quoteData]);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files && e.target.files.length > 0) {
+    if (!e.target.files?.length) return;
     const file = e.target.files[0];
     setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setConfidence(0);
 
-    // Optional: Preview parsing result immediately
     const formData = new FormData();
     formData.append('file', file);
 
     try {
+      setCurrentStep('uploading');
       const res = await fetch('http://192.168.0.100:8000/api/plan/upload', {
         method: 'POST',
         body: formData,
       });
+        setCurrentStep('analyzing');
+
       if (res.ok) {
-        const data = await res.json();
-        console.log(data)
+        const data: ParsedPlan = await res.json();
         setExtractedDataPreview(data);
+        setConfidence(Math.min(80 + Math.random() * 20, 100)); // Simulate confidence
+        setEditablePlan({ ...data, file_url: undefined, file_name: file.name, uploaded_at: new Date().toISOString() });
+        setCurrentStep('complete');
+      } else {
+        throw new Error('Failed to parse plan');
       }
     } catch (err) {
-      console.warn('Could not preview plan', err);
+      toast({ title: 'Error', description: 'Failed to analyze plan.', variant: 'destructive' });
+      setCurrentStep('idle');
     }
-  }
-};
+  };
 
-  const handleRemoveFile = () => {
+  const handleRemoveFile = async () => {
+    if (fileUrl && quoteData?.id) {
+      // Delete from Supabase
+      await deletePlan(fileUrl);
+      await supabase.from("quotes").update({ plan_file_url: null }).eq("id", quoteData.id);
+      setFileUrl(null);
+      setPreviewUrl(null);
+      toast({ title: 'Plan removed', description: 'The plan has been deleted from storage.' });
+    }
     setSelectedFile(null);
+    setCurrentStep('idle');
+    setExtractedDataPreview(null);
+    setEditablePlan(null);
+  };
+
+  const handleRetry = () => {
+    if (selectedFile) {
+      handleFileChange({ target: { files: [selectedFile] } } as any);
+    }
   };
 
   const handleDone = async () => {
-  if (!selectedFile) return;
-
-  try {
-    const fileUrl = await uploadPlan(selectedFile);
-    await supabase
-      .from("quotes")
-      .update({ plan_file_url: fileUrl })
-      .eq("id", quote.id);
-
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    //make sure this url is same as network http://192.168.0.100 part only, the port number 8000 should not be the same as network port number
-    //do this for this file and index.ts in constructly-api-plan folder
-    const response = await fetch('http://192.168.0.100:8000/api/plan/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to parse plan');
+    if (!selectedFile || !quoteData?.id) {
+      console.log("File empty")
+      console.log(quoteData)
+      return;
     }
 
-    const extractedData: ParsedPlan = await response.json(); 
+    try {
+      setCurrentStep('uploading');
+      const fileUrl = await uploadPlan(selectedFile);
 
-    const enrichedData = {
-      ...extractedData,
-      file_url: fileUrl,
-      uploaded_at: new Date().toISOString(),
-      file_name: selectedFile.name,
-    };
+      // Update quote with new plan URL
+      await supabase.from("quotes").update({ plan_file_url: fileUrl }).eq("id", quoteData.id);
+      setFileUrl(fileUrl);
 
-    setExtractedPlan(enrichedData);
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-    toast({
-      title: 'Plan Parsed Successfully',
-      description: `${extractedData.rooms.length} rooms detected across ${extractedData.floors} floor(s).`,
-      variant: 'default',
-    });
+      setCurrentStep('analyzing');
+      const response = await fetch('http://192.168.0.100:8000/api/plan/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-    navigate(-1);
-  } catch (error) {
-    console.error('Error extracting plan:', error);
-    toast({
-      title: 'Error extracting plan',
-      description: 'Please check your file and try again.',
-      variant: 'destructive',
-    });
-  }
-};
+      if (!response.ok) throw new Error('Failed to parse plan');
 
-  if(!user){
-      navigate('/auth')
-    }
-    
- const getTierBadge = (tier: string) => {
-        switch (tier) {
-          case 'Free':
-            return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200"><Shell className="w-3 h-3 mr-1" /> Free</Badge>;
-          case 'Intermediate':
-            return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
-          case 'Professional':
-            return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Professional</Badge>;
-          default:
-            return <Badge>{tier}</Badge>;
-        }
+      const extractedData: ParsedPlan = await response.json();
+      const enrichedData: ExtractedPlan = {
+        ...extractedData,
+        file_url: fileUrl,
+        uploaded_at: new Date().toISOString(),
+        file_name: selectedFile.name,
       };
 
+      const finalPlan = editablePlan ? { ...enrichedData, rooms: editablePlan.rooms, floors: editablePlan.floors } : enrichedData;
+      setExtractedPlan(finalPlan);
+      setCurrentStep('complete');
+
+      toast({
+        title: 'Plan Parsed Successfully',
+        description: `${extractedData.rooms.length} rooms across ${extractedData.floors} floor(s).`,
+        variant: 'default',
+      });
+
+      setTimeout(() => navigate(-1), 1500);
+    } catch (error) {
+      console.error('Error extracting plan:', error);
+      toast({ title: 'Error', description: 'Check your file and try again.', variant: 'destructive' });
+      setCurrentStep('idle');
+    }
+  };
+
+  if (!user) navigate('/auth');
+
   if (profile.tier === "Free") {
+    const getTierBadge = (tier: string) => {
+      switch (tier) {
+        case 'Free': return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><Shell className="w-3 h-3 mr-1" /> Free</Badge>;
+        case 'Intermediate': return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><Crown className="w-3 h-3 mr-1" />Intermediate</Badge>;
+        case 'Professional': return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"><Shield className="w-3 h-3 mr-1" />Professional</Badge>;
+        default: return <Badge>{tier}</Badge>;
+      }
+    };
+
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center animate-fade-in">
-        <Card className="gradient-card p-10 rounded-lg">
-          <div className="text-center">
-            <h2 className="sm:text-2xl text-lg font-bold mb-4">
-              You do not have permission to use this feature
-            </h2>
-            <p className="text-muted-foreground">
-              Please upgrade your plan to access more quote allocations and features.
-            </p>
-            <div className="text-muted-foreground">
-              Current Plan: {getTierBadge(profile.tier)}
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="max-w-md w-full backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 transform hover:scale-105 transition-all duration-300">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg">
+              <Shield className="w-8 h-8" />
             </div>
+            <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Upgrade Required</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5 text-center">
+            <p className="text-slate-600 dark:text-slate-300 ">Upgrade to access AI-powered plan parsing and advanced features.</p>
+            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{getTierBadge(profile.tier)}</div>
             <Button
-              className="w-full mt-10 text-white"
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg"
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="w-4 h-4 mr-2" />
-              Go to dashboard
+              Go to Dashboard
             </Button>
-          </div>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen animate-fade-in">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-         <div className="mb-8">
-          <h1 className="sm:text-3xl text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent">
-            <UploadCloud className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-white" />
-            Upload Plan</h1>
-          <p className="bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text bg-clip-text text-transparent mt-2">Automatically derive dimentions, rooms e.t.c from your plan</p>
+    <div className="min-h-screen animate-fade-in scrollbar-hide">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <h1 className="sm:text-3xl text-2xl font-bold items-center bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <UploadCloud className="sm:w-8 sm:h-8 mr-3 text-blue-900 dark:text-blue-400 inline-block w-12 h-12 mr-3 -translate-y-1" />
+            Upload & Analyze Plan
+          </h1>
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
+            AI-powered extraction of rooms, dimensions, doors, and windows — instantly.
+          </p>
         </div>
-        <Card className="gradient-card rounded-2xl border-0 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-center sm:text-2xl text-lg">Upload Your Plan</CardTitle>
+
+        {/* Progress Steps */}
+        {currentStep !== 'idle' && (
+          <div className="mb-10 p-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all duration-500 hover:shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              {['Uploading', 'Analyzing', 'Complete'].map((label, idx) => {
+                const isDone = (currentStep === 'analyzing' && idx < 1) || (currentStep === 'complete' && idx < 2) || (idx === 2 && currentStep === 'complete');
+                const isActive = (currentStep === 'uploading' && idx === 0) || (currentStep === 'analyzing' && idx === 1) || (currentStep === 'complete' && idx === 2);
+
+                return (
+                  <div key={idx} className="flex flex-col items-center space-y-2 flex-1">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center  font-bold transition-all duration-300 transform ${
+                      isDone ? 'bg-green-500 text-white scale-110' : isActive ? 'bg-blue-500 text-white animate-pulse scale-105' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                    }`}>
+                      {isDone ? <CheckCircle className="w-7 h-7" /> : idx + 1}
+                    </div>
+                    <span className={`text-sm font-medium ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500'}`}>
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+              <div
+                className="bg-gradient-to-r from-green-300 to-green-600 h-3 rounded-full transition-all duration-500"
+                style={{
+                  width: currentStep === 'uploading' ? '33%' : currentStep === 'analyzing' ? '66%' : '100%'
+                }}
+              />
+            </div>
+            <p className="text-center text-sm text-slate-600 dark:text-slate-300 mt-4 font-medium">
+              {currentStep === 'uploading' && '📤 Uploading your plan...'}
+              {currentStep === 'analyzing' && '🧠 Analyzing rooms, doors, windows, and dimensions...'}
+              {currentStep === 'complete' && '✅ Plan successfully parsed!'}
+            </p>
+          </div>
+        )}
+
+        {/* Main Card */}
+        <Card className="backdrop-blur-md bg-white/85 dark:bg-slate-800/85 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:shadow-3xl">
+          <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white py-6">
+            <CardTitle className="sm:text-xl font-bold">Upload Your Floor Plan</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {!selectedFile ? (
-              <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-slate-500 dark:text-slate-400">
-                <UploadCloud className="w-12 h-12 mb-2" />
-                <p className="mb-2">Drag & drop your plan here or click to upload</p>
-                <Input
-                  type="file"
-                  accept=".jpg,.png,.pdf,.dwg,.dxf,.rvt,.pln,.ifc,.skp"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="fileUpload"
-                />
+          <CardContent className="space-y-8 p-8">
+            {fileUrl ? (
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
+                  <ImageIcon className="w-10 h-10 text-blue-500" />
+                  <p className="text-xl font-semibold truncate flex-1">{selectedFile?.name || 'Uploaded Plan'}</p>
+                  <Button variant="ghost" size="icon" onClick={handleRemoveFile} className="text-red-500 hover:text-red-700">
+                    <Trash2 className="w-6 h-6" />
+                  </Button>
+                </div>
+                
+                <div className="flex space-x-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/quotes/new')}
+                    className="flex-1 text-slate-700 dark:text-slate-200  h-14"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleRetry}
+                    variant="secondary"
+                    className="text-slate-700 dark:text-slate-200  h-14"
+                  >
+                    <RefreshCw className="w-6 h-6 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            ) : !selectedFile ? (
+              <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-blue-900/20">
+                <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                <p className="mb-4  text-slate-600 dark:text-slate-300">Drag & drop your plan or click to upload</p>
+                <Input type="file" accept=".jpg,.png,.pdf" onChange={handleFileChange} className="hidden" id="fileUpload" />
                 <Label
                   htmlFor="fileUpload"
-                  className="cursor-pointer px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600"
+                  className="cursor-pointer inline-flex items-center px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
                 >
-                  Select File
+                  📁 Select File
                 </Label>
               </div>
             ) : (
-              <div className="flex flex-col items-center space-y-4">
-                <FileText className="w-10 h-10 text-blue-500" />
-                <p className="text-lg font-medium">{selectedFile.name}</p>
-                <Button
-                  variant="outline"
-                  className="flex items-center space-x-2 hover:text-red-800 hover:bg-red-200"
-                  onClick={handleRemoveFile}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Remove File</span>
-                </Button>
-                {selectedFile && extractedDataPreview && (
-                  <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <h3 className="text-lg font-semibold mb-3">Detected Rooms</h3>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {extractedDataPreview.rooms.map((room, i) => (
-                        <div key={i} className="flex justify-between text-sm p-2 bg-white dark:bg-slate-700 rounded">
-                          <span>{room.room_name}</span>
-                          <span>{room.length}m × {room.width}m</span>
+              <div className="space-y-6 scrollbar-hide">
+                <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
+                  <FileText className="sm:w-7 sm:h-7 text-blue-500" />
+                  <p className="sm:text-lg font-semibold">{selectedFile.name}</p>
+                  <Button variant="ghost" size="icon" onClick={handleRemoveFile} className="ml-auto text-red-500 hover:text-red-700">
+                    <Trash2 className="sm:w-6 sm:h-6" />
+                  </Button>
+                </div>
+
+                {currentStep === 'complete' && editablePlan && (
+                  <div className="scrollbar-hide">
+                    <h3 className="sm:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 flex items-center">
+                      <span className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
+                        <FileText className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-300" />
+                      </span>
+                      Edit Extracted Plan
+                    </h3>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <Label className="">Floors</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={editablePlan.floors}
+                            onChange={(e) => setEditablePlan(prev => prev ? { ...prev, floors: parseInt(e.target.value) || 1 } : prev)}
+                            className="mt-1 "
+                          />
+                        </div>
+                        <div>
+                          <Label className="">File Name</Label>
+                          <Input
+                            value={editablePlan.file_name || ''}
+                            onChange={(e) => setEditablePlan(prev => prev ? { ...prev, file_name: e.target.value } : prev)}
+                            className="mt-1  "
+                          />
+                        </div>
+                      </div>
+
+                      {editablePlan.rooms.map((room, i) => (
+                        <div key={i} className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102">
+                          <h4 className="sm:text-xl font-bold mb-4 text-blue-600 dark:text-blue-400">Room {i + 1}: {room.room_name || 'Unnamed'}</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <Input
+                              placeholder="Room Name"
+                              value={room.room_name}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, room_name: e.target.value } : r) } : prev)}
+                              className=""
+                            />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Length (m)"
+                              value={room.length}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, length: e.target.value } : r) } : prev)}
+                              className=" "
+                            />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Width (m)"
+                              value={room.width}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, width: e.target.value } : r) } : prev)}
+                              className=" "
+                            />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Height (m)"
+                              value={room.height}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, height: e.target.value } : r) } : prev)}
+                              className=" "
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                              placeholder="Block Type"
+                              value={room.blockType}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, blockType: e.target.value } : r) } : prev)}
+                              className=" "
+                            />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Wall Thickness (m)"
+                              value={room.thickness}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, thickness: e.target.value } : r) } : prev)}
+                              className=" "
+                            />
+                            <Input
+                              placeholder="Plaster"
+                              value={room.plaster}
+                              onChange={(e) => setEditablePlan(prev => prev ? { ...prev, rooms: prev.rooms.map((r, idx) => idx === i ? { ...r, plaster: e.target.value } : r) } : prev)}
+                              className=" "
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                              <Label className="flex mb-1 items-center ">
+                                <DoorOpen className="w-5 h-5 mr-2 text-green-500" />
+                                Doors Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={room.doors?.length || 0}
+                                onChange={(e) => {
+                                  const count = Math.max(0, parseInt(e.target.value) || 0);
+                                  setEditablePlan(prev => prev ? {
+                                    ...prev,
+                                    rooms: prev.rooms.map((r, idx) => idx === i ? {
+                                      ...r,
+                                      doors: Array.from({ length: count }, (_, di) => r.doors[di] || {
+                                        sizeType: 'standard',
+                                        standardSize: '0.9 × 2.1 m',
+                                        custom: { height: '', width: '', price: '' },
+                                        type: 'Panel',
+                                        frame: 'Wood',
+                                        count: 1
+                                      })
+                                    } : r)
+                                  } : prev);
+                                }}
+                                className=" "
+                              />
+                            </div>
+                            <div>
+                              <Label className="flex mb-1 items-center ">
+                                <LucideAppWindow className="w-5 h-5 mr-2 text-blue-500" />
+                                Windows Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={room.windows?.length || 0}
+                                onChange={(e) => {
+                                  const count = Math.max(0, parseInt(e.target.value) || 0);
+                                  setEditablePlan(prev => prev ? {
+                                    ...prev,
+                                    rooms: prev.rooms.map((r, idx) => idx === i ? {
+                                      ...r,
+                                      windows: Array.from({ length: count }, (_, wi) => r.windows[wi] || {
+                                        sizeType: 'standard',
+                                        standardSize: '1.2 × 1.2 m',
+                                        custom: { height: '', width: '', price: '' },
+                                        glass: 'Clear',
+                                        frame: 'Aluminum',
+                                        count: 1
+                                      })
+                                    } : r)
+                                  } : prev);
+                                }}
+                                className=""
+                              />
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-slate-500 mt-2">
-                      {extractedDataPreview.floors} floor(s) detected
-                    </p>
                   </div>
                 )}
               </div>
             )}
 
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 pt-8">
               <Button
                 variant="outline"
                 onClick={() => navigate('/quotes/new')}
-                className="flex-1"
+                className="flex-1 dark:hover:bg-blue-900 hover:bg-blue-700 hover:text-white h-14"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleDone}
-                disabled={!selectedFile}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow hover:shadow-lg"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Done
-              </Button>
+              {!fileUrl && selectedFile && (
+                <Button
+                  onClick={handleDone}
+                  disabled={currentStep === 'uploading' || currentStep === 'analyzing'}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold  h-14 rounded-xl shadow-lg transition-all"
+                >
+                  {currentStep === 'uploading' || currentStep === 'analyzing' ? (
+                    <>
+                      <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-6 h-6 mr-3" />
+                      Done
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

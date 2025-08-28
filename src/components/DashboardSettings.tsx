@@ -124,7 +124,7 @@ const DashboardSettings = () => {
             <CardContent className="space-y-4">
               {equipmentTypes.map((equipmentType) => {
                 const userRate = equipmentRates.find(r => r.equipment_type_id === equipmentType.id);
-                const currentRate = userRate ? userRate.daily_rate : equipmentType.daily_rate;
+                const currentRate = userRate ? userRate.total_cost : equipmentType.total_cost;
                 
                 return (
                   <div key={equipmentType.id} className="flex items-center justify-between p-4 border rounded-lg">

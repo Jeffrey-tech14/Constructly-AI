@@ -39,7 +39,7 @@ const App = () => (
                     <Dashboard />
                   </ProtectedRoute>
                 } />
-                <Route path="/uploadplan" element={
+                <Route path="/upload/plan" element={
                   <ProtectedRoute>
                     <UploadPlan />
                   </ProtectedRoute>

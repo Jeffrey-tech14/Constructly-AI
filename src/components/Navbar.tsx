@@ -89,7 +89,7 @@ const getTierBadge = (tier: string) => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-1">
-              <div className="p-2 mr-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
+              <div className="p-2 mr-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
                 <Wrench className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl md:sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

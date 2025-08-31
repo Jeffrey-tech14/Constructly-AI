@@ -77,38 +77,7 @@ const UploadPlan = () => {
     
   }, [quoteData]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    const file = e.target.files[0];
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setConfidence(0);
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      setCurrentStep('uploading');
-      const res = await fetch('http://192.168.0.100:8000/api/plan/upload', {
-        method: 'POST',
-        body: formData,
-      });
-        setCurrentStep('analyzing');
-
-      if (res.ok) {
-        const data: ParsedPlan = await res.json();
-        setExtractedDataPreview(data);
-        setConfidence(Math.min(80 + Math.random() * 20, 100)); // Simulate confidence
-        setEditablePlan({ ...data, file_url: undefined, file_name: file.name, uploaded_at: new Date().toISOString() });
-        setCurrentStep('complete');
-      } else {
-        throw new Error('Failed to parse plan');
-      }
-    } catch (err) {
-      toast({ title: 'Error', description: 'Failed to analyze plan.', variant: 'destructive' });
-      setCurrentStep('idle');
-    }
-  };
+  
 
   const handleRemoveFile = async () => {
     if (fileUrl && quoteData?.id) {
@@ -131,56 +100,96 @@ const UploadPlan = () => {
     }
   };
 
-  const handleDone = async () => {
-    if (!selectedFile || !quoteData?.id) {
-      console.log("File empty")
-      console.log(quoteData)
-      return;
-    }
+// --- Analyze with backend (only) ---
+const analyzePlan = async (file: File): Promise<ParsedPlan> => {
+  const formData = new FormData();
+  formData.append("file", file);
 
-    try {
-      setCurrentStep('uploading');
-      const fileUrl = await uploadPlan(selectedFile);
+  const res = await fetch("http://192.168.0.100:8000/api/plan/upload", {
+    method: "POST",
+    body: formData,
+  });
 
-      // Update quote with new plan URL
-      await supabase.from("quotes").update({ plan_file_url: fileUrl }).eq("id", quoteData.id);
-      setFileUrl(fileUrl);
+  if (!res.ok) throw new Error("Failed to parse plan");
+  return res.json();
+};
 
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+// --- Upload permanently to Supabase + update DB ---
+const uploadAndSave = async (file: File): Promise<string> => {
+  const fileUrl = await uploadPlan(file);
+  await supabase.from("quotes").update({ plan_file_url: fileUrl }).eq("id", quoteData.id);
+  return fileUrl;
+};
 
-      setCurrentStep('analyzing');
-      const response = await fetch('http://192.168.0.100:8000/api/plan/upload', {
-        method: 'POST',
-        body: formData,
-      });
+// --- Handle file input (preview only) ---
+const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (!e.target.files?.length) return;
+  const file = e.target.files[0];
 
-      if (!response.ok) throw new Error('Failed to parse plan');
+  setSelectedFile(file);
+  setPreviewUrl(URL.createObjectURL(file));
+  setConfidence(0);
 
-      const extractedData: ParsedPlan = await response.json();
-      const enrichedData: ExtractedPlan = {
-        ...extractedData,
-        file_url: fileUrl,
-        uploaded_at: new Date().toISOString(),
-        file_name: selectedFile.name,
-      };
+  try {
+    setCurrentStep("uploading");
+    setCurrentStep("analyzing");
 
-      const finalPlan = editablePlan ? { ...enrichedData, rooms: editablePlan.rooms, floors: editablePlan.floors } : enrichedData;
-      setExtractedPlan(finalPlan);
-      setCurrentStep('complete');
+    const data = await analyzePlan(file);
 
-      toast({
-        title: 'Plan Parsed Successfully',
-        description: `${extractedData.rooms.length} rooms across ${extractedData.floors} floor(s).`,
-        variant: 'default',
-      });
+    setEditablePlan({
+      ...data,
+      file_url: undefined,
+      file_name: file.name,
+      uploaded_at: new Date().toISOString(),
+    });
 
-    } catch (error) {
-      console.error('Error extracting plan:', error);
-      toast({ title: 'Error', description: 'Check your file and try again.', variant: 'destructive' });
-      setCurrentStep('idle');
-    }
-  };
+    setConfidence(Math.min(80 + Math.random() * 20, 100));
+    setCurrentStep("complete");
+  } catch (err) {
+    console.error(err);
+    toast({ title: "Error", description: "Failed to analyze plan.", variant: "destructive" });
+    setCurrentStep("idle");
+  }
+};
+
+// --- Handle final save (Supabase + context + navigate) ---
+const handleDone = async () => {
+  if (!selectedFile || !quoteData?.id || !editablePlan) return;
+
+  try {
+    // 1. Upload to Supabase + update quote
+    toast({
+      title:"Uploading plan",
+      description: "Please wait"
+    })
+    const fileUrl = await uploadAndSave(selectedFile);
+    setFileUrl(fileUrl);
+
+    // 2. Finalize plan with user edits
+    const finalPlan: ExtractedPlan = {
+      ...editablePlan,
+      file_url: fileUrl,
+      uploaded_at: new Date().toISOString(),
+      file_name: selectedFile.name,
+    };
+
+    setExtractedPlan(finalPlan);
+    setCurrentStep("complete");
+
+    toast({
+      title: "Plan Saved",
+      description: `${finalPlan.rooms.length} rooms across ${finalPlan.floors} floor(s).`,
+    });
+
+    // 3. Navigate back
+    navigate("/quotes/new");
+  } catch (error) {
+    console.error("Error saving plan:", error);
+    toast({ title: "Error", description: "Could not save plan.", variant: "destructive" });
+    setCurrentStep("idle");
+  }
+};
+
 
   if (!user) navigate('/auth');
 

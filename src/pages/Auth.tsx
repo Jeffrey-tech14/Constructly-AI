@@ -146,7 +146,7 @@ const Auth = () => {
         {/* Auth Form */}
         <Card className="gradient-card rounded-2xl border-0 shadow-2xl slide-up">
           <CardHeader>
-            <CardTitle className="text-center text-xl">
+            <CardTitle className="text-center sm:text-xl">
               {mode === 'signin' ? 'Sign In' : 'Create Account'}
             </CardTitle>
           </CardHeader>
@@ -162,7 +162,7 @@ const Auth = () => {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="sm:space-y-4 space-y-3">
               {mode === 'signup' && (
                 <div>
                   <Label htmlFor="name">Full Name</Label>
@@ -174,7 +174,7 @@ const Auth = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="John Doe"
-                    className="rounded-xl border-slate-300 dark:border-slate-600"
+                    className="rounded-xl sm:h-full h-[30px] sm:text-md text-xs  border-slate-300 dark:border-slate-600"
                   />
                 </div>
               )}
@@ -189,7 +189,7 @@ const Auth = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="you@example.com"
-                  className="rounded-xl border-slate-300 dark:border-slate-600"
+                  className="rounded-xl sm:h-full h-[30px] sm:text-md text-xs border-slate-300 dark:border-slate-600"
                 />
               </div>
               
@@ -203,14 +203,14 @@ const Auth = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="••••••••"
-                  className="rounded-xl border-slate-300 dark:border-slate-600 pr-10" // padding for icon
+                  className="rounded-xl sm:h-full h-[30px] sm:text-md text-xs  border-slate-300 dark:border-slate-600 pr-10" // padding for icon
                 />
 
                 {/* Eye icon toggle */}
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-[33px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  className="absolute right-3 top-[30px] sm:top-[33px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                   tabIndex={-1} // prevent accidental tab focus
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -228,13 +228,13 @@ const Auth = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="••••••••"
-                    className="rounded-xl border-slate-300 dark:border-slate-600"
+                    className="rounded-xl sm:h-full h-[30px] sm:text-md text-xs  border-slate-300 dark:border-slate-600"
                   />
                   {/* Eye icon toggle */}
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-[33px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  className="absolute right-3 top-[30px] sm:top-[33px] text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                   tabIndex={-1} // prevent accidental tab focus
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -244,7 +244,7 @@ const Auth = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full sm:text-sm text-xs bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 disabled={loading}
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -262,7 +262,7 @@ const Auth = () => {
               <Button
                 type="button"
                 onClick={signInWithGoogle}
-                className="w-full bg-white text-slate-800 border border-slate-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 rounded-xl shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
+                className="w-full bg-white sm:text-sm text-xs text-slate-800 border border-slate-300 dark:bg-slate-800 dark:text-white dark:border-slate-600 rounded-xl shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
                 disabled={loading}
               >
                 <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" className="w-5 h-5" />
@@ -271,11 +271,11 @@ const Auth = () => {
 
 
             <div className="mt-6 text-center">
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground sm:text-md text-sm">
                 {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
                 <button
                   onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-                  className="text-primary hover:text-primary/80 font-medium transition-colors"
+                  className="sm:text-md text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                   disabled={loading}
                 >
                   {mode === 'signin' ? 'Sign up' : 'Sign in'}

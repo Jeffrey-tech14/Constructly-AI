@@ -13,6 +13,10 @@ import re
 from typing import List, Dict, Any, Optional, Tuple
 import os
 import base64
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 # -----------------------------
 # CONFIGURATION
@@ -162,7 +166,7 @@ def call_gemini(image_path: str, prompt: str) -> Dict[str, Any]:
         import os
 
         # Get API key
-        API_KEY = "AIzaSyCyL8IcYRnyn85G7kpvOm71TFy-fqK1Nc8"
+        API_KEY = os.getenv("GEMINI_API_KEY")
         if not API_KEY:
             print("⚠️ GOOGLE_API_KEY not set", file=sys.stderr)
             return {}
@@ -204,8 +208,6 @@ def pdf_to_images(pdf_path: str) -> List[np.ndarray]:
     return images
 
 def parse_file(file_path: str) -> Dict[str, Any]:
-    print(f"📄 Parsing file: {file_path}", file=sys.stderr)
-
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
 

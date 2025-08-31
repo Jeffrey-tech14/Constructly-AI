@@ -186,9 +186,9 @@ const formatCurrency = (value: number) => {
             </div>
             <Button 
               onClick={() => setShowCalculator(true)}
-              className="text-xs sm:text-sm animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              className="text-sm px-5 py-2 rounded-xl shadow-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
             >
-              Quick Calculator
+             ⚡Quick Calculator
             </Button>
           </div>
         </div>
@@ -289,7 +289,7 @@ const formatCurrency = (value: number) => {
                   <div className="space-y-4">
                     {dashboardData.recentQuotes.length > 0 ? (
                       dashboardData.recentQuotes.map((quote) => (
-                        <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow">
+                        <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-lg transition-shadow">
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
                               <h3 className="font-medium">{quote.title}</h3>

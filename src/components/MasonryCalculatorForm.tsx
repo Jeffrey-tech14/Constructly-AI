@@ -41,12 +41,13 @@ export default function MasonryCalculatorForm({quote, setQuote, materialBasePric
       {quote.rooms.map((room, index) => (
         <div
           key={index}
-          className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
+          className="grid grid-cols-5 md:grid-cols-1 justify-between gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
         >
           {/* Room Type */}
           <Input
             type="text"
             value={room.room_name || ""}
+            className="sm:text-md text-sm"
             onChange={(e) => handleRoomChange(index, "room_name", e.target.value)}
             placeholder="Enter room name"
           />

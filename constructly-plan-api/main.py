@@ -22,30 +22,24 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 @app.post("/api/plan/upload")
 async def parse_plan(file: UploadFile = File(...)):
-    print(f"\n📥 Received file: {file.filename} ({file.content_type})")  # LOG
 
     # Validate file type
     if not file.filename.lower().endswith(('.pdf', '.jpg', '.jpeg', '.png')):
-        print("❌ Unsupported file type")  # LOG
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
     file_id = str(uuid.uuid4())
     file_path = UPLOAD_DIR / f"{file_id}_{file.filename}"
-    print(f"💾 Saving temporary file: {file_path}")  # LOG
 
     try:
         contents = await file.read()
         with open(file_path, "wb") as f:
             f.write(contents)
-        print(f"✅ File saved successfully")  # LOG
 
         # 🔍 DEBUG: Check if file exists
         if not os.path.exists(file_path):
-            print("🚨 File was not saved!")  # LOG
             raise HTTPException(status_code=500, detail="File save failed")
 
         # 🚀 Run your Python parser
-        print(f"🚀 Running parser: python parser.py {file_path}")  # LOG
         result = subprocess.run(
             ["python", "parser.py", str(file_path)],
             capture_output=True,
@@ -56,7 +50,6 @@ async def parse_plan(file: UploadFile = File(...)):
 
         # Clean up file
         os.remove(file_path)
-        print(f"🗑️  Temporary file deleted")  # LOG
 
         # Handle subprocess result
         if result.returncode != 0:
@@ -74,7 +67,6 @@ async def parse_plan(file: UploadFile = File(...)):
 
         try:
             parsed_data = json.loads(output)
-            print(f"✅ Successfully parsed JSON response")  # LOG
             return parsed_data
         except json.JSONDecodeError as e:
             print(f"❌ Invalid JSON from parser: {e}")  # LOG

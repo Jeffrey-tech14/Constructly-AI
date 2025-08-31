@@ -215,7 +215,7 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
       {/* Decorative background orbs */}
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 backdrop-blur-sm border-b border-white/20 dark:border-slate-800/60">
+      <nav className="sticky top-0 z-50 backdrop-blur-sm border-b dark:border-white/20 border-slate-800/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-16 flex items-center justify-between">
             <Logo />

@@ -122,7 +122,7 @@ const Auth = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8 fade-in">
-          <Button onClick={() => navigate("/")} className="inline-flex items-center bg-transparent hover:bg-gradient-to-r from-blue-600 to-purple-600 hover:text-white text-primary mb-4 transition-colors">
+          <Button onClick={() => navigate("/")} className="inline-flex items-center bg-transparent hover:bg-gradient-to-r from-blue-600 to-purple-600 hover:text-white dark:text-blue-300 dark:hover:text-white text-primary mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>

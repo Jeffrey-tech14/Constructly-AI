@@ -24,6 +24,15 @@ import {
   PhoneCall,
   Mail,
   ExternalLink,
+  Shield,
+  UserCheck,
+  Globe,
+  Headphones,
+  DollarSign,
+  Smartphone,
+  Briefcase,
+  Coins,
+  CreditCard,
 } from "lucide-react";
 
 // shadcn/ui
@@ -34,63 +43,33 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-// app
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { TestimonialsSection } from "@/components/Testimonials";
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 
-/**
- * Tier record from Supabase
- */
 export interface Tier {
   id: number;
   name: string;
-  price: number; // display price (e.g., 1499)
-  period: string; // e.g., "mo", "yr"
-  features: string[]; // list of bullet points
-  popular: boolean; // flag
+  price: number; 
+  period: string; 
+  features: string[]; 
+  popular: boolean; 
 }
 
-/**
- * Page: Full visual overhaul of the landing page
- * - Cross‑platform, dark-mode polished
- * - Pricing pulls from Supabase (tiers table)
- * - No logic removed; all key behaviors preserved & improved
- *
- * Sections:
- *  - Navbar (Theme toggle + mobile sheet)
- *  - Hero (parallax backdrop)
- *  - Trust/Highlights
- *  - Who It’s For
- *  - Features Grid
- *  - How It Works (3-step)
- *  - Pricing (from Supabase tiers)
- *  - FAQ (Accordion)
- *  - Testimonials
- *  - CTA Banner
- *  - Footer
- */
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  // UI State
   const [menuOpen, setMenuOpen] = useState(false);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [tiersLoading, setTiersLoading] = useState(true);
   const [tiersError, setTiersError] = useState<string | null>(null);
-
-  // Parallax hero ref
   const heroRef = useRef<HTMLDivElement>(null);
 
-  // -------- Effects
-  // Redirect authenticated users
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Fetch pricing tiers from Supabase
   useEffect(() => {
     let cancelled = false;
     const fetchTiers = async () => {
@@ -112,7 +91,6 @@ const Index = () => {
     };
   }, []);
 
-  // Parallax background shift
   useEffect(() => {
     const onScroll = () => {
       if (!heroRef.current) return;
@@ -130,13 +108,111 @@ const Index = () => {
     { id: "contact", label: "Contact" },
   ], []);
 
+   const videoRef = useRef<HTMLVideoElement>(null);
+
+    const paymentMethods = [
+    {
+      id:"credit",
+      name: "Credit/Debit Card",
+      icon: <CreditCard className="w-10 h-10" />,
+      description: "Secure payments via Visa, Mastercard, and American Express.",
+    },
+    {
+      id:"mpesa",
+      name: "M-Pesa",
+      icon: <Smartphone className="w-10 h-10" />,
+      description: "Convenient mobile payments for Kenyan users.",
+    },
+    {
+      id:"bank",
+      name: "Bank Transfer",
+      icon: <DollarSign className="w-10 h-10" />,
+      description: "Direct bank transfers for enterprise payments.",
+    },
+    {
+      id:"paypal",
+      name: "PayPal",
+      icon: <Coins className="w-10 h-10" />,
+      description: "International payments processed securely.",
+    },
+  ];
+
+  const PaymentMethod = ({ method }) => {
+  return (
+    <div
+      className="
+        border p-7 rounded-2xl text-center shadow-sm transition-all duration-300 
+        hover:shadow-md hover:border-blue-200 transition-transform hover:-translate-y-1 
+        bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700
+      "
+    >
+      <div className="text-4xl mb-4 ">
+        {method.icon}
+      </div>
+      <h4 className="font-bold text-xl mb-2">{method.name}</h4>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        {method.description}
+      </p>
+    </div>
+  );
+};
+const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
+  const [currentHeroImage, setCurrentHeroImage] = useState(0);
+
+  useEffect(() => {
+    const heroInterval = setInterval(() => {
+      setCurrentHeroImage((prev) => (prev + 1) % heroImages.length);
+    }, 10000);
+    return () => clearInterval(heroInterval);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      const setStartTime = () => {
+        if (video.duration) {
+          video.currentTime = video.duration / 2;
+        }
+      };
+      
+      if (video.readyState > 0) {
+        setStartTime();
+      } else {
+        video.addEventListener('loadedmetadata', setStartTime);
+      }
+      
+      return () => {
+        video.removeEventListener('loadedmetadata', setStartTime);
+      };
+    }
+  }, []);
+
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen text-foreground selection:bg-blue-200 dark:selection:bg-blue-800">
+      {/* <div className="absolute inset-0 z-0">
+            <div className="w-full h-full relative">
+              <img 
+                src={heroImages[currentHeroImage]} 
+                alt="Construction background" 
+                className="w-full h-full object-cover transition-opacity duration-1000"
+              />
+            <div className="absolute inset-0 bg-black/60"></div>
+          </div>
+        </div> */}
       {/* Decorative background orbs */}
-      <BackdropOrbs />
 
       {/* Navbar */}
       <nav className="sticky top-0 z-50 backdrop-blur-sm border-b border-white/20 dark:border-slate-800/60">
@@ -244,7 +320,7 @@ const Index = () => {
 
         {/* Decorative bottom wave */}
         <svg className="absolute bottom-0 left-0 w-full h-10 text-blue-600 dark:text-slate-600" viewBox="0 0 1440 80" preserveAspectRatio="none">
-          <path fill="currentColor" d="M0,64L60,64C120,64,240,64,360,53.3C480,43,600,21,720,21.3C840,21,960,43,1080,58.7C1200,75,1320,85,1380,90.7L1440,96L1440,160L1380,160C1320,160,1200,160,1080,160C960,160,840,160,720,160C600,160,480,160,360,160C240,160,120,160,60,160L0,160Z" />
+          <path fill="currentColor" d="M0,64L60,64C120,60,240,64,360,53.3C480,43,600,21,720,21.3C840,21,960,43,1080,58.7C1200,75,1320,85,1380,90.7L1440,96L1440,160L1380,160C1320,160,1200,160,1080,160C960,160,840,160,720,160C600,160,480,160,360,160C240,160,120,160,90,160L0,160Z" />
         </svg>
       </header>
 
@@ -261,7 +337,7 @@ const Index = () => {
               { icon: <Ruler className="w-5 h-5" />, label: "Accurate" },
             ].map((b, i) => (
               <div key={i} className="flex items-center justify-center gap-2 text-xs sm:text-sm px-3 py-2 rounded-full bg-white/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800">
-                {b.icon} <span className="text-muted-foreground">{b.label}</span>
+                {b.icon} <span>{b.label}</span>
               </div>
             ))}
           </div>
@@ -290,6 +366,7 @@ const Index = () => {
         </div>
       </section>
 
+      <BackdropOrbs />
       {/* Features */}
       <section id="features" className="py-16" aria-labelledby="features-title">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -318,19 +395,119 @@ const Index = () => {
         </div>
       </section>
 
+      <section id="benefits" className="py-16" aria-labelledby="benefits-title">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading id="benefits-title" eyebrow="Benefits" title="Why construction professionals choose us" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+          {/* Left side: Benefits list */}
+          <div className="space-y-6 ">
+            {[
+              {
+                icon: <TrendingUp className="w-6 h-6" />,
+                title: "Increase Profit Margins",
+                description:
+                  "Reduce estimation errors and identify cost-saving opportunities to maximize profitability on every project.",
+              },
+              {
+                icon: <Clock className="w-6 h-6" />,
+                title: "Save Time",
+                description:
+                  "Cut estimation time by up to 70% with our automated tools and pre-built templates designed for efficiency.",
+              },
+              {
+                icon: <Shield className="w-6 h-6" />,
+                title: "Reduce Risk",
+                description:
+                  "Make data-driven decisions with accurate cost databases and historical project analytics to minimize errors.",
+              },
+              {
+                icon: <UserCheck className="w-6 h-6" />,
+                title: "Win More Bids",
+                description:
+                  "Create professional, detailed proposals that impress clients and set you apart from competitors.",
+              },
+              {
+                icon: <Globe className="w-6 h-6" />,
+                title: "Anywhere Access",
+                description:
+                  "Manage your projects from office or site with our cloud-based platform and mobile apps for on-the-go access.",
+              },
+              {
+                icon: <Headphones className="w-6 h-6" />,
+                title: "Dedicated Support",
+                description:
+                  "Get construction-specific support from our team of industry experts when you need it most.",
+              },
+            ].map((benefit, index) => (
+              <div
+                key={index}
+                className="flex items-start p-4 items-center rounded-xl transition-all duration-300 w-full rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4">
+                  {benefit.icon}
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold mb-1">{benefit.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {benefit.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right side: Video + highlights */}
+          <div className="relative">
+            <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-700">
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-auto"
+              >
+                <source src="/video.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+
+            {/* Badge bottom-left */}
+            <div className="absolute -bottom-6 -left-6 p-4 rounded-xl shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+              <div className="flex items-center">
+                <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  70% Time Saved
+                </span>
+              </div>
+            </div>
+
+            {/* Badge top-right */}
+            <div className="absolute -top-6 -right-6 bg-blue-600 text-white p-4 rounded-xl shadow-lg">
+              <div className="text-center">
+                <div className="text-2xl font-bold">95%</div>
+                <div className="text-xs">Accuracy Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="py-16" aria-labelledby="how-title">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading id="how-title" eyebrow="Simple steps" title="How it works" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
             {[
-              { icon: <HardHat className="w-7 h-7" />, title: "1. Set your rates", desc: "Enter material and service rates. Add regional multipliers and profit margins." },
+              { icon: <HardHat className="w-7 h-7" />, title: "1. Set your rates", desc: "Enter material and service rates. Add transport rates and custom prices for equipment." },
               { icon: <Ruler className="w-7 h-7" />, title: "2. Analyze plans", desc: "Upload drawings, run takeoffs, and generate quantities instantly." },
               { icon: <Hammer className="w-7 h-7" />, title: "3. Send proposals", desc: "Export branded quotes and BOQs. Win more jobs with clarity." },
             ].map((s, i) => (
-              <Card key={i} className="rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg">
+              <Card key={i} className="transition-transform hover:-translate-y-1 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg">
                 <CardContent className="p-8">
-                  <div className="mb-4 w-fit p-3 rounded-xl dark:text-white  shadow-md">{s.icon}</div>
+                  <div className="mb-4 w-fit p-3 rounded-xl dark:text-white shadow-md">{s.icon}</div>
                   <h3 className="text-lg font-semibold mb-1">{s.title}</h3>
                   <p className="text-muted-foreground">{s.desc}</p>
                 </CardContent>
@@ -340,7 +517,66 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* FAQ */}
+      <section id="faq" className="py-16" aria-labelledby="faq-title">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading id="faq-title" eyebrow="Good to know" title="Frequently asked questions" />
+          <div className="mt-6">
+            <Accordion type="multiple" className="rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg overflow-hidden">
+              {[
+                {
+                  q: "Is there a free plan?",
+                  a: "Yes. You can start free with essential tools and upgrade anytime to unlock advanced features.",
+                },
+                {
+                  q: "Do you support Kenyan market rates?",
+                  a: "Yes. You can bring your own rates, and we support regional multipliers and contractor-specific pricing.",
+                },
+                {
+                  q: "Can I export BOQs and proposals?",
+                  a: "Absolutely. Generate client-ready PDFs and spreadsheets from your takeoffs.",
+                },
+                {
+                  q: "How do I get support?",
+                  a: "Reach us via email or the in-app help. We respond quickly to keep your projects moving.",
+                },
+              ].map((item, i) => (
+                <AccordionItem key={item.q} value={`item-${i}`} className="border-b border-slate-200 dark:border-slate-800">
+                  <AccordionTrigger className="px-5 py-4 text-left text-base font-semibold">
+                    <div className="flex items-center gap-2"><HelpCircle className="w-4 h-4" /> {item.q}</div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-5 pb-4 text-muted-foreground">
+                    {item.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="py-20" aria-labelledby="testimonials-title">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading id="testimonials-title" eyebrow="Loved by contractors" title="What contractors say" />
+          <div className="mt-6">
+            <TestimonialsSection />
+          </div>
+        </div>
+      </section>
+
+      <section id="payment options" className="py-16" aria-labelledby="payment-title">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeading id="payment-title" eyebrow="Payment options" title="Variety of payment options" />
+            <div className="grid md:grid-cols-4 gap-8 w-full mt-10">
+                {paymentMethods.map((method, i) => (
+              <PaymentMethod key={i} method={method}  />
+            ))}
+          </div>
+        </div>
+      </section>
+
+       {/* Pricing */}
       <section id="pricing" className="py-20" aria-labelledby="pricing-title">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeading id="pricing-title" eyebrow="Start free" title="Choose your plan" />
@@ -422,54 +658,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-16" aria-labelledby="faq-title">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="faq-title" eyebrow="Good to know" title="Frequently asked questions" />
-          <div className="mt-6">
-            <Accordion type="multiple" className="rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg overflow-hidden">
-              {[
-                {
-                  q: "Is there a free plan?",
-                  a: "Yes. You can start free with essential tools and upgrade anytime to unlock advanced features.",
-                },
-                {
-                  q: "Do you support Kenyan market rates?",
-                  a: "Yes. You can bring your own rates, and we support regional multipliers and contractor-specific pricing.",
-                },
-                {
-                  q: "Can I export BOQs and proposals?",
-                  a: "Absolutely. Generate client-ready PDFs and spreadsheets from your takeoffs.",
-                },
-                {
-                  q: "How do I get support?",
-                  a: "Reach us via email or the in-app help. We respond quickly to keep your projects moving.",
-                },
-              ].map((item, i) => (
-                <AccordionItem key={item.q} value={`item-${i}`} className="border-b border-slate-200 dark:border-slate-800">
-                  <AccordionTrigger className="px-5 py-4 text-left text-base font-semibold">
-                    <div className="flex items-center gap-2"><HelpCircle className="w-4 h-4" /> {item.q}</div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-5 pb-4 text-muted-foreground">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20" aria-labelledby="testimonials-title">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="testimonials-title" eyebrow="Loved by contractors" title="What contractors say" />
-          <div className="mt-6">
-            <TestimonialsSection />
-          </div>
-        </div>
-      </section>
-
       {/* CTA Banner */}
       <section className="py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -519,15 +707,15 @@ const Index = () => {
                 <li><a className="hover:underline hover:text-blue-600" href="#features">Analytics</a></li>
               </ul>
             </div>
-            <div className="text-center sm:text-left">
+            <div className="text-center ">
               <h4 className="font-semibold mb-3">Support</h4>
-              <ul className="space-y-2">
-                <li className="flex items-center justify-center sm:justify-start gap-2"><Mail className="w-4 h-4" /><a className="hover:underline" href="mailto:support@constructly.africa">support@constructly.africa</a></li>
+              <ul className="space-y-2  justify-center items-center">
+                <li className="flex items-center justify-center gap-2"><Mail className="w-4 h-4" /><a className="hover:underline" href="mailto:support@constructly.africa">support@constructly.africa</a></li>
                 <li><a className="hover:underline hover:text-blue-600" href="#faq">FAQs</a></li>
                 <li><a className="hover:underline hover:text-blue-600" href="#">Documentation</a></li>
               </ul>
             </div>
-            <div className="text-center sm:text-left">
+            <div className="text-center sm:text-right">
               <h4 className="font-semibold mb-3">Legal</h4>
               <ul className="space-y-2">
                 <li><a className="hover:underline hover:text-blue-600" href="#">Privacy Policy</a></li>

@@ -20,7 +20,10 @@ import {
   ThumbsUp,
   Shell,
   PiggyBank,
-  ArrowUpFromDot
+  ArrowUpFromDot,
+  DollarSign,
+  Briefcase,
+  Coins
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Arrow } from '@radix-ui/react-tooltip';
@@ -44,21 +47,30 @@ const PaymentPage = () => {
   const { profile, updateProfile } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [tiersLoading, setTiersLoading] = useState(true);
+  const [tiersError, setTiersError] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
-        const fetchTiers = async () => {
-          setLoading(true);
-          const { data, error } = await supabase.from('tiers').select('*').order('id');
-          if (error) {
-          } else {
-            setTiers(data || []);
-          }
-          setLoading(false);
-        };
-    
-        fetchTiers();
-      }, [user, location.key]);
+    let cancelled = false;
+    const fetchTiers = async () => {
+      setTiersLoading(true);
+      setTiersError(null);
+      const { data, error } = await supabase.from("tiers").select("*").order("id", { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        setTiersError(error.message || "Failed to load pricing tiers.");
+        setTiers([]);
+      } else {
+        setTiers(Array.isArray(data) ? data : []);
+      }
+      setTiersLoading(false);
+    };
+    fetchTiers();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, location.key]);
 
       const getTierBadge = (tier: string) => {
             switch (tier) {
@@ -75,17 +87,29 @@ const PaymentPage = () => {
 
   const paymentMethods = [
     {
-      id: 'mpesa',
-      name: 'M-Pesa',
-      icon: <Smartphone className="w-5 h-5" />,
-      description: 'Pay with your mobile money'
+      id:"credit",
+      name: "Credit/Debit Card",
+      icon: <DollarSign className="w-10 h-10" />,
+      description: "Secure payments via Visa, Mastercard, and American Express.",
     },
     {
-      id: 'card',
-      name: 'Credit/Debit Card',
-      icon: <CreditCard className="w-5 h-5" />,
-      description: 'Visa, Mastercard, or American Express'
-    }
+      id:"mpesa",
+      name: "M-Pesa",
+      icon: <Smartphone className="w-10 h-10" />,
+      description: "Convenient mobile payments for Kenyan users.",
+    },
+    {
+      id:"bank",
+      name: "Bank Transfer",
+      icon: <Briefcase className="w-10 h-10" />,
+      description: "Direct bank transfers for enterprise payments.",
+    },
+    {
+      id:"paypal",
+      name: "PayPal",
+      icon: <Coins className="w-10 h-10" />,
+      description: "International payments processed securely.",
+    },
   ];
 
   useEffect(() => {
@@ -177,6 +201,30 @@ const PaymentPage = () => {
                 <CardTitle>Select Your Plan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {tiersLoading && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10" aria-live="polite" aria-busy>
+                              {Array.from({ length: 3 }).map((_, i) => (
+                                <Card key={i} className="rounded-2xl border-0 shadow-xl bg-white/60 dark:bg-slate-900/60">
+                                  <CardContent className="p-8 animate-pulse">
+                                    <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
+                                    <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
+                                    <div className="space-y-3">
+                                      {Array.from({ length: 5 }).map((__, j) => (
+                                        <div key={j} className="h-4 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+                                      ))}
+                                    </div>
+                                    <div className="h-11 w-full bg-slate-200 dark:bg-slate-800 rounded mt-8" />
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          )}
+                
+                          {tiersError && (
+                            <div className="mt-8 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300">
+                              Failed to load pricing tiers: {tiersError}
+                            </div>
+                          )}
                 {tiers.map((plan) => (
                   <div
                     key={plan.id}

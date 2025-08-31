@@ -77,13 +77,19 @@ const AdminDashboard = () => {
     }
   }, [profile, location.key]);
 
-  const fetchDashboardData = async () => {
+ const fetchDashboardData = async () => {
     setLoading(true);
     try {
       const [usersRes, quotesRes, tiersRes] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('quotes').select('*').order('created_at', { ascending: false }),
-        supabase.from('tiers').select('name, price')
+        supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("quotes")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase.from("tiers").select("name, price"),
       ]);
 
       const usersData = usersRes.data || [];
@@ -96,30 +102,88 @@ const AdminDashboard = () => {
       }, {} as Record<string, number>);
 
       const totalUsers = usersData.length;
-      const activeQuotes = quotesData.filter(q => q.status !== 'draft');
-      const totalRevenue = activeQuotes.reduce((sum, quote) => sum + quote.profit_amount, 0);
+      const activeQuotes = quotesData.filter((q) => q.status !== "draft");
+      const totalRevenue = activeQuotes.reduce(
+        (sum, quote) => sum + (quote.profit_amount || 0),
+        0
+      );
       const totalQuotes = quotesData.length;
-      const activeProjects = quotesData.filter(q => ['started', 'in_progress'].includes(q.status)).length;
+      const activeProjects = quotesData.filter((q) =>
+        ["started", "in_progress"].includes(q.status)
+      ).length;
 
       const subscriptionRevenue = usersData.reduce((sum, user) => {
-        const tier = user.tier || 'Free';
+        const tier = user.tier || "Free";
         return sum + (tierPrices[tier] || 0);
       }, 0);
 
       setUsers(usersData);
       setQuotes(quotesData);
-      setStats({ totalUsers, totalRevenue, totalQuotes, activeProjects, subscriptionRevenue });
+      setStats({
+        totalUsers,
+        totalRevenue,
+        totalQuotes,
+        activeProjects,
+        subscriptionRevenue,
+      });
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load dashboard data',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+
+    // 🔥 Real-time subscriptions for profiles, quotes, and tiers
+    const profilesChannel = supabase
+      .channel("profiles-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        (payload) => {
+          console.log("Realtime profiles update:", payload);
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    const quotesChannel = supabase
+      .channel("quotes-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "quotes" },
+        (payload) => {
+          console.log("Realtime quotes update:", payload);
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    const tiersChannel = supabase
+      .channel("tiers-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tiers" },
+        (payload) => {
+          console.log("Realtime tiers update:", payload);
+          fetchDashboardData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(tiersChannel);
+    };
+  }, []);
 
   const updateUserTier = async (userId: string, newTier: string) => {
     try {

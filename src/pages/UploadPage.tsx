@@ -69,12 +69,12 @@ const UploadPlan = () => {
   const { setExtractedPlan } = usePlan();
   const { toast } = useToast();
 
-  // Load existing plan from quote
   useEffect(() => {
     if (quoteData?.plan_file_url) {
       setFileUrl(quoteData.plan_file_url);
       setPreviewUrl(quoteData.plan_file_url);
     }
+    
   }, [quoteData]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,7 +175,6 @@ const UploadPlan = () => {
         variant: 'default',
       });
 
-      setTimeout(() => navigate(-1), 1500);
     } catch (error) {
       console.error('Error extracting plan:', error);
       toast({ title: 'Error', description: 'Check your file and try again.', variant: 'destructive' });

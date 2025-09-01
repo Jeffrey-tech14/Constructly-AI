@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DraftingCompass, ArrowLeft, Loader2 } from 'lucide-react';
+import { DraftingCompass, ArrowLeft, Loader2, Pickaxe } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from '@/hooks/use-toast';
@@ -127,10 +127,10 @@ const Auth = () => {
             Back to Home
           </Button>
             <div className="flex items-center justify-center mb-4">
-              <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
-                <DraftingCompass className="sm:w-8 sm:h-8 text-white" />
+              <div className="p-2 rounded-xl bg-transparent shadow-lg">
+                <Pickaxe className="sm:w-8 sm:h-8  text-primary dark:text-white" />
               </div>
-            <span className="sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ml-3">Constructly</span>
+            <span className="sm:text-2xl text-lg font-bold  text-primary dark:text-white ml-3">Elaris</span>
           </div>
           <h1 className="sm:text-3xl text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
             {mode === 'signin' ? 'Welcome Back' : 'Get Started'}

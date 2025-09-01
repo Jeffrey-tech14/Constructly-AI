@@ -12,7 +12,7 @@ export function TestimonialsSection() {
       const saved = localStorage.getItem("testimonials")
       return saved ? JSON.parse(saved) : [
         {
-          quote: "Constructly reduced our estimation time by 70% and improved accuracy by 40%. The AI-powered insights have transformed how we approach project budgeting.",
+          quote: "Elaris reduced our estimation time by 70% and improved accuracy by 40%. The AI-powered insights have transformed how we approach project budgeting.",
           name: "Michael Mswali",
           title: "Senior Estimator",
           company: "ConstructCo Ltd",

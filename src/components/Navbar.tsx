@@ -91,11 +91,11 @@ const getTierBadge = (tier: string) => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-1">
-              <div className="p-2 mr-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
-                <Pickaxe className="w-6 h-6 text-white" />
+              <div className="p-2 mr-1 bg-transparent rounded-lg group-hover:scale-110 transition-transform">
+                <Pickaxe className="w-6 h-6 text-primary dark:text-white" />
               </div>
-              <span className="text-xl md:sm:text-2xl text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Constructly
+              <span className="text-xl md:sm:text-2xl text-lg font-bold text-primary dark:text-white">
+                Elaris
               </span>
             </div>
 

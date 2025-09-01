@@ -711,7 +711,7 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
             <div className="text-center ">
               <h4 className="font-semibold mb-3">Support</h4>
               <ul className="space-y-2  justify-center items-center">
-                <li className="flex items-center justify-center gap-2"><Mail className="w-4 h-4" /><a className="hover:underline" href="mailto:support@constructly.africa">support@constructly.africa</a></li>
+                <li className="flex items-center justify-center gap-2"><Mail className="w-4 h-4" /><a className="hover:underline" href="mailto:support@elaris.africa">support@elaris.africa</a></li>
                 <li><a className="hover:underline hover:text-blue-600" href="#faq">FAQs</a></li>
                 <li><a className="hover:underline hover:text-blue-600" href="#">Documentation</a></li>
               </ul>
@@ -733,7 +733,7 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
                 Learn more <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
-            <div>© {new Date().getFullYear()} Constructly. All rights reserved.</div>
+            <div>© {new Date().getFullYear()} Elaris. All rights reserved.</div>
           </div>
         </div>
       </footer>
@@ -744,12 +744,12 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
 /** Logo */
 const Logo = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center group select-none">
-    <div className="p-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-md group-hover:scale-105 transition-transform">
-      <Pickaxe className="w-5 h-5 text-white" />
+    <div className="p-2 rounded-xl bg-transaparent shadow-md group-hover:scale-105 transition-transform">
+      <Pickaxe className="w-5 h-5  text-primary dark:text-white" />
     </div>
     {!compact && (
-      <span className="ml-2 font-bold text-lg sm:text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-        Constructly
+      <span className="ml-2 font-bold text-lg sm:text-2xl  text-primary dark:text-white">
+        Elaris
       </span>
     )}
   </div>

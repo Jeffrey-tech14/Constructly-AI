@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { v4 as uuidv4 } from "uuid"; // install with: npm install uuid
 import { Checkbox } from '@/components/ui/checkbox';
+import { BOQSection } from '@/types/boq';
 import { useToast } from '@/hooks/use-toast';
 import { useQuoteCalculations, CalculationResult, QuoteCalculation, Percentage } from '@/hooks/useQuoteCalculations';
 import { RoomType, useUserSettings } from '@/hooks/useUserSettings';
@@ -31,7 +32,8 @@ import {
   FileSpreadsheet,
   Zap,
   Trash,
-  House
+  House,
+  Table
 } from 'lucide-react';
 import { usePlan } from '../contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,6 +45,8 @@ import MasonryCalculatorForm from './MasonryCalculatorForm';
 import useMasonryCalculator from '@/hooks/useMasonryCalculator';
 import ConcreteCalculatorForm from './ConcreteCalculatorForm';
 import { useDynamicPricing } from '@/hooks/useDynamicPricing';
+import BOQBuilder from './BOQBuilder';
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 interface Room {
   room_name: string;
@@ -145,6 +149,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
   const location = useLocation();
   const [limit, setLimit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [boqData, setBoqData] = useState<BOQSection[]>([]);
 
    const fetchLimit = async () => {
       if (!profile?.tier) return;
@@ -307,7 +312,8 @@ const EnhancedQuoteBuilder = ({quote}) => {
     { id: 5, name: 'Services and Extras', icon: <Plus className="w-5 h-5" /> },
     { id: 6, name: 'Subcontractor Rates', icon: <Zap className="w-5 h-5" /> },
     { id: 7, name: 'Subcontractor Materials', icon: <FileSpreadsheet className="w-5 h-5" /> },
-    { id: 8, name: 'Review & Export', icon: <Calculator className="w-5 h-5" /> }
+    { id: 8, name: 'BOQ Builder', icon: <FileText className="w-5 h-5" /> }, // New step
+    { id: 9, name: 'Review & Export', icon: <Calculator className="w-5 h-5" /> }
   ];
 
   const updatePercentageField = (field: keyof Percentage, value: number) => {
@@ -341,7 +347,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
       // if(currentStep + 1 === 3){
       //   calculateMasonry()
       // }
-      if(currentStep+1 === 8){
+      if(currentStep + 1 === 9){
         handleCalculate();
       }
     }
@@ -441,6 +447,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
         concrete_rows: quoteData.concrete_rows,
         materials_cost: calculation.materials_cost,
         rebar_rows: quoteData.rebar_rows,
+        boq_data: boqData,
         rebar_calculations: quoteData.rebar_calculations,
         labor_cost: Math.round(calculation.labor_cost),
         additional_services_cost: Math.round(calculation.selected_services_cost),
@@ -492,6 +499,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
           status: 'draft',
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
+          boq_data: boqData,
           distance_km: calculation.distance_km,
           materials_cost: Math.round(calculation.materials_cost),
           concrete_rows: quoteData.concrete_rows,
@@ -1410,7 +1418,17 @@ const EnhancedQuoteBuilder = ({quote}) => {
           </div>
         );
 
-      case 8:
+        case 8: // BOQ Builder step
+      return (
+        <div className="space-y-6">
+          <BOQBuilder
+            quoteData={quoteData} 
+            onBOQUpdate={setBoqData} 
+          />
+        </div>
+      );
+
+      case 9:
         return (
           <div className="space-y-6">
             {calculation? (
@@ -1418,7 +1436,49 @@ const EnhancedQuoteBuilder = ({quote}) => {
                 {/* <pre className="text-blue-700 bg-blue-100 p-4 rounded-md overflow-auto max-h-96">
                 {JSON.stringify(calculation, null, 2)}
               </pre> */}
-
+              {boqData.length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-semibold mb-4">Bill of Quantities</h3>
+                            {boqData.map((section, index) => (
+                              <Card key={index} className="mb-4">
+                                <CardHeader>
+                                  <CardTitle>{section.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead>Item</TableHead>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead>Unit</TableHead>
+                                        <TableHead>Qty</TableHead>
+                                        <TableHead>Rate</TableHead>
+                                        <TableHead>Amount</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {section.items.map((item, idx) => (
+                                        <TableRow key={idx}>
+                                          <TableCell>{item.itemNo}</TableCell>
+                                          <TableCell>{item.description}</TableCell>
+                                          <TableCell>{item.unit}</TableCell>
+                                          <TableCell>{item.quantity}</TableCell>
+                                          <TableCell>{item.rate?.toLocaleString()}</TableCell>
+                                          <TableCell>{item.amount?.toLocaleString()}</TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                  {section.summary && (
+                                    <div className="mt-4 text-right font-bold">
+                                      Total: KSh {section.summary?.toLocaleString()}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
                 {quoteData.concrete_materials.length > 0 && (
                   <Card  className='gradient-card'>
                     <CardHeader>
@@ -1814,7 +1874,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
               </div>
             ))}
           </div>
-          <Progress value={(currentStep / 8) * 100} className="w-full" />
+          <Progress value={(currentStep / 9) * 100} className="w-full" />
         </div>
 
         <AnimatePresence mode="wait" custom={direction}>
@@ -1848,7 +1908,7 @@ const EnhancedQuoteBuilder = ({quote}) => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 8 && (
+          {currentStep < 9 && (
             <Button onClick={nextStep} className="text-white">
               Next
               <ArrowRight className="w-4 h-4 ml-2 text-white" />

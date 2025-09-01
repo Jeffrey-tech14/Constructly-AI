@@ -39,6 +39,8 @@
         width: "",
         height: "",
         mix: "1:2:4",
+        category: "substructure",
+        number: "1"
       };
     }, []);
 
@@ -210,6 +212,13 @@
           unit_price: formworkMat?.price || 0,
           total_price: Math.round(r.formworkM2 * (formworkMat?.price || 0)),
         },
+        {
+          rowId: r.id,
+          name: "Total items",
+          quantity: Math.round(r.volumeM3),
+          unit_price: Math.round((Math.round(r.formworkM2 * (formworkMat?.price || 0)) + Math.round(r.stoneM3 * ballastMat.price) + Math.round(r.sandM3 * sandMat.price) + Math.round(r.cementBags * cementMat.price)) / r.totalVolume),
+          total_price: Math.round(r.formworkM2 * (formworkMat?.price || 0)) + Math.round(r.stoneM3 * ballastMat.price) + Math.round(r.sandM3 * sandMat.price) + Math.round(r.cementBags * cementMat.price)
+        },
       ]);
 
       const totalsRows = [
@@ -244,10 +253,8 @@
         {
           rowId: "totals",
           name: "Grand Total",
-          quantity: 1,
-          unit_price:Math.round(
-            totals.cement * cementMat.price +
-            totals.sand * sandMat.price +
+          quantity: rows[0].number || 1,
+          unit_price:Math.round(cementMat.price + sandMat.price +
             totals.stone * ballastMat.price + 
             totals.formworkM2 * formworkMat.price),
           total_price:Math.round(
@@ -301,12 +308,25 @@
                   </SelectContent>
                 </Select>
 
+                <Select
+                  value={row.category}
+                  onValueChange={(value) => updateRow(row.id, "category", value as any)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent defaultValue={"substructure"}>
+                    <SelectItem value="substructure">Substructure</SelectItem>
+                    <SelectItem value="superstructure">Superstructure</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <Button onClick={() => removeRow(row.id)} variant="destructive">
                   <Trash className="w-4 h-4" />
                 </Button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <Input
                   type="number"
                   value={row.length}
@@ -325,6 +345,15 @@
                   step="0.1"
                   onChange={(e) => updateRow(row.id, "height", e.target.value)}
                   placeholder="Height/Thickness (m)"
+                />
+                <Input
+                  type="number"
+                  value={row.number}
+                  step="1"
+                  min="1"
+                  defaultValue="1"
+                  onChange={(e) => updateRow(row.id, "number", e.target.value)}
+                  placeholder="Number of items"
                 />
               </div>
 

@@ -1,3 +1,4 @@
+import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRightIcon, Quote, Star, Building } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
@@ -123,7 +124,7 @@ export function TestimonialsSection() {
           {/* Prev button */}
           <button
             onClick={prevTestimonial}
-            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-white text-gray-600 border-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-blue-400"
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-white text-gray-600 border-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
             aria-label="Previous testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -133,7 +134,7 @@ export function TestimonialsSection() {
           {/* Next button */}
           <button
             onClick={nextTestimonial}
-            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-white text-gray-600 border-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-blue-400"
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-white text-gray-600 border-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
             aria-label="Next testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -143,6 +144,15 @@ export function TestimonialsSection() {
           {/* Testimonial */}
           <div className="relative h-auto overflow-hidden">
             {testimonials.length > 0 ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.5 }}
+                  className={`rounded-2xl shadow-xl overflow-hidden border`}
+                >
               <div className="rounded-2xl shadow-xl overflow-hidden border bg-white border-gray-100 dark:bg-gray-800 dark:border-gray-700">
                 <div className="grid grid-cols-1 lg:grid-cols-3">
                   {/* Left: Testimonial */}
@@ -199,6 +209,8 @@ export function TestimonialsSection() {
                   </div>
                 </div>
               </div>
+              </motion.div>
+              </AnimatePresence>
             ) : (
               <div className="text-center py-20 text-xl text-gray-600 dark:text-gray-400">
                 No testimonials to display yet. Be the first to share your experience!

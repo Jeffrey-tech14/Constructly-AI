@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Download } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { generateQuoteExcel } from './ExcelGenerator';
-import { generateQuotePDF } from './PDFGenerator';
+import { exportBOQPDF } from '@/utils/exportBOQPDF';
 
 interface QuoteExportDialogProps {
   quote: any;
@@ -33,8 +33,18 @@ export const QuoteExportDialog = ({
   };
 
   const handleExport = () => {
-    if (exportFormat === 'pdf') {
-      generateQuotePDF(safeQuote, exportType === 'client');
+    if (exportFormat === 'pdf') { 
+      exportBOQPDF(quote.boq_data, {
+            title: quote.title,
+            date: Date(),
+            clientName: quote.client_name,
+            clientEmail: quote.client_email,
+            location: quote.location,
+            projectType: quote.project_type,
+            houseType: quote.house_type,
+            region: quote.region,
+            floors: quote.floors,
+    })
     } else {
       generateQuoteExcel({
         quote,

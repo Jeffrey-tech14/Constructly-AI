@@ -7,6 +7,7 @@ import {
 import { Calculator, Plus, Trash } from "lucide-react";
 import useMasonryCalculator from "@/hooks/useMasonryCalculator";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import { Label } from "./ui/label";
 
     const blockTypes = [
     { id: 1, displayName: "Standard Block (400×200×200mm)", name: "Standard Block", size: { length: 0.4, height: 0.2, thickness: 0.2 } },
@@ -28,7 +29,7 @@ export default function MasonryCalculatorForm({quote, setQuote, materialBasePric
 
   return (
     <div>
-      <div>
+      <div className="mb-3">
         <h3>Total Cost: Ksh {results.cost?.toLocaleString() || 0}</h3>
         <h4>Breakdown:</h4>
         <ul>
@@ -38,10 +39,26 @@ export default function MasonryCalculatorForm({quote, setQuote, materialBasePric
           <li>Total Area: {results.netArea?.toFixed(2) || 0} m²</li>
         </ul>
       </div>
+        <Label className="mt-3">Motar Ratio
+          <Input
+            type="text"
+            value={quote.mortarRatio || "1:3"}
+            onChange={(e) => setQuote({ ...quote, mortarRatio: e.target.value })}
+          />
+          </Label>
+
+        <Label className="mb-3">Joint thickness
+          <Input
+            type="number"
+            step="0.001"
+            value={quote.jointThickness || 0.01}
+            onChange={(e) => setQuote({ ...quote, jointThickness: parseFloat(e.target.value) })}
+          />
+        </Label>
       {quote.rooms.map((room, index) => (
         <div
           key={index}
-          className="grid grid-cols-5 md:grid-cols-1 justify-between gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
+          className="mt-3 grid grid-cols-5 md:grid-cols-1 justify-between gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
         >
           {/* Room Type */}
           <Input
@@ -133,18 +150,6 @@ export default function MasonryCalculatorForm({quote, setQuote, materialBasePric
             </SelectContent>
           </Select>
 
-          <Input
-            type="text"
-            value={quote.mortarRatio || "1:3"}
-            onChange={(e) => setQuote({ ...quote, mortarRatio: e.target.value })}
-          />
-
-          <Input
-            type="number"
-            step="0.001"
-            value={quote.jointThickness || 0.01}
-            onChange={(e) => setQuote({ ...quote, jointThickness: parseFloat(e.target.value) })}
-          />
 
           {/* --- Doors --- */}
           <div className="col-span-3 space-y-2 mt-3">

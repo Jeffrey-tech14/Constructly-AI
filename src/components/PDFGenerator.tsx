@@ -1,409 +1,634 @@
-// components/QuotePDF.tsx
-import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Font, pdf } from '@react-pdf/renderer';
-import { toast } from '@/hooks/use-toast';
-import { CalculationResult, QuoteCalculation } from '@/hooks/useQuoteCalculations';
-import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
+// src/components/PDFGenerator.tsx
+import React, { useMemo } from 'react';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { BOQSection, BOQItem } from '@/types/boq'; // Adjust import path
 
-// Register fonts
-Font.register({ family: 'Poppins', src: '/fonts/outfit.ttf' });
-Font.register({ family: 'Bold', src: '/fonts/bold.ttf' });
+// --- Register Fonts ---
+// Using built-in Helvetica for simplicity. You can register custom fonts if needed.
+// Font.register({
+//   family: 'Helvetica',
+//   fonts: [
+//     { src: 'https://cdn.jsdelivr.net/npm/@react-pdf/font@1.0.0/fonts/Helvetica.ttf' },
+//     { src: 'https://cdn.jsdelivr.net/npm/@react-pdf/font@1.0.0/fonts/Helvetica-Bold.ttf', fontWeight: 'bold' },
+//   ],
+// });
 
-// Format currency
-const formatCurrency = (value: number) => {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
-  return value?.toLocaleString() || '0';
-};
-
-// Styles
+// --- Styles ---
 const styles = StyleSheet.create({
-  page: { padding: 40, fontFamily: 'Poppins', backgroundColor: '#fff' },
-  header: { flexDirection: 'column', alignItems: 'center', marginBottom: 20, borderBottom: '2px solid #e2e8f0', paddingBottom: 15 },
-  logo: { width: 60, height: 60, borderRadius: 10 },
-  title: { fontSize: 18, fontFamily: 'Bold', color: '#1e40af' },
-  subtitle: { fontSize: 10, color: '#64748b' },
-  section: { marginTop: 15, padding: 10, backgroundColor: '#f8fafc', borderRadius: 6 },
-  sectionTitle: { fontSize: 14, fontFamily: 'Bold', color: '#1e293b', marginBottom: 6 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3, fontSize: 11 },
-  name: { flex: 1, color: '#334155' },
-  value: { color: '#0f172a' },
-  summary: { marginTop: 10, padding: 8, backgroundColor: '#eff6ff', borderRadius: 6, flexDirection: 'row', justifyContent: 'space-between' },
-  summaryLabel: { color: '#1e40af', fontFamily: 'Bold' },
-  summaryValue: { color: '#1e40af', fontFamily: 'Bold' },
-  footer: { marginTop: 25, paddingTop: 10, borderTop: '1px solid #e2e8f0', fontSize: 10, color: '#64748b', textAlign: 'center' },
-  list: { marginLeft: 15, fontSize: 10 },
-  listItem: { flexDirection: 'row', justifyContent: 'space-between' },
+  page: {
+    padding: 30,
+    fontSize: 12, // Slightly smaller base font
+    fontFamily: 'Helvetica',
+    lineHeight: 1.3, // Adjust line height for better spacing
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: 'bold',
+    marginBottom: 3,
+  },
+  subtitle: {
+    fontSize: 20,
+    marginBottom: 5,
+  },
+  projectInfoRow: {
+    flexDirection: 'row',
+    marginBottom: 2,
+    fontSize: 15, // Smaller font for project info
+  },
+  projectInfoLabel: {
+    width: 100, // Adjusted width
+    fontWeight: 'bold',
+  },
+  projectInfoValue: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    paddingVertical: 2,
+    borderBottom: '1pt solid #000',
+    borderTop: '1pt solid #000',
+  },
+  table: {
+    width: '100%',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 8,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
+    backgroundColor: '#f0f0f0',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5, // Thinner row border
+    borderBottomColor: '#ccc',
+    borderBottomStyle: 'solid',
+    minHeight: 15, // Adjusted row height
+  },
+  tableColHeader: {
+    borderRightWidth: 0.5, // Thinner column border
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    padding: 2, // Reduced padding
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 15, // Smaller header font
+  },
+  tableColHeaderDescription: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    padding: 2,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    flex: 1, // Take remaining space
+    fontSize: 15,
+  },
+  tableCol: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    padding: 2,
+    textAlign: 'center',
+    fontSize: 15, // Smaller cell font
+  },
+  tableColDescription: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    padding: 2,
+    textAlign: 'left',
+    flex: 1,
+    fontSize: 15,
+  },
+  tableColAmount: {
+    padding: 2, // No right border for the last column
+    textAlign: 'right',
+    fontSize: 15,
+  },
+  sectionTotalRow: {
+    flexDirection: 'row',
+    marginTop: 3,
+    marginBottom: 8,
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  sectionTotalLabel: {
+    width: '80%',
+    textAlign: 'right',
+    paddingRight: 5,
+  },
+  sectionTotalValue: {
+    width: '20%',
+    textAlign: 'right',
+  },
+  grandTotalRow: {
+    flexDirection: 'row',
+    marginTop: 15,
+    borderTop: '2pt solid #000',
+    paddingTop: 8,
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  grandTotalLabel: {
+    width: '80%',
+    textAlign: 'right',
+    paddingRight: 5,
+  },
+  grandTotalValue: {
+    width: '20%',
+    textAlign: 'right',
+  },
+  pageNumber: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontSize: 15,
+  },
+  // --- Preliminary Pages Styles ---
+  prelimPage: {
+    padding: 40,
+    fontSize: 14,
+    fontFamily: 'Helvetica',
+    lineHeight: 1.5,
+  },
+  prelimTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  prelimSubtitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  prelimContent: {
+    marginBottom: 10,
+    textAlign: 'justify',
+  },
+  prelimList: {
+    marginBottom: 8,
+  },
+  prelimListItem: {
+    marginBottom: 4,
+    paddingLeft: 10,
+  },
+  materialScheduleSection: {
+    marginTop: 20,
+  },
+  materialScheduleTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    borderBottom: '1pt solid #000',
+  },
+  materialScheduleTable: {
+    width: '100%',
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 8,
+  },
+  materialScheduleHeaderRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    borderBottomStyle: 'solid',
+    backgroundColor: '#f0f0f0',
+  },
+  materialScheduleRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#ccc',
+    borderBottomStyle: 'solid',
+    minHeight: 15,
+  },
+  materialScheduleColHeader: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    padding: 2,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+    fontSize: 20,
+  },
+  materialScheduleCol: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#000',
+    borderRightStyle: 'solid',
+    padding: 2,
+    textAlign: 'center',
+    flex: 1,
+    fontSize: 20,
+  },
+  materialScheduleColLast: {
+    padding: 2,
+    textAlign: 'center',
+    flex: 1,
+    fontSize: 20,
+  },
+  // --- Footer for BOQ pages ---
+  boqFooter: {
+    position: 'absolute',
+    bottom: 30,
+    left: 30,
+    right: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    fontSize: 20,
+    borderTop: '0.5pt solid #000',
+    paddingTop: 2,
+  }
 });
 
-interface QuotePDFProps {
-  quote: QuoteCalculation & CalculationResult;
-  isClientExport?: boolean;
-}
-
-export const QuotePDF = ({ quote, isClientExport = false }: QuotePDFProps) => {
-  const showProfit = !isClientExport;
-
-  // Helper: Render section only if items exist and array is not empty
-  const renderSection = (
-  title: string,
-  items: any[] | null | undefined,
-  renderItem: (item: any, index: number) => JSX.Element
-) => {
-  // ✅ Safe: Ensure it's an array AND has items
-  if (!Array.isArray(items) || items.length === 0) return null;
-
-  return (
-    <View style={styles.section} key={title}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {items.map(renderItem)} {/* Now safe to map */}
-    </View>
-  );
+// --- Helper Functions ---
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-KE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 };
 
-  // Helper: Render key-value list
-  const renderList = (title: string, items: any[], valueKey: 'price' | 'total_price' | 'cost' | 'total_cost' | 'total' = 'price') => {
-    return renderSection(title, items, (item, i) => (
-      <View style={styles.row} key={i}>
-        <Text style={styles.name}>{item.name || item.type || 'Item'}</Text>
-        <Text style={styles.value}>
-          {formatCurrency(item[valueKey] || 0)}
-        </Text>
-      </View>
-    ));
+// --- Type for Project Info ---
+interface ProjectInfo {
+  title: string;
+  clientName: string;
+  clientEmail: string;
+  location: string;
+  projectType: string;
+  houseType: string;
+  region: string;
+  floors: number;
+  date: string; // Formatted date string
+}
+
+// --- Type for Material Schedule Item ---
+interface MaterialScheduleItem {
+  description: string;
+  unit: string;
+  quantity: number;
+}
+
+// --- Main Component ---
+interface PDFGeneratorProps {
+  boqData: BOQSection[];
+  projectInfo: ProjectInfo;
+}
+
+const PDFGenerator: React.FC<PDFGeneratorProps> = ({ boqData, projectInfo }) => {
+  // --- Calculate Section Totals ---
+  const calculateSectionTotal = (items: BOQItem[]): number => {
+    return items.reduce((total, item) => {
+      if (item.isHeader) return total;
+      return total + (item.amount || 0);
+    }, 0);
   };
 
-  // Render room details
-  const renderRooms = () => {
-    if (!quote.rooms?.length) return null;
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Rooms & Walls</Text>
-        {quote.rooms.map((room, idx) => (
-          <View key={idx} style={{ marginBottom: 10 }}>
-            <View style={styles.row}>
-              <Text style={styles.name}>Room:</Text>
-              <Text style={styles.value}>{room.room_name || "Unnamed"}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Dimensions:</Text>
-              <Text style={styles.value}>{room.length} × {room.width} × {room.height} m</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Wall Area:</Text>
-              <Text style={styles.value}>{room.roomArea || 0} m²</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Plaster Area:</Text>
-              <Text style={styles.value}>{room.plasterArea} m²</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Total Cost:</Text>
-              <Text style={styles.value}>KSh {formatCurrency(room.totalCost || 0)}</Text>
-            </View>
-
-            {/* Doors */}
-            {room.doors?.length > 0 && (
-              <>
-                <Text style={{ fontSize: 10, marginTop: 5, fontFamily: 'Bold' }}>Doors:</Text>
-                {room.doors.map((door, dIdx) => (
-                  <View style={styles.row} key={dIdx}>
-                    <Text style={styles.name}>
-                      {door.count} × {door.type} ({door.frame}) — {door.sizeType === 'standard' ? door.standardSize : `${door.custom.width}×${door.custom.height}m`}
-                    </Text>
-                    <Text style={styles.value}>
-                      KSh {formatCurrency(door.price || door.custom.price || 0)}
-                    </Text>
-                  </View>
-                ))}
-              </>
-            )}
-
-            {/* Windows */}
-            {room.windows?.length > 0 && (
-              <>
-                <Text style={{ fontSize: 10, marginTop: 5, fontFamily: 'Bold' }}>Windows:</Text>
-                {room.windows.map((window, wIdx) => (
-                  <View style={styles.row} key={wIdx}>
-                    <Text style={styles.name}>
-                      {window.count} × {window.glass} ({window.frame}) — {window.sizeType === 'standard' ? window.standardSize : `${window.custom.width}×${window.custom.height}m`}
-                    </Text>
-                    <Text style={styles.value}>
-                      KSh {formatCurrency(window.price || window.custom.price || 0)}
-                    </Text>
-                  </View>
-                ))}
-              </>
-            )}
-
-            {/* Cost Breakdown */}
-            <View style={{ marginTop: 5 }}>
-              <Text style={{ fontSize: 10, fontFamily: 'Bold' }}>Cost Breakdown:</Text>
-              <View style={styles.row}>
-                <Text style={styles.name}>Blocks:</Text>
-                <Text style={styles.value}>KSh {formatCurrency(room.blockCost || 0)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.name}>Cement:</Text>
-                <Text style={styles.value}>KSh {formatCurrency(room.cementCost || 0)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.name}>Sand:</Text>
-                <Text style={styles.value}>KSh {formatCurrency(room.sandCost || 0)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.name}>Mortar:</Text>
-                <Text style={styles.value}>KSh {formatCurrency(room.mortarCost || 0)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.name}>Plaster:</Text>
-                <Text style={styles.value}>KSh {formatCurrency(room.plasterCost || 0)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.name}>Openings:</Text>
-                <Text style={styles.value}>KSh {formatCurrency(room.openingsCost || 0)}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </View>
-    );
+  // --- Calculate Grand Total ---
+  const calculateGrandTotal = (): number => {
+    return boqData.reduce((total, section) => {
+      return total + calculateSectionTotal(section.items);
+    }, 0);
   };
 
-  // Render rebar breakdown
-  const renderRebar = () => {
-    if (!quote.rebar_calculations?.length) return null;
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Rebar</Text>
-        {quote.rebar_calculations.map((item, idx) => (
-          <View key={idx} style={{ marginBottom: 8 }}>
-            <View style={styles.row}>
-              <Text style={styles.name}>Total Bars:</Text>
-              <Text style={styles.value}>{item.totalBars}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Total Length:</Text>
-              <Text style={styles.value}>{item.totalLengthM} m</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Total Weight:</Text>
-              <Text style={styles.value}>{item.totalWeightKg} kg</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Price per Meter:</Text>
-              <Text style={styles.value}>KSh {formatCurrency(item.pricePerM || 0)}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Total Price:</Text>
-              <Text style={styles.value}>KSh {formatCurrency(item.totalPrice || 0)}</Text>
-            </View>
+  // --- Generate Material Schedule ---
+  const generateMaterialSchedule = (): MaterialScheduleItem[] => {
+    const materialMap: Record<string, { unit: string; quantity: number }> = {};
 
-            {/* Breakdown */}
-            {item.breakdown && (
-              <View style={{ marginLeft: 10, marginTop: 4 }}>
-                <Text style={{ fontSize: 10, fontFamily: 'Bold' }}>Breakdown:</Text>
-                <View style={styles.row}><Text style={styles.name}>Ties:</Text><Text style={styles.value}>{item.breakdown.ties}</Text></View>
-                <View style={styles.row}><Text style={styles.name}>Mesh X:</Text><Text style={styles.value}>{item.breakdown.meshX}</Text></View>
-                <View style={styles.row}><Text style={styles.name}>Mesh Y:</Text><Text style={styles.value}>{item.breakdown.meshY}</Text></View>
-                <View style={styles.row}><Text style={styles.name}>Stirrups:</Text><Text style={styles.value}>{item.breakdown.stirrups}</Text></View>
-                <View style={styles.row}><Text style={styles.name}>Verticals:</Text><Text style={styles.value}>{item.breakdown.verticals}</Text></View>
-                <View style={styles.row}><Text style={styles.name}>Longitudinal:</Text><Text style={styles.value}>{item.breakdown.longitudinal}</Text></View>
-              </View>
-            )}
+    if (Array.isArray(boqData)) {
+      boqData.forEach(section => {
+        if (Array.isArray(section.items)) {
+          section.items.forEach(item => {
+            if (item.isHeader) return; // Skip header items
 
-            {/* Weight Breakdown */}
-            {item.weightBreakdownKg && (
-              <View style={{ marginLeft: 10, marginTop: 4 }}>
-                <Text style={{ fontSize: 10, fontFamily: 'Bold' }}>Weight (kg):</Text>
-                <View style={styles.row}><Text style={styles.name}>Mesh X:</Text><Text style={styles.value}>{item.weightBreakdownKg.meshX}</Text></View>
-                <View style={styles.row}><Text style={styles.name}>Mesh Y:</Text><Text style={styles.value}>{item.weightBreakdownKg.meshY}</Text></View>
-              </View>
-            )}
-          </View>
-        ))}
-      </View>
-    );
+            const descLower = (item.description || '').toLowerCase();
+            let materialKey = '';
+            let unit = item.unit || '';
+
+            // Heuristic-based material identification based on description keywords
+            if (descLower.includes('cement')) {
+              materialKey = 'Cement';
+              unit = 'bags';
+            } else if (descLower.includes('sand')) {
+              materialKey = 'Sand';
+              unit = 'm³';
+            } else if (descLower.includes('ballast') || descLower.includes('stone')) {
+              materialKey = 'Ballast';
+              unit = 'm³';
+            } else if (descLower.includes('block')) {
+              materialKey = 'Blocks';
+              unit = 'No.';
+            } else if (descLower.includes('brick')) {
+              materialKey = 'Bricks';
+              unit = 'No.';
+            } else if (descLower.includes('steel') || descLower.includes('reinforcement') || descLower.includes('rebar') || descLower.includes('ribbed bar')) {
+              materialKey = 'Reinforcement Steel';
+              unit = 'Kg';
+            } else if (descLower.includes('concrete')) {
+                materialKey = 'Concrete';
+                unit = 'm³';
+            } else if (descLower.includes('window')) {
+                 materialKey = 'Windows';
+                 unit = 'No.';
+            } else if (descLower.includes('door')) {
+                 materialKey = 'Doors';
+                 unit = 'No.';
+            }
+            // Add more material mappings as needed...
+
+            if (materialKey) {
+              if (!materialMap[materialKey]) {
+                materialMap[materialKey] = { unit, quantity: 0 };
+              }
+              const itemQuantity = typeof item.quantity === 'number' ? item.quantity : 0;
+              // Simple aggregation - assumes units are consistent for the same material key.
+              // A more robust system would handle unit conversions.
+              materialMap[materialKey].quantity += itemQuantity;
+            }
+          });
+        }
+      });
+    }
+
+    return Object.entries(materialMap)
+      .map(([description, { unit, quantity }]) => ({
+        description,
+        unit,
+        quantity,
+      }))
+      // Sort materials alphabetically
+      .sort((a, b) => a.description.localeCompare(b.description));
   };
+
+  const materialScheduleData = useMemo(() => generateMaterialSchedule(), [boqData]);
+  const grandTotal = useMemo(() => calculateGrandTotal(), [boqData]);
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* HEADER */}
+      {/* --- Preliminary Pages --- */}
+      {/* Page 1: Title Page */}
+      <Page size="A4" style={styles.prelimPage}>
         <View style={styles.header}>
-          <Image src="/favicon.png" style={styles.logo} />
-          <Text style={styles.title}>{quote.company_name}</Text>
-          <Text style={styles.subtitle}>Constructly Kenya</Text>
-          <Text style={styles.subtitle}>{isClientExport ? 'Client Quote' : 'Contractor Quote'}</Text>
-          <Text style={styles.subtitle}>Quality • Reliability • Excellence</Text>
+          <Text style={styles.title}>BILLS OF QUANTITIES</Text>
+          <Text style={styles.subtitle}>FOR</Text>
+          <Text style={styles.title}>{projectInfo.title || 'Not Provided'}</Text>
+          <Text style={styles.subtitle}>FOR</Text>
+          <Text style={styles.subtitle}>{projectInfo.clientName || 'Not provided'}</Text>
+          <Text style={styles.subtitle}>({projectInfo.location || 'Location not provided'})</Text>
         </View>
 
-        {/* PROJECT INFO */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Project Information</Text>
-          {[
-            ['Contractor Name', quote.contractor_name],
-            ['Title', quote.title],
-            ['Client Name', quote.client_name],
-            ['Client Email', quote.client_email],
-            ['Location', quote.location],
-            ['House Type', quote.house_type],
-            ['Status', quote.status?.charAt(0).toUpperCase() + quote.status.slice(1).replace('_', ' ')],
-            ['Project Type', quote.project_type?.charAt(0).toUpperCase() + quote.project_type.slice(1).replace('_', ' ')],
-            ['Region', quote.region],
-            ['Custom Specs', quote.custom_specs],
-            ['Floors', quote.floors],
-            ['Date', new Date().toLocaleDateString()],
-          ].map(([label, val], i) => val && (
-            <View style={styles.row} key={i}>
-              <Text style={styles.name}>{label}:</Text>
-              <Text style={styles.value}>{val}</Text>
-            </View>
-          ))}
+        <View style={{ marginTop: 50 }}>
+          <Text style={styles.prelimContent}>
+            This document presents the Bill of Quantities (BOQ) for the {projectInfo.projectType || 'project'} located at {projectInfo.location || 'the specified location'}. The quantities have been measured and described according to standard practices.
+          </Text>
+          <Text style={styles.prelimContent}>
+            The rates and prices included are based on current market conditions and the specifications provided. The Contractor is responsible for verifying all quantities and dimensions on site.
+          </Text>
         </View>
 
-        {/* BUILDING SPECS */}
-        {quote.concrete_mix_ratio && quote.plaster_thickness && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Building Specifications</Text>
-            {[
-              ['Concrete Mix Ratio', quote.concrete_mix_ratio],
-              ['Plaster Thickness', `${quote.plaster_thickness} mm`],
-            ].map(([label, val], i) => (
-              <View style={styles.row} key={i}>
-                <Text style={styles.name}>{label}:</Text>
-                <Text style={styles.value}>{val}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* ROOMS */}
-        {renderRooms()}
-
-        {/* CONCRETE MATERIALS */}
-        {renderList('Concrete Materials', quote.concrete_materials, 'total_price')}
-
-        {/* MASONRY MATERIALS */}
-        {renderList('Masonry Concrete', quote.masonry_materials, 'total_price')}
-
-        {/* EQUIPMENT */}
-        {renderList('Equipment', quote.equipment, 'total_cost')}
-
-        {/* SUBCONTRACTORS */}
-        {renderList('Subcontractors', quote.subcontractors, 'total')}
-
-        {/* ADDONS (Subcontractor Materials) */}
-        {renderList('Subcontractor Materials', quote.addons, 'price')}
-
-        {/* SERVICES */}
-        {renderList('Additional Services', quote.services, 'price')}
-
-        {/* REBAR */}
-        {renderRebar()}
-
-        {/* TRANSPORT */}
-        {quote.distance_km && quote.transport_costs && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Transport</Text>
-            <View style={styles.row}>
-              <Text style={styles.name}>Distance:</Text>
-              <Text style={styles.value}>{quote.distance_km} km</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.name}>Cost:</Text>
-              <Text style={styles.value}>KSh {formatCurrency(quote.transport_costs)}</Text>
-            </View>
-          </View>
-        )}
-
-        {/* COST SUMMARY */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cost Summary</Text>
-          {[
-            ['Materials', quote.materials_cost],
-            ['Labor', quote.labor_cost],
-            ['Equipment', quote.equipment_costs],
-            ['Addons', quote.addons_cost],
-            ['Additional Services', quote.additional_services_cost],
-            ['Permit', quote.permit_cost],
-            ['Overhead', quote.overhead_amount],
-            ['Contingency', quote.contingency_amount],
-            ...(showProfit ? [['Profit', quote.profit_amount]] : []),
-          ].map(([label, val]) => val !== undefined && val !== null && typeof val === 'number' && val > 0 && (
-            <View style={styles.row} key={label}>
-              <Text style={styles.name}>{label}:</Text>
-              <Text style={styles.value}>KSh {formatCurrency(val)}</Text>
-            </View>
-          ))}
-          <View style={styles.summary}>
-            <Text style={styles.summaryLabel}>TOTAL PROJECT COST:</Text>
-            <Text style={styles.summaryValue}>KSh {formatCurrency(quote.total_amount)}</Text>
-          </View>
-        </View>
-
-        {/* FOOTER */}
-        <View style={styles.footer}>
-          <Text>Generated by Constructly Kenya • {quote.company_name} • www.constructly.co.ke</Text>
-          <Text>For inquiries: hello@constructly.co.ke</Text>
-        </View>
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} fixed />
       </Page>
+
+      {/* Page 2: Instructions & Conditions (Example) */}
+      <Page size="A4" style={styles.prelimPage}>
+        <Text style={styles.prelimTitle}>INSTRUCTIONS AND CONDITIONS OF CONTRACT</Text>
+
+        <View style={styles.prelimList}>
+          <Text style={styles.prelimListItem}>1. The Contractor shall carefully study and comply with all terms and conditions of this Contract.</Text>
+          <Text style={styles.prelimListItem}>2. All work shall be executed in accordance with the Contract Documents, including these Bills of Quantities, Drawings, and Specifications.</Text>
+          <Text style={styles.prelimListItem}>3. The quantities given are for the purpose of Tender only and are not necessarily the exact quantities which will be executed and measured in the course of the Contract.</Text>
+          <Text style={styles.prelimListItem}>4. The Contractor shall take into account all factors affecting the work, including access, working space, and coordination with other trades.</Text>
+          <Text style={styles.prelimListItem}>5. All materials shall be of the quality specified and approved by the Architect/Engineer.</Text>
+          <Text style={styles.prelimListItem}>6. Payment will be made based on the measured and valued work executed, subject to the terms of the Contract.</Text>
+          <Text style={styles.prelimListItem}>7. The Contractor shall provide and maintain all necessary insurances as required by the Contract.</Text>
+          <Text style={styles.prelimListItem}>8. The Contractor shall ensure the safety of persons and property during the execution of the works.</Text>
+        </View>
+
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} fixed />
+      </Page>
+
+      {/* Page 3: General Preliminaries (Example) */}
+      <Page size="A4" style={styles.prelimPage}>
+        <Text style={styles.prelimTitle}>GENERAL PRELIMINARIES</Text>
+        <Text style={styles.prelimSubtitle}>BILL No. 1</Text>
+
+        <View style={styles.table}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableColHeader, { width: '8%' }]}>ITEM</Text>
+            <Text style={[styles.tableColHeaderDescription, { width: '52%' }]}>DESCRIPTION</Text>
+            <Text style={[styles.tableColHeader, { width: '8%' }]}>UNIT</Text>
+            <Text style={[styles.tableColHeader, { width: '10%' }]}>QTY</Text>
+            <Text style={[styles.tableColHeader, { width: '11%' }]}>RATE (KSh)</Text>
+            <Text style={[styles.tableColHeader, { width: '11%' }]}>AMOUNT (KSh)</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableCol, { width: '8%' }]}>A</Text>
+            <Text style={[styles.tableColDescription, { width: '52%' }]}>Signboard as designed and approved</Text>
+            <Text style={[styles.tableCol, { width: '8%' }]}>ITEM</Text>
+            <Text style={[styles.tableCol, { width: '10%' }]}>1.00</Text>
+            <Text style={[styles.tableCol, { width: '11%' }]}>5,000.00</Text>
+            <Text style={[styles.tableColAmount, { width: '11%' }]}>5,000.00</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableCol, { width: '8%' }]}>B</Text>
+            <Text style={[styles.tableColDescription, { width: '52%' }]}>Insurance for the works</Text>
+            <Text style={[styles.tableCol, { width: '8%' }]}>ITEM</Text>
+            <Text style={[styles.tableCol, { width: '10%' }]}>1.00</Text>
+            <Text style={[styles.tableCol, { width: '11%' }]}>3,000.00</Text>
+            <Text style={[styles.tableColAmount, { width: '11%' }]}>3,000.00</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableCol, { width: '8%' }]}>C</Text>
+            <Text style={[styles.tableColDescription, { width: '52%' }]}>Site supervision</Text>
+            <Text style={[styles.tableCol, { width: '8%' }]}>ITEM</Text>
+            <Text style={[styles.tableCol, { width: '10%' }]}>1.00</Text>
+            <Text style={[styles.tableCol, { width: '11%' }]}>10,000.00</Text>
+            <Text style={[styles.tableColAmount, { width: '11%' }]}>10,000.00</Text>
+          </View>
+          <View style={styles.sectionTotalRow}>
+            <Text style={styles.sectionTotalLabel}>TOTAL FOR GENERAL PRELIMINARIES:</Text>
+            <Text style={styles.sectionTotalValue}>{formatCurrency(18000.00)}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} fixed />
+      </Page>
+
+      {/* --- BOQ Pages --- */}
+      {boqData.map((section, sectionIndex) => {
+        // Filter out header items for display and calculation
+        const displayItems = section.items.filter(item => !item.isHeader);
+        const sectionTotal = calculateSectionTotal(section.items); // Calculate total including headers if they have amounts
+
+        return (
+          <Page size="A4" style={styles.page} key={`section-${sectionIndex}`} wrap>
+            
+
+            <View style={styles.projectInfoRow}>
+              <Text style={styles.projectInfoLabel}>Date:</Text>
+              <Text style={styles.projectInfoValue}>{projectInfo.date}</Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <View style={styles.table}>
+                {/* Table Header */}
+                <View style={styles.tableHeaderRow}>
+                  <Text style={[styles.tableColHeader, { width: '8%' }]}>ITEM</Text>
+                  <Text style={[styles.tableColHeaderDescription, { width: '52%' }]}>DESCRIPTION</Text>
+                  <Text style={[styles.tableColHeader, { width: '8%' }]}>UNIT</Text>
+                  <Text style={[styles.tableColHeader, { width: '10%' }]}>QTY</Text>
+                  <Text style={[styles.tableColHeader, { width: '11%' }]}>RATE (KSh)</Text>
+                  <Text style={[styles.tableColHeader, { width: '11%' }]}>AMOUNT (KSh)</Text>
+                </View>
+                {/* Table Rows */}
+                {displayItems.length > 0 ? (
+                  displayItems.map((item, itemIndex) => (
+                    <View style={styles.tableRow} key={`item-${sectionIndex}-${itemIndex}`}>
+                      <Text style={[styles.tableCol, { width: '8%' }]}>{item.itemNo}</Text>
+                      <Text style={[styles.tableColDescription, { width: '52%' }]}>{item.description}</Text>
+                      <Text style={[styles.tableCol, { width: '8%' }]}>{item.unit}</Text>
+                      <Text style={[styles.tableCol, { width: '10%' }]}>
+                        {(item.quantity % 1 === 0) ? item.quantity.toFixed(0) : item.quantity.toFixed(2)}
+                      </Text>
+                      <Text style={[styles.tableCol, { width: '11%' }]}>
+                        {item.rate > 0 ? formatCurrency(item.rate) : ''}
+                      </Text>
+                      <Text style={[styles.tableColAmount, { width: '11%' }]}>{formatCurrency(item.amount)}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.tableRow}>
+                    <Text style={[styles.tableCol, { width: '100%', textAlign: 'center' }]}>
+                      No items in this section.
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Section Total */}
+              <View style={styles.sectionTotalRow}>
+                <Text style={styles.sectionTotalLabel}>TOTAL FOR {section.title.toUpperCase().replace('ELEMENT ', '')}:</Text>
+                <Text style={styles.sectionTotalValue}>{formatCurrency(sectionTotal)}</Text>
+              </View>
+            </View>
+
+            {/* Footer for BOQ pages */}
+            <View style={styles.boqFooter} fixed>
+                 <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+                 <Text>{projectInfo.title}</Text>
+                 <Text>{projectInfo.clientName}</Text>
+            </View>
+            <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} fixed />
+          </Page>
+        );
+      })}
+
+      {/* --- Material Schedule Page --- */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>BILLS OF QUANTITIES</Text>
+          <Text style={styles.subtitle}>FOR</Text>
+          <Text style={styles.title}>{projectInfo.title || 'Not Provided'}</Text>
+          <Text style={styles.subtitle}>FOR</Text>
+          <Text style={styles.subtitle}>{projectInfo.clientName || 'Not provided'}</Text>
+        </View>
+
+        <View style={styles.materialScheduleSection}>
+          <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
+          <View style={styles.materialScheduleTable}>
+            <View style={styles.materialScheduleHeaderRow}>
+              <Text style={styles.materialScheduleColHeader}>DESCRIPTION</Text>
+              <Text style={styles.materialScheduleColHeader}>UNIT</Text>
+              <Text style={styles.materialScheduleColHeader}>QUANTITY</Text>
+            </View>
+            {materialScheduleData.length > 0 ? (
+              materialScheduleData.map((material, index) => (
+                <View style={styles.materialScheduleRow} key={`material-${index}`}>
+                  <Text style={styles.materialScheduleCol}>{material.description}</Text>
+                  <Text style={styles.materialScheduleCol}>{material.unit}</Text>
+                  <Text style={styles.materialScheduleColLast}>
+                    {(material.quantity % 1 === 0) ? material.quantity.toFixed(0) : material.quantity.toFixed(2)}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <View style={styles.materialScheduleRow}>
+                <Text style={[styles.materialScheduleCol, { flex: 3, textAlign: 'center' }]}>
+                  No materials found.
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Footer for BOQ pages */}
+        <View style={styles.boqFooter} fixed>
+             <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+             <Text>{projectInfo.title}</Text>
+             <Text>{projectInfo.clientName}</Text>
+        </View>
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} fixed />
+      </Page>
+
+      {/* --- Summary Page (Grand Total) --- */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>BILLS OF QUANTITIES</Text>
+          <Text style={styles.subtitle}>FOR</Text>
+          <Text style={styles.title}>{projectInfo.title || 'Not Provided'}</Text>
+          <Text style={styles.subtitle}>FOR</Text>
+          <Text style={styles.subtitle}>{projectInfo.clientName || 'Not provided'}</Text>
+        </View>
+
+        <View style={{ marginTop: 30 }}>
+          <Text style={styles.prelimTitle}>SUMMARY OF QUANTITIES AND COSTS</Text>
+        </View>
+
+        {/* Grand Total */}
+        <View style={styles.grandTotalRow}>
+          <Text style={styles.grandTotalLabel}>GRAND TOTAL (KES):</Text>
+          <Text style={styles.grandTotalValue}>{formatCurrency(grandTotal)}</Text>
+        </View>
+
+        <View style={{ marginTop: 30 }}>
+          <Text style={styles.prelimContent}>
+            This Bill of Quantities has been prepared based on the information provided and the measurements taken. The quantities are subject to verification on site.
+          </Text>
+          <Text style={styles.prelimContent}>
+            The rates and prices included herein are based on current market conditions and are valid for the period specified in the contract documents.
+          </Text>
+        </View>
+
+        {/* Footer for BOQ pages */}
+        <View style={styles.boqFooter} fixed>
+             <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+             <Text>{projectInfo.title}</Text>
+             <Text>{projectInfo.clientName}</Text>
+        </View>
+        <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} fixed />
+      </Page>
+
     </Document>
   );
 };
 
-// Export PDF generation
-export const generateQuotePDF = async (
-  quote: QuoteCalculation & CalculationResult,
-  isClientExport = false
-) => {
-  try {
-    if (!quote?.id) throw new Error('Invalid quote data');
-
-    const asPdf = pdf();
-    asPdf.updateContainer(
-      <QuotePDF quote={quote} isClientExport={isClientExport} />
-    );
-    const blob = await asPdf.toBlob();
-
-    const fileName = `${
-      isClientExport ? 'Client' : 'Contractor'
-    }_Quote_${(quote.title || 'Untitled').replace(/\s+/g, '_')}.pdf`;
-
-    if (Capacitor.getPlatform() === 'web') {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } else {
-      const base64Data = await blobToBase64(blob);
-      await Filesystem.writeFile({
-        path: fileName,
-        data: base64Data,
-        directory: Directory.Documents,
-      });
-      toast({ variant: 'default', title: 'PDF generated' });
-    }
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    toast({
-      variant: 'destructive',
-      title: 'Failed to generate PDF',
-      description: 'Please try again.',
-    });
-  }
-};
-
-// Helper: blob → base64
-const blobToBase64 = (blob: Blob): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => resolve((reader.result as string).split(',')[1]);
-    reader.readAsDataURL(blob);
-  });
+export default PDFGenerator;

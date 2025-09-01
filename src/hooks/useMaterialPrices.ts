@@ -5,16 +5,43 @@ import { toast } from './use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 
-export interface MaterialBasePrice {
-  id: string;
+export interface SimpleMaterial {
+  id?: string;
+  type: "simple";
   name: string;
   unit: string;
   price: number;
   category: string;
   description?: string;
-  created_at: string;
-  updated_at: string;
 }
+
+export interface StructuredMaterial {
+  id?: string;
+  type: "structured";
+  name: string;
+  unit: string;
+  price: number;
+  category: string;
+  description?: string;
+
+  // one material can have multiple variants (like Flush, Panel, etc.)
+  variants: {
+    type: string;
+    sizes: string[];
+    frame_options: string[];
+    price_kes: Record<string, number>;
+  }[];
+
+  // OR for rebar-like materials
+  rebarVariants?: {
+    size: string;
+    diameter_mm: number;
+    unit_weight_kg_per_m: number;
+    price_kes_per_kg: number;
+  }[];
+}
+
+export type MaterialBasePrice = SimpleMaterial | StructuredMaterial;
 
 export interface RegionalMultiplier {
   id: string;

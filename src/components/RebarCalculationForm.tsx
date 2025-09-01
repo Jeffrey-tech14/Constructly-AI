@@ -17,6 +17,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { useAuth } from "@/contexts/AuthContext";
+import { Category } from "@/hooks/useConcreteCalculator";
 
 interface Props {
   quote: any;
@@ -57,6 +58,8 @@ const makeDefaultRow = (): RebarRow => ({
   hookFactorDTies: undefined,
 
   wastagePercent: undefined,
+  category: "superstructure",
+  number: "1"
 });
 
 function validateRow(row: RebarRow): string[] {
@@ -204,6 +207,17 @@ export default function RebarCalculatorForm({
               </Select>
             </Label>
 
+            <Label className="block">
+              Structure
+              <Select value={row.category} onValueChange={(v) => update(row.id, "category", v as Category)}>
+                <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="substructure">Substructure</SelectItem>
+                  <SelectItem value="superstructure">Superstructure</SelectItem>
+                </SelectContent>
+              </Select>
+            </Label>
+
             {/* Geometry */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Label>
@@ -223,6 +237,13 @@ export default function RebarCalculatorForm({
                 {row.element === "slab" || row.element === "foundation" ? "Thickness (m)" : "Section Depth h (m)"}
                 <Input type="number" min="0.01" step="0.01" value={row.depth} placeholder="eg 10"
                   onChange={(e) => update(row.id, "depth", e.target.value)} />
+              </Label>
+
+              <Label>
+                Number
+                <Input type="number" min="1" step="1" value={row.number} placeholder="eg 1"
+                  defaultValue="1"
+                  onChange={(e) => update(row.id, "number", e.target.value)} />
               </Label>
 
               <Label>

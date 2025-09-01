@@ -400,8 +400,8 @@ const getEffectiveMaterialPrice = (
       if (typeof updated.price_kes === "number") {
         updated.price_kes = updated.price_kes * multiplier;
       }
-      if (typeof updated.price_kes_per_m === "number") {
-        updated.price_kes_per_m = updated.price_kes_per_m * multiplier;
+      if (typeof updated.price_kes_per_kg === "number") {
+        updated.price_kes_per_kg = updated.price_kes_per_kg * multiplier;
       }
       if (updated.price_kes && typeof updated.price_kes === "object") {
         updated.price_kes = Object.fromEntries(

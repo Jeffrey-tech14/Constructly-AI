@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 // hooks/useConcreteCalculator.ts
 export type ElementType = "slab" | "beam" | "column" | "foundation";
+export type Category = "substructure" | "superstructure";
 
 export interface ConcreteRow {
   id: string;
@@ -12,6 +13,8 @@ export interface ConcreteRow {
   height: string; // meters (for slab this is thickness)
   mix: string;    // e.g. "1:2:4"
   formwork?: string;
+  category: Category;
+  number: string;
 }
 
 export interface ConcreteResult {
@@ -22,6 +25,8 @@ export interface ConcreteResult {
   cementBags: number;
   sandM3: number;
   stoneM3: number;
+  number: string;
+  totalVolume: number;
   formworkM2: number;
 }
 
@@ -39,10 +44,11 @@ export function parseMix(mix?: string): [number, number, number] {
 }
 
 export function calculateConcrete(row: ConcreteRow): ConcreteResult {
-  const { length, width, height, mix, id, name, element, formwork } = row;
+  const { length, width, height, mix, id, name, element, formwork, number } = row;
 
   // Volume
   const volume = parseFloat(length) * parseFloat(width) * parseFloat(height);
+  const totalVolume = parseFloat(length) * parseFloat(width) * parseFloat(height) * parseInt(number);
 
   // Mix ratio
   const [c, s, st] = parseMix(mix);
@@ -69,17 +75,17 @@ export function calculateConcrete(row: ConcreteRow): ConcreteResult {
     formworkM2 = parseFloat(formwork);
   } else {
     if (element === "slab") {
-      formworkM2 = parseFloat(length) * parseFloat(width);
+      formworkM2 = parseInt(number) * parseFloat(length) * parseFloat(width);
     } else if (element === "beam") {
       formworkM2 =
-        2 * parseFloat(height) * parseFloat(length) +
+        parseInt(number) * 2 * parseFloat(height) * parseFloat(length) +
         parseFloat(width) * parseFloat(length);
     } else if (element === "column") {
       formworkM2 =
-        2 * (parseFloat(width) + parseFloat(length)) * parseFloat(height);
+        parseInt(number) * 2 * (parseFloat(width) + parseFloat(length)) * parseFloat(height);
     } else if (element === "foundation") {
       formworkM2 =
-        2 * parseFloat(height) * parseFloat(length) +
+        parseInt(number) * 2 * parseFloat(height) * parseFloat(length) +
         parseFloat(width) * parseFloat(length);
     }
   }
@@ -88,7 +94,9 @@ export function calculateConcrete(row: ConcreteRow): ConcreteResult {
     id,
     name,
     element,
+    number,
     volumeM3: volume,
+    totalVolume,
     cementBags,
     sandM3,
     stoneM3,

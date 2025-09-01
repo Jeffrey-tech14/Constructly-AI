@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
 import { Material } from "./useQuoteCalculations";
 import { supabase } from "@/integrations/supabase/client";
+import { log } from "console";
 
 export interface Door {
   sizeType: string; // "standard" | "custom"
@@ -234,7 +235,7 @@ const addWindow = (i: number) => {
 
   // Find the base material
   const material = materialBasePrices.find(m =>
-    m.name && m.name.toLowerCase().includes(materialName.toLowerCase())
+    m.name && m.name.toLowerCase().includes(materialName.toLowerCase()) 
   );
 
   if (!material) return 0;
@@ -244,6 +245,7 @@ const addWindow = (i: number) => {
     (p) => p.material_id === material.id && p.region === userRegion
   );
 
+    
   // Get effective material with applied regional multiplier
   const effectiveMaterial = getEffectiveMaterialPrice(
     material.id,
@@ -259,10 +261,10 @@ const addWindow = (i: number) => {
     // For blocks/bricks, return the price of the first type or a specific type
     if (effectiveMaterial.type && effectiveMaterial.type.length > 0) {
       const blockType = specificType 
-        ? effectiveMaterial.type.find(t => t.name === specificType)
+        ? effectiveMaterial.type.find(t => t.name === specificType) || 10
         : effectiveMaterial.type[0];
-      
-      return blockType?.price_kes || 0;
+             
+      return blockType?.price_kes || 10;
     }
   }
   else if (effectiveMaterial.name === "Doors") {
@@ -391,7 +393,7 @@ const addWindow = (i: number) => {
     const updatedRooms = rooms.map((room, index) => {
       const blockPrice = room.customBlock?.price
       ? Number(room.customBlock.price)
-      : getMaterialPrice("Bricks", room.blockType); 
+      : getMaterialPrice("Bricks", room.blockType);
 
       const cementPrice = materials.find((m) => m.name?.toLowerCase() === "cement")?.price;
       const sandPrice = materials.find((m) => m.name?.toLowerCase() === "sand")?.price;
@@ -474,8 +476,8 @@ const addWindow = (i: number) => {
 
       const blockCost = Math.round(blocks * blockPrice);
       const plasterCost = plasterArea > 0
-        ? Math.round(plasterCement * cementPrice + plasterSand * sandPrice)
-        : 0;
+        ? Math.round((plasterCement * cementPrice) + (plasterSand * sandPrice))
+        : 1;
 
       const floorArea = Number(room.length) * Number(room.width);
       const paintArea = netArea + plasterArea;
@@ -529,6 +531,7 @@ const addWindow = (i: number) => {
         customBlock: room.customBlock,
         plaster: room.plaster,
         doors: room.doors,
+        rate: plasterCost + blockCost,
         windows: room.windows,
         // Calculations
         roomArea,

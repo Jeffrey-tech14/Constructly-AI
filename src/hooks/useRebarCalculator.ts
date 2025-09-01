@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useEffect, useState } from "react";
+import { Category } from "./useConcreteCalculator";
 
 /** --------------------
  * Types & Constants
@@ -65,6 +66,8 @@ export interface CalcInput {
 
   /** Global wastage (%) applied to all lengths */
   wastagePercent?: number;
+  category: Category;
+  number: string;
 }
 
 export interface CalcBreakdown {
@@ -94,6 +97,9 @@ export interface CalcResult {
   pricePerM: number;
   totalPrice: number;
   breakdown: CalcBreakdown;
+  number:string;
+  rate: number;
+  category: Category;
   weightBreakdownKg: WeightBreakdownKg;
 }
 
@@ -132,7 +138,7 @@ export const useRebarPrices = (region: string) => {
 
         if (base?.type) {
           base.type.forEach((item: any) => {
-            prices[item.size] = item.price_kes_per_m;
+            prices[item.size] = item.price_kes_per_kg;
           });
         }
 
@@ -147,7 +153,7 @@ export const useRebarPrices = (region: string) => {
 
           if (userOverride?.type) {
             userOverride.type.forEach((item: any) => {
-              prices[item.size] = item.price_kes_per_m; // override
+              prices[item.size] = item.price_kes_per_kg; // override
             });
           }
         }
@@ -215,6 +221,8 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
     hookFactorDTies,
 
     wastagePercent = 5,
+    number,
+    category,
   } = input;
 
   // Resolve sizes
@@ -246,27 +254,27 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
     const barsX = Math.floor(parseFloat(width) / sx) + 1;
     const barsY = Math.floor(parseFloat(length) / sy) + 1;
 
-    lenMeshX = parseFloat(slabLayers || "1") * (barsX * parseFloat(length)) * parseFloat(depth);
-    lenMeshY = parseFloat(slabLayers || "1") * (barsY * parseFloat(width)) * parseFloat(depth);
-    totalBars += Math.ceil(parseFloat(slabLayers || "1") * (barsX + barsY));
+    lenMeshX = parseFloat(slabLayers || "1") * (barsX * parseFloat(length)) * parseFloat(depth)* parseInt(number);
+    lenMeshY = parseFloat(slabLayers || "1") * (barsY * parseFloat(width)) * parseFloat(depth)* parseInt(number);
+    totalBars += Math.ceil(parseFloat(slabLayers || "1") * (barsX + barsY))* parseInt(number);
     const totalLengthM = totalBars * 12;
     const pricePerM = getPriceForSize(primaryBarSize, priceMap);
-    totalPriceperitem = totalLengthM * pricePerM;
+    totalPriceperitem = totalLengthM * pricePerM ;
   }
 
   /** BEAM */
   if (element === "beam") {
     const devLenLong = lenFromFactorD(parseFloat(devLenFactorDLong || "0"), primaryBarSize);
     const longBarLen = parseFloat(length) + 2 * devLenLong;
-    lenLongitudinal = parseFloat(longitudinalBars || "0") * longBarLen;
-    totalBars += Math.ceil(parseFloat(longitudinalBars || "0"));
+    lenLongitudinal = parseFloat(longitudinalBars || "0") * longBarLen* parseInt(number);
+    totalBars += Math.ceil(parseFloat(longitudinalBars || "0"))* parseInt(number);
 
     const s = mmToM(parseFloat(stirrupSpacing || "0"));
     const stirrupCount = Math.floor(parseFloat(length) / s) + 1;
     const hookLen = lenFromFactorD(parseFloat(hookFactorDStirrups || "0"), sizeStirrup);
     const stirrupPerimeter = 2 * (parseFloat(width) + parseFloat(depth)) + 2 * hookLen;
-    lenStirrups = stirrupCount * stirrupPerimeter;
-    totalBars += Math.ceil(stirrupCount);
+    lenStirrups = stirrupCount * stirrupPerimeter* parseInt(number);
+    totalBars += Math.ceil(stirrupCount)* parseInt(number);
     const totalLengthM = totalBars * 12;
     const pricePerM = getPriceForSize(primaryBarSize, priceMap);
     totalPriceperitem = totalLengthM * pricePerM;
@@ -278,15 +286,15 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
 
     const devLenVert = lenFromFactorD(parseFloat(devLenFactorDVert || "12"), primaryBarSize);
     const vertBarLen = h + 2 * devLenVert;
-    lenVerticals = parseFloat(verticalBars || "0") * vertBarLen;
-    totalBars += Math.ceil(parseFloat(verticalBars || "0"));
+    lenVerticals = parseFloat(verticalBars || "0") * vertBarLen* parseInt(number);
+    totalBars += Math.ceil(parseFloat(verticalBars || "0"))* parseInt(number);
 
     const s = mmToM(parseFloat(tieSpacing || "0"));
     const tieCount = Math.floor(h / s) + 1;
     const tieHook = lenFromFactorD(parseFloat(hookFactorDTies || "0"), sizeTie);
     const tiePerimeter = 2 * (parseFloat(width) + parseFloat(depth)) + 2 * tieHook;
-    lenTies = tieCount * tiePerimeter;
-    totalBars += Math.ceil(tieCount);
+    lenTies = tieCount * tiePerimeter* parseInt(number);
+    totalBars += Math.ceil(tieCount)* parseInt(number);
     const totalLengthM = totalBars * 12;
     const pricePerM = getPriceForSize(primaryBarSize, priceMap);
     totalPriceperitem = totalLengthM * pricePerM;
@@ -308,12 +316,12 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
   const wTie = tiesWithWaste * kgPerMTie;
 
   const totalLengthM = Math.round(
-    (meshXWithWaste + meshYWithWaste + longWithWaste + vertWithWaste + stirWithWaste + tiesWithWaste));
-  const totalWeightKg =  Math.round(wMeshX + wMeshY + wLong + wVert + wStir + wTie);
+    (meshXWithWaste + meshYWithWaste + longWithWaste + vertWithWaste + stirWithWaste + tiesWithWaste)) * parseInt(number);
+  const totalWeightKg =  Math.round(wMeshX + wMeshY + wLong + wVert + wStir + wTie)* parseInt(number);
 
   // Pricing
   const pricePerM = getPriceForSize(primaryBarSize, priceMap);
-  const totalPrice = Math.round(totalLengthM * pricePerM);
+  const totalPrice = Math.round(totalWeightKg * pricePerM);
 
   return {
     primaryBarSize,
@@ -322,6 +330,9 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
     totalWeightKg,
     pricePerM,
     totalPrice,
+    category,
+    number,
+    rate: pricePerM,
     breakdown: {
       meshX:  Math.round(lenMeshX),
       meshY:  Math.round(lenMeshY),

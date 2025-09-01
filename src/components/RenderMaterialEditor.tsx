@@ -40,14 +40,14 @@ export default function renderMaterialEditor(material, tempValues, setTempValues
                 const overridePrice =
                     tempValues[`rebar-${idx}`] !== undefined
                     ? tempValues[`rebar-${idx}`]
-                    : userOverride?.type?.[idx]?.price_kes_per_m ?? bar.price_kes_per_m;
+                    : userOverride?.type?.[idx]?.price_kes_per_kg ?? bar.price_kes_per_kg;
 
                 return (
                     <div key={idx} className="p-2 border rounded">
                     <div className="flex justify-between">
                         <span className="font-medium">{bar.size}</span>
                         <span className="text-xs text-gray-500">
-                        Ø{bar.diameter_mm}mm, {bar.unit_weight_kg_per_m} kg/m
+                        Ø{bar.diameter_mm}mm, {bar.unit_weight_kg_per_kg} kg/m
                         </span>
                     </div>
 
@@ -70,7 +70,8 @@ export default function renderMaterialEditor(material, tempValues, setTempValues
                             material.name,
                             "material",
                             material.id,
-                            tempValues[`rebar-${idx}`] ?? bar.price_kes_per_m,
+                            material.name,
+                            tempValues[`rebar-${idx}`] ?? bar.price_kes_per_kg,
                             idx
                             )
                         }
@@ -147,6 +148,7 @@ if (material.name === "Bricks" || material.name.includes("Block")) {
                         material.name,
                         "material",
                         material.id,
+                        material.name,
                         tempValues[`block-${idx}`] ?? block.price_kes,
                         idx
                         )
@@ -224,6 +226,7 @@ if (material.name === "Doors" || material.name === "Windows") {
                           material.name,
                           "material",
                           material.id,
+                        material.name,
                           tempValues[key] ?? price,
                           `${idx}-${size}` // pass both index & size for uniqueness
                       )

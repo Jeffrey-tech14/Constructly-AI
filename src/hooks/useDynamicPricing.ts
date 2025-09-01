@@ -52,7 +52,7 @@ export type RebarVariant = {
   size: string;
   diameter_mm: number;
   unit_weight_kg_per_m: number;
-  price_kes_per_m: number;
+  price_kes_per_kg: number;
 };
 
 export type BlockVariant = {
@@ -201,24 +201,20 @@ export const useDynamicPricing = () => {
         .single();
       updatedType = base?.type || [];
     } else {
-      // clone to avoid mutating supabase ref
       updatedType = JSON.parse(JSON.stringify(updatedType));
     }
 
-    // 3. Apply changes depending on material shape
     if (Array.isArray(updatedType)) {
       if (materialName === "Rebar" && typeof index === "number") {
-        // rebar has price_kes_per_m
         updatedType[index] = {
           ...updatedType[index],
-          price_kes_per_m: newData,
+          price_kes_per_kg: newData,
         };
       } 
       else if (
         (materialName === "Bricks" || materialName.includes("Block")) &&
         typeof index === "number"
       ) {
-        // blocks/bricks → flat price_kes
         updatedType[index] = {
           ...updatedType[index],
           price_kes: newData,
@@ -228,7 +224,6 @@ export const useDynamicPricing = () => {
         (materialName === "Doors" || materialName === "Windows") &&
         typeof index === "string"
       ) {
-        // doors/windows → index = "idx-size"
         const [arrIdx, size] = index.split("-");
         const idxNum = parseInt(arrIdx, 10);
 
@@ -247,6 +242,7 @@ export const useDynamicPricing = () => {
       {
         material_id: materialId,
         user_id: user.id,
+        name: materialName,
         region,
         price: 0,
         type: updatedType,
@@ -345,7 +341,7 @@ export const useDynamicPricing = () => {
     }
   };
 
-   const updateMaterialPriceSingle = async (materialId: string, customPrice: number, region: string) => {
+   const updateMaterialPriceSingle = async (materialId: string, materialName: string, customPrice: number, region: string) => {
     if (!user) return { error: 'User not authenticated' };
 
     try {
@@ -356,6 +352,7 @@ export const useDynamicPricing = () => {
         .upsert({
           user_id: user.id,
           material_id: materialId,
+          name: materialName,
           price: priceInCents,
           region
         },{
@@ -386,12 +383,10 @@ const getEffectiveMaterialPrice = (
   const multiplier =
     regionalMultipliers.find(r => r.region === region)?.multiplier || 1;
 
-  // 1️⃣ If user override exists → trust it fully
   if (userOverride) {
-    return userOverride; // full object, including type array
+    return userOverride; 
   }
 
-  // 2️⃣ Clone baseMaterial and apply multiplier
   const cloned = JSON.parse(JSON.stringify(baseMaterial));
 
   if (Array.isArray(cloned.type)) {

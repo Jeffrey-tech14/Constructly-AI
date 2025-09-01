@@ -98,6 +98,7 @@ const Variables = () => {
     material_type: string | undefined, // only used for materials
     type: SaveType,
     id: string,
+    name: string,
     value: any,
     index?: number
   ) => {
@@ -107,7 +108,7 @@ const Variables = () => {
 
     switch (type) {
       case "material_no_type":
-        await updateMaterialPriceSingle(id, value, userRegion);
+        await updateMaterialPriceSingle(id, name, value, userRegion);
         break;
         
       case "material":
@@ -202,7 +203,7 @@ const Variables = () => {
               <div className="mb-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
                   <strong>Region:</strong> {profile?.location || 'Nairobi'} - 
-                  Prices shown include regional multipliers.
+                  Prices shown include regional multipliers for base prices.
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -259,7 +260,7 @@ const Variables = () => {
                               />
                               <Button 
                                 size="sm"
-                                onClick={() => handleSave(undefined,'material_no_type', material.id, tempValues[`material-${material.id}`] || effectivePrice, 0)}
+                                onClick={() => handleSave(undefined,'material_no_type', material.id, material.name, tempValues[`material-${material.id}`] || effectivePrice, 0)}
                                 disabled={loading}
                               >
                                 <Save className="w-4 h-4 text-white" />
@@ -319,7 +320,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave(undefined,'equipment', equipment.id, tempValues[`equipment-${equipment.id}`] || currentRate, 0)}
+                              onClick={() => handleSave(undefined,'equipment', equipment.id,"name", tempValues[`equipment-${equipment.id}`] || currentRate, 0)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />
@@ -375,7 +376,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave(undefined,'transport', `${region}-km`, tempValues[`transport-${region}-km`] || costPerKm, 0)}
+                                  onClick={() => handleSave(undefined,'transport', `${region}-km`,"name", tempValues[`transport-${region}-km`] || costPerKm, 0)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -397,7 +398,7 @@ const Variables = () => {
                                 />
                                 <Button 
                                   size="sm"
-                                  onClick={() => handleSave(undefined,'transport', `${region}-base`, tempValues[`transport-${region}-base`] || baseCost, 0)}
+                                  onClick={() => handleSave(undefined,'transport', `${region}-base`,"name", tempValues[`transport-${region}-base`] || baseCost, 0)}
                                   disabled={loading}
                                 >
                                   <Save className="w-4 h-4 text-white" />
@@ -451,7 +452,7 @@ const Variables = () => {
                             />
                             <Button 
                               size="sm"
-                              onClick={() => handleSave(undefined,'service', service.id, tempValues[`service-${service.id}`] || currentPrice, 0)}
+                              onClick={() => handleSave(undefined,'service', service.id,"name", tempValues[`service-${service.id}`] || currentPrice, 0)}
                               disabled={loading}
                             >
                               <Save className="w-4 h-4 text-white" />

@@ -33,6 +33,7 @@ import {
   Briefcase,
   Coins,
   CreditCard,
+  Pickaxe,
 } from "lucide-react";
 
 // shadcn/ui
@@ -744,7 +745,7 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
 const Logo = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center group select-none">
     <div className="p-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-md group-hover:scale-105 transition-transform">
-      <DraftingCompass className="w-5 h-5 text-white" />
+      <Pickaxe className="w-5 h-5 text-white" />
     </div>
     {!compact && (
       <span className="ml-2 font-bold text-lg sm:text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

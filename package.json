@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev": "concurrently \"npm run dev:frontend\"",
     "build": "vite build",
     "preview": "vite preview",
     "secure-build": "node --max-old-space-size=8192 node_modules/vite/bin/vite.js build",
@@ -66,6 +66,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "file-saver": "^2.0.5",
     "forge-apis": "^0.9.10",
     "framer-motion": "^12.23.9",
     "fs-extra": "^11.3.0",

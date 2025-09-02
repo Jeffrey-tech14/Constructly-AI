@@ -8,7 +8,7 @@ export interface BOQItem {
   category: string;
   element: string;
   calculatedFrom?: string;
-  isHeader:boolean;
+  isHeader: boolean;
   isProvision?: boolean;
 }
 
@@ -24,12 +24,12 @@ export interface BOQDocument {
   primeCostSums: BOQSection[];
   provisionalSums: BOQSection[];
   summaries: {
-    sectionSummaries: {[key: string]: number};
+    sectionSummaries: { [key: string]: number };
     grandTotal: number;
   };
 }
 
 // Helper function to generate item numbers
 export const generateItemNumber = (prefix: string, index: number): string => {
-  return `${prefix}-${index.toString().padStart(3, '0')}`;
+  return `${prefix}-${index.toString().padStart(3, "0")}`;
 };

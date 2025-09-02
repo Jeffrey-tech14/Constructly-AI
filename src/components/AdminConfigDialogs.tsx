@@ -28,7 +28,7 @@ export const MaterialPricesDialog = () => {
     price: "",
     category: "building_materials",
     description: "",
-    details: {}
+    type: {}
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,15 +39,13 @@ export const MaterialPricesDialog = () => {
       if (inputMode === "simple") {
         payload = {
           ...formData,
-          type: "simple",
           price: parseFloat(formData.price),
-          details: null
+          type: null
         };
       } else {
         payload = {
           ...formData,
-          type: "structured",
-          details: formData.details,
+          type: formData.type,
           price: null
         };
       }
@@ -61,7 +59,7 @@ export const MaterialPricesDialog = () => {
       }
 
       // reset
-      setFormData({ name: "", unit: "", price: "", category: "building_materials", description: "", details: {} });
+      setFormData({ name: "", unit: "", price: "", category: "building_materials", description: "", type: {} });
       setEditingMaterial(null);
       setInputMode("simple");
     } catch (error) {
@@ -71,11 +69,11 @@ export const MaterialPricesDialog = () => {
 
   const startEdit = (material: any) => {
     setEditingMaterial(material);
-    setInputMode(material.type || "simple");
+    setInputMode(material.type ? "json" : "simple");
     setFormData({
       ...material,
       price: material.price ? material.price.toString() : "",
-      details: material.details || {}
+      type: material.type || {}
     });
   };
 
@@ -147,14 +145,14 @@ export const MaterialPricesDialog = () => {
             <div>
               <Label className="text-white">Material JSON</Label>
               <Textarea
-                value={JSON.stringify(formData.details, null, 2)}
+                value={JSON.stringify(formData.type, null, 2)}
                 onChange={(e) => {
                   try {
                     const parsed = JSON.parse(e.target.value || "{}");
-                    setFormData({ ...formData, details: parsed });
+                    setFormData({ ...formData, type: parsed });
                   } catch {
                     // invalid JSON, keep raw
-                    setFormData({ ...formData, details: e.target.value });
+                    setFormData({ ...formData, type: e.target.value });
                   }
                 }}
                 placeholder='Paste JSON here (e.g. [{"type":"Flush","sizes_m":["0.9 × 2.1"],"frame_options":["Wood"],"price_kes":{"0.9 × 2.1 m":6500}}])'
@@ -170,7 +168,7 @@ export const MaterialPricesDialog = () => {
             {editingMaterial && (
               <Button type="button" variant="outline" onClick={() => {
                 setEditingMaterial(null);
-                setFormData({ name: "", unit: "", price: "", category: "building_materials", description: "", details: {} });
+                setFormData({ name: "", unit: "", price: "", category: "building_materials", description: "", type: {} });
                 setInputMode("simple");
               }}>Cancel</Button>
             )}

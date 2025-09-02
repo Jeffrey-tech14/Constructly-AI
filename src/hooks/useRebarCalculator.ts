@@ -97,7 +97,7 @@ export interface CalcResult {
   pricePerM: number;
   totalPrice: number;
   breakdown: CalcBreakdown;
-  number:string;
+  number: string;
   rate: number;
   category: Category;
   weightBreakdownKg: WeightBreakdownKg;
@@ -107,7 +107,8 @@ export interface CalcResult {
  * Helpers
  * -------------------- */
 const mmToM = (mm: number) => mm / 1000;
-const withWaste = (lenM: number, wastePct: number) => lenM * (1 + (wastePct || 0) / 100);
+const withWaste = (lenM: number, wastePct: number) =>
+  lenM * (1 + (wastePct || 0) / 100);
 
 /** Compute a hook/dev length in meters from factor*d */
 function lenFromFactorD(factorD: number, size: RebarSize): number {
@@ -133,7 +134,7 @@ export const useRebarPrices = (region: string) => {
         const { data: base } = await supabase
           .from("material_base_prices")
           .select("type")
-          .eq("name", "Rebar") 
+          .eq("name", "Rebar")
           .single();
 
         if (base?.type) {
@@ -190,7 +191,10 @@ const getPriceForSize = (size: RebarSize, priceMap: PriceMap): number => {
 /** --------------------
  * Core calculator (PURE)
  * -------------------- */
-export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult {
+export function calculateRebar(
+  input: CalcInput,
+  priceMap: PriceMap
+): CalcResult {
   const {
     element,
     length,
@@ -248,33 +252,56 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
 
   /** SLAB / FOUNDATION */
   if (element === "slab" || element === "foundation") {
-    const sx = meshXSpacing ? mmToM(parseFloat(meshXSpacing)) : mmToM(parseFloat(barSpacing || "0"));
-    const sy = meshYSpacing ? mmToM(parseFloat(meshYSpacing)) : mmToM(parseFloat(barSpacing || "0"));
+    const sx = meshXSpacing
+      ? mmToM(parseFloat(meshXSpacing))
+      : mmToM(parseFloat(barSpacing || "0"));
+    const sy = meshYSpacing
+      ? mmToM(parseFloat(meshYSpacing))
+      : mmToM(parseFloat(barSpacing || "0"));
 
     const barsX = Math.floor(parseFloat(width) / sx) + 1;
     const barsY = Math.floor(parseFloat(length) / sy) + 1;
 
-    lenMeshX = parseFloat(slabLayers || "1") * (barsX * parseFloat(length)) * parseFloat(depth)* parseInt(number);
-    lenMeshY = parseFloat(slabLayers || "1") * (barsY * parseFloat(width)) * parseFloat(depth)* parseInt(number);
-    totalBars += Math.ceil(parseFloat(slabLayers || "1") * (barsX + barsY))* parseInt(number);
+    lenMeshX =
+      parseFloat(slabLayers || "1") *
+      (barsX * parseFloat(length)) *
+      parseFloat(depth) *
+      parseInt(number);
+    lenMeshY =
+      parseFloat(slabLayers || "1") *
+      (barsY * parseFloat(width)) *
+      parseFloat(depth) *
+      parseInt(number);
+    totalBars +=
+      Math.ceil(parseFloat(slabLayers || "1") * (barsX + barsY)) *
+      parseInt(number);
     const totalLengthM = totalBars * 12;
     const pricePerM = getPriceForSize(primaryBarSize, priceMap);
-    totalPriceperitem = totalLengthM * pricePerM ;
+    totalPriceperitem = totalLengthM * pricePerM;
   }
 
   /** BEAM */
   if (element === "beam") {
-    const devLenLong = lenFromFactorD(parseFloat(devLenFactorDLong || "0"), primaryBarSize);
+    const devLenLong = lenFromFactorD(
+      parseFloat(devLenFactorDLong || "0"),
+      primaryBarSize
+    );
     const longBarLen = parseFloat(length) + 2 * devLenLong;
-    lenLongitudinal = parseFloat(longitudinalBars || "0") * longBarLen* parseInt(number);
-    totalBars += Math.ceil(parseFloat(longitudinalBars || "0"))* parseInt(number);
+    lenLongitudinal =
+      parseFloat(longitudinalBars || "0") * longBarLen * parseInt(number);
+    totalBars +=
+      Math.ceil(parseFloat(longitudinalBars || "0")) * parseInt(number);
 
     const s = mmToM(parseFloat(stirrupSpacing || "0"));
     const stirrupCount = Math.floor(parseFloat(length) / s) + 1;
-    const hookLen = lenFromFactorD(parseFloat(hookFactorDStirrups || "0"), sizeStirrup);
-    const stirrupPerimeter = 2 * (parseFloat(width) + parseFloat(depth)) + 2 * hookLen;
-    lenStirrups = stirrupCount * stirrupPerimeter* parseInt(number);
-    totalBars += Math.ceil(stirrupCount)* parseInt(number);
+    const hookLen = lenFromFactorD(
+      parseFloat(hookFactorDStirrups || "0"),
+      sizeStirrup
+    );
+    const stirrupPerimeter =
+      2 * (parseFloat(width) + parseFloat(depth)) + 2 * hookLen;
+    lenStirrups = stirrupCount * stirrupPerimeter * parseInt(number);
+    totalBars += Math.ceil(stirrupCount) * parseInt(number);
     const totalLengthM = totalBars * 12;
     const pricePerM = getPriceForSize(primaryBarSize, priceMap);
     totalPriceperitem = totalLengthM * pricePerM;
@@ -284,17 +311,22 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
   if (element === "column") {
     const h = parseFloat(columnHeight || length);
 
-    const devLenVert = lenFromFactorD(parseFloat(devLenFactorDVert || "12"), primaryBarSize);
+    const devLenVert = lenFromFactorD(
+      parseFloat(devLenFactorDVert || "12"),
+      primaryBarSize
+    );
     const vertBarLen = h + 2 * devLenVert;
-    lenVerticals = parseFloat(verticalBars || "0") * vertBarLen* parseInt(number);
-    totalBars += Math.ceil(parseFloat(verticalBars || "0"))* parseInt(number);
+    lenVerticals =
+      parseFloat(verticalBars || "0") * vertBarLen * parseInt(number);
+    totalBars += Math.ceil(parseFloat(verticalBars || "0")) * parseInt(number);
 
     const s = mmToM(parseFloat(tieSpacing || "0"));
     const tieCount = Math.floor(h / s) + 1;
     const tieHook = lenFromFactorD(parseFloat(hookFactorDTies || "0"), sizeTie);
-    const tiePerimeter = 2 * (parseFloat(width) + parseFloat(depth)) + 2 * tieHook;
-    lenTies = tieCount * tiePerimeter* parseInt(number);
-    totalBars += Math.ceil(tieCount)* parseInt(number);
+    const tiePerimeter =
+      2 * (parseFloat(width) + parseFloat(depth)) + 2 * tieHook;
+    lenTies = tieCount * tiePerimeter * parseInt(number);
+    totalBars += Math.ceil(tieCount) * parseInt(number);
     const totalLengthM = totalBars * 12;
     const pricePerM = getPriceForSize(primaryBarSize, priceMap);
     totalPriceperitem = totalLengthM * pricePerM;
@@ -315,9 +347,18 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
   const wStir = stirWithWaste * kgPerMStir;
   const wTie = tiesWithWaste * kgPerMTie;
 
-  const totalLengthM = Math.round(
-    (meshXWithWaste + meshYWithWaste + longWithWaste + vertWithWaste + stirWithWaste + tiesWithWaste)) * parseInt(number);
-  const totalWeightKg =  Math.round(wMeshX + wMeshY + wLong + wVert + wStir + wTie)* parseInt(number);
+  const totalLengthM =
+    Math.round(
+      meshXWithWaste +
+        meshYWithWaste +
+        longWithWaste +
+        vertWithWaste +
+        stirWithWaste +
+        tiesWithWaste
+    ) * parseInt(number);
+  const totalWeightKg =
+    Math.round(wMeshX + wMeshY + wLong + wVert + wStir + wTie) *
+    parseInt(number);
 
   // Pricing
   const pricePerM = getPriceForSize(primaryBarSize, priceMap);
@@ -334,21 +375,21 @@ export function calculateRebar(input: CalcInput, priceMap: PriceMap): CalcResult
     number,
     rate: pricePerM,
     breakdown: {
-      meshX:  Math.round(lenMeshX),
-      meshY:  Math.round(lenMeshY),
-      longitudinal:  Math.round(lenLongitudinal),
-      verticals:  Math.round(lenVerticals),
-      stirrups:  Math.round(lenStirrups),
-      ties:  Math.round(lenTies),
+      meshX: Math.round(lenMeshX),
+      meshY: Math.round(lenMeshY),
+      longitudinal: Math.round(lenLongitudinal),
+      verticals: Math.round(lenVerticals),
+      stirrups: Math.round(lenStirrups),
+      ties: Math.round(lenTies),
     },
     weightBreakdownKg: {
-      meshX:  Math.round(lenMeshX) ? Math.round(wMeshX) : undefined,
-      meshY:  Math.round(lenMeshY) ? Math.round(wMeshY) : undefined,
-      longitudinal:  Math.round(lenLongitudinal) ? Math.round(wLong) : undefined,
-      verticals:  Math.round(lenVerticals) ? Math.round(wVert) : undefined,
-      stirrups:  Math.round(lenStirrups) ? Math.round(wStir) : undefined,
-      ties:  Math.round(lenTies) ? Math.round(wTie) : undefined,
-      totalPricePerItem:  Math.round(totalPriceperitem)
+      meshX: Math.round(lenMeshX) ? Math.round(wMeshX) : undefined,
+      meshY: Math.round(lenMeshY) ? Math.round(wMeshY) : undefined,
+      longitudinal: Math.round(lenLongitudinal) ? Math.round(wLong) : undefined,
+      verticals: Math.round(lenVerticals) ? Math.round(wVert) : undefined,
+      stirrups: Math.round(lenStirrups) ? Math.round(wStir) : undefined,
+      ties: Math.round(lenTies) ? Math.round(wTie) : undefined,
+      totalPricePerItem: Math.round(totalPriceperitem),
     },
   };
 }

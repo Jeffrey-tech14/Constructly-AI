@@ -347,18 +347,17 @@ export function calculateRebar(
   const wStir = stirWithWaste * kgPerMStir;
   const wTie = tiesWithWaste * kgPerMTie;
 
-  const totalLengthM =
-    Math.round(
-      meshXWithWaste +
-        meshYWithWaste +
-        longWithWaste +
-        vertWithWaste +
-        stirWithWaste +
-        tiesWithWaste
-    ) * parseInt(number);
-  const totalWeightKg =
-    Math.round(wMeshX + wMeshY + wLong + wVert + wStir + wTie) *
-    parseInt(number);
+  const totalLengthM = Math.round(
+    meshXWithWaste +
+      meshYWithWaste +
+      longWithWaste +
+      vertWithWaste +
+      stirWithWaste +
+      tiesWithWaste
+  );
+  const totalWeightKg = Math.round(
+    wMeshX + wMeshY + wLong + wVert + wStir + wTie
+  );
 
   // Pricing
   const pricePerM = getPriceForSize(primaryBarSize, priceMap);

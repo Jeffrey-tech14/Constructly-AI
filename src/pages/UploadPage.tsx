@@ -286,7 +286,8 @@ const UploadPlan = () => {
       });
 
       // 3. Navigate back
-      navigate("/quotes/new");
+      const quote = quoteData;
+      navigate("/quotes/new", { state: { quote } });
     } catch (error) {
       console.error("Error saving plan:", error);
       toast({
@@ -481,7 +482,9 @@ const UploadPlan = () => {
                 <div className="flex space-x-4">
                   <Button
                     variant="outline"
-                    onClick={() => navigate("/quotes/new")}
+                    onClick={() =>
+                      navigate("/quotes/new", { state: { quoteData } })
+                    }
                     className="flex-1 text-slate-700 dark:text-slate-200  h-14"
                   >
                     Cancel

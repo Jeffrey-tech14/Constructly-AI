@@ -317,7 +317,13 @@ def parse_file(file_path: str) -> Dict[str, Any]:
             - `standardSize`: "0.9 × 2.1 m" (or similar)
             - `custom`: { "height": "", "width": "", "price": "" } if custom
             - `type`: "Panel", "Flush", "Metal"
-            - `frame`: "Wood", "Steel", "Aluminum"
+            -  `frame": {
+                        "price": 3000,
+                        "width": "",
+                        "height": "",
+                        "sizeType": "standard",
+                        "standarSize": ""
+                    },
             - `count`: Number of doors in this room with the same dimensions
 
             ### 🪟 WINDOW PROPERTIES
@@ -326,7 +332,13 @@ def parse_file(file_path: str) -> Dict[str, Any]:
             - `standardSize`: "1.2 × 1.2 m" (or similar)
             - `custom`: { "height": "", "width": "", "price": "" }
             - `glass`: "Clear", "Frosted", "Tinted"
-            - `frame`: "Wood", "Steel", "Aluminum"
+            - `frame": {
+                        "price": 3000,
+                        "width": "",
+                        "height": "",
+                        "sizeType": "standard",
+                        "standarSize": ""
+                    },
             - `count`: Number of windows in this room with the same dimensions
 
             ### 🏗️ GENERAL RULES
@@ -362,8 +374,14 @@ def parse_file(file_path: str) -> Dict[str, Any]:
                     "sizeType": "standard",
                     "standardSize": "0.9 × 2.1 m",
                     "custom": { "height": "", "width": "", "price": "" },
-                    "type": "Panel",
-                    "frame": "Wood",
+                    "type": "Panel",     
+                    "frame": {
+                        "price": 3000,
+                        "width": "",
+                        "height": "",
+                        "sizeType": "standard",
+                        "standardSize": ""
+                    },
                     "count": 1
                     }
                 ],
@@ -372,8 +390,14 @@ def parse_file(file_path: str) -> Dict[str, Any]:
                     "sizeType": "standard",
                     "standardSize": "1.2 × 1.2 m",
                     "custom": { "height": "", "width": "", "price": "" },
-                    "glass": "Clear",
-                    "frame": "Aluminum",
+                    "glass": "Clear",   
+                    "frame": {
+                        "price": 3000,
+                        "width": "",
+                        "height": "",
+                        "sizeType": "standard",
+                        "standardSize": ""
+                    },
                     "count": 1
                     }
                 ]

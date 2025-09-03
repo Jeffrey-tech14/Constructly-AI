@@ -511,10 +511,11 @@ export default function useMasonryCalculator({
           ? Number(door.custom.price)
           : doorLeafPrice[door.standardSize];
 
-        const frameLeafPrice = getMaterialPrice("Door Frames", door.frame.type);
+        const frameLeafPrice =
+          getMaterialPrice("Door Frames", door.frame?.type) || "Wood";
 
-        const framePrice = door.frame?.custom?.price
-          ? Number(door.frame?.custom?.price)
+        const framePrice = door.frame?.price
+          ? Number(door.frame?.price)
           : frameLeafPrice[door.frame.standardSize];
 
         const totalPrice = (doorPrice || 0 + framePrice || 0) * door.count;
@@ -547,8 +548,8 @@ export default function useMasonryCalculator({
           window.frame.type
         );
 
-        const framePrice = window.frame?.custom?.price
-          ? Number(window.frame?.custom?.price)
+        const framePrice = window.frame?.price
+          ? Number(window.frame?.price)
           : frameLeafPrice[window.frame.standardSize];
 
         const totalPrice = (glassPrice || 0 + framePrice || 0) * window.count;

@@ -11,7 +11,7 @@ export const mapMasonryToBOQ = (roomResults: any[]): BOQItem[] => {
 
     // Decide plastering description
     let plasterGroup: string;
-    if (room.plaster === "Both sides") {
+    if (room.plaster === "One Side") {
       plasterGroup = `${thickness}mm Thick Internal walling`;
     } else {
       plasterGroup = `${thickness}mm Thick External walling`;
@@ -62,10 +62,10 @@ export const mapConcreteToBOQ = (
       itemNo: generateItemNumber("CON", index + 1),
       description: `Vibrated reinforced concrete class ${
         result.mix || "20"
-      } to ${result.name || "Element"}`,
+      } to ${result.element || "Element"}`,
       unit: "m³",
       quantity: totalItem?.quantity || 0,
-      rate: totalItem?.total_price / totalItem?.quantity || 0,
+      rate: Math.ceil(totalItem?.total_price / totalItem?.quantity || 0),
       amount: totalItem?.total_price || 0,
       category: result.category,
       element: "Concrete",

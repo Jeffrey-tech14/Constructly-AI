@@ -471,14 +471,11 @@ export default function MasonryCalculatorForm({
                       <Input
                         placeholder="Price (Ksh)"
                         type="number"
-                        value={door.frame?.custom?.price || ""}
+                        value={door.frame?.price || ""}
                         onChange={(e) =>
                           handleNestedChange(index, "doors", dIndex, "frame", {
                             ...door.frame,
-                            custom: {
-                              ...door.frame?.custom,
-                              price: e.target.value,
-                            },
+                            price: e.target.value,
                           })
                         }
                       />
@@ -763,7 +760,7 @@ export default function MasonryCalculatorForm({
                         <Input
                           placeholder="Price (Ksh)"
                           type="number"
-                          value={win.frame?.custom?.price || ""}
+                          value={win.frame?.price || ""}
                           onChange={(e) =>
                             handleNestedChange(
                               index,
@@ -772,10 +769,7 @@ export default function MasonryCalculatorForm({
                               "frame",
                               {
                                 ...win.frame,
-                                custom: {
-                                  ...win.frame?.custom,
-                                  price: e.target.value,
-                                },
+                                price: e.target.value,
                               }
                             )
                           }

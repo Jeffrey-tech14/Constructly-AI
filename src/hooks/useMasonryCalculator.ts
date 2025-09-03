@@ -505,23 +505,22 @@ export default function useMasonryCalculator({
 
         const doorLeafPrice = door.custom?.price
           ? Number(door.custom.price)
-          : getMaterialPrice("Door", door.type);
+          : getMaterialPrice("Doors", door.type);
 
         const doorPrice = door.custom?.price
           ? Number(door.custom.price)
           : doorLeafPrice[door.standardSize];
 
-        const frameLeafPrice = door.frame?.price
-          ? Number(door.frame.price)
-          : getMaterialPrice("Door Frames", door.frame.type);
+        const frameLeafPrice = getMaterialPrice("Door Frames", door.frame.type);
 
-        const framePrice = door.frame?.price
-          ? Number(door.frame.price)
+        const framePrice = door.frame?.custom?.price
+          ? Number(door.frame?.custom?.price)
           : frameLeafPrice[door.frame.standardSize];
 
-        const totalPrice = (doorPrice + framePrice) * door.count;
+        const totalPrice = (doorPrice || 0 + framePrice || 0) * door.count;
 
-        door.price = totalPrice;
+        door.frame.price = framePrice;
+        door.price = doorPrice;
         openingsCost += totalPrice;
       });
 
@@ -537,23 +536,25 @@ export default function useMasonryCalculator({
 
         const glassLeafPrice = window.custom?.price
           ? Number(window.custom.price)
-          : getMaterialPrice("Window", window.type);
+          : getMaterialPrice("Windows", window.type);
 
         const glassPrice = window.frame?.price
           ? Number(window.frame.price)
           : glassLeafPrice[window.standardSize];
 
-        const frameLeafPrice = window.frame?.price
-          ? Number(window.frame.price)
-          : getMaterialPrice("Window Frames", window.frame.type);
+        const frameLeafPrice = getMaterialPrice(
+          "Window Frames",
+          window.frame.type
+        );
 
-        const framePrice = window.frame.price
-          ? Number(window.frame.price)
+        const framePrice = window.frame?.custom?.price
+          ? Number(window.frame?.custom?.price)
           : frameLeafPrice[window.frame.standardSize];
 
-        const totalPrice = (glassPrice + framePrice) * window.count;
+        const totalPrice = (glassPrice || 0 + framePrice || 0) * window.count;
 
-        window.price = totalPrice;
+        window.frame.price = framePrice;
+        window.price = glassPrice;
         openingsCost += totalPrice;
       });
 

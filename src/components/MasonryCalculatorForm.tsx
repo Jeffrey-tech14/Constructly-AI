@@ -484,20 +484,6 @@ export default function MasonryCalculatorForm({
                       />
                     </>
                   )}
-
-                  {/* Frame Qty */}
-                  <Input
-                    placeholder="Frame Qty"
-                    type="number"
-                    min="1"
-                    value={door.frame?.count || ""}
-                    onChange={(e) =>
-                      handleNestedChange(index, "doors", dIndex, "frame", {
-                        ...door.frame,
-                        count: e.target.value,
-                      })
-                    }
-                  />
                 </div>
               </div>
             ))}
@@ -796,20 +782,6 @@ export default function MasonryCalculatorForm({
                         />
                       </>
                     )}
-
-                    {/* Frame Qty */}
-                    <Input
-                      placeholder="Frame Qty"
-                      type="number"
-                      min="1"
-                      value={win.frame?.count || ""}
-                      onChange={(e) =>
-                        handleNestedChange(index, "windows", wIndex, "frame", {
-                          ...win.frame,
-                          count: e.target.value,
-                        })
-                      }
-                    />
                   </div>
                 </div>
               </div>

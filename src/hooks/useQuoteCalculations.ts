@@ -1,20 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { RegionalMultiplier, useDynamicPricing } from '@/hooks/useDynamicPricing';
-import { useUserSettings } from '@/hooks/useUserSettings';
-import { EquipmentType } from '@/hooks/useUserSettings';
-import { AdditionalService } from '@/hooks/useUserSettings';
-import { UserEquipmentRate } from '@/hooks/useUserSettings';
-import { UserServiceRate } from '@/hooks/useUserSettings';
-import { UserSubcontractorRate } from '@/hooks/useUserSettings';
-import { UserMaterialPrice } from '@/hooks/useUserSettings';
-import { UserTransportRate } from '@/hooks/useUserSettings';
-import { useLocation } from 'react-router-dom';
-import { Sun } from 'lucide-react';
-import { calculateConcrete } from './useConcreteCalculator';
-import ConcreteCalculatorForm from '@/components/ConcreteCalculatorForm';
-    
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  RegionalMultiplier,
+  useDynamicPricing,
+} from "@/hooks/useDynamicPricing";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { EquipmentType } from "@/hooks/useUserSettings";
+import { AdditionalService } from "@/hooks/useUserSettings";
+import { UserEquipmentRate } from "@/hooks/useUserSettings";
+import { UserServiceRate } from "@/hooks/useUserSettings";
+import { UserSubcontractorRate } from "@/hooks/useUserSettings";
+import { UserMaterialPrice } from "@/hooks/useUserSettings";
+import { UserTransportRate } from "@/hooks/useUserSettings";
+import { useLocation } from "react-router-dom";
+import { Sun } from "lucide-react";
+import { calculateConcrete } from "./useConcreteCalculator";
+import ConcreteCalculatorForm from "@/components/ConcreteCalculatorForm";
+
 export interface Material {
   id: string;
   name: string;
@@ -28,7 +31,7 @@ export interface EquipmentItem {
   name: string;
   total_cost: number;
   equipment_type_id: string;
-};
+}
 
 export interface Percentage {
   labour: number;
@@ -39,7 +42,7 @@ export interface Percentage {
 
 export interface Subcontractors {
   id: string;
-  name : string;
+  name: string;
   subcontractor_payment_plan: string;
   price: number;
   days: number;
@@ -53,38 +56,38 @@ export interface Addons {
 
 export interface QuoteCalculation {
   rooms: Array<{
-  room_name: string;
-  length: string;
-  width: string;
-  height: string;
-  doors: any[];
-  windows: any[]; 
-  blockType: string;
-  thickness: string;
-  customBlock: {
-    price: string;
-    height: string;
+    room_name: string;
     length: string;
+    width: string;
+    height: string;
+    doors: any[];
+    windows: any[];
+    blockType: string;
     thickness: string;
-  };
-  roomArea: number;
-  plasterArea: number;
-  openings: number;
-  netArea: number;
-  blocks: number;
-  mortar: number;
-  plaster: number;
-  blockCost: number;
-  mortarCost: number;
-  plasterCost: number;
-  openingsCost: number;
-  cementBags: number;
-  cementCost: number;
-  sandVolume: number;
-  sandCost: number;
-  stoneVolume: number;
-  totalCost: number;
-}>;
+    customBlock: {
+      price: string;
+      height: string;
+      length: string;
+      thickness: string;
+    };
+    roomArea: number;
+    plasterArea: number;
+    openings: number;
+    netArea: number;
+    blocks: number;
+    mortar: number;
+    plaster: string;
+    blockCost: number;
+    mortarCost: number;
+    plasterCost: number;
+    openingsCost: number;
+    cementBags: number;
+    cementCost: number;
+    sandVolume: number;
+    sandCost: number;
+    stoneVolume: number;
+    totalCost: number;
+  }>;
 
   id: string;
   user_id: string;
@@ -96,11 +99,11 @@ export interface QuoteCalculation {
   house_type: string;
   location: string;
   subcontractors: Subcontractors[];
-  custom_specs:string;
+  custom_specs: string;
   floors: number;
   status: string;
-  concrete_rows: [],
-  rebar_rows: [],
+  concrete_rows: [];
+  rebar_rows: [];
   mortar_ratio: string;
   concrete_mix_ratio: string;
   plaster_thickness: number;
@@ -110,7 +113,7 @@ export interface QuoteCalculation {
   distance_km: number;
   percentages: Percentage[];
   addons: Addons[];
-  contract_type: 'full_contract' | 'labor_only';
+  contract_type: "full_contract" | "labor_only";
   region: string;
   addons_cost: number;
   materials_cost: number;
@@ -118,10 +121,10 @@ export interface QuoteCalculation {
   concrete_materials: any[];
   rebar_calculations: any[];
   total_wall_area: number;
-    total_concrete_volume: number;
-    total_formwork_area: number;
-    total_rebar_weight: number;
-    total_plaster_volume: number;
+  total_concrete_volume: number;
+  total_formwork_area: number;
+  total_rebar_weight: number;
+  total_plaster_volume: number;
   project_type: string;
   equipment_costs: number;
   additional_services_cost: number;
@@ -151,20 +154,20 @@ export interface CalculationResult {
   total_amount: number;
   materials_cost: number;
   subcontractors: Subcontractors[];
-    percentages: Percentage[]
-    labor: Array<{
-      type: string;
-      percentage: number;
-      cost: number;
-    }>;
-    equipment: Array<{
-      name: string;
-      total_cost: number;
-    }>;
-    services: Array<{
-      name: string;
-      price: number;
-    }>;
+  percentages: Percentage[];
+  labor: Array<{
+    type: string;
+    percentage: number;
+    cost: number;
+  }>;
+  equipment: Array<{
+    name: string;
+    total_cost: number;
+  }>;
+  services: Array<{
+    name: string;
+    price: number;
+  }>;
 }
 
 export type FullQuoteCalculation = QuoteCalculation & CalculationResult;
@@ -181,118 +184,126 @@ export const useQuoteCalculations = () => {
   const [regionalMultipliers] = useState<RegionalMultiplier[]>([]);
 
   const fetchMaterials = useCallback(async () => {
-  const { data: baseMaterials, error: baseError } = await supabase
-    .from('material_base_prices')
-    .select('*');
-
-  const { data: overrides, error: overrideError } = await supabase
-    .from('user_material_prices')
-    .select('material_id, region, price')
-    .eq('user_id', profile.id);
-
-  if (baseError) console.error('Base materials error:', baseError);
-  if (overrideError) console.error('Overrides error:', overrideError);
-
-  const merged = baseMaterials.map((material) => {
-    const userRegion = profile?.location || 'Nairobi'; 
-    const userRate = overrides?.find(
-      o => o.material_id === material.id && o.region === userRegion
-    );
-    const price = userRate ? userRate.price : material.price ?? 0;
-    
-    const multiplier = regionalMultipliers.find(r => r.region === userRegion)?.multiplier || 1;
-    const result = (price * multiplier)
-    
-    return {
-      ...material,
-      result,
-      source: userRate ? 'user' : (material.price != null ? 'base' : 'none')
-    };
-  });
-
-  setMaterials(merged);
-}, [user, profile.location, location.key]);
-
-  const fetchServices = useCallback(async () => {
-  const { data: baseServices, error: baseError } = await supabase
-    .from('additional_services')
-    .select('*');
-
-  const { data: overrides, error: overrideError } = await supabase
-    .from('user_service_rates')
-    .select('service_id, price')
-    .eq('user_id', profile.id);
-
-  if (baseError) console.error('Base services error:', baseError);
-  if (overrideError) console.error('Overrides error:', overrideError);
-
-  const merged = baseServices.map((service) => {
-    const userRate = overrides?.find(
-      o => o.service_id === service.id 
-    );
-    const price = userRate ? userRate.price : service.price ?? 0;
-
-    return {
-      ...service,
-      price,
-      source: userRate ? 'user' : (service.price != null ? 'base' : 'none')
-    };
-  });
-
-  setServices(merged);
-}, [user, profile, location.key]);
-
- const fetchRates = async () => {
-        const { data: baseServices, error: baseError } = await supabase
-          .from('subcontractor_prices')
-          .select('*');
-  
-        const { data: overrides, error: overrideError } = await supabase
-          .from('user_subcontractor_rates')
-          .select('service_id, price')
-          .eq('user_id', profile.id);
-  
-        if (baseError) console.error('Base rates error:', baseError);
-        if (overrideError) console.error('Overrides error:', overrideError);
-  
-        const merged = baseServices.map((service) => {
-        const userRate = overrides?.find(o => o.service_id === service.id);
-        const rate = userRate
-          ? Number(userRate.price) 
-          : (service.price != null ? Number(service.price) : 0); 
-  
-          return {
-            ...service,
-            price: rate,
-            unit: service.unit ?? "unit",
-            source: userRate ? 'user' : (service.price != null ? 'base' : 'none')
-          };
-        });
-  
-        setSubcontractors(merged);
-      };
-
- const fetchEquipment = useCallback(async () => {
-    const { data: baseEquipment, error: baseError } = await supabase 
-      .from('equipment_types')
-      .select('*');
+    const { data: baseMaterials, error: baseError } = await supabase
+      .from("material_base_prices")
+      .select("*");
 
     const { data: overrides, error: overrideError } = await supabase
-      .from('user_equipment_rates')
-      .select('equipment_type_id, total_cost')
-      .eq('user_id', profile.id);
+      .from("user_material_prices")
+      .select("material_id, region, price")
+      .eq("user_id", profile.id);
 
-    if (baseError) console.error('Base equipment error:', baseError);
-    if (overrideError) console.error('Overrides error:', overrideError);
+    if (baseError) console.error("Base materials error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
+
+    const merged = baseMaterials.map((material) => {
+      const userRegion = profile?.location || "Nairobi";
+      const userRate = overrides?.find(
+        (o) => o.material_id === material.id && o.region === userRegion
+      );
+      const price = userRate ? userRate.price : material.price ?? 0;
+
+      const multiplier =
+        regionalMultipliers.find((r) => r.region === userRegion)?.multiplier ||
+        1;
+      const result = price * multiplier;
+
+      return {
+        ...material,
+        result,
+        source: userRate ? "user" : material.price != null ? "base" : "none",
+      };
+    });
+
+    setMaterials(merged);
+  }, [user, profile.location, location.key]);
+
+  const fetchServices = useCallback(async () => {
+    const { data: baseServices, error: baseError } = await supabase
+      .from("additional_services")
+      .select("*");
+
+    const { data: overrides, error: overrideError } = await supabase
+      .from("user_service_rates")
+      .select("service_id, price")
+      .eq("user_id", profile.id);
+
+    if (baseError) console.error("Base services error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
+
+    const merged = baseServices.map((service) => {
+      const userRate = overrides?.find((o) => o.service_id === service.id);
+      const price = userRate ? userRate.price : service.price ?? 0;
+
+      return {
+        ...service,
+        price,
+        source: userRate ? "user" : service.price != null ? "base" : "none",
+      };
+    });
+
+    setServices(merged);
+  }, [user, profile, location.key]);
+
+  const fetchRates = async () => {
+    const { data: baseServices, error: baseError } = await supabase
+      .from("subcontractor_prices")
+      .select("*");
+
+    const { data: overrides, error: overrideError } = await supabase
+      .from("user_subcontractor_rates")
+      .select("service_id, price")
+      .eq("user_id", profile.id);
+
+    if (baseError) console.error("Base rates error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
+
+    const merged = baseServices.map((service) => {
+      const userRate = overrides?.find((o) => o.service_id === service.id);
+      const rate = userRate
+        ? Number(userRate.price)
+        : service.price != null
+        ? Number(service.price)
+        : 0;
+
+      return {
+        ...service,
+        price: rate,
+        unit: service.unit ?? "unit",
+        source: userRate ? "user" : service.price != null ? "base" : "none",
+      };
+    });
+
+    setSubcontractors(merged);
+  };
+
+  const fetchEquipment = useCallback(async () => {
+    const { data: baseEquipment, error: baseError } = await supabase
+      .from("equipment_types")
+      .select("*");
+
+    const { data: overrides, error: overrideError } = await supabase
+      .from("user_equipment_rates")
+      .select("equipment_type_id, total_cost")
+      .eq("user_id", profile.id);
+
+    if (baseError) console.error("Base equipment error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
 
     const merged = baseEquipment.map((equipment) => {
-      const userRate = overrides?.find(o => o.equipment_type_id === equipment.id);
+      const userRate = overrides?.find(
+        (o) => o.equipment_type_id === equipment.id
+      );
       const rate = userRate ? userRate.total_cost : equipment.total_cost ?? 0;
 
       return {
         ...equipment,
         total_cost: rate,
-        source: userRate ? 'user' : (equipment.total_cost != null ? 'base' : 'none')
+        source: userRate
+          ? "user"
+          : equipment.total_cost != null
+          ? "base"
+          : "none",
       };
     });
 
@@ -300,48 +311,62 @@ export const useQuoteCalculations = () => {
   }, [user, location.key]);
 
   const fetchTransportRates = useCallback(async () => {
-  const { data: baseRates, error: baseError } = await supabase
-    .from('transport_rates')
-    .select('*');
+    const { data: baseRates, error: baseError } = await supabase
+      .from("transport_rates")
+      .select("*");
 
-  const { data: overrides, error: overrideError } = await supabase
-    .from('user_transport_rates')
-    .select('region, cost_per_km, base_cost')
-    .eq('user_id', profile.id);
+    const { data: overrides, error: overrideError } = await supabase
+      .from("user_transport_rates")
+      .select("region, cost_per_km, base_cost")
+      .eq("user_id", profile.id);
 
-  if (baseError) console.error('Base transport rates error:', baseError);
-  if (overrideError) console.error('Overrides error:', overrideError);
+    if (baseError) console.error("Base transport rates error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
 
-  const allRegions = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Machakos'];
+    const allRegions = [
+      "Nairobi",
+      "Mombasa",
+      "Kisumu",
+      "Nakuru",
+      "Eldoret",
+      "Thika",
+      "Machakos",
+    ];
 
-  const merged = allRegions.map(region => {
-    const base = baseRates.find(r => r.region.toLowerCase() === region.toLowerCase());
-    const userRate = overrides?.find(o => o.region.toLowerCase() === region.toLowerCase());
+    const merged = allRegions.map((region) => {
+      const base = baseRates.find(
+        (r) => r.region.toLowerCase() === region.toLowerCase()
+      );
+      const userRate = overrides?.find(
+        (o) => o.region.toLowerCase() === region.toLowerCase()
+      );
 
-    return {
-      id: profile.id,
-      region,
-      cost_per_km: userRate?.cost_per_km ?? base?.cost_per_km ?? 50,
-      base_cost: userRate?.base_cost ?? base?.base_cost ?? 500,
-      source: userRate ? 'user' : (base ? 'base' : 'default')
-    };
-  });
+      return {
+        id: profile.id,
+        region,
+        cost_per_km: userRate?.cost_per_km ?? base?.cost_per_km ?? 50,
+        base_cost: userRate?.base_cost ?? base?.base_cost ?? 500,
+        source: userRate ? "user" : base ? "base" : "default",
+      };
+    });
 
-  setTransportRates(merged);
-}, [user, location.key]);
+    setTransportRates(merged);
+  }, [user, location.key]);
 
   useEffect(() => {
-  if (user && profile !== null) {
-    fetchMaterials();
-    fetchServices();
-    fetchEquipment();
-    fetchTransportRates();
-    fetchRates();
-  }
+    if (user && profile !== null) {
+      fetchMaterials();
+      fetchServices();
+      fetchEquipment();
+      fetchTransportRates();
+      fetchRates();
+    }
   }, [user, profile, location.key]);
 
-  const calculateQuote = async (params: QuoteCalculation): Promise<CalculationResult> => {
-    if (!user || !profile) throw new Error('User not authenticated');
+  const calculateQuote = async (
+    params: QuoteCalculation
+  ): Promise<CalculationResult> => {
+    if (!user || !profile) throw new Error("User not authenticated");
     setLoading(true);
 
     try {
@@ -363,7 +388,8 @@ export const useQuoteCalculations = () => {
         rebar_calculations,
       } = params;
 
-      const defaultProfitMargin = parseFloat(profit_percentages.toString())/100;
+      const defaultProfitMargin =
+        parseFloat(profit_percentages.toString()) / 100;
 
       // ✅ Sum all totalPrice values
       const rebarCost = rebar_calculations.reduce(
@@ -374,73 +400,91 @@ export const useQuoteCalculations = () => {
       // ✅ Apply profit margin
       const rebarProfits = rebarCost || 0 * defaultProfitMargin;
 
-      const masonryProfits = masonry_materials.cost || 0 * defaultProfitMargin || 0
-      const concreteProfits = concrete_materials[0].total_price || 0 * defaultProfitMargin|| 0
+      const masonryProfits =
+        masonry_materials.cost || 0 * defaultProfitMargin || 0;
+      const concreteProfits =
+        concrete_materials[0].total_price || 0 * defaultProfitMargin || 0;
       const concretePrice = concrete_materials[0].total_price || 0;
 
-      const totalMaterialPrice = Math.round(concretePrice + masonry_materials.cost + rebarCost)
+      const totalMaterialPrice = Math.round(
+        concretePrice + masonry_materials.cost + rebarCost
+      );
 
-      const laborCost =  Math.round(totalMaterialPrice * (labor_percentages / 100));
+      const laborCost = Math.round(
+        totalMaterialPrice * (labor_percentages / 100)
+      );
 
       const equipmentCost = equipment.reduce((total, item) => {
-        return total + (item.total_cost);
+        return total + item.total_cost;
       }, 0);
 
-      const percentages = [{
-        labour: labor_percentages,
-        overhead: overhead_percentages,
-        profit: profit_percentages,
-        contingency: contingency_percentages,
-      }]
+      const percentages = [
+        {
+          labour: labor_percentages,
+          overhead: overhead_percentages,
+          profit: profit_percentages,
+          contingency: contingency_percentages,
+        },
+      ];
 
       const transportCost = (() => {
-        const region = profile?.location || 'Nairobi';
-        const rateForRegion = transportRates.find(r => r.region === region);
+        const region = profile?.location || "Nairobi";
+        const rateForRegion = transportRates.find((r) => r.region === region);
         const defaultTransportRate = { cost_per_km: 50, base_cost: 500 };
 
         if (!rateForRegion) {
           console.warn(`No transport rate for ${region}. Using defaults.`);
-          return (distance_km * defaultTransportRate.cost_per_km) + defaultTransportRate.base_cost;
+          return (
+            distance_km * defaultTransportRate.cost_per_km +
+            defaultTransportRate.base_cost
+          );
         }
-        
-        return (distance_km * rateForRegion.cost_per_km) + rateForRegion.base_cost;
+
+        return (
+          distance_km * rateForRegion.cost_per_km + rateForRegion.base_cost
+        );
       })();
 
       const selectedSubcontractors = subcontractors ?? [];
 
       let addonsPrices = 0;
 
-      addons.forEach(addon => {
+      addons.forEach((addon) => {
         addonsPrices += Number(addon.price) || 0;
       });
 
+      const { updatedSubcontractors, subcontractorRates, subcontractorProfit } =
+        (() => {
+          let totalAll = 0;
+          let profitSub = 0;
 
-      const { updatedSubcontractors, subcontractorRates, subcontractorProfit } = (() => {
-        let totalAll = 0;
-        let profitSub = 0;
+          const updated = selectedSubcontractors.map((sub) => {
+            let total = 0;
 
-        const updated = selectedSubcontractors.map(sub => {
-          let total = 0;
+            if (sub.subcontractor_payment_plan?.toLowerCase() === "daily") {
+              total = (Number(sub.price) || 10) * (Number(sub.days) || 0);
+            } else if (
+              sub.subcontractor_payment_plan?.toLowerCase() === "full"
+            ) {
+              total = Number(sub.total) || 0;
+            }
+            sub.total = total;
 
-          if (sub.subcontractor_payment_plan?.toLowerCase() === "daily") {
-            total = (Number(sub.price) || 10) * (Number(sub.days) || 0);
-          } else if (sub.subcontractor_payment_plan?.toLowerCase() === "full") {
-            total = Number(sub.total) || 0;
-          }
-          sub.total = total
+            profitSub = total * profit_percentages;
+            totalAll += total;
 
-          profitSub =  (total * profit_percentages);
-          totalAll += total
+            return {
+              ...sub,
+              total,
+            };
+          });
 
           return {
-            ...sub,
-            total
+            updatedSubcontractors: updated,
+            subcontractorRates: totalAll,
+            subcontractorProfit: profitSub,
           };
-        });
-
-        return { updatedSubcontractors: updated, subcontractorRates: totalAll, subcontractorProfit: profitSub };
-      })();
-
+        })();
 
       const servicesCost = services.reduce((total, s) => {
         return total + (s.price ?? 0);
@@ -449,21 +493,41 @@ export const useQuoteCalculations = () => {
       const permitCost = permit_cost || 0;
 
       var subtotalBeforeExtras;
-      if(contract_type === 'full_contract'){
-        subtotalBeforeExtras =  totalMaterialPrice + transportCost + laborCost + equipmentCost + servicesCost + subcontractorRates + addonsPrices;
+      if (contract_type === "full_contract") {
+        subtotalBeforeExtras =
+          totalMaterialPrice +
+          transportCost +
+          laborCost +
+          equipmentCost +
+          servicesCost +
+          subcontractorRates +
+          addonsPrices;
+      } else {
+        subtotalBeforeExtras =
+          laborCost +
+          equipmentCost +
+          servicesCost +
+          subcontractorRates +
+          addonsPrices;
       }
-      else{
-        subtotalBeforeExtras = laborCost + equipmentCost + servicesCost +  subcontractorRates + addonsPrices ;
-      }
-      const overheadAmount = subtotalBeforeExtras * (parseFloat(overhead_percentages.toString()) || 0) / 100;
+      const overheadAmount =
+        (subtotalBeforeExtras *
+          (parseFloat(overhead_percentages.toString()) || 0)) /
+        100;
 
-      const contingencyAmount = subtotalBeforeExtras * (parseFloat(contingency_percentages.toString()) || 0) / 100;
+      const contingencyAmount =
+        (subtotalBeforeExtras *
+          (parseFloat(contingency_percentages.toString()) || 0)) /
+        100;
 
-      const subtotalWithExtras = subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost ;
+      const subtotalWithExtras =
+        subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost;
 
-      const profitAmount =  Math.round(subcontractorProfit + rebarProfits + masonryProfits + concreteProfits);
+      const profitAmount = Math.round(
+        subcontractorProfit + rebarProfits + masonryProfits + concreteProfits
+      );
 
-      const totalAmount =  Math.round(subtotalWithExtras + profitAmount);
+      const totalAmount = Math.round(subtotalWithExtras + profitAmount);
 
       return {
         labor_cost: laborCost,
@@ -485,23 +549,27 @@ export const useQuoteCalculations = () => {
         addons_cost: addonsPrices,
         addons: addons,
 
-          percentages: percentages,
-          labor: [{ type: 'calculated', percentage: labor_percentages, cost: laborCost }],
-          equipment: equipment.map(item => {
-            return {
-              ...item,
-              total_cost: item.total_cost
-            };
-          }),
+        percentages: percentages,
+        labor: [
+          {
+            type: "calculated",
+            percentage: labor_percentages,
+            cost: laborCost,
+          },
+        ],
+        equipment: equipment.map((item) => {
+          return {
+            ...item,
+            total_cost: item.total_cost,
+          };
+        }),
 
-          services: services.map(s => ({
-            id: s.id,
-            name: s.name,
-            price: s.price ?? 0
-          })),
-
+        services: services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          price: s.price ?? 0,
+        })),
       };
-
     } finally {
       setLoading(false);
     }
@@ -513,6 +581,6 @@ export const useQuoteCalculations = () => {
     transportRates,
     services,
     loading,
-    calculateQuote
+    calculateQuote,
   };
 };

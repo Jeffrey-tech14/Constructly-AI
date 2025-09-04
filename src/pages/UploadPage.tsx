@@ -202,7 +202,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("https://elaris-ai.onrender.com/api/plan/upload", {
+    const res = await fetch("http://192.168.0.100:8000/api/plan/upload", {
       method: "POST",
       body: formData,
     });

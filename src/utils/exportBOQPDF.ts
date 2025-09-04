@@ -1,7 +1,7 @@
 // src/utils/exportBOQPDF.ts
-import { pdf } from '@react-pdf/renderer';
-import React from 'react'; // Import React to use createElement
-import { BOQSection } from '@/types/boq'; // Adjust path if needed
+import { pdf } from "@react-pdf/renderer";
+import React from "react"; // Import React to use createElement
+import { BOQSection, PrelimItem, PrelimSection } from "@/types/boq"; // Adjust path if needed
 
 // --- Define Types ---
 interface ProjectInfo {
@@ -18,7 +18,7 @@ interface ProjectInfo {
 
 // --- Helper Function for Dynamic Import ---
 const getPDFGeneratorComponent = async () => {
-  const module = await import('@/components/PDFGenerator');
+  const module = await import("@/components/PDFGenerator");
   return module.default; // Return the default export (the component function)
 };
 
@@ -26,35 +26,35 @@ const getPDFGeneratorComponent = async () => {
  * Generates and downloads a PDF BOQ file.
  * @param boqData The structured BOQ data.
  * @param projectInfo Project details, including a formatted 'date' string.
+ * @param preliminaries
  * @returns True if successful, false otherwise.
  */
-const exportBOQPDF = async (boqData: BOQSection[], projectInfo: ProjectInfo): Promise<boolean> => {
+const exportBOQPDF = async (
+  boqData: BOQSection[],
+  projectInfo: ProjectInfo,
+  preliminaries: any[]
+): Promise<boolean> => {
   try {
-    // --- Dynamically import the PDF component ---
     const PDFGeneratorComponent = await getPDFGeneratorComponent();
-
-    // --- Generate the PDF Blob ---
-    // Create a React element for the PDFGenerator component.
-    // The PDFGenerator component itself renders a <Document>.
-    // pdf() expects a structure starting with <Document>, which this provides.
     const pdfReactElement = React.createElement(PDFGeneratorComponent, {
       boqData,
       projectInfo,
+      preliminariesData: preliminaries[0].items,
     });
 
-    // Pass the React element (which renders <Document>) to pdf().
-    // Using `any` temporarily to bypass potential complex type mismatches
-    // between React's element types and React-PDF's expectations in .ts files.
-    // This is a common workaround when type inference is problematic.
     const blob = await pdf(pdfReactElement as any).toBlob();
 
     // --- Create Download Link and Trigger Download ---
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     // Sanitize filename
-    const filenameTitle = projectInfo.title.replace(/[^a-z0-9_\-\s]/gi, '_').replace(/\s+/g, '_');
-    link.download = `BOQ_${filenameTitle}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    const filenameTitle = projectInfo.title
+      .replace(/[^a-z0-9_\-\s]/gi, "_")
+      .replace(/\s+/g, "_");
+    link.download = `BOQ_${filenameTitle}_${new Date()
+      .toISOString()
+      .slice(0, 10)}.pdf`;
 
     // Trigger download
     document.body.appendChild(link);
@@ -68,7 +68,7 @@ const exportBOQPDF = async (boqData: BOQSection[], projectInfo: ProjectInfo): Pr
 
     return true;
   } catch (error) {
-    console.error('Error generating or downloading PDF:', error);
+    console.error("Error generating or downloading PDF:", error);
     // Optionally, display an error message to the user
     return false;
   }

@@ -5,3 +5,4 @@ pydantic
 opencv-python
 pytesseract
 PyMuPDF
+python-dotenv

@@ -1,170 +1,874 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
-  DraftingCompass,
+  Wrench,
   FileText,
   Calculator,
   Users,
   TrendingUp,
+  CheckCircle,
+  ArrowRight,
   Star,
   Building,
   Clock,
-  CheckCircle,
-  ArrowRight,
-  Hammer,
-  Ruler,
-  HardHat,
-  Menu,
-  ShieldCheck,
-  Sparkles,
-  HelpCircle,
-  Layers,
-  Zap,
-  LineChart,
-  PhoneCall,
-  Mail,
-  ExternalLink,
-  Shield,
-  UserCheck,
-  Globe,
-  Headphones,
-  DollarSign,
-  Smartphone,
   Briefcase,
-  Coins,
-  CreditCard,
-  Pickaxe,
-} from "lucide-react";
-
-// shadcn/ui
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Input } from "@/components/ui/input";
+  Menu,
+  MessageCircle,
+  Shield,
+  Hammer,
+  DraftingCompass,
+  DollarSign,
+  UserCheck,
+  Mail,
+  Linkedin,
+  Twitter,
+  Facebook,
+  ChevronDown,
+  Play,
+  Award,
+  Globe,
+  Zap,
+  BarChart3,
+  Cloud,
+  Code,
+  Database,
+  Server,
+  Smartphone,
+  Headphones,
+  Lightbulb,
+  Target,
+  BarChart,
+  Settings,
+  Calendar,
+  Phone,
+  MapPin,
+  ArrowRightCircle,
+  Check,
+  ChevronRight,
+  Eye,
+  PieChart,
+  FileStack,
+  ClipboardCheck,
+  Plus,
+  Minus,
+  HardDrive,
+  Download,
+  CheckSquare,
+  ArrowRightIcon,
+  Quote,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  X
+} from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { AccordionItem, AccordionTrigger, AccordionContent, Accordion } from '@/components/ui/accordion';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { TestimonialsSection } from "@/components/Testimonials";
+import { useAuth } from '@/contexts/AuthContext';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
-export interface Tier {
-  id: number;
-  name: string;
-  price: number; 
-  period: string; 
-  features: string[]; 
-  popular: boolean; 
-}
+// RISA Color Theme with dark mode support
+const colors = {
+  primary: '#015B97',    // RISA's primary blue
+  primaryLight: '#3288e6', // Lighter blue for accents
+  secondary: '#565A5C',   // Text color
+  white: '#FFFFFF',
+  lightGray: '#F3F4F6',   // Backgrounds
+  dark: '#111827',        // Dark text
+  darkBackground: '#0f172a', // Dark mode background
+  darkCard: '#1e293b',    // Dark mode card background
+  darkText: '#e2e8f0',    // Dark mode text
+  darkBorder: '#334155',  // Dark mode borders
+  darkSecondary: '#94a3b8', // Dark mode secondary text
+};
+
+// Pricing Card Component with RISA styling and dark mode support
+const PricingCard = ({ plan, isFeatured = false }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5, delay: 0.2 }}
+    whileHover={{ y: -10, transition: { duration: 0.3 } }}
+    className={`
+      rounded-xl p-8 shadow-md border transition-all duration-300
+      hover:shadow-lg hover:scale-[1.02]
+      ${isFeatured ? 'ring-2 ring-blue-500 shadow-lg relative' : ''}
+      dark:border-gray-700 dark:shadow-gray-800/20
+      dark:bg-gray-800 dark:text-gray-100
+      bg-white border-gray-200 text-gray-900
+      hover:border-blue-200 dark:hover:border-blue-800
+    `}
+  >
+    {isFeatured && (
+      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+        Most Popular
+      </span>
+    )}
+    <h3 className="text-2xl font-bold mb-3 text-center dark:text-gray-100">{plan.name}</h3>
+    <p className="text-3xl font-bold mb-6 text-center text-blue-600">{plan.price}</p>
+    <ul className="mb-8 space-y-4">
+      {plan.features.map((feature, i) => (
+        <li key={i} className="flex items-center gap-3 text-base group dark:text-gray-300 text-gray-700">
+          <CheckCircle className="w-5 h-5 text-green-500" />
+          <span className="transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+            {feature.text}
+          </span>
+        </li>
+      ))}
+    </ul>
+    <button className={`
+      w-full py-3.5 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center
+      group overflow-hidden relative
+      ${isFeatured 
+        ? 'bg-gradient-to-r from-blue-600 to-blue-800' 
+        : 'bg-gradient-to-r from-blue-500 to-blue-700'}
+    `}>
+      <span className="relative z-10 flex items-center">
+        {plan.buttonText}
+      </span>
+      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+    </button>
+  </motion.div>
+);
+
+// Payment Method Component with RISA styling and dark mode support
+const PaymentMethod = ({ method }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5 }}
+    className="border p-6 rounded-lg text-center shadow-sm 
+                 transition-all duration-300 hover:shadow-md hover:translate-y-[-4px]
+                 dark:border-gray-700 dark:shadow-gray-800/20 dark:bg-gray-800 dark:text-gray-100
+                 bg-white border-gray-200 text-gray-900
+                 hover:border-blue-200 dark:hover:border-blue-800"
+  >
+    <div className="text-4xl mb-4 transition-colors duration-300 group-hover:text-blue-600 text-blue-500">
+      {method.icon}
+    </div>
+    <h4 className="font-bold text-xl mb-2 dark:text-gray-100">{method.name}</h4>
+    <p className="text-sm dark:text-gray-300 transition-colors duration-300 group-hover:text-blue-600 text-gray-600">
+      {method.description}
+    </p>
+  </motion.div>
+);
+
+// Feature Card Component with RISA styling and dark mode support
+const FeatureCard = ({ feature, index }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5, delay: index * 0.1 }}
+    whileHover={{ y: -8, transition: { duration: 0.3 } }}
+    className="border rounded-lg shadow-md transition-all duration-300 hover:shadow-lg 
+               dark:border-gray-700 dark:shadow-gray-800/20 dark:bg-gray-800 dark:text-gray-100
+               bg-white border-gray-200 text-gray-900
+               hover:border-blue-200 dark:hover:border-blue-800"
+  >
+    <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center mb-4 text-blue-600 dark:bg-blue-900/30">
+      {feature.icon}
+    </div>
+    <h3 className="text-xl font-bold mb-3 dark:text-gray-100">{feature.title}</h3>
+    <p className="dark:text-gray-300 text-gray-600 leading-relaxed text-sm">{feature.description}</p>
+    <div className="mt-4 pt-4 border-t dark:border-gray-700">
+      <div className="flex items-center text-blue-600 font-medium text-sm dark:text-blue-400">
+        <span>Learn more</span>
+        <ChevronRight className="w-4 h-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
+      </div>
+    </div>
+  </motion.div>
+);
+
+// Testimonials Component with RISA styling and dark mode support
+const TestimonialsSection = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const formRef = useRef(null);
+  const [formData, setFormData] = useState({
+    quote: '',
+    name: '',
+    title: '',
+    company: '',
+    rating: 5,
+    results: [
+      { value: '', label: 'Improvement' },
+      { value: '', label: 'Benefit' }
+    ]
+  });
+  const [testimonials, setTestimonials] = useState(() => {
+    try {
+      const savedTestimonials = localStorage.getItem('testimonials');
+      return savedTestimonials ? JSON.parse(savedTestimonials) : [
+        {
+          quote: "Constructly reduced our estimation time by 70% and improved accuracy by 40%. The AI-powered insights have transformed how we approach project budgeting.",
+          name: "Michael Johnson",
+          title: "Senior Estimator",
+          company: "ConstructCo Ltd",
+          rating: 5,
+          results: [
+            { value: "70%", label: "Time Reduction" },
+            { value: "40%", label: "Accuracy Improvement" }
+          ]
+        },
+        {
+          quote: "The AI-powered insights have transformed how we approach project budgeting. We're now able to bid on more projects with confidence in our cost projections.",
+          name: "Sarah Williams",
+          title: "Project Director",
+          company: "UrbanBuild Group",
+          rating: 5,
+          results: [
+            { value: "35%", label: "More Projects" },
+            { value: "25%", label: "Team Productivity" }
+          ]
+        },
+        {
+          quote: "An essential tool for any modern construction firm. The ROI was immediate, and our team has embraced the platform wholeheartedly for all our estimation needs.",
+          name: "David Chen",
+          title: "CTO",
+          company: "Skyline Developments",
+          rating: 4,
+          results: [
+            { value: "90%", label: "ROI in 3 months" },
+            { value: "100%", label: "Team Adoption" }
+          ]
+        },
+        {
+          quote: "We've cut our estimation errors to near zero and significantly improved our profit margins. The automated reporting features alone have saved us hundreds of hours.",
+          name: "Amanda Rodriguez",
+          title: "Operations Manager",
+          company: "Tower Construction Group",
+          rating: 5,
+          results: [
+            { value: "99%", label: "Accuracy Rate" },
+            { value: "18%", label: "Profit Increase" }
+          ]
+        }
+      ];
+    } catch (error) {
+      console.error("Failed to load testimonials from localStorage:", error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('testimonials', JSON.stringify(testimonials));
+    } catch (error) {
+      console.error("Failed to save testimonials to localStorage:", error);
+    }
+  }, [testimonials]);
+
+  const companies = [
+    "ConstructCo Ltd",
+    "UrbanBuild Group",
+    "Skyline Developments",
+    "Tower Construction",
+    "Prime Builders",
+    "Metro Engineering",
+    "InfraTech Solutions",
+    "Global Constructors"
+  ];
+
+  const nextTestimonial = () => {
+    setActiveIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevTestimonial = () => {
+    setActiveIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
+  };
+
+  useEffect(() => {
+    let interval;
+    if (autoPlay) {
+      interval = setInterval(() => {
+        nextTestimonial();
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [autoPlay, activeIndex, testimonials.length]);
+
+  const currentTestimonial = testimonials[activeIndex];
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleResultChange = (index, field, value) => {
+    const updatedResults = [...formData.results];
+    updatedResults[index][field] = value;
+    setFormData({ ...formData, results: updatedResults });
+  };
+
+  const addResultField = () => {
+    setFormData({
+      ...formData,
+      results: [...formData.results, { value: '', label: '' }]
+    });
+  };
+
+  const removeResultField = (index) => {
+    setFormData({
+      ...formData,
+      results: formData.results.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newTestimonial = {
+      ...formData,
+      results: formData.results.filter(result => result.value || result.label)
+    };
+    setTestimonials((prevTestimonials) => [...prevTestimonials, newTestimonial]);
+    setFormData({
+      quote: '',
+      name: '',
+      title: '',
+      company: '',
+      rating: 5,
+      results: [
+        { value: '', label: 'Improvement' },
+        { value: '', label: 'Benefit' }
+      ]
+    });
+    setSubmitted(true);
+    setTimeout(() => {
+      setShowForm(false);
+      setSubmitted(false);
+      setActiveIndex(testimonials.length);
+    }, 2000);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (formRef.current && !formRef.current.contains(event.target)) {
+        setShowForm(false);
+      }
+    };
+    if (showForm) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showForm]);
+
+  return (
+    <section id="testimonials" className="relative py-20 overflow-hidden dark:bg-gray-900">
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              ref={formRef}
+              className="rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto 
+                         dark:bg-gray-800 dark:text-gray-100 bg-white"
+            >
+              <div className="p-6 md:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold dark:text-gray-100">Share Your Experience</h3>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                    aria-label="Close form"
+                  >
+                    <X className="text-xl" />
+                  </button>
+                </div>
+                {submitted ? (
+                  <div className="text-center py-10">
+                    <div className="text-green-500 text-6xl mb-4 animate-bounce">✓</div>
+                    <h4 className="text-xl font-bold dark:text-gray-100 mb-2">Thank You!</h4>
+                    <p className="dark:text-gray-300 text-gray-600">Your testimonial has been submitted successfully.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <label htmlFor="quote" className="block dark:text-gray-100 text-gray-700 font-medium mb-2">Your Quote*</label>
+                      <textarea
+                        id="quote"
+                        name="quote"
+                        value={formData.quote}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all
+                                   dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                   border-gray-300"
+                        rows="4"
+                        placeholder="Share your experience with our product..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="name" className="block dark:text-gray-100 text-gray-700 font-medium mb-2">Your Name*</label>
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all
+                                     dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                     border-gray-300"
+                          placeholder="John Doe"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="title" className="block dark:text-gray-100 text-gray-700 font-medium mb-2">Your Title*</label>
+                        <input
+                          type="text"
+                          id="title"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all
+                                     dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                     border-gray-300"
+                          placeholder="Senior Estimator"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="company" className="block dark:text-gray-100 text-gray-700 font-medium mb-2">Company*</label>
+                      <input
+                        type="text"
+                        id="company"
+                        name="company"
+                        value={formData.company}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all
+                                   dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                   border-gray-300"
+                        placeholder="Your Company"
+                      />
+                    </div>
+                    <div>
+                      <label className="block dark:text-gray-100 text-gray-700 font-medium mb-2">Rating*</label>
+                      <div className="flex space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, rating: star })}
+                            className="focus:outline-none transition-transform transform hover:scale-110"
+                            aria-label={`Rate ${star} stars`}
+                          >
+                            <Star
+                              className={`text-2xl ${star <= formData.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300 dark:text-gray-600"}`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block dark:text-gray-100 text-gray-700 font-medium mb-3">Key Results (Optional)</label>
+                      <div className="space-y-4">
+                        {formData.results.map((result, index) => (
+                          <div key={index} className="flex flex-col md:flex-row gap-2">
+                            <input
+                              type="text"
+                              value={result.value}
+                              onChange={(e) => handleResultChange(index, 'value', e.target.value)}
+                              className="w-full md:w-1/3 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all
+                                         dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                         border-gray-300"
+                              placeholder="e.g. 40%"
+                            />
+                            <input
+                              type="text"
+                              value={result.label}
+                              onChange={(e) => handleResultChange(index, 'label', e.target.value)}
+                              className="w-full md:w-2/3 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-all
+                                         dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                         border-gray-300"
+                              placeholder="Result description"
+                            />
+                            {formData.results.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeResultField(index)}
+                                className="flex-shrink-0 p-3 text-red-500 hover:text-red-700 transition-colors rounded-lg 
+                                           dark:border-gray-600 dark:hover:border-red-800
+                                           border border-gray-300 md:border-none"
+                                aria-label="Remove result field"
+                              >
+                                <X />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={addResultField}
+                          className="mt-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors 
+                                     dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600
+                                     inline-flex items-center text-sm"
+                        >
+                          <Plus className="mr-2" /> Add Another Result
+                        </button>
+                      </div>
+                    </div>
+                    <div className="pt-4">
+                      <button
+                        type="submit"
+                        className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg shadow hover:bg-blue-700 transition-all duration-300"
+                      >
+                        Submit Testimonial
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="inline-flex items-center bg-blue-600 px-4 py-2 rounded-full mb-6"
+          >
+            <span className="text-white font-medium text-sm">
+              <span className="mr-2">★</span> Client Testimonials
+            </span>
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="text-3xl md:text-4xl font-bold mb-6"
+          >
+            <span className="text-blue-600 dark:text-blue-400">
+              Trusted by Industry Leaders
+            </span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true, amount: 0.5 }}
+            className="dark:text-gray-300 text-gray-600 max-w-3xl mx-auto"
+          >
+            Hear from industry professionals who have transformed their estimation process with our solution.
+          </motion.p>
+        </div>
+        <div className="max-w-5xl mx-auto relative mb-20">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={prevTestimonial}
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full 
+                       shadow flex items-center justify-center transition-all border
+                       dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:text-blue-400
+                       bg-white border-gray-200 text-gray-600 hover:text-blue-600"
+            aria-label="Previous testimonial"
+            disabled={testimonials.length <= 1}
+          >
+            <ChevronLeft />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={nextTestimonial}
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full 
+                       shadow flex items-center justify-center transition-all border
+                       dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:text-blue-400
+                       bg-white border-gray-200 text-gray-600 hover:text-blue-600"
+            aria-label="Next testimonial"
+            disabled={testimonials.length <= 1}
+          >
+            <ChevronRightIcon />
+          </motion.button>
+          <div className="relative h-auto overflow-hidden">
+            {testimonials.length > 0 ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeIndex}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.5 }}
+                  className="rounded-xl shadow-md overflow-hidden border
+                             dark:border-gray-700 dark:shadow-gray-800/20 dark:bg-gray-800
+                             bg-white border-gray-100"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-3">
+                    <div className="lg:col-span-2 p-6 md:p-8">
+                      <div className="text-blue-600 dark:text-blue-400 text-4xl mb-4">
+                        <Quote className="opacity-70" />
+                      </div>
+                      <p className="mb-6 leading-relaxed italic dark:text-gray-100 text-gray-800">
+                        "{currentTestimonial.quote}"
+                      </p>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between">
+                        <div className="flex items-center mb-4 md:mb-0">
+                          <div className="bg-blue-600 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            {currentTestimonial.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="ml-4">
+                            <h4 className="font-bold dark:text-gray-100">{currentTestimonial.name}</h4>
+                            <p className="dark:text-gray-300 text-gray-600 text-sm">{currentTestimonial.title}, {currentTestimonial.company}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`text-lg ${i < currentTestimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300 dark:text-gray-600"}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 p-6 md:p-8 border-l-0 lg:border-l border-t-0 lg:border-t-0 border-gray-200 dark:bg-blue-900/20 dark:border-gray-700">
+                      <h3 className="text-lg font-semibold dark:text-gray-100 mb-4">Key Achievements</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {currentTestimonial.results.map((result, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 + 0.3 }}
+                            className="p-3 rounded-lg border shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center
+                                       dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+                                       bg-white border-gray-200"
+                          >
+                            <div className="text-xl font-bold text-blue-700 dark:text-blue-400 mb-1">{result.value}</div>
+                            <div className="text-xs dark:text-gray-300 text-gray-600">{result.label}</div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      <div className="mt-4 pt-4 border-t dark:border-gray-700">
+                        <div className="text-xs dark:text-gray-300 text-gray-600 mb-2">Project Type:</div>
+                        <div className="inline-flex px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium dark:bg-blue-900/50 dark:text-blue-300">
+                          Commercial Tower
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <div className="text-center py-16 dark:text-gray-400 text-gray-500">
+                No testimonials to display yet. Be the first to share your experience!
+              </div>
+            )}
+          </div>
+          {testimonials.length > 1 && (
+            <div className="flex justify-center mt-6 space-x-2">
+              {testimonials.map((_, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  whileHover={{ scale: 1.2 }}
+                  className={`w-2 h-2 rounded-full transition-colors
+                             ${index === activeIndex ? 'bg-blue-600 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'}`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="mt-12 pt-12 border-t dark:border-gray-800">
+          <motion.h3
+            className="text-center text-lg font-semibold dark:text-gray-300 mb-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true, amount: 0.5 }}
+          >
+            Trusted by industry leaders worldwide
+          </motion.h3>
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, staggerChildren: 0.1 }}
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            {companies.map((company, index) => (
+              <motion.div
+                key={index}
+                className="rounded-lg p-4 flex items-center justify-center h-20 border shadow-sm hover:shadow-md transition-all duration-300
+                           dark:border-gray-700 dark:shadow-gray-800/20 dark:bg-gray-800 dark:text-gray-100
+                           bg-white border-gray-200 text-gray-700"
+                whileHover={{ y: -3, boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 + 0.2 }}
+              >
+                <div className="flex items-center">
+                  <div className="bg-blue-600 w-10 h-10 rounded-md flex items-center justify-center text-white font-bold mr-2 flex-shrink-0">
+                    <Building className="text-sm" />
+                  </div>
+                  <span className="font-medium text-sm text-center">{company}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [tiers, setTiers] = useState<Tier[]>([]);
-  const [tiersLoading, setTiersLoading] = useState(true);
-  const [tiersError, setTiersError] = useState<string | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (user) navigate("/dashboard");
-  }, [user, navigate]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const fetchTiers = async () => {
-      setTiersLoading(true);
-      setTiersError(null);
-      const { data, error } = await supabase.from("tiers").select("*").order("id", { ascending: true });
-      if (cancelled) return;
-      if (error) {
-        setTiersError(error.message || "Failed to load pricing tiers.");
-        setTiers([]);
-      } else {
-        setTiers(Array.isArray(data) ? data : []);
-      }
-      setTiersLoading(false);
-    };
-    fetchTiers();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (!heroRef.current) return;
-      heroRef.current.style.backgroundPosition = `center ${window.scrollY * 0.35}px`;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const menuItems = useMemo(() => [
-    { id: "features", label: "Features" },
-    { id: "testimonials", label: "Testimonials" },
-    { id: "faq", label: "FAQ" },
-    { id: "pricing", label: "Pricing" },
-    { id: "contact", label: "Contact" },
-  ], []);
-
-   const videoRef = useRef<HTMLVideoElement>(null);
-
-    const paymentMethods = [
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+  const [openFaqItems, setOpenFaqItems] = useState<number[]>([]);
+  const menuItems = ['Features', 'Solutions', 'Benefits', 'Pricing', 'Testimonials', 'FAQ', 'Contact'];
+  const pricingPlans = [
     {
-      id:"credit",
+      name: "Free",
+      price: "KES 0",
+      features: [
+        { text: "Up to 3 projects", icon: <Users className="w-5 h-5" /> },
+        { text: "Basic AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "Manual Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "100MB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
+        { text: "Basic Report Generation", icon: <Download className="w-5 h-5" /> },
+        { text: "Community Support", icon: <Wrench className="w-5 h-5" /> },
+      ],
+      buttonText: "Get Started",
+    },
+    {
+      name: "Basic",
+      price: "KES 5,000",
+      features: [
+        { text: "Up to 10 projects", icon: <Users className="w-5 h-5" /> },
+        { text: "AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "1GB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
+        { text: "Standard Report Generation", icon: <Download className="w-5 h-5" /> },
+        { text: "Email Support", icon: <Wrench className="w-5 h-5" /> },
+      ],
+      buttonText: "Get Started",
+    },
+    {
+      name: "Professional",
+      price: "KES 7,500",
+      features: [
+        { text: "Unlimited Projects", icon: <Users className="w-5 h-5" /> },
+        { text: "Advanced AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "5GB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
+        { text: "Advanced Report Generation", icon: <Download className="w-5 h-5" /> },
+        { text: "Priority Email & Chat Support", icon: <Wrench className="w-5 h-5" /> },
+      ],
+      buttonText: "Get Started",
+    }
+  ];
+  const paymentMethods = [
+    {
       name: "Credit/Debit Card",
-      icon: <CreditCard className="w-10 h-10" />,
+      icon: <DollarSign className="w-8 h-8" />,
       description: "Secure payments via Visa, Mastercard, and American Express.",
     },
     {
-      id:"mpesa",
       name: "M-Pesa",
-      icon: <Smartphone className="w-10 h-10" />,
+      icon: <Smartphone className="w-8 h-8" />,
       description: "Convenient mobile payments for Kenyan users.",
     },
     {
-      id:"bank",
       name: "Bank Transfer",
-      icon: <DollarSign className="w-10 h-10" />,
+      icon: <Briefcase className="w-8 h-8" />,
       description: "Direct bank transfers for enterprise payments.",
     },
     {
-      id:"paypal",
       name: "PayPal",
-      icon: <Coins className="w-10 h-10" />,
+      icon: <DollarSign className="w-8 h-8" />,
       description: "International payments processed securely.",
     },
   ];
-
-  const PaymentMethod = ({ method }) => {
-  return (
-    <div
-      className="
-        border p-7 rounded-2xl text-center shadow-sm transition-all duration-300 
-        hover:shadow-md hover:border-blue-200 transition-transform hover:-translate-y-1 
-        bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700
-      "
-    >
-      <div className="text-4xl mb-4 ">
-        {method.icon}
-      </div>
-      <h4 className="font-bold text-xl mb-2">{method.name}</h4>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        {method.description}
-      </p>
-    </div>
-  );
-};
-const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
-  const [currentHeroImage, setCurrentHeroImage] = useState(0);
+  const stepDetails = [
+    {
+      title: "Upload Plans",
+      description: "Easily upload your construction plans in various formats including PDF, CAD files, and images.",
+      features: [
+        "Support for multiple file formats",
+        "Automatic dimension extraction",
+        "Material recognition technology",
+        "Cloud-based storage for easy access"
+      ]
+    },
+    {
+      title: "Generate Estimate",
+      description: "Our advanced AI algorithms analyze your plans and generate precise cost estimates.",
+      features: [
+        "Real-time material pricing",
+        "Labor cost calculations",
+        "Equipment rental estimates",
+        "Customizable markup options"
+      ]
+    },
+    {
+      title: "Review & Customize",
+      description: "Fine-tune your estimates with our intuitive editing tools.",
+      features: [
+        "Interactive editing interface",
+        "Multiple pricing tiers",
+        "Client-specific customization",
+        "Professional template options"
+      ]
+    },
+    {
+      title: "Share with Clients",
+      description: "Easily share your professional quotes with clients through multiple channels.",
+      features: [
+        "Direct email integration",
+        "Downloadable PDF reports",
+        "Client portal access",
+        "Real-time notification system"
+      ]
+    }
+  ];
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const heroInterval = setInterval(() => {
-      setCurrentHeroImage((prev) => (prev + 1) % heroImages.length);
-    }, 10000);
-    return () => clearInterval(heroInterval);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -175,21 +879,33 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
           video.currentTime = video.duration / 2;
         }
       };
-      
       if (video.readyState > 0) {
         setStartTime();
       } else {
         video.addEventListener('loadedmetadata', setStartTime);
       }
-      
       return () => {
         video.removeEventListener('loadedmetadata', setStartTime);
       };
     }
   }, []);
 
-  const scrollTo = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFeature((prev) => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const sections = {
+    hero: useInView({ triggerOnce: true, threshold: 0.2 }),
+    features: useInView({ triggerOnce: true, threshold: 0.1 }),
+    solutions: useInView({ triggerOnce: true, threshold: 0.1 }),
+    benefits: useInView({ triggerOnce: true, threshold: 0.1 }),
+    pricing: useInView({ triggerOnce: true, threshold: 0.2 }),
+    faq: useInView({ triggerOnce: true, threshold: 0.1 }),
+    cta: useInView({ triggerOnce: true, threshold: 0.3 }),
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -201,600 +917,979 @@ const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
     }
   };
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  const staggerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const fadeIn = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.8 }
+    }
+  };
+
+  const slideIn = {
+    hidden: { opacity: 0, x: -100 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  const heroImages = ['/page.jpg', '/page1.jpg', '/page2.jpg', '/page3.jpg'];
+  const [currentHeroImage, setCurrentHeroImage] = useState(0);
+  const howItWorksImages = ['/first.jpg', '/second.jpg', '/third.jpg', '/fouth.jpg'];
+
+  useEffect(() => {
+    const heroInterval = setInterval(() => {
+      setCurrentHeroImage((prev) => (prev + 1) % heroImages.length);
+    }, 10000);
+    return () => clearInterval(heroInterval);
+  }, []);
+
+  useEffect(() => {
+    const fetchTiers = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from('tiers').select('*').order('id');
+      if (error) {
+        console.error('Error fetching tiers:', error);
+      } else {
+        setTiers(data || []);
+      }
+      setLoading(false);
+    };
+    fetchTiers();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      window.scrollTo({
+        top: element.offsetTop - 80,
+        behavior: 'smooth'
+      });
+      if (open) setOpen(false);
+    }
+  };
+
+  const handleStartTrial = () => {
+    navigate('/auth?mode=signup');
+  };
+
+  const handleScheduleDemo = () => {
+    window.location.href = '/video.mp4';
+  };
+
+  const toggleFaq = (index: number) => {
+    if (openFaqItems.includes(index)) {
+      setOpenFaqItems(openFaqItems.filter(item => item !== index));
+    } else {
+      setOpenFaqItems([...openFaqItems, index]);
+    }
+  };
+
   return (
-    <div className="min-h-screen text-foreground selection:bg-blue-200 dark:selection:bg-blue-800">
-      {/* <div className="absolute inset-0 z-0">
-            <div className="w-full h-full relative">
-              <img 
-                src={heroImages[currentHeroImage]} 
-                alt="Construction background" 
-                className="w-full h-full object-cover transition-opacity duration-1000"
-              />
-            <div className="absolute inset-0 bg-black/60"></div>
-          </div>
-        </div> */}
-      {/* Decorative background orbs */}
-
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 backdrop-blur-sm border-b dark:border-white/20 border-slate-800/20">
+    <div className="min-h-screen bg-white text-gray-800 font-sans antialiased overflow-hidden dark:bg-gray-900 dark:text-gray-100">
+      {/* Navigation - RISA Style */}
+      <motion.nav 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className={`fixed w-full z-50 transition-all duration-300
+                   ${isScrolled ? 'bg-white shadow-md py-2 dark:bg-gray-900 dark:shadow-gray-800/20' : 'bg-transparent py-4'}`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-16 flex items-center justify-between">
-            <Logo />
-
-            {/* Desktop Menu */}
-            <div className="hidden md:flex items-center gap-2">
-              {menuItems.map((m) => (
+          <div className="flex justify-between items-center">
+            <motion.div 
+              className="flex items-center cursor-pointer"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <div className="flex-shrink-0 flex items-center">
+                <div className="p-2 rounded-md bg-blue-600">
+                  <Wrench className="w-6 h-6 text-white" />
+                </div>
+                <span className="ml-2 text-xl font-bold dark:text-white">Constructly</span>
+              </div>
+            </motion.div>
+            <div className="hidden md:flex items-center space-x-6">
+              {menuItems.map((item) => (
+                <motion.button
+                  key={item}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => scrollToSection(item.toLowerCase().replace(/\s/g, ''))}
+                  className={`text-sm font-medium transition-colors
+                             ${isScrolled 
+                               ? 'text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400' 
+                               : 'text-white hover:text-blue-200'}`}
+                >
+                  {item}
+                </motion.button>
+              ))}
+            </div>
+            <div className="hidden md:flex items-center space-x-4">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
-                  key={m.id}
+                  onClick={() => navigate("/auth?mode=signin")}
                   variant="ghost"
                   size="sm"
-                  className="font-medium hover:text-blue-600 dark:hover:text-blue-400"
-                  onClick={() => scrollTo(m.id)}
+                  className={isScrolled ? "text-gray-600 dark:text-gray-300" : "text-white"}
                 >
-                  {m.label}
+                  Sign In
                 </Button>
-              ))}
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => navigate("/auth?mode=signup")}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all shadow-md"
+                >
+                  Get Started
+                </Button>
+              </motion.div>
               <ThemeToggle />
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth?mode=signin")}>Sign In</Button>
-              <Button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 shadow-lg"
-              >
-                Get Started
-              </Button>
             </div>
-
-            {/* Mobile Menu */}
-            <div className="md:hidden flex items-center gap-2">
+            <div className="md:hidden flex items-center space-x-2">
               <ThemeToggle />
-              <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <Sheet open={open} onOpenChange={setOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Open menu">
+                  <Button variant="ghost" size="icon" className={isScrolled ? "text-gray-600 dark:text-gray-300" : "text-white"}>
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-72">
+                <SheetContent side="right" className="w-64 dark:bg-gray-800 dark:text-gray-100">
                   <SheetHeader>
-                    <div className="flex items-center gap-2">
-                      <Logo compact />
-                    </div>
+                    <span className="text-xl font-semibold dark:text-white">Constructly</span>
                   </SheetHeader>
-                  <div className="mt-6 flex flex-col gap-2">
-                    {menuItems.map((m) => (
-                      <Button key={m.id} variant="ghost" className="justify-start" onClick={() => { scrollTo(m.id); setMenuOpen(false); }}>
-                        {m.label}
+                  <div className="flex flex-col mt-6 space-y-3">
+                    {menuItems.map((item) => (
+                      <Button
+                        key={item}
+                        variant="ghost"
+                        className="justify-start dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => scrollToSection(item.toLowerCase().replace(/\s/g, ''))}
+                      >
+                        {item}
                       </Button>
                     ))}
-                    <div className="pt-3 flex gap-2">
-                      <Button className="flex-1" variant="ghost" onClick={() => { navigate("/auth?mode=signin"); setMenuOpen(false); }}>Sign In</Button>
-                      <Button className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white" onClick={() => { navigate("/auth?mode=signup"); setMenuOpen(false); }}>Get Started</Button>
-                    </div>
+                    <Separator className="my-2 dark:bg-gray-700" />
+                    <Button
+                      variant="ghost"
+                      className="justify-start dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => navigate("/auth?mode=signin")}
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      className="justify-start bg-blue-600 text-white hover:bg-blue-700"
+                      onClick={() => navigate("/auth?mode=signup")}
+                    >
+                      Get Started
+                    </Button>
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
           </div>
         </div>
-      </nav>
-
-      {/* Hero */}
-      <header
-        ref={heroRef}
-        className="relative overflow-hidden"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28">
-          <div className="mx-auto text-center">
-            <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-full px-4 py-1">
-              <Star className="w-4 h-4 mr-1 inline" /> Professional Construction Management
-            </Badge>
-            <h1 className="mt-6 text-5xl md:text-7xl font-extrabold leading-tight">
-              <span className="bg-gradient-to-r from-slate-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                Build Accurate Quotes
-              </span>
+      </motion.nav>
+      <main>
+        {/* Hero Section - RISA Style */}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="relative pt-28 pb-16 text-center min-h-[80vh] flex items-center"
+        >
+          <div className="absolute inset-0 z-0">
+            <div className="w-full h-full relative">
+              <img 
+                src={heroImages[currentHeroImage]} 
+                alt="Construction background" 
+                className="w-full h-full object-cover transition-opacity duration-1000"
+              />
+              <div className="absolute inset-0 bg-black/60"></div>
+            </div>
+          </div>
+          <div className="relative z-10 max-w-4xl mx-auto px-4 w-full">
+            <motion.div variants={itemVariants}>
+              <Badge className="backdrop-blur-sm px-4 py-2 mb-6 dark:bg-gray-800/80 dark:text-gray-100 dark:border-gray-700">
+                <Zap className="w-4 h-4 mr-1 inline" /> The Future of Construction Management
+              </Badge>
+            </motion.div>
+            <motion.h1 
+              variants={itemVariants}
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white"
+            >
+              Effortless Estimates,
               <br />
-              <span className="bg-gradient-to-r from-purple-600 to-blue-500 dark:from-purple-400 dark:to-blue-300 bg-clip-text text-transparent">
-                in Minutes
+              <span className="text-blue-300">
+                Perfectly Professional.
               </span>
-            </h1>
-            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Streamline your business with takeoffs, BOQs, and client-ready proposals — built for contractors in Kenya.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                onClick={() => navigate("/auth?mode=signup")}
-                size="lg"
-                className="rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 shadow-xl hover:shadow-2xl flex items-center gap-2"
+            </motion.h1>
+            <motion.p 
+              variants={itemVariants}
+              className="text-xl text-blue-100 max-w-2xl mx-auto mb-10"
+            >
+              Streamline your construction business with professional quote generation, project management, and client communication tools — built for contractors in Kenya.
+            </motion.p>
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={handleStartTrial}
+                  size="lg"
+                  className="bg-white text-blue-600 px-8 py-4 rounded-md text-lg font-semibold hover:bg-gray-100 transition-all shadow-lg"
+                >
+                  Start Free Trial
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={handleScheduleDemo}
+                  size="lg"
+                  variant="outline"
+                  className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-blue-600 transition-all"
+                >
+                  Schedule a Demo
+                </Button>
+              </motion.div>
+            </motion.div>
+            <motion.p 
+              variants={itemVariants}
+              className="mt-6 text-blue-200 text-sm"
+            >
+              14-day free trial • No credit card required
+            </motion.p>
+            <motion.div 
+              variants={itemVariants}
+              className="mt-10 flex justify-center"
+            >
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ repeat: Infinity, duration: 2 }}
               >
-                Start Free Trial <ArrowRight className="w-5 h-5" />
-              </Button>
-              <Button
-                onClick={() => scrollTo("features")}
-                variant="outline"
-                size="lg"
-                className="rounded-full px-8 py-6 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-              >
-                Explore Features
-              </Button>
+                <Button variant="ghost" className="text-white" onClick={() => scrollToSection('features')}>
+                  <ChevronDown className="w-6 h-6" />
+                </Button>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.section>
+        {/* Logo Bar - RISA Style */}
+        <motion.section 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={containerVariants}
+          className="py-12 bg-gray-50 dark:bg-gray-800"
+        >
+          <div className="max-w-7xl mx-auto px-4">
+            <motion.p variants={itemVariants} className="text-center dark:text-gray-300 text-gray-500 text-sm mb-8">
+              Trusted by leading construction companies worldwide
+            </motion.p>
+            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-70">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <motion.div
+                  key={i}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  className="h-12 w-32 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg shadow-sm dark:from-gray-700 dark:to-gray-800"
+                ></motion.div>
+              ))}
             </div>
           </div>
-        </div>
-
-        {/* Decorative bottom wave */}
-        <svg className="absolute bottom-0 left-0 w-full h-10 text-blue-600 dark:text-slate-600" viewBox="0 0 1440 80" preserveAspectRatio="none">
-          <path fill="currentColor" d="M0,64L60,64C120,60,240,64,360,53.3C480,43,600,21,720,21.3C840,21,960,43,1080,58.7C1200,75,1320,85,1380,90.7L1440,96L1440,160L1380,160C1320,160,1200,160,1080,160C960,160,840,160,720,160C600,160,480,160,360,160C240,160,120,160,90,160L0,160Z" />
-        </svg>
-      </header>
-
-      {/* Trust badges / highlights */}
-      <section className="pt-8 pb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
-            {[
-              { icon: <ShieldCheck className="w-5 h-5" />, label: "Reliable" },
-              { icon: <Zap className="w-5 h-5" />, label: "Fast Quotes" },
-              { icon: <Layers className="w-5 h-5" />, label: "BOQ Ready" },
-              { icon: <LineChart className="w-5 h-5" />, label: "Analytics" },
-              { icon: <Hammer className="w-5 h-5" />, label: "Contractor‑First" },
-              { icon: <Ruler className="w-5 h-5" />, label: "Accurate" },
-            ].map((b, i) => (
-              <div key={i} className="flex items-center justify-center gap-2 text-xs sm:text-sm px-3 py-2 rounded-full bg-white/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800">
-                {b.icon} <span>{b.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Who it’s for */}
-      <section className="py-14" aria-labelledby="who-title">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="who-title" eyebrow="Tailored for your workflow" title="Who It’s For" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
-            {[
-              { emoji: "🏗️", role: "Contractors", desc: "Bring your own rates & margins." },
-              { emoji: "📐", role: "Quantity Surveyors", desc: "Takeoffs, BOQs & exports." },
-              { emoji: "🏘️", role: "SMEs & Developers", desc: "Clear pricing, better decisions." },
-            ].map((item, i) => (
-              <Card key={i} className="rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg hover:shadow-xl transition-transform hover:-translate-y-1">
-                <CardContent className="p-8 text-center">
-                  <div className="text-5xl mb-3">{item.emoji}</div>
-                  <h3 className="text-xl font-semibold mb-1">{item.role}</h3>
-                  <p className="text-muted-foreground">{item.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <BackdropOrbs />
-      {/* Features */}
-      <section id="features" className="py-16" aria-labelledby="features-title">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="features-title" eyebrow="All-in-one toolkit" title="Everything you need to manage construction projects" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
-            {[
-              { icon: <FileText className="w-7 h-7" />, title: "Professional Quotes", description: "Detailed, accurate proposals with your rates, margins, and timelines." },
-              { icon: <Calculator className="w-7 h-7" />, title: "Cost Calculator", description: "Live calculations with regional multipliers and service rates." },
-              { icon: <Users className="w-7 h-7" />, title: "Client Management", description: "Track clients, projects, and approvals in one place." },
-              { icon: <TrendingUp className="w-7 h-7" />, title: "Business Analytics", description: "See revenue, conversion, and project KPIs at a glance." },
-              { icon: <Building className="w-7 h-7" />, title: "Project Types", description: "Residential, commercial, and infrastructure supported." },
-              { icon: <Clock className="w-7 h-7" />, title: "Time Tracking", description: "Keep timelines on track with milestones and reminders." },
-            ].map((f, i) => (
-              <Card
-                key={i}
-                className="rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
-              >
-                <CardContent className="p-8">
-                  <div className="mb-4 w-fit p-3 rounded-xl dark:text-white shadow-md">{f.icon}</div>
-                  <h3 className="text-lg font-semibold mb-1">{f.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{f.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="benefits" className="py-16" aria-labelledby="benefits-title">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="benefits-title" eyebrow="Benefits" title="Why construction professionals choose us" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-          {/* Left side: Benefits list */}
-          <div className="space-y-6 ">
-            {[
-              {
-                icon: <TrendingUp className="w-6 h-6" />,
-                title: "Increase Profit Margins",
-                description:
-                  "Reduce estimation errors and identify cost-saving opportunities to maximize profitability on every project.",
-              },
-              {
-                icon: <Clock className="w-6 h-6" />,
-                title: "Save Time",
-                description:
-                  "Cut estimation time by up to 70% with our automated tools and pre-built templates designed for efficiency.",
-              },
-              {
-                icon: <Shield className="w-6 h-6" />,
-                title: "Reduce Risk",
-                description:
-                  "Make data-driven decisions with accurate cost databases and historical project analytics to minimize errors.",
-              },
-              {
-                icon: <UserCheck className="w-6 h-6" />,
-                title: "Win More Bids",
-                description:
-                  "Create professional, detailed proposals that impress clients and set you apart from competitors.",
-              },
-              {
-                icon: <Globe className="w-6 h-6" />,
-                title: "Anywhere Access",
-                description:
-                  "Manage your projects from office or site with our cloud-based platform and mobile apps for on-the-go access.",
-              },
-              {
-                icon: <Headphones className="w-6 h-6" />,
-                title: "Dedicated Support",
-                description:
-                  "Get construction-specific support from our team of industry experts when you need it most.",
-              },
-            ].map((benefit, index) => (
-              <div
-                key={index}
-                className="flex items-start p-4 items-center rounded-xl transition-all duration-300 w-full rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
-              >
-                <div className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4">
-                  {benefit.icon}
-                </div>
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold mb-1">{benefit.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {benefit.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Right side: Video + highlights */}
-          <div className="relative">
-            <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-700">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-auto"
-              >
-                <source src="/video.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            </div>
-
-            {/* Badge bottom-left */}
-            <div className="absolute -bottom-6 -left-6 p-4 rounded-xl shadow-lg border bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  70% Time Saved
-                </span>
-              </div>
-            </div>
-
-            {/* Badge top-right */}
-            <div className="absolute -top-6 -right-6 bg-blue-600 text-white p-4 rounded-xl shadow-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold">95%</div>
-                <div className="text-xs">Accuracy Rate</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="py-16" aria-labelledby="how-title">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="how-title" eyebrow="Simple steps" title="How it works" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            {[
-              { icon: <HardHat className="w-7 h-7" />, title: "1. Set your rates", desc: "Enter material and service rates. Add transport rates and custom prices for equipment." },
-              { icon: <Ruler className="w-7 h-7" />, title: "2. Analyze plans", desc: "Upload drawings, run takeoffs, and generate quantities instantly." },
-              { icon: <Hammer className="w-7 h-7" />, title: "3. Send proposals", desc: "Export branded quotes and BOQs. Win more jobs with clarity." },
-            ].map((s, i) => (
-              <Card key={i} className="transition-transform hover:-translate-y-1 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg">
-                <CardContent className="p-8">
-                  <div className="mb-4 w-fit p-3 rounded-xl dark:text-white shadow-md">{s.icon}</div>
-                  <h3 className="text-lg font-semibold mb-1">{s.title}</h3>
-                  <p className="text-muted-foreground">{s.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-16" aria-labelledby="faq-title">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="faq-title" eyebrow="Good to know" title="Frequently asked questions" />
-          <div className="mt-6">
-            <Accordion type="multiple" className="rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-white/40 dark:border-slate-800 shadow-lg overflow-hidden">
+        </motion.section>
+        {/* Features Section - RISA Style */}
+        <section id="features" className="py-20 dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-4 w-full">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-16"
+            >
+              <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
+                Powerful Features for Construction Professionals
+              </motion.h2>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-2xl mx-auto">
+                Everything you need to streamline your construction business in one platform
+              </motion.p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
               {[
                 {
-                  q: "Is there a free plan?",
-                  a: "Yes. You can start free with essential tools and upgrade anytime to unlock advanced features.",
+                  icon: <FileText className="w-8 h-8" />,
+                  title: 'Professional Quoting',
+                  description: 'Create detailed, accurate quotes with material costs, labor estimates, and timelines in minutes.'
                 },
                 {
-                  q: "Do you support Kenyan market rates?",
-                  a: "Yes. You can bring your own rates, and we support regional multipliers and contractor-specific pricing.",
+                  icon: <Calculator className="w-8 h-8" />,
+                  title: 'Smart Cost Estimation',
+                  description: 'Access a built-in calculator with current market rates for materials and labor in Kenya.'
                 },
                 {
-                  q: "Can I export BOQs and proposals?",
-                  a: "Absolutely. Generate client-ready PDFs and spreadsheets from your takeoffs.",
+                  icon: <Users className="w-8 h-8" />,
+                  title: 'Client Management',
+                  description: 'Centralize all client information, project history, and communication in one place.'
                 },
                 {
-                  q: "How do I get support?",
-                  a: "Reach us via email or the in-app help. We respond quickly to keep your projects moving.",
+                  icon: <TrendingUp className="w-8 h-8" />,
+                  title: 'Performance Analytics',
+                  description: 'Track key metrics like revenue, project success rates, and business growth over time.'
                 },
-              ].map((item, i) => (
-                <AccordionItem key={item.q} value={`item-${i}`} className="border-b border-slate-200 dark:border-slate-800">
-                  <AccordionTrigger className="px-5 py-4 text-left text-base font-semibold">
-                    <div className="flex items-center gap-2"><HelpCircle className="w-4 h-4" /> {item.q}</div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-5 pb-4 text-muted-foreground">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
+                {
+                  icon: <Building className="w-8 h-8" />,
+                  title: 'Project Portfolio',
+                  description: 'Manage projects for residential, commercial, and infrastructure construction.'
+                },
+                {
+                  icon: <Clock className="w-8 h-8" />,
+                  title: 'Time Tracking',
+                  description: 'Monitor project timelines, assign tasks, and ensure every delivery is on schedule.'
+                }
+              ].map((feature, index) => (
+                <FeatureCard key={index} feature={feature} index={index} />
               ))}
-            </Accordion>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20" aria-labelledby="testimonials-title">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="testimonials-title" eyebrow="Loved by contractors" title="What contractors say" />
-          <div className="mt-6">
-            <TestimonialsSection />
-          </div>
-        </div>
-      </section>
-
-      <section id="payment options" className="py-16" aria-labelledby="payment-title">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="payment-title" eyebrow="Payment options" title="Variety of payment options" />
-            <div className="grid md:grid-cols-4 gap-8 w-full mt-10">
-                {paymentMethods.map((method, i) => (
-              <PaymentMethod key={i} method={method}  />
-            ))}
-          </div>
-        </div>
-      </section>
-
-       {/* Pricing */}
-      <section id="pricing" className="py-20" aria-labelledby="pricing-title">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeading id="pricing-title" eyebrow="Start free" title="Choose your plan" />
-
-          {/* Loading / Error states */}
-          {tiersLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10" aria-live="polite" aria-busy>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="rounded-2xl border-0 shadow-xl bg-white/60 dark:bg-slate-900/60">
-                  <CardContent className="p-8 animate-pulse">
-                    <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
-                    <div className="h-10 w-24 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
-                    <div className="space-y-3">
-                      {Array.from({ length: 5 }).map((__, j) => (
-                        <div key={j} className="h-4 w-full bg-slate-200 dark:bg-slate-800 rounded" />
-                      ))}
+        </section>
+        {/* Solutions Section - RISA Style */}
+        <section id="solutions" className="py-20 bg-gray-50 dark:bg-gray-800/50">
+          <div className="max-w-7xl mx-auto px-4 w-full">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-16"
+            >
+              <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
+                Tailored Solutions for Your Business
+              </motion.h2>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-2xl mx-auto">
+                Designed specifically for the Kenyan construction industry
+              </motion.p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={slideIn}
+                className="space-y-8"
+              >
+                {[
+                  {
+                    icon: <ClipboardCheck className="w-6 h-6 text-blue-600" />,
+                    title: 'Estimate & Bid Management',
+                    description: 'Create accurate estimates quickly with our pre-built templates and cost databases specific to Kenyan market rates.'
+                  },
+                  {
+                    icon: <BarChart className="w-6 h-6 text-blue-600" />,
+                    title: 'Project Cost Control',
+                    description: 'Track expenses in real-time and compare against budgets to maintain profitability on all your projects.'
+                  },
+                  {
+                    icon: <Calendar className="w-6 h-6 text-blue-600" />,
+                    title: 'Schedule Management',
+                    description: 'Plan and visualize project timelines with interactive Gantt charts and milestone tracking.'
+                  },
+                  {
+                    icon: <Settings className="w-6 h-6 text-blue-600" />,
+                    title: 'Resource Allocation',
+                    description: 'Optimize manpower and equipment usage across multiple projects with our resource planning tools.'
+                  }
+                ].map((item, index) => (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    whileHover={{ x: 10 }}
+                    className="flex items-start"
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-4 dark:bg-blue-900/30">
+                      {item.icon}
                     </div>
-                    <div className="h-11 w-full bg-slate-200 dark:bg-slate-800 rounded mt-8" />
-                  </CardContent>
-                </Card>
-              ))}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2 dark:text-white">{item.title}</h3>
+                      <p className="dark:text-gray-300 text-gray-600">{item.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeIn}
+                className="relative"
+              >
+                <div className="rounded-xl overflow-hidden shadow-lg border-4 border-white dark:border-gray-700">
+                  <img src="/page3.jpg" alt="Construction project management dashboard" className="w-full h-auto" />
+                </div>
+                <div className="absolute -bottom-4 -left-4 bg-white p-3 rounded-lg shadow border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                    <span className="text-xs font-medium dark:text-gray-300">Project Status: On Track</span>
+                  </div>
+                </div>
+                <div className="absolute -top-4 -right-4 bg-blue-600 text-white p-3 rounded-lg shadow">
+                  <div className="text-center">
+                    <div className="text-lg font-bold">98%</div>
+                    <div className="text-xs">Client Satisfaction</div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          )}
-
-          {tiersError && (
-            <div className="mt-8 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300">
-              Failed to load pricing tiers: {tiersError}
+          </div>
+        </section>
+        {/* Benefits Section - RISA Style */}
+        <section id="benefits" className="py-20 dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-4 w-full">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-16"
+            >
+              <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
+                Why Construction Professionals Choose Us
+              </motion.h2>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-2xl mx-auto">
+                Experience the difference with our construction-focused platform
+              </motion.p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={containerVariants}
+                className="space-y-6"
+              >
+                {[
+                  {
+                    icon: <TrendingUp className="w-5 h-5" />,
+                    title: 'Increase Profit Margins',
+                    description: 'Reduce estimation errors and identify cost-saving opportunities to maximize profitability on every project.'
+                  },
+                  {
+                    icon: <Clock className="w-5 h-5" />,
+                    title: 'Save Time',
+                    description: 'Cut estimation time by up to 70% with our automated tools and pre-built templates designed for efficiency.'
+                  },
+                  {
+                    icon: <Shield className="w-5 h-5" />,
+                    title: 'Reduce Risk',
+                    description: 'Make data-driven decisions with accurate cost databases and historical project analytics to minimize errors.'
+                  },
+                  {
+                    icon: <UserCheck className="w-5 h-5" />,
+                    title: 'Win More Bids',
+                    description: 'Create professional, detailed proposals that impress clients and set you apart from competitors.'
+                  },
+                  {
+                    icon: <Globe className="w-5 h-5" />,
+                    title: 'Anywhere Access',
+                    description: 'Manage your projects from office or site with our cloud-based platform and mobile apps for on-the-go access.'
+                  },
+                  {
+                    icon: <Headphones className="w-5 h-5" />,
+                    title: 'Dedicated Support',
+                    description: 'Get construction-specific support from our team of industry experts when you need it most.'
+                  }
+                ].map((benefit, index) => (
+                  <motion.div
+                    key={index}
+                    variants={itemVariants}
+                    className="flex items-start p-4 rounded-lg bg-gray-50 hover:bg-blue-50 transition-all duration-300 w-full dark:bg-gray-800 dark:hover:bg-blue-900/20"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center mr-4 text-white">
+                      {benefit.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1 dark:text-white">{benefit.title}</h3>
+                      <p className="dark:text-gray-300 text-gray-600 text-sm">{benefit.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeIn}
+                className="relative"
+              >
+                <div className="rounded-xl overflow-hidden shadow-lg border-4 border-white dark:border-gray-700">
+                  <video 
+                    ref={videoRef}
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline
+                    className="w-full h-auto"
+                  >
+                    <source src="/video.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <div className="absolute -bottom-4 -left-4 bg-white p-3 rounded-lg shadow border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                    <span className="text-xs font-medium dark:text-gray-300">70% Time Saved</span>
+                  </div>
+                </div>
+                <div className="absolute -top-4 -right-4 bg-blue-600 text-white p-3 rounded-lg shadow">
+                  <div className="text-center">
+                    <div className="text-lg font-bold">95%</div>
+                    <div className="text-xs">Accuracy Rate</div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          )}
-
-          {!tiersLoading && !tiersError && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
-              {tiers.map((plan) => (
-                <Card
-                  key={plan.id}
-                  className={`relative rounded-2xl border-0 shadow-xl transition-transform hover:-translate-y-1 ${
-                    plan.popular ? "ring-4 ring-blue-500/80 scale-[1.02]" : ""
-                  } bg-white/70 dark:bg-slate-900/60`}
+          </div>
+        </section>
+        {/* How It Works Section - RISA Style */}
+        <section id="howitworks" className="py-20 bg-gray-50 dark:bg-gray-800/50">
+          <div className="max-w-6xl mx-auto px-4 w-full">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-16"
+            >
+              <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
+                How Constructly Works
+              </motion.h2>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-2xl mx-auto">
+                Simple steps to streamline your construction business processes
+              </motion.p>
+            </motion.div>
+            <div className="space-y-24 w-full">
+              {[
+                { 
+                  step: '1', 
+                  title: 'Upload Plans', 
+                  description: 'Upload your construction plans or input project details', 
+                  icon: <Cloud className="w-6 h-6" />, 
+                  direction: 'left'
+                },
+                { 
+                  step: '2', 
+                  title: 'Generate Estimate', 
+                  description: 'Our system creates accurate cost estimates', 
+                  icon: <Calculator className="w-6 h-6" />, 
+                  direction: 'right'
+                },
+                { 
+                  step: '3', 
+                  title: 'Review & Customize', 
+                  description: 'Fine-tune your estimates and proposals', 
+                  icon: <FileText className="w-6 h-6" />, 
+                  direction: 'left'
+                },
+                { 
+                  step: '4', 
+                  title: 'Share with Clients', 
+                  description: 'Send professional quotes to your clients', 
+                  icon: <UserCheck className="w-6 h-6" />, 
+                  direction: 'right'
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={containerVariants}
+                  className={`flex flex-col ${item.direction === 'right' ? 'md:flex-row-reverse' : 'md:flex-row'} gap-10 items-center w-full`}
                 >
-                  {plan.popular && (
-                    <Badge className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-1 rounded-full shadow-md">
-                      🌟 Most Popular
-                    </Badge>
-                  )}
-                  <CardContent className="p-8">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-2xl font-bold">{plan.name}</h3>
-                      <Sparkles className="w-5 h-5 text-blue-500" />
+                  <motion.div 
+                    variants={itemVariants}
+                    className="flex-1"
+                  >
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-blue-100 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500 opacity-50 dark:bg-blue-900/20"></div>
+                      <img 
+                        src={howItWorksImages[index]} 
+                        alt={item.title} 
+                        className="relative rounded-xl shadow-lg border-4 border-white w-full h-auto transform transition-all duration-500 group-hover:scale-[1.02] dark:border-gray-700"
+                      />
                     </div>
-                    <div className="mt-4">
-                      <span className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {plan.price}
-                      </span>
-                      <span className="text-muted-foreground ml-1">/{plan.period}</span>
+                  </motion.div>
+                  <motion.div 
+                    variants={itemVariants}
+                    className="flex-1"
+                  >
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-bold mr-4 shadow">
+                        {item.step}
+                      </div>
+                      <h3 className="text-xl font-bold dark:text-white">{item.title}</h3>
                     </div>
-                    <ul className="mt-6 space-y-3">
-                      {plan.features?.map((f, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <CheckCircle className="w-5 h-5 mt-0.5 text-green-500 flex-shrink-0" />
-                          <span className="text-sm leading-relaxed text-muted-foreground">{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      onClick={() => navigate("/auth?mode=signup")}
-                      className={`mt-8 w-full rounded-full py-5 ${
-                        plan.popular
-                          ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
-                          : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80"
-                      }`}
+                    <p className="dark:text-gray-300 text-gray-600 mb-6 leading-relaxed">{item.description}</p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="bg-white text-blue-600 border-blue-300 hover:bg-blue-50 hover:text-blue-700 font-medium rounded-lg dark:bg-gray-800 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
+                        >
+                          Learn more
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl dark:bg-gray-800 dark:text-gray-100">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold dark:text-white mb-4">{stepDetails[index].title}</DialogTitle>
+                          <DialogDescription className="dark:text-gray-300">
+                            {stepDetails[index].description}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-6">
+                          <h4 className="text-lg font-semibold dark:text-white mb-4 flex items-center">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full mr-2"></div>
+                            Key Features
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {stepDetails[index].features.map((feature, i) => (
+                              <div key={i} className="flex items-start p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors duration-300 dark:bg-gray-700 dark:hover:bg-blue-900/20">
+                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                                <span className="dark:text-gray-100 text-gray-700 text-sm">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={itemVariants}
+              className="mt-16 flex justify-center"
+            >
+              <Button className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all shadow text-base font-semibold">
+                <Play className="w-5 h-5" /> Watch Demo Video
+              </Button>
+            </motion.div>
+          </div>
+        </section>
+        {/* Pricing Section - RISA Style */}
+        <section id="pricing" className="py-20 dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto px-4 w-full">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-16"
+            >
+              <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
+                Choose Your Perfect Plan
+              </motion.h2>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-2xl mx-auto">
+                Unlock powerful features designed to elevate your business. Select the plan that aligns with your scale and needs.
+              </motion.p>
+            </motion.div>
+            <div className="grid md:grid-cols-3 gap-8 mb-20 items-start w-full">
+              {pricingPlans.map((plan, i) => (
+                <PricingCard key={i} plan={plan} isFeatured={plan.name === "Professional"} />
+              ))}
+            </div>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-12"
+            >
+              <motion.h3 variants={itemVariants} className="text-2xl md:text-3xl font-bold mb-4 dark:text-white">
+                Flexible Payment Options
+              </motion.h3>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-xl mx-auto">
+                We provide a variety of secure and convenient ways to pay, ensuring a smooth transaction experience.
+              </motion.p>
+            </motion.div>
+            <div className="grid md:grid-cols-4 gap-6 w-full">
+              {paymentMethods.map((method, i) => (
+                <PaymentMethod key={i} method={method} />
+              ))}
+            </div>
+          </div>
+        </section>
+        {/* Testimonials Section - RISA Style */}
+        <TestimonialsSection />
+        {/* FAQ Section - RISA Style */}
+        <section id="faq" className="py-16 bg-gray-50 dark:bg-gray-800/50">
+          <div className="max-w-6xl mx-auto px-4 w-full">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="text-center mb-12"
+            >
+              <motion.h2 variants={itemVariants} className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
+                Frequently Asked Questions
+              </motion.h2>
+              <motion.p variants={itemVariants} className="dark:text-gray-300 text-gray-600 max-w-2xl mx-auto">
+                Find answers to common questions about Constructly
+              </motion.p>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+              {[
+                { 
+                  q: 'What is Constructly and who is it for?', 
+                  a: 'Constructly is a comprehensive construction management platform designed for contractors, quantity surveyors, and construction businesses of all sizes. It helps streamline quoting, project management, and client communication processes.' 
+                },
+                { 
+                  q: 'How does Constructly help with cost estimation?', 
+                  a: 'Our platform includes a built-in cost database with current market rates for materials and labor, automated calculation tools, and customizable templates to create accurate estimates quickly.' 
+                },
+                { 
+                  q: 'Can I use Constructly on mobile devices?', 
+                  a: 'Yes, Constructly is fully responsive and works on all devices. We also have dedicated mobile apps for iOS and Android for on-site access.' 
+                },
+                { 
+                  q: 'How secure is my data with Constructly?', 
+                  a: 'We take security seriously. All data is encrypted, regularly backed up, and stored on secure servers. We also offer role-based access control to protect sensitive information.' 
+                },
+                { 
+                  q: 'What kind of training and support do you offer?', 
+                  a: 'We provide comprehensive onboarding, video tutorials, documentation, and email support. Our premium plans include dedicated account management and priority support.' 
+                },
+                { 
+                  q: 'Can I integrate Constructly with other software?', 
+                  a: 'Yes, we offer API access and integrations with popular accounting software, project management tools, and CRM systems.' 
+                },
+                { 
+                  q: 'How often do you update the software?', 
+                  a: 'We release new features and improvements every month based on customer feedback and industry trends.' 
+                },
+                { 
+                  q: 'What happens to my data if I cancel my subscription?', 
+                  a: 'You can export all your data at any time. After cancellation, your data will be stored for 30 days before being permanently deleted.' 
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={itemVariants}
+                  className="rounded-lg shadow border overflow-hidden w-full
+                             dark:border-gray-700 dark:shadow-gray-800/20 dark:bg-gray-800
+                             bg-white border-gray-200"
+                >
+                  <motion.button
+                    onClick={() => toggleFaq(index)}
+                    className="flex justify-between items-center w-full text-left p-5 focus:outline-none"
+                    whileHover={{ backgroundColor: "rgba(1, 91, 151, 0.05)" }}
+                  >
+                    <span className="font-semibold dark:text-white">{item.q}</span>
+                    <motion.div
+                      animate={{ rotate: openFaqItems.includes(index) ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-5 h-5 text-blue-600 flex-shrink-0 dark:text-blue-400"
                     >
-                      Get Started
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <ChevronDown />
+                    </motion.div>
+                  </motion.button>
+                  <AnimatePresence>
+                    {openFaqItems.includes(index) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-5 pb-5">
+                          <div className="w-10 h-0.5 bg-blue-400 rounded-full mb-3"></div>
+                          <p className="dark:text-gray-300 text-gray-600 leading-relaxed text-sm">{item.a}</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               ))}
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* CTA Banner */}
-      <section className="py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="rounded-3xl bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl">
-            <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="mt-10 text-center"
+            >
+              <p className="dark:text-gray-300 text-gray-600 mb-4">Still have questions? Our team is here to help.</p>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold shadow dark:bg-blue-700 dark:hover:bg-blue-800">
+                <MessageCircle className="w-4 h-4 mr-2" /> Contact Support
+              </Button>
+            </motion.div>
+          </div>
+        </section>
+        {/* CTA Section - RISA Style */}
+        <section className="py-16 bg-blue-600">
+          <div className="max-w-4xl mx-auto text-center px-4 w-full">
+            <motion.h2
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="text-2xl md:text-3xl font-bold mb-4 text-white"
+            >
+              Ready to Transform Your Construction Business?
+            </motion.h2>
+            <motion.p
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="text-blue-100 mb-8 max-w-2xl mx-auto"
+            >
+              Start your free trial today and experience the difference.
+            </motion.p>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={containerVariants}
+              className="flex flex-col sm:flex-row justify-center gap-3"
+            >
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={handleStartTrial}
+                  size="lg"
+                  className="bg-white text-blue-600 px-6 py-3 font-semibold hover:bg-gray-100 transition-all shadow rounded-lg"
+                >
+                  Start Free Trial
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={handleScheduleDemo}
+                  size="lg"
+                  variant="outline"
+                  className="bg-transparent text-white border-2 border-white hover:bg-white hover:text-blue-600 transition-all rounded-lg"
+                >
+                  Schedule a Demo
+                </Button>
+              </motion.div>
+            </motion.div>
+            <motion.p
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="mt-4 text-blue-200 text-sm"
+            >
+              No credit card required • 14-day free trial • Cancel anytime
+            </motion.p>
+          </div>
+        </section>
+        {/* Footer - RISA Style */}
+        <footer id="contact" className="py-12 dark:bg-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
-                <p className="uppercase tracking-wider text-white/80 text-xs mb-1">Ready to build better?</p>
-                <h3 className="text-2xl md:text-3xl font-bold">Create your first quote in minutes</h3>
-                <p className="text-white/80 mt-2">No credit card required. Cancel anytime.</p>
+                <div className="flex items-center mb-3">
+                  <div className="p-2 rounded-md bg-blue-600">
+                    <Wrench className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-lg font-bold ml-2 dark:text-white">Constructly</span>
+                </div>
+                <p className="dark:text-gray-400 mb-4 text-sm">
+                  Empowering construction professionals with modern, efficient tools.
+                </p>
+                <div className="flex gap-3">
+                  <a href="#" className="dark:text-gray-400 hover:text-white transition"><Linkedin className="w-4 h-4" /></a>
+                  <a href="#" className="dark:text-gray-400 hover:text-white transition"><Twitter className="w-4 h-4" /></a>
+                  <a href="#" className="dark:text-gray-400 hover:text-white transition"><Facebook className="w-4 h-4" /></a>
+                </div>
               </div>
+              <div>
+                <h3 className="font-bold mb-3 dark:text-white">Product</h3>
+                <ul className="space-y-2 dark:text-gray-400 text-sm">
+                  <li><a href="#features" className="hover:text-white transition block dark:hover:text-blue-400">Features</a></li>
+                  <li><a href="#pricing" className="hover:text-white transition block dark:hover:text-blue-400">Pricing</a></li>
+                  <li><a href="#testimonials" className="hover:text-white transition block dark:hover:text-blue-400">Testimonials</a></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bold mb-3 dark:text-white">Company</h3>
+                <ul className="space-y-2 dark:text-gray-400 text-sm">
+                  <li><a href="#" className="hover:text-white transition block dark:hover:text-blue-400">About Us</a></li>
+                  <li><a href="#" className="hover:text-white transition block dark:hover:text-blue-400">Careers</a></li>
+                  <li><a href="#" className="hover:text-white transition block dark:hover:text-blue-400">Blog</a></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bold mb-3 dark:text-white">Contact</h3>
+                <ul className="space-y-2 dark:text-gray-400 text-sm">
+                  <li className="flex items-start">
+                    <MessageCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <a href="mailto:support@constructly.africa" className="hover:text-white transition block dark:hover:text-blue-400">support@constructly.africa</a>
+                  </li>
+                  <li className="flex items-start">
+                    <Phone className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="hover:text-white transition block dark:hover:text-blue-400">+254 700 123 456</span>
+                  </li>
+                  <li className="flex items-start">
+                    <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="hover:text-white transition block dark:hover:text-blue-400">Nairobi, Kenya</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <Separator className="my-6 dark:bg-gray-700" />
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+              <span className="text-xs dark:text-gray-500">
+                © {new Date().getFullYear()} Constructly. All rights reserved.
+              </span>
               <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  className="rounded-full text-slate-900"
-                  onClick={() => navigate("/auth?mode=signin")}
-                >
-                  Sign In
-                </Button>
-                <Button
-                  className="rounded-full bg-white text-slate-900 hover:bg-white/90"
-                  onClick={() => navigate("/auth?mode=signup")}
-                >
-                  Get Started
-                </Button>
+                <a href="#" className="dark:text-gray-500 hover:text-white text-xs">Privacy Policy</a>
+                <a href="#" className="dark:text-gray-500 hover:text-white text-xs">Terms of Service</a>
+                <a href="#" className="dark:text-gray-500 hover:text-white text-xs">Cookie Policy</a>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer id="contact" className="border-t border-white/30 dark:border-slate-800/60 bg-white/50 dark:bg-slate-950/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center mb-8">
-            <Logo />
-            <p className="mt-3 text-sm text-muted-foreground max-w-xl mx-auto">
-              Empowering construction professionals across Kenya with modern quote, takeoff, and project tools.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm mb-8">
-            <div className="text-center sm:text-left">
-              <h4 className="font-semibold mb-3">Features</h4>
-              <ul className="space-y-2">
-                <li><a className="hover:underline hover:text-blue-600" href="#features">Quote Builder</a></li>
-                <li><a className="hover:underline hover:text-blue-600" href="#features">Project Management</a></li>
-                <li><a className="hover:underline hover:text-blue-600" href="#features">Analytics</a></li>
-              </ul>
-            </div>
-            <div className="text-center ">
-              <h4 className="font-semibold mb-3">Support</h4>
-              <ul className="space-y-2  justify-center items-center">
-                <li className="flex items-center justify-center gap-2"><Mail className="w-4 h-4" /><a className="hover:underline" href="mailto:support@elaris.africa">support@elaris.africa</a></li>
-                <li><a className="hover:underline hover:text-blue-600" href="#faq">FAQs</a></li>
-                <li><a className="hover:underline hover:text-blue-600" href="#">Documentation</a></li>
-              </ul>
-            </div>
-            <div className="text-center sm:text-right">
-              <h4 className="font-semibold mb-3">Legal</h4>
-              <ul className="space-y-2">
-                <li><a className="hover:underline hover:text-blue-600" href="#">Privacy Policy</a></li>
-                <li><a className="hover:underline hover:text-blue-600" href="#">Terms of Service</a></li>
-              </ul>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-3">
-              <PhoneCall className="w-3.5 h-3.5" /> <span>+254 700 000 000</span>
-              <span className="hidden sm:inline">•</span>
-              <a className="inline-flex items-center gap-1 hover:underline" href="#" rel="noreferrer">
-                Learn more <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-            <div>© {new Date().getFullYear()} Elaris. All rights reserved.</div>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </main>
     </div>
   );
 };
-
-/** Logo */
-const Logo = ({ compact = false }: { compact?: boolean }) => (
-  <div className="flex items-center group select-none">
-    <div className="p-2 rounded-xl bg-transaparent shadow-md group-hover:scale-105 transition-transform">
-      <Pickaxe className="w-5 h-5  text-primary dark:text-white" />
-    </div>
-    {!compact && (
-      <span className="ml-2 font-bold text-lg sm:text-2xl  text-primary dark:text-white">
-        Elaris
-      </span>
-    )}
-  </div>
-);
-
-/** Section heading helper */
-const SectionHeading = ({ id, eyebrow, title }: { id?: string; eyebrow?: string; title: string }) => (
-  <div id={id} className="text-center">
-    {eyebrow && (
-      <p className="uppercase tracking-widest text-xs text-blue-700/80 dark:text-blue-300/80">{eyebrow}</p>
-    )}
-    <h2 className="mt-2 text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent">
-      {title}
-    </h2>
-  </div>
-);
-
-/** Decorative floating orbs */
-const BackdropOrbs = () => (
-  <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-    <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/20 dark:bg-blue-700/20 rounded-full blur-3xl animate-pulse" />
-    <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-400/20 dark:bg-purple-700/20 rounded-full blur-3xl animate-pulse delay-1000" />
-  </div>
-);
-
-/** Optional: Animated construction scene (kept lightweight) */
-export const ConstructionAnimation = () => (
-  <svg width="800" height="400" viewBox="0 0 800 400" className="animate-pulse-slow">
-    <rect x="0" y="300" width="800" height="100" fill="#1f2937" />
-    <rect x="100" y="200" width="100" height="100" fill="#6b7280" />
-    <rect x="120" y="150" width="60" height="50" fill="#3b82f6" />
-    <circle cx="150" cy="130" r="10" fill="#fbbf24" />
-    <rect x="300" y="220" width="150" height="80" fill="#9ca3af" />
-    <rect x="330" y="180" width="90" height="40" fill="#10b981" />
-    <rect x="500" y="240" width="120" height="60" fill="#ef4444" />
-    <circle cx="530" cy="230" r="8" fill="#f59e0b" />
-    <path d="M600 200 L630 170 L660 200" fill="none" stroke="#374151" strokeWidth="4" />
-    <circle cx="630" cy="170" r="5" fill="#d97706" />
-    <g className="animate-bounce-slow">
-      <rect x="200" y="280" width="10" height="20" fill="#374151" />
-      <circle cx="205" cy="275" r="6" fill="#fbbf24" />
-      <rect x="198" y="290" width="4" height="10" fill="#374151" />
-      <rect x="208" y="290" width="4" height="10" fill="#374151" />
-    </g>
-  </svg>
-);
 
 export default Index;

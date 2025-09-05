@@ -44,7 +44,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-
 // ===== THEME TOGGLE =====
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -79,7 +78,6 @@ const ThemeToggle = () => {
     </div>
   );
 };
-
 // ===== VIDEO DEMO MODAL =====
 const VideoModal = ({ isOpen, onClose }) => {
   const videoRef = useRef(null);
@@ -126,7 +124,6 @@ const VideoModal = ({ isOpen, onClose }) => {
     </motion.div>
   );
 };
-
 // ===== LEARN MORE MODAL =====
 const LearnMoreModal = ({ isOpen, onClose, content }) => {
   if (!isOpen) return null;
@@ -164,7 +161,6 @@ const LearnMoreModal = ({ isOpen, onClose, content }) => {
     </motion.div>
   );
 };
-
 // ===== FAQ COMPONENT =====
 const FaqSection = () => {
   const [activeCategory, setActiveCategory] = useState("General");
@@ -495,7 +491,6 @@ const FaqSection = () => {
     </section>
   );
 };
-
 // ===== TRUSTED BY ENGINEERS SECTION (UPDATED WITH ICONS AND MARQUEE) =====
 const TrustedByEngineers = () => {
   // Define a set of high-quality icons to represent different types of engineering/construction companies
@@ -513,7 +508,6 @@ const TrustedByEngineers = () => {
     { icon: Scale, name: "Precision Engineering" },
     { icon: TrendingUp, name: "Growth Construction" },
   ];
-
   return (
     <section className="py-20 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-6">
@@ -531,14 +525,12 @@ const TrustedByEngineers = () => {
             Join thousands of construction professionals who rely on Constructly for precise material estimates and professional quotes.
           </p>
         </motion.div>
-        
         {/* Marquee Container */}
         <div className="overflow-hidden relative">
           {/* Left Gradient Overlay */}
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
           {/* Right Gradient Overlay */}
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-          
           {/* Marquee Content - First Row */}
           <motion.div 
             className="flex whitespace-nowrap py-4"
@@ -566,7 +558,6 @@ const TrustedByEngineers = () => {
               </div>
             ))}
           </motion.div>
-
           {/* Marquee Content - Second Row (Opposite Direction) */}
           <motion.div 
             className="flex whitespace-nowrap py-4"
@@ -599,7 +590,6 @@ const TrustedByEngineers = () => {
     </section>
   );
 };
-
 // ===== CONSTRUCTLY INSIGHTS SECTION (REVERTED TO SLIDE/SWIPE WITH SHARP CORNERS) =====
 const ConstructlyInsights = () => {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -660,23 +650,18 @@ const ConstructlyInsights = () => {
       featured: false
     }
   ];
-
   const categories = ["All", "Industry Trends", "Best Practices", "Technology", "Case Studies", "Business"];
   const filteredInsights = activeCategory === "All" 
     ? insights 
     : insights.filter(insight => insight.category === activeCategory);
-
   const nonFeaturedInsights = filteredInsights.filter(insight => !insight.featured);
   const totalSlides = Math.ceil(nonFeaturedInsights.length / 3); // 3 cards per slide
-
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
   };
-
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
   };
-
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-6">
@@ -697,7 +682,6 @@ const ConstructlyInsights = () => {
             Stay updated with the latest industry trends, company news, and expert insights from the Constructly team.
           </p>
         </motion.div>
-
         {/* Category Filter */}
         <motion.div 
           className="flex flex-wrap justify-center gap-3 mb-12"
@@ -725,7 +709,6 @@ const ConstructlyInsights = () => {
             </motion.button>
           ))}
         </motion.div>
-
         {/* Featured Post - Full Width, Sharp Corners */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -785,11 +768,9 @@ const ConstructlyInsights = () => {
             </motion.div>
           ))}
         </motion.div>
-
         {/* Non-Featured Insights - Horizontal Swipeable Carousel */}
         <div className="relative mt-12">
           <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Latest Articles</h3>
-          
           {/* Carousel Navigation */}
           <div className="absolute -left-4 -right-4 top-1/2 transform -translate-y-1/2 z-10 flex justify-between pointer-events-none">
             <button 
@@ -805,7 +786,6 @@ const ConstructlyInsights = () => {
               <ChevronDown className="h-6 w-6 -rotate-90 text-risa-primary" />
             </button>
           </div>
-
           {/* Carousel Container */}
           <div className="overflow-hidden">
             <motion.div 
@@ -856,13 +836,12 @@ const ConstructlyInsights = () => {
                   ))}
                   {/* Fill empty spaces in the last slide */}
                   {Array.from({ length: 3 - (nonFeaturedInsights.slice(slideIndex * 3, slideIndex * 3 + 3).length) }).map((_, j) => (
-                    <div key={`empty-${j}`} className="flex-shrink-0"></div>
+                    <div key={`empty-${slideIndex}-${j}`} className="flex-shrink-0"></div>
                   ))}
                 </div>
               ))}
             </motion.div>
           </div>
-
           {/* Slide Indicators */}
           <div className="flex justify-center mt-6 space-x-2">
             {Array.from({ length: totalSlides }).map((_, i) => (
@@ -876,7 +855,6 @@ const ConstructlyInsights = () => {
             ))}
           </div>
         </div>
-
         {/* CTA */}
         <motion.div 
           className="mt-16 text-center"
@@ -898,7 +876,6 @@ const ConstructlyInsights = () => {
     </section>
   );
 };
-
 // ===== HOW IT WORKS SECTION =====
 const HowItWorks = () => {
   const steps = [
@@ -971,7 +948,6 @@ const HowItWorks = () => {
     </section>
   );
 };
-
 // ===== MAIN COMPONENT =====
 const Index = () => {
   const navigate = useNavigate();
@@ -982,7 +958,6 @@ const Index = () => {
   const [demoOpen, setDemoOpen] = useState(false);
   const [modalContent, setModalContent] = useState({});
   const [scrolled, setScrolled] = useState(false);
-
   // Handle scroll for navbar animation
   useEffect(() => {
     const handleScroll = () => {
@@ -996,7 +971,6 @@ const Index = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
-
   // Fixed scrollTo function for navbar
   const scrollTo = (id) => {
     const element = document.getElementById(id);
@@ -1006,7 +980,6 @@ const Index = () => {
       setMenuOpen(false);
     }
   };
-
   const productDetails = {
     residential: {
       title: "Residential Construction Solutions",
@@ -1091,12 +1064,10 @@ const Index = () => {
     setModalContent(productDetails[productType]);
     setModalOpen(true);
   };
-
   // Redirect if logged in
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
-
   return (
     <div
       className="min-h-screen font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300"
@@ -1140,7 +1111,6 @@ const Index = () => {
           </a>
         </div>
       </motion.div>
-
       {/* ===== ANIMATED NAVBAR (Updated with Capitalized, Animated Links) ===== */}
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
@@ -1280,7 +1250,6 @@ const Index = () => {
           </div>
         </div>
       </motion.nav>
-
       {/* ===== HERO SECTION ===== */}
       <motion.section
         ref={heroRef}
@@ -1344,10 +1313,8 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-
       {/* ===== HOW IT WORKS SECTION ===== */}
       <HowItWorks />
-
       {/* ===== FEATURES CARDS ===== */}
       <motion.section
         id="features"
@@ -1418,7 +1385,6 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-
       {/* ===== PRICING SECTION ===== */}
       <motion.section
         id="pricing"
@@ -1504,7 +1470,6 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-
       {/* ===== TESTIMONIALS SECTION ===== */}
       <motion.section
         id="testimonials"
@@ -1560,7 +1525,7 @@ const Index = () => {
                 <Card className="bg-white dark:bg-gray-800 p-8 text-left transition-all duration-300 h-full flex flex-col transform hover:scale-105">
                   <div className="flex text-risa-primary mb-4">
                     {[...Array(5)].map((_, idx) => (
-                      <svg key={idx} className="w-5 w-5 fill-current" viewBox="0 0 24 24">
+                      <svg key={idx} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                       </svg>
                     ))}
@@ -1581,16 +1546,12 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-
       {/* ===== TRUSTED BY ENGINEERS SECTION (UPDATED) ===== */}
       <TrustedByEngineers />
-
       {/* ===== CONSTRUCTLY INSIGHTS SECTION (REDESIGNED) ===== */}
       <ConstructlyInsights />
-
       {/* ===== FAQ SECTION ===== */}
       <FaqSection />
-
       {/* ===== FOOTER ===== */}
       <motion.footer
         className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-12"
@@ -1645,7 +1606,6 @@ const Index = () => {
           </div>
         </div>
       </motion.footer>
-
       {/* Modals */}
       <LearnMoreModal
         isOpen={modalOpen}
@@ -1659,5 +1619,4 @@ const Index = () => {
     </div>
   );
 };
-
 export default Index;

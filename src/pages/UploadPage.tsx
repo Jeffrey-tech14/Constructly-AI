@@ -186,12 +186,8 @@ const UploadPlan = () => {
   const analyzePlan = async (file: File): Promise<ParsedPlan> => {
     const formData = new FormData();
     formData.append("file", file);
-<<<<<<< HEAD
-    const res = await fetch("https://elaris-ai.onrender.com/api/plan/upload", {
-=======
 
-    const res = await fetch("http://192.168.0.100:8000/api/plan/upload", {
->>>>>>> 9e349f868c61a37eecfad9b37f3a119db9c44818
+    const res = await fetch("https://elaris-ai.onrender.com/api/plan/upload", {
       method: "POST",
       body: formData,
     });

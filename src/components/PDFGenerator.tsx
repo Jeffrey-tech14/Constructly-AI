@@ -41,7 +41,7 @@ Font.register({
 // --- Styles ---
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
+    padding: 20,
     fontSize: 12,
     fontFamily: "Outfit",
     lineHeight: 1.4,
@@ -284,27 +284,110 @@ const styles = StyleSheet.create({
     borderBottomStyle: "solid",
     minHeight: 20,
   },
+  // Updated Material Schedule Column Styles for new structure
   materialScheduleColHeader: {
-    padding: 10,
+    padding: 8, // Adjust padding if needed
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 13,
+    fontSize: 12, // Adjust font size if needed
     color: "#FFFFFF",
-    flex: 1,
   },
+  materialScheduleColHeaderItem: {
+    width: "8%", // Adjust width as needed
+    padding: 8,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  materialScheduleColHeaderDescription: {
+    width: "52%", // Adjust width as needed
+    padding: 8,
+    fontWeight: "bold",
+    textAlign: "left", // Description usually left-aligned
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  materialScheduleColHeaderUnit: {
+    width: "8%",
+    padding: 8,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  materialScheduleColHeaderQty: {
+    width: "10%",
+    padding: 8,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  materialScheduleColHeaderRate: {
+    width: "11%",
+    padding: 8,
+    fontWeight: "bold",
+    textAlign: "right", // Rate usually right-aligned
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  materialScheduleColHeaderAmount: {
+    width: "11%", // Adjust width as needed
+    padding: 8,
+    fontWeight: "bold",
+    textAlign: "right", // Amount usually right-aligned
+    fontSize: 12,
+    color: "#FFFFFF",
+  },
+  // Material Schedule Cell Styles
   materialScheduleCol: {
-    padding: 10,
+    padding: 8,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 11, // Adjust font size if needed
     color: "#4B5563",
-    flex: 1,
   },
-  materialScheduleColLast: {
-    padding: 10,
+  materialScheduleColItem: {
+    width: "8%",
+    padding: 8,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 11,
     color: "#4B5563",
-    flex: 1,
+  },
+  materialScheduleColDescription: {
+    width: "52%",
+    padding: 8,
+    textAlign: "left",
+    fontSize: 11,
+    color: "#4B5563",
+  },
+  materialScheduleColUnit: {
+    width: "8%",
+    padding: 8,
+    textAlign: "center",
+    fontSize: 11,
+    color: "#4B5563",
+  },
+  materialScheduleColQty: {
+    width: "10%",
+    padding: 8,
+    textAlign: "center",
+    fontSize: 11,
+    color: "#4B5563",
+  },
+  materialScheduleColRate: {
+    width: "11%",
+    padding: 8,
+    textAlign: "right",
+    fontSize: 11,
+    color: "#4B5563",
+  },
+  materialScheduleColAmount: {
+    width: "11%",
+    padding: 8,
+    textAlign: "right",
+    fontSize: 11,
+    color: "#4B5563",
   },
   // --- Footer for BOQ pages ---
   boqFooter: {
@@ -419,21 +502,22 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// --- Type for Project Info ---
+// --- Type for Project Info (Updated) ---
 interface ProjectInfo {
   title: string;
   clientName: string;
-  clientEmail: string;
+  clientEmail?: string; // Optional
   location: string;
   projectType: string;
-  houseType: string;
-  region: string;
-  floors: number;
+  houseType?: string; // Optional
+  region?: string; // Optional
+  floors?: number; // Optional
   date: string;
   consultant?: string;
-  contractor?: string;
+  contractor?: string; // Added contractor
   drawingReference?: string;
   boqReference?: string;
+  logoUrl?: string; // Added logo URL
 }
 
 // --- Type for Material Schedule Item ---
@@ -464,7 +548,7 @@ interface PDFGeneratorProps {
 const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   boqData,
   projectInfo,
-  preliminariesData,
+  preliminariesData = [], // Default to empty array
 }) => {
   // --- Calculate Section Totals ---
   const calculateSectionTotal = (items: BOQItem[]): number => {
@@ -482,91 +566,238 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   };
 
   // --- Calculate Preliminaries Total ---
+  // --- Calculate Preliminaries Total ---
   const calculatePreliminariesTotal = (): number => {
-    console.log(preliminariesData);
+    // console.log(preliminariesData); // Optional debug log
+    if (!Array.isArray(preliminariesData)) return 0; // Safety check
     return preliminariesData.reduce((total, item) => {
-      if (item.isHeader) return total;
-      return total + (item.amount || 0);
+      if (item?.isHeader) return total;
+      return total + (item?.amount || 0);
     }, 0);
   };
 
+  interface MaterialScheduleDisplayItem {
+    itemNo: string; // e.g., "A", "B", "C" or "1", "2" if needed
+    description: string;
+    unit: string;
+    quantity: number;
+    rate: number; // You might need to derive or use a default/prompt user
+    amount: number; // quantity * rate (or use item.amount if available)
+  }
   // --- Generate Material Schedule ---
-  const generateMaterialSchedule = (): MaterialScheduleItem[] => {
-    const materialMap: Record<string, { unit: string; quantity: number }> = {};
+  // --- Generate Material Schedule (Updated Logic) ---
+  const generateMaterialScheduleForDisplay =
+    (): MaterialScheduleDisplayItem[] => {
+      // This map will hold categorized materials with aggregated quantities
+      // Key: Display Description, Value: Aggregated data
+      const materialMap: Record<
+        string,
+        { unit: string; quantity: number; items: BOQItem[] }
+      > = {};
 
-    if (Array.isArray(boqData)) {
-      boqData.forEach((section) => {
-        if (Array.isArray(section.items)) {
-          section.items.forEach((item) => {
-            if (item.isHeader) return;
+      // Helper to determine if an item represents a material that should be scheduled
+      const isMaterialItem = (item: BOQItem): boolean => {
+        const descLower = (item.description || "").toLowerCase();
+        // Define keywords for materials to be included
+        const materialKeywords = [
+          "cement",
+          "sand",
+          "ballast",
+          "stone",
+          "block",
+          "brick",
+          "steel",
+          "reinforcement",
+          "rebar",
+          "ribbed bar",
+          "concrete",
+          "window",
+          "door",
+          "tiles",
+          "paint",
+          "bitumen",
+          "hardcore",
+          "dpm",
+          "polythene",
+          "wire",
+          "formwork",
+          "ply",
+        ];
+        return materialKeywords.some((keyword) => descLower.includes(keyword));
+      };
 
-            const descLower = (item.description || "").toLowerCase();
-            let materialKey = "";
-            let unit = item.unit || "";
+      // Helper to get a standardized display name for the material category
+      const getMaterialCategory = (item: BOQItem): string => {
+        const descLower = (item.description || "").toLowerCase();
+        if (descLower.includes("cement")) return "Cement";
+        if (descLower.includes("sand")) return "Sand";
+        if (descLower.includes("ballast") || descLower.includes("stone"))
+          return "Ballast";
+        if (descLower.includes("block")) return "Blocks";
+        if (descLower.includes("brick")) return "Bricks";
+        if (
+          descLower.includes("steel") ||
+          descLower.includes("reinforcement") ||
+          descLower.includes("rebar") ||
+          descLower.includes("ribbed bar")
+        )
+          return "Reinforcement Steel";
+        if (descLower.includes("concrete")) return "Concrete";
+        if (descLower.includes("window")) return "Windows";
+        if (descLower.includes("door")) return "Doors";
+        if (descLower.includes("door frame")) return "Door Frames";
+        if (descLower.includes("window frame")) return "Window Frames";
+        if (descLower.includes("tiles")) return "Tiles";
+        if (descLower.includes("paint")) return "Paint";
+        if (descLower.includes("bitumen")) return "Bitumen";
+        if (descLower.includes("hardcore")) return "Hardcore";
+        if (descLower.includes("dpm") || descLower.includes("polythene"))
+          return "Damp Proof Membrane";
+        if (descLower.includes("wire")) return "Wire";
+        if (descLower.includes("formwork") || descLower.includes("ply"))
+          return "Formwork";
+        // Default case if no specific keyword matched but isMaterialItem was true
+        // Try to extract a generic name or use description
+        const match = descLower.match(
+          /(\w+\s*\w*)\s*(?:bags?|tonnes?|m3|m2|kg|no\.?|litres?|rolls?)/i
+        );
+        return match
+          ? match[1].trim().replace(/\b\w/g, (l) => l.toUpperCase())
+          : item.description || "Other Material";
+      };
 
-            if (descLower.includes("cement")) {
-              materialKey = "Cement";
-              unit = "bags";
-            } else if (descLower.includes("sand")) {
-              materialKey = "Sand";
-              unit = "m³";
-            } else if (
-              descLower.includes("ballast") ||
-              descLower.includes("stone")
-            ) {
-              materialKey = "Ballast";
-              unit = "m³";
-            } else if (descLower.includes("block")) {
-              materialKey = "Blocks";
-              unit = "No.";
-            } else if (descLower.includes("brick")) {
-              materialKey = "Bricks";
-              unit = "No.";
-            } else if (
-              descLower.includes("steel") ||
-              descLower.includes("reinforcement") ||
-              descLower.includes("rebar") ||
-              descLower.includes("ribbed bar")
-            ) {
-              materialKey = "Reinforcement Steel";
-              unit = "Kg";
-            } else if (descLower.includes("concrete")) {
-              materialKey = "Concrete";
-              unit = "m³";
-            } else if (descLower.includes("window")) {
-              materialKey = "Windows";
-              unit = "No.";
-            } else if (descLower.includes("door")) {
-              materialKey = "Doors";
-              unit = "No.";
-            }
-
-            if (materialKey) {
-              if (!materialMap[materialKey]) {
-                materialMap[materialKey] = { unit, quantity: 0 };
-              }
-              const itemQuantity =
-                typeof item.quantity === "number" ? item.quantity : 0;
-              materialMap[materialKey].quantity += itemQuantity;
-            }
-          });
+      // Helper to get a standard unit for the material category
+      const getStandardUnit = (category: string): string => {
+        switch (category) {
+          case "Cement":
+            return "Bags";
+          case "Sand":
+            return "m³";
+          case "Ballast":
+            return "m³";
+          case "Blocks":
+            return "No.";
+          case "Bricks":
+            return "No.";
+          case "Reinforcement Steel":
+            return "Kg";
+          case "Concrete":
+            return "m³";
+          case "Windows":
+            return "No.";
+          case "Window Frames":
+            return "No.";
+          case "Doors":
+            return "No.";
+          case "Door Frames":
+            return "No.";
+          case "Tiles":
+            return "m²"; // Or m2 depending on context
+          case "Paint":
+            return "Litres";
+          case "Bitumen":
+            return "Litres";
+          case "Hardcore":
+            return "Tonnes";
+          case "Damp Proof Membrane":
+            return "m²"; // Or Rolls, depending on item
+          case "Wire":
+            return "Kg"; // Or m, depending on item
+          case "Formwork":
+            return "m²"; // Or Pcs, depending on item
+          default:
+            return "Unit"; // Generic fallback
         }
-      });
-    }
+      };
 
-    return Object.entries(materialMap)
-      .map(([description, { unit, quantity }]) => ({
-        description,
-        unit,
-        quantity,
-      }))
-      .sort((a, b) => a.description.localeCompare(b.description));
-  };
+      if (Array.isArray(boqData)) {
+        boqData.forEach((section) => {
+          if (Array.isArray(section.items)) {
+            section.items.forEach((item) => {
+              // Skip headers and non-material items
+              if (item.isHeader || !isMaterialItem(item)) return;
 
-  const materialScheduleData = useMemo(
-    () => generateMaterialSchedule(),
+              const category = getMaterialCategory(item);
+              const unit = item.unit || getStandardUnit(category); // Prefer item unit, fallback to standard
+              const quantity =
+                typeof item.quantity === "number" ? item.quantity : 0;
+
+              if (!materialMap[category]) {
+                materialMap[category] = { unit, quantity: 0, items: [] };
+              }
+              // Aggregate quantity
+              materialMap[category].quantity += quantity;
+              // Store item for potential rate/amount calculation if needed
+              materialMap[category].items.push(item);
+            });
+          }
+        });
+      }
+
+      // Convert the aggregated map into the display format array
+      // Assign simple sequential letters as itemNo for display
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let index = 0;
+
+      return Object.entries(materialMap)
+        .map(([description, { unit, quantity, items }]) => {
+          const itemNo = alphabet[index++] || `Z${index - 26}`; // Handle beyond Z if needed
+
+          // --- Determine Rate and Amount ---
+          // Strategy 1: If all items in the category have the same rate, use it.
+          // Strategy 2: If rates vary or are missing, you might:
+          //   a) Use an average rate (sum of (rate*qty) / total qty)
+          //   b) Use the rate from the first item
+          //   c) Indicate it needs calculation/user input (e.g., set rate to 0 or NaN)
+          // For simplicity here, we'll try to find a common rate or use 0.
+          let rate = 0;
+          let amount = 0;
+          const uniqueRates = [
+            ...new Set(
+              items
+                .map((i) => i.rate)
+                .filter((r) => r !== undefined && r !== null)
+            ),
+          ];
+          if (uniqueRates.length === 1) {
+            rate = uniqueRates[0] ?? 0;
+            amount = rate * quantity;
+          } else if (
+            items.length > 0 &&
+            items[0].rate !== undefined &&
+            items[0].rate !== null
+          ) {
+            // Fallback: Use first item's rate if available
+            rate = items[0].rate ?? 0;
+            amount = rate * quantity;
+          } else {
+            // Mark as needing rate input, amount will be 0 or NaN
+            rate = 0; // Or NaN
+            amount = 0; // Or NaN * quantity = NaN
+          }
+
+          return {
+            itemNo,
+            description,
+            unit,
+            quantity,
+            rate, // Derived or placeholder
+            amount, // Derived or placeholder
+          };
+        })
+        .sort((a, b) => a.description.localeCompare(b.description)); // Sort alphabetically by description
+    };
+
+  // Replace the old useMemo hook
+  const materialScheduleDisplayData = useMemo(
+    () => generateMaterialScheduleForDisplay(), // <-- Call the new function
     [boqData]
   );
+  // Make sure you remove the old one:
+  // const materialScheduleData = useMemo(
+  //   () => generateMaterialSchedule(),
+  //   [boqData]
+  // );
   const grandTotal = useMemo(() => calculateGrandTotal(), [boqData]);
   const preliminariesTotal = useMemo(
     () => calculatePreliminariesTotal(),
@@ -578,9 +809,17 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       {/* --- Title Page --- */}
       <Page size="A4" style={styles.prelimPage}>
         <View style={styles.companyHeader}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
+          {/* Placeholder for Logo */}
+          {projectInfo.logoUrl ? (
+            <Image
+              style={styles.logoContainer} // Use existing style for size/shape
+              source={{ uri: projectInfo.logoUrl }}
+            />
+          ) : (
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>LOGO</Text>
+            </View>
+          )}
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>Construction Solutions Ltd</Text>
             <Text style={styles.companyTagline}>
@@ -640,6 +879,14 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               </Text>
             </View>
           )}
+          {projectInfo.contractor && (
+            <View style={styles.projectInfoRow}>
+              <Text style={styles.projectInfoLabel}>Contractor:</Text>
+              <Text style={styles.projectInfoValue}>
+                {projectInfo.contractor}
+              </Text>
+            </View>
+          )}
           <View style={styles.projectInfoRow}>
             <Text style={styles.projectInfoLabel}>Date:</Text>
             <Text style={styles.projectInfoValue}>
@@ -674,9 +921,17 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       {/* --- Preliminaries Page --- */}
       <Page size="A4" style={styles.prelimPage}>
         <View style={styles.companyHeader}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
+          {/* Placeholder for Logo */}
+          {projectInfo.logoUrl ? (
+            <Image
+              style={styles.logoContainer} // Use existing style for size/shape
+              source={{ uri: projectInfo.logoUrl }}
+            />
+          ) : (
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>LOGO</Text>
+            </View>
+          )}
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>Construction Solutions Ltd</Text>
             <Text style={styles.companyTagline}>
@@ -751,9 +1006,17 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       {/* --- Preliminaries Bill Page --- */}
       <Page size="A4" style={styles.prelimPage}>
         <View style={styles.companyHeader}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
+          {/* Placeholder for Logo */}
+          {projectInfo.logoUrl ? (
+            <Image
+              style={styles.logoContainer} // Use existing style for size/shape
+              source={{ uri: projectInfo.logoUrl }}
+            />
+          ) : (
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>LOGO</Text>
+            </View>
+          )}
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>Construction Solutions Ltd</Text>
             <Text style={styles.companyTagline}>
@@ -918,7 +1181,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   <Text style={[styles.tableColHeader, { width: "11%" }]}>
                     RATE (KSh)
                   </Text>
-                  <Text style={[styles.tableColHeader, { width: "11%" }]}>
+                  <Text style={[styles.tableColHeader, { width: "15%" }]}>
                     AMOUNT (KSh)
                   </Text>
                 </View>
@@ -993,12 +1256,21 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
         );
       })}
 
-      {/* --- Material Schedule Page --- */}
+      {/* --- Material Schedule Page (Redesigned) --- */}
       <Page size="A4" style={styles.page}>
+        {/* Updated Header with Logo */}
         <View style={styles.companyHeader}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
+          {/* Placeholder for Logo */}
+          {projectInfo.logoUrl ? (
+            <Image
+              style={styles.logoContainer} // Use existing style for size/shape
+              source={{ uri: projectInfo.logoUrl }}
+            />
+          ) : (
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>LOGO</Text>
+            </View>
+          )}
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>Construction Solutions Ltd</Text>
             <Text style={styles.companyTagline}>
@@ -1007,6 +1279,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
           </View>
         </View>
 
+        {/* Project Header (Same as other pages) */}
         <View style={styles.header}>
           <Text style={styles.title}>BILL OF QUANTITIES</Text>
           <Text style={styles.subtitle}>FOR</Text>
@@ -1019,30 +1292,56 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
           </Text>
         </View>
 
+        {/* Material Schedule Section */}
         <View style={styles.materialScheduleSection}>
           <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
           <View style={styles.materialScheduleTable}>
+            {/* Updated Header Row */}
             <View style={styles.materialScheduleHeaderRow}>
-              <Text style={styles.materialScheduleColHeader}>DESCRIPTION</Text>
-              <Text style={styles.materialScheduleColHeader}>UNIT</Text>
-              <Text style={styles.materialScheduleColHeader}>QUANTITY</Text>
+              <Text style={styles.materialScheduleColHeaderItem}>ITEM</Text>
+              <Text style={styles.materialScheduleColHeaderDescription}>
+                DESCRIPTION
+              </Text>
+              <Text style={styles.materialScheduleColHeaderUnit}>UNIT</Text>
+              <Text style={styles.materialScheduleColHeaderQty}>QUANTITY</Text>
+              <Text style={styles.materialScheduleColHeaderRate}>
+                RATE (KSh)
+              </Text>
+              <Text style={styles.materialScheduleColHeaderAmount}>
+                AMOUNT (KSh)
+              </Text>
             </View>
-            {materialScheduleData.length > 0 ? (
-              materialScheduleData.map((material, index) => (
+
+            {/* Data Rows */}
+            {materialScheduleDisplayData.length > 0 ? (
+              materialScheduleDisplayData.map((material, index) => (
                 <View
                   style={styles.materialScheduleRow}
-                  key={`material-${index}`}
+                  key={`material-display-${index}`}
                 >
-                  <Text style={styles.materialScheduleCol}>
+                  <Text style={styles.materialScheduleColItem}>
+                    {material.itemNo}
+                  </Text>
+                  <Text style={styles.materialScheduleColDescription}>
                     {material.description}
                   </Text>
-                  <Text style={styles.materialScheduleCol}>
+                  <Text style={styles.materialScheduleColUnit}>
                     {material.unit}
                   </Text>
-                  <Text style={styles.materialScheduleColLast}>
+                  <Text style={styles.materialScheduleColQty}>
                     {material.quantity % 1 === 0
                       ? material.quantity.toFixed(0)
                       : material.quantity.toFixed(2)}
+                  </Text>
+                  <Text style={styles.materialScheduleColRate}>
+                    {material.rate > 0 ? formatCurrency(material.rate) : "-"}{" "}
+                    {/* Show dash if rate is 0/missing */}
+                  </Text>
+                  <Text style={styles.materialScheduleColAmount}>
+                    {material.amount > 0
+                      ? formatCurrency(material.amount)
+                      : "-"}{" "}
+                    {/* Show dash if amount is 0/missing */}
                   </Text>
                 </View>
               ))
@@ -1051,16 +1350,17 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                 <Text
                   style={[
                     styles.materialScheduleCol,
-                    { flex: 3, textAlign: "center" },
+                    { width: "100%", textAlign: "center" }, // Span full width or adjust
                   ]}
                 >
-                  No materials found.
+                  No materials found or schedule data unavailable.
                 </Text>
               </View>
             )}
           </View>
         </View>
 
+        {/* Footer */}
         <View style={styles.boqFooter} fixed>
           <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
           <Text>{projectInfo.title}</Text>
@@ -1078,9 +1378,17 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       {/* --- Summary Page (Grand Total) --- */}
       <Page size="A4" style={styles.page}>
         <View style={styles.companyHeader}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
+          {/* Placeholder for Logo */}
+          {projectInfo.logoUrl ? (
+            <Image
+              style={styles.logoContainer} // Use existing style for size/shape
+              source={{ uri: projectInfo.logoUrl }}
+            />
+          ) : (
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>LOGO</Text>
+            </View>
+          )}
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>Construction Solutions Ltd</Text>
             <Text style={styles.companyTagline}>

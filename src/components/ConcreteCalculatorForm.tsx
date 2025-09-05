@@ -299,12 +299,6 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
         rowId: "totals",
         name: "Grand Total",
         quantity: rows[0].number || 1,
-        unit_price: Math.round(
-          cementMat.price +
-            sandMat.price +
-            totals.stone * ballastMat.price +
-            totals.formworkM2 * formworkMat.price
-        ),
         total_price: Math.round(
           totals.cement * cementMat.price +
             totals.sand * sandMat.price +
@@ -345,7 +339,7 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
         const result = results.find((r) => r.id === row.id);
         return (
           <div key={row.id} className="p-4 border rounded-lg space-y-2">
-            <div className="flex gap-2">
+            <div className="grid sm:grid-cols-4 gap-2">
               <Input
                 type="text"
                 value={row.name}
@@ -389,7 +383,7 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
               </Button>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid sm:grid-cols-4 gap-2">
               <Input
                 type="number"
                 value={row.length}

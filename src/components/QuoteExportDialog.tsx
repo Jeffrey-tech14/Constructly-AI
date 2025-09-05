@@ -51,6 +51,7 @@ export const QuoteExportDialog = ({
         quote.boq_data,
         {
           title: quote.title,
+          companyName: companyName,
           date: Date(),
           clientName: quote.client_name,
           clientEmail: quote.client_email,

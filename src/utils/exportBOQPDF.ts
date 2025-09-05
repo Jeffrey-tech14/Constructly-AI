@@ -6,6 +6,7 @@ import { BOQSection, PrelimItem, PrelimSection } from "@/types/boq"; // Adjust p
 // --- Define Types ---
 interface ProjectInfo {
   title: string;
+  companyName: string;
   clientName: string;
   clientEmail: string;
   location: string;

@@ -41,7 +41,6 @@ const PreliminariesBuilder = ({
     return [{ title: "General Preliminaries", items: [] }];
   }, [quoteData?.preliminaries]);
 
-  // Track which item is being edited
   const [editingItem, setEditingItem] = useState<{
     sectionIndex: number;
     itemIndex: number;
@@ -279,12 +278,14 @@ const PreliminariesBuilder = ({
       ))}
 
       {sections.length > 0 && sections.some((s) => s.items.length > 0) && (
-        <Card className="bg-primary/10 border-primary">
+        <Card className="bg-primary/10 border-primary dark:border-blue-300">
           <CardHeader>
-            <CardTitle className="text-primary">Grand Total</CardTitle>
+            <CardTitle className="text-primary dark:text-blue-300">
+              Grand Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-2xl font-bold text-primary dark:text-blue-300">
               KSh {calculateGrandTotal().toLocaleString()}
             </div>
           </CardContent>

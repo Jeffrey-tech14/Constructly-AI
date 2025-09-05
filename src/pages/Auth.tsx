@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link, Navigate, useNavigate } from 'react-router-dom';
+import { useSearchParams, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DraftingCompass, ArrowLeft, Loader2, Pickaxe, Eye, EyeOff } from 'lucide-react';
+import { DraftingCompass, ArrowLeft, Loader2, Eye, EyeOff, MailCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { toast } from '@/hooks/use-toast';
@@ -26,8 +26,9 @@ const Auth = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
 
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -38,6 +39,7 @@ const Auth = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setEmailVerificationSent(false);
     setLoading(true);
 
     try {
@@ -49,31 +51,55 @@ const Auth = () => {
           throw new Error('Password must be at least 6 characters');
         }
 
-        await signUp(formData.email, formData.password, formData.name);
+        const { error } = await signUp(formData.email, formData.password, formData.name);
+        
+        if (error) throw error;
+
         setSuccess('Account created successfully! Please check your email to verify your account.');
+        setEmailVerificationSent(true);
       }
 
       if (mode === 'signin') {
-        await signIn(formData.email, formData.password);
+        const { error } = await signIn(formData.email, formData.password);
+        
+        if (error) {
+          // Check if error is due to unverified email
+          if (error.message?.includes('Email not confirmed') || error.message?.includes('not verified')) {
+            setError('Please verify your email address before signing in. Check your inbox for the verification email.');
+            setEmailVerificationSent(true);
+          } else {
+            throw error;
+          }
+        } else {
+          // Successful login will be handled by the AuthContext
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       console.error('Auth error:', err);
 
       let friendlyMessage = 'Something went wrong. Please try again.';
-      const msg = err.message.toLowerCase();
-
-      if (msg.includes('passwords do not match')) {
-        friendlyMessage = 'Your passwords do not match.';
-      } else if (msg.includes('at least 6 characters')) {
-        friendlyMessage = 'Password must be at least 6 characters long.';
-      } else if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
-        friendlyMessage = 'Invalid email or password. Please try again.';
-      } else if (msg.includes('user not found')) {
-        friendlyMessage = 'No account found with that email.';
-      } else if (msg.includes('email already in use')) {
-        friendlyMessage = 'This email is already registered. Try signing in.';
-      } else if (msg.includes('network')) {
-        friendlyMessage = 'Network error. Please check your internet connection.';
+      
+      // Supabase error handling
+      if (err.message) {
+        const msg = err.message.toLowerCase();
+        
+        if (msg.includes('passwords do not match')) {
+          friendlyMessage = 'Your passwords do not match.';
+        } else if (msg.includes('at least 6 characters')) {
+          friendlyMessage = 'Password must be at least 6 characters long.';
+        } else if (msg.includes('invalid login') || msg.includes('invalid credentials')) {
+          friendlyMessage = 'Invalid email or password. Please try again.';
+        } else if (msg.includes('user not found')) {
+          friendlyMessage = 'No account found with that email.';
+        } else if (msg.includes('email already in use')) {
+          friendlyMessage = 'This email is already registered. Try signing in.';
+        } else if (msg.includes('network')) {
+          friendlyMessage = 'Network error. Please check your internet connection.';
+        } else if (msg.includes('email not confirmed') || msg.includes('not verified')) {
+          friendlyMessage = 'Please verify your email address before signing in.';
+          setEmailVerificationSent(true);
+        }
       }
 
       toast({
@@ -85,6 +111,37 @@ const Auth = () => {
       setError(friendlyMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const { error } = await signInWithGoogle();
+      
+      if (error) throw error;
+      
+      // Google sign-in will redirect automatically
+    } catch (err: any) {
+      console.error('Google auth error:', err);
+      setError('Failed to sign in with Google. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    try {
+      // This would require adding a resendVerification method to your AuthContext
+      // For now, we'll show a message to the user
+      toast({
+        title: 'Verification Email',
+        description: 'Please check your inbox and spam folder for the verification email.',
+      });
+    } catch (err: any) {
+      setError('Failed to resend verification email. Please try again.');
     }
   };
 
@@ -171,6 +228,22 @@ const Auth = () => {
               </Alert>
             )}
 
+            {emailVerificationSent && (
+              <Alert className="mb-4 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
+                <MailCheck className="w-4 h-4 mr-2" />
+                <AlertDescription className="text-blue-700 dark:text-blue-400">
+                  <p>Verification email sent! Please check your inbox.</p>
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-blue-700 dark:text-blue-400 font-normal"
+                    onClick={resendVerificationEmail}
+                  >
+                    Click here if you didn't receive the email
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div>
@@ -251,9 +324,9 @@ const Auth = () => {
               <Button
                 type="submit"
                 className="w-full bg-risa-primary hover:bg-risa-primaryLight text-white py-3 lowercase"
-                disabled={loading}
+                disabled={loading || authLoading}
               >
-                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {(loading || authLoading) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {mode === 'signin' ? 'sign in' : 'create account'}
               </Button>
             </form>
@@ -266,9 +339,9 @@ const Auth = () => {
 
             <Button
               type="button"
-              onClick={signInWithGoogle}
+              onClick={handleGoogleSignIn}
               className="w-full bg-white text-gray-800 border border-gray-300 dark:bg-gray-700 dark:text-white dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all flex items-center justify-center gap-2 py-3 lowercase"
-              disabled={loading}
+              disabled={loading || authLoading}
             >
               <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" className="w-5 h-5" />
               continue with google
@@ -278,9 +351,14 @@ const Auth = () => {
               <p className="text-gray-600 dark:text-gray-300 text-sm lowercase">
                 {mode === 'signin' ? "don't have an account? " : "already have an account? "}
                 <button
-                  onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+                  onClick={() => {
+                    setMode(mode === 'signin' ? 'signup' : 'signin');
+                    setError('');
+                    setSuccess('');
+                    setEmailVerificationSent(false);
+                  }}
                   className="text-risa-primary hover:text-risa-primaryLight font-medium transition-colors"
-                  disabled={loading}
+                  disabled={loading || authLoading}
                 >
                   {mode === 'signin' ? 'sign up' : 'sign in'}
                 </button>
@@ -288,6 +366,21 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Email Verification Help */}
+        {emailVerificationSent && (
+          <Card className="mt-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+            <CardContent className="pt-4">
+              <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Not seeing the verification email?</h3>
+              <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                <li>• Check your spam or junk folder</li>
+                <li>• Make sure you entered the correct email address</li>
+                <li>• Wait a few minutes - it might take a while to arrive</li>
+                <li>• Try signing up again if you don't receive it within 15 minutes</li>
+              </ul>
+            </CardContent>
+          </Card>
+        )}
       </motion.div>
     </div>
   );

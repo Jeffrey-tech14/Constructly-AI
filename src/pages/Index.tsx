@@ -44,6 +44,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+
 // ===== THEME TOGGLE =====
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -78,6 +79,7 @@ const ThemeToggle = () => {
     </div>
   );
 };
+
 // ===== VIDEO DEMO MODAL =====
 const VideoModal = ({ isOpen, onClose }) => {
   const videoRef = useRef(null);
@@ -116,6 +118,7 @@ const VideoModal = ({ isOpen, onClose }) => {
           autoPlay
           className="w-full h-auto"
           style={{ maxHeight: "80vh" }}
+          onContextMenu={(e) => e.preventDefault()} // Prevent right-click context menu
         >
           <source src="/video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
@@ -124,43 +127,7 @@ const VideoModal = ({ isOpen, onClose }) => {
     </motion.div>
   );
 };
-// ===== LEARN MORE MODAL =====
-const LearnMoreModal = ({ isOpen, onClose, content }) => {
-  if (!isOpen) return null;
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-bold text-risa-primary">{content.title}</h3>
-          <Button variant="ghost" onClick={onClose} className="h-8 w-8 p-0">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="p-6 text-gray-700 dark:text-gray-300">{content.details}</div>
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-          <Button
-            onClick={onClose}
-            className="bg-risa-primary hover:bg-risa-primaryLight text-white"
-          >
-            Close
-          </Button>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
+
 // ===== FAQ COMPONENT =====
 const FaqSection = () => {
   const [activeCategory, setActiveCategory] = useState("General");
@@ -168,7 +135,7 @@ const FaqSection = () => {
   const [search, setSearch] = useState("");
   const faqsData = {
     "General": {
-      icon: <HelpCircle className="w-5 h-5 text-risa-primary" />,
+      icon: <HelpCircle className="w-5 w-5 text-risa-primary" />,
       items: [
         {
           question: "What file formats does Constructly support?",
@@ -225,7 +192,7 @@ const FaqSection = () => {
       ],
     },
     "Account & Billing": {
-      icon: <CreditCard className="w-5 h-5 text-risa-primary" />,
+      icon: <CreditCard className="w-5 w-5 text-risa-primary" />,
       items: [
         {
           question: "What payment methods are accepted?",
@@ -274,7 +241,7 @@ const FaqSection = () => {
       ],
     },
     "Technical Support": {
-      icon: <Settings className="w-5 h-5 text-risa-primary" />,
+      icon: <Settings className="w-5 w-5 text-risa-primary" />,
       items: [
         {
           question: "What should I do if I'm having trouble uploading plans?",
@@ -327,7 +294,7 @@ const FaqSection = () => {
     faq.question.toLowerCase().includes(search.toLowerCase())
   );
   return (
-    <section className="py-20">
+    <section className="py-20 bg-white dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-6">
         <motion.h2 
           className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12"
@@ -479,7 +446,7 @@ const FaqSection = () => {
               Call Support: 949 951 5815
             </a>
             <a 
-              href="mailto:support@constructly.com" 
+              href="mailto:support@constructly.com"
               className="border border-white text-white hover:bg-white hover:text-risa-primary px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
             >
               <Mail className="w-4 h-4" />
@@ -491,391 +458,7 @@ const FaqSection = () => {
     </section>
   );
 };
-// ===== TRUSTED BY ENGINEERS SECTION (UPDATED WITH ICONS AND MARQUEE) =====
-const TrustedByEngineers = () => {
-  // Define a set of high-quality icons to represent different types of engineering/construction companies
-  const companyIcons = [
-    { icon: Building, name: "Commercial Construction" },
-    { icon: Home, name: "Residential Development" },
-    { icon: Factory, name: "Industrial Projects" },
-    { icon: MapPin, name: "Site Development" },
-    { icon: Layers, name: "Civil Engineering" },
-    { icon: HardHat, name: "General Contracting" },
-    { icon: Ruler, name: "Architectural Design" },
-    { icon: Wrench, name: "Engineering Services" },
-    { icon: Globe, name: "Infrastructure" },
-    { icon: Award, name: "Quality Builders" },
-    { icon: Scale, name: "Precision Engineering" },
-    { icon: TrendingUp, name: "Growth Construction" },
-  ];
-  return (
-    <section className="py-20 bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-            Engineers Trust Constructly Every Day for Their Accurate Quotations
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Join thousands of construction professionals who rely on Constructly for precise material estimates and professional quotes.
-          </p>
-        </motion.div>
-        {/* Marquee Container */}
-        <div className="overflow-hidden relative">
-          {/* Left Gradient Overlay */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-          {/* Right Gradient Overlay */}
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"></div>
-          {/* Marquee Content - First Row */}
-          <motion.div 
-            className="flex whitespace-nowrap py-4"
-            animate={{ 
-              x: ["0%", "-50%"] 
-            }}
-            transition={{ 
-              repeat: Infinity, 
-              repeatType: "loop", 
-              duration: 20, 
-              ease: "linear" 
-            }}
-          >
-            {[...companyIcons, ...companyIcons].map((item, i) => (
-              <div 
-                key={`first-${i}`} 
-                className="flex flex-col items-center justify-center mx-8 md:mx-12 lg:mx-16 flex-shrink-0"
-              >
-                <div className="bg-risa-primary/10 text-risa-primary p-4 rounded-full mb-2 shadow-md">
-                  <item.icon className="h-8 w-8" />
-                </div>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center max-w-24">
-                  {item.name}
-                </span>
-              </div>
-            ))}
-          </motion.div>
-          {/* Marquee Content - Second Row (Opposite Direction) */}
-          <motion.div 
-            className="flex whitespace-nowrap py-4"
-            animate={{ 
-              x: ["-50%", "0%"] 
-            }}
-            transition={{ 
-              repeat: Infinity, 
-              repeatType: "loop", 
-              duration: 25, 
-              ease: "linear" 
-            }}
-          >
-            {[...companyIcons, ...companyIcons].map((item, i) => (
-              <div 
-                key={`second-${i}`} 
-                className="flex flex-col items-center justify-center mx-8 md:mx-12 lg:mx-16 flex-shrink-0"
-              >
-                <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 p-4 rounded-full mb-2 shadow-md">
-                  <item.icon className="h-8 w-8" />
-                </div>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center max-w-24">
-                  {item.name}
-                </span>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-};
-// ===== CONSTRUCTLY INSIGHTS SECTION (REVERTED TO SLIDE/SWIPE WITH SHARP CORNERS) =====
-const ConstructlyInsights = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const insights = [
-    {
-      image: "/page.jpg",
-      title: "The Future of Construction Estimation: AI-Powered Solutions",
-      desc: "How AI is transforming the way construction companies estimate projects and prepare quotes. Our latest research shows a 70% reduction in estimation time for early adopters.",
-      date: "September 5, 2025",
-      category: "Industry Trends",
-      readTime: "5 min read",
-      featured: true
-    },
-    {
-      image: "/page1.jpg",
-      title: "5 Ways to Improve Quote Accuracy in Construction Projects",
-      desc: "Learn practical strategies to enhance the accuracy of your construction quotes and reduce costly estimation errors that impact project profitability.",
-      date: "August 28, 2025",
-      category: "Best Practices",
-      readTime: "4 min read",
-      featured: false
-    },
-    {
-      image: "/page2.jpg",
-      title: "Industry Trends: Digital Transformation in Construction",
-      desc: "Construction companies that embrace digital tools are seeing significant competitive advantages. Discover how modern estimation software is changing the industry landscape.",
-      date: "August 15, 2025",
-      category: "Technology",
-      readTime: "6 min read",
-      featured: false
-    },
-    {
-      image: "/page3.jpg",
-      title: "Case Study: How BuildRight Increased Profit Margins by 23%",
-      desc: "Discover how one construction company leveraged our AI estimation tools to dramatically improve their bidding accuracy and profitability.",
-      date: "July 29, 2025",
-      category: "Case Studies",
-      readTime: "7 min read",
-      featured: false
-    },
-    {
-      image: "/page4.jpg",
-      title: "Material Cost Forecasting in Uncertain Economic Times",
-      desc: "Expert analysis on navigating material price volatility and how Constructly's predictive algorithms help companies maintain accurate estimates.",
-      date: "July 15, 2025",
-      category: "Industry Trends",
-      readTime: "5 min read",
-      featured: false
-    },
-    {
-      image: "/page5.jpg",
-      title: "The ROI of Construction Software: What You Need to Know",
-      desc: "A comprehensive analysis of the financial benefits of implementing modern construction estimation software, with real-world data from our customers.",
-      date: "June 28, 2025",
-      category: "Business",
-      readTime: "8 min read",
-      featured: false
-    }
-  ];
-  const categories = ["All", "Industry Trends", "Best Practices", "Technology", "Case Studies", "Business"];
-  const filteredInsights = activeCategory === "All" 
-    ? insights 
-    : insights.filter(insight => insight.category === activeCategory);
-  const nonFeaturedInsights = filteredInsights.filter(insight => !insight.featured);
-  const totalSlides = Math.ceil(nonFeaturedInsights.length / 3); // 3 cards per slide
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-  };
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
-  };
-  return (
-    <section className="py-20 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <span className="inline-block bg-risa-primary/10 text-risa-primary text-sm font-medium px-4 py-1 rounded-full mb-4">
-            Insights & Updates
-          </span>
-          <h2 className="text-4xl font-bold text-gray-800 dark:text-white mb-4">
-            What's Happening at Constructly?
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto text-lg">
-            Stay updated with the latest industry trends, company news, and expert insights from the Constructly team.
-          </p>
-        </motion.div>
-        {/* Category Filter */}
-        <motion.div 
-          className="flex flex-wrap justify-center gap-3 mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          viewport={{ once: true }}
-        >
-          {categories.map((category, i) => (
-            <motion.button
-              key={i}
-              onClick={() => {
-                setActiveCategory(category);
-                setCurrentSlide(0); // Reset slide when category changes
-              }}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                activeCategory === category
-                  ? "bg-risa-primary text-white shadow-lg"
-                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {category}
-            </motion.button>
-          ))}
-        </motion.div>
-        {/* Featured Post - Full Width, Sharp Corners */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          viewport={{ once: true }}
-        >
-          {filteredInsights.filter(insight => insight.featured).map((insight, i) => (
-            <motion.div 
-              key={i}
-              className="bg-white dark:bg-gray-800 overflow-hidden shadow-xl" // Removed rounded-xl
-              whileHover={{ y: -5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="relative h-80 lg:h-auto">
-                  <img 
-                    src={insight.image} 
-                    alt={insight.title} 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4 bg-risa-primary text-white text-xs font-medium px-3 py-1 rounded-full">
-                    Featured
-                  </div>
-                  <motion.button 
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-risa-primary rounded-full p-4 shadow-lg"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Play className="h-6 w-6 fill-current" />
-                  </motion.button>
-                </div>
-                <div className="p-8 flex flex-col justify-center">
-                  <span className="inline-block bg-risa-primary/10 text-risa-primary text-xs font-medium px-3 py-1 rounded-full mb-4">
-                    {insight.category}
-                  </span>
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-                    {insight.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    {insight.desc}
-                  </p>
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span className="mr-4">{insight.date}</span>
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span>{insight.readTime}</span>
-                  </div>
-                  <motion.button
-                    className="flex items-center text-risa-primary font-medium"
-                    whileHover={{ x: 5 }}
-                  >
-                    Read Full Article <ArrowRightCircle className="ml-2 h-5 w-5" />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-        {/* Non-Featured Insights - Horizontal Swipeable Carousel */}
-        <div className="relative mt-12">
-          <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">Latest Articles</h3>
-          {/* Carousel Navigation */}
-          <div className="absolute -left-4 -right-4 top-1/2 transform -translate-y-1/2 z-10 flex justify-between pointer-events-none">
-            <button 
-              onClick={prevSlide}
-              className="bg-white dark:bg-gray-800 shadow-md rounded-full p-2 pointer-events-auto hover:shadow-lg transition"
-            >
-              <ChevronDown className="h-6 w-6 rotate-90 text-risa-primary" />
-            </button>
-            <button 
-              onClick={nextSlide}
-              className="bg-white dark:bg-gray-800 shadow-md rounded-full p-2 pointer-events-auto hover:shadow-lg transition"
-            >
-              <ChevronDown className="h-6 w-6 -rotate-90 text-risa-primary" />
-            </button>
-          </div>
-          {/* Carousel Container */}
-          <div className="overflow-hidden">
-            <motion.div 
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-            >
-              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                <div key={slideIndex} className="flex-shrink-0 w-full grid grid-cols-1 md:grid-cols-3 gap-6 px-2">
-                  {nonFeaturedInsights.slice(slideIndex * 3, slideIndex * 3 + 3).map((insight, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-white dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300" // Removed rounded-xl
-                      whileHover={{ y: -10 }}
-                    >
-                      <div className="relative h-48">
-                        <img 
-                          src={insight.image} 
-                          alt={insight.title} 
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-3 left-3 bg-risa-primary/90 text-white text-xs font-medium px-2 py-1 rounded">
-                          {insight.category}
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-3 line-clamp-2">
-                          {insight.title}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">
-                          {insight.desc}
-                        </p>
-                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                          <span>{insight.date}</span>
-                          <span>{insight.readTime}</span>
-                        </div>
-                        <motion.button
-                          className="w-full mt-6 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-risa-primary hover:text-white text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors flex items-center justify-center"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Read More <ArrowRight className="ml-2 h-4 w-4" />
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  ))}
-                  {/* Fill empty spaces in the last slide */}
-                  {Array.from({ length: 3 - (nonFeaturedInsights.slice(slideIndex * 3, slideIndex * 3 + 3).length) }).map((_, j) => (
-                    <div key={`empty-${slideIndex}-${j}`} className="flex-shrink-0"></div>
-                  ))}
-                </div>
-              ))}
-            </motion.div>
-          </div>
-          {/* Slide Indicators */}
-          <div className="flex justify-center mt-6 space-x-2">
-            {Array.from({ length: totalSlides }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentSlide(i)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  currentSlide === i ? 'bg-risa-primary' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-        {/* CTA */}
-        <motion.div 
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <p className="text-gray-600 dark:text-gray-300 mb-6">Stay updated with the latest from Constructly</p>
-          <motion.button
-            className="bg-risa-primary hover:bg-risa-primaryLight text-white px-8 py-3 rounded-lg font-medium"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            View All Articles
-          </motion.button>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
+
 // ===== HOW IT WORKS SECTION =====
 const HowItWorks = () => {
   const steps = [
@@ -948,16 +531,16 @@ const HowItWorks = () => {
     </section>
   );
 };
+
 // ===== MAIN COMPONENT =====
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const heroRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
-  const [modalContent, setModalContent] = useState({});
   const [scrolled, setScrolled] = useState(false);
+  
   // Handle scroll for navbar animation
   useEffect(() => {
     const handleScroll = () => {
@@ -971,6 +554,7 @@ const Index = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+
   // Fixed scrollTo function for navbar
   const scrollTo = (id) => {
     const element = document.getElementById(id);
@@ -980,94 +564,12 @@ const Index = () => {
       setMenuOpen(false);
     }
   };
-  const productDetails = {
-    residential: {
-      title: "Residential Construction Solutions",
-      details: (
-        <div className="space-y-4">
-          <p>
-            Our residential construction solutions provide accurate material estimates and quotes for various types of residential projects. Using advanced AI analysis, we can interpret architectural plans and generate precise quantity takeoffs.
-          </p>
-          <h4 className="font-semibold mt-4 text-gray-900 dark:text-white">Key Features:</h4>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Automated measurement extraction from floor plans and elevations</li>
-            <li>Material calculation for foundations, framing, roofing, and finishes</li>
-            <li>Integration with local material cost databases for accurate pricing</li>
-            <li>Customizable quote templates with your branding</li>
-            <li>Collaboration tools for teams working on residential projects</li>
-          </ul>
-          <h4 className="font-semibold mt-4 text-gray-900 dark:text-white">Supported Project Types:</h4>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Single-family homes (new construction and renovations)</li>
-            <li>Multi-unit housing (apartments, townhouses, condominiums)</li>
-            <li>Home additions and extensions</li>
-            <li>Custom luxury homes</li>
-            <li>Residential infrastructure (driveways, patios, pools)</li>
-          </ul>
-        </div>
-      ),
-    },
-    commercial: {
-      title: "Commercial Projects Solutions",
-      details: (
-        <div className="space-y-4">
-          <p>
-            Our commercial construction solutions are designed for complex projects requiring detailed material estimates and comprehensive quoting capabilities. The system handles large-scale projects with multiple stakeholders and intricate requirements.
-          </p>
-          <h4 className="font-semibold mt-4 text-gray-900 dark:text-white">Key Features:</h4>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Multi-story building analysis with floor-by-floor breakdowns</li>
-            <li>Specialized commercial systems (HVAC, electrical, plumbing)</li>
-            <li>Integration with BIM models for enhanced accuracy</li>
-            <li>Change order tracking and management</li>
-            <li>Compliance checking with building codes and regulations</li>
-          </ul>
-          <h4 className="font-semibold mt-4 text-gray-900 dark:text-white">Supported Project Types:</h4>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Office buildings and corporate campuses</li>
-            <li>Retail spaces and shopping centers</li>
-            <li>Hospitality venues (hotels, restaurants, resorts)</li>
-            <li>Healthcare facilities (hospitals, clinics, medical offices)</li>
-            <li>Educational institutions (schools, universities, libraries)</li>
-          </ul>
-        </div>
-      ),
-    },
-    infrastructure: {
-      title: "Infrastructure Solutions",
-      details: (
-        <div className="space-y-4">
-          <p>
-            Our infrastructure solutions cater to civil engineering and large-scale public works projects that require specialized estimation capabilities. The system handles complex geometric calculations and material specifications unique to infrastructure projects.
-          </p>
-          <h4 className="font-semibold mt-4 text-gray-900 dark:text-white">Key Features:</h4>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Linear measurement tools for roads, bridges, and pipelines</li>
-            <li>Earthwork calculations for grading and excavation</li>
-            <li>Specialized material databases for civil engineering materials</li>
-            <li>Topographic integration for terrain-aware estimations</li>
-            <li>Regulatory compliance for public works projects</li>
-          </ul>
-          <h4 className="font-semibold mt-4 text-gray-900 dark:text-white">Supported Project Types:</h4>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Roads, highways, and bridge construction</li>
-            <li>Water and wastewater treatment facilities</li>
-            <li>Utility infrastructure (power lines, communications networks)</li>
-            <li>Public transportation systems (railways, airports, ports)</li>
-            <li>Public parks and recreational facilities</li>
-          </ul>
-        </div>
-      ),
-    },
-  };
-  const openModal = (productType) => {
-    setModalContent(productDetails[productType]);
-    setModalOpen(true);
-  };
+
   // Redirect if logged in
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
+
   return (
     <div
       className="min-h-screen font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300"
@@ -1111,6 +613,7 @@ const Index = () => {
           </a>
         </div>
       </motion.div>
+      
       {/* ===== ANIMATED NAVBAR (Updated with Capitalized, Animated Links) ===== */}
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
@@ -1250,6 +753,7 @@ const Index = () => {
           </div>
         </div>
       </motion.nav>
+      
       {/* ===== HERO SECTION ===== */}
       <motion.section
         ref={heroRef}
@@ -1313,8 +817,10 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+      
       {/* ===== HOW IT WORKS SECTION ===== */}
       <HowItWorks />
+      
       {/* ===== FEATURES CARDS ===== */}
       <motion.section
         id="features"
@@ -1332,21 +838,18 @@ const Index = () => {
                 title: "Residential Construction",
                 desc: "Generate accurate quotes for residential projects from architectural plans",
                 features: ["Single-family homes", "Multi-unit housing", "Renovations"],
-                type: "residential",
               },
               {
                 icon: <ClipboardCheck className="h-12 w-12 text-risa-primary" />,
                 title: "Commercial Projects",
                 desc: "Precise estimation for office buildings, retail spaces, and more",
                 features: ["Office complexes", "Retail spaces", "Mixed-use developments"],
-                type: "commercial",
               },
               {
                 icon: <DraftingCompass className="h-12 w-12 text-risa-primary" />,
                 title: "Infrastructure",
                 desc: "Specialized tools for civil engineering and infrastructure projects",
                 features: ["Bridges", "Roads", "Public works"],
-                type: "infrastructure",
               },
             ].map((product, i) => (
               <motion.div 
@@ -1372,12 +875,6 @@ const Index = () => {
                         </li>
                       ))}
                     </ul>
-                    <Button
-                      className="w-full bg-risa-primary hover:bg-risa-primaryLight mt-auto"
-                      onClick={() => openModal(product.type)}
-                    >
-                      Learn More <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1385,6 +882,7 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+      
       {/* ===== PRICING SECTION ===== */}
       <motion.section
         id="pricing"
@@ -1470,6 +968,7 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+      
       {/* ===== TESTIMONIALS SECTION ===== */}
       <motion.section
         id="testimonials"
@@ -1546,12 +1045,10 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-      {/* ===== TRUSTED BY ENGINEERS SECTION (UPDATED) ===== */}
-      <TrustedByEngineers />
-      {/* ===== CONSTRUCTLY INSIGHTS SECTION (REDESIGNED) ===== */}
-      <ConstructlyInsights />
+      
       {/* ===== FAQ SECTION ===== */}
       <FaqSection />
+      
       {/* ===== FOOTER ===== */}
       <motion.footer
         className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-12"
@@ -1561,7 +1058,7 @@ const Index = () => {
         viewport={{ once: true }}
       >
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <DraftingCompass className="h-6 w-6 text-risa-primary" />
@@ -1580,25 +1077,6 @@ const Index = () => {
                 <li><button onClick={() => scrollTo('faq')} className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left">FAQ</button></li>
               </ul>
             </div>
-            <div>
-              <h5 className="font-bold mb-4">Resources</h5>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Documentation</a></li>
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">API</a></li>
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Blog</a></li>
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Community</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold mb-4">Company</h5>
-              <ul className="space-y-2 text-sm mb-6">
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">About Us</a></li>
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Careers</a></li>
-                <li><a href="mailto:contact@constructly.com" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Contact</a></li>
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Privacy Policy</a></li>
-                <li><a href="#" className="text-gray-700 dark:text-gray-300 hover:text-risa-primary">Terms of Service</a></li>
-              </ul>
-            </div>
           </div>
           <hr className="border-gray-200 dark:border-gray-700 my-8" />
           <div className="text-gray-600 dark:text-gray-400 text-sm">
@@ -1606,12 +1084,8 @@ const Index = () => {
           </div>
         </div>
       </motion.footer>
+      
       {/* Modals */}
-      <LearnMoreModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        content={modalContent}
-      />
       <VideoModal
         isOpen={demoOpen}
         onClose={() => setDemoOpen(false)}
@@ -1619,4 +1093,5 @@ const Index = () => {
     </div>
   );
 };
+
 export default Index;

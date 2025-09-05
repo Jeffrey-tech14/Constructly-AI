@@ -39,10 +39,11 @@ interface AuthContextType {
     email: string,
     password: string,
     name?: string
-  ) => Promise<{ error: any }>;
+  ) => Promise<{ error: any; needsVerification?: boolean }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  resendVerificationEmail: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -135,19 +136,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return;
+
+        console.log("Auth state changed:", event, session);
 
         if (session?.user) {
           if (session.user.id !== prevUserId.current) {
             prevUserId.current = session.user.id;
             setUser(session.user);
             await fetchProfile(session.user.id);
+            
+            // Store session for future use
+            if (session) {
+              await Preferences.set({
+                key: "supabase_session",
+                value: JSON.stringify(session),
+              });
+            }
           }
         } else {
           prevUserId.current = null;
           setUser(null);
           setProfile(null);
+          // Clear stored session
+          await Preferences.remove({ key: "supabase_session" });
         }
       });
 
@@ -211,28 +224,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signUp = async (email: string, password: string, name?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
+    const redirectUrl = `${window.location.origin}/dashboard`;
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { name: name || email.split("@")[0] },
+        data: { 
+          name: name || email.split("@")[0],
+          // Add any additional metadata you want to store
+        },
       },
     });
-    return { error };
+
+    // Check if user needs verification
+    const needsVerification = data.user && !data.session;
+
+    return { error, needsVerification };
   };
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { 
+        redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
     });
     return { error };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    await Preferences.remove({ key: "supabase_session" });
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
@@ -248,6 +275,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     await fetchProfile(user.id);
   };
 
+  const resendVerificationEmail = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    return { error };
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -260,6 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signInWithGoogle,
       refreshProfile,
       updateProfile,
+      resendVerificationEmail,
     }),
     [user, profile, loading, authReady]
   );

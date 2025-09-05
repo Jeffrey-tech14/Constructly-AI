@@ -18,7 +18,7 @@ import {
   LayoutDashboard,
   DoorOpen,
   RefreshCw,
-  Image as ImageIcon,
+  ImageIcon,
   LucideAppWindow,
   HardDriveDownload,
   FileIcon,
@@ -104,13 +104,11 @@ const UploadPlan = () => {
 
   async function downloadFile(publicUrl, file_name) {
     try {
-      // First, try to get file info to see if it's accessible
       const url = new URL(publicUrl);
       const pathParts = url.pathname.split("/");
       const bucketName = pathParts[5];
       const filePath = pathParts.slice(6).join("/");
 
-      // Try to get file info (this will work for both public and private)
       const { data: fileInfo, error: infoError } = await supabase.storage
         .from(bucketName)
         .list("", {
@@ -118,36 +116,27 @@ const UploadPlan = () => {
           search: filePath.split("/").pop(),
         });
 
-      // Try direct download first (for public files)
       const response = await fetch(publicUrl);
-
       if (response.ok) {
         const blob = await response.blob();
         const fileName = filePath.split("/").pop() || "downloaded-file";
         const downloadUrl = window.URL.createObjectURL(blob);
-
         const a = document.createElement("a");
         a.href = downloadUrl;
         a.download = fileName;
         document.body.appendChild(a);
         a.click();
-
         window.URL.revokeObjectURL(downloadUrl);
         document.body.removeChild(a);
-
         return;
       }
 
-      // If direct download fails, try signed URL (for private files)
       const { data, error } = await supabase.storage
         .from(bucketName)
         .createSignedUrl(filePath, 60);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Download using signed URL
       const signedResponse = await fetch(data.signedUrl);
       if (!signedResponse.ok) {
         throw new Error(`HTTP error! status: ${signedResponse.status}`);
@@ -156,13 +145,11 @@ const UploadPlan = () => {
       const blob = await signedResponse.blob();
       const fileName = filePath.split("/").pop() || "downloaded-file";
       const downloadUrl = window.URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = downloadUrl;
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
-
       window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
     } catch (error) {
@@ -172,7 +159,6 @@ const UploadPlan = () => {
 
   const handleRemoveFile = async () => {
     if (fileUrl && quoteData?.id) {
-      // Delete from Supabase
       await deletePlan(fileUrl);
       await supabase
         .from("quotes")
@@ -197,21 +183,17 @@ const UploadPlan = () => {
     }
   };
 
-  // --- Analyze with backend (only) ---
   const analyzePlan = async (file: File): Promise<ParsedPlan> => {
     const formData = new FormData();
     formData.append("file", file);
-
     const res = await fetch("https://elaris-ai.onrender.com/api/plan/upload", {
       method: "POST",
       body: formData,
     });
-
     if (!res.ok) throw new Error("Failed to parse plan");
     return res.json();
   };
 
-  // --- Upload permanently to Supabase + update DB ---
   const uploadAndSave = async (file: File): Promise<string> => {
     const fileUrl = await uploadPlan(file);
     await supabase
@@ -221,7 +203,6 @@ const UploadPlan = () => {
     return fileUrl;
   };
 
-  // --- Handle file input (preview only) ---
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const file = e.target.files[0];
@@ -256,12 +237,10 @@ const UploadPlan = () => {
     }
   };
 
-  // --- Handle final save (Supabase + context + navigate) ---
   const handleDone = async () => {
     if (!selectedFile || !quoteData?.id || !editablePlan) return;
 
     try {
-      // 1. Upload to Supabase + update quote
       toast({
         title: "Uploading plan",
         description: "Please wait",
@@ -269,7 +248,6 @@ const UploadPlan = () => {
       const fileUrl = await uploadAndSave(selectedFile);
       setFileUrl(fileUrl);
 
-      // 2. Finalize plan with user edits
       const finalPlan: ExtractedPlan = {
         ...editablePlan,
         file_url: fileUrl,
@@ -285,7 +263,6 @@ const UploadPlan = () => {
         description: `${finalPlan.rooms.length} rooms across ${finalPlan.floors} floor(s).`,
       });
 
-      // 3. Navigate back
       const quote = quoteData;
       navigate("/quotes/new", { state: { quote } });
     } catch (error) {
@@ -301,55 +278,52 @@ const UploadPlan = () => {
 
   if (!user) navigate("/auth");
 
-  if (profile.tier === "Free") {
-    const getTierBadge = (tier: string) => {
-      switch (tier) {
-        case "Free":
-          return (
-            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-              <Shell className="w-3 h-3 mr-1" />
-              Free
-            </Badge>
-          );
-        case "Intermediate":
-          return (
-            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              <Crown className="w-3 h-3 mr-1" />
-              Intermediate
-            </Badge>
-          );
-        case "Professional":
-          return (
-            <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-              <Shield className="w-3 h-3 mr-1" />
-              Professional
-            </Badge>
-          );
-        default:
-          return <Badge>{tier}</Badge>;
-      }
-    };
+  // Tier badge component
+  const getTierBadge = (tier: string) => {
+    switch (tier) {
+      case "Free":
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            <Shell className="w-3 h-3 mr-1" />
+            Free
+          </Badge>
+        );
+      case "Intermediate":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            <Crown className="w-3 h-3 mr-1" />
+            Intermediate
+          </Badge>
+        );
+      case "Professional":
+        return (
+          <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+            <Shield className="w-3 h-3 mr-1" />
+            Professional
+          </Badge>
+        );
+      default:
+        return <Badge>{tier}</Badge>;
+    }
+  };
 
+  if (profile.tier === "Free") {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="max-w-md w-full backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 transform hover:scale-105 transition-all duration-300">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-white dark:bg-gray-900">
+        <Card className="max-w-md w-full bg-gray-50 dark:bg-gray-800 border-0 shadow-lg rounded-xl">
+          <CardHeader className="text-center pb-4">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-red-600 dark:text-red-300">
               <Shield className="w-8 h-8" />
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-              Upgrade Required
-            </CardTitle>
+            <CardTitle className="text-xl font-bold text-risa-secondary">Upgrade Required</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5 text-center">
-            <p className="text-slate-600 dark:text-slate-300 ">
+            <p className="text-risa-secondary/80 text-sm">
               Upgrade to access AI-powered plan parsing and advanced features.
             </p>
-            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {getTierBadge(profile.tier)}
-            </div>
+            <div className="text-sm font-medium">{getTierBadge(profile.tier)}</div>
             <Button
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg"
+              className="w-full bg-risa-primary hover:bg-risa-primaryLight text-white"
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -362,24 +336,26 @@ const UploadPlan = () => {
   }
 
   return (
-    <div className="min-h-screen animate-fade-in scrollbar-hide">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div
+      className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300"
+      style={{ fontFamily: "Poppins, Helvetica Neue, Arial, sans-serif" }}
+    >
+      <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Hero */}
         <div className="text-center mb-10">
-          <h1 className="sm:text-3xl text-2xl font-bold items-center bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <UploadCloud className="sm:w-8 sm:h-8 mr-3 text-blue-900 dark:text-blue-400 inline-block w-12 h-12 mr-3 -translate-y-1" />
+          <h1 className="text-3xl font-bold text-risa-secondary flex items-center justify-center">
+            <UploadCloud className="w-8 h-8 mr-3 text-risa-primary" />
             Upload & Analyze Plan
           </h1>
-          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
-            AI-powered extraction of rooms, dimensions, doors, and windows —
-            instantly.
+          <p className="text-risa-secondary/80 mt-2">
+            AI-powered extraction of rooms, dimensions, doors, and windows — instantly.
           </p>
         </div>
 
         {/* Progress Steps */}
         {currentStep !== "idle" && (
-          <div className="mb-10 p-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all duration-500 hover:shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
+          <div className="mb-10 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md">
+            <div className="flex justify-between items-center mb-4">
               {["Uploading", "Analyzing", "Complete"].map((label, idx) => {
                 const isDone =
                   (currentStep === "analyzing" && idx < 1) ||
@@ -391,26 +367,23 @@ const UploadPlan = () => {
                   (currentStep === "complete" && idx === 2);
 
                 return (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-center space-y-2 flex-1"
-                  >
+                  <div key={idx} className="flex flex-col items-center space-y-2 flex-1">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center  font-bold transition-all duration-300 transform ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white transition-all ${
                         isDone
-                          ? "bg-green-500 text-white scale-110"
+                          ? "bg-green-500 scale-110"
                           : isActive
-                          ? "bg-blue-500 text-white animate-pulse scale-105"
-                          : "bg-slate-200 dark:bg-slate-700 text-slate-500"
+                          ? "bg-risa-primary animate-pulse scale-105"
+                          : "bg-gray-300 dark:bg-gray-700"
                       }`}
                     >
-                      {isDone ? <CheckCircle className="w-7 h-7" /> : idx + 1}
+                      {isDone ? <CheckCircle className="w-5 h-5" /> : idx + 1}
                     </div>
                     <span
-                      className={`text-sm font-medium ${
+                      className={`text-sm ${
                         isActive
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-slate-500"
+                          ? "text-risa-primary font-medium"
+                          : "text-risa-secondary/70"
                       }`}
                     >
                       {label}
@@ -419,9 +392,9 @@ const UploadPlan = () => {
                 );
               })}
             </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-green-300 to-green-600 h-3 rounded-full transition-all duration-500"
+                className="bg-risa-primary h-2 rounded-full transition-all duration-500"
                 style={{
                   width:
                     currentStep === "uploading"
@@ -432,7 +405,7 @@ const UploadPlan = () => {
                 }}
               />
             </div>
-            <p className="text-center text-sm text-slate-600 dark:text-slate-300 mt-4 font-medium">
+            <p className="text-center text-sm text-risa-secondary/80 mt-3">
               {currentStep === "uploading" && "📤 Uploading your plan..."}
               {currentStep === "analyzing" &&
                 "🧠 Analyzing rooms, doors, windows, and dimensions..."}
@@ -442,69 +415,60 @@ const UploadPlan = () => {
         )}
 
         {/* Main Card */}
-        <Card className="backdrop-blur-md bg-white/85 dark:bg-slate-800/85 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:shadow-3xl">
-          <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white py-6">
-            <CardTitle className="sm:text-xl font-bold">
+        <Card className="bg-gray-50 dark:bg-gray-800 border-0 shadow-md rounded-xl transition-all duration-300 hover:shadow-lg">
+          <CardHeader className="pb-3 bg-risa-primary/10">
+            <CardTitle className="text-center text-risa-secondary">
               Upload Your Floor Plan
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-8 p-8">
+          <CardContent className="space-y-8 p-6">
             {fileUrl ? (
               <div className="space-y-6">
-                <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                  <LucideFileText className="w-10 h-10 text-blue-500" />
-                  <p className="text-xl font-semibold truncate flex-1">
-                    {selectedFile?.name || "Uploaded Plan"}
-                  </p>
+                <div className="flex items-center space-x-4 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm">
+                  <LucideFileText className="w-8 h-8 text-risa-primary" />
+                  <p className="text-lg font-semibold truncate flex-1">{selectedFile?.name || "Uploaded Plan"}</p>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleRemoveFile}
                     className="text-red-500 hover:text-red-700"
                   >
-                    <Trash2 className="w-6 h-6" />
+                    <Trash2 className="w-5 h-5" />
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     onClick={() =>
-                      downloadFile(
-                        fileUrl,
-                        selectedFile?.name || "Uploaded Plan"
-                      )
+                      downloadFile(fileUrl, selectedFile?.name || "Uploaded Plan")
                     }
-                    className=""
+                    className="border-risa-primary text-risa-primary hover:bg-risa-primary hover:text-white"
                   >
-                    <HardDriveDownload className="w-6 h-6" />
+                    <HardDriveDownload className="w-5 h-5" />
                   </Button>
                 </div>
 
                 <div className="flex space-x-4">
                   <Button
                     variant="outline"
-                    onClick={() =>
-                      navigate("/quotes/new", { state: { quoteData } })
-                    }
-                    className="flex-1 text-slate-700 dark:text-slate-200  h-14"
+                    onClick={() => navigate("/quotes/new", { state: { quoteData } })}
+                    className="flex-1 text-risa-secondary hover:text-risa-primary border-risa-primary"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleRetry}
                     variant="secondary"
-                    className="text-slate-700 dark:text-slate-200  h-14"
+                    className="text-risa-secondary hover:text-risa-primary"
                   >
-                    <RefreshCw className="w-6 h-6 mr-2" />
+                    <RefreshCw className="w-5 h-5 mr-2" />
                     Retry
                   </Button>
                 </div>
               </div>
             ) : !selectedFile ? (
-              <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-blue-900/20">
-                <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
-                <p className="mb-4  text-slate-600 dark:text-slate-300">
-                  Drag & drop your plan or click to upload
-                </p>
+              <div className="border-2 border-dashed border-risa-primary/50 rounded-lg p-12 text-center hover:border-risa-primary transition-all">
+                <UploadCloud className="w-16 h-16 mx-auto mb-4 text-risa-primary/70" />
+                <p className="mb-4 text-risa-secondary/80">Drag & drop your plan or click to upload</p>
                 <Input
                   type="file"
                   accept=".jpg,.png,.pdf"
@@ -514,40 +478,38 @@ const UploadPlan = () => {
                 />
                 <Label
                   htmlFor="fileUpload"
-                  className="cursor-pointer inline-flex items-center px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
+                  className="cursor-pointer inline-flex items-center px-6 py-2 bg-risa-primary hover:bg-risa-primaryLight text-white font-medium rounded-md shadow"
                 >
                   📁 Select File
                 </Label>
               </div>
             ) : (
-              <div className="space-y-6 scrollbar-hide">
-                <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                  <FileText className="sm:w-7 sm:h-7 text-blue-500" />
-                  <p className="sm:text-lg font-semibold">
-                    {selectedFile.name}
-                  </p>
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-sm">
+                  <FileText className="w-6 h-6 text-risa-primary" />
+                  <p className="text-lg font-semibold">{selectedFile.name}</p>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleRemoveFile}
                     className="ml-auto text-red-500 hover:text-red-700"
                   >
-                    <Trash2 className="sm:w-6 sm:h-6" />
+                    <Trash2 className="w-5 h-5" />
                   </Button>
                 </div>
 
                 {currentStep === "complete" && editablePlan && (
-                  <div className="scrollbar-hide">
-                    <h3 className="sm:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 flex items-center">
-                      <span className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
-                        <FileText className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-300" />
+                  <div>
+                    <h3 className="text-xl font-bold mb-6 text-risa-secondary flex items-center">
+                      <span className="bg-risa-primary/10 p-2 rounded-full mr-3">
+                        <FileText className="w-5 h-5 text-risa-primary" />
                       </span>
                       Edit Extracted Plan
                     </h3>
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <Label className="">Floors</Label>
+                          <Label className="text-risa-secondary">Floors</Label>
                           <Input
                             type="number"
                             min="1"
@@ -562,11 +524,11 @@ const UploadPlan = () => {
                                   : prev
                               )
                             }
-                            className="mt-1 "
+                            className="mt-1"
                           />
                         </div>
                         <div>
-                          <Label className="">File Name</Label>
+                          <Label className="text-risa-secondary">File Name</Label>
                           <Input
                             value={editablePlan.file_name || ""}
                             onChange={(e) =>
@@ -576,7 +538,7 @@ const UploadPlan = () => {
                                   : prev
                               )
                             }
-                            className="mt-1  "
+                            className="mt-1"
                           />
                         </div>
                       </div>
@@ -584,9 +546,9 @@ const UploadPlan = () => {
                       {editablePlan.rooms.map((room, i) => (
                         <div
                           key={i}
-                          className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
+                          className="p-6 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm"
                         >
-                          <h4 className="sm:text-xl font-bold mb-4 text-blue-600 dark:text-blue-400">
+                          <h4 className="text-lg font-bold mb-4 text-risa-primary">
                             Room {i + 1}: {room.room_name || "Unnamed"}
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -600,17 +562,13 @@ const UploadPlan = () => {
                                         ...prev,
                                         rooms: prev.rooms.map((r, idx) =>
                                           idx === i
-                                            ? {
-                                                ...r,
-                                                room_name: e.target.value,
-                                              }
+                                            ? { ...r, room_name: e.target.value }
                                             : r
                                         ),
                                       }
                                     : prev
                                 )
                               }
-                              className=""
                             />
                             <Input
                               type="number"
@@ -631,7 +589,6 @@ const UploadPlan = () => {
                                     : prev
                                 )
                               }
-                              className=" "
                             />
                             <Input
                               type="number"
@@ -652,7 +609,6 @@ const UploadPlan = () => {
                                     : prev
                                 )
                               }
-                              className=" "
                             />
                             <Input
                               type="number"
@@ -673,7 +629,6 @@ const UploadPlan = () => {
                                     : prev
                                 )
                               }
-                              className=" "
                             />
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -687,17 +642,13 @@ const UploadPlan = () => {
                                         ...prev,
                                         rooms: prev.rooms.map((r, idx) =>
                                           idx === i
-                                            ? {
-                                                ...r,
-                                                blockType: e.target.value,
-                                              }
+                                            ? { ...r, blockType: e.target.value }
                                             : r
                                         ),
                                       }
                                     : prev
                                 )
                               }
-                              className=" "
                             />
                             <Input
                               type="number"
@@ -711,17 +662,13 @@ const UploadPlan = () => {
                                         ...prev,
                                         rooms: prev.rooms.map((r, idx) =>
                                           idx === i
-                                            ? {
-                                                ...r,
-                                                thickness: e.target.value,
-                                              }
+                                            ? { ...r, thickness: e.target.value }
                                             : r
                                         ),
                                       }
                                     : prev
                                 )
                               }
-                              className=" "
                             />
                             <Input
                               placeholder="Plaster"
@@ -740,12 +687,11 @@ const UploadPlan = () => {
                                     : prev
                                 )
                               }
-                              className=" "
                             />
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
-                              <Label className="flex mb-1 items-center ">
+                              <Label className="flex mb-1 items-center text-risa-secondary">
                                 <DoorOpen className="w-5 h-5 mr-2 text-green-500" />
                                 Doors Count
                               </Label>
@@ -754,10 +700,7 @@ const UploadPlan = () => {
                                 min="0"
                                 value={room.doors?.length || 0}
                                 onChange={(e) => {
-                                  const count = Math.max(
-                                    0,
-                                    parseInt(e.target.value) || 0
-                                  );
+                                  const count = Math.max(0, parseInt(e.target.value) || 0);
                                   setEditablePlan((prev) =>
                                     prev
                                       ? {
@@ -766,22 +709,15 @@ const UploadPlan = () => {
                                             idx === i
                                               ? {
                                                   ...r,
-                                                  doors: Array.from(
-                                                    { length: count },
-                                                    (_, di) =>
-                                                      r.doors[di] || {
-                                                        sizeType: "standard",
-                                                        standardSize:
-                                                          "0.9 × 2.1 m",
-                                                        custom: {
-                                                          height: "",
-                                                          width: "",
-                                                          price: "",
-                                                        },
-                                                        type: "Panel",
-                                                        frame: "Wood",
-                                                        count: 1,
-                                                      }
+                                                  doors: Array.from({ length: count }, (_, di) =>
+                                                    r.doors[di] || {
+                                                      sizeType: "standard",
+                                                      standardSize: "0.9 × 2.1 m",
+                                                      custom: { height: "", width: "", price: "" },
+                                                      type: "Panel",
+                                                      frame: "Wood",
+                                                      count: 1,
+                                                    }
                                                   ),
                                                 }
                                               : r
@@ -790,11 +726,10 @@ const UploadPlan = () => {
                                       : prev
                                   );
                                 }}
-                                className=" "
                               />
                             </div>
                             <div>
-                              <Label className="flex mb-1 items-center ">
+                              <Label className="flex mb-1 items-center text-risa-secondary">
                                 <LucideAppWindow className="w-5 h-5 mr-2 text-blue-500" />
                                 Windows Count
                               </Label>
@@ -803,10 +738,7 @@ const UploadPlan = () => {
                                 min="0"
                                 value={room.windows?.length || 0}
                                 onChange={(e) => {
-                                  const count = Math.max(
-                                    0,
-                                    parseInt(e.target.value) || 0
-                                  );
+                                  const count = Math.max(0, parseInt(e.target.value) || 0);
                                   setEditablePlan((prev) =>
                                     prev
                                       ? {
@@ -815,22 +747,15 @@ const UploadPlan = () => {
                                             idx === i
                                               ? {
                                                   ...r,
-                                                  windows: Array.from(
-                                                    { length: count },
-                                                    (_, wi) =>
-                                                      r.windows[wi] || {
-                                                        sizeType: "standard",
-                                                        standardSize:
-                                                          "1.2 × 1.2 m",
-                                                        custom: {
-                                                          height: "",
-                                                          width: "",
-                                                          price: "",
-                                                        },
-                                                        glass: "Clear",
-                                                        frame: "Aluminum",
-                                                        count: 1,
-                                                      }
+                                                  windows: Array.from({ length: count }, (_, wi) =>
+                                                    r.windows[wi] || {
+                                                      sizeType: "standard",
+                                                      standardSize: "1.2 × 1.2 m",
+                                                      custom: { height: "", width: "", price: "" },
+                                                      glass: "Clear",
+                                                      frame: "Aluminum",
+                                                      count: 1,
+                                                    }
                                                   ),
                                                 }
                                               : r
@@ -839,7 +764,6 @@ const UploadPlan = () => {
                                       : prev
                                   );
                                 }}
-                                className=""
                               />
                             </div>
                           </div>
@@ -855,27 +779,24 @@ const UploadPlan = () => {
               <Button
                 variant="outline"
                 onClick={() => navigate("/quotes/new")}
-                className="flex-1 dark:hover:bg-blue-900 hover:bg-blue-700 hover:text-white h-14"
+                className="flex-1 border-risa-primary text-risa-secondary hover:text-risa-primary hover:bg-risa-primary hover:text-white"
               >
                 Cancel
               </Button>
               {!fileUrl && selectedFile && (
                 <Button
                   onClick={handleDone}
-                  disabled={
-                    currentStep === "uploading" || currentStep === "analyzing"
-                  }
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold  h-14 rounded-xl shadow-lg transition-all"
+                  disabled={currentStep === "uploading" || currentStep === "analyzing"}
+                  className="flex-1 bg-risa-primary hover:bg-risa-primaryLight text-white font-medium"
                 >
-                  {currentStep === "uploading" ||
-                  currentStep === "analyzing" ? (
+                  {currentStep === "uploading" || currentStep === "analyzing" ? (
                     <>
-                      <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                       Processing...
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="w-6 h-6 mr-3" />
+                      <CheckCircle className="w-5 h-5 mr-2" />
                       Done
                     </>
                   )}

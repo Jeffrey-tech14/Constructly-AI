@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 @tailwind base;
@@ -72,35 +71,69 @@
 }
 
 @layer utilities {
+  /* Fade In Animation */
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out;
   }
 
+  /* Slide Up Animation */
   .animate-slide-up {
     animation: slideUp 0.4s ease-out;
   }
 
+  /* Scale In Animation */
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out;
   }
 
+  /* Gentle Bounce Animation */
   .animate-bounce-gentle {
     animation: bounceGentle 2s infinite;
   }
 
+  /* Gradient Backgrounds */
   .gradient-card {
     @apply bg-gradient-to-br from-white/80 via-blue-50/40 to-indigo-50/30 dark:from-slate-800/80 dark:via-slate-700/40 dark:to-indigo-900/30;
   }
 
+  /* Card Hover Effect */
   .card-hover {
     @apply transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]; 
   }
 
+  /* Page/Section Background */
   .gradient-bg {
     @apply bg-gradient-to-br from-slate-50/90 via-blue-50/60 to-indigo-100/40 dark:from-slate-900/90 dark:via-slate-800/60 dark:to-indigo-950/40;
   }
+
+  /* New Animations for the Constructly Insights Section */
+  /* For the carousel cards sliding in */
+  .animate-slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+  }
+
+  /* For the featured post sliding in */
+  .animate-fade-slide {
+    animation: fadeSlide 0.7s ease-out;
+  }
+
+  /* For the category filter buttons */
+  .animate-pop {
+    animation: pop 0.3s ease-out;
+  }
+
+  /* For the modal open/close */
+  .animate-scale-fade-in {
+    animation: scaleFadeIn 0.3s ease-out;
+  }
+  .animate-scale-fade-out {
+    animation: scaleFadeOut 0.3s ease-out;
+  }
 }
 
+/* Keyframe Animations */
+
+/* Fade In with slight slide */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -112,6 +145,7 @@
   }
 }
 
+/* Slide Up */
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -123,6 +157,7 @@
   }
 }
 
+/* Scale In */
 @keyframes scaleIn {
   from {
     opacity: 0;
@@ -134,6 +169,7 @@
   }
 }
 
+/* Gentle Bounce */
 @keyframes bounceGentle {
   0%, 100% {
     transform: translateY(0);
@@ -143,6 +179,68 @@
   }
 }
 
+/* Slide In from the left */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fade and Slide for featured post */
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Pop animation for buttons */
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Scale and Fade for modals (in) */
+@keyframes scaleFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scale and Fade for modals (out) */
+@keyframes scaleFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Recharts customization */
 .recharts-wrapper {
   .recharts-cartesian-grid-horizontal line,
   .recharts-cartesian-grid-vertical line {

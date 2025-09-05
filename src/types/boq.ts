@@ -18,6 +18,18 @@ export interface BOQSection {
   summary?: number;
 }
 
+export interface PrelimItem {
+  itemNo: string;
+  description: string;
+  amount: number;
+  isHeader?: boolean;
+}
+
+export interface PrelimSection {
+  title: string;
+  items: PrelimItem[];
+}
+
 export interface BOQDocument {
   preliminaries: BOQSection[];
   measuredWorks: BOQSection[];

@@ -16,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { v4 as uuidv4 } from "uuid"; // install with: npm install uuid
 import { Checkbox } from "@/components/ui/checkbox";
-import { BOQSection } from "@/types/boq";
+import { BOQSection, PrelimItem, PrelimSection } from "@/types/boq";
 import { useToast } from "@/hooks/use-toast";
 import {
   useQuoteCalculations,
@@ -44,7 +44,7 @@ import {
   Zap,
   Trash,
   House,
-  Table,
+  CopyrightIcon,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,12 +58,14 @@ import ConcreteCalculatorForm from "./ConcreteCalculatorForm";
 import { useDynamicPricing } from "@/hooks/useDynamicPricing";
 import BOQBuilder from "./BOQBuilder";
 import {
+  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "./ui/table";
+import PreliminariesBuilder from "./PreliminariesBuilder";
 
 interface Room {
   room_name: string;
@@ -86,7 +88,7 @@ interface Room {
   netArea: number;
   blocks: number;
   mortar: number;
-  plaster: number;
+  plaster: string;
   blockCost: number;
   mortarCost: number;
   plasterCost: number;
@@ -173,6 +175,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [limit, setLimit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
+  const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
 
   const fetchLimit = async () => {
     if (!profile?.tier) return;
@@ -317,7 +320,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           netArea: 0,
           blocks: 0,
           mortar: 0,
-          plaster: 0,
+          plaster: room.plaster || "Both Sides",
           blockCost: 0,
           mortarCost: 0,
           plasterCost: 0,
@@ -352,6 +355,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { id: 8, name: "BOQ Builder", icon: <FileText className="w-5 h-5" /> }, // New step
     {
       id: 9,
+      name: "Preliminaries and Legal",
+      icon: <CopyrightIcon className="w-5 h-5" />,
+    },
+    {
+      id: 10,
       name: "Review & Export",
       icon: <Calculator className="w-5 h-5" />,
     },
@@ -372,8 +380,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           : [
               {
                 labour: 0,
-                rebar: 0,
-                wastage: 0,
                 overhead: 0,
                 profit: 0,
                 contingency: 0,
@@ -396,10 +402,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     if (currentStep < steps.length) {
       setDirection("right");
       setCurrentStep(currentStep + 1);
-      // if(currentStep + 1 === 3){
-      //   calculateMasonry()
-      // }
-      if (currentStep + 1 === 9) {
+      if (currentStep + 1 === 10) {
         handleCalculate();
       }
     }
@@ -620,6 +623,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       case 6:
       case 7:
       case 8:
+      case 9:
         return true;
       default:
         return false;
@@ -1677,133 +1681,179 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       case 9:
         return (
           <div className="space-y-6">
+            <PreliminariesBuilder
+              quoteData={quoteData}
+              onPreliminariesUpdate={setPreliminaries}
+            />
+          </div>
+        );
+
+      case 10:
+        return (
+          <div className="space-y-6">
             {calculation ? (
               <>
                 {/* <pre className="text-blue-700 bg-blue-100 p-4 rounded-md overflow-auto max-h-96">
                 {JSON.stringify(calculation, null, 2)}
               </pre> */}
-                {/* {boqData.length > 0 && (
-                          <div>
-                            <h3 className="text-lg font-semibold mb-4">Bill of Quantities</h3>
-                            {boqData.map((section, index) => (
-                              <Card key={index} className="mb-4">
-                                <CardHeader>
-                                  <CardTitle>{section.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow>
-                                        <TableHead>Item</TableHead>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead>Unit</TableHead>
-                                        <TableHead>Qty</TableHead>
-                                        <TableHead>Rate</TableHead>
-                                        <TableHead>Amount</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                      {section.items.map((item, idx) => (
-                                        <TableRow key={idx}>
-                                          <TableCell>{item.itemNo}</TableCell>
-                                          <TableCell>{item.description}</TableCell>
-                                          <TableCell>{item.unit}</TableCell>
-                                          <TableCell>{item.quantity}</TableCell>
-                                          <TableCell>{item.rate?.toLocaleString()}</TableCell>
-                                          <TableCell>{item.amount?.toLocaleString()}</TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                  {section.summary && (
-                                    <div className="mt-4 text-right font-bold">
-                                      Total: KSh {section.summary?.toLocaleString()}
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        )} */}
-                {quoteData.concrete_materials.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Concrete Materials</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {quoteData.concrete_materials.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.total_price}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
+                {boqData.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">
+                      Bill of Quantities
+                    </h3>
+                    {boqData.map((section, index) => (
+                      <Card key={index} className="mb-4">
+                        <CardHeader>
+                          <CardTitle>{section.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Item</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Element</TableHead>
+                                <TableHead>Unit</TableHead>
+                                <TableHead>Qty</TableHead>
+                                <TableHead>Rate</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead>Source</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {section.items && section.items.length > 0 ? (
+                                section.items.map((item, idx) => (
+                                  <TableRow key={idx}>
+                                    <TableCell>{item.itemNo || "-"}</TableCell>
+                                    <TableCell>
+                                      {item.description || "-"}
+                                    </TableCell>
+                                    <TableCell>{item.element || "-"}</TableCell>
+                                    <TableCell>{item.unit || "-"}</TableCell>
+                                    <TableCell>
+                                      {item.quantity ?? "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {item.rate
+                                        ? item.rate.toLocaleString()
+                                        : "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {item.amount
+                                        ? item.amount.toLocaleString()
+                                        : "-"}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-gray-500">
+                                      {item.calculatedFrom || "-"}
+                                    </TableCell>
+                                  </TableRow>
+                                ))
+                              ) : (
+                                <TableRow>
+                                  <TableCell
+                                    colSpan={8}
+                                    className="text-center text-gray-400"
+                                  >
+                                    No items in this section
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </TableBody>
+                          </Table>
+
+                          {section.items.length > 0 && (
+                            <div className="mt-4 text-right font-bold">
+                              Total: KSh{" "}
+                              {section.items
+                                .reduce((sum, i) => sum + (i.amount || 0), 0)
+                                .toLocaleString()}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
 
-                {quoteData.masonry_materials.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Masonry Concrete</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {quoteData.masonry_materials.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.total_price}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                {/* {quoteData.concrete_materials.length > 0 && ( 
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Concrete Materials</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-2">
+                //       {quoteData.concrete_materials.map((item, idx) => (
+                //         <div key={idx} className="flex justify-between">
+                //           <span>{item.name}</span>
+                //           <span>KSh {item.total_price}</span>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
 
-                {quoteData.equipment.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Equipment</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {quoteData.equipment.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.total_cost}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                // {quoteData.masonry_materials.length > 0 && (
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Masonry Concrete</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-2">
+                //       {quoteData.masonry_materials.map((item, idx) => (
+                //         <div key={idx} className="flex justify-between">
+                //           <span>{item.name}</span>
+                //           <span>KSh {item.total_price}</span>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
 
-                {quoteData.subcontractors.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Subcontractors</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {quoteData.subcontractors.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.total}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                // {quoteData.equipment.length > 0 && (
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Equipment</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-2">
+                //       {quoteData.equipment.map((item, idx) => (
+                //         <div key={idx} className="flex justify-between">
+                //           <span>{item.name}</span>
+                //           <span>KSh {item.total_cost}</span>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
 
-                {quoteData.addons.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Subcontractor materials</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {quoteData.addons.map((item, idx) => (
-                        <div key={idx} className="flex justify-between">
-                          <span>{item.name}</span>
-                          <span>KSh {item.price}</span>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                // {quoteData.subcontractors.length > 0 && (
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Subcontractors</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-2">
+                //       {quoteData.subcontractors.map((item, idx) => (
+                //         <div key={idx} className="flex justify-between">
+                //           <span>{item.name}</span>
+                //           <span>KSh {item.total}</span>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
+
+                // {quoteData.addons.length > 0 && (
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Subcontractor materials</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-2">
+                //       {quoteData.addons.map((item, idx) => (
+                //         <div key={idx} className="flex justify-between">
+                //           <span>{item.name}</span>
+                //           <span>KSh {item.price}</span>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
 
                 {quoteData.services.length > 0 && (
                   <Card className="gradient-card">
@@ -1821,164 +1871,160 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   </Card>
                 )}
 
-                {quoteData.rebar_calculations?.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Rebar</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {quoteData.rebar_calculations.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex flex-col gap-2 border-b pb-3 last:border-none"
-                        >
-                          {/* Top-level summary */}
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <p>Total Bars:</p>
-                              <p>{item?.totalBars}</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Total length:</p>
-                              <p>{item?.totalLengthM} m</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Total weight:</p>
-                              <p>{item?.totalWeightKg} kg</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Price per m:</p>
-                              <p>Ksh {item?.pricePerM}</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Total price:</p>
-                              <p>Ksh {item?.totalPrice}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                // {quoteData.rebar_calculations?.length > 0 && (
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Rebar</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-4">
+                //       {quoteData.rebar_calculations.map((item, idx) => (
+                //         <div
+                //           key={idx}
+                //           className="flex flex-col gap-2 border-b pb-3 last:border-none"
+                //         >
+                //           <div className="space-y-2">
+                //             <div className="flex justify-between">
+                //               <p>Total Bars:</p>
+                //               <p>{item?.totalBars}</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Total length:</p>
+                //               <p>{item?.totalLengthM} m</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Total weight:</p>
+                //               <p>{item?.totalWeightKg} kg</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Price per m:</p>
+                //               <p>Ksh {item?.pricePerM}</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Total price:</p>
+                //               <p>Ksh {item?.totalPrice}</p>
+                //             </div>
+                //           </div>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
 
-                {quoteData.rooms?.length > 0 && (
-                  <Card className="gradient-card">
-                    <CardHeader>
-                      <CardTitle>Rooms & Walls</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {quoteData.rooms.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex flex-col gap-2 border-b pb-3 last:border-none"
-                        >
-                          {/* Room summary */}
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <p>Room:</p>
-                              <p>{item?.room_name || "Unnamed"}</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Dimensions (L × W × H):</p>
-                              <p>
-                                {item?.length} × {item?.width} × {item?.height}{" "}
-                                m
-                              </p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Wall Area:</p>
-                              <p>{item?.roomArea || 0} m²</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Plaster Area:</p>
-                              <p>{item?.plasterArea} m²</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Total Cost:</p>
-                              <p>Ksh {item?.totalCost || 0}</p>
-                            </div>
-                          </div>
+                // {quoteData.rooms?.length > 0 && (
+                //   <Card className="gradient-card">
+                //     <CardHeader>
+                //       <CardTitle>Rooms & Walls</CardTitle>
+                //     </CardHeader>
+                //     <CardContent className="space-y-4">
+                //       {quoteData.rooms.map((item, idx) => (
+                //         <div
+                //           key={idx}
+                //           className="flex flex-col gap-2 border-b pb-3 last:border-none"
+                //         >
+                //           <div className="space-y-2">
+                //             <div className="flex justify-between">
+                //               <p>Room:</p>
+                //               <p>{item?.room_name || "Unnamed"}</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Dimensions (L × W × H):</p>
+                //               <p>
+                //                 {item?.length} × {item?.width} × {item?.height}{" "}
+                //                 m
+                //               </p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Wall Area:</p>
+                //               <p>{item?.roomArea || 0} m²</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Plaster Area:</p>
+                //               <p>{item?.plasterArea} m²</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Total Cost:</p>
+                //               <p>Ksh {item?.totalCost || 0}</p>
+                //             </div>
+                //           </div>
 
-                          {/* Doors */}
-                          {item?.doors?.length > 0 && (
-                            <div className="mt-2">
-                              <p className="font-semibold">Doors:</p>
-                              <ul className="list-disc pl-6">
-                                {item.doors.map((door, dIdx) => (
-                                  <li
-                                    key={dIdx}
-                                    className="flex justify-between"
-                                  >
-                                    <span>
-                                      Ksh{" "}
-                                      {door.price || door.custom.price || "—"}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {/* Windows */}
-                          {item?.windows?.length > 0 && (
-                            <div className="mt-2">
-                              <p className="font-semibold">Windows:</p>
-                              <ul className="list-disc pl-6">
-                                {item.windows.map((window, wIdx) => (
-                                  <li
-                                    key={wIdx}
-                                    className="flex justify-between"
-                                  >
-                                    <span>
-                                      Ksh{" "}
-                                      {window.price ||
-                                        window.custom.price ||
-                                        "—"}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                //           {item?.doors?.length > 0 && (
+                //             <div className="mt-2">
+                //               <p className="font-semibold">Doors:</p>
+                //               <ul className="list-disc pl-6">
+                //                 {item.doors.map((door, dIdx) => (
+                //                   <li
+                //                     key={dIdx}
+                //                     className="flex justify-between"
+                //                   >
+                //                     <span>
+                //                       Ksh{" "}
+                //                       {door.price || door.custom.price || "—"}
+                //                     </span>
+                //                   </li>
+                //                 ))}
+                //               </ul>
+                //             </div>
+                //           )}
+                //           {item?.windows?.length > 0 && (
+                //             <div className="mt-2">
+                //               <p className="font-semibold">Windows:</p>
+                //               <ul className="list-disc pl-6">
+                //                 {item.windows.map((window, wIdx) => (
+                //                   <li
+                //                     key={wIdx}
+                //                     className="flex justify-between"
+                //                   >
+                //                     <span>
+                //                       Ksh{" "}
+                //                       {window.price ||
+                //                         window.custom.price ||
+                //                         "—"}
+                //                     </span>
+                //                   </li>
+                //                 ))}
+                //               </ul>
+                //             </div>
+                //           )}
 
-                          {/* Costs breakdown */}
-                          <div className="mt-2 space-y-1">
-                            <p className="font-semibold">Cost Breakdown:</p>
-                            <div className="flex justify-between">
-                              <p>Blocks:</p>
-                              <p>Ksh {item?.blockCost || 0}</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Cement:</p>
-                              <p>
-                                {item?.cementBags} bags — Ksh{" "}
-                                {item?.cementCost || 0}
-                              </p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Sand:</p>
-                              <p>
-                                {item?.sandVolume} m³ — Ksh{" "}
-                                {item?.sandCost || 0}
-                              </p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Mortar:</p>
-                              <p>Ksh {item?.mortarCost || 0}</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Plaster:</p>
-                              <p>Ksh {item?.plasterCost || 0}</p>
-                            </div>
-                            <div className="flex justify-between">
-                              <p>Openings:</p>
-                              <p>Ksh {item?.openingsCost || 0}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
+                //           <div className="mt-2 space-y-1">
+                //             <p className="font-semibold">Cost Breakdown:</p>
+                //             <div className="flex justify-between">
+                //               <p>Blocks:</p>
+                //               <p>Ksh {item?.blockCost || 0}</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Cement:</p>
+                //               <p>
+                //                 {item?.cementBags} bags — Ksh{" "}
+                //                 {item?.cementCost || 0}
+                //               </p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Sand:</p>
+                //               <p>
+                //                 {item?.sandVolume} m³ — Ksh{" "}
+                //                 {item?.sandCost || 0}
+                //               </p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Mortar:</p>
+                //               <p>Ksh {item?.mortarCost || 0}</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Plaster:</p>
+                //               <p>Ksh {item?.plasterCost || 0}</p>
+                //             </div>
+                //             <div className="flex justify-between">
+                //               <p>Openings:</p>
+                //               <p>Ksh {item?.openingsCost || 0}</p>
+                //             </div>
+                //           </div>
+                //         </div>
+                //       ))}
+                //     </CardContent>
+                //   </Card>
+                // )}
+                */}
 
                 <Card className="gradient-card">
                   <CardHeader>
@@ -2152,7 +2198,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               </div>
             ))}
           </div>
-          <Progress value={(currentStep / 9) * 100} className="w-full" />
+          <Progress value={(currentStep / 10) * 100} className="w-full" />
         </div>
 
         <AnimatePresence mode="wait" custom={direction}>
@@ -2186,7 +2232,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 9 && (
+          {currentStep < 10 && (
             <Button onClick={nextStep} className="text-white">
               Next
               <ArrowRight className="w-4 h-4 ml-2 text-white" />

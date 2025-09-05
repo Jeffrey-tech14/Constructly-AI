@@ -53,9 +53,10 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
               quoteData.concrete_rows || [],
               quoteData.concrete_materials || []
             ).filter((item) => item.category === "substructure"),
-            ...mapRebarToBOQ(quoteData.rebar_calculations || []).filter(
-              (item) => item.category === "substructure"
-            ),
+            ...mapRebarToBOQ(
+              quoteData.rebar_calculations || [],
+              quoteData.rebar_rows || []
+            ).filter((item) => item.category === "substructure"),
           ],
         },
         {
@@ -65,9 +66,10 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
               quoteData.concrete_rows || [],
               quoteData.concrete_materials || []
             ).filter((item) => item.category === "superstructure"),
-            ...mapRebarToBOQ(quoteData.rebar_calculations || []).filter(
-              (item) => item.category === "superstructure"
-            ),
+            ...mapRebarToBOQ(
+              quoteData.rebar_calculations || [],
+              quoteData.rebar_rows || []
+            ).filter((item) => item.category === "superstructure"),
           ],
         },
         {

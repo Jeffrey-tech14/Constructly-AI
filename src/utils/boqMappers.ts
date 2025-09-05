@@ -76,7 +76,12 @@ export const mapConcreteToBOQ = (
 };
 
 // Map rebar calculator results
-export const mapRebarToBOQ = (rebarResults: any[]): BOQItem[] => {
+export const mapRebarToBOQ = (
+  rebarResults: any[],
+  rebarRows: any[]
+): BOQItem[] => {
+  const from = null;
+  rebarRows.flatMap((result, index) => ({ from: result.element }));
   return rebarResults.flatMap((result, index) => ({
     itemNo: generateItemNumber("REB", index + 1),
     description: `Ribbed bar High Yield steel reinforcement to ${
@@ -89,7 +94,7 @@ export const mapRebarToBOQ = (rebarResults: any[]): BOQItem[] => {
     category: result.category,
     element: "Reinforcement",
     isHeader: false,
-    calculatedFrom: result.element || "Unknown element",
+    calculatedFrom: from || "Unknown element",
   }));
 };
 

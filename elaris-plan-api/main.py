@@ -41,7 +41,7 @@ async def parse_plan(file: UploadFile = File(...)):
 
         # 🚀 Run your Python parser
         result = subprocess.run(
-            ["python3", "parser.py", str(file_path)],
+            ["python", "parser.py", str(file_path)],
             capture_output=True,
             text=True,
             timeout=300,

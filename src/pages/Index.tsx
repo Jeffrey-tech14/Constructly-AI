@@ -38,12 +38,301 @@ import {
   Ruler,
   Wrench,
   Globe,
+  Linkedin,
+  Twitter,
+  Facebook,
+  MessageCircle,
+  Phone,
+  CheckSquare,
+  HardDrive,
+  Download,
+  DollarSign,
+  Smartphone,
+  ChevronRight,
+  CheckCircle,
+  PieChart,
+  FileStack,
+  Plus,
+  Minus,
+  Shield,
+  Hammer,
+  Zap,
+  Server,
+  Database,
+  Code,
+  Cloud,
+  Target,
+  Lightbulb,
+  Headphones,
+  ChevronLeft,
+  Quote,
+  Award as AwardIcon,
+  ChevronRight as ChevronRightIcon,
+  Check,
+  Eye,
+  ClipboardCheck as ClipboardCheckIcon,
+  BarChart3 as BarChartIcon,
+  Settings as SettingsIcon,
+  Calendar as CalendarIcon,
+  Star,
+  ChevronRight as ChevronRightIcon2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { Separator } from "@/components/ui/separator";
+import { supabase } from '@/integrations/supabase/client';
+import { AccordionItem, AccordionTrigger, AccordionContent, Accordion } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
+// ===== PRICING CARD COMPONENT =====
+const PricingCard = ({ plan, isFeatured = false }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5, delay: 0.2 }}
+    whileHover={{ y: -10, transition: { duration: 0.3 } }}
+    className={`
+      bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300
+      hover:shadow-xl hover:border-risa-primary/30
+      ${isFeatured ? 'ring-2 ring-risa-primary shadow-xl relative' : ''}
+    `}
+  >
+    {isFeatured && (
+      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-risa-primary text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
+        Most Popular
+      </span>
+    )}
+    <h3 className="text-2xl font-bold mb-3 text-center text-gray-900 dark:text-white">{plan.name}</h3>
+    <p className="text-3xl font-bold mb-6 text-center text-risa-primary">{plan.price}</p>
+    <ul className="mb-8 space-y-3">
+      {plan.features.map((feature, i) => (
+        <li key={i} className="flex items-center gap-3 text-sm group text-gray-700 dark:text-gray-300">
+          <span className="text-risa-primary">
+            {feature.icon}
+          </span>
+          <span>{feature.text}</span>
+        </li>
+      ))}
+    </ul>
+    <Button className={`
+      w-full py-3 font-semibold transition-all duration-300
+      ${isFeatured 
+        ? 'bg-risa-primary hover:bg-risa-primaryLight' 
+        : 'bg-risa-primary hover:bg-risa-primaryLight'}
+    `}>
+      {plan.buttonText}
+    </Button>
+  </motion.div>
+);
+
+// ===== PAYMENT METHOD COMPONENT =====
+const PaymentMethod = ({ method }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5 }}
+    className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 rounded-xl text-center shadow-sm transition-all duration-300 hover:shadow-md hover:border-risa-primary/30"
+  >
+    <div className="text-3xl mb-4 text-risa-primary">
+      {method.icon}
+    </div>
+    <h4 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">{method.name}</h4>
+    <p className="text-sm text-gray-600 dark:text-gray-400">
+      {method.description}
+    </p>
+  </motion.div>
+);
+
+// ===== TESTIMONIALS SECTION =====
+const TestimonialsSection = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const testimonials = [
+    {
+      quote: "Constructly reduced our estimation time by 70% and improved accuracy by 40%. The AI-powered insights have transformed how we approach project budgeting.",
+      name: "Michael Johnson",
+      title: "Senior Estimator",
+      company: "ConstructCo Ltd",
+      rating: 5,
+      results: [
+        { value: "70%", label: "Time Reduction" },
+        { value: "40%", label: "Accuracy Improvement" }
+      ]
+    },
+    {
+      quote: "The AI-powered insights have transformed how we approach project budgeting. We're now able to bid on more projects with confidence in our cost projections.",
+      name: "Sarah Williams",
+      title: "Project Director",
+      company: "UrbanBuild Group",
+      rating: 5,
+      results: [
+        { value: "35%", label: "More Projects" },
+        { value: "25%", label: "Team Productivity" }
+      ]
+    },
+    {
+      quote: "An essential tool for any modern construction firm. The ROI was immediate, and our team has embraced the platform wholeheartedly for all our estimation needs.",
+      name: "David Chen",
+      title: "CTO",
+      company: "Skyline Developments",
+      rating: 4,
+      results: [
+        { value: "90%", label: "ROI in 3 months" },
+        { value: "100%", label: "Team Adoption" }
+      ]
+    }
+  ];
+
+  const nextTestimonial = () => {
+    setActiveIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevTestimonial = () => {
+    setActiveIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextTestimonial();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeIndex, testimonials.length]);
+
+  const currentTestimonial = testimonials[activeIndex];
+
+  return (
+    <section id="testimonials" className="py-20 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <Badge className="bg-risa-primary/10 text-risa-primary mb-4">
+            <Star className="w-3 h-3 mr-1" /> Client Testimonials
+          </Badge>
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+            Trusted by Industry Leaders
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Hear from industry professionals who have transformed their estimation process with our solution.
+          </p>
+        </motion.div>
+
+        <div className="max-w-5xl mx-auto relative mb-20">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={prevTestimonial}
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-risa-primary transition-all border border-gray-200 dark:border-gray-700"
+            aria-label="Previous testimonial"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={nextTestimonial}
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-risa-primary transition-all border border-gray-200 dark:border-gray-700"
+            aria-label="Next testimonial"
+          >
+            <ChevronRightIcon2 className="w-5 h-5" />
+          </motion.button>
+
+          <div className="relative h-auto overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3">
+                  <div className="lg:col-span-2 p-6 md:p-8">
+                    <div className="text-risa-primary text-4xl mb-4">
+                      <Quote className="opacity-70" />
+                    </div>
+                    <p className="text-lg text-gray-800 dark:text-white mb-6 leading-relaxed italic">
+                      "{currentTestimonial.quote}"
+                    </p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between">
+                      <div className="flex items-center mb-4 md:mb-0">
+                        <div className="bg-risa-primary w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                          {currentTestimonial.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="ml-4">
+                          <h4 className="font-bold text-gray-900 dark:text-white">{currentTestimonial.name}</h4>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{currentTestimonial.title}, {currentTestimonial.company}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-5 h-5 ${i < currentTestimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-6 md:p-8 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-600">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Key Achievements</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {currentTestimonial.results.map((result, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 + 0.3 }}
+                          className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center"
+                        >
+                          <div className="text-2xl font-extrabold text-risa-primary mb-1">{result.value}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{result.label}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {testimonials.length > 1 && (
+            <div className="flex justify-center mt-6 space-x-2">
+              {testimonials.map((_, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => setActiveIndex(index)}
+                  whileHover={{ scale: 1.2 }}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    index === activeIndex ? 'bg-risa-primary' : 'bg-gray-300'
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // ===== THEME TOGGLE =====
 const ThemeToggle = () => {
@@ -135,7 +424,7 @@ const FaqSection = () => {
   const [search, setSearch] = useState("");
   const faqsData = {
     "General": {
-      icon: <HelpCircle className="w-5 w-5 text-risa-primary" />,
+      icon: <HelpCircle className="w-5 h-5 text-risa-primary" />,
       items: [
         {
           question: "What file formats does Constructly support?",
@@ -192,7 +481,7 @@ const FaqSection = () => {
       ],
     },
     "Account & Billing": {
-      icon: <CreditCard className="w-5 w-5 text-risa-primary" />,
+      icon: <CreditCard className="w-5 h-5 text-risa-primary" />,
       items: [
         {
           question: "What payment methods are accepted?",
@@ -241,7 +530,7 @@ const FaqSection = () => {
       ],
     },
     "Technical Support": {
-      icon: <Settings className="w-5 w-5 text-risa-primary" />,
+      icon: <Settings className="w-5 h-5 text-risa-primary" />,
       items: [
         {
           question: "What should I do if I'm having trouble uploading plans?",
@@ -294,7 +583,7 @@ const FaqSection = () => {
     faq.question.toLowerCase().includes(search.toLowerCase())
   );
   return (
-    <section className="py-20 bg-white dark:bg-gray-900">
+    <section id="faq" className="py-20 bg-white dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-6">
         <motion.h2 
           className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12"
@@ -505,28 +794,28 @@ const HowItWorks = () => {
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {steps.map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: i * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
-              className="text-center"
-            >
-              <div className={`w-20 h-20 mx-auto rounded-full ${step.color} flex items-center justify-center mb-4 shadow-lg`}>
-                {step.icon}
-              </div>
-              <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-2">
-                {step.title}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {step.desc}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+            {steps.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: i * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+                className="text-center"
+              >
+                <div className={`w-20 h-20 mx-auto rounded-full ${step.color} flex items-center justify-center mb-4 shadow-lg`}>
+                  {step.icon}
+                </div>
+                <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  {step.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
       </div>
     </section>
   );
@@ -540,7 +829,74 @@ const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [tiers, setTiers] = useState([]);
+  const [loading, setLoading] = useState(true);
   
+  // Pricing data
+  const pricingPlans = [
+    {
+      name: "Free",
+      price: "KES 0",
+      features: [
+        { text: "Up to 3 projects", icon: <Users className="w-5 h-5" /> },
+        { text: "Basic AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "Manual Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "100MB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
+        { text: "Basic Report Generation", icon: <Download className="w-5 h-5" /> },
+        { text: "Community Support", icon: <Wrench className="w-5 h-5" /> },
+      ],
+      buttonText: "Get Started",
+    },
+    {
+      name: "Basic",
+      price: "KES 5,000",
+      features: [
+        { text: "Up to 10 projects", icon: <Users className="w-5 h-5" /> },
+        { text: "AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "1GB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
+        { text: "Standard Report Generation", icon: <Download className="w-5 h-5" /> },
+        { text: "Email Support", icon: <Wrench className="w-5 h-5" /> },
+      ],
+      buttonText: "Get Started",
+    },
+    {
+      name: "Professional",
+      price: "KES 7,500",
+      features: [
+        { text: "Unlimited Projects", icon: <Users className="w-5 h-5" /> },
+        { text: "Advanced AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
+        { text: "5GB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
+        { text: "Advanced Report Generation", icon: <Download className="w-5 h-5" /> },
+        { text: "Priority Email & Chat Support", icon: <Wrench className="w-5 h-5" /> },
+      ],
+      buttonText: "Get Started",
+    }
+  ];
+  const paymentMethods = [
+    {
+      name: "Credit/Debit Card",
+      icon: <DollarSign className="w-10 h-10" />,
+      description: "Secure payments via Visa, Mastercard, and American Express.",
+    },
+    {
+      name: "M-Pesa",
+      icon: <Smartphone className="w-10 h-10" />,
+      description: "Convenient mobile payments for Kenyan users.",
+    },
+    {
+      name: "Bank Transfer",
+      icon: <Briefcase className="w-10 h-10" />,
+      description: "Direct bank transfers for enterprise payments.",
+    },
+    {
+      name: "PayPal",
+      icon: <DollarSign className="w-10 h-10" />,
+      description: "International payments processed securely.",
+    },
+  ];
+
   // Handle scroll for navbar animation
   useEffect(() => {
     const handleScroll = () => {
@@ -554,6 +910,21 @@ const Index = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+
+  // Fetch tiers from Supabase
+  useEffect(() => {
+    const fetchTiers = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from('tiers').select('*').order('id');
+      if (error) {
+        console.error('Error fetching tiers:', error);
+      } else {
+        setTiers(data || []);
+      }
+      setLoading(false);
+    };
+    fetchTiers();
+  }, []);
 
   // Fixed scrollTo function for navbar
   const scrollTo = (id) => {
@@ -569,6 +940,10 @@ const Index = () => {
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
+
+  const handleStartTrial = () => {
+    navigate('/auth?mode=signup');
+  };
 
   return (
     <div
@@ -892,195 +1267,133 @@ const Index = () => {
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
       >
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <motion.h2 
-            className="text-3xl font-bold text-gray-800 dark:text-white mb-4"
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
+            transition={{ duration: 0.7 }}
             viewport={{ once: true }}
+            className="text-center mb-16"
           >
-            Simple, Transparent Pricing
-          </motion.h2>
-          <motion.p 
-            className="text-gray-600 dark:text-gray-300 mb-12"
+            <motion.h2 
+              className="text-3xl font-bold mb-5 text-gray-900 dark:text-white"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              Choose Your Perfect Plan
+            </motion.h2>
+            <motion.p 
+              className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              Unlock powerful features designed to elevate your business. Select the plan that aligns with your scale and needs.
+            </motion.p>
+          </motion.div>
+          <div className="grid md:grid-cols-3 gap-8 mb-20 items-start w-full">
+            {pricingPlans.map((plan, i) => (
+              <PricingCard key={i} plan={plan} isFeatured={plan.name === "Professional"} />
+            ))}
+          </div>
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
+            transition={{ duration: 0.7 }}
             viewport={{ once: true }}
+            className="text-center mb-14"
           >
-            Choose the plan that fits your construction business needs.
-          </motion.p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: "Starter", price: "$0", popular: false, features: ["Up to 5 plans/month", "Basic quote generation", "Email Support", "Standard templates"] },
-              { name: "Professional", price: "$299", popular: true, features: ["Unlimited plans", "Advanced AI analysis", "Priority Support", "Custom templates", "Team collaboration"] },
-              { name: "Enterprise", price: "Custom", popular: false, features: ["Unlimited everything", "Dedicated account manager", "White-label reports", "API access", "On-premise deployment"] },
-            ].map((tier, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.03 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card
-                  className={`relative overflow-hidden transition-all duration-500 h-full flex flex-col bg-white dark:bg-gray-800 ${
-                    tier.popular ? "border-risa-primary shadow-xl ring-2 ring-risa-primary/20" : ""
-                  }`}
-                >
-                  {tier.popular && (
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-risa-primary text-white text-xs font-bold px-4 py-1">
-                      MOST POPULAR
-                    </div>
-                  )}
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-gray-800 dark:text-white">{tier.name}</CardTitle>
-                    <div className="flex items-baseline justify-center">
-                      <span className="text-3xl font-bold text-gray-800 dark:text-white">{tier.price}</span>
-                      {tier.price !== "Custom" && tier.price !== "$0" && <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">/month</span>}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <ul className="space-y-3 mb-6 text-left">
-                      {tier.features.map((f, j) => (
-                        <li key={j} className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                          <span className="text-risa-primary mr-2">✓</span> {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      onClick={() => navigate('/auth')}
-                      className={`w-full ${
-                        tier.popular
-                          ? "bg-risa-primary hover:bg-risa-primaryLight"
-                          : "bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
-                      } text-white lowercase mt-auto py-4`}
-                    >
-                      Get Started
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
+            <motion.h3 
+              className="text-2xl font-bold mb-5 text-gray-900 dark:text-white"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              Flexible Payment Options
+            </motion.h3>
+            <motion.p 
+              className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              We provide a variety of secure and convenient ways to pay, ensuring a smooth transaction experience.
+            </motion.p>
+          </motion.div>
+          <div className="grid md:grid-cols-4 gap-6 w-full">
+            {paymentMethods.map((method, i) => (
+              <PaymentMethod key={i} method={method} />
             ))}
           </div>
         </div>
       </motion.section>
       
       {/* ===== TESTIMONIALS SECTION ===== */}
-      <motion.section
-        id="testimonials"
-        className="py-20 bg-gray-50 dark:bg-gray-800"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        viewport={{ once: true }}
-      >
-        <div className="max-w-7xl mx-auto px-6">
-          <motion.h2 
-            className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            What Our Customers Say
-          </motion.h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { 
-                name: "Sarah K.", 
-                role: "Project Manager", 
-                company: "BuildRight Construction", 
-                text: "Constructly has cut our quoting time by 70%. The accuracy of material estimates has improved our profitability significantly.",
-                avatar: "/avatar1.jpg"
-              },
-              { 
-                name: "James L.", 
-                role: "Estimator", 
-                company: "Precision Builders", 
-                text: "The AI analysis is incredibly accurate. We've reduced estimation errors by 90% since implementing Constructly.",
-                avatar: "/avatar2.jpg"
-              },
-              { 
-                name: "Marta R.", 
-                role: "Business Owner", 
-                company: "R&R Construction", 
-                text: "As a small business, Constructly gives us the estimating power of large corporations. Our quotes are now more competitive than ever.",
-                avatar: "/avatar3.jpg"
-              },
-            ].map((t, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <Card className="bg-white dark:bg-gray-800 p-8 text-left transition-all duration-300 h-full flex flex-col transform hover:scale-105">
-                  <div className="flex text-risa-primary mb-4">
-                    {[...Array(5)].map((_, idx) => (
-                      <svg key={idx} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6 italic text-lg">"{t.text}"</p>
-                  <div className="flex items-center mt-auto">
-                    <div className="w-12 h-12 rounded-full bg-risa-primary/20 flex items-center justify-center mr-4">
-                      <span className="text-risa-primary font-bold text-lg">{t.name.charAt(0)}</span>
-                    </div>
-                    <div>
-                      <div className="font-bold text-gray-800 dark:text-white">{t.name}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">{t.role}, {t.company}</div>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.section>
+      <TestimonialsSection />
       
       {/* ===== FAQ SECTION ===== */}
       <FaqSection />
       
       {/* ===== FOOTER ===== */}
       <motion.footer
-        className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white py-12"
+        className="py-16 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center mb-4">
                 <DraftingCompass className="h-6 w-6 text-risa-primary" />
-                <span className="text-xl font-bold">Constructly</span>
+                <span className="text-xl font-bold ml-3 text-risa-primary">Constructly</span>
               </div>
-              <p className="text-gray-700 dark:text-gray-300 text-sm">
-                Advanced construction plan analysis and quote generation for the modern construction industry.
+              <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
+                Empowering construction professionals with modern, efficient tools.
               </p>
             </div>
             <div>
-              <h5 className="font-bold mb-4">Navigation</h5>
-              <ul className="space-y-2 text-sm">
-                <li><button onClick={() => scrollTo('features')} className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left">Features</button></li>
-                <li><button onClick={() => scrollTo('pricing')} className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left">Pricing</button></li>
-                <li><button onClick={() => scrollTo('testimonials')} className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left">Testimonials</button></li>
-                <li><button onClick={() => scrollTo('faq')} className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left">FAQ</button></li>
+              <h3 className="font-bold mb-4 text-lg text-gray-900 dark:text-white">Product</h3>
+              <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
+                <li><button onClick={() => scrollTo('features')} className="hover:text-risa-primary transition block text-left">Features</button></li>
+                <li><button onClick={() => scrollTo('pricing')} className="hover:text-risa-primary transition block text-left">Pricing</button></li>
+                <li><button onClick={() => scrollTo('testimonials')} className="hover:text-risa-primary transition block text-left">Testimonials</button></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4 text-lg text-gray-900 dark:text-white">Contact</h3>
+              <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
+                <li className="flex items-start">
+                  <MessageCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <a href="mailto:support@constructly.africa" className="hover:text-risa-primary transition block">support@constructly.africa</a>
+                </li>
+                <li className="flex items-start">
+                  <Phone className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="hover:text-risa-primary transition block">+254 700 123 456</span>
+                </li>
+                <li className="flex items-start">
+                  <MapPin className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="hover:text-risa-primary transition block">Nairobi, Kenya</span>
+                </li>
               </ul>
             </div>
           </div>
-          <hr className="border-gray-200 dark:border-gray-700 my-8" />
-          <div className="text-gray-600 dark:text-gray-400 text-sm">
-            © 2023 Constructly. All rights reserved.
+          <Separator className="my-8 bg-gray-200 dark:bg-gray-700" />
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              © {new Date().getFullYear()} Constructly. All rights reserved.
+            </span>
+            <div className="flex gap-4">
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-sm">Privacy Policy</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-sm">Terms of Service</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-sm">Cookie Policy</a>
+            </div>
           </div>
         </div>
       </motion.footer>

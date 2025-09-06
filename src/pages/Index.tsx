@@ -114,9 +114,9 @@ const PricingCard = ({ plan, isFeatured = false }) => (
         Most Popular
       </span>
     )}
-    <h3 className="text-2xl font-bold mb-3 text-center text-gray-900 dark:text-white">{plan.name}</h3>
-    <p className="text-3xl font-bold mb-6 text-center text-risa-primary">{plan.price}</p>
-    <ul className="mb-8 space-y-3">
+    <h3 className="text-xl font-bold mb-3 text-center text-gray-900 dark:text-white">{plan.name}</h3>
+    <p className="text-2xl font-bold mb-4 text-center text-risa-primary">{plan.price}</p>
+    <ul className="mb-6 space-y-3">
       {plan.features.map((feature, i) => (
         <li key={i} className="flex items-center gap-3 text-sm group text-gray-700 dark:text-gray-300">
           <span className="text-risa-primary">
@@ -213,44 +213,44 @@ const TestimonialsSection = () => {
   const currentTestimonial = testimonials[activeIndex];
 
   return (
-    <section id="testimonials" className="py-20 bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="testimonials" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-10 md:mb-12"
         >
-          <Badge className="bg-risa-primary/10 text-risa-primary mb-4">
+          <Badge className="bg-risa-primary/10 text-risa-primary mb-4 text-xs">
             <Star className="w-3 h-3 mr-1" /> Client Testimonials
           </Badge>
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
             Trusted by Industry Leaders
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-base">
             Hear from industry professionals who have transformed their estimation process with our solution.
           </p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto relative mb-20">
+        <div className="max-w-5xl mx-auto relative mb-16 md:mb-20">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={prevTestimonial}
-            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-risa-primary transition-all border border-gray-200 dark:border-gray-700"
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-risa-primary transition-all border border-gray-200 dark:border-gray-700"
             aria-label="Previous testimonial"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={nextTestimonial}
-            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-risa-primary transition-all border border-gray-200 dark:border-gray-700"
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-risa-primary transition-all border border-gray-200 dark:border-gray-700"
             aria-label="Next testimonial"
           >
-            <ChevronRightIcon2 className="w-5 h-5" />
+            <ChevronRightIcon2 className="w-4 h-4 md:w-5 md:h-5" />
           </motion.button>
 
           <div className="relative h-auto overflow-hidden">
@@ -264,20 +264,20 @@ const TestimonialsSection = () => {
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-3">
-                  <div className="lg:col-span-2 p-6 md:p-8">
-                    <div className="text-risa-primary text-4xl mb-4">
+                  <div className="lg:col-span-2 p-4 md:p-6 lg:p-8">
+                    <div className="text-risa-primary text-3xl md:text-4xl mb-4">
                       <Quote className="opacity-70" />
                     </div>
-                    <p className="text-lg text-gray-800 dark:text-white mb-6 leading-relaxed italic">
+                    <p className="text-base md:text-lg text-gray-800 dark:text-white mb-6 leading-relaxed italic">
                       "{currentTestimonial.quote}"
                     </p>
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                       <div className="flex items-center mb-4 md:mb-0">
-                        <div className="bg-risa-primary w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                        <div className="bg-risa-primary w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-base md:text-lg flex-shrink-0">
                           {currentTestimonial.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="ml-4">
-                          <h4 className="font-bold text-gray-900 dark:text-white">{currentTestimonial.name}</h4>
+                        <div className="ml-3 md:ml-4">
+                          <h4 className="font-bold text-gray-900 dark:text-white text-base">{currentTestimonial.name}</h4>
                           <p className="text-gray-600 dark:text-gray-400 text-sm">{currentTestimonial.title}, {currentTestimonial.company}</p>
                         </div>
                       </div>
@@ -285,25 +285,25 @@ const TestimonialsSection = () => {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-5 h-5 ${i < currentTestimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                            className={`w-4 h-4 md:w-5 md:h-5 ${i < currentTestimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
                           />
                         ))}
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-6 md:p-8 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-600">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Key Achievements</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 md:p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-600">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Key Achievements</h3>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
                       {currentTestimonial.results.map((result, index) => (
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 + 0.3 }}
-                          className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center"
+                          className="bg-white dark:bg-gray-800 p-3 md:p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center"
                         >
-                          <div className="text-2xl font-extrabold text-risa-primary mb-1">{result.value}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">{result.label}</div>
+                          <div className="text-xl md:text-2xl font-extrabold text-risa-primary mb-1">{result.value}</div>
+                          <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">{result.label}</div>
                         </motion.div>
                       ))}
                     </div>
@@ -314,7 +314,7 @@ const TestimonialsSection = () => {
           </div>
 
           {testimonials.length > 1 && (
-            <div className="flex justify-center mt-6 space-x-2">
+            <div className="flex justify-center mt-4 md:mt-6 space-x-2">
               {testimonials.map((_, index) => (
                 <motion.button
                   key={index}
@@ -363,7 +363,7 @@ const ThemeToggle = () => {
         className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-yellow-300 transition-colors duration-300"
         aria-label="Toggle dark mode"
       >
-        {darkMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        {darkMode ? <Moon className="h-4 w-4 md:h-5 md:w-5" /> : <Sun className="h-4 w-4 md:h-5 md:w-5" />}
       </button>
     </div>
   );
@@ -398,7 +398,7 @@ const VideoModal = ({ isOpen, onClose }) => {
       >
         <div className="flex justify-end p-2">
           <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-800 dark:text-white bg-white/80 hover:bg-white">
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </Button>
         </div>
         <video
@@ -424,21 +424,21 @@ const FaqSection = () => {
   const [search, setSearch] = useState("");
   const faqsData = {
     "General": {
-      icon: <HelpCircle className="w-5 h-5 text-risa-primary" />,
+      icon: <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-risa-primary" />,
       items: [
         {
           question: "What file formats does Constructly support?",
           answer: (
             <div className="space-y-3">
               <p>Constructly supports all major CAD formats including:</p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+              <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 text-sm">
                 <li>DWG and DXF (AutoCAD formats)</li>
                 <li>PDF documents with vector data</li>
                 <li>Image formats: JPG, PNG, TIFF</li>
                 <li>Revit files (RVT)</li>
                 <li>SketchUp files (SKP)</li>
               </ul>
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                 <p>Tip: For best results, use vector-based files rather than raster images when possible.</p>
               </div>
             </div>
@@ -449,12 +449,12 @@ const FaqSection = () => {
           answer: (
             <div className="space-y-3">
               <p>Our AI-powered analysis achieves:</p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+              <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300 text-sm">
                 <li>Over 95% accuracy on standard construction plans</li>
                 <li>90-93% accuracy on complex or custom designs</li>
                 <li>Consistent results across various project types</li>
               </ul>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800 text-sm text-yellow-800 dark:text-yellow-300">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded border border-yellow-200 dark:border-yellow-800 text-xs text-yellow-800 dark:text-yellow-300">
                 <p>Note: Accuracy may vary based on plan quality and complexity. We recommend reviewing estimates before finalizing quotes.</p>
               </div>
             </div>
@@ -465,14 +465,14 @@ const FaqSection = () => {
           answer: (
             <div className="space-y-3">
               <p>Yes, all plans include customizable templates with:</p>
-              <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+              <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300 text-sm">
                 <li>Your company logo and branding</li>
                 <li>Custom categories and item descriptions</li>
                 <li>Company-specific terminology</li>
                 <li>Flexible pricing structures</li>
                 <li>Multiple currency and unit options</li>
               </ol>
-              <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800 text-sm text-green-800 dark:text-green-300">
+              <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-800 dark:text-green-300">
                 <p>Professional and Enterprise plans offer advanced customization options.</p>
               </div>
             </div>
@@ -481,7 +481,7 @@ const FaqSection = () => {
       ],
     },
     "Account & Billing": {
-      icon: <CreditCard className="w-5 h-5 text-risa-primary" />,
+      icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-risa-primary" />,
       items: [
         {
           question: "What payment methods are accepted?",
@@ -489,7 +489,7 @@ const FaqSection = () => {
             <div className="space-y-3">
               <p>We accept various payment methods:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-300">
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
                   <h4 className="font-medium mb-2">Online Payments</h4>
                   <ul className="space-y-1">
                     <li>• Credit/Debit Cards</li>
@@ -497,7 +497,7 @@ const FaqSection = () => {
                     <li>• Bank Transfer</li>
                   </ul>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                   <h4 className="font-medium mb-2">Other Options</h4>
                   <ul className="space-y-1">
                     <li>• Annual billing discounts</li>
@@ -514,14 +514,14 @@ const FaqSection = () => {
           answer: (
             <div className="space-y-3">
               <p>To change your plan:</p>
-              <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+              <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300 text-sm">
                 <li>Log in to your account</li>
                 <li>Navigate to 'Billing' section</li>
                 <li>Select 'Change Plan'</li>
                 <li>Choose your new plan</li>
                 <li>Confirm the changes</li>
               </ol>
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded border border-purple-200 dark:border-purple-800 text-sm text-purple-700 dark:text-purple-300">
+              <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded border border-purple-200 dark:border-purple-800 text-xs text-purple-700 dark:text-purple-300">
                 <p>Note: Plan changes take effect immediately. Prorated charges or credits will be applied to your next invoice.</p>
               </div>
             </div>
@@ -530,21 +530,21 @@ const FaqSection = () => {
       ],
     },
     "Technical Support": {
-      icon: <Settings className="w-5 h-5 text-risa-primary" />,
+      icon: <Settings className="w-4 h-4 md:w-5 md:h-5 text-risa-primary" />,
       items: [
         {
           question: "What should I do if I'm having trouble uploading plans?",
           answer: (
             <div className="space-y-3">
               <p>If you're experiencing upload issues:</p>
-              <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+              <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300 text-sm">
                 <li>Check your internet connection</li>
                 <li>Ensure your file format is supported</li>
                 <li>Verify the file is not corrupted or password protected</li>
                 <li>Try compressing large files before uploading</li>
                 <li>Contact support if issues persist</li>
               </ol>
-              <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+              <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300">
                 <p>Emergency: Contact support immediately for critical issues affecting your business operations.</p>
               </div>
             </div>
@@ -556,7 +556,7 @@ const FaqSection = () => {
             <div className="space-y-3">
               <p>For optimal analysis results:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                   <h4 className="font-medium mb-2">File Preparation</h4>
                   <ul className="space-y-1">
                     <li>• Use vector formats when possible</li>
@@ -564,7 +564,7 @@ const FaqSection = () => {
                     <li>• Use standard architectural scales</li>
                   </ul>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800 text-sm text-green-700 dark:text-green-300">
+                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
                   <h4 className="font-medium mb-2">Best Practices</h4>
                   <ul className="space-y-1">
                     <li>• Organize layers properly</li>
@@ -583,10 +583,10 @@ const FaqSection = () => {
     faq.question.toLowerCase().includes(search.toLowerCase())
   );
   return (
-    <section id="faq" className="py-20 bg-white dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="faq" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2 
-          className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12"
+          className="text-2xl md:text-3xl font-bold text-center text-gray-800 dark:text-white mb-10 md:mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
@@ -596,7 +596,7 @@ const FaqSection = () => {
         </motion.h2>
         {/* Category Tabs */}
         <motion.div 
-          className="flex flex-wrap justify-center gap-3 mb-8"
+          className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
@@ -610,7 +610,7 @@ const FaqSection = () => {
                 setOpenIndex(null);
                 setSearch("");
               }}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full transition-all text-sm ${
                 activeCategory === key
                   ? "bg-risa-primary text-white shadow-lg"
                   : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -619,24 +619,24 @@ const FaqSection = () => {
               whileTap={{ scale: 0.95 }}
             >
               {icon}
-              <span className="text-sm font-medium">{key}</span>
+              <span className="font-medium">{key}</span>
             </motion.button>
           ))}
         </motion.div>
         {/* Search Bar */}
         <motion.div 
-          className="max-w-xl mx-auto mb-8"
+          className="max-w-xl mx-auto mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.2 }}
           viewport={{ once: true }}
         >
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4 md:w-5 md:h-5" />
             <input
               type="text"
               placeholder={`Search ${activeCategory} FAQs...`}
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:ring-2 focus:ring-risa-primary focus:border-transparent transition-all duration-300"
+              className="w-full pl-10 pr-4 py-2 md:py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:ring-2 focus:ring-risa-primary focus:border-transparent transition-all duration-300 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -652,7 +652,7 @@ const FaqSection = () => {
         </motion.div>
         {/* FAQ List */}
         <motion.div 
-          className="grid md:grid-cols-2 gap-6"
+          className="grid md:grid-cols-2 gap-4 md:gap-6"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.3 }}
@@ -673,16 +673,16 @@ const FaqSection = () => {
               >
                 <motion.button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                  className="w-full p-6 text-left flex justify-between items-center"
+                  className="w-full p-4 md:p-6 text-left flex justify-between items-center"
                   whileTap={{ scale: 0.98 }}
                 >
-                  <h3 className="text-base font-medium text-gray-800 dark:text-white pr-4">{faq.question}</h3>
+                  <h3 className="text-sm md:text-base font-medium text-gray-800 dark:text-white pr-4">{faq.question}</h3>
                   <motion.span
                     animate={{ rotate: openIndex === i ? 180 : 0 }}
                     className="text-risa-primary flex-shrink-0"
                     transition={{ duration: 0.3 }}
                   >
-                    <ChevronDown className="h-5 w-5" />
+                    <ChevronDown className="h-4 w-4 md:h-5 md:w-5" />
                   </motion.span>
                 </motion.button>
                 <AnimatePresence>
@@ -705,7 +705,7 @@ const FaqSection = () => {
                           opacity: { duration: 0.2 }
                         }
                       }}
-                      className="px-6 pb-6 text-gray-700 dark:text-gray-300 text-sm overflow-hidden"
+                      className="px-4 md:px-6 pb-4 md:pb-6 text-gray-700 dark:text-gray-300 text-sm overflow-hidden"
                     >
                       {faq.answer}
                     </motion.div>
@@ -717,26 +717,26 @@ const FaqSection = () => {
         </motion.div>
         {/* Support CTA */}
         <motion.div 
-          className="mt-12 p-8 bg-risa-primary rounded-xl text-center text-white"
+          className="mt-10 md:mt-12 p-6 md:p-8 bg-risa-primary rounded-xl text-center text-white"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
           viewport={{ once: true }}
           whileHover={{ y: -5 }}
         >
-          <h3 className="text-2xl font-bold mb-4">Need More Help?</h3>
-          <p className="mb-6 opacity-90">Our support team is available to assist you</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <h3 className="text-xl md:text-2xl font-bold mb-4">Need More Help?</h3>
+          <p className="mb-6 opacity-90 text-sm md:text-base">Our support team is available to assist you</p>
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <a 
               href="tel:9499515815" 
-              className="bg-white hover:bg-gray-100 text-risa-primary px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              className="bg-white hover:bg-gray-100 text-risa-primary px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
             >
               <PhoneCall className="w-4 h-4" />
               Call Support: 949 951 5815
             </a>
             <a 
               href="mailto:support@constructly.com"
-              className="border border-white text-white hover:bg-white hover:text-risa-primary px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              className="border border-white text-white hover:bg-white hover:text-risa-primary px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
             >
               <Mail className="w-4 h-4" />
               Email Us
@@ -752,48 +752,48 @@ const FaqSection = () => {
 const HowItWorks = () => {
   const steps = [
     {
-      icon: <UploadCloud className="h-10 w-10 text-white" />,
+      icon: <UploadCloud className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "Upload Plans",
       desc: "Upload your construction plans in various formats",
       color: "bg-risa-primary"
     },
     {
-      icon: <BarChart3 className="h-10 w-10 text-white" />,
+      icon: <BarChart3 className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "AI Analysis",
       desc: "Our system analyzes materials, dimensions, and requirements",
       color: "bg-blue-600"
     },
     {
-      icon: <Calculator className="h-10 w-10 text-white" />,
+      icon: <Calculator className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "Automated Calculations",
       desc: "Get precise quantity takeoffs and cost estimates",
       color: "bg-green-600"
     },
     {
-      icon: <FileText className="h-10 w-10 text-white" />,
+      icon: <FileText className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "Generate Quote",
       desc: "Create professional quotes ready to send to clients",
       color: "bg-purple-600"
     }
   ];
   return (
-    <section className="py-16 bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-12 md:py-16 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-10 md:mb-12"
         >
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
             How Constructly Works
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto text-base">
             Transform your construction plans into accurate quotes with our specialized analysis system
           </p>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
@@ -804,10 +804,10 @@ const HowItWorks = () => {
                 whileHover={{ y: -5 }}
                 className="text-center"
               >
-                <div className={`w-20 h-20 mx-auto rounded-full ${step.color} flex items-center justify-center mb-4 shadow-lg`}>
+                <div className={`w-16 h-16 md:w-20 md:h-20 mx-auto rounded-full ${step.color} flex items-center justify-center mb-4 shadow-lg`}>
                   {step.icon}
                 </div>
-                <h3 className="font-bold text-lg text-gray-800 dark:text-white mb-2">
+                <h3 className="font-bold text-base md:text-lg text-gray-800 dark:text-white mb-2">
                   {step.title}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm">
@@ -838,12 +838,12 @@ const Index = () => {
       name: "Free",
       price: "KES 0",
       features: [
-        { text: "Up to 3 projects", icon: <Users className="w-5 h-5" /> },
-        { text: "Basic AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
-        { text: "Manual Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
-        { text: "100MB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
-        { text: "Basic Report Generation", icon: <Download className="w-5 h-5" /> },
-        { text: "Community Support", icon: <Wrench className="w-5 h-5" /> },
+        { text: "Up to 3 projects", icon: <Users className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Basic AI Sketch Recognition", icon: <CheckSquare className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Manual Quantity Takeoff", icon: <CheckSquare className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "100MB Cloud Storage", icon: <HardDrive className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Basic Report Generation", icon: <Download className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Community Support", icon: <Wrench className="w-4 h-4 md:w-5 md:h-5" /> },
       ],
       buttonText: "Get Started",
     },
@@ -851,12 +851,12 @@ const Index = () => {
       name: "Basic",
       price: "KES 5,000",
       features: [
-        { text: "Up to 10 projects", icon: <Users className="w-5 h-5" /> },
-        { text: "AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
-        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
-        { text: "1GB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
-        { text: "Standard Report Generation", icon: <Download className="w-5 h-5" /> },
-        { text: "Email Support", icon: <Wrench className="w-5 h-5" /> },
+        { text: "Up to 10 projects", icon: <Users className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "AI Sketch Recognition", icon: <CheckSquare className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "1GB Cloud Storage", icon: <HardDrive className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Standard Report Generation", icon: <Download className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Email Support", icon: <Wrench className="w-4 h-4 md:w-5 md:h-5" /> },
       ],
       buttonText: "Get Started",
     },
@@ -864,12 +864,12 @@ const Index = () => {
       name: "Professional",
       price: "KES 7,500",
       features: [
-        { text: "Unlimited Projects", icon: <Users className="w-5 h-5" /> },
-        { text: "Advanced AI Sketch Recognition", icon: <CheckSquare className="w-5 h-5" /> },
-        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-5 h-5" /> },
-        { text: "5GB Cloud Storage", icon: <HardDrive className="w-5 h-5" /> },
-        { text: "Advanced Report Generation", icon: <Download className="w-5 h-5" /> },
-        { text: "Priority Email & Chat Support", icon: <Wrench className="w-5 h-5" /> },
+        { text: "Unlimited Projects", icon: <Users className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Advanced AI Sketch Recognition", icon: <CheckSquare className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Automated Quantity Takeoff", icon: <CheckSquare className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "5GB Cloud Storage", icon: <HardDrive className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Advanced Report Generation", icon: <Download className="w-4 h-4 md:w-5 md:h-5" /> },
+        { text: "Priority Email & Chat Support", icon: <Wrench className="w-4 h-4 md:w-5 md:h-5" /> },
       ],
       buttonText: "Get Started",
     }
@@ -877,22 +877,22 @@ const Index = () => {
   const paymentMethods = [
     {
       name: "Credit/Debit Card",
-      icon: <DollarSign className="w-10 h-10" />,
+      icon: <DollarSign className="w-8 h-8 md:w-10 md:h-10" />,
       description: "Secure payments via Visa, Mastercard, and American Express.",
     },
     {
       name: "M-Pesa",
-      icon: <Smartphone className="w-10 h-10" />,
+      icon: <Smartphone className="w-8 h-8 md:w-10 md:h-10" />,
       description: "Convenient mobile payments for Kenyan users.",
     },
     {
       name: "Bank Transfer",
-      icon: <Briefcase className="w-10 h-10" />,
+      icon: <Briefcase className="w-8 h-8 md:w-10 md:h-10" />,
       description: "Direct bank transfers for enterprise payments.",
     },
     {
       name: "PayPal",
-      icon: <DollarSign className="w-10 h-10" />,
+      icon: <DollarSign className="w-8 h-8 md:w-10 md:h-10" />,
       description: "International payments processed securely.",
     },
   ];
@@ -957,10 +957,10 @@ const Index = () => {
         transition={{ duration: 0.5 }}
         className="bg-white dark:bg-gray-800 py-1.5 text-sm text-gray-700 dark:text-gray-300"
       >
-        <div className="max-w-7xl mx-auto px-6 flex justify-end space-x-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end space-x-6 md:space-x-8">
           <div className="relative group">
             <motion.button 
-              className="flex items-center lowercase text-gray-700 dark:text-gray-300 hover:text-risa-primary transition"
+              className="flex items-center lowercase text-gray-700 dark:text-gray-300 hover:text-risa-primary transition text-xs"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -971,19 +971,19 @@ const Index = () => {
             <div className="absolute right-0 mt-1 bg-white dark:bg-gray-800 shadow-lg rounded-md py-2 min-w-40 hidden group-hover:block z-50">
               <a
                 href="mailto:support@constructly.com"
-                className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs"
               >
                 <Mail className="mr-2 h-4 w-4" /> support
               </a>
               <a
                 href="mailto:sales@constructly.com"
-                className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs"
               >
                 <Mail className="mr-2 h-4 w-4" /> sales/general
               </a>
             </div>
           </div>
-          <a href="tel:9499515815" className="flex items-center hover:text-risa-primary text-gray-700 dark:text-gray-300">
+          <a href="tel:9499515815" className="flex items-center hover:text-risa-primary text-gray-700 dark:text-gray-300 text-xs">
             <PhoneCall className="mr-1 h-3.5 w-3.5" /> 949 951 5815
           </a>
         </div>
@@ -995,23 +995,23 @@ const Index = () => {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
         className={`sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm transition-all duration-300 ${
-          scrolled ? "py-2" : "py-4"
+          scrolled ? "py-2" : "py-3 md:py-4"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <motion.div 
               className="flex items-center space-x-2"
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <DraftingCompass className="h-6 w-6 text-risa-primary" />
-              <span className="text-xl font-bold text-risa-primary">Constructly</span>
+              <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-risa-primary" />
+              <span className="text-lg md:text-xl font-bold text-risa-primary">Constructly</span>
             </motion.div>
-            <div className="hidden lg:flex items-center space-x-8">
+            <div className="hidden lg:flex items-center space-x-6 md:space-x-8">
               <motion.button 
                 onClick={() => scrollTo('features')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium"
+                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1019,7 +1019,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('pricing')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium"
+                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1027,7 +1027,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('testimonials')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium"
+                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1035,7 +1035,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('faq')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium"
+                className="text-gray-700 dark:text-gray-300 hover:text-risa-primary font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1048,7 +1048,7 @@ const Index = () => {
                 <Button
                   onClick={() => navigate('/auth')}
                   variant="ghost"
-                  className="text-gray-700 dark:text-gray-300 hover:text-risa-primary"
+                  className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-sm"
                 >
                   <User className="mr-1 h-4 w-4" /> Login
                 </Button>
@@ -1059,7 +1059,7 @@ const Index = () => {
               >
                 <Button
                   onClick={() => navigate('/auth')}
-                  className="bg-risa-primary hover:bg-risa-primaryLight text-white px-6 py-3 text-sm"
+                  className="bg-risa-primary hover:bg-risa-primaryLight text-white px-4 py-2 md:px-6 md:py-3 text-sm"
                 >
                   Get Started
                 </Button>
@@ -1070,15 +1070,15 @@ const Index = () => {
               <ThemeToggle />
               <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6" />
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-80 p-6 bg-white dark:bg-gray-800">
                   <div className="flex flex-col space-y-4 mt-8">
                     <motion.button 
                       onClick={() => scrollTo('features')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left"
+                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left text-sm"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1086,7 +1086,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('pricing')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left"
+                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left text-sm"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1094,7 +1094,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('testimonials')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left"
+                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left text-sm"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1102,7 +1102,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('faq')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left"
+                      className="text-gray-700 dark:text-gray-300 hover:text-risa-primary text-left text-sm"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1111,13 +1111,13 @@ const Index = () => {
                     <Button
                       onClick={() => navigate('/auth')}
                       variant="ghost"
-                      className="justify-start text-gray-700 dark:text-gray-300 hover:text-risa-primary pl-0"
+                      className="justify-start text-gray-700 dark:text-gray-300 hover:text-risa-primary pl-0 text-sm"
                     >
                       <User className="mr-2 h-4 w-4" /> Login
                     </Button>
                     <Button
                       onClick={() => navigate('/auth')}
-                      className="bg-risa-primary text-white"
+                      className="bg-risa-primary text-white text-sm"
                     >
                       Get Started
                     </Button>
@@ -1135,29 +1135,29 @@ const Index = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
-        className="relative py-20"
+        className="relative py-12 md:py-16 lg:py-20"
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight">
                 <span className="text-risa-primary">Generate Accurate Quotes in Minutes</span>
               </h1>
-              <p className="text-xl mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
+              <p className="text-lg md:text-xl mb-6 md:mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
                 Upload your construction plans and get precise material estimates and professional quotes in minutes, not hours.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button
                     onClick={() => navigate('/auth')}
-                    className="bg-risa-primary hover:bg-risa-primaryLight text-white px-8 py-4 font-medium"
+                    className="bg-risa-primary hover:bg-risa-primaryLight text-white px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base"
                   >
                     Get Started
                   </Button>
@@ -1167,7 +1167,7 @@ const Index = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button
-                    className="bg-risa-primary hover:bg-risa-primaryLight text-white px-8 py-4 font-medium"
+                    className="bg-risa-primary hover:bg-risa-primaryLight text-white px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base"
                     onClick={() => setDemoOpen(true)}
                   >
                     View Demo
@@ -1199,29 +1199,29 @@ const Index = () => {
       {/* ===== FEATURES CARDS ===== */}
       <motion.section
         id="features"
-        className="py-16 bg-gray-50 dark:bg-gray-800"
+        className="py-12 md:py-16 bg-gray-50 dark:bg-gray-800"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
       >
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
-                icon: <Building className="h-12 w-12 text-risa-primary" />,
+                icon: <Building className="h-10 w-10 md:h-12 md:w-12 text-risa-primary" />,
                 title: "Residential Construction",
                 desc: "Generate accurate quotes for residential projects from architectural plans",
                 features: ["Single-family homes", "Multi-unit housing", "Renovations"],
               },
               {
-                icon: <ClipboardCheck className="h-12 w-12 text-risa-primary" />,
+                icon: <ClipboardCheck className="h-10 w-10 md:h-12 md:w-12 text-risa-primary" />,
                 title: "Commercial Projects",
                 desc: "Precise estimation for office buildings, retail spaces, and more",
                 features: ["Office complexes", "Retail spaces", "Mixed-use developments"],
               },
               {
-                icon: <DraftingCompass className="h-12 w-12 text-risa-primary" />,
+                icon: <DraftingCompass className="h-10 w-10 md:h-12 md:w-12 text-risa-primary" />,
                 title: "Infrastructure",
                 desc: "Specialized tools for civil engineering and infrastructure projects",
                 features: ["Bridges", "Roads", "Public works"],
@@ -1239,7 +1239,7 @@ const Index = () => {
                 <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col bg-white dark:bg-gray-800">
                   <CardHeader className="pb-3 bg-risa-primary/10">
                     <div className="flex justify-center mb-4">{product.icon}</div>
-                    <CardTitle className="text-center text-gray-800 dark:text-white">{product.title}</CardTitle>
+                    <CardTitle className="text-center text-gray-800 dark:text-white text-lg">{product.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6 flex-grow">
                     <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">{product.desc}</p>
@@ -1261,22 +1261,22 @@ const Index = () => {
       {/* ===== PRICING SECTION ===== */}
       <motion.section
         id="pricing"
-        className="py-20 bg-white dark:bg-gray-900"
+        className="py-16 md:py-20 bg-white dark:bg-gray-900"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
       >
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12 md:mb-16"
           >
             <motion.h2 
-              className="text-3xl font-bold mb-5 text-gray-900 dark:text-white"
+              className="text-2xl md:text-3xl font-bold mb-4 md:mb-5 text-gray-900 dark:text-white"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -1285,7 +1285,7 @@ const Index = () => {
               Choose Your Perfect Plan
             </motion.h2>
             <motion.p 
-              className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+              className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-base"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
@@ -1294,7 +1294,7 @@ const Index = () => {
               Unlock powerful features designed to elevate your business. Select the plan that aligns with your scale and needs.
             </motion.p>
           </motion.div>
-          <div className="grid md:grid-cols-3 gap-8 mb-20 items-start w-full">
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-20 items-start w-full">
             {pricingPlans.map((plan, i) => (
               <PricingCard key={i} plan={plan} isFeatured={plan.name === "Professional"} />
             ))}
@@ -1304,10 +1304,10 @@ const Index = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
-            className="text-center mb-14"
+            className="text-center mb-12 md:mb-14"
           >
             <motion.h3 
-              className="text-2xl font-bold mb-5 text-gray-900 dark:text-white"
+              className="text-xl md:text-2xl font-bold mb-4 md:mb-5 text-gray-900 dark:text-white"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
@@ -1316,7 +1316,7 @@ const Index = () => {
               Flexible Payment Options
             </motion.h3>
             <motion.p 
-              className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto"
+              className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-base"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.3 }}
@@ -1325,7 +1325,7 @@ const Index = () => {
               We provide a variety of secure and convenient ways to pay, ensuring a smooth transaction experience.
             </motion.p>
           </motion.div>
-          <div className="grid md:grid-cols-4 gap-6 w-full">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full">
             {paymentMethods.map((method, i) => (
               <PaymentMethod key={i} method={method} />
             ))}
@@ -1341,25 +1341,25 @@ const Index = () => {
       
       {/* ===== FOOTER ===== */}
       <motion.footer
-        className="py-16 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+        className="py-12 md:py-16 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
         viewport={{ once: true }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
             <div>
               <div className="flex items-center mb-4">
-                <DraftingCompass className="h-6 w-6 text-risa-primary" />
-                <span className="text-xl font-bold ml-3 text-risa-primary">Constructly</span>
+                <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-risa-primary" />
+                <span className="text-lg md:text-xl font-bold ml-3 text-risa-primary">Constructly</span>
               </div>
               <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
                 Empowering construction professionals with modern, efficient tools.
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4 text-lg text-gray-900 dark:text-white">Product</h3>
+              <h3 className="font-bold mb-4 text-base md:text-lg text-gray-900 dark:text-white">Product</h3>
               <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
                 <li><button onClick={() => scrollTo('features')} className="hover:text-risa-primary transition block text-left">Features</button></li>
                 <li><button onClick={() => scrollTo('pricing')} className="hover:text-risa-primary transition block text-left">Pricing</button></li>
@@ -1367,32 +1367,32 @@ const Index = () => {
               </ul>
             </div>
             <div>
-              <h3 className="font-bold mb-4 text-lg text-gray-900 dark:text-white">Contact</h3>
+              <h3 className="font-bold mb-4 text-base md:text-lg text-gray-900 dark:text-white">Contact</h3>
               <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
                 <li className="flex items-start">
-                  <MessageCircle className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 mt-0.5 flex-shrink-0" />
                   <a href="mailto:support@constructly.africa" className="hover:text-risa-primary transition block">support@constructly.africa</a>
                 </li>
                 <li className="flex items-start">
-                  <Phone className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2 mt-0.5 flex-shrink-0" />
                   <span className="hover:text-risa-primary transition block">+254 700 123 456</span>
                 </li>
                 <li className="flex items-start">
-                  <MapPin className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <MapPin className="w-4 h-4 md:w-5 md:h-5 mr-2 mt-0.5 flex-shrink-0" />
                   <span className="hover:text-risa-primary transition block">Nairobi, Kenya</span>
                 </li>
               </ul>
             </div>
           </div>
-          <Separator className="my-8 bg-gray-200 dark:bg-gray-700" />
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <Separator className="my-6 md:my-8 bg-gray-200 dark:bg-gray-700" />
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 md:gap-4">
             <span className="text-sm text-gray-600 dark:text-gray-400">
               © {new Date().getFullYear()} Constructly. All rights reserved.
             </span>
-            <div className="flex gap-4">
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-sm">Privacy Policy</a>
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-sm">Terms of Service</a>
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-sm">Cookie Policy</a>
+            <div className="flex gap-3 md:gap-4">
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-xs md:text-sm">Privacy Policy</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-xs md:text-sm">Terms of Service</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-risa-primary text-xs md:text-sm">Cookie Policy</a>
             </div>
           </div>
         </div>

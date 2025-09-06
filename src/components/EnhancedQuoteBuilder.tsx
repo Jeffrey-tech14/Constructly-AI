@@ -268,6 +268,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     total_formwork_area: 0,
     total_rebar_weight: 0,
     total_plaster_volume: 0,
+    boqData: [],
+    preliminaries: [],
 
     labor_percentages: 0,
     overhead_percentages: 0,
@@ -434,6 +436,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         percentages: quoteData.percentages,
         addons: quoteData.addons,
         addons_cost: quoteData.addons_cost,
+        boqData: boqData,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
@@ -459,6 +462,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         additional_services_cost: quoteData.additional_services_cost,
         show_profit_to_client: quoteData.show_profit_to_client,
         house_type: quoteData.house_type,
+        preliminaries: preliminaries,
         labor_percentages:
           parseFloat(quoteData.percentages[0].labour.toString()) || 0,
         overhead_percentages:
@@ -501,6 +505,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           project_type: quoteData.project_type,
           custom_specs: quoteData.custom_specs || null,
           status: quoteData.status,
+          preliminaries: preliminaries,
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           distance_km: calculation.distance_km,
@@ -560,6 +565,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           boq_data: boqData,
+          preliminaries: preliminaries,
           distance_km: calculation.distance_km,
           materials_cost: Math.round(calculation.materials_cost),
           concrete_rows: quoteData.concrete_rows,
@@ -1684,6 +1690,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <PreliminariesBuilder
               quoteData={quoteData}
               onPreliminariesUpdate={setPreliminaries}
+              onSaveToQuote={(sections) => {
+                // Save to quote.preliminaries
+                setQuoteData((prev: any) => ({
+                  ...prev,
+                  preliminaries: sections,
+                }));
+              }}
             />
           </div>
         );

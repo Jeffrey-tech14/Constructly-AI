@@ -1,7 +1,12 @@
 // src/utils/exportBOQPDF.ts
 import { pdf } from "@react-pdf/renderer";
-import React from "react"; // Import React to use createElement
-import { BOQSection, PrelimItem, PrelimSection } from "@/types/boq"; // Adjust path if needed
+import React from "react";
+import { BOQSection } from "@/types/boq";
+import {
+  AdvancedMaterialExtractor,
+  MaterialSchedule,
+} from "./advancedMaterialExtractor";
+import { MaterialConsolidator } from "./materialConsolidator";
 
 // --- Define Types ---
 interface ProjectInfo {
@@ -14,42 +19,51 @@ interface ProjectInfo {
   houseType: string;
   region: string;
   floors: number;
-  date: string; // Formatted date string, e.g., "1st January 2024"
+  date: string;
+  logoUrl: string;
 }
 
 // --- Helper Function for Dynamic Import ---
 const getPDFGeneratorComponent = async () => {
   const module = await import("@/components/PDFGenerator");
-  return module.default; // Return the default export (the component function)
+  return module.default;
 };
 
-/**
- * Generates and downloads a PDF BOQ file.
- * @param boqData The structured BOQ data.
- * @param projectInfo Project details, including a formatted 'date' string.
- * @param preliminaries
- * @returns True if successful, false otherwise.
- */
 const exportBOQPDF = async (
   boqData: BOQSection[],
   projectInfo: ProjectInfo,
-  preliminaries: any[]
+  preliminaries: any[],
+  quote: any
 ): Promise<boolean> => {
   try {
     const PDFGeneratorComponent = await getPDFGeneratorComponent();
+
+    // Extract and consolidate material schedule from quote
+    let materialSchedule: any[] | undefined;
+    if (
+      quote?.concrete_materials ||
+      quote?.rebar_calculations ||
+      quote?.rooms
+    ) {
+      const rawSchedule = AdvancedMaterialExtractor.extractLocally(quote);
+      materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+        Object.values(rawSchedule).flat()
+      );
+    }
+
     const pdfReactElement = React.createElement(PDFGeneratorComponent, {
       boqData,
       projectInfo,
-      preliminariesData: preliminaries[0].items,
+      preliminariesData: preliminaries,
+      materialSchedule: materialSchedule,
     });
 
     const blob = await pdf(pdfReactElement as any).toBlob();
 
-    // --- Create Download Link and Trigger Download ---
+    // Create Download Link and Trigger Download
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    // Sanitize filename
     const filenameTitle = projectInfo.title
       .replace(/[^a-z0-9_\-\s]/gi, "_")
       .replace(/\s+/g, "_");
@@ -57,11 +71,10 @@ const exportBOQPDF = async (
       .toISOString()
       .slice(0, 10)}.pdf`;
 
-    // Trigger download
     document.body.appendChild(link);
     link.click();
 
-    // --- Cleanup ---
+    // Cleanup
     setTimeout(() => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
@@ -70,11 +83,9 @@ const exportBOQPDF = async (
     return true;
   } catch (error) {
     console.error("Error generating or downloading PDF:", error);
-    // Optionally, display an error message to the user
     return false;
   }
 };
 
-// Export the function and type
 export { exportBOQPDF };
 export type { ProjectInfo };

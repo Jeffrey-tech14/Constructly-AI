@@ -110,6 +110,7 @@ export interface QuoteCalculation {
   include_wastage: boolean;
   equipment: EquipmentItem[];
   services: AdditionalService[];
+  boqData: any[];
   distance_km: number;
   percentages: Percentage[];
   addons: Addons[];
@@ -120,6 +121,7 @@ export interface QuoteCalculation {
   masonry_materials: any;
   concrete_materials: any[];
   rebar_calculations: any[];
+  preliminaries: any[];
   total_wall_area: number;
   total_concrete_volume: number;
   total_formwork_area: number;
@@ -372,6 +374,10 @@ export const useQuoteCalculations = () => {
     try {
       const {
         include_wastage,
+        boqData,
+        masonry_materials,
+        rebar_calculations,
+        concrete_materials,
         equipment,
         services,
         subcontractors,
@@ -383,36 +389,55 @@ export const useQuoteCalculations = () => {
         contingency_percentages,
         permit_cost,
         contract_type,
-        masonry_materials,
-        concrete_materials,
-        rebar_calculations,
+        preliminaries,
       } = params;
 
+      const calculateMaterialTotals = (): number => {
+        let total = 0;
+
+        // Concrete materials
+        if (concrete_materials) {
+          total += concrete_materials.reduce(
+            (sum, item) => sum + (item.total_price || 0),
+            0
+          );
+        }
+
+        // Rebar calculations
+        if (rebar_calculations) {
+          total += rebar_calculations.reduce(
+            (sum, item) => sum + (item.totalPrice || 0),
+            0
+          );
+        }
+
+        // Masonry materials
+        if (masonry_materials?.cost) {
+          total += masonry_materials.cost;
+        }
+
+        // BOQ materials
+        if (boqData) {
+          boqData.forEach((section) => {
+            section.items.forEach((item) => {
+              if (!item.isHeader) {
+                total += item.amount || 0;
+              }
+            });
+          });
+        }
+
+        return total;
+      };
+
+      const materials_cost = calculateMaterialTotals();
       const defaultProfitMargin =
         parseFloat(profit_percentages.toString()) / 100;
 
-      // ✅ Sum all totalPrice values
-      const rebarCost = rebar_calculations.reduce(
-        (sum, item) => sum + (item.totalPrice || 0),
-        0
-      );
-
       // ✅ Apply profit margin
-      const rebarProfits = rebarCost || 0 * defaultProfitMargin;
+      const materialProfits = materials_cost || 0 * defaultProfitMargin;
 
-      const masonryProfits =
-        masonry_materials.cost || 0 * defaultProfitMargin || 0;
-      const concreteProfits =
-        concrete_materials[0].total_price || 0 * defaultProfitMargin || 0;
-      const concretePrice = concrete_materials[0].total_price || 0;
-
-      const totalMaterialPrice = Math.round(
-        concretePrice + masonry_materials.cost + rebarCost
-      );
-
-      const laborCost = Math.round(
-        totalMaterialPrice * (labor_percentages / 100)
-      );
+      const laborCost = Math.round(materials_cost * (labor_percentages / 100));
 
       const equipmentCost = equipment.reduce((total, item) => {
         return total + item.total_cost;
@@ -495,7 +520,7 @@ export const useQuoteCalculations = () => {
       var subtotalBeforeExtras;
       if (contract_type === "full_contract") {
         subtotalBeforeExtras =
-          totalMaterialPrice +
+          materials_cost +
           transportCost +
           laborCost +
           equipmentCost +
@@ -523,11 +548,11 @@ export const useQuoteCalculations = () => {
       const subtotalWithExtras =
         subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost;
 
-      const profitAmount = Math.round(
-        subcontractorProfit + rebarProfits + masonryProfits + concreteProfits
-      );
+      const profitAmount = Math.round(subcontractorProfit + materialProfits);
 
       const totalAmount = Math.round(subtotalWithExtras + profitAmount);
+
+      // Add this to your useQuoteCalculations hook
 
       return {
         labor_cost: laborCost,
@@ -542,7 +567,7 @@ export const useQuoteCalculations = () => {
         overhead_amount: overheadAmount,
         profit_amount: profitAmount,
         total_amount: totalAmount,
-        materials_cost: totalMaterialPrice,
+        materials_cost: materials_cost,
 
         subcontractors: updatedSubcontractors,
 

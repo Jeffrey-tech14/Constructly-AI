@@ -10,78 +10,72 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { BOQSection, BOQItem } from "@/types/boq";
+import {
+  AdvancedMaterialExtractor,
+  CategorizedMaterial,
+  MaterialSchedule,
+} from "@/utils/advancedMaterialExtractor";
+import {
+  ConsolidatedMaterial,
+  MaterialConsolidator,
+} from "@/utils/materialConsolidator";
 
 // --- Register Outfit Font ---
 Font.register({
   family: "Outfit",
   fonts: [
-    {
-      src: "/fonts/Outfit-Regular.ttf",
-      fontWeight: "normal",
-    },
-    {
-      src: "/fonts/Outfit-Bold.ttf",
-      fontWeight: "bold",
-    },
-    {
-      src: "/fonts/Outfit-Light.ttf",
-      fontWeight: "light", // light
-    },
-    {
-      src: "/fonts/Outfit-Medium.ttf",
-      fontWeight: "medium", // medium
-    },
-    {
-      src: "/fonts/Outfit-SemiBold.ttf",
-      fontWeight: "semibold", // semi-bold
-    },
+    { src: "/fonts/Outfit-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/Outfit-Bold.ttf", fontWeight: "bold" },
+    { src: "/fonts/Outfit-Light.ttf", fontWeight: "light" },
+    { src: "/fonts/Outfit-Medium.ttf", fontWeight: "medium" },
+    { src: "/fonts/Outfit-SemiBold.ttf", fontWeight: "semibold" },
   ],
 });
 
 // --- Styles ---
 const styles = StyleSheet.create({
   page: {
-    padding: 20,
-    fontSize: 12,
+    padding: 15,
+    fontSize: 10,
     fontFamily: "Outfit",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
     backgroundColor: "#FFFFFF",
   },
   header: {
     textAlign: "center",
-    marginBottom: 20,
-    paddingBottom: 15,
+    marginBottom: 15,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     borderBottomStyle: "solid",
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 4,
     color: "#1F2937",
   },
   subtitle: {
-    fontSize: 18,
-    marginBottom: 8,
+    fontSize: 14,
+    marginBottom: 6,
     color: "#4B5563",
     fontWeight: 500,
   },
   projectInfoContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
     backgroundColor: "#F9FAFB",
-    padding: 15,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
   projectInfoRow: {
     flexDirection: "row",
-    marginBottom: 6,
-    fontSize: 14,
+    marginBottom: 4,
+    fontSize: 11,
   },
   projectInfoLabel: {
-    width: 110,
+    width: 100,
     fontWeight: "bold",
     color: "#374151",
   },
@@ -90,24 +84,24 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   section: {
-    marginBottom: 15,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    marginBottom: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     backgroundColor: "#3B82F6",
     color: "#FFFFFF",
-    borderRadius: 6,
+    borderRadius: 4,
   },
   table: {
     width: "100%",
-    marginBottom: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 8,
+    borderRadius: 6,
     overflow: "hidden",
   },
   tableHeaderRow: {
@@ -120,56 +114,56 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     borderBottomStyle: "solid",
-    minHeight: 20,
+    minHeight: 18,
   },
   tableColHeader: {
-    padding: 8,
+    padding: 5,
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 13,
+    fontSize: 9,
     color: "#FFFFFF",
   },
   tableColHeaderDescription: {
-    padding: 8,
+    padding: 5,
     fontWeight: "bold",
     textAlign: "left",
     flex: 1,
-    fontSize: 13,
+    fontSize: 9,
     color: "#FFFFFF",
   },
   tableCol: {
-    padding: 8,
+    padding: 5,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 9,
     color: "#4B5563",
   },
   tableColDescription: {
-    padding: 8,
+    padding: 5,
     textAlign: "left",
     flex: 1,
-    fontSize: 12,
+    fontSize: 9,
     color: "#4B5563",
   },
   tableColAmount: {
-    padding: 8,
+    padding: 5,
     textAlign: "right",
-    fontSize: 12,
+    fontSize: 9,
     color: "#4B5563",
   },
   sectionTotalRow: {
     flexDirection: "row",
-    marginTop: 5,
-    marginBottom: 10,
+    marginTop: 4,
+    marginBottom: 8,
     fontWeight: "bold",
-    fontSize: 13,
+    fontSize: 11,
     backgroundColor: "#F3F4F6",
-    padding: 8,
-    borderRadius: 6,
+    padding: 6,
+    borderRadius: 4,
   },
   sectionTotalLabel: {
     width: "80%",
     textAlign: "right",
-    paddingRight: 10,
+    paddingRight: 8,
     color: "#374151",
   },
   sectionTotalValue: {
@@ -179,19 +173,19 @@ const styles = StyleSheet.create({
   },
   grandTotalRow: {
     flexDirection: "row",
-    marginTop: 20,
+    marginTop: 15,
     borderTop: "2pt solid #3B82F6",
-    paddingTop: 12,
+    paddingTop: 10,
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 14,
     backgroundColor: "#EFF6FF",
-    padding: 12,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 6,
   },
   grandTotalLabel: {
     width: "80%",
     textAlign: "right",
-    paddingRight: 10,
+    paddingRight: 8,
     color: "#1E40AF",
   },
   grandTotalValue: {
@@ -201,77 +195,173 @@ const styles = StyleSheet.create({
   },
   pageNumber: {
     position: "absolute",
-    bottom: 20,
+    bottom: 15,
     left: 0,
     right: 0,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 10,
     color: "#6B7280",
-  },
-  // --- Preliminary Pages Styles ---
-  prelimPage: {
-    padding: 35,
-    fontSize: 13,
-    fontFamily: "Outfit",
-    lineHeight: 1.5,
-    backgroundColor: "#FFFFFF",
-  },
-  prelimTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#1F2937",
-    paddingBottom: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: "#3B82F6",
-    borderBottomStyle: "solid",
-  },
-  prelimSubtitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "left",
-    marginBottom: 12,
-    marginTop: 15,
-    color: "#374151",
-    paddingLeft: 5,
-    borderLeftWidth: 4,
-    borderLeftColor: "#3B82F6",
-    borderLeftStyle: "solid",
-  },
-  prelimContent: {
-    marginBottom: 12,
-    textAlign: "justify",
-    color: "#4B5563",
-  },
-  prelimList: {
-    marginBottom: 12,
-  },
-  prelimListItem: {
-    marginBottom: 6,
-    paddingLeft: 10,
-    color: "#4B5563",
-  },
-  materialScheduleSection: {
-    marginTop: 25,
-  },
-  materialScheduleTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: "#3B82F6",
-    color: "#FFFFFF",
-    borderRadius: 6,
-    textAlign: "center",
   },
   materialScheduleTable: {
     width: "100%",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 8,
+    borderRadius: 6,
     overflow: "hidden",
+    marginBottom: 12,
+  },
+
+  // Material schedule specific columns
+  materialScheduleColHeaderItem: {
+    width: "14%", // Slightly larger for item numbers
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+
+  materialScheduleColHeaderDescription: {
+    width: "30%", // Adjusted for balance
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "left",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+
+  materialScheduleColHeaderUnit: {
+    width: "14%",
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+
+  materialScheduleColHeaderQty: {
+    width: "14%",
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+
+  materialScheduleColHeaderRate: {
+    width: "14%",
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "right",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+
+  materialScheduleColHeaderAmount: {
+    width: "14%",
+    padding: 5,
+    fontWeight: "bold",
+    textAlign: "right",
+    fontSize: 9,
+    color: "#FFFFFF",
+  },
+
+  // Corresponding data columns
+  materialScheduleColItem: {
+    width: "14%",
+    padding: 5,
+    textAlign: "center",
+    fontSize: 9,
+    color: "#4B5563",
+  },
+
+  materialScheduleColDescription: {
+    width: "30%",
+    padding: 5,
+    textAlign: "left",
+    fontSize: 9,
+    color: "#4B5563",
+  },
+
+  materialScheduleColUnit: {
+    width: "14%",
+    padding: 5,
+    textAlign: "center",
+    fontSize: 9,
+    color: "#4B5563",
+  },
+
+  materialScheduleColQty: {
+    width: "14%",
+    padding: 5,
+    textAlign: "center",
+    fontSize: 9,
+    color: "#4B5563",
+  },
+
+  materialScheduleColRate: {
+    width: "14%",
+    padding: 5,
+    textAlign: "right",
+    fontSize: 9,
+    color: "#4B5563",
+  },
+
+  materialScheduleColAmount: {
+    width: "14%",
+    padding: 5,
+    textAlign: "right",
+    fontSize: 9,
+    color: "#4B5563",
+  },
+  companyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    borderBottomStyle: "solid",
+  },
+  logoContainer: {
+    width: 50,
+    height: 50,
+    marginRight: 12,
+    backgroundColor: "#ffffffff",
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+  companyInfo: {
+    flex: 1,
+  },
+  companyName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 2,
+  },
+  companyTagline: {
+    fontSize: 10,
+    color: "#6B7280",
+  },
+  materialScheduleSection: {
+    marginTop: 15,
+  },
+  materialScheduleTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 8,
+    padding: 8,
+    backgroundColor: "#3B82F6",
+    color: "#FFFFFF",
+    borderRadius: 4,
+    textAlign: "center",
   },
   materialScheduleHeaderRow: {
     flexDirection: "row",
@@ -282,252 +372,105 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     borderBottomStyle: "solid",
-    minHeight: 20,
+    minHeight: 18,
   },
-  // Updated Material Schedule Column Styles for new structure
-  materialScheduleColHeader: {
-    padding: 8, // Adjust padding if needed
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 12, // Adjust font size if needed
-    color: "#FFFFFF",
-  },
-  materialScheduleColHeaderItem: {
-    width: "8%", // Adjust width as needed
-    padding: 8,
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  materialScheduleColHeaderDescription: {
-    width: "52%", // Adjust width as needed
-    padding: 8,
-    fontWeight: "bold",
-    textAlign: "left", // Description usually left-aligned
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  materialScheduleColHeaderUnit: {
-    width: "8%",
-    padding: 8,
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  materialScheduleColHeaderQty: {
-    width: "10%",
-    padding: 8,
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  materialScheduleColHeaderRate: {
-    width: "11%",
-    padding: 8,
-    fontWeight: "bold",
-    textAlign: "right", // Rate usually right-aligned
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  materialScheduleColHeaderAmount: {
-    width: "11%", // Adjust width as needed
-    padding: 8,
-    fontWeight: "bold",
-    textAlign: "right", // Amount usually right-aligned
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
-  // Material Schedule Cell Styles
-  materialScheduleCol: {
-    padding: 8,
-    textAlign: "center",
-    fontSize: 11, // Adjust font size if needed
-    color: "#4B5563",
-  },
-  materialScheduleColItem: {
-    width: "8%",
-    padding: 8,
-    textAlign: "center",
-    fontSize: 11,
-    color: "#4B5563",
-  },
-  materialScheduleColDescription: {
-    width: "52%",
-    padding: 8,
-    textAlign: "left",
-    fontSize: 11,
-    color: "#4B5563",
-  },
-  materialScheduleColUnit: {
-    width: "8%",
-    padding: 8,
-    textAlign: "center",
-    fontSize: 11,
-    color: "#4B5563",
-  },
-  materialScheduleColQty: {
-    width: "10%",
-    padding: 8,
-    textAlign: "center",
-    fontSize: 11,
-    color: "#4B5563",
-  },
-  materialScheduleColRate: {
-    width: "11%",
-    padding: 8,
-    textAlign: "right",
-    fontSize: 11,
-    color: "#4B5563",
-  },
-  materialScheduleColAmount: {
-    width: "11%",
-    padding: 8,
-    textAlign: "right",
-    fontSize: 11,
-    color: "#4B5563",
-  },
-  // --- Footer for BOQ pages ---
   boqFooter: {
     position: "absolute",
-    bottom: 25,
-    left: 30,
-    right: 30,
+    bottom: 20,
+    left: 20,
+    right: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    fontSize: 11,
+    fontSize: 9,
     color: "#6B7280",
-    paddingTop: 10,
+    paddingTop: 8,
     borderTop: "1pt solid #E5E7EB",
   },
-  // --- Text Formatting Styles ---
   boldText: {
     fontWeight: "bold",
   },
-  underlineText: {
-    textDecoration: "underline",
+  prelimPage: {
+    padding: 25,
+    fontSize: 11,
+    fontFamily: "Outfit",
+    lineHeight: 1.4,
+    backgroundColor: "#FFFFFF",
   },
-  // --- Preliminaries Table Styles ---
-  prelimTable: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 8,
-    overflow: "hidden",
-    marginBottom: 20,
-    marginTop: 15,
-  },
-  prelimTableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    borderBottomStyle: "solid",
-    minHeight: 22,
-  },
-  prelimTableHeader: {
-    backgroundColor: "#1E40AF",
+  prelimTitle: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  prelimTableCell: {
-    padding: 8,
-    fontSize: 12,
-  },
-  prelimTableDescription: {
-    flex: 3,
-    textAlign: "left",
-  },
-  prelimTableUnit: {
-    width: "15%",
     textAlign: "center",
-  },
-  prelimTableQty: {
-    width: "10%",
-    textAlign: "center",
-  },
-  prelimTableRate: {
-    width: "15%",
-    textAlign: "right",
-  },
-  prelimTableAmount: {
-    width: "15%",
-    textAlign: "right",
-  },
-  // --- Logo and Company Info Styles ---
-  companyHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    borderBottomStyle: "solid",
-  },
-  logoContainer: {
-    width: 70,
-    height: 70,
-    marginRight: 15,
-    backgroundColor: "#3B82F6",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  companyInfo: {
-    flex: 1,
-  },
-  companyName: {
-    fontSize: 20,
-    fontWeight: "bold",
+    marginBottom: 15,
     color: "#1F2937",
-    marginBottom: 4,
+    paddingBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: "#3B82F6",
+    borderBottomStyle: "solid",
   },
-  companyTagline: {
-    fontSize: 12,
-    color: "#6B7280",
+  prelimSubtitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    textAlign: "left",
+    marginBottom: 10,
+    marginTop: 12,
+    color: "#374151",
+    paddingLeft: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: "#3B82F6",
+    borderLeftStyle: "solid",
+  },
+  prelimContent: {
+    marginBottom: 10,
+    textAlign: "justify",
+    color: "#4B5563",
+  },
+  headerRow: {
+    backgroundColor: "#F3F4F6",
+    fontWeight: "bold",
   },
 });
 
 // --- Helper Functions ---
 const formatCurrency = (amount: number): string => {
+  if (!amount || amount === 0) return "";
   return new Intl.NumberFormat("en-KE", {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 0,
   }).format(amount);
 };
 
-// --- Type for Project Info (Updated) ---
+const formatQuantity = (quantity: any): string => {
+  if (quantity === null || quantity === undefined || quantity === "") return "";
+  const num = typeof quantity === "string" ? parseFloat(quantity) : quantity;
+  if (isNaN(num)) return "";
+  return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
+};
+
+// --- Types ---
 interface ProjectInfo {
   title: string;
   clientName: string;
-  clientEmail?: string; // Optional
+  clientEmail?: string;
   location: string;
   projectType: string;
-  houseType?: string; // Optional
-  region?: string; // Optional
-  floors?: number; // Optional
+  houseType?: string;
+  region?: string;
+  floors?: number;
   date: string;
   consultant?: string;
-  contractor?: string; // Added contractor
+  contractor?: string;
   drawingReference?: string;
   boqReference?: string;
-  logoUrl?: string; // Added logo URL
+  logoUrl?: string;
+  companyName?: string;
+  companyTagline?: string;
 }
 
-// --- Type for Material Schedule Item ---
-interface MaterialScheduleItem {
-  description: string;
-  unit: string;
-  quantity: number;
+interface Preliminaries {
+  items: PreliminariesItem[];
+  title: string;
 }
 
-// --- Type for Preliminaries Item ---
 interface PreliminariesItem {
   itemNo: string;
   description: string;
@@ -538,308 +481,271 @@ interface PreliminariesItem {
   isHeader?: boolean;
 }
 
-// --- Main Component ---
 interface PDFGeneratorProps {
   boqData: BOQSection[];
   projectInfo: ProjectInfo;
-  preliminariesData?: PreliminariesItem[];
+  preliminariesData?: Preliminaries[];
+  materialSchedule?: any[]; // Make this optional
 }
 
+// --- Main Component ---
 const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   boqData,
   projectInfo,
-  preliminariesData = [], // Default to empty array
+  preliminariesData = [],
+  materialSchedule,
 }) => {
+  // --- Filter out empty sections ---
+  const nonEmptySections = useMemo(() => {
+    return boqData.filter((section) => {
+      // Include sections that have either non-header items OR are important structural sections
+      const hasNonHeaderItems = section.items.some((item) => !item.isHeader);
+      const hasHeadersOnly = section.items.some((item) => item.isHeader);
+
+      // Keep sections with actual items OR sections that might be important for structure
+      return hasNonHeaderItems || (hasHeadersOnly && section.items.length > 0);
+    });
+  }, [boqData]);
+
+  const consolidatedMaterials = useMemo(() => {
+    let allMaterials: CategorizedMaterial[] = [];
+
+    if (materialSchedule && Array.isArray(materialSchedule)) {
+      // Use the provided material schedule array directly
+      allMaterials = materialSchedule;
+    } else {
+      // Fallback: extract from BOQ data
+      const mockQuote = {
+        boqData: boqData,
+        concrete_materials: [],
+        rebar_calculations: [],
+        rooms: [],
+      };
+      const schedule = AdvancedMaterialExtractor.extractLocally(mockQuote);
+      allMaterials = Object.values(schedule).flat();
+    }
+
+    // Consolidate all materials into a single array
+    return MaterialConsolidator.consolidateAllMaterials(allMaterials);
+  }, [boqData, materialSchedule]);
+
+  // Remove the renderMaterialSchedule function and replace with a simple table renderer:
+  const renderConsolidatedMaterials = (materials: ConsolidatedMaterial[]) => {
+    if (materials.length === 0) return null;
+
+    const itemChunks = chunkArray(materials, 20); // 20 items per page
+
+    return itemChunks.map((chunk, chunkIndex) => (
+      <Page key={`materials-chunk-${chunkIndex}`} style={styles.page}>
+        <CompanyHeader />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>MATERIALS SCHEDULE</Text>
+
+          <View style={styles.table}>
+            {/* Table headers only on first chunk */}
+            {chunkIndex === 0 && (
+              <View style={styles.tableHeaderRow}>
+                <Text style={styles.tableColHeader}>ITEM</Text>
+                <Text style={styles.tableColHeaderDescription}>
+                  DESCRIPTION
+                </Text>
+                <Text style={styles.tableColHeader}>UNIT</Text>
+                <Text style={styles.tableColHeader}>QTY</Text>
+                <Text style={styles.tableColHeader}>RATE</Text>
+                <Text style={styles.tableColHeader}>AMOUNT</Text>
+              </View>
+            )}
+
+            {chunk.map((material, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCol}>{material.itemNo}</Text>
+                <Text style={styles.tableColDescription}>
+                  {material.description}
+                </Text>
+                <Text style={styles.tableCol}>{material.unit}</Text>
+                <Text style={styles.tableCol}>
+                  {formatQuantity(material.quantity)}
+                </Text>
+                <Text style={styles.tableCol}>
+                  {formatCurrency(material.rate)}
+                </Text>
+                <Text style={styles.tableCol}>
+                  {formatCurrency(material.amount)}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Total on last chunk */}
+          {chunkIndex === itemChunks.length - 1 && (
+            <View style={styles.sectionTotalRow}>
+              <Text style={styles.sectionTotalLabel}>
+                TOTAL MATERIALS COST:
+              </Text>
+              <Text style={styles.sectionTotalValue}>
+                {formatCurrency(
+                  materials.reduce((sum, m) => sum + m.amount, 0)
+                )}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
+    ));
+  };
+
   // --- Calculate Section Totals ---
   const calculateSectionTotal = (items: BOQItem[]): number => {
     return items.reduce((total, item) => {
-      if (item.isHeader) return total;
+      if (item.isHeader) return total; // Skip headers
       return total + (item.amount || 0);
     }, 0);
   };
 
   // --- Calculate Grand Total ---
   const calculateGrandTotal = (): number => {
-    return boqData.reduce((total, section) => {
+    return nonEmptySections.reduce((total, section) => {
       return total + calculateSectionTotal(section.items);
     }, 0);
   };
 
   // --- Calculate Preliminaries Total ---
-  // --- Calculate Preliminaries Total ---
   const calculatePreliminariesTotal = (): number => {
-    // console.log(preliminariesData); // Optional debug log
-    if (!Array.isArray(preliminariesData)) return 0; // Safety check
-    return preliminariesData.reduce((total, item) => {
-      if (item?.isHeader) return total;
-      return total + (item?.amount || 0);
+    if (!Array.isArray(preliminariesData)) return 0;
+
+    return preliminariesData.reduce((total, prelim) => {
+      return (
+        total +
+        prelim.items.reduce((subTotal, item) => {
+          if (item.isHeader) return subTotal; // skip headers
+          return subTotal + (item.amount || 0);
+        }, 0)
+      );
     }, 0);
   };
 
-  interface MaterialScheduleDisplayItem {
-    itemNo: string; // e.g., "A", "B", "C" or "1", "2" if needed
-    description: string;
-    unit: string;
-    quantity: number;
-    rate: number; // You might need to derive or use a default/prompt user
-    amount: number; // quantity * rate (or use item.amount if available)
-  }
-  // --- Generate Material Schedule ---
-  // --- Generate Material Schedule (Updated Logic) ---
-  const generateMaterialScheduleForDisplay =
-    (): MaterialScheduleDisplayItem[] => {
-      // This map will hold categorized materials with aggregated quantities
-      // Key: Display Description, Value: Aggregated data
-      const materialMap: Record<
-        string,
-        { unit: string; quantity: number; items: BOQItem[] }
-      > = {};
-
-      // Helper to determine if an item represents a material that should be scheduled
-      const isMaterialItem = (item: BOQItem): boolean => {
-        const descLower = (item.description || "").toLowerCase();
-        // Define keywords for materials to be included
-        const materialKeywords = [
-          "cement",
-          "sand",
-          "ballast",
-          "stone",
-          "block",
-          "brick",
-          "steel",
-          "reinforcement",
-          "rebar",
-          "ribbed bar",
-          "concrete",
-          "window",
-          "door",
-          "tiles",
-          "paint",
-          "bitumen",
-          "hardcore",
-          "dpm",
-          "polythene",
-          "wire",
-          "formwork",
-          "ply",
-        ];
-        return materialKeywords.some((keyword) => descLower.includes(keyword));
-      };
-
-      // Helper to get a standardized display name for the material category
-      const getMaterialCategory = (item: BOQItem): string => {
-        const descLower = (item.description || "").toLowerCase();
-        if (descLower.includes("cement")) return "Cement";
-        if (descLower.includes("sand")) return "Sand";
-        if (descLower.includes("ballast") || descLower.includes("stone"))
-          return "Ballast";
-        if (descLower.includes("block")) return "Blocks";
-        if (descLower.includes("brick")) return "Bricks";
-        if (
-          descLower.includes("steel") ||
-          descLower.includes("reinforcement") ||
-          descLower.includes("rebar") ||
-          descLower.includes("ribbed bar")
-        )
-          return "Reinforcement Steel";
-        if (descLower.includes("concrete")) return "Concrete";
-        if (descLower.includes("window")) return "Windows";
-        if (descLower.includes("door")) return "Doors";
-        if (descLower.includes("door frame")) return "Door Frames";
-        if (descLower.includes("window frame")) return "Window Frames";
-        if (descLower.includes("tiles")) return "Tiles";
-        if (descLower.includes("paint")) return "Paint";
-        if (descLower.includes("bitumen")) return "Bitumen";
-        if (descLower.includes("hardcore")) return "Hardcore";
-        if (descLower.includes("dpm") || descLower.includes("polythene"))
-          return "Damp Proof Membrane";
-        if (descLower.includes("wire")) return "Wire";
-        if (descLower.includes("formwork") || descLower.includes("ply"))
-          return "Formwork";
-        // Default case if no specific keyword matched but isMaterialItem was true
-        // Try to extract a generic name or use description
-        const match = descLower.match(
-          /(\w+\s*\w*)\s*(?:bags?|tonnes?|m3|m2|kg|no\.?|litres?|rolls?)/i
-        );
-        return match
-          ? match[1].trim().replace(/\b\w/g, (l) => l.toUpperCase())
-          : item.description || "Other Material";
-      };
-
-      // Helper to get a standard unit for the material category
-      const getStandardUnit = (category: string): string => {
-        switch (category) {
-          case "Cement":
-            return "Bags";
-          case "Sand":
-            return "m³";
-          case "Ballast":
-            return "m³";
-          case "Blocks":
-            return "No.";
-          case "Bricks":
-            return "No.";
-          case "Reinforcement Steel":
-            return "Kg";
-          case "Concrete":
-            return "m³";
-          case "Windows":
-            return "No.";
-          case "Window Frames":
-            return "No.";
-          case "Doors":
-            return "No.";
-          case "Door Frames":
-            return "No.";
-          case "Tiles":
-            return "m²"; // Or m2 depending on context
-          case "Paint":
-            return "Litres";
-          case "Bitumen":
-            return "Litres";
-          case "Hardcore":
-            return "Tonnes";
-          case "Damp Proof Membrane":
-            return "m²"; // Or Rolls, depending on item
-          case "Wire":
-            return "Kg"; // Or m, depending on item
-          case "Formwork":
-            return "m²"; // Or Pcs, depending on item
-          default:
-            return "Unit"; // Generic fallback
-        }
-      };
-
-      if (Array.isArray(boqData)) {
-        boqData.forEach((section) => {
-          if (Array.isArray(section.items)) {
-            section.items.forEach((item) => {
-              // Skip headers and non-material items
-              if (item.isHeader || !isMaterialItem(item)) return;
-
-              const category = getMaterialCategory(item);
-              const unit = item.unit || getStandardUnit(category); // Prefer item unit, fallback to standard
-              const quantity =
-                typeof item.quantity === "number" ? item.quantity : 0;
-
-              if (!materialMap[category]) {
-                materialMap[category] = { unit, quantity: 0, items: [] };
-              }
-              // Aggregate quantity
-              materialMap[category].quantity += quantity;
-              // Store item for potential rate/amount calculation if needed
-              materialMap[category].items.push(item);
-            });
-          }
-        });
-      }
-
-      // Convert the aggregated map into the display format array
-      // Assign simple sequential letters as itemNo for display
-      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      let index = 0;
-
-      return Object.entries(materialMap)
-        .map(([description, { unit, quantity, items }]) => {
-          const itemNo = alphabet[index++] || `Z${index - 26}`; // Handle beyond Z if needed
-
-          // --- Determine Rate and Amount ---
-          // Strategy 1: If all items in the category have the same rate, use it.
-          // Strategy 2: If rates vary or are missing, you might:
-          //   a) Use an average rate (sum of (rate*qty) / total qty)
-          //   b) Use the rate from the first item
-          //   c) Indicate it needs calculation/user input (e.g., set rate to 0 or NaN)
-          // For simplicity here, we'll try to find a common rate or use 0.
-          let rate = 0;
-          let amount = 0;
-          const uniqueRates = [
-            ...new Set(
-              items
-                .map((i) => i.rate)
-                .filter((r) => r !== undefined && r !== null)
-            ),
-          ];
-          if (uniqueRates.length === 1) {
-            rate = uniqueRates[0] ?? 0;
-            amount = rate * quantity;
-          } else if (
-            items.length > 0 &&
-            items[0].rate !== undefined &&
-            items[0].rate !== null
-          ) {
-            // Fallback: Use first item's rate if available
-            rate = items[0].rate ?? 0;
-            amount = rate * quantity;
-          } else {
-            // Mark as needing rate input, amount will be 0 or NaN
-            rate = 0; // Or NaN
-            amount = 0; // Or NaN * quantity = NaN
-          }
-
-          return {
-            itemNo,
-            description,
-            unit,
-            quantity,
-            rate, // Derived or placeholder
-            amount, // Derived or placeholder
-          };
-        })
-        .sort((a, b) => a.description.localeCompare(b.description)); // Sort alphabetically by description
-    };
-
-  // Replace the old useMemo hook
-  const materialScheduleDisplayData = useMemo(
-    () => generateMaterialScheduleForDisplay(), // <-- Call the new function
-    [boqData]
-  );
-  // Make sure you remove the old one:
-  // const materialScheduleData = useMemo(
-  //   () => generateMaterialSchedule(),
-  //   [boqData]
-  // );
-  const grandTotal = useMemo(() => calculateGrandTotal(), [boqData]);
+  const grandTotal = useMemo(() => calculateGrandTotal(), [nonEmptySections]);
   const preliminariesTotal = useMemo(
     () => calculatePreliminariesTotal(),
     [preliminariesData]
+  );
+
+  // --- Chunk arrays for page breaks ---
+  const chunkArray = <T,>(array: T[], chunkSize: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+  };
+  const renderMaterialSchedule = (schedule: MaterialSchedule) => {
+    return Object.entries(schedule).map(([category, materials]) => {
+      const categoryItems = materials as CategorizedMaterial[];
+      if (categoryItems.length === 0) return null;
+
+      return (
+        <Page key={category} style={styles.page}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {category.toUpperCase()} MATERIALS
+            </Text>
+
+            <View style={styles.table}>
+              <View style={styles.tableHeaderRow}>
+                <Text style={styles.tableColHeader}>ITEM</Text>
+                <Text style={styles.tableColHeader}>DESCRIPTION</Text>
+                <Text style={styles.tableColHeader}>UNIT</Text>
+                <Text style={styles.tableColHeader}>QTY</Text>
+                <Text style={styles.tableColHeader}>RATE</Text>
+                <Text style={styles.tableColHeader}>AMOUNT</Text>
+              </View>
+
+              {materials.map((material, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={styles.tableCol}>{material.itemNo}</Text>
+                  <Text style={styles.tableCol}>{material.description}</Text>
+                  <Text style={styles.tableCol}>{material.unit}</Text>
+                  <Text style={styles.tableCol}>{material.quantity}</Text>
+                  <Text style={styles.tableCol}>
+                    {formatCurrency(material.rate)}
+                  </Text>
+                  <Text style={styles.tableCol}>
+                    {formatCurrency(material.amount)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.sectionTotalRow}>
+              <Text style={styles.sectionTotalLabel}>
+                TOTAL {category.toUpperCase()}:
+              </Text>
+              <Text style={styles.sectionTotalValue}>
+                {formatCurrency(
+                  materials.reduce((sum, m) => sum + m.amount, 0)
+                )}
+              </Text>
+            </View>
+          </View>
+        </Page>
+      );
+    });
+  };
+  // --- Company Header Component ---
+  const CompanyHeader = () => (
+    <View style={styles.companyHeader}>
+      {projectInfo.logoUrl ? (
+        <Image style={styles.logoContainer} source={projectInfo.logoUrl} />
+      ) : projectInfo.companyName ? (
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoText}>
+            {projectInfo.companyName
+              .split(" ")
+              .map((word) => word[0])
+              .join("")
+              .toUpperCase()}
+          </Text>
+        </View>
+      ) : null}
+
+      {(projectInfo.companyName || projectInfo.companyTagline) && (
+        <View style={styles.companyInfo}>
+          {projectInfo.companyName && (
+            <Text style={styles.companyName}>{projectInfo.companyName}</Text>
+          )}
+          {projectInfo.companyTagline && (
+            <Text style={styles.companyTagline}>
+              {projectInfo.companyTagline}
+            </Text>
+          )}
+        </View>
+      )}
+    </View>
   );
 
   return (
     <Document>
       {/* --- Title Page --- */}
       <Page size="A4" style={styles.prelimPage}>
-        <View style={styles.companyHeader}>
-          {/* Placeholder for Logo */}
-          {projectInfo.logoUrl ? (
-            <Image
-              style={styles.logoContainer} // Use existing style for size/shape
-              source={{ uri: projectInfo.logoUrl }}
-            />
-          ) : (
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LOGO</Text>
-            </View>
-          )}
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>Construction Solutions Ltd</Text>
-            <Text style={styles.companyTagline}>
-              Quality Construction Services
-            </Text>
-          </View>
-        </View>
+        <CompanyHeader />
 
         <View style={styles.header}>
           <Text style={styles.title}>BILL OF QUANTITIES</Text>
           <Text style={styles.subtitle}>FOR</Text>
-          <Text style={styles.title}>
-            {projectInfo.title || "Not Provided"}
-          </Text>
+          <Text style={styles.title}>{projectInfo.title || "PROJECT"}</Text>
           <Text style={styles.subtitle}>FOR</Text>
           <Text style={styles.subtitle}>
-            {projectInfo.clientName || "Not provided"}
+            {projectInfo.clientName || "CLIENT"}
           </Text>
           <Text style={styles.subtitle}>
-            ({projectInfo.location || "Location not provided"})
+            ({projectInfo.location || "LOCATION"})
           </Text>
         </View>
 
@@ -879,34 +785,12 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               </Text>
             </View>
           )}
-          {projectInfo.contractor && (
-            <View style={styles.projectInfoRow}>
-              <Text style={styles.projectInfoLabel}>Contractor:</Text>
-              <Text style={styles.projectInfoValue}>
-                {projectInfo.contractor}
-              </Text>
-            </View>
-          )}
           <View style={styles.projectInfoRow}>
             <Text style={styles.projectInfoLabel}>Date:</Text>
             <Text style={styles.projectInfoValue}>
               {projectInfo.date || "Not provided"}
             </Text>
           </View>
-        </View>
-
-        <View style={{ marginTop: 20 }}>
-          <Text style={styles.prelimContent}>
-            This document presents the Bill of Quantities (BOQ) for the{" "}
-            {projectInfo.projectType || "project"} located at{" "}
-            {projectInfo.location || "the specified location"}. The quantities
-            have been measured and described according to standard practices.
-          </Text>
-          <Text style={styles.prelimContent}>
-            The rates and prices included are based on current market conditions
-            and the specifications provided. The Contractor is responsible for
-            verifying all quantities and dimensions on site.
-          </Text>
         </View>
 
         <Text
@@ -919,250 +803,131 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       </Page>
 
       {/* --- Preliminaries Page --- */}
-      <Page size="A4" style={styles.prelimPage}>
-        <View style={styles.companyHeader}>
-          {/* Placeholder for Logo */}
-          {projectInfo.logoUrl ? (
-            <Image
-              style={styles.logoContainer} // Use existing style for size/shape
-              source={{ uri: projectInfo.logoUrl }}
-            />
-          ) : (
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LOGO</Text>
-            </View>
-          )}
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>Construction Solutions Ltd</Text>
-            <Text style={styles.companyTagline}>
-              Quality Construction Services
-            </Text>
-          </View>
-        </View>
+      {preliminariesData.length > 0 && (
+        <Page size="A4" style={styles.prelimPage}>
+          <CompanyHeader />
+          {preliminariesData.map((items, index) => (
+            <Text style={styles.prelimTitle}>{items.title}</Text>
+          ))}
 
-        <Text style={styles.prelimTitle}>PRELIMINARIES</Text>
-
-        <Text style={styles.prelimSubtitle}>INTRODUCTION</Text>
-        <Text style={styles.prelimContent}>
-          This Bill of Quantities has been prepared in accordance with the
-          Standard Method of Measurement for Building Works. The Contractor
-          shall allow for all necessary items to complete the works as described
-          in the drawings and specifications.
-        </Text>
-
-        <Text style={styles.prelimSubtitle}>SCOPE OF WORKS</Text>
-        <Text style={styles.prelimContent}>
-          The works comprise the construction of a{" "}
-          {projectInfo.houseType || "residential building"} with{" "}
-          {projectInfo.floors || "G+1"} floors located at{" "}
-          {projectInfo.location || "the specified site"}. The works include but
-          are not limited to:
-        </Text>
-
-        <View style={styles.prelimList}>
-          <Text style={styles.prelimListItem}>
-            • All substructure works including excavation and foundations
-          </Text>
-          <Text style={styles.prelimListItem}>
-            • Superstructure works including walls, floors, and roof
-          </Text>
-          <Text style={styles.prelimListItem}>
-            • Finishes including plastering, painting, and flooring
-          </Text>
-          <Text style={styles.prelimListItem}>
-            • Mechanical and electrical installations
-          </Text>
-          <Text style={styles.prelimListItem}>
-            • External works including drainage and landscaping
-          </Text>
-        </View>
-
-        <Text style={styles.prelimSubtitle}>CONTRACT INFORMATION</Text>
-        <Text style={styles.prelimContent}>
-          The Contractor shall provide all labor, materials, plant, and
-          equipment necessary to complete the works in accordance with the
-          contract documents. The Contractor shall allow for all statutory
-          requirements, insurances, and permits necessary for the execution of
-          the works.
-        </Text>
-
-        <Text style={styles.prelimSubtitle}>MEASUREMENT AND PAYMENT</Text>
-        <Text style={styles.prelimContent}>
-          The works will be measured in accordance with the Standard Method of
-          Measurement. Payment will be made for measured works completed to the
-          satisfaction of the Consultant. The Contractor shall submit monthly
-          payment applications supported by necessary documentation.
-        </Text>
-
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`
-          }
-          fixed
-        />
-      </Page>
-
-      {/* --- Preliminaries Bill Page --- */}
-      <Page size="A4" style={styles.prelimPage}>
-        <View style={styles.companyHeader}>
-          {/* Placeholder for Logo */}
-          {projectInfo.logoUrl ? (
-            <Image
-              style={styles.logoContainer} // Use existing style for size/shape
-              source={{ uri: projectInfo.logoUrl }}
-            />
-          ) : (
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LOGO</Text>
-            </View>
-          )}
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>Construction Solutions Ltd</Text>
-            <Text style={styles.companyTagline}>
-              Quality Construction Services
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.prelimTitle}>PRELIMINARIES</Text>
-        <Text style={styles.prelimSubtitle}>BILL No. 1</Text>
-
-        {preliminariesData.length > 0 ? (
-          <View style={styles.prelimTable}>
-            <View style={[styles.prelimTableRow, styles.prelimTableHeader]}>
-              <Text style={[styles.prelimTableCell, { width: "10%" }]}>
+          <View style={styles.table}>
+            <View style={[styles.tableRow, styles.tableHeaderRow]}>
+              <Text style={[styles.tableColHeader, { width: "10%" }]}>
                 ITEM
               </Text>
               <Text
-                style={[styles.prelimTableCell, styles.prelimTableDescription]}
+                style={[styles.tableColHeaderDescription, { width: "70%" }]}
               >
                 DESCRIPTION
               </Text>
-              <Text style={[styles.prelimTableCell, styles.prelimTableAmount]}>
+              <Text style={[styles.tableColHeader, { width: "20%" }]}>
                 AMOUNT (KSh)
               </Text>
             </View>
 
-            {preliminariesData?.map((item, index) => (
-              <View style={styles.prelimTableRow} key={`prelim-${index}`}>
-                <Text style={[styles.prelimTableCell, { width: "10%" }]}>
-                  {item.itemNo}
-                </Text>
-                <Text
-                  style={[
-                    styles.prelimTableCell,
-                    styles.prelimTableDescription,
-                  ]}
-                >
-                  {item.description}
-                </Text>
-                <Text
-                  style={[styles.prelimTableCell, styles.prelimTableAmount]}
-                >
-                  {formatCurrency(item?.amount)}
-                </Text>
-              </View>
-            ))}
+            {preliminariesData.map((prelim, index) =>
+              prelim.items.map((item, subIndex) => {
+                if (item.isHeader) {
+                  // Header row - show empty item number but keep the row
+                  return (
+                    <View
+                      style={[styles.tableRow, { backgroundColor: "#F3F4F6" }]}
+                      key={`prelim-header-${index}-${subIndex}`}
+                    >
+                      <Text style={[styles.tableCol, { width: "10%" }]}>
+                        {/* Empty for headers */}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.tableColDescription,
+                          { width: "70%", fontWeight: "bold" },
+                        ]}
+                      >
+                        {item.description}
+                      </Text>
+                      <Text style={[styles.tableColAmount, { width: "20%" }]}>
+                        {/* Empty for headers */}
+                      </Text>
+                    </View>
+                  );
+                }
 
-            <View
-              style={[styles.prelimTableRow, { backgroundColor: "#F3F4F6" }]}
-            >
+                // Regular item
+                return (
+                  <View
+                    style={styles.tableRow}
+                    key={`prelim-${index}-${subIndex}`}
+                  >
+                    <Text style={[styles.tableCol, { width: "10%" }]}>
+                      {item.itemNo}
+                    </Text>
+                    <Text
+                      style={[styles.tableColDescription, { width: "70%" }]}
+                    >
+                      {item.description}
+                    </Text>
+                    <Text style={[styles.tableColAmount, { width: "20%" }]}>
+                      {formatCurrency(item.amount)}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
+
+            <View style={[styles.tableRow, { backgroundColor: "#F3F4F6" }]}>
               <Text
                 style={[
-                  styles.prelimTableCell,
-                  styles.prelimTableDescription,
-                  { flex: 4, fontWeight: "bold" },
+                  styles.tableColDescription,
+                  { width: "80%", fontWeight: "bold" },
                 ]}
               >
                 TOTAL FOR PRELIMINARIES:
               </Text>
               <Text
                 style={[
-                  styles.prelimTableCell,
-                  styles.prelimTableAmount,
-                  { fontWeight: "bold" },
+                  styles.tableColAmount,
+                  { width: "20%", fontWeight: "bold" },
                 ]}
               >
                 {formatCurrency(preliminariesTotal)}
               </Text>
             </View>
           </View>
-        ) : (
-          <View style={styles.prelimTable}>
-            <View style={[styles.prelimTableRow, styles.prelimTableHeader]}>
-              <Text style={[styles.prelimTableCell, { width: "10%" }]}>
-                ITEM
-              </Text>
-              <Text
-                style={[styles.prelimTableCell, styles.prelimTableDescription]}
-              >
-                DESCRIPTION
-              </Text>
-              <Text style={[styles.prelimTableCell, styles.prelimTableUnit]}>
-                UNIT
-              </Text>
-              <Text style={[styles.prelimTableCell, styles.prelimTableQty]}>
-                QTY
-              </Text>
-              <Text style={[styles.prelimTableCell, styles.prelimTableRate]}>
-                RATE (KSh)
-              </Text>
-              <Text style={[styles.prelimTableCell, styles.prelimTableAmount]}>
-                AMOUNT (KSh)
-              </Text>
-            </View>
-            <View style={styles.prelimTableRow}>
-              <Text
-                style={[
-                  styles.prelimTableCell,
-                  { textAlign: "center", flex: 6 },
-                ]}
-              >
-                No preliminaries data available
-              </Text>
-            </View>
-          </View>
-        )}
 
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`
-          }
-          fixed
-        />
-      </Page>
+          <Text
+            style={styles.pageNumber}
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+            fixed
+          />
+        </Page>
+      )}
 
-      {/* --- BOQ Pages --- */}
-      {boqData.map((section, sectionIndex) => {
-        const displayItems = section.items.filter((item) => !item.isHeader);
+      {/* --- BOQ Sections --- */}
+      {nonEmptySections.map((section, sectionIndex) => {
+        const displayItems = section.items;
         const sectionTotal = calculateSectionTotal(section.items);
+        const itemChunks = chunkArray(displayItems, 20); // 20 items per page
 
-        return (
+        return itemChunks.map((chunk, chunkIndex) => (
           <Page
             size="A4"
             style={styles.page}
-            key={`section-${sectionIndex}`}
-            wrap
+            key={`section-${sectionIndex}-chunk-${chunkIndex}`}
           >
-            <View style={styles.companyHeader}>
-              <View style={styles.logoContainer}>
-                <Text style={styles.logoText}>LOGO</Text>
-              </View>
-              <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>
-                  Construction Solutions Ltd
-                </Text>
-                <Text style={styles.companyTagline}>
-                  Quality Construction Services
-                </Text>
-              </View>
-            </View>
+            <CompanyHeader />
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <View style={styles.table}>
+            {/* Section header only on first chunk */}
+            {chunkIndex === 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+              </View>
+            )}
+
+            <View style={styles.table}>
+              {/* Table headers only on first chunk */}
+              {chunkIndex === 0 && (
                 <View style={styles.tableHeaderRow}>
                   <Text style={[styles.tableColHeader, { width: "12%" }]}>
                     ITEM
@@ -1181,54 +946,80 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   <Text style={[styles.tableColHeader, { width: "11%" }]}>
                     RATE (KSh)
                   </Text>
-                  <Text style={[styles.tableColHeader, { width: "15%" }]}>
+                  <Text style={[styles.tableColHeader, { width: "11%" }]}>
                     AMOUNT (KSh)
                   </Text>
                 </View>
-                {displayItems.length > 0 ? (
-                  displayItems.map((item, itemIndex) => (
+              )}
+
+              {chunk.map((item, itemIndex) => {
+                if (item.isHeader) {
+                  // Header row - show empty item number but keep the row
+                  return (
                     <View
-                      style={styles.tableRow}
-                      key={`item-${sectionIndex}-${itemIndex}`}
+                      style={[styles.tableRow, { backgroundColor: "#F3F4F6" }]}
+                      key={`header-${sectionIndex}-${chunkIndex}-${itemIndex}`}
                     >
                       <Text style={[styles.tableCol, { width: "12%" }]}>
-                        {item.itemNo}
+                        {/* Empty for headers */}
                       </Text>
                       <Text
-                        style={[styles.tableColDescription, { width: "58%" }]}
+                        style={[
+                          styles.tableColDescription,
+                          { width: "48%", fontWeight: "bold" },
+                        ]}
                       >
                         {item.description}
                       </Text>
                       <Text style={[styles.tableCol, { width: "8%" }]}>
-                        {item.unit}
+                        {/* Empty for headers */}
                       </Text>
                       <Text style={[styles.tableCol, { width: "10%" }]}>
-                        {item.quantity % 1 === 0
-                          ? item.quantity.toFixed(0)
-                          : item.quantity.toFixed(2)}
+                        {/* Empty for headers */}
                       </Text>
                       <Text style={[styles.tableCol, { width: "11%" }]}>
-                        {item.rate > 0 ? formatCurrency(item.rate) : ""}
+                        {/* Empty for headers */}
                       </Text>
                       <Text style={[styles.tableColAmount, { width: "11%" }]}>
-                        {formatCurrency(item.amount)}
+                        {/* Empty for headers */}
                       </Text>
                     </View>
-                  ))
-                ) : (
-                  <View style={styles.tableRow}>
+                  );
+                }
+
+                // Regular item row
+                return (
+                  <View
+                    style={styles.tableRow}
+                    key={`item-${sectionIndex}-${chunkIndex}-${itemIndex}`}
+                  >
+                    <Text style={[styles.tableCol, { width: "12%" }]}>
+                      {item.itemNo}
+                    </Text>
                     <Text
-                      style={[
-                        styles.tableCol,
-                        { width: "100%", textAlign: "center" },
-                      ]}
+                      style={[styles.tableColDescription, { width: "48%" }]}
                     >
-                      No items in this section.
+                      {item.description}
+                    </Text>
+                    <Text style={[styles.tableCol, { width: "8%" }]}>
+                      {item.unit}
+                    </Text>
+                    <Text style={[styles.tableCol, { width: "10%" }]}>
+                      {formatQuantity(item.quantity)}
+                    </Text>
+                    <Text style={[styles.tableCol, { width: "11%" }]}>
+                      {formatCurrency(item.rate)}
+                    </Text>
+                    <Text style={[styles.tableColAmount, { width: "11%" }]}>
+                      {formatCurrency(item.amount)}
                     </Text>
                   </View>
-                )}
-              </View>
+                );
+              })}
+            </View>
 
+            {/* Section total on last chunk */}
+            {chunkIndex === itemChunks.length - 1 && (
               <View style={styles.sectionTotalRow}>
                 <Text style={styles.sectionTotalLabel}>
                   TOTAL FOR{" "}
@@ -1238,181 +1029,26 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   {formatCurrency(sectionTotal)}
                 </Text>
               </View>
-            </View>
+            )}
 
             <View style={styles.boqFooter} fixed>
               <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
               <Text>{projectInfo.title}</Text>
               <Text>{projectInfo.clientName}</Text>
             </View>
-            <Text
-              style={styles.pageNumber}
-              render={({ pageNumber, totalPages }) =>
-                `Page ${pageNumber} of ${totalPages}`
-              }
-              fixed
-            />
           </Page>
-        );
+        ));
       })}
 
-      {/* --- Material Schedule Page (Redesigned) --- */}
+      {consolidatedMaterials.length > 0 &&
+        renderConsolidatedMaterials(consolidatedMaterials)}
+
+      {/* --- Summary Page --- */}
       <Page size="A4" style={styles.page}>
-        {/* Updated Header with Logo */}
-        <View style={styles.companyHeader}>
-          {/* Placeholder for Logo */}
-          {projectInfo.logoUrl ? (
-            <Image
-              style={styles.logoContainer} // Use existing style for size/shape
-              source={{ uri: projectInfo.logoUrl }}
-            />
-          ) : (
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LOGO</Text>
-            </View>
-          )}
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>Construction Solutions Ltd</Text>
-            <Text style={styles.companyTagline}>
-              Quality Construction Services
-            </Text>
-          </View>
-        </View>
-
-        {/* Project Header (Same as other pages) */}
-        <View style={styles.header}>
-          <Text style={styles.title}>BILL OF QUANTITIES</Text>
-          <Text style={styles.subtitle}>FOR</Text>
-          <Text style={styles.title}>
-            {projectInfo.title || "Not Provided"}
-          </Text>
-          <Text style={styles.subtitle}>FOR</Text>
-          <Text style={styles.subtitle}>
-            {projectInfo.clientName || "Not provided"}
-          </Text>
-        </View>
-
-        {/* Material Schedule Section */}
-        <View style={styles.materialScheduleSection}>
-          <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
-          <View style={styles.materialScheduleTable}>
-            {/* Updated Header Row */}
-            <View style={styles.materialScheduleHeaderRow}>
-              <Text style={styles.materialScheduleColHeaderItem}>ITEM</Text>
-              <Text style={styles.materialScheduleColHeaderDescription}>
-                DESCRIPTION
-              </Text>
-              <Text style={styles.materialScheduleColHeaderUnit}>UNIT</Text>
-              <Text style={styles.materialScheduleColHeaderQty}>QUANTITY</Text>
-              <Text style={styles.materialScheduleColHeaderRate}>
-                RATE (KSh)
-              </Text>
-              <Text style={styles.materialScheduleColHeaderAmount}>
-                AMOUNT (KSh)
-              </Text>
-            </View>
-
-            {/* Data Rows */}
-            {materialScheduleDisplayData.length > 0 ? (
-              materialScheduleDisplayData.map((material, index) => (
-                <View
-                  style={styles.materialScheduleRow}
-                  key={`material-display-${index}`}
-                >
-                  <Text style={styles.materialScheduleColItem}>
-                    {material.itemNo}
-                  </Text>
-                  <Text style={styles.materialScheduleColDescription}>
-                    {material.description}
-                  </Text>
-                  <Text style={styles.materialScheduleColUnit}>
-                    {material.unit}
-                  </Text>
-                  <Text style={styles.materialScheduleColQty}>
-                    {material.quantity % 1 === 0
-                      ? material.quantity.toFixed(0)
-                      : material.quantity.toFixed(2)}
-                  </Text>
-                  <Text style={styles.materialScheduleColRate}>
-                    {material.rate > 0 ? formatCurrency(material.rate) : "-"}{" "}
-                    {/* Show dash if rate is 0/missing */}
-                  </Text>
-                  <Text style={styles.materialScheduleColAmount}>
-                    {material.amount > 0
-                      ? formatCurrency(material.amount)
-                      : "-"}{" "}
-                    {/* Show dash if amount is 0/missing */}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <View style={styles.materialScheduleRow}>
-                <Text
-                  style={[
-                    styles.materialScheduleCol,
-                    { width: "100%", textAlign: "center" }, // Span full width or adjust
-                  ]}
-                >
-                  No materials found or schedule data unavailable.
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.boqFooter} fixed>
-          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
-          <Text>{projectInfo.title}</Text>
-          <Text>{projectInfo.clientName}</Text>
-        </View>
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`
-          }
-          fixed
-        />
-      </Page>
-
-      {/* --- Summary Page (Grand Total) --- */}
-      <Page size="A4" style={styles.page}>
-        <View style={styles.companyHeader}>
-          {/* Placeholder for Logo */}
-          {projectInfo.logoUrl ? (
-            <Image
-              style={styles.logoContainer} // Use existing style for size/shape
-              source={{ uri: projectInfo.logoUrl }}
-            />
-          ) : (
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LOGO</Text>
-            </View>
-          )}
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>Construction Solutions Ltd</Text>
-            <Text style={styles.companyTagline}>
-              Quality Construction Services
-            </Text>
-          </View>
-        </View>
+        <CompanyHeader />
 
         <View style={styles.header}>
-          <Text style={styles.title}>BILL OF QUANTITIES</Text>
-          <Text style={styles.subtitle}>FOR</Text>
-          <Text style={styles.title}>
-            {projectInfo.title || "Not Provided"}
-          </Text>
-          <Text style={styles.subtitle}>FOR</Text>
-          <Text style={styles.subtitle}>
-            {projectInfo.clientName || "Not provided"}
-          </Text>
-        </View>
-
-        <View style={{ marginTop: 30 }}>
-          <Text style={styles.prelimTitle}>
-            SUMMARY OF QUANTITIES AND COSTS
-          </Text>
+          <Text style={styles.title}>SUMMARY OF QUANTITIES AND COSTS</Text>
         </View>
 
         {preliminariesData.length > 0 && (
@@ -1448,31 +1084,11 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
           </Text>
         </View>
 
-        <View style={{ marginTop: 30 }}>
-          <Text style={styles.prelimContent}>
-            This Bill of Quantities has been prepared based on the information
-            provided and the measurements taken. The quantities are subject to
-            verification on site.
-          </Text>
-          <Text style={styles.prelimContent}>
-            The rates and prices included herein are based on current market
-            conditions and are valid for the period specified in the contract
-            documents.
-          </Text>
-        </View>
-
         <View style={styles.boqFooter} fixed>
           <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
           <Text>{projectInfo.title}</Text>
           <Text>{projectInfo.clientName}</Text>
         </View>
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) =>
-            `Page ${pageNumber} of ${totalPages}`
-          }
-          fixed
-        />
       </Page>
     </Document>
   );

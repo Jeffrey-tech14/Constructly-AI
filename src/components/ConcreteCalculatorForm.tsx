@@ -24,6 +24,8 @@ import { Material } from "@/hooks/useQuoteCalculations";
 import { useAuth } from "@/contexts/AuthContext";
 import { RegionalMultiplier } from "@/hooks/useDynamicPricing";
 import { supabase } from "@/integrations/supabase/client";
+import { Label } from "./ui/label";
+import { Checkbox } from "./ui/checkbox";
 
 interface Props {
   quote: any;
@@ -192,14 +194,31 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       acc.sand += r.sandM3;
       acc.stone += r.stoneM3;
       acc.formworkM2 += r.formworkM2;
+      acc.bedVolume += r.bedVolume || 0;
+      acc.bedArea += r.bedArea || 0;
+      acc.aggregateVolume += r.aggregateVolume || 0; // Add aggregate volume to totals
+      acc.aggregateArea += r.aggregateArea || 0; // Add aggregate area to totals
       return acc;
     },
-    { volume: 0, cement: 0, sand: 0, stone: 0, formworkM2: 0 }
+    {
+      volume: 0,
+      cement: 0,
+      sand: 0,
+      stone: 0,
+      formworkM2: 0,
+      bedVolume: 0,
+      bedArea: 0,
+      aggregateVolume: 0,
+      aggregateArea: 0,
+    }
   );
 
   const cementMat = materials.find((m) => m.name?.toLowerCase() === "cement");
   const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
   const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
+  const aggregateMat = materials.find(
+    (m) => m.name?.toLowerCase() === "aggregate"
+  );
   const formworkMat = materials.find(
     (m) => m.name?.toLowerCase() === "formwork"
   );
@@ -249,19 +268,20 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       },
       {
         rowId: r.id,
+        name: `Aggregate (${r.name})`,
+        quantity: r.aggregateVolume,
+        unit_price: aggregateMat?.price || 0,
+        total_price: Math.round(r.aggregateVolume * (aggregateMat?.price || 0)),
+      },
+      {
+        rowId: r.id,
         name: "Total items",
         quantity: Math.round(r.volumeM3),
-        unit_price: Math.round(
-          (Math.round(r.formworkM2 * (formworkMat?.price || 0)) +
-            Math.round(r.stoneM3 * ballastMat.price) +
-            Math.round(r.sandM3 * sandMat.price) +
-            Math.round(r.cementBags * cementMat.price)) /
-            r.totalVolume
-        ),
         total_price:
           Math.round(r.formworkM2 * (formworkMat?.price || 0)) +
           Math.round(r.stoneM3 * ballastMat.price) +
           Math.round(r.sandM3 * sandMat.price) +
+          Math.round(r.aggregateVolume * aggregateMat.price) +
           Math.round(r.cementBags * cementMat.price),
       },
     ]);
@@ -297,12 +317,22 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       },
       {
         rowId: "totals",
+        name: "Total Aggregate",
+        quantity: totals.aggregateVolume,
+        unit_price: aggregateMat?.price || 0,
+        total_price: Math.round(
+          totals.aggregateVolume * (aggregateMat?.price || 0)
+        ),
+      },
+      {
+        rowId: "totals",
         name: "Grand Total",
         quantity: rows[0].number || 1,
         total_price: Math.round(
           totals.cement * cementMat.price +
             totals.sand * sandMat.price +
             totals.stone * ballastMat.price +
+            totals.aggregateVolume * aggregateMat.price +
             totals.formworkM2 * formworkMat.price
         ),
       },
@@ -414,6 +444,74 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
               />
             </div>
 
+            {row.element === "foundation" && (
+              <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                {/* Concrete Bed */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`bed-${row.id}`}
+                    checked={row.hasConcreteBed || false}
+                    onCheckedChange={(checked) =>
+                      updateRow(row.id, "hasConcreteBed", checked === true)
+                    }
+                    className="w-4 h-4"
+                  />
+                  <Label
+                    htmlFor={`bed-${row.id}`}
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Include Concrete Bed
+                  </Label>
+                </div>
+
+                {row.hasConcreteBed && (
+                  <Input
+                    type="number"
+                    value={row.bedDepth || ""}
+                    onChange={(e) =>
+                      updateRow(row.id, "bedDepth", e.target.value)
+                    }
+                    placeholder="Concrete bed depth (m)"
+                    step="0.05"
+                    min="0.05"
+                    max="0.3"
+                  />
+                )}
+
+                {/* Aggregate Bed */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`aggregate-${row.id}`}
+                    checked={row.hasAggregateBed || false}
+                    onCheckedChange={(checked) =>
+                      updateRow(row.id, "hasAggregateBed", checked === true)
+                    }
+                    className="w-4 h-4"
+                  />
+                  <Label
+                    htmlFor={`aggregate-${row.id}`}
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Include Aggregate Bed
+                  </Label>
+                </div>
+
+                {row.hasAggregateBed && (
+                  <Input
+                    type="number"
+                    value={row.aggregateDepth || ""}
+                    onChange={(e) =>
+                      updateRow(row.id, "aggregateDepth", e.target.value)
+                    }
+                    placeholder="Aggregate depth (m)"
+                    step="0.05"
+                    min="0.05"
+                    max="0.3"
+                  />
+                )}
+              </div>
+            )}
+
             <Input
               type="text"
               value={row.mix}
@@ -450,6 +548,28 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
                     {Math.round(result.formworkM2 * (formworkMat?.price || 0))}
                   </b>
                 </p>
+                {result.bedVolume > 0 && (
+                  <>
+                    <p>
+                      <b>Concrete Bed:</b> {result.bedVolume.toFixed(2)} m³
+                    </p>
+                    <p>
+                      <b>Surface Bed Area:</b> {result.bedArea.toFixed(2)} m²
+                    </p>
+                  </>
+                )}
+                {result.aggregateVolume > 0 && (
+                  <>
+                    <p>
+                      <b>Aggregate Bed:</b> {result.aggregateVolume.toFixed(2)}{" "}
+                      m³
+                    </p>
+                    <p>
+                      <b>Aggregate Area:</b> {result.aggregateArea.toFixed(2)}{" "}
+                      m²
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>

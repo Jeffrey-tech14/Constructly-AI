@@ -25,6 +25,7 @@ interface QuoteExportDialogProps {
   contractorName: string;
   companyName: string;
   onOpenChange: (open: boolean) => void;
+  logoUrl: string;
 }
 
 export const QuoteExportDialog = ({
@@ -33,6 +34,7 @@ export const QuoteExportDialog = ({
   onOpenChange,
   contractorName,
   companyName,
+  logoUrl,
 }: QuoteExportDialogProps) => {
   const [exportType, setExportType] = useState<"client" | "contractor">(
     "contractor"
@@ -45,6 +47,7 @@ export const QuoteExportDialog = ({
     company_name: companyName,
   };
 
+  // In QuoteExportDialog.tsx, update the handleExport function:
   const handleExport = () => {
     if (exportFormat === "pdf") {
       exportBOQPDF(
@@ -52,7 +55,7 @@ export const QuoteExportDialog = ({
         {
           title: quote.title,
           companyName: companyName,
-          date: Date(),
+          date: new Date().toLocaleDateString(),
           clientName: quote.client_name,
           clientEmail: quote.client_email,
           location: quote.location,
@@ -60,8 +63,10 @@ export const QuoteExportDialog = ({
           houseType: quote.house_type,
           region: quote.region,
           floors: quote.floors,
+          logoUrl: logoUrl,
         },
-        quote.preliminaries
+        quote.preliminaries,
+        quote // Pass the full quote object for material extraction
       );
     } else {
       generateQuoteExcel({

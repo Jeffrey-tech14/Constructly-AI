@@ -268,6 +268,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     total_formwork_area: 0,
     total_rebar_weight: 0,
     total_plaster_volume: 0,
+    boqData: [],
+    preliminaries: [],
 
     labor_percentages: 0,
     overhead_percentages: 0,
@@ -434,6 +436,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         percentages: quoteData.percentages,
         addons: quoteData.addons,
         addons_cost: quoteData.addons_cost,
+        boqData: boqData,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
@@ -459,6 +462,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         additional_services_cost: quoteData.additional_services_cost,
         show_profit_to_client: quoteData.show_profit_to_client,
         house_type: quoteData.house_type,
+        preliminaries: preliminaries,
         labor_percentages:
           parseFloat(quoteData.percentages[0].labour.toString()) || 0,
         overhead_percentages:
@@ -501,6 +505,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           project_type: quoteData.project_type,
           custom_specs: quoteData.custom_specs || null,
           status: quoteData.status,
+          preliminaries: preliminaries,
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           distance_km: calculation.distance_km,
@@ -560,6 +565,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           boq_data: boqData,
+          preliminaries: preliminaries,
           distance_km: calculation.distance_km,
           materials_cost: Math.round(calculation.materials_cost),
           concrete_rows: quoteData.concrete_rows,
@@ -1188,7 +1194,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <h3 className="text-lg font-semibold mb-4">
                 Additional Services
               </h3>
-              <div className="space-y-4 grid w-full grid-cols-2">
+              <div className="space-y-4 grid w-full md:grid-cols-2">
                 {services
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
@@ -1245,7 +1251,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   .filter((s) => !services.some((srv) => srv.id === s.id))
                   .map((service) => (
                     <Card key={service.id} className="p-4 m-1 gradient-card">
-                      <div className="flex items-center justify-between">
+                      <div className="grid grid-cols-2 items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <Checkbox
                             checked={true}
@@ -1381,13 +1387,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <h3 className="text-lg font-semibold mb-4">
                 Subcontractor Charges
               </h3>
-              <div className="space-y-4">
+              <div className="grid md:grid-cols-2 space-y-4">
                 {subContractors
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
                     return (
                       <Card key={service.id} className="p-4 gradient-card m-2">
-                        <div className="flex w-full grid grid-cols-2">
+                        <div className="grid grid-cols-2">
                           <div className="flex items-center space-x-3">
                             <Checkbox
                               className="text-white"
@@ -1577,7 +1583,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <h3 className="text-lg font-semibold mb-4">
                 Subcontractor Materials
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-4 grid md:grid-cols-2">
                 {subContractors
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
@@ -1684,6 +1690,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <PreliminariesBuilder
               quoteData={quoteData}
               onPreliminariesUpdate={setPreliminaries}
+              onSaveToQuote={(sections) => {
+                // Save to quote.preliminaries
+                setQuoteData((prev: any) => ({
+                  ...prev,
+                  preliminaries: sections,
+                }));
+              }}
             />
           </div>
         );

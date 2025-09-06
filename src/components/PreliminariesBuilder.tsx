@@ -27,11 +27,13 @@ interface PrelimSection {
 interface PreliminariesBuilderProps {
   quoteData: any;
   onPreliminariesUpdate: (sections: PrelimSection[]) => void;
+  onSaveToQuote: (sections: PrelimSection[]) => void; // Add this prop
 }
 
 const PreliminariesBuilder = ({
   quoteData,
   onPreliminariesUpdate,
+  onSaveToQuote,
 }: PreliminariesBuilderProps) => {
   const sections: PrelimSection[] = useMemo(() => {
     const prelims = quoteData?.preliminaries;
@@ -41,7 +43,6 @@ const PreliminariesBuilder = ({
     return [{ title: "General Preliminaries", items: [] }];
   }, [quoteData?.preliminaries]);
 
-  // Track which item is being edited
   const [editingItem, setEditingItem] = useState<{
     sectionIndex: number;
     itemIndex: number;
@@ -53,8 +54,31 @@ const PreliminariesBuilder = ({
   const calculateGrandTotal = (): number =>
     sections.reduce((sum, s) => sum + calculateSectionTotal(s.items), 0);
 
+  const updateSectionTitle = (sectionIndex: number, title: string) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].title = title;
+    updateSections(newSections);
+  };
+
+  const updateItem = (
+    sectionIndex: number,
+    itemIndex: number,
+    field: keyof PrelimItem,
+    value: any
+  ) => {
+    const newSections = [...sections];
+    const item = newSections[sectionIndex].items[itemIndex];
+    if (field === "amount") {
+      item.amount = parseFloat(value) || 0;
+    } else {
+      (item as any)[field] = value;
+    }
+    updateSections(newSections);
+  };
+
   const updateSections = (newSections: PrelimSection[]) => {
     onPreliminariesUpdate(newSections);
+    onSaveToQuote(newSections); // Auto-save on any change
   };
 
   const addItem = (sectionIndex: number) => {
@@ -85,31 +109,10 @@ const PreliminariesBuilder = ({
   };
 
   const addSection = () => {
-    updateSections([
+    const newSections = [
       ...sections,
       { title: `Section ${sections.length + 1}`, items: [] },
-    ]);
-  };
-
-  const updateSectionTitle = (sectionIndex: number, title: string) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].title = title;
-    updateSections(newSections);
-  };
-
-  const updateItem = (
-    sectionIndex: number,
-    itemIndex: number,
-    field: keyof PrelimItem,
-    value: any
-  ) => {
-    const newSections = [...sections];
-    const item = newSections[sectionIndex].items[itemIndex];
-    if (field === "amount") {
-      item.amount = parseFloat(value) || 0;
-    } else {
-      (item as any)[field] = value;
-    }
+    ];
     updateSections(newSections);
   };
 
@@ -125,14 +128,15 @@ const PreliminariesBuilder = ({
     newSections.splice(sectionIndex, 1);
     updateSections(newSections);
   };
-
-  // Toggle edit mode for a row
+  // Toggle edit mode for a row and save when exiting edit mode
   const toggleEdit = (sectionIndex: number, itemIndex: number) => {
     setEditingItem((prev) => {
       if (
         prev?.sectionIndex === sectionIndex &&
         prev?.itemIndex === itemIndex
       ) {
+        // We're switching from edit to save mode - save to quote
+        onSaveToQuote(sections);
         return null; // Save and exit editing
       }
       return { sectionIndex, itemIndex }; // Enter editing mode
@@ -279,12 +283,14 @@ const PreliminariesBuilder = ({
       ))}
 
       {sections.length > 0 && sections.some((s) => s.items.length > 0) && (
-        <Card className="bg-primary/10 border-primary">
+        <Card className="bg-primary/10 border-primary dark:border-blue-300">
           <CardHeader>
-            <CardTitle className="text-primary">Grand Total</CardTitle>
+            <CardTitle className="text-primary dark:text-blue-300">
+              Grand Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
+            <div className="text-2xl font-bold text-primary dark:text-blue-300">
               KSh {calculateGrandTotal().toLocaleString()}
             </div>
           </CardContent>

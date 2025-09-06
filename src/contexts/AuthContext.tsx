@@ -26,6 +26,7 @@ interface Profile {
   overall_profit_margin?: number;
   created_at: string;
   updated_at: string;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
@@ -72,7 +73,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
       );
 
-      const query = supabase.from("profiles").select("*").eq("id", userId).single();
+      const query = supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
       const result = await Promise.race([
         query.then((res) => ({ type: "success", res } as const)),
@@ -303,9 +308,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     [user, profile, loading, authReady]
   );
 
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

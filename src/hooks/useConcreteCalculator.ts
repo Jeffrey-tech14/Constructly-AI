@@ -15,6 +15,10 @@ export interface ConcreteRow {
   formwork?: string;
   category: Category;
   number: string;
+  hasConcreteBed?: boolean; // New field
+  bedDepth?: string;
+  hasAggregateBed?: boolean; // New field for aggregate bed
+  aggregateDepth?: string; // New field for aggregate depth
 }
 
 export interface ConcreteResult {
@@ -28,6 +32,10 @@ export interface ConcreteResult {
   number: string;
   totalVolume: number;
   formworkM2: number;
+  bedVolume?: number;
+  bedArea?: number;
+  aggregateVolume?: number; // New field for aggregate volume
+  aggregateArea?: number; // New field for aggregate area
 }
 
 const CEMENT_DENSITY = 1440; // kg/m3
@@ -44,57 +52,85 @@ export function parseMix(mix?: string): [number, number, number] {
 }
 
 export function calculateConcrete(row: ConcreteRow): ConcreteResult {
-  const { length, width, height, mix, id, name, element, formwork, number } =
-    row;
+  const {
+    length,
+    width,
+    height,
+    mix,
+    id,
+    name,
+    element,
+    formwork,
+    number,
+    hasConcreteBed,
+    bedDepth,
+    hasAggregateBed,
+    aggregateDepth,
+  } = row;
 
-  // Volume
-  const volume = parseFloat(length) * parseFloat(width) * parseFloat(height);
-  const totalVolume =
-    parseFloat(length) *
-    parseFloat(width) *
-    parseFloat(height) *
-    parseInt(number);
+  // Parse numeric values
+  const len = parseFloat(length) || 0;
+  const wid = parseFloat(width) || 0;
+  const hei = parseFloat(height) || 0;
+  const num = parseInt(number) || 1;
+  const bedDepthNum = parseFloat(bedDepth) || 0;
+  const aggregateDepthNum = parseFloat(aggregateDepth) || 0;
+
+  // Main volume calculation
+  const volume = len * wid * hei;
+  const mainVolume = volume * num;
 
   // Mix ratio
   const [c, s, st] = parseMix(mix);
   const totalParts = c + s + st;
 
-  const totalMass = 2400 * volume;
+  // Calculate bed volume if applicable
+  let bedVolume = 0;
+  let bedArea = 0;
+  let aggregateVolume = 0;
+  let aggregateArea = 0;
 
-  // Cement
-  const cementMass = parseInt(number) * (c / totalParts) * totalMass;
+  if (element === "foundation") {
+    const baseArea = len * wid * num;
+
+    if (hasConcreteBed && bedDepthNum > 0) {
+      bedArea = baseArea;
+      bedVolume = bedArea * bedDepthNum;
+    }
+
+    if (hasAggregateBed && aggregateDepthNum > 0) {
+      aggregateArea = baseArea;
+      aggregateVolume = aggregateArea * aggregateDepthNum;
+    }
+  }
+
+  const totalConcreteVolume = mainVolume + bedVolume;
+  const totalMass = 2400 * totalConcreteVolume;
+
+  // Calculate materials for total concrete volume (main + bed)
+  const cementMass = (c / totalParts) * totalMass;
   const cementBags = cementMass / CEMENT_BAG_KG;
 
-  // Sand
-  const sandMass = parseInt(number) * (s / totalParts) * totalMass;
+  const sandMass = (s / totalParts) * totalMass;
   const sandM3 = sandMass / SAND_DENSITY;
 
-  // Stone
-  const stoneMass = parseInt(number) * (st / totalParts) * totalMass;
+  const stoneMass = (st / totalParts) * totalMass;
   const stoneM3 = stoneMass / STONE_DENSITY;
 
-  // Formwork: either user-input, or approximate surface area
+  // Formwork calculation
   let formworkM2 = 0;
 
   if (formwork && !isNaN(parseFloat(formwork))) {
     formworkM2 = parseFloat(formwork);
   } else {
     if (element === "slab") {
-      formworkM2 = parseInt(number) * parseFloat(length) * parseFloat(width);
+      formworkM2 = num * len * wid;
     } else if (element === "beam") {
-      formworkM2 =
-        parseInt(number) * 2 * parseFloat(height) * parseFloat(length) +
-        parseFloat(width) * parseFloat(length);
+      formworkM2 = num * (2 * hei * len + wid * len);
     } else if (element === "column") {
-      formworkM2 =
-        parseInt(number) *
-        2 *
-        (parseFloat(width) + parseFloat(length)) *
-        parseFloat(height);
+      formworkM2 = num * 2 * (wid + len) * hei;
     } else if (element === "foundation") {
-      formworkM2 =
-        parseInt(number) * 2 * parseFloat(height) * parseFloat(length) +
-        parseFloat(width) * parseFloat(length);
+      formworkM2 = num * (2 * hei * len + wid * len);
     }
   }
 
@@ -104,10 +140,14 @@ export function calculateConcrete(row: ConcreteRow): ConcreteResult {
     element,
     number,
     volumeM3: volume,
-    totalVolume,
+    totalVolume: totalConcreteVolume,
     cementBags,
     sandM3,
     stoneM3,
     formworkM2,
+    bedVolume,
+    bedArea,
+    aggregateVolume,
+    aggregateArea,
   };
 }

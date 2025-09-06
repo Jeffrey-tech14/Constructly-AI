@@ -27,13 +27,13 @@ export const mapMasonryToBOQ = (roomResults: any[]): BOQItem[] => {
     const [plasterGroup, blockType] = key.split("_");
 
     // Calculate totals per group
-    const totalNetArea = rooms.reduce((sum, r) => sum + (r.netArea || 0), 0);
+    const totalNetArea = rooms.reduce((sum, r) => sum + (r.blocks || 0), 0);
     const totalRate = rooms.reduce((sum, r) => sum + (r.rate || 0), 0);
 
     return {
       itemNo: generateItemNumber("MAS", index + 1),
       description: `${plasterGroup} (${blockType})`,
-      unit: "m²",
+      unit: "No.",
       quantity: Math.ceil(totalNetArea),
       isHeader: false,
       rate:

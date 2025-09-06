@@ -108,7 +108,7 @@ export default function MasonryCalculatorForm({
       {quote.rooms.map((room, index) => (
         <div
           key={index}
-          className="mt-3 grid grid-cols-5 md:grid-cols-1 justify-between gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
+          className="mt-3 grid grid-cols-3 justify-between gap-2 mb-3 items-start border p-4 rounded-xl shadow-sm"
         >
           {/* Room Type */}
           <Input
@@ -802,12 +802,17 @@ export default function MasonryCalculatorForm({
           </div>
         </div>
       ))}
-      <Button onClick={addRoom} variant="outline" size="sm">
+      <Button className="mt-1" onClick={addRoom} variant="outline" size="sm">
         <Plus className="w-4 h-4 mr-1" /> Add Room
       </Button>
-      <Button onClick={calculateMasonry} variant="outline" size="sm">
+      {/* <Button
+        className="ml-1 mt-1"
+        onClick={calculateMasonry}
+        variant="outline"
+        size="sm"
+      >
         <Calculator className="w-4 h-4 mr-1" /> Calculate
-      </Button>
+      </Button> */}
     </div>
   );
 }

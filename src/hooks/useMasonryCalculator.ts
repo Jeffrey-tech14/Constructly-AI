@@ -99,27 +99,6 @@ export default function useMasonryCalculator({
     return w * h;
   }, []);
 
-  const getBlockArea = (room: Room): number => {
-    if (
-      room.blockType === "Custom" &&
-      room.customBlock?.length &&
-      room.customBlock?.height
-    ) {
-      const l = Number(room.customBlock.length) || 0;
-      const h = Number(room.customBlock.height) || 0;
-      return l * h;
-    }
-
-    // find the selected block in blockTypes
-    const blockDef = blockTypes.find((b) => b.name === room.blockType);
-    if (blockDef && blockDef.size) {
-      return blockDef.size.length * blockDef.size.height;
-    }
-
-    // fallback default (standard brick face)
-    return 0.225 * 0.075;
-  };
-
   const removeEntry = (
     roomIndex: number,
     type: "doors" | "windows",
@@ -577,6 +556,7 @@ export default function useMasonryCalculator({
 
       const plasterCement = plasterArea * CEMENT_PER_SQM_PLASTER;
       const plasterSand = plasterArea * SAND_PER_SQM_PLASTER;
+      const roomCement = cementQty + plasterCement;
 
       const blockCost = Math.round(blocks * blockPrice);
       const plasterCost =

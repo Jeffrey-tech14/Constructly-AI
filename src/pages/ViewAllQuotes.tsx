@@ -582,7 +582,7 @@ const ViewAllQuotes = () => {
                           className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-900/90"
                         >
                           <FileText className="w-4 h-4 mr-2 text-white" />
-                          Generate PDF
+                          Generate BOQ
                         </Button>
                       </DialogTrigger>
                       <DialogContent>

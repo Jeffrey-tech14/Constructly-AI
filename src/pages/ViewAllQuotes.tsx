@@ -575,7 +575,6 @@ const ViewAllQuotes = () => {
                     )}
 
                     <Dialog>
-                      <DialogTitle></DialogTitle>
                       <DialogTrigger asChild>
                         <Button
                           size="sm"

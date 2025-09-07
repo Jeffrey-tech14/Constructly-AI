@@ -19,6 +19,7 @@ import {
   ConsolidatedMaterial,
   MaterialConsolidator,
 } from "@/utils/materialConsolidator";
+import { Pickaxe } from "lucide-react";
 
 // --- Register Outfit Font ---
 Font.register({
@@ -428,6 +429,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
     fontWeight: "bold",
   },
+  footer: {
+    position: "absolute",
+    bottom: 15,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 9,
+    color: "#6B7280",
+    paddingTop: 8,
+    borderTop: "1pt solid #E5E7EB",
+  },
+  footerTotal: {
+    fontWeight: "bold",
+    color: "#1F2937",
+  },
 });
 
 // --- Helper Functions ---
@@ -485,15 +502,88 @@ interface PDFGeneratorProps {
   boqData: BOQSection[];
   projectInfo: ProjectInfo;
   preliminariesData?: Preliminaries[];
-  materialSchedule?: any[]; // Make this optional
+  materialSchedule?: any[];
+  calculationSummary?: CalculationSummary; // Add this
+  equipmentItems?: EquipmentItem[]; // Add this
+  additionalServices?: AdditionalService[]; // Add this
+  subcontractors?: Subcontractor[]; // Add this
+  addons?: Addon[]; // Add this
+  transportCost?: number;
+  contractType?: "full_contract" | "labor_only";
+  profit: number;
+  contingency_amount: number;
+  overhead_amount: number;
+  labour: number;
+  permits: number;
+}
+// Add these interfaces to your types section
+interface EquipmentItem {
+  name: string;
+  total_cost: number;
+  equipment_type_id: string;
 }
 
-// --- Main Component ---
+interface AdditionalService {
+  name: string;
+  price: number;
+}
+
+interface Subcontractor {
+  id: string;
+  name: string;
+  subcontractor_payment_plan: string;
+  price: number;
+  days: number;
+  total: number;
+}
+
+interface Addon {
+  name: string;
+  price: number;
+}
+
+interface Percentage {
+  labour: number;
+  overhead: number;
+  profit: number;
+  contingency: number;
+}
+
+interface CalculationSummary {
+  materials_cost: number;
+  labor_cost: number;
+  equipment_cost: number;
+  transport_costs: number;
+  services_cost: number;
+  subcontractors_cost: number;
+  preliminaries_cost: number;
+  addons_cost: number;
+  permit_cost: number;
+  overhead_amount: number;
+  contingency_amount: number;
+  profit_amount: number;
+  subtotal: number;
+  total_amount: number;
+  percentages: Percentage[];
+}
+
 const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   boqData,
   projectInfo,
   preliminariesData = [],
   materialSchedule,
+  calculationSummary,
+  equipmentItems = [],
+  additionalServices = [],
+  subcontractors = [],
+  addons = [],
+  transportCost = 0,
+  contractType = "full_contract",
+  profit = 0,
+  contingency_amount = 0,
+  overhead_amount = 0,
+  labour = 0,
+  permits = 0,
 }) => {
   // --- Filter out empty sections ---
   const nonEmptySections = useMemo(() => {
@@ -517,9 +607,6 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       // Fallback: extract from BOQ data
       const mockQuote = {
         boqData: boqData,
-        concrete_materials: [],
-        rebar_calculations: [],
-        rooms: [],
       };
       const schedule = AdvancedMaterialExtractor.extractLocally(mockQuote);
       allMaterials = Object.values(schedule).flat();
@@ -529,11 +616,176 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     return MaterialConsolidator.consolidateAllMaterials(allMaterials);
   }, [boqData, materialSchedule]);
 
+  // Add these helper functions at the top of your component
+  const calculateEquipmentTotal = useMemo(
+    () => equipmentItems.reduce((sum, item) => sum + item.total_cost, 0),
+    [equipmentItems]
+  );
+
+  const calculateServicesTotal = useMemo(
+    () => additionalServices.reduce((sum, service) => sum + service.price, 0),
+    [additionalServices]
+  );
+
+  const calculateSubcontractorsTotal = useMemo(
+    () => subcontractors.reduce((sum, sub) => sum + sub.total, 0),
+    [subcontractors]
+  );
+
+  const calculateAddonsTotal = useMemo(
+    () => addons.reduce((sum, addon) => sum + addon.price, 0),
+    [addons]
+  );
+
+  const calculateMaterialsTotal = useMemo(
+    () => consolidatedMaterials.reduce((sum, m) => sum + m.amount, 0),
+    [consolidatedMaterials]
+  );
+
+  const renderAdditionalCostDetails = () => {
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>ADDITIONAL COST DETAILS</Text>
+
+        <View style={styles.table}>
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Contract Type:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {contractType === "full_contract"
+                ? "Full Contract"
+                : "Labor Only"}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Contingency:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(contingency_amount)}
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Overhead:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(overhead_amount)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Labour:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(labour)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Permits:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(permits)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Profit:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(profit)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Transport Cost:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(transportCost)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+  // Add these rendering functions for separate pages
+  const renderEquipmentPage = (equipment: EquipmentItem[]) => {
+    if (!equipment || equipment.length === 0) return null;
+
+    return (
+      <Page key="equipment-page" style={styles.page}>
+        <CompanyHeader />
+        {renderEquipmentSummary(equipment)}
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
+    );
+  };
+
+  const renderSubcontractorsPage = (subcontractors: Subcontractor[]) => {
+    if (!subcontractors || subcontractors.length === 0) return null;
+
+    return (
+      <Page key="subcontractors-page" style={styles.page}>
+        <CompanyHeader />
+        {renderSubcontractorsSummary(subcontractors)}
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
+    );
+  };
+
+  const renderAddonsPage = (addons: Addon[]) => {
+    if (!addons || addons.length === 0) return null;
+
+    return (
+      <Page key="addons-page" style={styles.page}>
+        <CompanyHeader />
+        {renderAddonsSummary(addons)}
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
+    );
+  };
+
+  const renderServicesPage = (services: AdditionalService[]) => {
+    if (!services || services.length === 0) return null;
+
+    return (
+      <Page key="services-page" style={styles.page}>
+        <CompanyHeader />
+        {renderServicesSummary(services)}
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
+    );
+  };
+
   // Remove the renderMaterialSchedule function and replace with a simple table renderer:
   const renderConsolidatedMaterials = (materials: ConsolidatedMaterial[]) => {
     if (materials.length === 0) return null;
 
-    const itemChunks = chunkArray(materials, 20); // 20 items per page
+    const materialsTotal = materials.reduce((sum, m) => sum + m.amount, 0);
+    const itemChunks = chunkArray(materials, 20);
 
     return itemChunks.map((chunk, chunkIndex) => (
       <Page key={`materials-chunk-${chunkIndex}`} style={styles.page}>
@@ -542,35 +794,38 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>MATERIALS SCHEDULE</Text>
 
-          <View style={styles.table}>
-            {/* Table headers only on first chunk */}
-            {chunkIndex === 0 && (
-              <View style={styles.tableHeaderRow}>
-                <Text style={styles.tableColHeader}>ITEM</Text>
-                <Text style={styles.tableColHeaderDescription}>
-                  DESCRIPTION
-                </Text>
-                <Text style={styles.tableColHeader}>UNIT</Text>
-                <Text style={styles.tableColHeader}>QTY</Text>
-                <Text style={styles.tableColHeader}>RATE</Text>
-                <Text style={styles.tableColHeader}>AMOUNT</Text>
-              </View>
-            )}
+          {/* Use the material schedule specific table structure */}
+          <View style={styles.materialScheduleTable}>
+            {/* Table headers */}
+            <View style={styles.materialScheduleHeaderRow}>
+              <Text style={styles.materialScheduleColHeaderItem}>ITEM</Text>
+              <Text style={styles.materialScheduleColHeaderDescription}>
+                DESCRIPTION
+              </Text>
+              <Text style={styles.materialScheduleColHeaderUnit}>UNIT</Text>
+              <Text style={styles.materialScheduleColHeaderQty}>QTY</Text>
+              <Text style={styles.materialScheduleColHeaderRate}>RATE</Text>
+              <Text style={styles.materialScheduleColHeaderAmount}>AMOUNT</Text>
+            </View>
 
             {chunk.map((material, index) => (
-              <View key={index} style={styles.tableRow}>
-                <Text style={styles.tableCol}>{material.itemNo}</Text>
-                <Text style={styles.tableColDescription}>
+              <View key={index} style={styles.materialScheduleRow}>
+                <Text style={styles.materialScheduleColItem}>
+                  {material.itemNo}
+                </Text>
+                <Text style={styles.materialScheduleColDescription}>
                   {material.description}
                 </Text>
-                <Text style={styles.tableCol}>{material.unit}</Text>
-                <Text style={styles.tableCol}>
+                <Text style={styles.materialScheduleColUnit}>
+                  {material.unit}
+                </Text>
+                <Text style={styles.materialScheduleColQty}>
                   {formatQuantity(material.quantity)}
                 </Text>
-                <Text style={styles.tableCol}>
+                <Text style={styles.materialScheduleColRate}>
                   {formatCurrency(material.rate)}
                 </Text>
-                <Text style={styles.tableCol}>
+                <Text style={styles.materialScheduleColAmount}>
                   {formatCurrency(material.amount)}
                 </Text>
               </View>
@@ -584,9 +839,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                 TOTAL MATERIALS COST:
               </Text>
               <Text style={styles.sectionTotalValue}>
-                {formatCurrency(
-                  materials.reduce((sum, m) => sum + m.amount, 0)
-                )}
+                {formatCurrency(materialsTotal)}
               </Text>
             </View>
           )}
@@ -603,16 +856,10 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
 
   // --- Calculate Section Totals ---
   const calculateSectionTotal = (items: BOQItem[]): number => {
+    console.log(projectInfo.logoUrl);
     return items.reduce((total, item) => {
       if (item.isHeader) return total; // Skip headers
       return total + (item.amount || 0);
-    }, 0);
-  };
-
-  // --- Calculate Grand Total ---
-  const calculateGrandTotal = (): number => {
-    return nonEmptySections.reduce((total, section) => {
-      return total + calculateSectionTotal(section.items);
     }, 0);
   };
 
@@ -631,11 +878,34 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     }, 0);
   };
 
-  const grandTotal = useMemo(() => calculateGrandTotal(), [nonEmptySections]);
   const preliminariesTotal = useMemo(
     () => calculatePreliminariesTotal(),
     [preliminariesData]
   );
+
+  const calculateComprehensiveTotal = useMemo(() => {
+    const baseTotal =
+      preliminariesTotal +
+      calculateMaterialsTotal +
+      calculateEquipmentTotal +
+      calculateServicesTotal +
+      calculateSubcontractorsTotal +
+      calculateAddonsTotal;
+
+    if (calculationSummary) {
+      return calculationSummary.total_amount;
+    }
+
+    return baseTotal;
+  }, [
+    preliminariesTotal,
+    calculateMaterialsTotal,
+    calculateEquipmentTotal,
+    calculateServicesTotal,
+    calculateSubcontractorsTotal,
+    calculateAddonsTotal,
+    calculationSummary,
+  ]);
 
   // --- Chunk arrays for page breaks ---
   const chunkArray = <T,>(array: T[], chunkSize: number): T[][] => {
@@ -645,59 +915,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     }
     return chunks;
   };
-  const renderMaterialSchedule = (schedule: MaterialSchedule) => {
-    return Object.entries(schedule).map(([category, materials]) => {
-      const categoryItems = materials as CategorizedMaterial[];
-      if (categoryItems.length === 0) return null;
 
-      return (
-        <Page key={category} style={styles.page}>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {category.toUpperCase()} MATERIALS
-            </Text>
-
-            <View style={styles.table}>
-              <View style={styles.tableHeaderRow}>
-                <Text style={styles.tableColHeader}>ITEM</Text>
-                <Text style={styles.tableColHeader}>DESCRIPTION</Text>
-                <Text style={styles.tableColHeader}>UNIT</Text>
-                <Text style={styles.tableColHeader}>QTY</Text>
-                <Text style={styles.tableColHeader}>RATE</Text>
-                <Text style={styles.tableColHeader}>AMOUNT</Text>
-              </View>
-
-              {materials.map((material, index) => (
-                <View key={index} style={styles.tableRow}>
-                  <Text style={styles.tableCol}>{material.itemNo}</Text>
-                  <Text style={styles.tableCol}>{material.description}</Text>
-                  <Text style={styles.tableCol}>{material.unit}</Text>
-                  <Text style={styles.tableCol}>{material.quantity}</Text>
-                  <Text style={styles.tableCol}>
-                    {formatCurrency(material.rate)}
-                  </Text>
-                  <Text style={styles.tableCol}>
-                    {formatCurrency(material.amount)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={styles.sectionTotalRow}>
-              <Text style={styles.sectionTotalLabel}>
-                TOTAL {category.toUpperCase()}:
-              </Text>
-              <Text style={styles.sectionTotalValue}>
-                {formatCurrency(
-                  materials.reduce((sum, m) => sum + m.amount, 0)
-                )}
-              </Text>
-            </View>
-          </View>
-        </Page>
-      );
-    });
-  };
   // --- Company Header Component ---
   const CompanyHeader = () => (
     <View style={styles.companyHeader}>
@@ -729,6 +947,356 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       )}
     </View>
   );
+
+  // Add these rendering functions inside your component
+  const renderEquipmentSummary = (equipment: EquipmentItem[]) => {
+    if (!equipment || equipment.length === 0) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>EQUIPMENT SUMMARY</Text>
+        <View style={styles.table}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableColHeader, { width: "70%" }]}>
+              EQUIPMENT
+            </Text>
+            <Text style={[styles.tableColHeader, { width: "30%" }]}>
+              COST (KSh)
+            </Text>
+          </View>
+          {equipment.map((item, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                {item.name}
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                {formatCurrency(item.total_cost)}
+              </Text>
+            </View>
+          ))}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              TOTAL EQUIPMENT COST:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(
+                equipment.reduce((sum, item) => sum + item.total_cost, 0)
+              )}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderServicesSummary = (services: AdditionalService[]) => {
+    if (!services || services.length === 0) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>ADDITIONAL SERVICES</Text>
+        <View style={styles.table}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableColHeader, { width: "70%" }]}>
+              SERVICE
+            </Text>
+            <Text style={[styles.tableColHeader, { width: "30%" }]}>
+              COST (KSh)
+            </Text>
+          </View>
+          {services.map((service, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                {service.name}
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                {formatCurrency(service.price)}
+              </Text>
+            </View>
+          ))}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              TOTAL SERVICES COST:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(
+                services.reduce((sum, service) => sum + service.price, 0)
+              )}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderSubcontractorsSummary = (subcontractors: Subcontractor[]) => {
+    if (!subcontractors || subcontractors.length === 0) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>SUBCONTRACTORS</Text>
+        <View style={styles.table}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableColHeader, { width: "40%" }]}>
+              SUBCONTRACTOR
+            </Text>
+            <Text style={[styles.tableColHeader, { width: "20%" }]}>
+              RATE TYPE
+            </Text>
+            <Text style={[styles.tableColHeader, { width: "20%" }]}>
+              DAYS/AMOUNT
+            </Text>
+            <Text style={[styles.tableColHeader, { width: "20%" }]}>
+              TOTAL (KSh)
+            </Text>
+          </View>
+          {subcontractors.map((sub, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableColDescription, { width: "40%" }]}>
+                {sub.name}
+              </Text>
+              <Text style={[styles.tableCol, { width: "20%" }]}>
+                {sub.subcontractor_payment_plan}
+              </Text>
+              <Text style={[styles.tableCol, { width: "20%" }]}>
+                {sub.subcontractor_payment_plan?.toLowerCase() === "daily"
+                  ? `${sub.days} days`
+                  : formatCurrency(sub.price)}
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "20%" }]}>
+                {formatCurrency(sub.total)}
+              </Text>
+            </View>
+          ))}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "80%" }]}>
+              TOTAL SUBCONTRACTOR COST:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "20%" }]}>
+              {formatCurrency(
+                subcontractors.reduce((sum, sub) => sum + sub.total, 0)
+              )}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderAddonsSummary = (addons: Addon[]) => {
+    if (!addons || addons.length === 0) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>ADDITIONAL ITEMS</Text>
+        <View style={styles.table}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableColHeader, { width: "70%" }]}>ITEM</Text>
+            <Text style={[styles.tableColHeader, { width: "30%" }]}>
+              COST (KSh)
+            </Text>
+          </View>
+          {addons.map((addon, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                {addon.name}
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                {formatCurrency(addon.price)}
+              </Text>
+            </View>
+          ))}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              TOTAL ADDITIONAL ITEMS:
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(
+                addons.reduce((sum, addon) => sum + addon.price, 0)
+              )}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderCalculationSummary = (summary: CalculationSummary) => {
+    if (!summary) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>COST BREAKDOWN SUMMARY</Text>
+
+        <View style={styles.table}>
+          {/* Direct Costs */}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              DIRECT COSTS
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              AMOUNT (KSh)
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Materials Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.materials_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Labor Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.labor_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Equipment Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.equipment_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Transport Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.transport_costs)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Services Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.services_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Subcontractors Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.subcontractors_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Preliminaries Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.preliminaries_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Additional Items Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.addons_cost)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Permit Cost
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.permit_cost)}
+            </Text>
+          </View>
+
+          {/* Subtotal */}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              SUBTOTAL (Before Overhead & Contingency)
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.subtotal)}
+            </Text>
+          </View>
+
+          {/* Indirect Costs */}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              INDIRECT COSTS
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              AMOUNT (KSh)
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Overhead ({summary.percentages?.[0]?.overhead || 0}%)
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.overhead_amount)}
+            </Text>
+          </View>
+
+          <View style={styles.tableRow}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Contingency ({summary.percentages?.[0]?.contingency || 0}%)
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.contingency_amount)}
+            </Text>
+          </View>
+
+          {/* Profit */}
+          <View style={[styles.tableRow, styles.headerRow]}>
+            <Text style={[styles.tableColDescription, { width: "70%" }]}>
+              Profit ({summary.percentages?.[0]?.profit || 0}%)
+            </Text>
+            <Text style={[styles.tableColAmount, { width: "30%" }]}>
+              {formatCurrency(summary.profit_amount)}
+            </Text>
+          </View>
+
+          {/* Grand Total */}
+          <View
+            style={[
+              styles.tableRow,
+              styles.headerRow,
+              { backgroundColor: "#3B82F6" },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tableColDescription,
+                { width: "70%", color: "#FFFFFF" },
+              ]}
+            >
+              GRAND TOTAL
+            </Text>
+            <Text
+              style={[
+                styles.tableColAmount,
+                { width: "30%", color: "#FFFFFF" },
+              ]}
+            >
+              {formatCurrency(summary.total_amount)}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <Document>
@@ -1043,44 +1611,304 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       {consolidatedMaterials.length > 0 &&
         renderConsolidatedMaterials(consolidatedMaterials)}
 
+      {/* --- Equipment Page --- */}
+      {renderEquipmentPage(equipmentItems)}
+
+      {/* --- Subcontractors Page --- */}
+      {renderSubcontractorsPage(subcontractors)}
+
+      {/* --- Services Page --- */}
+      {renderServicesPage(additionalServices)}
+
+      {/* <Page key="additional-costs-page" style={styles.page}>
+        <CompanyHeader />
+        {renderAdditionalCostDetails()}
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page> */}
+      {/* 
+      {calculationSummary && (
+        <Page key="calculation-summary-page" style={styles.page}>
+          <CompanyHeader />
+          {renderCalculationSummary(calculationSummary)}
+
+          <View style={styles.boqFooter} fixed>
+            <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+            <Text>{projectInfo.title}</Text>
+            <Text>{projectInfo.clientName}</Text>
+          </View>
+        </Page>
+      )} */}
       {/* --- Summary Page --- */}
       <Page size="A4" style={styles.page}>
         <CompanyHeader />
-
         <View style={styles.header}>
-          <Text style={styles.title}>SUMMARY OF QUANTITIES AND COSTS</Text>
+          <Text style={styles.title}>COMPREHENSIVE COST SUMMARY</Text>
         </View>
+        {/* Main Cost Categories */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>COST BREAKDOWN</Text>
 
-        {preliminariesData.length > 0 && (
-          <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>
-              PRELIMINARIES TOTAL (KES):
-            </Text>
-            <Text style={styles.grandTotalValue}>
-              {formatCurrency(preliminariesTotal)}
-            </Text>
+          <View style={styles.table}>
+            {/* Preliminaries */}
+            {preliminariesData.length > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                  Preliminaries:
+                </Text>
+                <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                  {formatCurrency(preliminariesTotal)}
+                </Text>
+              </View>
+            )}
+
+            {/* Materials */}
+            {consolidatedMaterials.length > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                  Materials:
+                </Text>
+                <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                  {formatCurrency(
+                    consolidatedMaterials.reduce((sum, m) => sum + m.amount, 0)
+                  )}
+                </Text>
+              </View>
+            )}
+
+            {/* Equipment */}
+            {equipmentItems.length > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                  Equipment:
+                </Text>
+                <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                  {formatCurrency(
+                    equipmentItems.reduce(
+                      (sum, item) => sum + item.total_cost,
+                      0
+                    )
+                  )}
+                </Text>
+              </View>
+            )}
+
+            {/* Additional Services */}
+            {additionalServices.length > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                  Additional Services:
+                </Text>
+                <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                  {formatCurrency(
+                    additionalServices.reduce(
+                      (sum, service) => sum + service.price,
+                      0
+                    )
+                  )}
+                </Text>
+              </View>
+            )}
+
+            {/* Subcontractors */}
+            {subcontractors.length > 0 && (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                  Subcontractors:
+                </Text>
+                <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                  {formatCurrency(
+                    subcontractors.reduce((sum, sub) => sum + sub.total, 0)
+                  )}
+                </Text>
+              </View>
+            )}
+
+            {/* Subtotal */}
+            <View style={[styles.tableRow, styles.headerRow]}>
+              <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                SUBTOTAL:
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                {formatCurrency(
+                  preliminariesTotal +
+                    consolidatedMaterials.reduce(
+                      (sum, m) => sum + m.amount,
+                      0
+                    ) +
+                    equipmentItems.reduce(
+                      (sum, item) => sum + item.total_cost,
+                      0
+                    ) +
+                    additionalServices.reduce(
+                      (sum, service) => sum + service.price,
+                      0
+                    ) +
+                    subcontractors.reduce((sum, sub) => sum + sub.total, 0)
+                )}
+              </Text>
+            </View>
+          </View>
+        </View>
+        {/* Percentage-based Costs */}
+        {calculationSummary && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>ADDITIONAL COSTS & MARGINS</Text>
+
+            <View style={styles.table}>
+              {/* Overhead */}
+              {calculationSummary.overhead_amount > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Overhead (
+                    {calculationSummary.percentages?.[0]?.overhead || 0}%):
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(overhead_amount)}
+                  </Text>
+                </View>
+              )}
+
+              {/* Contingency */}
+              {calculationSummary.contingency_amount > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Contingency (
+                    {calculationSummary.percentages?.[0]?.contingency || 0}%):
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(contingency_amount)}
+                  </Text>
+                </View>
+              )}
+
+              {calculationSummary.labor_cost > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Labor(
+                    {calculationSummary.percentages?.[0]?.labour || 0}%):
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(labour)}
+                  </Text>
+                </View>
+              )}
+
+              {contractType && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Contract type:
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {contractType}
+                  </Text>
+                </View>
+              )}
+
+              {/* Permit Cost */}
+              {calculationSummary.permit_cost > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Permit & Fees:
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(permits)}
+                  </Text>
+                </View>
+              )}
+
+              {/* Transport Cost */}
+              {calculationSummary.transport_costs > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Transport:
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(transportCost)}
+                  </Text>
+                </View>
+              )}
+
+              {/* Profit */}
+              {calculationSummary.profit_amount > 0 && (
+                <View style={[styles.tableRow]}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Profit Margin (
+                    {calculationSummary.percentages?.[0]?.profit || 0}%):
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(profit)}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         )}
-
-        <View style={styles.grandTotalRow}>
-          <Text style={styles.grandTotalLabel}>MAIN WORKS TOTAL (KES):</Text>
-          <Text style={styles.grandTotalValue}>
-            {formatCurrency(grandTotal)}
-          </Text>
+        {/* Grand Total */}
+        <View style={[styles.section, { marginTop: 10 }]}>
+          <View style={[styles.table, { border: "2pt solid #3B82F6" }]}>
+            <View style={[styles.tableRow, { backgroundColor: "#3B82F6" }]}>
+              <Text
+                style={[
+                  styles.tableColDescription,
+                  { width: "70%", color: "#FFFFFF", fontWeight: "bold" },
+                ]}
+              >
+                GRAND TOTAL:
+              </Text>
+              <Text
+                style={[
+                  styles.tableColAmount,
+                  { width: "30%", color: "#FFFFFF", fontWeight: "bold" },
+                ]}
+              >
+                {formatCurrency(
+                  calculationSummary?.total_amount ||
+                    preliminariesTotal +
+                      consolidatedMaterials.reduce(
+                        (sum, m) => sum + m.amount,
+                        0
+                      ) +
+                      equipmentItems.reduce(
+                        (sum, item) => sum + item.total_cost,
+                        0
+                      ) +
+                      additionalServices.reduce(
+                        (sum, service) => sum + service.price,
+                        0
+                      ) +
+                      subcontractors.reduce((sum, sub) => sum + sub.total, 0) +
+                      profit +
+                      transportCost +
+                      overhead_amount +
+                      contingency_amount +
+                      labour
+                )}
+              </Text>
+            </View>
+          </View>
         </View>
-
-        <View
-          style={[
-            styles.grandTotalRow,
-            {
-              borderTop: "2pt solid #3B82F6",
-              borderBottom: "2pt solid #3B82F6",
-            },
-          ]}
-        >
-          <Text style={styles.grandTotalLabel}>GRAND TOTAL (KES):</Text>
-          <Text style={styles.grandTotalValue}>
-            {formatCurrency(grandTotal + preliminariesTotal)}
+        {/* Summary Notes */}
+        <View style={[styles.section, { marginTop: 15 }]}>
+          <Text style={[styles.prelimSubtitle, { marginBottom: 5 }]}>
+            SUMMARY NOTES:
+          </Text>
+          <Text style={[styles.prelimContent, { fontSize: 9 }]}>
+            • All amounts are in Kenyan Shillings (KES)
+            {calculationSummary &&
+              ` • Includes ${
+                calculationSummary.percentages?.[0]?.profit || 0
+              }% profit margin`}
+            {calculationSummary &&
+              calculationSummary.percentages?.[0]?.contingency > 0 &&
+              ` • Includes ${calculationSummary.percentages?.[0]?.contingency}% contingency`}
+            • Valid for 30 days from {projectInfo.date || "date of issue"}
+          </Text>
+          <Text style={[styles.boldText, { marginBottom: 5 }]}>
+            Made using Elaris AI <Pickaxe className="text-blue-900" />
           </Text>
         </View>
 

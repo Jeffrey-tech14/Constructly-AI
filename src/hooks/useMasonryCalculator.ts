@@ -443,6 +443,11 @@ export default function useMasonryCalculator({
       plaster: 0,
       cost: 0,
       breakdown: [] as any[],
+      // Separate totals for blocks and mortar
+      blocksTotal: 0,
+      mortarTotal: 0,
+      cementTotal: 0,
+      sandTotal: 0,
     };
 
     const updatedRooms = rooms.map((room, index) => {
@@ -539,15 +544,31 @@ export default function useMasonryCalculator({
       });
 
       const netArea = roomArea - openings;
-      const blocks = Math.ceil(netArea / getBlockAreaWithJoint(room));
-      const mortar = Math.round(netArea * MORTAR_PER_SQM);
-      const totalParts = cementPart + sandPart;
-      const cementQty = mortar * (cementPart / totalParts);
-      const sandQty = mortar * (sandPart / totalParts);
 
+      // BLOCKS CALCULATION (separate from mortar)
+      const blockDef = blockTypes.find((b) => b.name === room.blockType);
+      const blockSize = blockDef?.size || {
+        length: 0.4,
+        height: 0.2,
+        thickness: 0.2,
+      };
+
+      room.thickness = blockSize.thickness;
+      // Calculate block area including joint
+      const blockAreaWithJoint = blockSize.length * blockSize.height;
+
+      const blocks = Math.ceil(netArea / blockAreaWithJoint);
+      const blockCost = blocks * blockPrice;
+
+      // MORTAR CALCULATION (separate from blocks)
+      const mortarVolume = netArea * MORTAR_PER_SQM;
+      const totalParts = cementPart + sandPart;
+      const cementQty = mortarVolume * (cementPart / totalParts);
+      const sandQty = mortarVolume * (sandPart / totalParts);
       const mortarCost = cementQty * cementPrice + sandQty * sandPrice;
 
-      let plasterArea = 1;
+      // PLASTER CALCULATION
+      let plasterArea = 0;
       if (room.plaster === "One Side") {
         plasterArea = netArea;
       } else if (room.plaster === "Both Sides") {
@@ -556,16 +577,12 @@ export default function useMasonryCalculator({
 
       const plasterCement = plasterArea * CEMENT_PER_SQM_PLASTER;
       const plasterSand = plasterArea * SAND_PER_SQM_PLASTER;
-      const roomCement = cementQty + plasterCement;
+      const plasterCost = plasterCement * cementPrice + plasterSand * sandPrice;
 
-      const blockCost = Math.round(blocks * blockPrice);
-      const plasterCost =
-        plasterArea > 0
-          ? Math.round(plasterCement * cementPrice + plasterSand * sandPrice)
-          : 1;
+      // Return room data with separated calculations
 
       const floorArea = Number(room.length) * Number(room.width);
-      const paintArea = netArea + plasterArea;
+      const paintArea = netArea;
       const ceilingArea = floorArea;
 
       const paintCost = paintArea * PAINT_PER_SQM * paintPrice;
@@ -582,12 +599,16 @@ export default function useMasonryCalculator({
           )
       );
 
-      // Update totals
+      // Update totals separately for blocks and mortar
       totals.roomArea += roomArea;
       totals.openingsArea += openings;
       totals.netArea += netArea;
       totals.blocks += blocks;
-      totals.mortar += mortar;
+      totals.blocksTotal += blockCost;
+      totals.mortar += mortarVolume;
+      totals.mortarTotal += mortarCost;
+      totals.cementTotal += cementQty + plasterCement;
+      totals.sandTotal += sandQty + plasterSand;
       totals.plaster += plasterArea;
       totals.cost += roomTotalCost;
 
@@ -603,7 +624,6 @@ export default function useMasonryCalculator({
         openings,
         netArea,
         blocks,
-        mortar,
         plaster: plasterArea,
         blockCost,
         mortarCost,
@@ -614,48 +634,69 @@ export default function useMasonryCalculator({
 
       // Return complete room data with calculations
       return {
-        room_name: room.room_name || "Unnamed",
-        roomType: room.roomType,
-        blockType: room.blockType,
-        length: room.length,
-        width: room.width,
-        height: room.height,
-        thickness: room.thickness,
-        customBlock: room.customBlock,
-        plaster: room.plaster,
-        doors: room.doors,
-        rate: plasterCost + blockCost,
-        windows: room.windows,
-        // Calculations
+        ...room,
+        // Blocks calculations
+        blocks,
+        blockCost,
+        blockAreaWithJoint,
+        // Mortar calculations
+        mortarVolume,
+        cementQty,
+        sandQty,
+        mortarCost,
+        // Plaster calculations
+        plasterArea,
+        plasterCement,
+        plasterSand,
+        plasterCost,
+        // Other calculations
         roomArea,
         openings,
         netArea,
-        blocks,
-        mortar,
-        plasterArea,
-        blockCost,
-        mortarCost,
-        plasterCost,
         openingsCost,
-        totalCost: Math.round(roomTotalCost),
-        // Material costs
-        cementCost: Math.round(
-          plasterCement * cementPrice + cementQty * cementPrice
-        ),
-        sandCost: Math.round(plasterSand * sandPrice + sandQty * sandPrice),
-        // Quantities
-        cementBags: (plasterCement + cementQty).toFixed(2),
-        sandVolume: (plasterSand + sandQty).toFixed(2),
-        stoneVolume: 0, // Add if you calculate stone for concrete
+        totalCost: roomTotalCost,
       };
     });
 
     // Update quote with all calculations
     setQuote((prev) => ({
       ...prev,
-      masonry_materials: totals,
+      masonry_materials: {
+        ...totals,
+        // Add combined materials array for easy access
+        materials: [
+          {
+            type: "blocks",
+            quantity: totals.blocks,
+            cost: totals.blocksTotal,
+            unit: "pcs",
+          },
+          {
+            type: "mortar",
+            quantity: totals.mortar,
+            cost: totals.mortarTotal,
+            unit: "m³",
+            breakdown: {
+              cement: totals.cementTotal,
+              sand: totals.sandTotal,
+            },
+          },
+        ],
+      },
       rooms: updatedRooms,
     }));
+
+    setResults(totals);
+    [
+      rooms,
+      getMaterialPrice,
+      parseSize,
+      MORTAR_PER_SQM,
+      CEMENT_PER_SQM_PLASTER,
+      SAND_PER_SQM_PLASTER,
+      quote.percentages,
+      setQuote,
+    ];
 
     setResults(totals);
   }, [

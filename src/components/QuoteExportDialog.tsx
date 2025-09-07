@@ -1,3 +1,4 @@
+// src/components/QuoteExportDialog.tsx
 import { useState } from "react";
 import {
   Dialog,
@@ -16,8 +17,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Download } from "lucide-react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { generateQuoteExcel } from "./ExcelGenerator";
-import { exportBOQPDF } from "@/utils/exportBOQPDF";
+import { exportQuote } from "@/utils/exportUtils";
+import { toast } from "@/hooks/use-toast";
 
 interface QuoteExportDialogProps {
   quote: any;
@@ -39,93 +40,94 @@ export const QuoteExportDialog = ({
   const [exportType, setExportType] = useState<"client" | "contractor">(
     "contractor"
   );
-  const [exportFormat, setExportFormat] = useState<"pdf" | "excel">("pdf");
+  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "docx">(
+    "pdf"
+  );
 
-  const safeQuote = {
-    ...quote,
-    contractor_name: contractorName,
-    company_name: companyName,
-  };
+  const handleExport = async () => {
+    console.log(logoUrl);
+    const success = await exportQuote({
+      format: exportFormat,
+      audience: exportType,
+      quote,
+      projectInfo: {
+        title: quote.title,
+        date: new Date().toLocaleDateString(),
+        clientName: quote.client_name,
+        clientEmail: quote.client_email,
+        location: quote.location,
+        projectType: quote.project_type,
+        houseType: quote.house_type,
+        region: quote.region,
+        floors: quote.floors,
+        companyName,
+        logoUrl: logoUrl,
+      },
+    });
 
-  // In QuoteExportDialog.tsx, update the handleExport function:
-  const handleExport = () => {
-    if (exportFormat === "pdf") {
-      exportBOQPDF(
-        quote.boq_data,
-        {
-          title: quote.title,
-          companyName: companyName,
-          date: new Date().toLocaleDateString(),
-          clientName: quote.client_name,
-          clientEmail: quote.client_email,
-          location: quote.location,
-          projectType: quote.project_type,
-          houseType: quote.house_type,
-          region: quote.region,
-          floors: quote.floors,
-          logoUrl: logoUrl,
-        },
-        quote.preliminaries,
-        quote // Pass the full quote object for material extraction
-      );
+    if (success) {
+      toast({
+        title: "Document generated successfully",
+        description: "Your file has been downloaded",
+      });
     } else {
-      generateQuoteExcel({
-        quote,
-        isClientExport: exportType === "contractor",
+      toast({
+        title: "Error generating document",
+        description: "Please try again",
+        variant: "destructive",
       });
     }
+
     onOpenChange(false);
   };
 
   return (
-    <Card className="bg-transparent border border-transparent">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Download className="w-5 h-5 text-white" />
-          Export Quote
-        </CardTitle>
-      </CardHeader>
+    <div className="space-y-4">
+      <div>
+        <Label className="text-white">Export Type</Label>
+        <Select
+          onValueChange={(value: "client" | "contractor") =>
+            setExportType(value)
+          }
+          value={exportType}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select export type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="client">Client-Friendly</SelectItem>
+            <SelectItem value="contractor">Full Contractor BOQ</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-gray-200 mt-1">
+          {exportType === "client"
+            ? "Simplified version without cost breakdowns"
+            : "Detailed version with all cost calculations"}
+        </p>
+      </div>
 
-      <CardContent className="space-y-4">
-        <div>
-          <Label className="text-white">Export Type</Label>
-          <Select
-            onValueChange={(value: "client" | "contractor") =>
-              setExportType(value)
-            }
-            value={exportType}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select export type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="client">Client-Friendly</SelectItem>
-              <SelectItem value="contractor">Full Contractor BOQ</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div>
+        <Label className="text-white">File Format</Label>
+        <Select
+          onValueChange={(value: "pdf" | "excel" | "docx") =>
+            setExportFormat(value)
+          }
+          value={exportFormat}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select file type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pdf">PDF</SelectItem>
+            <SelectItem value="excel">Excel (.xlsx)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        <div>
-          <Label className="text-white">File Format</Label>
-          <Select
-            onValueChange={(value: "pdf" | "excel") => setExportFormat(value)}
-            value={exportFormat}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select file type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pdf">PDF</SelectItem>
-              <SelectItem value="excel">Excel (.xlsx)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Button onClick={handleExport} className="w-full mt-4 text-white">
-          <Download className="w-4 h-4 mr-1" />
-          Download {exportFormat.toUpperCase()}
-        </Button>
-      </CardContent>
-    </Card>
+      <Button onClick={handleExport} className="w-full mt-4">
+        <Download className="w-4 h-4 mr-2" />
+        Download {exportFormat.toUpperCase()}
+      </Button>
+    </div>
   );
 };

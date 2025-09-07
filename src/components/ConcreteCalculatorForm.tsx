@@ -9,6 +9,8 @@ import {
   calculateConcrete,
   ConcreteRow,
   ConcreteResult,
+  calculateConcreteRate,
+  getConcreteUnitBreakdown,
 } from "@/hooks/useConcreteCalculator";
 import {
   Select,
@@ -39,7 +41,7 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     RegionalMultiplier[]
   >([]);
 
-  // ---- Load regional multipliers (unchanged) --------------------------------
+  // ---- Load regional multipliers --------------------------------------------
   useEffect(() => {
     const loadMultipliers = async () => {
       const { data } = await supabase.from("regional_multipliers").select("*");
@@ -48,7 +50,7 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     loadMultipliers();
   }, []);
 
-  // ---- Make a new empty element row (unchanged) ------------------------------
+  // ---- Make a new empty element row -----------------------------------------
   const makeDefaultRow = useCallback((): ConcreteRow => {
     const id = Math.random().toString(36).substr(2, 9);
     return {
@@ -64,10 +66,9 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     };
   }, []);
 
-  // ---- Local UI state for rows (so typing is instant) ------------------------
+  // ---- Local UI state for rows ----------------------------------------------
   const [rows, setRows] = useState<ConcreteRow[]>([]);
 
-  // Hydrate local rows from quote.concrete_rows when it changes (e.g. load)
   useEffect(() => {
     if (Array.isArray(quote?.concrete_rows)) {
       setRows(quote.concrete_rows);
@@ -76,7 +77,7 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     }
   }, [quote?.concrete_rows]);
 
-  // ---- Debounce for persisting rows to parent/DB -----------------------------
+  // ---- Debounce for persisting rows -----------------------------------------
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const DEBOUNCE_MS = 500;
 
@@ -85,7 +86,6 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
         setQuote((prev: any) => {
-          // only update parent if changed
           const prevStr = JSON.stringify(prev?.concrete_rows ?? []);
           const nextStr = JSON.stringify(nextRows);
           if (prevStr === nextStr) return prev;
@@ -96,7 +96,6 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     [setQuote]
   );
 
-  // ---- Row CRUD (keep UI responsive + debounced persist) ---------------------
   const updateRow = useCallback(
     <K extends keyof ConcreteRow>(
       id: string,
@@ -118,7 +117,6 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     const newRow = makeDefaultRow();
     setRows((prev) => {
       const next = [...prev, newRow];
-      // Add/remove: sync immediately (no debounce)
       setQuote((qPrev: any) => ({ ...qPrev, concrete_rows: next }));
       return next;
     });
@@ -128,7 +126,6 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     (id: string) => {
       setRows((prev) => {
         const next = prev.filter((r) => r.id !== id);
-        // Add/remove: sync immediately (no debounce)
         setQuote((qPrev: any) => ({ ...qPrev, concrete_rows: next }));
         return next;
       });
@@ -136,37 +133,28 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     [setQuote]
   );
 
-  // ---- Calculate results from local rows (unchanged) -------------------------
-  const results: ConcreteResult[] = useMemo(
-    () => rows.map((r) => calculateConcrete(r)),
-    [rows]
-  );
-
-  // ---- Fetch materials with overrides + multipliers (unchanged) -------------
+  // ---- Fetch materials with overrides + multipliers -------------------------
   const fetchMaterials = useCallback(async () => {
     if (!profile?.id) return;
 
-    const { data: baseMaterials, error: baseError } = await supabase
+    const { data: baseMaterials } = await supabase
       .from("material_base_prices")
       .select("*");
 
-    const { data: overrides, error: overrideError } = await supabase
+    const { data: overrides } = await supabase
       .from("user_material_prices")
       .select("material_id, region, price")
       .eq("user_id", profile.id);
 
-    if (baseError) console.error("Base materials error:", baseError);
-    if (overrideError) console.error("Overrides error:", overrideError);
+    const userRegion = profile?.location || "Nairobi";
+    const multiplier =
+      regionalMultipliers.find((r) => r.region === userRegion)?.multiplier || 1;
 
     const merged =
       baseMaterials?.map((material) => {
-        const userRegion = profile?.location || "Nairobi";
         const userRate = overrides?.find(
           (o) => o.material_id === material.id && o.region === userRegion
         );
-        const multiplier =
-          regionalMultipliers.find((r) => r.region === userRegion)
-            ?.multiplier || 1;
         const materialP = (material.price || 0) * multiplier;
         const price = userRate ? userRate.price : materialP ?? 0;
 
@@ -186,7 +174,48 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     }
   }, [user, profile, fetchMaterials]);
 
-  // ---- Totals (unchanged) ---------------------------------------------------
+  // ---- Calculate results ----------------------------------------------------
+  const cementMat = materials.find((m) => m.name?.toLowerCase() === "cement");
+  const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
+  const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
+  const aggregateMat = materials.find(
+    (m) => m.name?.toLowerCase() === "aggregate"
+  );
+  const formworkMat = materials.find(
+    (m) => m.name?.toLowerCase() === "formwork"
+  );
+
+  const calculateConcreteRateForRow = (row: ConcreteRow): number => {
+    if (!cementMat || !sandMat || !ballastMat) return 0;
+
+    return calculateConcreteRate(
+      row.mix,
+      cementMat.price,
+      sandMat.price,
+      ballastMat.price
+    );
+  };
+
+  const results: ConcreteResult[] = useMemo(() => {
+    if (!cementMat || !sandMat || !ballastMat)
+      return rows.map((r) => calculateConcrete(r));
+
+    return rows.map((row) => {
+      const result = calculateConcrete(row);
+
+      // add concrete unit rate + total cost
+      const unit = getConcreteUnitBreakdown(row.mix);
+      const ratePerM3 = calculateConcreteRateForRow(row);
+
+      return {
+        ...result,
+        unitRate: ratePerM3,
+        totalConcreteCost: Math.round(ratePerM3 * result.volumeM3),
+      };
+    });
+  }, [rows, cementMat, sandMat, ballastMat]);
+
+  // ---- Totals ---------------------------------------------------------------
   const totals = results.reduce(
     (acc, r) => {
       acc.volume += r.totalVolume;
@@ -196,8 +225,8 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       acc.formworkM2 += r.formworkM2;
       acc.bedVolume += r.bedVolume || 0;
       acc.bedArea += r.bedArea || 0;
-      acc.aggregateVolume += r.aggregateVolume || 0; // Add aggregate volume to totals
-      acc.aggregateArea += r.aggregateArea || 0; // Add aggregate area to totals
+      acc.aggregateVolume += r.aggregateVolume || 0;
+      acc.aggregateArea += r.aggregateArea || 0;
       return acc;
     },
     {
@@ -213,25 +242,14 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     }
   );
 
-  const cementMat = materials.find((m) => m.name?.toLowerCase() === "cement");
-  const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
-  const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
-  const aggregateMat = materials.find(
-    (m) => m.name?.toLowerCase() === "aggregate"
-  );
-  const formworkMat = materials.find(
-    (m) => m.name?.toLowerCase() === "formwork"
-  );
-
-  // ---- Build line items into quote.concrete_materials (guarded to avoid loop)
+  // ---- Build line items into quote.concrete_materials -----------------------
   useEffect(() => {
     if (!cementMat || !sandMat || !ballastMat) return;
     if (results.length === 0) {
-      // If no rows, clear materials only if currently set
-      const hasItems =
+      if (
         Array.isArray(quote?.concrete_materials) &&
-        quote.concrete_materials.length;
-      if (hasItems) {
+        quote.concrete_materials.length
+      ) {
         setQuote((prev: any) => ({ ...prev, concrete_materials: [] }));
       }
       return;
@@ -275,13 +293,20 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       },
       {
         rowId: r.id,
+        name: `Concrete Total`,
+        rate: r.unitRate,
+        quantity: Math.round(r.volumeM3),
+        total_price: r.totalConcreteCost,
+      },
+      {
+        rowId: r.id,
         name: "Total items",
         quantity: Math.round(r.volumeM3),
         total_price:
           Math.round(r.formworkM2 * (formworkMat?.price || 0)) +
           Math.round(r.stoneM3 * ballastMat.price) +
           Math.round(r.sandM3 * sandMat.price) +
-          Math.round(r.aggregateVolume * aggregateMat.price) +
+          Math.round(r.aggregateVolume * (aggregateMat?.price || 0)) +
           Math.round(r.cementBags * cementMat.price),
       },
     ]);
@@ -326,21 +351,47 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       },
       {
         rowId: "totals",
+        name: "Concrete Rate",
+        quantity: 1,
+        unit_price: Math.round(
+          (totals.cement * cementMat.price +
+            totals.sand * sandMat.price +
+            totals.stone * ballastMat.price) /
+            (totals.volume || 1)
+        ),
+        total_price: Math.round(
+          (totals.cement * cementMat.price +
+            totals.sand * sandMat.price +
+            totals.stone * ballastMat.price) /
+            (totals.volume || 1)
+        ),
+      },
+      {
+        rowId: "totals",
+        name: "Concrete Total",
+        quantity: Math.round(totals.volume),
+        unit_price: 0,
+        total_price: Math.round(
+          totals.cement * cementMat.price +
+            totals.sand * sandMat.price +
+            totals.stone * ballastMat.price
+        ),
+      },
+      {
+        rowId: "totals",
         name: "Grand Total",
-        quantity: rows[0].number || 1,
+        quantity: rows[0]?.number || 1,
         total_price: Math.round(
           totals.cement * cementMat.price +
             totals.sand * sandMat.price +
             totals.stone * ballastMat.price +
-            totals.aggregateVolume * aggregateMat.price +
-            totals.formworkM2 * formworkMat.price
+            totals.aggregateVolume * (aggregateMat?.price || 0) +
+            totals.formworkM2 * (formworkMat?.price || 0)
         ),
       },
     ];
 
     const nextItems = [...lineItems, ...totalsRows];
-
-    // Only write if changed to prevent render→effect→setQuote loops
     const currItems = Array.isArray(quote?.concrete_materials)
       ? quote.concrete_materials
       : [];
@@ -353,12 +404,15 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
     cementMat,
     sandMat,
     ballastMat,
+    aggregateMat,
+    formworkMat,
     totals,
     setQuote,
     quote?.concrete_materials,
+    rows,
   ]);
 
-  // ---- UI (kept as-is) ------------------------------------------------------
+  // ---- UI -------------------------------------------------------------------
   return (
     <div className="mt-8 space-y-4 border dark:border-white/10 border-primary/30 p-3 rounded-lg">
       <h2 className="text-xl font-bold">Concrete Calculator</h2>
@@ -368,7 +422,11 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
       {rows.map((row) => {
         const result = results.find((r) => r.id === row.id);
         return (
-          <div key={row.id} className="p-4 border rounded-lg space-y-2">
+          <div
+            key={row.id}
+            className="p-4 border dark:border-white/20 border-primary/40 rounded-lg space-y-2"
+          >
+            {/* top row */}
             <div className="grid sm:grid-cols-4 gap-2">
               <Input
                 type="text"
@@ -413,6 +471,7 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
               </Button>
             </div>
 
+            {/* dimensions */}
             <div className="grid sm:grid-cols-4 gap-2">
               <Input
                 type="number"
@@ -525,51 +584,107 @@ export default function ConcreteCalculatorForm({ quote, setQuote }: Props) {
                   <b>Volume:</b> {result.totalVolume.toFixed(2)} m³
                 </p>
                 <p>
-                  <b>Cement:</b> {result.cementBags.toFixed(1)} bags —{" "}
-                  <b>
-                    Ksh{" "}
-                    {Math.round(result.cementBags * (cementMat?.price || 0))}
-                  </b>
+                  <b>Concrete Rate:</b> Ksh{" "}
+                  {calculateConcreteRateForRow(row).toLocaleString()}/m³
                 </p>
                 <p>
-                  <b>Sand:</b> {result.sandM3.toFixed(2)} m³ —{" "}
-                  <b>Ksh {Math.round(result.sandM3 * (sandMat?.price || 0))}</b>
+                  <b>Concrete Cost:</b> Ksh{" "}
+                  {Math.round(
+                    result.totalVolume * calculateConcreteRateForRow(row)
+                  ).toLocaleString()}
                 </p>
-                <p>
-                  <b>Ballast:</b> {result.stoneM3.toFixed(2)} m³ —{" "}
-                  <b>
-                    Ksh {Math.round(result.stoneM3 * (ballastMat?.price || 0))}
-                  </b>
-                </p>
-                <p>
-                  <b>Formwork:</b> {result.formworkM2.toFixed(2)} m³ —{" "}
-                  <b>
-                    Ksh{" "}
-                    {Math.round(result.formworkM2 * (formworkMat?.price || 0))}
-                  </b>
-                </p>
-                {result.bedVolume > 0 && (
-                  <>
+
+                {/* Foundation Workings */}
+                {result.element === "foundation" && (
+                  <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <h4 className="font-semibold mb-2">Foundation Workings:</h4>
                     <p>
-                      <b>Concrete Bed:</b> {result.bedVolume.toFixed(2)} m³
+                      <b>Main Volume:</b> {result.volumeM3.toFixed(2)} m³
                     </p>
                     <p>
-                      <b>Surface Bed Area:</b> {result.bedArea.toFixed(2)} m²
+                      <b>Main Cost:</b> Ksh{" "}
+                      {Math.round(
+                        result.volumeM3 * calculateConcreteRateForRow(row)
+                      ).toLocaleString()}
                     </p>
-                  </>
+
+                    {result.bedVolume > 0 && (
+                      <div className="mt-2">
+                        <h4 className="font-semibold">
+                          Concrete Bed Workings:
+                        </h4>
+                        <p>
+                          <b>Bed Area:</b> {result.bedArea.toFixed(2)} m²
+                        </p>
+                        <p>
+                          <b>Bed Volume:</b> {result.bedVolume.toFixed(2)} m³
+                        </p>
+                        <p>
+                          <b>Bed Cost:</b> Ksh{" "}
+                          {Math.round(
+                            result.bedVolume * calculateConcreteRateForRow(row)
+                          ).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+
+                    {result.aggregateVolume > 0 && (
+                      <div className="mt-2">
+                        <h4 className="font-semibold">
+                          Aggregate Bed Workings:
+                        </h4>
+                        <p>
+                          <b>Aggregate Area:</b>{" "}
+                          {result.aggregateArea.toFixed(2)} m²
+                        </p>
+                        <p>
+                          <b>Aggregate Volume:</b>{" "}
+                          {result.aggregateVolume.toFixed(2)} m³
+                        </p>
+                        <p>
+                          <b>Aggregate Cost:</b> Ksh{" "}
+                          {Math.round(
+                            result.aggregateVolume * (aggregateMat?.price || 0)
+                          ).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
-                {result.aggregateVolume > 0 && (
-                  <>
-                    <p>
-                      <b>Aggregate Bed:</b> {result.aggregateVolume.toFixed(2)}{" "}
-                      m³
-                    </p>
-                    <p>
-                      <b>Aggregate Area:</b> {result.aggregateArea.toFixed(2)}{" "}
-                      m²
-                    </p>
-                  </>
-                )}
+
+                {/* Material Breakdown */}
+                <div className="mt-2">
+                  <h4 className="font-semibold">Material Breakdown:</h4>
+                  <p>
+                    <b>Cement:</b> {result.cementBags.toFixed(1)} bags —{" "}
+                    <b>
+                      Ksh{" "}
+                      {Math.round(result.cementBags * (cementMat?.price || 0))}
+                    </b>
+                  </p>
+                  <p>
+                    <b>Sand:</b> {result.sandM3.toFixed(2)} m³ —{" "}
+                    <b>
+                      Ksh {Math.round(result.sandM3 * (sandMat?.price || 0))}
+                    </b>
+                  </p>
+                  <p>
+                    <b>Ballast:</b> {result.stoneM3.toFixed(2)} m³ —{" "}
+                    <b>
+                      Ksh{" "}
+                      {Math.round(result.stoneM3 * (ballastMat?.price || 0))}
+                    </b>
+                  </p>
+                  <p>
+                    <b>Formwork:</b> {result.formworkM2.toFixed(2)} m² —{" "}
+                    <b>
+                      Ksh{" "}
+                      {Math.round(
+                        result.formworkM2 * (formworkMat?.price || 0)
+                      )}
+                    </b>
+                  </p>
+                </div>
               </div>
             )}
           </div>

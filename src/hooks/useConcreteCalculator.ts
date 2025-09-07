@@ -35,7 +35,9 @@ export interface ConcreteResult {
   bedVolume?: number;
   bedArea?: number;
   aggregateVolume?: number; // New field for aggregate volume
-  aggregateArea?: number; // New field for aggregate area
+  aggregateArea?: number;
+  unitRate: number;
+  totalConcreteCost: number;
 }
 
 const CEMENT_DENSITY = 1440; // kg/m3
@@ -149,5 +151,49 @@ export function calculateConcrete(row: ConcreteRow): ConcreteResult {
     bedArea,
     aggregateVolume,
     aggregateArea,
+    unitRate: 0,
+    totalConcreteCost: 0,
+  };
+}
+
+// NEW: Function to calculate concrete rate based on material prices
+export function calculateConcreteRate(
+  mix: string,
+  cementPrice: number,
+  sandPrice: number,
+  stonePrice: number
+): number {
+  const [c, s, st] = parseMix(mix);
+  const totalParts = c + s + st;
+
+  // Calculate cost per cubic meter of concrete
+  const cementPerM3 = ((c / totalParts) * 2400) / CEMENT_BAG_KG;
+  const sandPerM3 = ((s / totalParts) * 2400) / SAND_DENSITY;
+  const stonePerM3 = ((st / totalParts) * 2400) / STONE_DENSITY;
+
+  const rate =
+    cementPerM3 * cementPrice + sandPerM3 * sandPrice + stonePerM3 * stonePrice;
+
+  return Math.round(rate);
+}
+
+export function getConcreteUnitBreakdown(mix: string, cementBagVolume = 0.035) {
+  // mix like "1:2:4"
+  const parts = mix.split(":").map(Number);
+  const totalParts = parts.reduce((a, b) => a + b, 0);
+
+  const cementPart = parts[0];
+  const sandPart = parts[1];
+  const stonePart = parts[2];
+
+  // Per 1 m³ of concrete
+  const cementM3 = cementPart / totalParts;
+  const sandM3 = sandPart / totalParts;
+  const stoneM3 = stonePart / totalParts;
+
+  return {
+    cementBags: cementM3 / cementBagVolume, // convert m³ cement → bags
+    sandM3,
+    stoneM3,
   };
 }

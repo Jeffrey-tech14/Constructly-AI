@@ -49,6 +49,7 @@ const exportBOQPDF = async (
       materialSchedule = MaterialConsolidator.consolidateAllMaterials(
         Object.values(rawSchedule).flat()
       );
+      console.log(projectInfo.logoUrl);
     }
 
     const pdfReactElement = React.createElement(PDFGeneratorComponent, {
@@ -56,6 +57,18 @@ const exportBOQPDF = async (
       projectInfo,
       preliminariesData: preliminaries,
       materialSchedule: materialSchedule,
+      equipmentItems: quote.equipment,
+      additionalServices: quote.services,
+      calculationSummary: quote,
+      subcontractors: quote.subcontractors,
+      addons: quote.addons,
+      transportCost: quote.transport_costs,
+      contractType: quote.contract_type,
+      profit: quote.profit_amount,
+      contingency_amount: quote.contingency_amount,
+      overhead_amount: quote.overhead_amount,
+      labour: quote.labor_cost,
+      permits: quote.permit_cost,
     });
 
     const blob = await pdf(pdfReactElement as any).toBlob();

@@ -113,10 +113,8 @@ export interface QuoteCalculation {
   boqData: any[];
   distance_km: number;
   percentages: Percentage[];
-  addons: Addons[];
   contract_type: "full_contract" | "labor_only";
   region: string;
-  addons_cost: number;
   materials_cost: number;
   masonry_materials: any;
   concrete_materials: any[];
@@ -141,20 +139,24 @@ export interface QuoteCalculation {
 }
 
 export interface CalculationResult {
-  addons: Addons[];
-  addons_cost: number;
   labor_cost: number;
+  subcontractors_profit: number;
+  subcontractors_cost: number;
+  material_profits: number;
   equipment_cost: number;
   transport_cost: number;
   selected_services_cost: number;
   distance_km: number;
   permit_cost: number;
+  contract_type: string;
   contingency_amount: number;
   subtotal: number;
   overhead_amount: number;
   profit_amount: number;
   total_amount: number;
   materials_cost: number;
+  preliminariesCost: number;
+  regional_multiplier: number;
   subcontractors: Subcontractors[];
   percentages: Percentage[];
   labor: Array<{
@@ -375,14 +377,10 @@ export const useQuoteCalculations = () => {
       const {
         include_wastage,
         boqData,
-        masonry_materials,
-        rebar_calculations,
-        concrete_materials,
         equipment,
         services,
         subcontractors,
         distance_km,
-        addons,
         labor_percentages,
         overhead_percentages,
         profit_percentages,
@@ -392,29 +390,23 @@ export const useQuoteCalculations = () => {
         preliminaries,
       } = params;
 
+      const calculatePreliminariesTotal = (): number => {
+        if (!Array.isArray(preliminaries)) return 10;
+        console.log(preliminaries);
+
+        return preliminaries.reduce((total, prelim) => {
+          return (
+            total +
+            prelim.items.reduce((subTotal, item) => {
+              if (item.isHeader) return subTotal; // skip headers
+              return subTotal + (item.amount || 10);
+            }, 10)
+          );
+        }, 0);
+      };
+
       const calculateMaterialTotals = (): number => {
         let total = 0;
-
-        // Concrete materials
-        if (concrete_materials) {
-          total += concrete_materials.reduce(
-            (sum, item) => sum + (item.total_price || 0),
-            0
-          );
-        }
-
-        // Rebar calculations
-        if (rebar_calculations) {
-          total += rebar_calculations.reduce(
-            (sum, item) => sum + (item.totalPrice || 0),
-            0
-          );
-        }
-
-        // Masonry materials
-        if (masonry_materials?.cost) {
-          total += masonry_materials.cost;
-        }
 
         // BOQ materials
         if (boqData) {
@@ -431,11 +423,12 @@ export const useQuoteCalculations = () => {
       };
 
       const materials_cost = calculateMaterialTotals();
+      const preliminariesCost = calculatePreliminariesTotal();
       const defaultProfitMargin =
         parseFloat(profit_percentages.toString()) / 100;
 
       // ✅ Apply profit margin
-      const materialProfits = materials_cost || 0 * defaultProfitMargin;
+      const materialProfits = materials_cost * defaultProfitMargin;
 
       const laborCost = Math.round(materials_cost * (labor_percentages / 100));
 
@@ -471,12 +464,6 @@ export const useQuoteCalculations = () => {
       })();
 
       const selectedSubcontractors = subcontractors ?? [];
-
-      let addonsPrices = 0;
-
-      addons.forEach((addon) => {
-        addonsPrices += Number(addon.price) || 0;
-      });
 
       const { updatedSubcontractors, subcontractorRates, subcontractorProfit } =
         (() => {
@@ -526,14 +513,14 @@ export const useQuoteCalculations = () => {
           equipmentCost +
           servicesCost +
           subcontractorRates +
-          addonsPrices;
+          preliminariesCost;
       } else {
         subtotalBeforeExtras =
           laborCost +
           equipmentCost +
           servicesCost +
-          subcontractorRates +
-          addonsPrices;
+          preliminariesCost +
+          subcontractorRates;
       }
       const overheadAmount =
         (subtotalBeforeExtras *
@@ -559,8 +546,10 @@ export const useQuoteCalculations = () => {
         equipment_cost: equipmentCost,
         transport_cost: transportCost,
         selected_services_cost: servicesCost,
+        subcontractors_cost: subcontractorRates, // Add this
+        subcontractors_profit: subcontractorProfit, // Add this
+        material_profits: materialProfits, // Add this
         distance_km: distance_km,
-
         permit_cost: permitCost,
         contingency_amount: contingencyAmount,
         subtotal: subtotalBeforeExtras,
@@ -568,12 +557,8 @@ export const useQuoteCalculations = () => {
         profit_amount: profitAmount,
         total_amount: totalAmount,
         materials_cost: materials_cost,
-
+        preliminariesCost: preliminariesCost,
         subcontractors: updatedSubcontractors,
-
-        addons_cost: addonsPrices,
-        addons: addons,
-
         percentages: percentages,
         labor: [
           {
@@ -588,12 +573,17 @@ export const useQuoteCalculations = () => {
             total_cost: item.total_cost,
           };
         }),
-
         services: services.map((s) => ({
           id: s.id,
           name: s.name,
           price: s.price ?? 0,
         })),
+        // Add these new properties
+        regional_multiplier:
+          regionalMultipliers.find(
+            (r) => r.region === (profile?.location || "Nairobi")
+          )?.multiplier || 1,
+        contract_type: contract_type,
       };
     } finally {
       setLoading(false);

@@ -6,7 +6,7 @@ export const mapMasonryToBOQ = (roomResults: any[]): BOQItem[] => {
   const grouped: Record<string, any[]> = {};
 
   roomResults.forEach((room) => {
-    const thickness = room.thickness || 200;
+    const thickness = room.thickness * 1000 || 200;
     const blockType = room.blockType || "Standard Block";
 
     // Decide plastering description
@@ -28,7 +28,7 @@ export const mapMasonryToBOQ = (roomResults: any[]): BOQItem[] => {
 
     // Calculate totals per group
     const totalNetArea = rooms.reduce((sum, r) => sum + (r.blocks || 0), 0);
-    const totalRate = rooms.reduce((sum, r) => sum + (r.rate || 0), 0);
+    const totalRate = rooms.reduce((sum, r) => sum + (r.blockCost || 0), 0);
 
     return {
       itemNo: generateItemNumber("MAS", index + 1),
@@ -55,7 +55,7 @@ export const mapConcreteToBOQ = (
   return concreteResults.flatMap((result, index) => {
     const rowId = result.name?.split(" ")[1];
     const totalItem = concreteMaterials.find(
-      (item) => item.name === "Total items" && item.rowId === rowId
+      (item) => item.name === "Concrete Total" && item.rowId === rowId
     );
 
     return {
@@ -65,7 +65,7 @@ export const mapConcreteToBOQ = (
       } to ${result.element || "Element"}`,
       unit: "m³",
       quantity: totalItem?.quantity || 0,
-      rate: Math.ceil(totalItem?.total_price / totalItem?.quantity || 0),
+      rate: totalItem?.rate || 0,
       amount: totalItem?.total_price || 0,
       category: result.category,
       element: "Concrete",

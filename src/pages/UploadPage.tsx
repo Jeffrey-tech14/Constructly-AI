@@ -203,7 +203,7 @@ const UploadPlan = () => {
     formData.append("file", file);
 
     const res = await fetch(
-      "constructly-ai-production.up.railway.app/api/plan/upload",
+      "https://constructly-backend.onrender.com/api/plan/upload",
       {
         method: "POST",
         body: formData,

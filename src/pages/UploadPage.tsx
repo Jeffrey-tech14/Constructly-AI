@@ -202,10 +202,13 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("https://elaris-ai.onrender.com/api/plan/upload", {
-      method: "POST",
-      body: formData,
-    });
+    const res = await fetch(
+      "constructly-ai-production.up.railway.app/api/plan/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
     if (!res.ok) throw new Error("Failed to parse plan");
     return res.json();

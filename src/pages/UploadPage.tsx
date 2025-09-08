@@ -202,7 +202,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("http://192.168.0.100:8000/api/plan/upload", {
+    const res = await fetch("https://elaris-ai.onrender.com/api/plan/upload", {
       method: "POST",
       body: formData,
     });
@@ -306,21 +306,21 @@ const UploadPlan = () => {
       switch (tier) {
         case "Free":
           return (
-            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            <Badge className="bg-green-100 text-green-800">
               <Shell className="w-3 h-3 mr-1" />
               Free
             </Badge>
           );
         case "Intermediate":
           return (
-            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            <Badge className="bg-blue-100 text-blue-800">
               <Crown className="w-3 h-3 mr-1" />
               Intermediate
             </Badge>
           );
         case "Professional":
           return (
-            <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+            <Badge className="bg-purple-100 text-purple-800 ">
               <Shield className="w-3 h-3 mr-1" />
               Professional
             </Badge>
@@ -366,11 +366,11 @@ const UploadPlan = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Hero */}
         <div className="text-center mb-10">
-          <h1 className="sm:text-3xl text-2xl font-bold items-center bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <h1 className="sm:text-3xl text-2xl font-bold items-center bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
             <UploadCloud className="sm:w-8 sm:h-8 mr-3 text-blue-900 dark:text-blue-400 inline-block w-12 h-12 mr-3 -translate-y-1" />
             Upload & Analyze Plan
           </h1>
-          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
             AI-powered extraction of rooms, dimensions, doors, and windows —
             instantly.
           </p>
@@ -443,7 +443,7 @@ const UploadPlan = () => {
 
         {/* Main Card */}
         <Card className="backdrop-blur-md bg-white/85 dark:bg-slate-800/85 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:shadow-3xl">
-          <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white py-6">
+          <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-800 text-white py-6">
             <CardTitle className="sm:text-xl font-bold">
               Upload Your Floor Plan
             </CardTitle>
@@ -514,7 +514,7 @@ const UploadPlan = () => {
                 />
                 <Label
                   htmlFor="fileUpload"
-                  className="cursor-pointer inline-flex items-center px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
+                  className="cursor-pointer inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
                 >
                   📁 Select File
                 </Label>

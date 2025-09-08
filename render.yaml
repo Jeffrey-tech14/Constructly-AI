@@ -24,5 +24,3 @@ services:
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
-    ports:
-      - 10000

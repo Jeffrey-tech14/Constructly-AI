@@ -222,15 +222,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen text-foreground selection:bg-blue-200 dark:selection:bg-blue-800">
-      <div className="absolute inset-0 z-0">
-        {/* <div className="w-full h-full relative">
+      <div className="absolute inset-0 -z-1 backdrop-blur-lg">
+        <div className="w-full h-full relative">
           <img
-            src={heroImages[currentHeroImage]}
+            src="https://sdmntprsouthcentralus.oaiusercontent.com/files/00000000-38ec-61f7-bcd1-456949a84402/raw?se=2025-09-08T21%3A05%3A12Z&sp=r&sv=2024-08-04&sr=b&scid=94ea2578-248e-5772-a18a-f9d58fc47721&skoid=04233560-0ad7-493e-8bf0-1347c317d021&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-09-08T18%3A41%3A51Z&ske=2025-09-09T18%3A41%3A51Z&sks=b&skv=2024-08-04&sig=afL6wZ4pbLPw6vchcGd5hzzw86na78vZtC9hdtkQy1o%3D"
             alt="Construction background"
             className="w-full h-full object-cover transition-opacity duration-1000"
           />
           <div className="absolute inset-0 bg-black/60"></div>
-        </div> */}
+        </div>
       </div>
       {/* Decorative background orbs */}
       <div className="absolute inset-0 bg-[url('/blueprint-grid.svg')] bg-repeat opacity-10 pointer-events-none" />
@@ -331,8 +331,11 @@ const Index = () => {
       </nav>
 
       {/* Hero */}
-      <header ref={heroRef} className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28">
+      <header
+        ref={heroRef}
+        className="relative overflow-hidden backdrop-blur-sm w-full min-h-screen flex items-center"
+      >
+        <div className="w-full h-full mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28">
           <div className="mx-auto text-center">
             <Badge
               variant="outline"
@@ -372,10 +375,35 @@ const Index = () => {
               </Button>
             </div>
           </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+              {[
+                {
+                  icon: <ShieldCheck className="w-5 h-5" />,
+                  label: "Reliable",
+                },
+                { icon: <Zap className="w-5 h-5" />, label: "Fast Quotes" },
+                { icon: <Layers className="w-5 h-5" />, label: "BOQ Ready" },
+                { icon: <LineChart className="w-5 h-5" />, label: "Analytics" },
+                {
+                  icon: <Hammer className="w-5 h-5" />,
+                  label: "Contractor-First",
+                },
+                { icon: <Ruler className="w-5 h-5" />, label: "Accurate" },
+              ].map((b, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-center gap-2 text-xs sm:text-sm px-3 py-2 rounded-full bg-white/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800"
+                >
+                  {b.icon} <span>{b.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Decorative bottom wave */}
-        <svg
+        {/* <svg
           className="absolute bottom-0 left-0 w-full h-10 text-blue-600 dark:text-slate-600"
           viewBox="0 0 1440 80"
           preserveAspectRatio="none"
@@ -384,34 +412,8 @@ const Index = () => {
             fill="currentColor"
             d="M0,64L60,64C120,60,240,64,360,53.3C480,43,600,21,720,21.3C840,21,960,43,1080,58.7C1200,75,1320,85,1380,90.7L1440,96L1440,160L1380,160C1320,160,1200,160,1080,160C960,160,840,160,720,160C600,160,480,160,360,160C240,160,120,160,90,160L0,160Z"
           />
-        </svg>
+        </svg> */}
       </header>
-
-      {/* Trust badges / highlights */}
-      <section className="pt-8 pb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
-            {[
-              { icon: <ShieldCheck className="w-5 h-5" />, label: "Reliable" },
-              { icon: <Zap className="w-5 h-5" />, label: "Fast Quotes" },
-              { icon: <Layers className="w-5 h-5" />, label: "BOQ Ready" },
-              { icon: <LineChart className="w-5 h-5" />, label: "Analytics" },
-              {
-                icon: <Hammer className="w-5 h-5" />,
-                label: "Contractor‑First",
-              },
-              { icon: <Ruler className="w-5 h-5" />, label: "Accurate" },
-            ].map((b, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-center gap-2 text-xs sm:text-sm px-3 py-2 rounded-full bg-white/70 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800"
-              >
-                {b.icon} <span>{b.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Who it’s for */}
       <section className="py-14" aria-labelledby="who-title">

@@ -137,8 +137,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-// Gold color constant
-const GOLD_COLOR = "#D4AF37";
+// Blue color constants (from professional blue palette :cite[5])
+const PRIMARY_BLUE = "#096192";
+const SECONDARY_BLUE = "#1171ba";
+const ACCENT_BLUE = "#1399c6";
+const LIGHT_BLUE = "#24aae2";
 
 // ===== PRICING CARD COMPONENT =====
 const PricingCard = ({ plan, isFeatured = false }) => {
@@ -156,25 +159,25 @@ const PricingCard = ({ plan, isFeatured = false }) => {
       className={`
         bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300
         hover:shadow-xl relative overflow-hidden
-        ${isFeatured ? 'ring-2 ring-gold shadow-xl' : 'hover:ring-2 hover:ring-gold/50'}
+        ${isFeatured ? 'ring-2 ring-blue-500 shadow-xl' : 'hover:ring-2 hover:ring-blue-300'}
       `}
     >
       {isFeatured && (
         <div className="absolute top-0 right-0 w-32 h-32 overflow-hidden">
-          <div className="absolute transform rotate-45 bg-gold text-white text-xs font-bold py-1 px-8 top-4 -right-8 shadow-md">
+          <div className="absolute transform rotate-45 bg-blue-600 text-white text-xs font-bold py-1 px-8 top-4 -right-8 shadow-md">
             Popular
           </div>
         </div>
       )}
       <h3 className="text-xl font-bold mb-3 text-center text-gray-900 dark:text-white">{plan.name}</h3>
       <div className="text-center mb-4">
-        <span className="text-2xl font-bold text-gold">{plan.price}</span>
+        <span className="text-2xl font-bold text-blue-600">{plan.price}</span>
         <span className="text-gray-600 dark:text-gray-400 text-sm ml-1">/month</span>
       </div>
       <ul className="mb-6 space-y-3">
         {plan.features.map((feature, i) => (
           <li key={i} className="flex items-center gap-3 text-sm group text-gray-700 dark:text-gray-300">
-            <span className="text-gold">
+            <span className="text-blue-500">
               <CheckCircle className="w-4 h-4" />
             </span>
             <span>{feature.text}</span>
@@ -187,7 +190,7 @@ const PricingCard = ({ plan, isFeatured = false }) => {
       >
         <Button 
           onClick={handleGetStarted}
-          className="w-full py-3 font-semibold transition-all duration-300 bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-white shadow-md hover:shadow-lg"
+          className="w-full py-3 font-semibold transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white shadow-md hover:shadow-lg"
         >
           {plan.buttonText}
         </Button>
@@ -206,12 +209,12 @@ const PaymentMethod = ({ method, isSelected, onSelect }) => (
     whileHover={{ y: -5 }}
     className={`bg-white dark:bg-gray-800 border p-6 rounded-xl text-center shadow-sm transition-all duration-300 cursor-pointer
       ${isSelected 
-        ? `border-gold ring-2 ring-gold/30` 
-        : 'border-gray-200 dark:border-gray-700 hover:border-gold/50'}
+        ? `border-blue-500 ring-2 ring-blue-300` 
+        : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'}
     `}
     onClick={() => onSelect(method)}
   >
-    <div className="text-3xl mb-4 text-gold">
+    <div className="text-3xl mb-4 text-blue-500">
       {method.icon}
     </div>
     <h4 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">{method.name}</h4>
@@ -220,7 +223,7 @@ const PaymentMethod = ({ method, isSelected, onSelect }) => (
     </p>
     {isSelected && (
       <div className="mt-4 flex justify-center">
-        <CheckCircle className="h-5 w-5 text-gold" />
+        <CheckCircle className="h-5 w-5 text-blue-500" />
       </div>
     )}
   </motion.div>
@@ -287,7 +290,7 @@ const TestimonialsSection = () => {
           viewport={{ once: true }}
           className="text-center mb-10 md:mb-12"
         >
-          <Badge className="bg-gold/10 text-gold mb-4 text-xs">
+          <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
             <Star className="w-3 h-3 mr-1" /> Client Testimonials
           </Badge>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
@@ -310,7 +313,7 @@ const TestimonialsSection = () => {
               >
                 <div className="grid grid-cols-1 lg:grid-cols-3">
                   <div className="lg:col-span-2 p-4 md:p-6 lg:p-8">
-                    <div className="text-gold text-3xl md:text-4xl mb-4">
+                    <div className="text-blue-500 text-3xl md:text-4xl mb-4">
                       <Quote className="opacity-70" />
                     </div>
                     <p className="text-base md:text-lg text-gray-800 dark:text-white mb-6 leading-relaxed italic">
@@ -318,7 +321,7 @@ const TestimonialsSection = () => {
                     </p>
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                       <div className="flex items-center mb-4 md:mb-0">
-                        <div className="bg-gold w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-base md:text-lg flex-shrink-0">
+                        <div className="bg-blue-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-base md:text-lg flex-shrink-0">
                           {currentTestimonial.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="ml-3 md:ml-4">
@@ -330,7 +333,7 @@ const TestimonialsSection = () => {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 md:w-5 md:h-5 ${i < currentTestimonial.rating ? "text-gold fill-gold/30" : "text-gray-300"}`}
+                            className={`w-4 h-4 md:w-5 md:h-5 ${i < currentTestimonial.rating ? "text-blue-500 fill-blue-200" : "text-gray-300"}`}
                           />
                         ))}
                       </div>
@@ -347,7 +350,7 @@ const TestimonialsSection = () => {
                           transition={{ delay: index * 0.1 + 0.3 }}
                           className="bg-white dark:bg-gray-800 p-3 md:p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center"
                         >
-                          <div className="text-xl md:text-2xl font-extrabold text-gold mb-1">{result.value}</div>
+                          <div className="text-xl md:text-2xl font-extrabold text-blue-600 mb-1">{result.value}</div>
                           <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">{result.label}</div>
                         </motion.div>
                       ))}
@@ -365,7 +368,7 @@ const TestimonialsSection = () => {
                   onClick={() => setActiveIndex(index)}
                   whileHover={{ scale: 1.2 }}
                   className={`w-2 h-2 rounded-full transition-colors ${
-                    index === activeIndex ? 'bg-gold' : 'bg-gray-300'
+                    index === activeIndex ? 'bg-blue-500' : 'bg-gray-300'
                   }`}
                   aria-label={`Go to testimonial ${index + 1}`}
                 />
@@ -475,7 +478,7 @@ const FaqSection = () => {
   const [search, setSearch] = useState("");
   const faqsData = {
     "General": {
-      icon: <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-gold" />,
+      icon: <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />,
       items: [
         {
           question: "What file formats does Constructly support?",
@@ -532,7 +535,7 @@ const FaqSection = () => {
       ],
     },
     "Account & Billing": {
-      icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-gold" />,
+      icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />,
       items: [
         {
           question: "What payment methods are accepted?",
@@ -581,7 +584,7 @@ const FaqSection = () => {
       ],
     },
     "Technical Support": {
-      icon: <Settings className="w-4 h-4 md:w-5 md:h-5 text-gold" />,
+      icon: <Settings className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />,
       items: [
         {
           question: "What should I do if I'm having trouble uploading plans?",
@@ -663,7 +666,7 @@ const FaqSection = () => {
               }}
               className={`flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-full transition-all text-sm ${
                 activeCategory === key
-                  ? "bg-gold text-white shadow-lg"
+                  ? "bg-blue-600 text-white shadow-lg"
                   : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
               whileHover={{ scale: 1.05 }}
@@ -687,7 +690,7 @@ const FaqSection = () => {
             <input
               type="text"
               placeholder={`Search ${activeCategory} FAQs...`}
-              className="w-full pl-10 pr-4 py-2 md:py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold focus:border-transparent transition-all duration-300 text-sm"
+              className="w-full pl-10 pr-4 py-2 md:py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -730,7 +733,7 @@ const FaqSection = () => {
                   <h3 className="text-sm md:text-base font-medium text-gray-800 dark:text-white pr-4">{faq.question}</h3>
                   <motion.span
                     animate={{ rotate: openIndex === i ? 180 : 0 }}
-                    className="text-gold flex-shrink-0"
+                    className="text-blue-500 flex-shrink-0"
                     transition={{ duration: 0.3 }}
                   >
                     <ChevronDown className="h-4 w-4 md:h-5 md:w-5" />
@@ -768,7 +771,7 @@ const FaqSection = () => {
         </motion.div>
         {/* Support CTA */}
         <motion.div 
-          className="mt-10 md:mt-12 p-6 md:p-8 bg-gradient-to-r from-gold to-amber-500 rounded-xl text-center text-white"
+          className="mt-10 md:mt-12 p-6 md:p-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl text-center text-white"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
@@ -780,7 +783,7 @@ const FaqSection = () => {
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <motion.a 
               href="tel:9499515815" 
-              className="bg-white hover:bg-gray-100 text-gold px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
+              className="bg-white hover:bg-gray-100 text-blue-600 px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -789,7 +792,7 @@ const FaqSection = () => {
             </motion.a>
             <motion.a 
               href="mailto:support@constructly.com"
-              className="border border-white text-white hover:bg-white hover:text-gold px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
+              className="border border-white text-white hover:bg-white hover:text-blue-600 px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -810,25 +813,25 @@ const HowItWorks = () => {
       icon: <UploadCloud className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "Upload Plans",
       desc: "Upload your construction plans in various formats including DWG, PDF, and image files with our drag-and-drop interface.",
-      color: "bg-gold"
+      color: "bg-blue-600"
     },
     {
       icon: <BarChart3 className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "AI Analysis",
       desc: "Our advanced AI algorithms analyze materials, dimensions, and requirements with industry-leading accuracy.",
-      color: "bg-purple-600"
+      color: "bg-blue-700"
     },
     {
       icon: <Calculator className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "Automated Calculations",
       desc: "Get precise quantity takeoffs and cost estimates with detailed breakdowns and customizable parameters.",
-      color: "bg-blue-600"
+      color: "bg-blue-800"
     },
     {
       icon: <FileText className="h-8 w-8 md:h-10 md:w-10 text-white" />,
       title: "Generate Professional Quote",
       desc: "Create professional, branded quotes ready to send to clients with automated formatting and company branding.",
-      color: "bg-green-600"
+      color: "bg-blue-900"
     }
   ];
   return (
@@ -841,7 +844,7 @@ const HowItWorks = () => {
           viewport={{ once: true }}
           className="text-center mb-12 md:mb-16"
         >
-          <Badge className="bg-gold/10 text-gold mb-4 text-xs">
+          <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
             <ClipboardCheck className="w-3 h-3 mr-1" /> Process
           </Badge>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
@@ -853,7 +856,7 @@ const HowItWorks = () => {
         </motion.div>
         <div className="relative">
           {/* Timeline for desktop */}
-          <div className="absolute hidden md:block top-16 left-0 right-0 h-0.5 bg-gold/30 transform -translate-y-1/2 z-0"></div>
+          <div className="absolute hidden md:block top-16 left-0 right-0 h-0.5 bg-blue-300 transform -translate-y-1/2 z-0"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 relative z-10">
             {steps.map((step, i) => (
               <motion.div
@@ -871,7 +874,7 @@ const HowItWorks = () => {
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     {step.icon}
-                    <div className="absolute -top-2 -right-2 bg-white dark:bg-gray-900 text-gold rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md">
+                    <div className="absolute -top-2 -right-2 bg-white dark:bg-gray-900 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md">
                       {i + 1}
                     </div>
                   </motion.div>
@@ -897,7 +900,7 @@ const HowItWorks = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
           >
             Get Started Today <ArrowRight className="ml-2 h-4 w-4 inline" />
           </motion.button>
@@ -919,7 +922,7 @@ const WhoItsForSection = () => {
           viewport={{ once: true }}
           className="text-center mb-10 md:mb-12"
         >
-          <Badge className="bg-gold/10 text-gold mb-4 text-xs">
+          <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
             <TargetIcon className="w-3 h-3 mr-1" /> Tailored for your workflow
           </Badge>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4" id="who-title">
@@ -945,7 +948,7 @@ const WhoItsForSection = () => {
             >
               <Card className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-transform overflow-hidden group">
                 <CardContent className="p-8 text-center relative">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold to-amber-500"></div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-800"></div>
                   <div className="text-5xl mb-3 transform group-hover:scale-110 transition-transform duration-300">{item.emoji}</div>
                   <h3 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">{item.role}</h3>
                   <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
@@ -959,43 +962,57 @@ const WhoItsForSection = () => {
   );
 };
 
-// ===== ICON MARQUEE SECTION =====
-const IconMarquee = () => {
+// ===== ICON GRID SECTION (Replaces Marquee) =====
+const IconGrid = () => {
   const icons = [
-    { icon: <Building2 className="h-10 w-10 text-gold" />, label: "Contractors" },
-    { icon: <Calculator className="h-10 w-10 text-gold" />, label: "Quantity Surveyors" },
-    { icon: <TrendingUp className="h-10 w-10 text-gold" />, label: "SMEs" },
-    { icon: <HardHat className="h-10 w-10 text-gold" />, label: "Construction Managers" },
-    { icon: <ClipboardCheck className="h-10 w-10 text-gold" />, label: "Project Managers" },
-    { icon: <BarChart3 className="h-10 w-10 text-gold" />, label: "Developers" },
-    { icon: <FileText className="h-10 w-10 text-gold" />, label: "Architects" },
-    { icon: <Ruler className="h-10 w-10 text-gold" />, label: "Engineers" },
+    { icon: <Building2 className="h-10 w-10 text-blue-600" />, label: "Contractors" },
+    { icon: <Calculator className="h-10 w-10 text-blue-600" />, label: "Quantity Surveyors" },
+    { icon: <TrendingUp className="h-10 w-10 text-blue-600" />, label: "SMEs" },
+    { icon: <HardHat className="h-10 w-10 text-blue-600" />, label: "Construction Managers" },
+    { icon: <ClipboardCheck className="h-10 w-10 text-blue-600" />, label: "Project Managers" },
+    { icon: <BarChart3 className="h-10 w-10 text-blue-600" />, label: "Developers" },
+    { icon: <FileText className="h-10 w-10 text-blue-600" />, label: "Architects" },
+    { icon: <Ruler className="h-10 w-10 text-blue-600" />, label: "Engineers" },
   ];
 
   return (
-    <section className="py-10 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
-      <div className="relative">
-        <motion.div 
-          className="flex"
-          animate={{ x: [0, -1000] }}
-          transition={{ 
-            x: {
-              repeat: Infinity,
-              repeatType: "loop",
-              duration: 20,
-              ease: "linear"
-            }
-          }}
+    <section className="py-10 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+          className="text-center mb-8"
         >
-          {[...icons, ...icons].map((item, i) => (
-            <div key={i} className="flex flex-col items-center justify-center mx-8 min-w-max">
-              <div className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-lg mb-2">
-                {item.icon}
-              </div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
-            </div>
-          ))}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
+            Trusted by Professionals Across the Industry
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto text-base">
+            Construction professionals from various specialties rely on Constructly for accurate estimates and efficient project management
+          </p>
         </motion.div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          {icons.map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: i * 0.1 }}
+              viewport={{ once: true }}
+              className="flex flex-col items-center text-center"
+            >
+              <motion.div 
+                className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-lg mb-3"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {item.icon}
+              </motion.div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1014,7 +1031,7 @@ const CTABanner = () => {
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
-          <Card className="rounded-3xl bg-gradient-to-r from-gold to-amber-500 text-white shadow-2xl overflow-hidden">
+          <Card className="rounded-3xl bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-2xl overflow-hidden">
             <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <p className="uppercase tracking-wider text-white/80 text-xs mb-1">Ready to build better?</p>
@@ -1051,10 +1068,10 @@ const CTABanner = () => {
 const Logo = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center group select-none">
     <div className="p-2 rounded-xl bg-transaparent shadow-md group-hover:scale-105 transition-transform">
-      <Pickaxe className="w-5 h-5 text-gold dark:text-white" />
+      <Pickaxe className="w-5 h-5 text-blue-600 dark:text-white" />
     </div>
     {!compact && (
-      <span className="ml-2 font-bold text-lg sm:text-2xl text-gold dark:text-white">
+      <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600 dark:text-white">
         Constructly
       </span>
     )}
@@ -1190,17 +1207,17 @@ const Index = () => {
       className="min-h-screen font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300"
       style={{ fontFamily: "Poppins, Helvetica Neue, Arial, sans-serif" }}
     >
-      {/* Custom styles for gold color */}
+      {/* Custom styles for blue color */}
       <style>
         {`
-          .bg-gold { background-color: ${GOLD_COLOR}; }
-          .text-gold { color: ${GOLD_COLOR}; }
-          .border-gold { border-color: ${GOLD_COLOR}; }
-          .ring-gold { --tw-ring-color: ${GOLD_COLOR}; }
-          .hover\\:bg-gold:hover { background-color: ${GOLD_COLOR}; }
-          .hover\\:text-gold:hover { color: ${GOLD_COLOR}; }
-          .hover\\:border-gold:hover { border-color: ${GOLD_COLOR}; }
-          .from-gold { --tw-gradient-from: ${GOLD_COLOR}; --tw-gradient-to: rgba(212, 175, 55, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+          .bg-blue-600 { background-color: ${PRIMARY_BLUE}; }
+          .text-blue-600 { color: ${PRIMARY_BLUE}; }
+          .border-blue-600 { border-color: ${PRIMARY_BLUE}; }
+          .ring-blue-600 { --tw-ring-color: ${PRIMARY_BLUE}; }
+          .hover\\:bg-blue-600:hover { background-color: ${PRIMARY_BLUE}; }
+          .hover\\:text-blue-600:hover { color: ${PRIMARY_BLUE}; }
+          .hover\\:border-blue-600:hover { border-color: ${PRIMARY_BLUE}; }
+          .from-blue-600 { --tw-gradient-from: ${PRIMARY_BLUE}; --tw-gradient-to: rgba(9, 97, 146, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
         `}
       </style>
 
@@ -1214,7 +1231,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end space-x-6 md:space-x-8">
           <div className="relative group">
             <motion.button 
-              className="flex items-center lowercase text-gray-700 dark:text-gray-300 hover:text-gold transition text-xs"
+              className="flex items-center lowercase text-gray-700 dark:text-gray-300 hover:text-blue-600 transition text-xs"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -1237,7 +1254,7 @@ const Index = () => {
               </a>
             </div>
           </div>
-          <a href="tel:9499515815" className="flex items-center hover:text-gold text-gray-700 dark:text-gray-300 text-xs">
+          <a href="tel:9499515815" className="flex items-center hover:text-blue-600 text-gray-700 dark:text-gray-300 text-xs">
             <PhoneCall className="mr-1 h-3.5 w-3.5" /> 949 951 5815
           </a>
         </div>
@@ -1259,13 +1276,13 @@ const Index = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-gold" />
-              <span className="text-lg md:text-xl font-bold text-gold">Constructly</span>
+              <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+              <span className="text-lg md:text-xl font-bold text-blue-600">Constructly</span>
             </motion.div>
             <div className="hidden lg:flex items-center space-x-6 md:space-x-8">
               <motion.button 
                 onClick={() => scrollTo('features')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-gold font-medium text-sm"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1273,7 +1290,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('pricing')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-gold font-medium text-sm"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1281,7 +1298,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('how-it-works')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-gold font-medium text-sm"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1289,7 +1306,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('testimonials')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-gold font-medium text-sm"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1297,7 +1314,7 @@ const Index = () => {
               </motion.button>
               <motion.button 
                 onClick={() => scrollTo('faq')} 
-                className="text-gray-700 dark:text-gray-300 hover:text-gold font-medium text-sm"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium text-sm"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -1309,7 +1326,7 @@ const Index = () => {
               >
                 <button
                   onClick={() => navigate('/auth')}
-                  className="text-gray-700 dark:text-gray-300 hover:text-gold text-sm flex items-center"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-sm flex items-center"
                 >
                   <User className="mr-1 h-4 w-4" /> Login
                 </button>
@@ -1320,7 +1337,7 @@ const Index = () => {
               >
                 <button
                   onClick={() => navigate('/auth')}
-                  className="bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-white px-4 py-2 md:px-6 md:py-3 text-sm rounded-lg shadow-md hover:shadow-lg transition-all"
+                  className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white px-4 py-2 md:px-6 md:py-3 text-sm rounded-lg shadow-md hover:shadow-lg transition-all"
                 >
                   Get Started
                 </button>
@@ -1343,7 +1360,7 @@ const Index = () => {
                   <div className="flex flex-col space-y-4 mt-8">
                     <motion.button 
                       onClick={() => scrollTo('features')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-gold text-left text-sm py-2"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1351,7 +1368,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('pricing')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-gold text-left text-sm py-2"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1359,7 +1376,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('how-it-works')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-gold text-left text-sm py-2"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1367,7 +1384,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('testimonials')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-gold text-left text-sm py-2"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1375,7 +1392,7 @@ const Index = () => {
                     </motion.button>
                     <motion.button 
                       onClick={() => scrollTo('faq')} 
-                      className="text-gray-700 dark:text-gray-300 hover:text-gold text-left text-sm py-2"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -1383,7 +1400,7 @@ const Index = () => {
                     </motion.button>
                     <button
                       onClick={() => navigate('/auth')}
-                      className="justify-start text-gray-700 dark:text-gray-300 hover:text-gold pl-0 text-sm py-2 flex items-center"
+                      className="justify-start text-gray-700 dark:text-gray-300 hover:text-blue-600 pl-0 text-sm py-2 flex items-center"
                     >
                       <User className="mr-2 h-4 w-4" /> Login
                     </button>
@@ -1391,7 +1408,7 @@ const Index = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/auth')}
-                      className="bg-gradient-to-r from-gold to-amber-500 text-white text-sm py-3 rounded-lg"
+                      className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm py-3 rounded-lg"
                     >
                       Get Started
                     </motion.button>
@@ -1417,11 +1434,11 @@ const Index = () => {
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              <Badge className="bg-gold/10 text-gold mb-4 text-xs">
+              <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
                 <Star className="w-3 h-3 mr-1" /> Professional Construction Management
               </Badge>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight">
-                <span className="text-gold">Generate Accurate Quotes in Minutes</span>
+                <span className="text-blue-600">Generate Accurate Quotes in Minutes</span>
               </h1>
               <p className="text-lg md:text-xl mb-6 md:mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
                 Upload your construction plans and get precise material estimates and professional quotes in minutes, not hours.
@@ -1433,7 +1450,7 @@ const Index = () => {
                 >
                   <button
                     onClick={() => navigate('/auth')}
-                    className="bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-white px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-lg shadow-md hover:shadow-lg transition-all"
                   >
                     Get Started
                   </button>
@@ -1443,7 +1460,7 @@ const Index = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <button
-                    className="bg-white dark:bg-gray-800 border border-gold text-gold hover:bg-gold/10 px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-lg shadow-md hover:shadow-lg transition-all"
+                    className="bg-white dark:bg-gray-800 border border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-lg shadow-md hover:shadow-lg transition-all"
                     onClick={() => setDemoOpen(true)}
                   >
                     View Demo
@@ -1469,8 +1486,8 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* ===== ICON MARQUEE SECTION ===== */}
-      <IconMarquee />
+      {/* ===== ICON GRID SECTION (Replaces Marquee) ===== */}
+      <IconGrid />
 
       {/* ===== WHO IT'S FOR SECTION ===== */}
       <WhoItsForSection />
@@ -1495,7 +1512,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mb-12 md:mb-16"
           >
-            <Badge className="bg-gold/10 text-gold mb-4 text-xs">
+            <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
               <FileText className="w-3 h-3 mr-1" /> All-in-one toolkit
             </Badge>
             <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
@@ -1508,32 +1525,32 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
-                icon: <FileText className="w-7 h-7 text-gold" />,
+                icon: <FileText className="w-7 h-7 text-blue-600" />,
                 title: "Professional Quotes",
                 description: "Detailed, accurate proposals with your rates, margins, and timelines.",
               },
               {
-                icon: <Calculator className="w-7 h-7 text-gold" />,
+                icon: <Calculator className="w-7 h-7 text-blue-600" />,
                 title: "Cost Calculator",
                 description: "Live calculations with regional multipliers and service rates.",
               },
               {
-                icon: <Users className="w-7 h-7 text-gold" />,
+                icon: <Users className="w-7 h-7 text-blue-600" />,
                 title: "Client Management",
                 description: "Track clients, projects, and approvals in one place.",
               },
               {
-                icon: <TrendingUp className="w-7 h-7 text-gold" />,
+                icon: <TrendingUp className="w-7 h-7 text-blue-600" />,
                 title: "Business Analytics",
                 description: "See revenue, conversion, and project KPIs at a glance.",
               },
               {
-                icon: <Building className="w-7 h-7 text-gold" />,
+                icon: <Building className="w-7 h-7 text-blue-600" />,
                 title: "Project Types",
                 description: "Residential, commercial, and infrastructure supported.",
               },
               {
-                icon: <Clock className="w-7 h-7 text-gold" />,
+                icon: <Clock className="w-7 h-7 text-blue-600" />,
                 title: "Time Tracking",
                 description: "Keep timelines on track with milestones and reminders.",
               },
@@ -1548,7 +1565,7 @@ const Index = () => {
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group">
-                  <CardHeader className="pb-3 bg-gradient-to-r from-gold/10 to-amber-500/10">
+                  <CardHeader className="pb-3 bg-gradient-to-r from-blue-100 to-blue-200">
                     <div className="flex justify-center mb-4">{f.icon}</div>
                     <CardTitle className="text-center text-gray-800 dark:text-white text-lg">{f.title}</CardTitle>
                   </CardHeader>
@@ -1644,7 +1661,7 @@ const Index = () => {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gold/10 p-6 rounded-xl border border-gold/30 mb-12"
+              className="bg-blue-100 p-6 rounded-xl border border-blue-300 mb-12"
             >
               <h3 className="text-lg font-bold mb-4 text-center text-gray-900 dark:text-white">Complete Your Payment</h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6 text-center">
@@ -1656,7 +1673,7 @@ const Index = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePaymentSubmit}
-                  className="bg-gradient-to-r from-gold to-amber-500 hover:from-amber-500 hover:to-gold text-white px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
+                  className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
                 >
                   Complete Payment
                 </motion.button>
@@ -1687,8 +1704,8 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
             <div className="md:col-span-2 lg:col-span-1">
               <div className="flex items-center mb-4">
-                <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-gold" />
-                <span className="text-lg md:text-xl font-bold ml-3 text-gold">Constructly</span>
+                <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+                <span className="text-lg md:text-xl font-bold ml-3 text-blue-600">Constructly</span>
               </div>
               <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
                 Empowering construction professionals with modern, efficient tools.
@@ -1697,18 +1714,18 @@ const Index = () => {
             <div>
               <h3 className="font-bold mb-4 text-base md:text-lg text-gray-900 dark:text-white">Product</h3>
               <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
-                <li><button onClick={() => scrollTo('features')} className="hover:text-gold transition block text-left">Features</button></li>
-                <li><button onClick={() => scrollTo('pricing')} className="hover:text-gold transition block text-left">Pricing</button></li>
-                <li><button onClick={() => scrollTo('how-it-works')} className="hover:text-gold transition block text-left">How It Works</button></li>
-                <li><button onClick={() => scrollTo('testimonials')} className="hover:text-gold transition block text-left">Testimonials</button></li>
-                <li><button onClick={() => scrollTo('faq')} className="hover:text-gold transition block text-left">FAQs</button></li>
+                <li><button onClick={() => scrollTo('features')} className="hover:text-blue-600 transition block text-left">Features</button></li>
+                <li><button onClick={() => scrollTo('pricing')} className="hover:text-blue-600 transition block text-left">Pricing</button></li>
+                <li><button onClick={() => scrollTo('how-it-works')} className="hover:text-blue-600 transition block text-left">How It Works</button></li>
+                <li><button onClick={() => scrollTo('testimonials')} className="hover:text-blue-600 transition block text-left">Testimonials</button></li>
+                <li><button onClick={() => scrollTo('faq')} className="hover:text-blue-600 transition block text-left">FAQs</button></li>
               </ul>
             </div>
             <div>
               <h3 className="font-bold mb-4 text-base md:text-lg text-gray-900 dark:text-white">Company</h3>
               <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
-                <li><Link to="/auth" className="hover:text-gold transition block">Login</Link></li>
-                <li><Link to="/auth?mode=signup" className="hover:text-gold transition block">Get Started</Link></li>
+                <li><Link to="/auth" className="hover:text-blue-600 transition block">Login</Link></li>
+                <li><Link to="/auth?mode=signup" className="hover:text-blue-600 transition block">Get Started</Link></li>
               </ul>
             </div>
             <div>
@@ -1716,15 +1733,15 @@ const Index = () => {
               <ul className="space-y-3 text-gray-600 dark:text-gray-400 text-sm">
                 <li className="flex items-start">
                   <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <a href="mailto:support@constructly.africa" className="hover:text-gold transition block">support@constructly.africa</a>
+                  <a href="mailto:support@constructly.africa" className="hover:text-blue-600 transition block">support@constructly.africa</a>
                 </li>
                 <li className="flex items-start">
                   <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="hover:text-gold transition block">+254 700 123 456</span>
+                  <span className="hover:text-blue-600 transition block">+254 700 123 456</span>
                 </li>
                 <li className="flex items-start">
                   <MapPin className="w-4 h-4 md:w-5 md:h-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="hover:text-gold transition block">Nairobi, Kenya</span>
+                  <span className="hover:text-blue-600 transition block">Nairobi, Kenya</span>
                 </li>
               </ul>
             </div>
@@ -1735,18 +1752,18 @@ const Index = () => {
               © {new Date().getFullYear()} Constructly. All rights reserved.
             </span>
             <div className="flex gap-3 md:gap-4">
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-gold text-xs md:text-sm">Privacy Policy</a>
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-gold text-xs md:text-sm">Terms of Service</a>
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-gold text-xs md:text-sm">Cookie Policy</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 text-xs md:text-sm">Privacy Policy</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 text-xs md:text-sm">Terms of Service</a>
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 text-xs md:text-sm">Cookie Policy</a>
             </div>
             <div className="flex gap-4 mt-4 sm:mt-0">
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-gold">
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-gold">
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-gold">
+              <a href="#" className="text-gray-600 dark:text-gray-400 hover:text-blue-600">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>

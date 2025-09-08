@@ -7,6 +7,7 @@ import {
   MaterialSchedule,
 } from "./advancedMaterialExtractor";
 import { MaterialConsolidator } from "./materialConsolidator";
+import PDFGeneratorComponent from "@/components/PDFGenerator";
 
 // --- Define Types ---
 interface ProjectInfo {
@@ -23,12 +24,6 @@ interface ProjectInfo {
   logoUrl: string;
 }
 
-// --- Helper Function for Dynamic Import ---
-const getPDFGeneratorComponent = async () => {
-  const module = await import("@/components/PDFGenerator");
-  return module.default;
-};
-
 const exportBOQPDF = async (
   boqData: BOQSection[],
   projectInfo: ProjectInfo,
@@ -36,8 +31,6 @@ const exportBOQPDF = async (
   quote: any
 ): Promise<boolean> => {
   try {
-    const PDFGeneratorComponent = await getPDFGeneratorComponent();
-
     // Extract and consolidate material schedule from quote
     let materialSchedule: any[] | undefined;
     if (

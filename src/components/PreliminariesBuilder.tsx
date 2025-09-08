@@ -188,7 +188,7 @@ const PreliminariesBuilder = ({
                     <TableRow
                       key={`${sectionIndex}-${itemIndex}-${item.itemNo}`}
                       className={
-                        item.isHeader ? "bg-muted/50 font-semibold" : ""
+                        item.isHeader ? "bg-gray-900 font-semibold" : ""
                       }
                     >
                       <TableCell>{item.isHeader ? "" : item.itemNo}</TableCell>

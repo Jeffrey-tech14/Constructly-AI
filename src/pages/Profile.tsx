@@ -204,20 +204,20 @@ const Profile = () => {
     switch (tier) {
       case "Free":
         return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200">
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             <Shell className="w-3 h-3 mr-1" /> Free
           </Badge>
         );
       case "Intermediate":
         return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200">
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Crown className="w-3 h-3 mr-1" />
             Intermediate
           </Badge>
         );
       case "Professional":
         return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200">
+          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
             <Shield className="w-3 h-3 mr-1" />
             Professional
           </Badge>
@@ -258,11 +258,11 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between items-start">
           <div className="items-center">
-            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
-              <LucidePersonStanding className="sm:w-8 sm:h-8 mr-2 text-purple-900 dark:text-blue-300" />
+            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
+              <LucidePersonStanding className="sm:w-8 sm:h-8 mr-2 text-blue-900 dark:text-blue-300" />
               Profile
             </h1>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
               Manage your account and subscription
             </p>
           </div>
@@ -323,7 +323,7 @@ const Profile = () => {
                     onClick={() => setShowAvatarUpload(true)}
                     className="mt-2 border text-primary dark:text-white hover:text-primary hover:bg-primary/20"
                   >
-                    Update profile picture
+                    Update company logo
                   </Button>
                 </div>
 

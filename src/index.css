@@ -1,5 +1,4 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -89,15 +88,15 @@
   }
 
   .gradient-card {
-    @apply bg-gradient-to-br from-white/80 via-blue-50/40 to-indigo-50/30 dark:from-slate-800/80 dark:via-slate-700/40 dark:to-indigo-900/30;
+    @apply bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600;
   }
 
   .card-hover {
-    @apply transition-transform duration-300 hover:shadow-lg hover:scale-[1.02]; 
+    @apply transition-transform duration-300 hover:shadow-lg hover:scale-[1.02];
   }
 
   .gradient-bg {
-    @apply bg-gradient-to-br from-slate-50/90 via-blue-50/60 to-indigo-100/40 dark:from-slate-900/90 dark:via-slate-800/60 dark:to-indigo-950/40;
+    @apply bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600;
   }
 }
 
@@ -135,7 +134,8 @@
 }
 
 @keyframes bounceGentle {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

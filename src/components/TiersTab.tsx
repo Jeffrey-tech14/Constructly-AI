@@ -1,25 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { Check, Save } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { Check, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 export interface tiers {
-  id: number; 
-  name: string; 
+  id: number;
+  name: string;
   price: number;
-  period: string; 
+  period: string;
   features: [];
-  popular:boolean;
+  popular: boolean;
 }
 
 const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
   const { toast } = useToast();
-  const {user} = useAuth();
+  const { user } = useAuth();
   const [tiers, setTiers] = useState<tiers[]>([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
@@ -28,9 +28,16 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
   useEffect(() => {
     const fetchTiers = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from('tiers').select('*').order('id');
+      const { data, error } = await supabase
+        .from("tiers")
+        .select("*")
+        .order("id");
       if (error) {
-        toast({ title: 'Error', description: 'Failed to fetch tiers', variant: 'destructive' });
+        toast({
+          title: "Error",
+          description: "Failed to fetch tiers",
+          variant: "destructive",
+        });
       } else {
         setTiers(data || []);
       }
@@ -45,14 +52,21 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
     if (newPrice === undefined) return;
 
     const { error } = await supabase
-      .from('tiers')
+      .from("tiers")
       .update({ price: newPrice })
-      .eq('id', tierId);
+      .eq("id", tierId);
 
     if (error) {
-      toast({ title: 'Error', description: 'Failed to update price', variant: 'destructive' });
+      toast({
+        title: "Error",
+        description: "Failed to update price",
+        variant: "destructive",
+      });
     } else {
-      toast({ title: 'Success', description: 'Tier price updated successfully' });
+      toast({
+        title: "Success",
+        description: "Tier price updated successfully",
+      });
     }
   };
 
@@ -69,11 +83,11 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
       <CardHeader>
         <CardTitle>Subscription Tiers</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 mb-3">
         {tiers.map((tier) => (
           <div
             key={tier.id}
-            className="grid grid-cols-3 items-center gap-4 py-4 border-b last:border-b-0"
+            className="grid grid-cols-3 gradient-card rounded-lg items-center gap-4 py-4"
           >
             <div className="text-center font-medium">{tier.name}</div>
             <ul className="flex flex-col items-center space-y-2">
@@ -88,7 +102,7 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
             <div className="flex flex-col items-center space-y-2">
               <Input
                 type="number"
-                    min='0'
+                min="0"
                 value={editedPrices[tier.id] ?? tier.price}
                 onChange={(e) =>
                   setEditedPrices({

@@ -1,35 +1,56 @@
-import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { Search, TrendingUp, Calendar, Shell, Crown, Shield, Pencil, Play, Clock, CheckCircle, Pause } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'react-router-dom';
-import { Badge } from './ui/badge';
-
+import { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Search,
+  TrendingUp,
+  Calendar,
+  Shell,
+  Crown,
+  Shield,
+  Pencil,
+  Play,
+  Clock,
+  CheckCircle,
+  Pause,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
+import { Badge } from "./ui/badge";
 
 const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
   const { toast } = useToast();
-  const{ user } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const fetchQuotes = async () => {
       setLoading(true);
-    const { data, error } = await supabase
-        .from('quotes_with_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from("quotes_with_profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) {
-        toast({ title: 'Error', description: 'Failed to fetch quotes', variant: 'destructive' });
+        toast({
+          title: "Error",
+          description: "Failed to fetch quotes",
+          variant: "destructive",
+        });
       } else {
         setQuotes(data || []);
       }
@@ -39,75 +60,78 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
     fetchQuotes();
   }, [refreshKey, user, location.key]);
 
-  const filteredQuotes = quotes.filter(q => {
-    const matchesSearch = q.profile.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || q.profile.status === statusFilter;
+  const filteredQuotes = quotes.filter((q) => {
+    const matchesSearch = q.profile.name
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || q.profile.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-    const getTierBadge = (tier: string) => {
-        switch (tier) {
-        case 'draft':
-          return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-        case 'planning':
-          return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-        case 'started':
-          return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-        case 'in_progress':
-          return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
-        case 'completed':
-          return 'bg-green-100 text-green-800 hover:bg-green-200';
-        case 'on_hold':
-          return 'bg-red-100 text-red-800 hover:bg-red-200';
-        default:
-          return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-      }
-    };
-     const getStatusIcon = (status: string) => {
-        switch (status) {
-          case 'draft':
-            return <Pencil className="w-4 h-4" />;
-          case 'planning':
-            return <Calendar className="w-4 h-4" />;
-          case 'started':
-            return <Play className="w-4 h-4" />;
-          case 'in_progress':
-            return <Clock className="w-4 h-4" />;
-          case 'completed':
-            return <CheckCircle className="w-4 h-4" />;
-          case 'on_hold':
-            return <Pause className="w-4 h-4" />;
-          default:
-            return <Calendar className="w-4 h-4" />;
-        }
-      };
+  const getTierBadge = (tier: string) => {
+    switch (tier) {
+      case "draft":
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "planning":
+        return "bg-purple-100 text-purple-800 hover:bg-purple-200";
+      case "started":
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      case "in_progress":
+        return "bg-amber-100 text-amber-800 hover:bg-amber-200";
+      case "completed":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "on_hold":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+    }
+  };
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "draft":
+        return <Pencil className="w-4 h-4" />;
+      case "planning":
+        return <Calendar className="w-4 h-4" />;
+      case "started":
+        return <Play className="w-4 h-4" />;
+      case "in_progress":
+        return <Clock className="w-4 h-4" />;
+      case "completed":
+        return <CheckCircle className="w-4 h-4" />;
+      case "on_hold":
+        return <Pause className="w-4 h-4" />;
+      default:
+        return <Calendar className="w-4 h-4" />;
+    }
+  };
 
   const formatCurrency = (value: number) => {
     if (value >= 1_000_000) {
-      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+      return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
     }
     if (value >= 1_000) {
-      return `${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+      return `${(value / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
     }
     return value.toString();
   };
 
-    const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft':
-        return 'hover:bg-gray-400 bg-gray-800';
-      case 'planning':
-        return 'hover:bg-purple-400 bg-purple-800';
-      case 'started':
-        return 'hover:bg-blue-400 bg-blue-800';
-      case 'in_progress':
-        return 'hover:bg-amber-400 bg-amber-800';
-      case 'completed':
-        return 'hover:bg-green-400 bg-green-800';
-      case 'on_hold':
-        return 'hover:bg-red-400 bg-red-800';
+      case "draft":
+        return "hover:bg-gray-400 bg-gray-800";
+      case "planning":
+        return "hover:bg-purple-400 bg-purple-800";
+      case "started":
+        return "hover:bg-blue-400 bg-blue-800";
+      case "in_progress":
+        return "hover:bg-amber-400 bg-amber-800";
+      case "completed":
+        return "hover:bg-green-400 bg-green-800";
+      case "on_hold":
+        return "hover:bg-red-400 bg-red-800";
       default:
-        return 'hover:bg-gray-400 bg-gray-800';
+        return "hover:bg-gray-400 bg-gray-800";
     }
   };
 
@@ -120,7 +144,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
   }
 
   return (
-    <Card className='gradient-card'>
+    <Card className="gradient-card">
       <CardHeader>
         <CardTitle>All Quotes</CardTitle>
       </CardHeader>
@@ -155,38 +179,49 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
           <p className="text-center text-muted-foreground">No quotes found</p>
         )}
 
-        <div className='grid w-full grid-cols-1 md:grid-cols-2'>
-        {filteredQuotes.map((quote) => (
-          <div key={quote.id} className="border rounded-lg p-4 m-2 space-y-2">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-bold">Quote #{quote.id}</p>
-                <p className="font-medium">{quote.title}</p>
-                <p>Contractor: {quote.profile?.name || 'Unknown'}</p>
-                <p>Email: {quote.profile?.email || 'N/A'}</p>
+        <div className="grid w-full grid-cols-1 md:grid-cols-2">
+          {filteredQuotes.map((quote) => (
+            <div
+              key={quote.id}
+              className="border gradient-card rounded-lg p-4 m-2 space-y-2"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-bold">Quote #{quote.id}</p>
+                  <p className="font-medium">{quote.title}</p>
+                  <p>Contractor: {quote.profile?.name || "Unknown"}</p>
+                  <p>Email: {quote.profile?.email || "N/A"}</p>
 
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Calendar className="w-4 h-4" /> {new Date(quote.created_at).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="w-4 h-4" /> Status: 
-                  <Badge className={getTierBadge(quote.status)}>
-                    {quote.status.charAt(0).toUpperCase() + quote.status.slice(1).replace('_', ' ')}
-                  </Badge>
-                </p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />{" "}
+                    {new Date(quote.created_at).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <TrendingUp className="w-4 h-4" /> Status:
+                    <Badge className={getTierBadge(quote.status)}>
+                      {quote.status.charAt(0).toUpperCase() +
+                        quote.status.slice(1).replace("_", " ")}
+                    </Badge>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-lg">
+                    KSh {formatCurrency(quote.total_amount).toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold text-lg">KSh {formatCurrency(quote.total_amount).toLocaleString()}</p>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Progress: {quote.progress_percentage || 0}%
+                </p>
+                <Progress
+                  indicatorColor={`${getStatusColor(quote.status)} `}
+                  value={quote.progress_percentage}
+                  className="w-full h-3 bg-blue-50 dark:bg-white/80"
+                />
               </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">
-                Progress: {quote.progress_percentage || 0}%
-              </p>
-               <Progress indicatorColor={`${getStatusColor(quote.status)} `} value={quote.progress_percentage} className="w-full h-3 bg-blue-50 dark:bg-white/80" />
-            </div>
-          </div>
-        ))}
+          ))}
         </div>
       </CardContent>
     </Card>

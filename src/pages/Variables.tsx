@@ -183,11 +183,11 @@ const Variables = () => {
     <div className=" scrollbar-hide min-h-screen animate-fade-in">
       <div className="container  scrollbar-hide mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="sm:text-3xl text-2xl font-bold flex items-center bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <Settings className="sm:w-8 sm:h-8 mr-3 text-purple-900 dark:text-white" />
+          <h1 className="sm:text-3xl text-2xl font-bold flex items-center bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+            <Settings className="sm:w-8 sm:h-8 mr-3 text-blue-900 dark:text-white" />
             Variables & Pricing
           </h1>
-          <p className="text-sm sm:text-lg bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
             Configure all pricing variables and settings for your construction
             projects
           </p>

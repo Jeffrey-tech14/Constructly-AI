@@ -634,7 +634,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 onClick={() =>
                   navigate("/upload/plan", { state: { quoteData } })
                 }
-                className="-mb-3 animate-bounce-gentle bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                className="-mb-3 animate-bounce-gentle bg-primary text-white"
               >
                 Upload Plan
               </Button>
@@ -1756,20 +1756,20 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     switch (tier) {
       case "Free":
         return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-200">
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
             <Shell className="w-3 h-3 mr-1" /> Free
           </Badge>
         );
       case "Intermediate":
         return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200">
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Crown className="w-3 h-3 mr-1" />
             Intermediate
           </Badge>
         );
       case "Professional":
         return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-200">
+          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
             <Shield className="w-3 h-3 mr-1" />
             Professional
           </Badge>
@@ -1811,11 +1811,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
-            <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-purple-900 dark:text-white" />
+          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
+            <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-blue-900 dark:text-white" />
             Enhanced Quote Builder
           </div>
-          <p className=" bg-gradient-to-r from-purple-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-sm sm:text-lg text-transparent mt-2">
+          <p className=" bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
         </div>

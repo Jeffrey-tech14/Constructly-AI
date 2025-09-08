@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,54 +28,78 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-            <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={
+          <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/dashboard"
+                element={
                   <ProtectedRoute>
                     <Dashboard />
                   </ProtectedRoute>
-                } />
-                <Route path="/upload/plan" element={
+                }
+              />
+              <Route
+                path="/upload/plan"
+                element={
                   <ProtectedRoute>
                     <UploadPlan />
                   </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
+                }
+              />
+              <Route
+                path="/profile"
+                element={
                   <ProtectedRoute>
                     <Profile />
                   </ProtectedRoute>
-                } />
-                <Route path="/payment" element={
+                }
+              />
+              <Route
+                path="/payment"
+                element={
                   <ProtectedRoute>
                     <PaymentPage />
                   </ProtectedRoute>
-                } />
-                <Route path="/quotes/new" element={
+                }
+              />
+              <Route
+                path="/quotes/new"
+                element={
                   <ProtectedRoute>
                     <QuoteBuilder />
                   </ProtectedRoute>
-                } />
-                <Route path="/quotes/all" element={
+                }
+              />
+              <Route
+                path="/quotes/all"
+                element={
                   <ProtectedRoute>
                     <ViewAllQuotes />
                   </ProtectedRoute>
-                } />
-                <Route path="/variables" element={
+                }
+              />
+              <Route
+                path="/variables"
+                element={
                   <ProtectedRoute>
                     <Variables />
                   </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
+                }
+              />
+              <Route
+                path="/admin"
+                element={
                   <ProtectedRoute>
                     <AdminDashboard />
                   </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>

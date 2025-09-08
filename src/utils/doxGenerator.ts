@@ -49,10 +49,15 @@ const formatQuantity = (quantity: any): string => {
 
 // Helper function to extract materials from quote
 const extractMaterialsFromQuote = (quote: any): any[] => {
-  if (quote.materialSchedule) {
+  // Check for materialSchedule first (matches PDF generator)
+  if (quote.materialSchedule && Array.isArray(quote.materialSchedule)) {
     return quote.materialSchedule;
   }
-  if (quote.consolidatedMaterials) {
+  // Fallback to consolidatedMaterials
+  if (
+    quote.consolidatedMaterials &&
+    Array.isArray(quote.consolidatedMaterials)
+  ) {
     return quote.consolidatedMaterials;
   }
   return [];
@@ -117,6 +122,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 new TextRun({
                   text: "Project Title:",
                   bold: true,
+                  size: 20,
                 }),
               ],
             }),
@@ -129,6 +135,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
               children: [
                 new TextRun({
                   text: projectInfo.title,
+                  size: 20,
                 }),
               ],
             }),
@@ -146,6 +153,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 new TextRun({
                   text: "Client:",
                   bold: true,
+                  size: 20,
                 }),
               ],
             }),
@@ -157,6 +165,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
               children: [
                 new TextRun({
                   text: projectInfo.clientName,
+                  size: 20,
                 }),
               ],
             }),
@@ -173,6 +182,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 new TextRun({
                   text: "Location:",
                   bold: true,
+                  size: 20,
                 }),
               ],
             }),
@@ -184,6 +194,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
               children: [
                 new TextRun({
                   text: projectInfo.location,
+                  size: 20,
                 }),
               ],
             }),
@@ -200,6 +211,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 new TextRun({
                   text: "Project Type:",
                   bold: true,
+                  size: 20,
                 }),
               ],
             }),
@@ -211,6 +223,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
               children: [
                 new TextRun({
                   text: projectInfo.projectType,
+                  size: 20,
                 }),
               ],
             }),
@@ -232,6 +245,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                   new TextRun({
                     text: "House Type:",
                     bold: true,
+                    size: 20,
                   }),
                 ],
               }),
@@ -243,6 +257,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 children: [
                   new TextRun({
                     text: projectInfo.houseType,
+                    size: 20,
                   }),
                 ],
               }),
@@ -264,6 +279,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                   new TextRun({
                     text: "Region:",
                     bold: true,
+                    size: 20,
                   }),
                 ],
               }),
@@ -275,6 +291,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 children: [
                   new TextRun({
                     text: projectInfo.region,
+                    size: 20,
                   }),
                 ],
               }),
@@ -296,6 +313,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                   new TextRun({
                     text: "Floors:",
                     bold: true,
+                    size: 20,
                   }),
                 ],
               }),
@@ -307,6 +325,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 children: [
                   new TextRun({
                     text: projectInfo.floors.toString(),
+                    size: 20,
                   }),
                 ],
               }),
@@ -328,6 +347,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                   new TextRun({
                     text: "Consultant:",
                     bold: true,
+                    size: 20,
                   }),
                 ],
               }),
@@ -339,6 +359,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 children: [
                   new TextRun({
                     text: projectInfo.consultant,
+                    size: 20,
                   }),
                 ],
               }),
@@ -360,6 +381,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                   new TextRun({
                     text: "Contractor:",
                     bold: true,
+                    size: 20,
                   }),
                 ],
               }),
@@ -371,6 +393,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 children: [
                   new TextRun({
                     text: projectInfo.contractor,
+                    size: 20,
                   }),
                 ],
               }),
@@ -392,6 +415,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
                 new TextRun({
                   text: "Date:",
                   bold: true,
+                  size: 20,
                 }),
               ],
             }),
@@ -403,6 +427,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
               children: [
                 new TextRun({
                   text: projectInfo.date,
+                  size: 20,
                 }),
               ],
             }),
@@ -442,8 +467,473 @@ const createSectionTitle = (text: string): Paragraph => {
   });
 };
 
+// New function to create Materials Schedule table
+const createMaterialsScheduleTable = (materials: any[]): Table => {
+  if (!materials || materials.length === 0) {
+    return new Table({
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "No materials data available",
+                      bold: true,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+
+  const rows: TableRow[] = [
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "ITEM",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 12, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "DESCRIPTION",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+            }),
+          ],
+          width: { size: 38, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "UNIT",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "QTY",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "RATE (KSh)",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 15, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "AMOUNT (KSh)",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 15, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+      ],
+    }),
+  ];
+
+  materials.forEach((material: any) => {
+    rows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: material.itemNo || "",
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: material.description || "",
+                  }),
+                ],
+              }),
+            ],
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: material.unit || "",
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: formatQuantity(material.quantity),
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+              }),
+            ],
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: formatCurrency(material.rate),
+                  }),
+                ],
+                alignment: AlignmentType.RIGHT,
+              }),
+            ],
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: formatCurrency(material.amount),
+                  }),
+                ],
+                alignment: AlignmentType.RIGHT,
+              }),
+            ],
+          }),
+        ],
+      })
+    );
+  });
+
+  // Add total row
+  const totalAmount = materials.reduce(
+    (sum, material) => sum + (material.amount || 0),
+    0
+  );
+
+  rows.push(
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: "" })],
+          columnSpan: 5,
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `TOTAL: ${formatCurrency(totalAmount)}`,
+                  bold: true,
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+            }),
+          ],
+          shading: { fill: "F3F4F6" },
+        }),
+      ],
+    })
+  );
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+    },
+    rows,
+  });
+};
+
+let preliminariesTotal = 0;
+// Helper function to create Preliminaries table
+const createPreliminariesTable = (preliminariesData: any[]): Table => {
+  if (!preliminariesData || preliminariesData.length === 0) {
+    return new Table({
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: "No preliminaries data available",
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+
+  const rows: TableRow[] = [
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "ITEM",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "DESCRIPTION",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+            }),
+          ],
+          width: { size: 70, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "AMOUNT (KSh)",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 20, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+      ],
+    }),
+  ];
+
+  preliminariesData.forEach((prelimSection) => {
+    if (prelimSection.items && Array.isArray(prelimSection.items)) {
+      prelimSection.items.forEach((item: any) => {
+        if (item.isHeader) {
+          // Header row
+          rows.push(
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "" })],
+                  columnSpan: 3,
+                }),
+              ],
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: item.description,
+                          bold: true,
+                        }),
+                      ],
+                    }),
+                  ],
+                  columnSpan: 3,
+                  shading: { fill: "F3F4F6" },
+                }),
+              ],
+            })
+          );
+        } else {
+          // Regular item row
+          preliminariesTotal += item.amount || 0;
+          rows.push(
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: item.itemNo || "",
+                        }),
+                      ],
+                      alignment: AlignmentType.CENTER,
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: item.description || "",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  children: [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: formatCurrency(item.amount),
+                        }),
+                      ],
+                      alignment: AlignmentType.RIGHT,
+                    }),
+                  ],
+                }),
+              ],
+            })
+          );
+        }
+      });
+    }
+  });
+
+  // Add preliminaries total row
+  rows.push(
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: "" })],
+          columnSpan: 2,
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `TOTAL FOR PRELIMINARIES: ${formatCurrency(
+                    preliminariesTotal
+                  )}`,
+                  bold: true,
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+            }),
+          ],
+          shading: { fill: "F3F4F6" },
+        }),
+      ],
+    })
+  );
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+    },
+    rows,
+  });
+};
+
 // Helper function to create BOQ table
 const createBOQTable = (section: any): Table => {
+  if (!section || !section.items || section.items.length === 0) {
+    return new Table({
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: "No BOQ data available for this section",
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+
   const rows: TableRow[] = [
     new TableRow({
       children: [
@@ -548,6 +1038,7 @@ const createBOQTable = (section: any): Table => {
 
   section.items.forEach((item: any) => {
     if (item.isHeader) {
+      // Header row
       rows.push(
         new TableRow({
           children: [
@@ -577,6 +1068,7 @@ const createBOQTable = (section: any): Table => {
         })
       );
     } else {
+      // Regular item row
       rows.push(
         new TableRow({
           children: [
@@ -585,7 +1077,7 @@ const createBOQTable = (section: any): Table => {
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: item.itemNo,
+                      text: item.itemNo || "",
                     }),
                   ],
                   alignment: AlignmentType.CENTER,
@@ -597,7 +1089,7 @@ const createBOQTable = (section: any): Table => {
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: item.description,
+                      text: item.description || "",
                     }),
                   ],
                 }),
@@ -608,7 +1100,7 @@ const createBOQTable = (section: any): Table => {
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: item.unit,
+                      text: item.unit || "",
                     }),
                   ],
                   alignment: AlignmentType.CENTER,
@@ -657,7 +1149,7 @@ const createBOQTable = (section: any): Table => {
     }
   });
 
-  // Add section total
+  // Add section total row
   const sectionTotal = section.items
     .filter((item: any) => !item.isHeader)
     .reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
@@ -674,7 +1166,9 @@ const createBOQTable = (section: any): Table => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `TOTAL FOR ${section.title.toUpperCase()}:`,
+                  text: `TOTAL FOR ${section.title
+                    .toUpperCase()
+                    .replace("ELEMENT ", "")}: ${formatCurrency(sectionTotal)}`,
                   bold: true,
                 }),
               ],
@@ -682,20 +1176,6 @@ const createBOQTable = (section: any): Table => {
             }),
           ],
           shading: { fill: "F3F4F6" },
-        }),
-        new TableCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: formatCurrency(sectionTotal),
-                  bold: true,
-                }),
-              ],
-              alignment: AlignmentType.RIGHT,
-              shading: { fill: "F3F4F6" },
-            }),
-          ],
         }),
       ],
     })
@@ -824,7 +1304,7 @@ const createCostBreakdownTable = (
             new Paragraph({
               children: [
                 new TextRun({
-                  text: formatCurrency(quote.equipment_cost),
+                  text: formatCurrency(quote.equipment_costs),
                 }),
               ],
               alignment: AlignmentType.RIGHT,
@@ -878,34 +1358,7 @@ const createCostBreakdownTable = (
             new Paragraph({
               children: [
                 new TextRun({
-                  text: formatCurrency(quote.services_cost),
-                }),
-              ],
-              alignment: AlignmentType.RIGHT,
-            }),
-          ],
-        }),
-      ],
-    }),
-    new TableRow({
-      children: [
-        new TableCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Subcontractors Cost",
-                }),
-              ],
-            }),
-          ],
-        }),
-        new TableCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: formatCurrency(quote.subcontractors_cost),
+                  text: formatCurrency(quote.additional_services_cost),
                 }),
               ],
               alignment: AlignmentType.RIGHT,
@@ -932,34 +1385,7 @@ const createCostBreakdownTable = (
             new Paragraph({
               children: [
                 new TextRun({
-                  text: formatCurrency(quote.preliminaries_cost),
-                }),
-              ],
-              alignment: AlignmentType.RIGHT,
-            }),
-          ],
-        }),
-      ],
-    }),
-    new TableRow({
-      children: [
-        new TableCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Additional Items Cost",
-                }),
-              ],
-            }),
-          ],
-        }),
-        new TableCell({
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: formatCurrency(quote.addons_cost),
+                  text: formatCurrency(preliminariesTotal),
                 }),
               ],
               alignment: AlignmentType.RIGHT,
@@ -1237,22 +1663,30 @@ export const generateQuoteDOCX = async ({
   isClientExport = false,
 }: DOCXExportOptions) => {
   const materials = extractMaterialsFromQuote(quote);
+  const boqData = quote.boq_data || [];
+  const preliminariesData = quote.preliminaries || [];
+
+  // Filter out empty BOQ sections
+  const nonEmptySections = boqData.filter(
+    (section: any) =>
+      section.items && Array.isArray(section.items) && section.items.length > 0
+  );
 
   const doc = new Document({
     styles: {
       default: {
         document: {
           run: {
-            size: 22,
+            size: 22, // ~11pt
             font: "Calibri",
           },
           paragraph: {
-            spacing: { line: 276 },
+            spacing: { line: 276 }, // ~1.15 line height
           },
         },
         heading1: {
           run: {
-            size: 28,
+            size: 28, // ~14pt
             bold: true,
             color: "FFFFFF",
           },
@@ -1290,7 +1724,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: "BILL OF QUANTITIES",
                 bold: true,
-                size: 32,
+                size: 32, // ~16pt
               }),
             ],
             heading: HeadingLevel.TITLE,
@@ -1302,7 +1736,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: "FOR",
                 bold: true,
-                size: 24,
+                size: 24, // ~12pt
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -1313,7 +1747,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: projectInfo.title || "PROJECT",
                 bold: true,
-                size: 28,
+                size: 28, // ~14pt
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -1324,7 +1758,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: "FOR",
                 bold: true,
-                size: 24,
+                size: 24, // ~12pt
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -1335,7 +1769,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: projectInfo.clientName || "CLIENT",
                 bold: true,
-                size: 24,
+                size: 24, // ~12pt
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -1346,7 +1780,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: `(${projectInfo.location || "LOCATION"})`,
                 bold: true,
-                size: 20,
+                size: 20, // ~10pt
               }),
             ],
             alignment: AlignmentType.CENTER,
@@ -1355,6 +1789,35 @@ export const generateQuoteDOCX = async ({
 
           // Project Information
           createProjectInfoSection(projectInfo),
+
+          new Paragraph({
+            children: [new PageBreak()],
+          }),
+
+          // Materials Schedule
+          createSectionTitle("MATERIALS SCHEDULE"),
+          createMaterialsScheduleTable(materials),
+
+          new Paragraph({
+            children: [new PageBreak()],
+          }),
+
+          // Preliminaries
+          createSectionTitle("PRELIMINARIES"),
+          createPreliminariesTable(preliminariesData),
+
+          new Paragraph({
+            children: [new PageBreak()],
+          }),
+
+          // BOQ Sections
+          ...nonEmptySections.flatMap((section: any, sectionIndex: number) => [
+            createSectionTitle(section.title.toUpperCase()),
+            createBOQTable(section),
+            ...(sectionIndex < nonEmptySections.length - 1
+              ? [new Paragraph({ children: [new PageBreak()] })]
+              : []), // Add page break after each section except the last
+          ]),
 
           new Paragraph({
             children: [new PageBreak()],
@@ -1374,7 +1837,7 @@ export const generateQuoteDOCX = async ({
               new TextRun({
                 text: "SUMMARY NOTES:",
                 bold: true,
-                size: 20,
+                size: 20, // ~10pt
               }),
             ],
             spacing: { after: 200 },
@@ -1437,8 +1900,8 @@ export const generateQuoteDOCX = async ({
 
   // Save the document
   const blob = await Packer.toBlob(doc);
-  const fileName = `${
-    isClientExport ? "Client" : "Contractor"
-  }_Quote_${quote.title.replace(/\s+/g, "_")}.docx`;
+  const fileName = `${isClientExport ? "Client" : "Contractor"}_Quote_${(
+    quote.title || "Quote"
+  ).replace(/\s+/g, "_")}.docx`;
   saveAs(blob, fileName);
 };

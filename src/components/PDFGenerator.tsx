@@ -856,7 +856,6 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
 
   // --- Calculate Section Totals ---
   const calculateSectionTotal = (items: BOQItem[]): number => {
-    console.log(projectInfo.logoUrl);
     return items.reduce((total, item) => {
       if (item.isHeader) return total; // Skip headers
       return total + (item.amount || 0);

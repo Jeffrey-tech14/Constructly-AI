@@ -84,7 +84,7 @@ export class MaterialConsolidator {
   }
 
   private static generateItemNumber(index: number): string {
-    const numbers = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     return numbers[index] || `Z${index - 35}`;
   }
 }

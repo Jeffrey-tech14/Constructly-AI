@@ -1,5 +1,5 @@
 // src/utils/advancedMaterialExtractor.ts
-import { BOQSection, BOQItem } from "@/types/boq";
+import { BOQSection } from "@/types/boq";
 import {
   geminiService,
   GeminiMaterialResponse,
@@ -19,23 +19,16 @@ export interface CategorizedMaterial {
   confidence?: number;
 }
 
-export interface MaterialSchedule {
-  substructure: CategorizedMaterial[];
-  superstructure: CategorizedMaterial[];
-  masonry: CategorizedMaterial[];
-  finishes: CategorizedMaterial[];
-  openings: CategorizedMaterial[];
-  miscellaneous: CategorizedMaterial[];
-}
+export type MaterialSchedule = CategorizedMaterial[];
 
 export class AdvancedMaterialExtractor {
   private static itemCounter = 1;
 
+  // --- Public API ---
   static async extractWithGemini(quote: any): Promise<MaterialSchedule> {
     try {
-      // Try Gemini first
       const geminiAnalysis = await geminiService.analyzeMaterials(quote);
-      return this.convertGeminiToSchedule(geminiAnalysis);
+      return this.convertGeminiToMaterials(geminiAnalysis);
     } catch (error) {
       console.warn(
         "Gemini analysis failed, falling back to local extraction:",
@@ -45,112 +38,115 @@ export class AdvancedMaterialExtractor {
     }
   }
 
-  private static convertGeminiToSchedule(
-    analysis: GeminiMaterialResponse
-  ): MaterialSchedule {
-    const schedule: MaterialSchedule = {
-      substructure: [],
-      superstructure: [],
-      masonry: [],
-      finishes: [],
-      openings: [],
-      miscellaneous: [],
-    };
-
-    analysis.materials.forEach((material, index) => {
-      const categorizedMaterial: CategorizedMaterial = {
-        itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-        category: material.category,
-        element: this.extractElement(material.description),
-        description: material.description,
-        unit: material.unit,
-        quantity: material.quantity,
-        rate: material.rate,
-        amount: material.amount,
-        source: "gemini",
-        confidence: material.confidence,
-      };
-
-      schedule[material.category as keyof MaterialSchedule]?.push(
-        categorizedMaterial
-      );
-    });
-
-    return schedule;
-  }
-
   static extractLocally(quote: any): MaterialSchedule {
-    const materials: CategorizedMaterial[] = [];
+    let allMaterials: CategorizedMaterial[] = [];
 
-    // Extract from all sources
+    if (quote.boqData) {
+      allMaterials.push(...this.extractBOQMaterials(quote.boqData));
+    }
+
     if (quote.concrete_materials) {
-      materials.push(
+      allMaterials.push(
         ...this.extractConcreteMaterials(quote.concrete_materials)
       );
     }
 
     if (quote.rebar_calculations) {
-      materials.push(...this.extractRebarMaterials(quote.rebar_calculations));
+      allMaterials.push(
+        ...this.extractRebarMaterials(quote.rebar_calculations)
+      );
     }
 
     if (quote.rooms) {
-      materials.push(...this.extractMasonryMaterials(quote.rooms));
+      allMaterials.push(...this.extractRoomMaterials(quote.rooms));
     }
 
-    if (quote.boqData) {
-      materials.push(...this.extractBOQMaterials(quote.boqData));
-    }
+    return allMaterials;
+  }
 
-    return this.categorizeAndSchedule(materials);
+  // --- Gemini Conversion ---
+  private static convertGeminiToMaterials(
+    analysis: GeminiMaterialResponse
+  ): MaterialSchedule {
+    return analysis.materials.map((mat) => ({
+      itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
+      category: mat.category || this.autoCategory(mat.description),
+      element: mat.element || this.autoElement(mat.description),
+      description: mat.description,
+      unit: mat.unit || "Unit",
+      quantity: mat.quantity || 0,
+      rate: mat.rate || 0,
+      amount: mat.amount || 0,
+      source: "gemini",
+      location: mat.location,
+      confidence: mat.confidence,
+    }));
+  }
+
+  // --- Local Extraction Helpers ---
+  private static extractBOQMaterials(boqData: BOQSection[]): MaterialSchedule {
+    const materials: CategorizedMaterial[] = [];
+
+    boqData.forEach((section) => {
+      section.items.forEach((item) => {
+        if (item.isHeader) return; // skip headers
+
+        materials.push({
+          itemNo:
+            item.itemNo ||
+            `M${(this.itemCounter++).toString().padStart(3, "0")}`,
+          category: item.category || this.autoCategory(item.description),
+          element: item.element || this.autoElement(item.description),
+          description: item.description,
+          unit: item.unit || "Unit",
+          quantity: item.quantity || 0,
+          rate: item.rate || 0,
+          amount: item.amount || 0,
+          source: "boq",
+          location: section.title,
+        });
+      });
+    });
+
+    return materials;
   }
 
   private static extractConcreteMaterials(
     concreteMaterials: any[]
-  ): CategorizedMaterial[] {
-    return concreteMaterials
-      .filter(
-        (item) =>
-          item.name &&
-          item.quantity > 0 &&
-          !item.name.toLowerCase().includes("total") && // Exclude totals
-          !item.name.toLowerCase().includes("grand total")
-      )
-      .map((item) => ({
-        itemNo: `C${(this.itemCounter++).toString().padStart(3, "0")}`,
-        category: this.determineCategory(item.name),
-        element: "concrete",
-        description: item.name,
-        unit: this.determineUnit(item.name),
-        quantity: item.quantity,
-        rate: item.unit_price || 0,
-        amount: item.total_price || 0,
-        source: "concrete",
-        location: this.extractLocation(item.name),
-      }));
-  }
-  private static extractRebarMaterials(
-    rebarCalculations: any[]
-  ): CategorizedMaterial[] {
-    return rebarCalculations.map((calc) => ({
-      itemNo: `R${(this.itemCounter++).toString().padStart(3, "0")}`,
-      category: calc.category || "superstructure",
-      element: "reinforcement",
-      description: `Reinforcement Steel ${calc.primaryBarSize}`,
-      unit: "Kg",
-      quantity: calc.totalWeightKg || 0,
-      rate: calc.pricePerM || 0,
-      amount: calc.totalPrice || 0,
-      source: "rebar",
-      location: `Element ${calc.number}`,
+  ): MaterialSchedule {
+    return concreteMaterials.map((item) => ({
+      itemNo: `C${(this.itemCounter++).toString().padStart(3, "0")}`,
+      category: this.autoCategory(item.name),
+      element: "concrete",
+      description: item.name,
+      unit: this.autoUnit(item.name),
+      quantity: item.quantity || 0,
+      rate: item.unit_price || 0,
+      amount: item.total_price || 0,
+      source: "concrete",
+      location: item.location || "General",
     }));
   }
 
-  private static extractMasonryMaterials(rooms: any[]): CategorizedMaterial[] {
-    const materials: CategorizedMaterial[] = [];
+  private static extractRebarMaterials(rebars: any[]): MaterialSchedule {
+    return rebars.map((r) => ({
+      itemNo: `R${(this.itemCounter++).toString().padStart(3, "0")}`,
+      category: r.category || "superstructure",
+      element: "reinforcement",
+      description: r.description || `Reinforcement ${r.primaryBarSize || ""}`,
+      unit: r.unit || "Kg",
+      quantity: r.quantity || r.totalWeightKg || 0,
+      rate: r.rate || r.pricePerM || 0,
+      amount: r.amount || r.totalPrice || 0,
+      source: "rebar",
+      location: r.location || "General",
+    }));
+  }
 
+  private static extractRoomMaterials(rooms: any[]): MaterialSchedule {
+    const materials: CategorizedMaterial[] = [];
     rooms.forEach((room) => {
-      // Cement
-      if (room.cementBags && parseFloat(room.cementBags) > 0) {
+      if (room.cementBags) {
         materials.push({
           itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
           category: "masonry",
@@ -164,9 +160,7 @@ export class AdvancedMaterialExtractor {
           location: room.room_name,
         });
       }
-
-      // Sand
-      if (room.sandVolume && parseFloat(room.sandVolume) > 0) {
+      if (room.sandVolume) {
         materials.push({
           itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
           category: "masonry",
@@ -180,14 +174,12 @@ export class AdvancedMaterialExtractor {
           location: room.room_name,
         });
       }
-
-      // Blocks
-      if (room.blocks && room.blocks > 0) {
+      if (room.blocks) {
         materials.push({
           itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
           category: "masonry",
           element: "masonry",
-          description: `${room.blockType} - ${room.room_name}`,
+          description: `${room.blockType || "Block"} - ${room.room_name}`,
           unit: "No.",
           quantity: room.blocks,
           rate: room.blockCost / room.blocks || 0,
@@ -197,11 +189,10 @@ export class AdvancedMaterialExtractor {
         });
       }
 
-      // Doors and Windows
       ["doors", "windows"].forEach((type) => {
         if (room[type]) {
           room[type].forEach((item: any) => {
-            // Only add the main item (door/window)
+            // main item
             materials.push({
               itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
               category: "openings",
@@ -217,8 +208,8 @@ export class AdvancedMaterialExtractor {
               location: room.room_name,
             });
 
-            // Only add frame if it's a separate cost item
-            if (item.frame?.price && item.frame.price > 0) {
+            // frame if exists
+            if (item.frame?.price) {
               materials.push({
                 itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
                 category: "openings",
@@ -240,176 +231,38 @@ export class AdvancedMaterialExtractor {
     return materials;
   }
 
-  public static extractBOQMaterials(
-    boqData: BOQSection[]
-  ): CategorizedMaterial[] {
-    const materials: CategorizedMaterial[] = [];
-
-    boqData.forEach((section) => {
-      section.items.forEach((item) => {
-        if (item.isHeader) return;
-
-        materials.push({
-          itemNo: item.itemNo,
-          category: item.category || this.determineCategory(item.description),
-          element: item.element || "general",
-          description: item.description,
-          unit: item.unit,
-          quantity: item.quantity,
-          rate: item.rate,
-          amount: item.amount,
-          source: "boq",
-          location: section.title,
-        });
-      });
-    });
-
-    return materials;
-  }
-
-  private static categorizeAndSchedule(
-    materials: CategorizedMaterial[]
-  ): MaterialSchedule {
-    const schedule: MaterialSchedule = {
-      substructure: [],
-      superstructure: [],
-      masonry: [],
-      finishes: [],
-      openings: [],
-      miscellaneous: [],
-    };
-
-    materials.forEach((material) => {
-      const category =
-        this.determineCategory(material.description) ||
-        material.category ||
-        "miscellaneous";
-      schedule[category as keyof MaterialSchedule]?.push(material);
-    });
-
-    return schedule;
-  }
-
-  private static determineCategory(description: string): string {
-    const descLower = description.toLowerCase();
-    const categories = {
-      substructure: [
-        "foundation",
-        "excavation",
-        "footing",
-        "base",
-        "subgrade",
-        "hardcore",
-        "dpm",
-        "anti-termite",
-        "blinding",
-      ],
-      superstructure: [
-        "beam",
-        "column",
-        "slab",
-        "frame",
-        "structural",
-        "reinforcement",
-        "rebar",
-        "steel",
-        "concrete",
-      ],
-      masonry: [
-        "block",
-        "brick",
-        "stone",
-        "wall",
-        "partition",
-        "masonry",
-        "mortar",
-        "plaster",
-        "render",
-      ],
-      finishes: [
-        "paint",
-        "tile",
-        "flooring",
-        "ceiling",
-        "finish",
-        "coating",
-        "varnish",
-        "polish",
-      ],
-      openings: [
-        "door",
-        "window",
-        "frame",
-        "glazing",
-        "ironmongery",
-        "lock",
-        "hinge",
-        "handle",
-        "ventilator",
-      ],
-    };
-
-    for (const [category, keywords] of Object.entries(categories)) {
-      if (keywords.some((keyword) => descLower.includes(keyword))) {
-        return category;
-      }
-    }
-
+  // --- Auto Categorization & Element Detection ---
+  private static autoCategory(description: string): string {
+    const d = description.toLowerCase();
+    if (/foundation|footing|substructure|blinding/.test(d))
+      return "substructure";
+    if (/beam|column|slab|frame|structural/.test(d)) return "superstructure";
+    if (/block|brick|wall|masonry|mortar/.test(d)) return "masonry";
+    if (/paint|tile|floor|ceiling|finish/.test(d)) return "finishes";
+    if (/door|window|frame|glazing|lock|hinge|handle/.test(d))
+      return "openings";
     return "miscellaneous";
   }
 
-  private static determineUnit(description: string): string {
-    const descLower = description.toLowerCase();
-    if (descLower.includes("cement")) return "Bags";
-    if (descLower.includes("sand")) return "m³";
-    if (descLower.includes("ballast")) return "m³";
-    if (descLower.includes("formwork")) return "m²";
-    if (descLower.includes("block") || descLower.includes("brick"))
-      return "No.";
-    if (descLower.includes("steel") || descLower.includes("rebar")) return "Kg";
-    if (descLower.includes("door") || descLower.includes("window"))
-      return "No.";
-    return "Unit";
-  }
-
-  private static extractLocation(name: string): string {
-    const match = name.match(/\((.*?)\)/);
-    return match ? match[1] : "General";
-  }
-
-  private static extractElement(description: string): string {
-    if (description.includes("Cement")) return "concrete";
-    if (description.includes("Sand")) return "concrete";
-    if (description.includes("Ballast")) return "concrete";
-    if (description.includes("Formwork")) return "formwork";
-    if (description.includes("Steel") || description.includes("Rebar"))
-      return "reinforcement";
-    if (description.includes("Block") || description.includes("Brick"))
-      return "masonry";
-    if (description.includes("Door")) return "door";
-    if (description.includes("Window")) return "window";
+  private static autoElement(description: string): string {
+    const d = description.toLowerCase();
+    if (/cement|sand|ballast/.test(d)) return "concrete";
+    if (/steel|rebar/.test(d)) return "reinforcement";
+    if (/block|brick|masonry/.test(d)) return "masonry";
+    if (/door/.test(d)) return "door";
+    if (/window/.test(d)) return "window";
+    if (/frame/.test(d)) return "frame";
+    if (/paint|tile|finish/.test(d)) return "finish";
     return "general";
   }
 
-  static async exportMaterialSchedule(
-    quote: any,
-    useGemini: boolean = true
-  ): Promise<MaterialSchedule> {
-    return useGemini
-      ? await this.extractWithGemini(quote)
-      : this.extractLocally(quote);
+  private static autoUnit(description: string): string {
+    const d = description.toLowerCase();
+    if (/cement/.test(d)) return "Bags";
+    if (/sand|ballast/.test(d)) return "m³";
+    if (/block|brick/.test(d)) return "No.";
+    if (/steel|rebar/.test(d)) return "Kg";
+    if (/door|window|frame/.test(d)) return "No.";
+    return "Unit";
   }
 }
-// Add to src/utils/advancedMaterialExtractor.ts
-export const extractMaterialsFromBOQ = (
-  boqData: BOQSection[]
-): MaterialSchedule => {
-  const mockQuote = {
-    boqData: boqData,
-    concrete_materials: [],
-    rebar_calculations: [],
-    rooms: [],
-  };
-
-  return AdvancedMaterialExtractor.extractLocally(mockQuote);
-};

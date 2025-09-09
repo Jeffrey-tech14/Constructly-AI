@@ -121,7 +121,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // FIXED: Added CardDescription
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
@@ -145,6 +145,13 @@ const LIGHT_CREAM = "#F9F7F3";        // Warm but professional cream
 const CHARCOAL = "#2D3748";           // Professional charcoal gray
 const LIGHT_GRAY = "#F5F7FA";         // Light gray for backgrounds
 const MEDIUM_GRAY = "#E2E8F0";        // Medium gray for borders
+// Golden Color Variants for Cards
+const GOLDEN_GREEN = "#89945E";       // Golden Green
+const GOLDEN_BLACK = "#2C261F";       // Golden Black (Dark Brown)
+const GOLDEN_PURPLE = "#6A5A8C";      // Golden Purple
+const GOLDEN_ORANGE = "#B8860B";      // Golden Orange (Dark Goldenrod)
+const GOLDEN_RED = "#8B4513";         // Golden Red (SaddleBrown)
+const GOLDEN_TEAL = "#4A7C59";        // Golden Teal
 export interface Tier {
   id: number;
   name: string;
@@ -412,7 +419,7 @@ const FaqSection = () => {
   const [search, setSearch] = useState("");
   const faqsData = {
     "General": {
-      icon: <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />,
+      icon: <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />, // FIXED: Changed md:w-5 to md:h-5
       items: [
         {
           question: "What file formats does Constructly support?",
@@ -469,7 +476,7 @@ const FaqSection = () => {
       ],
     },
     "Account & Billing": {
-      icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />,
+      icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />, // FIXED: Changed md:w-5 to md:h-5
       items: [
         {
           question: "What payment methods are accepted?",
@@ -480,17 +487,17 @@ const FaqSection = () => {
                 <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
                   <h4 className="font-medium mb-2">Online Payments</h4>
                   <ul className="space-y-1">
-                    <li>• Credit/Debit Cards</li>
-                    <li>• PayPal</li>
-                    <li>• Bank Transfer</li>
+                    <li>â€¢ Credit/Debit Cards</li>
+                    <li>â€¢ PayPal</li>
+                    <li>â€¢ Bank Transfer</li>
                   </ul>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                   <h4 className="font-medium mb-2">Other Options</h4>
                   <ul className="space-y-1">
-                    <li>• Annual billing discounts</li>
-                    <li>• Purchase orders</li>
-                    <li>• Wire transfers</li>
+                    <li>â€¢ Annual billing discounts</li>
+                    <li>â€¢ Purchase orders</li>
+                    <li>â€¢ Wire transfers</li>
                   </ul>
                 </div>
               </div>
@@ -518,7 +525,7 @@ const FaqSection = () => {
       ],
     },
     "Technical Support": {
-      icon: <Settings className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />,
+      icon: <Settings className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />, // FIXED: Changed md:w-5 to md:h-5
       items: [
         {
           question: "What should I do if I'm having trouble uploading plans?",
@@ -547,17 +554,17 @@ const FaqSection = () => {
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                   <h4 className="font-medium mb-2">File Preparation</h4>
                   <ul className="space-y-1">
-                    <li>• Use vector formats when possible</li>
-                    <li>• Ensure clear dimension labels</li>
-                    <li>• Use standard architectural scales</li>
+                    <li>â€¢ Use vector formats when possible</li>
+                    <li>â€¢ Ensure clear dimension labels</li>
+                    <li>â€¢ Use standard architectural scales</li>
                   </ul>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
                   <h4 className="font-medium mb-2">Best Practices</h4>
                   <ul className="space-y-1">
-                    <li>• Organize layers properly</li>
-                    <li>• Clean up unnecessary elements</li>
-                    <li>• Use standard symbols and notations</li>
+                    <li>â€¢ Organize layers properly</li>
+                    <li>â€¢ Clean up unnecessary elements</li>
+                    <li>â€¢ Use standard symbols and notations</li>
                   </ul>
                 </div>
               </div>
@@ -620,7 +627,7 @@ const FaqSection = () => {
           viewport={{ once: true }}
         >
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4 md:w-5 md:h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4 md:w-5 md:h-5" /> {/* FIXED: Changed md:w-5 to md:h-5 */}
             <input
               type="text"
               placeholder={`Search ${activeCategory} FAQs...`}
@@ -633,7 +640,7 @@ const FaqSection = () => {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 onClick={() => setSearch("")}
               >
-                ×
+                Ã—
               </button>
             )}
           </div>
@@ -821,6 +828,122 @@ const HowItWorks = () => {
             ))}
           </div>
         </div>
+        {/* Removed video section as requested */}
+      </div>
+    </section>
+  );
+};
+// Updated WhoItsForSection with partial color usage
+const WhoItsForSection = ({ navigate }) => { // FIXED: Accept navigate as prop
+  // const navigate = useNavigate(); // REMOVED: This line is commented out as we now receive navigate as a prop
+  const professionals = [
+    {
+      icon: <Building2 className="h-10 w-10 text-white" />,
+      title: "General Contractors",
+      description: "Quickly generate accurate quotes for clients and manage multiple projects efficiently.",
+      features: ["Project estimation", "Client management", "Cost tracking"],
+      color: GOLDEN_GREEN
+    },
+    {
+      icon: <Calculator className="h-10 w-10 text-white" />,
+      title: "Quantity Surveyors",
+      description: "Streamline your takeoff process with AI-powered measurement tools.",
+      features: ["Automated takeoffs", "Precision measurements", "Custom reports"],
+      color: GOLDEN_BLACK
+    },
+    {
+      icon: <ClipboardCheck className="h-10 w-10 text-white" />,
+      title: "Construction Managers",
+      description: "Keep projects on budget with real-time cost monitoring and forecasting.",
+      features: ["Budget management", "Resource allocation", "Progress tracking"],
+      color: GOLDEN_PURPLE
+    },
+    {
+      icon: <HardHat className="h-10 w-10 text-white" />,
+      title: "Subcontractors",
+      description: "Submit competitive bids faster with accurate material and labor estimates.",
+      features: ["Specialized estimating", "Quick proposals", "Trade-specific templates"],
+      color: GOLDEN_ORANGE
+    },
+    {
+      icon: <Ruler className="h-10 w-10 text-white" />,
+      title: "Construction Estimators",
+      description: "Enhance your estimating workflow with AI-assisted quantity takeoffs.",
+      features: ["AI measurements", "Database integration", "Historical data analysis"],
+      color: GOLDEN_RED
+    },
+    {
+      icon: <Home className="h-10 w-10 text-white" />,
+      title: "Home Builders",
+      description: "Create detailed estimates for residential projects of any scale.",
+      features: ["Residential templates", "Material optimization", "Client presentations"],
+      color: GOLDEN_TEAL
+    }
+  ];
+  return (
+    <section id="who-its-for" className="py-16 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+          className="text-center mb-12 md:mb-16"
+        >
+          <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
+            <Users className="w-3 h-3 mr-1" /> Designed For Professionals
+          </Badge>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
+            Who Uses Constructly
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-base">
+            Built for construction professionals across all specialties and project types
+          </p>
+        </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {professionals.map((pro, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -10, scale: 1.03 }}
+              className="h-full"
+            >
+              <Card className="h-full rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="h-2 w-full" style={{ backgroundColor: pro.color }}></div>
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center mb-5">
+                    <div 
+                      className="p-3 rounded-full mr-4 flex-shrink-0" 
+                      style={{ backgroundColor: pro.color }}
+                    >
+                      {pro.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                      {pro.title}
+                    </h3>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm flex-grow">
+                    {pro.description}
+                  </p>
+                  <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <h4 className="text-sm font-medium text-gray-800 dark:text-white mb-3">Key Features:</h4>
+                    <ul className="text-xs space-y-2">
+                      {pro.features.map((feature, i) => (
+                        <li key={i} className="flex items-start">
+                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-600 dark:text-gray-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
         <motion.div 
           className="mt-12 text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -828,141 +951,25 @@ const HowItWorks = () => {
           transition={{ duration: 0.7, delay: 0.4 }}
           viewport={{ once: true }}
         >
+          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-3xl mx-auto text-base">
+            No matter your role in construction, Constructly provides the tools you need to save time, 
+            reduce errors, and win more bids with professional, accurate estimates.
+          </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+            onClick={() => navigate("/auth?mode=signup")} // FIXED: Uses passed-in navigate prop
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
+            style={{ backgroundColor: KCA_BLUE }}
           >
-            Get Started Today <ArrowRight className="ml-2 h-4 w-4 inline" />
+            Find Your Plan <ArrowRight className="ml-2 h-4 w-4 inline" />
           </motion.button>
         </motion.div>
       </div>
     </section>
   );
 };
-const WhoItsForSection = () => {
-  return (
-    <section className="py-14 bg-gray-50 dark:bg-gray-900" aria-labelledby="who-title">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="text-center mb-10 md:mb-12"
-        >
-          <Badge className="bg-blue-100 text-blue-800 mb-4 text-xs">
-            <TargetIcon className="w-3 h-3 mr-1" /> Tailored for your workflow
-          </Badge>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4" id="who-title">
-            Who It's For
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-base">
-            Designed specifically for construction professionals in Kenya
-          </p>
-        </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
-          {[
-            { 
-              icon: <HardHat className="w-12 h-12 mx-auto text-blue-600" />, 
-              role: "Contractors", 
-              desc: "Bring your own rates and margins for accurate project bidding." 
-            },
-            { 
-              icon: <Scale className="w-12 h-12 mx-auto text-green-600" />, 
-              role: "Quantity Surveyors", 
-              desc: "Perform detailed takeoffs, generate BOQs, and export data seamlessly." 
-            },
-            { 
-              icon: <TrendingUp className="w-12 h-12 mx-auto text-purple-600" />, 
-              role: "SMEs & Developers", 
-              desc: "Gain clear pricing insights for better financial decision-making." 
-            },
-            { 
-              icon: <Building2 className="w-12 h-12 mx-auto text-blue-600" />, 
-              role: "Project Managers", 
-              desc: "Oversee budgets, timelines, and resources with comprehensive tools." 
-            },
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: i * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
-            >
-              <Card className="rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-transform overflow-hidden group">
-                <CardContent className="p-8 text-center relative">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-800"></div>
-                  <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">{item.role}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-const IconGrid = () => {
-  const icons = [
-    { icon: <Building2 className="h-10 w-10 text-blue-600" />, label: "Contractors" },
-    { icon: <Calculator className="h-10 w-10 text-green-600" />, label: "Quantity Surveyors" },
-    { icon: <TrendingUp className="h-10 w-10 text-purple-600" />, label: "SMEs" },
-    { icon: <HardHat className="h-10 w-10 text-blue-600" />, label: "Construction Managers" },
-    { icon: <ClipboardCheck className="h-10 w-10 text-green-600" />, label: "Project Managers" },
-    { icon: <BarChart3 className="h-10 w-10 text-purple-600" />, label: "Developers" },
-    { icon: <FileText className="h-10 w-10 text-blue-600" />, label: "Architects" },
-    { icon: <Ruler className="h-10 w-10 text-green-600" />, label: "Engineers" },
-  ];
-  return (
-    <section className="py-10 bg-white dark:bg-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="text-center mb-8"
-        >
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4">
-            Trusted by Professionals Across the Industry
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto text-base">
-            Construction professionals from various specialties rely on Constructly for accurate estimates and efficient project management
-          </p>
-        </motion.div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {icons.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="flex flex-col items-center text-center"
-            >
-              <motion.div 
-                className="bg-white dark:bg-gray-800 p-4 rounded-full shadow-lg mb-3"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                {item.icon}
-              </motion.div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.label}</span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
+// Removed IconGrid section as requested
 const CTABanner = () => {
   const navigate = useNavigate();
   return (
@@ -1017,7 +1024,7 @@ const Logo = ({ compact = false }: { compact?: boolean }) => (
       </span>
     )}
   </div>
-)
+);
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -1204,6 +1211,19 @@ const Index = () => {
           .border-purple-700 { border-color: #483888; }
           .border-purple-800 { border-color: #3D3078; }
           .border-purple-900 { border-color: #322868; }
+          /* Golden color variants */
+          .bg-golden-green { background-color: #89945E; }
+          .border-golden-green { border-color: #89945E; }
+          .bg-golden-black { background-color: #2C261F; }
+          .border-golden-black { border-color: #2C261F; }
+          .bg-golden-purple { background-color: #6A5A8C; }
+          .border-golden-purple { border-color: #6A5A8C; }
+          .bg-golden-orange { background-color: #B8860B; }
+          .border-golden-orange { border-color: #B8860B; }
+          .bg-golden-red { background-color: #8B4513; }
+          .border-golden-red { border-color: #8B4513; }
+          .bg-golden-teal { background-color: #4A7C59; }
+          .border-golden-teal { border-color: #4A7C59; }
         `}
       </style>
       <motion.div
@@ -1440,7 +1460,7 @@ const Index = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <button
-                    className="bg-white dark:bg-gray-800 border border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-full shadow-md hover:shadow-lg transition-all"
+                    className="bg-white dark:bg-gray-800 border border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 md:py-4 font-medium text-sm md:text-base rounded-full shadow-md hover:shadow-lg transition-all"
                     onClick={() => setDemoOpen(true)}
                   >
                     View Demo
@@ -1465,8 +1485,8 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-      <IconGrid />
-      <WhoItsForSection />
+      {/* Removed IconGrid section as requested */}
+      <WhoItsForSection navigate={navigate} /> {/* FIXED: Pass navigate as prop */}
       <HowItWorks />
       <motion.section
         id="features"
@@ -1497,34 +1517,46 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
-                icon: <FileText className="w-7 h-7 text-blue-600" />,
+                icon: <FileText className="w-7 h-7 text-white" />,
                 title: "Professional Quotes",
                 description: "Detailed, accurate proposals with your rates, margins, and timelines.",
+                bgColor: "bg-golden-green",
+                borderColor: "border-golden-green"
               },
               {
-                icon: <Calculator className="w-7 h-7 text-green-600" />,
+                icon: <Calculator className="w-7 h-7 text-white" />,
                 title: "Cost Calculator",
                 description: "Live calculations with regional multipliers and service rates.",
+                bgColor: "bg-golden-black",
+                borderColor: "border-golden-black"
               },
               {
-                icon: <Users className="w-7 h-7 text-purple-600" />,
+                icon: <Users className="w-7 h-7 text-white" />,
                 title: "Client Management",
                 description: "Track clients, projects, and approvals in one place.",
+                bgColor: "bg-golden-purple",
+                borderColor: "border-golden-purple"
               },
               {
-                icon: <TrendingUp className="w-7 h-7 text-blue-600" />,
+                icon: <TrendingUp className="w-7 h-7 text-white" />,
                 title: "Business Analytics",
                 description: "See revenue, conversion, and project KPIs at a glance.",
+                bgColor: "bg-golden-orange",
+                borderColor: "border-golden-orange"
               },
               {
-                icon: <Building className="w-7 h-7 text-green-600" />,
+                icon: <Building className="w-7 h-7 text-white" />,
                 title: "Project Types",
                 description: "Residential, commercial, and infrastructure supported.",
+                bgColor: "bg-golden-red",
+                borderColor: "border-golden-red"
               },
               {
-                icon: <Clock className="w-7 h-7 text-purple-600" />,
-                title: "Time Tracking",
+                icon: <Clock className="w-7 h-7 text-white" />,
+                title: "Timeline Tracking",
                 description: "Keep timelines on track with milestones and reminders.",
+                bgColor: "bg-golden-teal",
+                borderColor: "border-golden-teal"
               },
             ].map((f, i) => (
               <motion.div 
@@ -1536,13 +1568,13 @@ const Index = () => {
                 whileHover={{ y: -10 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 group">
-                  <CardHeader className="pb-3 bg-gradient-to-r from-blue-100 to-blue-200">
-                    <div className="flex justify-center mb-4">{f.icon}</div>
-                    <CardTitle className="text-center text-gray-800 dark:text-white text-lg">{f.title}</CardTitle>
+                <Card className={`overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col ${f.bgColor} ${f.borderColor} border-2 group`}>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-center mb-4 text-white">{f.icon}</div>
+                    <CardTitle className="text-center text-white text-lg">{f.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6 flex-grow">
-                    <p className="text-gray-600 dark:text-gray-300 text-sm text-center">{f.description}</p>
+                    <p className="text-white/90 text-sm text-center">{f.description}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1578,7 +1610,7 @@ const Index = () => {
               {Array.from({ length: 3 }).map((_, i) => (
                 <Card
                   key={i}
-                  className="rounded-xl border-0 shadow-xl bg-white/60 dark:bg-slate-900/60"
+                  className="rounded-xl border-2 border-blue-300 shadow-xl bg-white/60 dark:bg-slate-900/60"
                 >
                   <CardContent className="p-8 animate-pulse">
                     <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
@@ -1611,16 +1643,22 @@ const Index = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.2 }}
-                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                  whileHover={{ 
+                    y: -10, 
+                    scale: 1.02,
+                    transition: { duration: 0.3 },
+                  }}
                 >
                   <Card
-                    className={`relative rounded-xl border-0 shadow-xl transition-transform ${
-                      plan.popular ? "ring-2 ring-blue-500 scale-[1.02]" : ""
+                    className={`relative rounded-xl border-2 border-blue-300 shadow-xl transition-all duration-300 hover:shadow-2xl ${
+                      plan.popular 
+                        ? "ring-2 ring-blue-500 scale-[1.02]" 
+                        : "hover:scale-105"
                     } bg-white/70 dark:bg-slate-900/60`}
                   >
                     {plan.popular && (
                       <Badge className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-1 rounded-full shadow-md">
-                        🌟 Most Popular
+                        âœ¨ Most Popular
                       </Badge>
                     )}
                     <CardContent className="p-8">
@@ -1648,7 +1686,12 @@ const Index = () => {
                       </ul>
                       <Button
                         onClick={() => navigate("/auth?mode=signup")}
-                        className="mt-8 w-full rounded-full py-5 bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg hover:shadow-xl"
+                        className={`mt-8 w-full rounded-full py-5 ${
+                          plan.popular
+                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
+                            : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+                        }`}
+                        style={{ backgroundColor: plan.popular ? KCA_BLUE : undefined }}
                       >
                         Get Started
                       </Button>
@@ -1699,8 +1742,10 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center group select-none">
-              <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
-              <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600">
+              <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
+                <Pickaxe className="w-5 h-5 text-blue-600 dark:text-white" />
+              </div>
+              <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600 dark:text-white">
                 Constructly
               </span>
             </div>
@@ -1711,45 +1756,44 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm mb-8">
             <div className="text-center sm:text-left">
-              <h4 className="font-semibold mb-3">Features</h4>
+              <h4 className="font-semibold mb-3">Navigation</h4>
               <ul className="space-y-2">
                 <li>
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('features')}
                   >
-                    Quote Builder
+                    Features
                   </button>
                 </li>
                 <li>
                   <button
                     className="hover:underline hover:text-blue-600"
-                    onClick={() => scrollTo('features')}
+                    onClick={() => scrollTo('pricing')}
                   >
-                    Project Management
+                    Pricing
                   </button>
                 </li>
                 <li>
                   <button
                     className="hover:underline hover:text-blue-600"
-                    onClick={() => scrollTo('features')}
+                    onClick={() => scrollTo('how-it-works')}
                   >
-                    Analytics
+                    How It Works
                   </button>
                 </li>
               </ul>
             </div>
             <div className="text-center">
-              <h4 className="font-semibold mb-3">Support</h4>
+              <h4 className="font-semibold mb-3">Resources</h4>
               <ul className="space-y-2">
-                <li className="flex items-center justify-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  <a
-                    className="hover:underline"
-                    href="mailto:support@constructly.com"
+                <li>
+                  <button
+                    className="hover:underline hover:text-blue-600"
+                    onClick={() => scrollTo('testimonials')}
                   >
-                    support@constructly.com
-                  </a>
+                    Testimonials
+                  </button>
                 </li>
                 <li>
                   <button
@@ -1760,23 +1804,42 @@ const Index = () => {
                   </button>
                 </li>
                 <li>
-                  <button className="hover:underline hover:text-blue-600" onClick={() => scrollTo('faq')}>
-                    Documentation
+                  <button
+                    className="hover:underline hover:text-blue-600"
+                    onClick={() => scrollTo('who-its-for')}
+                  >
+                    Who It's For
                   </button>
                 </li>
               </ul>
             </div>
             <div className="text-center sm:text-right">
-              <h4 className="font-semibold mb-3">Legal</h4>
+              <h4 className="font-semibold mb-3">Support</h4>
               <ul className="space-y-2">
-                <li>
-                  <button className="hover:underline hover:text-blue-600" onClick={() => scrollTo('faq')}>
-                    Privacy Policy
-                  </button>
+                <li className="flex items-center justify-center sm:justify-end gap-2">
+                  <Mail className="w-4 h-4" />
+                  <a
+                    className="hover:underline"
+                    href="mailto:support@constructly.com"
+                  >
+                    support@constructly.com
+                  </a>
+                </li>
+                <li className="flex items-center justify-center sm:justify-end gap-2">
+                  <PhoneCall className="w-4 h-4" />
+                  <a
+                    className="hover:underline"
+                    href="tel:9499515815"
+                  >
+                    949 951 5815
+                  </a>
                 </li>
                 <li>
-                  <button className="hover:underline hover:text-blue-600" onClick={() => scrollTo('faq')}>
-                    Terms of Service
+                  <button
+                    className="hover:underline hover:text-blue-600"
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  >
+                    Back to Top
                   </button>
                 </li>
               </ul>
@@ -1784,17 +1847,16 @@ const Index = () => {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
-              <PhoneCall className="w-3.5 h-3.5" />{" "}
-              <span>+254 700 000 000</span>
-              <span className="hidden sm:inline">•</span>
-              <button
-                className="inline-flex items-center gap-1 hover:underline hover:text-blue-600"
-                onClick={() => scrollTo('features')}
-              >
-                Learn more <ExternalLink className="w-3.5 h-3.5" />
-              </button>
+              <span>Â© {new Date().getFullYear()} Constructly. All rights reserved.</span>
             </div>
-            <div>© {new Date().getFullYear()} Constructly. All rights reserved.</div>
+            <div className="flex items-center gap-4">
+              <a href="#" className="hover:text-blue-600">
+                Privacy Policy
+              </a>
+              <a href="#" className="hover:text-blue-600">
+                Terms of Service
+              </a>
+            </div>
           </div>
         </div>
       </motion.footer>

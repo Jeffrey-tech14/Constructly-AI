@@ -369,11 +369,11 @@ const UploadPlan = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Hero */}
         <div className="text-center mb-10">
-          <h1 className="sm:text-3xl text-2xl font-bold items-center bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-            <UploadCloud className="sm:w-8 sm:h-8 mr-3 text-blue-900 dark:text-blue-400 inline-block w-12 h-12 mr-3 -translate-y-1" />
+          <h1 className="sm:text-3xl text-2xl font-bold items-center bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+            <UploadCloud className="sm:w-8 sm:h-8 mr-3 text-indigo-900 dark:text-white inline-block w-12 h-12 mr-3 -translate-y-1" />
             Upload & Analyze Plan
           </h1>
-          <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-purple-500 bg-clip-text text-transparent mt-2">
             AI-powered extraction of rooms, dimensions, doors, and windows —
             instantly.
           </p>

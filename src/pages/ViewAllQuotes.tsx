@@ -150,11 +150,11 @@ const ViewAllQuotes = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
-            <h1 className="sm:text-3xl text-2xl font-bold flex items-center gap-3 bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
+            <h1 className="sm:text-3xl text-2xl font-bold flex items-center gap-3 bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
               <Building2 className="sm:w-8 sm:h-8 text-blue-900 dark:text-white" />
               All Construction Quotes
             </h1>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent mt-2">
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
               Manage and track all your construction quotes with ease
             </p>
           </div>
@@ -254,7 +254,7 @@ const ViewAllQuotes = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Card className="bg-background/50">
+                    <Card className="dark:bg-gray-900">
                       <CardContent className="text-center p-4">
                         <div className="text-sm text-muted-foreground mb-1">
                           Materials
@@ -267,7 +267,7 @@ const ViewAllQuotes = () => {
                         </div>
                       </CardContent>
                     </Card>
-                    <Card className="bg-background/50">
+                    <Card className="dark:bg-gray-900">
                       <CardContent className="text-center p-4">
                         <div className="text-sm text-muted-foreground mb-1">
                           Labor
@@ -278,7 +278,7 @@ const ViewAllQuotes = () => {
                         </div>
                       </CardContent>
                     </Card>
-                    <Card className="bg-background/50">
+                    <Card className="dark:bg-gray-900">
                       <CardContent className="text-center p-4">
                         <div className="text-sm text-muted-foreground mb-1">
                           Add-ons
@@ -294,7 +294,7 @@ const ViewAllQuotes = () => {
                   </div>
 
                   {quote.custom_specs && (
-                    <Card className="bg-background/30 mb-6">
+                    <Card className="dark:bg-gray-900 mb-6">
                       <CardContent className="p-4">
                         <h4 className="font-medium mb-2">
                           Custom Specifications
@@ -575,6 +575,7 @@ const ViewAllQuotes = () => {
                     )}
 
                     <Dialog>
+                      <DialogTitle></DialogTitle>
                       <DialogTrigger asChild>
                         <Button
                           size="sm"

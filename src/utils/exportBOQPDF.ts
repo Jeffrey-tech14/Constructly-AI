@@ -31,25 +31,40 @@ const exportBOQPDF = async (
   quote: any
 ): Promise<boolean> => {
   try {
-    // Extract and consolidate material schedule from quote
-    let materialSchedule: any[] | undefined;
+    // --- Extract and consolidate material schedule ---
+    let materialSchedule: any[] = [];
+
     if (
       quote?.concrete_materials ||
       quote?.rebar_calculations ||
       quote?.rooms
     ) {
-      const rawSchedule = AdvancedMaterialExtractor.extractLocally(quote);
-      materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-        Object.values(rawSchedule).flat()
-      );
-      console.log(projectInfo.logoUrl);
+      try {
+        // Try Gemini extraction first
+        const rawSchedule: MaterialSchedule =
+          await AdvancedMaterialExtractor.extractWithGemini(quote);
+        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+          Object.values(rawSchedule).flat()
+        );
+      } catch (error) {
+        console.warn(
+          "AI extraction failed, falling back to local extraction:",
+          error
+        );
+        // Fallback to local extraction
+        const rawSchedule = AdvancedMaterialExtractor.extractLocally(quote);
+        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+          Object.values(rawSchedule).flat()
+        );
+      }
     }
 
+    // --- Render PDF ---
     const pdfReactElement = React.createElement(PDFGeneratorComponent, {
       boqData,
       projectInfo,
       preliminariesData: preliminaries,
-      materialSchedule: materialSchedule,
+      materialSchedule,
       equipmentItems: quote.equipment,
       additionalServices: quote.services,
       calculationSummary: quote,
@@ -66,17 +81,16 @@ const exportBOQPDF = async (
 
     const blob = await pdf(pdfReactElement as any).toBlob();
 
-    // Create Download Link and Trigger Download
+    // --- Trigger download ---
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
     const filenameTitle = projectInfo.title
       .replace(/[^a-z0-9_\-\s]/gi, "_")
       .replace(/\s+/g, "_");
+    link.href = url;
     link.download = `BOQ_${filenameTitle}_${new Date()
       .toISOString()
       .slice(0, 10)}.pdf`;
-
     document.body.appendChild(link);
     link.click();
 

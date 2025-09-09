@@ -179,17 +179,17 @@ const Dashboard = () => {
         <div className="mb-8 animate-fade-in">
           <div className="flex justify-between items-center">
             <div>
-              <div className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+              <div className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
                 <LayoutDashboard className="sm:w-8 sm:h-8 mr-2 text-blue-900 dark:text-white" />
                 Welcome back, {profile?.name}!
               </div>
-              <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent mt-2">
+              <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
                 Here's what's happening with your construction business today.
               </p>
             </div>
             <Button
               onClick={() => setShowCalculator(true)}
-              className="text-sm px-5 py-2 rounded-xl shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
+              className="text-sm px-5 py-4 rounded-xl shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
             >
               ⚡Quick Calculator
             </Button>
@@ -229,7 +229,7 @@ const Dashboard = () => {
             {/* Key Metrics */}
             <div
               className={`grid grid-cols-1 md:grid-cols-3 ${
-                profile.tier === "Free" ? "lg-grid-cols-3" : "lg:grid-cols-4"
+                profile.tier === "Free" ? "lg-grid-cols-3" : "lg:grid-cols-3"
               } gap-6`}
             >
               <Card className="gradient-card card-hover">
@@ -286,7 +286,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {profile.tier !== "Free" && (
+              {/* {profile.tier !== "Free" && (
                 <Card className="gradient-card card-hover">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
@@ -306,7 +306,7 @@ const Dashboard = () => {
                     </p>
                   </CardContent>
                 </Card>
-              )}
+              )} */}
             </div>
 
             {/* Content Grid */}
@@ -409,7 +409,7 @@ const Dashboard = () => {
                       )}
                     </CardContent>
                   </Card>
-
+                  {/* 
                   {reviews.length > 0 && (
                     <Card className="gradient-card">
                       <CardHeader>
@@ -449,7 +449,7 @@ const Dashboard = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>

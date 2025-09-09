@@ -2,7 +2,12 @@
 import { BOQSection } from "@/types/boq";
 import { exportBOQPDF } from "./exportBOQPDF";
 import { generateQuoteExcel } from "./excelGenerator";
-import { generateQuoteDOCX } from "./doxGenerator";
+import { generateQuoteDOCX } from "./doxGenerator"; // Make sure this path is correct
+import {
+  AdvancedMaterialExtractor,
+  MaterialSchedule,
+} from "@/utils/advancedMaterialExtractor";
+import { MaterialConsolidator } from "@/utils/materialConsolidator";
 
 export interface ExportOptions {
   format: "pdf" | "excel" | "docx";
@@ -35,6 +40,50 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
   try {
     const { format, audience, quote, projectInfo, logoUrl } = options;
 
+    // --- Extract and consolidate material schedule ---
+    let materialSchedule: any[] = [];
+    if (format !== "pdf") {
+      // Check if quote likely contains data needed for material extraction
+      if (
+        quote?.concrete_materials ||
+        quote?.rebar_calculations ||
+        quote?.rooms ||
+        quote?.boq_data // Sometimes materials are derived from BOQ
+      ) {
+        try {
+          const rawSchedule: MaterialSchedule =
+            await AdvancedMaterialExtractor.extractWithGemini(quote);
+          materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+            Object.values(rawSchedule).flat()
+          );
+        } catch (error) {
+          console.warn(
+            "AI extraction failed, falling back to local extraction:",
+            error
+          );
+          try {
+            // Fallback to local extraction
+            const rawSchedule = AdvancedMaterialExtractor.extractLocally(quote);
+            materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+              Object.values(rawSchedule).flat()
+            );
+          } catch (localError) {
+            console.error("Local extraction also failed:", localError);
+            // materialSchedule remains an empty array
+          }
+        }
+      } else {
+        if (Array.isArray(quote?.materialSchedule)) {
+          materialSchedule = quote.materialSchedule;
+        } else {
+        }
+      }
+    }
+    const enrichedQuote = {
+      ...quote,
+      materialSchedule, // Add or overwrite the materialSchedule
+    };
+
     switch (format) {
       case "pdf":
         return await exportBOQPDF(
@@ -47,13 +96,13 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
         );
       case "excel":
         await generateQuoteExcel({
-          quote,
+          quote: enrichedQuote, // Pass the enriched quote
           isClientExport: audience === "client",
         });
         return true;
       case "docx":
         await generateQuoteDOCX({
-          quote,
+          quote: enrichedQuote, // Pass the enriched quote
           projectInfo: {
             ...projectInfo,
           },
@@ -61,6 +110,7 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
         });
         return true;
       default:
+        console.warn("Unknown export format:", format);
         return false;
     }
   } catch (error) {

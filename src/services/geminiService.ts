@@ -1,6 +1,8 @@
 // src/services/geminiService.ts
 export interface GeminiMaterialAnalysis {
   category: string;
+  location: string;
+  element: string;
   description: string;
   unit: string;
   quantity: number;
@@ -31,9 +33,9 @@ class GeminiService {
     return undefined;
   };
 
-  private apiKey = this.getEnv("GEMINI_API_KEY");
+  private apiKey = this.getEnv("VITE_GEMINI_API_KEY");
   private baseUrl =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent";
 
   async analyzeMaterials(quoteData: any): Promise<GeminiMaterialResponse> {
     if (!this.apiKey) {
@@ -75,49 +77,67 @@ class GeminiService {
 
   private createAnalysisPrompt(quoteData: any): string {
     return `
-    You are a construction quantity surveyor expert. Analyze this construction project data and extract all materials with their quantities, rates, and amounts.
+You are a construction quantity surveyor expert. Analyze the provided project data and extract **only real, individual construction materials**.
 
-    PROJECT DATA:
-    ${JSON.stringify(quoteData, null, 2)}
+STRICT INSTRUCTIONS:
 
-    INSTRUCTIONS:
-    1. Extract ALL materials from concrete, rebar, masonry, openings, and any other sections
-    2. Categorize materials into: substructure, superstructure, masonry, finishes, openings, miscellaneous
-    3. For each material, provide: description, unit, quantity, rate, amount
-    4. Calculate rates from quantity/amount if rate is missing
-    5. Group identical materials across different sections
-    6. Return in JSON format with this structure:
+1. Extract **only physical construction materials**, including:
+   - Cement, Sand, Ballast, Water, Blocks, Bricks, Stone
+   - Reinforcement steel, Structural steel, Formwork
+   - Paints, Tiles, Flooring, Ceiling, Coatings, Varnish, Polish
+   - Doors, Door frames, Windows, Window frames, Glazing, Hinges, Locks
+   - Nails, Screws, Fasteners, Miscellaneous consumables
+
+2. **Ignore** anything that is not a direct material: preliminaries, professional fees, labor, permits, services, legal items, overheads.
+
+3. **Skip combined items** (like "Concrete", "Mortar", or anything that represents a mixture). Only include the individual base materials if they are explicitly listed elsewhere.
+
+4. **Merge duplicates**:
+   - If the same material appears with slightly different spellings (e.g., "Ceoemnt" vs "Cement"), treat them as the same item.
+   - Sum up their **quantities** and **amounts**.
+   - Always use the **rate provided in the BOQ** (do not invent or recalculate rates).
+   - Recalculate **amount = quantity × rate** only when consolidating.
+
+5. For each material, provide these fields:
+   - itemNo: string (unique identifier)
+   - description: string
+   - unit: string
+   - quantity: number
+   - rate: number
+   - amount: number
+   - category: string (auto-generate, e.g., substructure, superstructure, masonry, finishes, doors, windows, miscellaneous)
+   - element: string (e.g., cement, reinforcement, masonry, door, window, finish)
+   - calculatedFrom: string? (optional, if amount was derived from qty × rate)
+   - isHeader: boolean (true if this is a section header in the BOQ)
+   - isProvision: boolean? (optional, if provisional)
+   - confidence: number? (AI certainty score 0–1)
+   - suggestedCategory: string? (optional refined category if unsure)
+
+6. **Return STRICT JSON only** in the format below, with no explanations, notes, or extra text:
+
+{
+  "materials": [
     {
-      "materials": [
-        {
-          "category": "string",
-          "description": "string",
-          "unit": "string",
-          "quantity": number,
-          "rate": number,
-          "amount": number,
-          "confidence": number,
-          "suggestedCategory": "string?",
-          "notes": "string?"
-        }
-      ],
-      "summary": {
-        "totalMaterials": number,
-        "totalCost": number,
-        "categories": {"category": number}
-      }
+      "itemNo": "string",
+      "description": "string",
+      "unit": "string",
+      "quantity": number,
+      "rate": number,
+      "amount": number,
+      "category": "string",
+      "element": "string",
+      "calculatedFrom": "string?",
+      "isHeader": boolean,
+      "isProvision": boolean?,
+      "confidence": number?,
+      "suggestedCategory": "string?"
     }
+  ]
+}
 
-    CATEGORY GUIDELINES:
-    - substructure: foundations, excavations, footings, subgrade, hardcore, DPM, anti-termite
-    - superstructure: beams, columns, slabs, frames, reinforcement, rebar, structural steel
-    - masonry: blocks, bricks, stones, walls, partitions, mortar, plaster, render
-    - finishes: paint, tiles, flooring, ceiling, coatings, varnish, polish
-    - openings: doors, windows, frames, glazing, ironmongery, locks, hinges
-    - miscellaneous: everything else
-
-    Be precise and accurate. If uncertain about categorization, provide confidence < 0.8 and suggest alternative.
-    `;
+PROJECT DATA:
+${JSON.stringify(quoteData, null, 2)}
+`;
   }
 
   private parseGeminiResponse(response: any): GeminiMaterialResponse {

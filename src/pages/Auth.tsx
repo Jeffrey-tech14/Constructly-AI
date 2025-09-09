@@ -129,8 +129,12 @@ const Auth = () => {
         >
           <Button
             onClick={() => navigate("/")}
+<<<<<<< HEAD
             variant="ghost"
             className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-risa-primary dark:hover:text-risa-primary mb-6 transition-colors"
+=======
+            className="inline-flex items-center bg-transparent hover:bg-gradient-to-r from-blue-600 to-blue-600 hover:text-white dark:text-blue-300 dark:hover:text-white text-primary mb-4 transition-colors"
+>>>>>>> 9cf0aa89a3d5e2884d54a4b0e36a2af07f3ddb2d
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home

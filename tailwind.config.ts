@@ -33,8 +33,13 @@ export default {
           lightGray: '#F3F4F6',    // Backgrounds
         },
         primary: {
+<<<<<<< HEAD
           DEFAULT: '#015B97',      // Using RISA primary blue
           foreground: 'hsl(var(--primary-foreground))'
+=======
+          DEFAULT: "#2945a1ff", // Professional blue
+          foreground: "hsl(var(--primary-foreground))",
+>>>>>>> 9cf0aa89a3d5e2884d54a4b0e36a2af07f3ddb2d
         },
         secondary: {
           DEFAULT: '#565A5C',      // Using RISA secondary color

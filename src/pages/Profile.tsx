@@ -258,8 +258,8 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between items-start">
           <div className="items-center">
-            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
-              <LucidePersonStanding className="sm:w-8 sm:h-8 mr-2 text-blue-900 dark:text-blue-300" />
+            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+              <LucidePersonStanding className="sm:w-8 sm:h-8 mr-2 text-blue-900 dark:text-white" />
               Profile
             </h1>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">

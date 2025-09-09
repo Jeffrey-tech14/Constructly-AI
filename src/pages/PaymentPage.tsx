@@ -204,11 +204,11 @@ const PaymentPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 text-center  items-center">
-          <h1 className="sm:text-3xl text-2xl flex items-center justify-center font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
-            <ArrowUpFromDot className="sm:w-8 sm:h-8 sm:mt-0 mr-2 text-blue-800 dark:text-blue-300" />
+          <h1 className="sm:text-3xl text-2xl flex items-center justify-center font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+            <ArrowUpFromDot className="sm:w-8 sm:h-8 sm:mt-0 mr-2 text-indigo-900 dark:text-white" />
             Upgrade Your Plan
           </h1>
-          <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent mt-2">
+          <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-100 dark:to-purple-400 text-transparent bg-clip-text mt-2">
             Choose the plan that fits your construction business needs
           </p>
         </div>

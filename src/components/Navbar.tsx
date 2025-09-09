@@ -274,9 +274,7 @@ const Navbar = () => {
                       key={item.path}
                       variant={isActive(item.path) ? "default" : "ghost"}
                       className={`justify-start ${
-                        isActive(item.path)
-                          ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                          : ""
+                        isActive(item.path) ? "bg-primary text-white" : ""
                       }`}
                       onClick={() => {
                         setIsMobileMenuOpen(false);

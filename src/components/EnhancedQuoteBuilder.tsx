@@ -1811,11 +1811,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     <div className="min-h-screen animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-transparent">
+          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
             <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-blue-900 dark:text-white" />
             Enhanced Quote Builder
           </div>
-          <p className=" bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  bg-clip-text text-sm sm:text-lg text-transparent mt-2">
+          <p className="bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
         </div>

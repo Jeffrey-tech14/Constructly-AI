@@ -136,14 +136,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-
-const KCA_BLUE = "#0054A4";           // KCA website blue
-const RISA_GREEN = "#00A651";         // RISA green color
-const PURPLE_ACCENT = "#6A0DAD";      // Rich purple accent
-const DARK_NAVY = "#0A1931";          // Dark Navy Blue
-const LIGHT_CREAM = "#F8F5F0";        // Light Cream
-const CHARCOAL = "#333333";           // Charcoal Gray
+// Updated Professional Color Palette
+const KCA_BLUE = "#0A56B9";           // More sophisticated blue
+const RISA_GREEN = "#1A8E5F";         // Muted professional green
+const PURPLE_ACCENT = "#5E48A8";      // Rich but subtle purple
+const DARK_NAVY = "#14284B";          // Dark Navy Blue - more professional
+const LIGHT_CREAM = "#F9F7F3";        // Warm but professional cream
+const CHARCOAL = "#2D3748";           // Professional charcoal gray
+const LIGHT_GRAY = "#F5F7FA";         // Light gray for backgrounds
+const MEDIUM_GRAY = "#E2E8F0";        // Medium gray for borders
 export interface Tier {
   id: number;
   name: string;
@@ -152,15 +153,13 @@ export interface Tier {
   features: string[];
   popular: boolean;
 }
-
-
 const PaymentMethod = ({ method }) => {
   return (
     <div
       className="
-        border p-7 rounded-2xl text-center shadow-sm transition-all duration-300 
-        hover:shadow-md hover:border-blue-200 transition-transform hover:-translate-y-1 
-        bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700
+        border p-7 rounded-xl text-center shadow-sm transition-all duration-300 
+        hover:shadow-md hover:border-blue-300 transition-transform hover:-translate-y-1 
+        bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700
       "
     >
       <div className="text-4xl mb-4 ">{method.icon}</div>
@@ -171,8 +170,6 @@ const PaymentMethod = ({ method }) => {
     </div>
   );
 };
-
-
 const TestimonialsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const testimonials = [
@@ -224,7 +221,7 @@ const TestimonialsSection = () => {
   }, [activeIndex, testimonials.length]);
   const currentTestimonial = testimonials[activeIndex];
   return (
-    <section id="testimonials" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+    <section id="testimonials" className="py-16 md:py-20 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -252,7 +249,7 @@ const TestimonialsSection = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-3">
                   <div className="lg:col-span-2 p-4 md:p-6 lg:p-8">
@@ -282,7 +279,7 @@ const TestimonialsSection = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 md:p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-600">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 md:p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-gray-100 dark:border-gray-600">
                     <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">Key Achievements</h3>
                     <div className="grid grid-cols-2 gap-3 md:gap-4">
                       {currentTestimonial.results.map((result, index) => (
@@ -291,7 +288,7 @@ const TestimonialsSection = () => {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1 + 0.3 }}
-                          className="bg-white dark:bg-gray-800 p-3 md:p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center"
+                          className="bg-white dark:bg-gray-800 p-3 md:p-4 rounded-lg border border-gray-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center"
                         >
                           <div className="text-xl md:text-2xl font-extrabold text-blue-600 mb-1">{result.value}</div>
                           <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400">{result.label}</div>
@@ -323,8 +320,6 @@ const TestimonialsSection = () => {
     </section>
   );
 };
-
-
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
@@ -352,7 +347,7 @@ const ThemeToggle = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={toggleDarkMode}
-        className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-yellow-300 transition-colors duration-300"
+        className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-yellow-300 transition-colors duration-300"
         aria-label="Toggle dark mode"
       >
         {darkMode ? <Moon className="h-4 w-4 md:h-5 md:w-5" /> : <Sun className="h-4 w-4 md:h-5 md:w-5" />}
@@ -360,8 +355,6 @@ const ThemeToggle = () => {
     </div>
   );
 };
-
-
 const VideoModal = ({ isOpen, onClose }) => {
   const videoRef = useRef(null);
   useEffect(() => {
@@ -413,8 +406,6 @@ const VideoModal = ({ isOpen, onClose }) => {
     </motion.div>
   );
 };
-
-
 const FaqSection = () => {
   const [activeCategory, setActiveCategory] = useState("General");
   const [openIndex, setOpenIndex] = useState(null);
@@ -580,7 +571,7 @@ const FaqSection = () => {
     faq.question.toLowerCase().includes(search.toLowerCase())
   );
   return (
-    <section id="faq" className="py-16 md:py-20 bg-white dark:bg-gray-900">
+    <section id="faq" className="py-16 md:py-20 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2 
           className="text-2xl md:text-3xl font-bold text-center text-gray-800 dark:text-white mb-10 md:mb-12"
@@ -633,7 +624,7 @@ const FaqSection = () => {
             <input
               type="text"
               placeholder={`Search ${activeCategory} FAQs...`}
-              className="w-full pl-10 pr-4 py-2 md:py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm"
+              className="w-full pl-10 pr-4 py-2 md:py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -665,7 +656,7 @@ const FaqSection = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-md hover:shadow-lg dark:hover:shadow-gray-800/30 transition-all duration-300"
+                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-md hover:shadow-lg dark:hover:shadow-gray-800/30 transition-all duration-300"
                 whileHover={{ y: -5 }}
               >
                 <motion.button
@@ -776,7 +767,7 @@ const HowItWorks = () => {
     }
   ];
   return (
-    <section id="how-it-works" className="py-16 md:py-20 bg-gray-50 dark:bg-gray-800">
+    <section id="how-it-works" className="py-16 md:py-20 bg-white dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -850,11 +841,9 @@ const HowItWorks = () => {
     </section>
   );
 };
-
-
 const WhoItsForSection = () => {
   return (
-    <section className="py-14 bg-white dark:bg-gray-900" aria-labelledby="who-title">
+    <section className="py-14 bg-gray-50 dark:bg-gray-900" aria-labelledby="who-title">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -873,11 +862,28 @@ const WhoItsForSection = () => {
             Designed specifically for construction professionals in Kenya
           </p>
         </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8">
           {[
-            { icon: "🏗️", role: "Contractors", desc: "Bring your own rates & margins." },
-            { icon: "📐", role: "Quantity Surveyors", desc: "Takeoffs, BOQs & exports." },
-            { icon: "🏢", role: "SMEs & Developers", desc: "Clear pricing, better decisions." },
+            { 
+              icon: <HardHat className="w-12 h-12 mx-auto text-blue-600" />, 
+              role: "Contractors", 
+              desc: "Bring your own rates and margins for accurate project bidding." 
+            },
+            { 
+              icon: <Scale className="w-12 h-12 mx-auto text-green-600" />, 
+              role: "Quantity Surveyors", 
+              desc: "Perform detailed takeoffs, generate BOQs, and export data seamlessly." 
+            },
+            { 
+              icon: <TrendingUp className="w-12 h-12 mx-auto text-purple-600" />, 
+              role: "SMEs & Developers", 
+              desc: "Gain clear pricing insights for better financial decision-making." 
+            },
+            { 
+              icon: <Building2 className="w-12 h-12 mx-auto text-blue-600" />, 
+              role: "Project Managers", 
+              desc: "Oversee budgets, timelines, and resources with comprehensive tools." 
+            },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -887,10 +893,12 @@ const WhoItsForSection = () => {
               viewport={{ once: true }}
               whileHover={{ y: -5 }}
             >
-              <Card className="rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-transform overflow-hidden group">
+              <Card className="rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-transform overflow-hidden group">
                 <CardContent className="p-8 text-center relative">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-800"></div>
-                  <div className="text-5xl mb-3 transform group-hover:scale-110 transition-transform duration-300">{item.icon}</div>
+                  <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                    {item.icon}
+                  </div>
                   <h3 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">{item.role}</h3>
                   <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
                 </CardContent>
@@ -902,8 +910,6 @@ const WhoItsForSection = () => {
     </section>
   );
 };
-
-
 const IconGrid = () => {
   const icons = [
     { icon: <Building2 className="h-10 w-10 text-blue-600" />, label: "Contractors" },
@@ -916,7 +922,7 @@ const IconGrid = () => {
     { icon: <Ruler className="h-10 w-10 text-green-600" />, label: "Engineers" },
   ];
   return (
-    <section className="py-10 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+    <section className="py-10 bg-white dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -957,12 +963,10 @@ const IconGrid = () => {
     </section>
   );
 };
-
-
 const CTABanner = () => {
   const navigate = useNavigate();
   return (
-    <section className="py-10 bg-white dark:bg-gray-900">
+    <section className="py-10 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -970,7 +974,7 @@ const CTABanner = () => {
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
-          <Card className="rounded-3xl bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-2xl overflow-hidden">
+          <Card className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-xl overflow-hidden">
             <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <p className="uppercase tracking-wider text-white/80 text-xs mb-1">Ready to build better?</p>
@@ -1002,8 +1006,6 @@ const CTABanner = () => {
     </section>
   );
 };
-
-
 const Logo = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center group select-none">
     <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
@@ -1116,95 +1118,94 @@ const Index = () => {
           .bg-blue-200 { background-color: #BFD9FF; }
           .bg-blue-300 { background-color: #99C2FF; }
           .bg-blue-400 { background-color: #4D94FF; }
-          .bg-blue-500 { background-color: #0054A4; }
-          .bg-blue-600 { background-color: #00468C; }
-          .bg-blue-700 { background-color: #003874; }
-          .bg-blue-800 { background-color: #002B5C; }
-          .bg-blue-900 { background-color: #001D44; }
+          .bg-blue-500 { background-color: #0A56B9; }
+          .bg-blue-600 { background-color: #094AA4; }
+          .bg-blue-700 { background-color: #083E8F; }
+          .bg-blue-800 { background-color: #06327A; }
+          .bg-blue-900 { background-color: #052665; }
           .text-blue-100 { color: #E6F0FF; }
           .text-blue-200 { color: #BFD9FF; }
           .text-blue-300 { color: #99C2FF; }
           .text-blue-400 { color: #4D94FF; }
-          .text-blue-500 { color: #0054A4; }
-          .text-blue-600 { color: #00468C; }
-          .text-blue-700 { color: #003874; }
-          .text-blue-800 { color: #002B5C; }
-          .text-blue-900 { color: #001D44; }
+          .text-blue-500 { color: #0A56B9; }
+          .text-blue-600 { color: #094AA4; }
+          .text-blue-700 { color: #083E8F; }
+          .text-blue-800 { color: #06327A; }
+          .text-blue-900 { color: #052665; }
           .border-blue-100 { border-color: #E6F0FF; }
           .border-blue-200 { border-color: #BFD9FF; }
           .border-blue-300 { border-color: #99C2FF; }
           .border-blue-400 { border-color: #4D94FF; }
-          .border-blue-500 { border-color: #0054A4; }
-          .border-blue-600 { border-color: #00468C; }
-          .border-blue-700 { border-color: #003874; }
-          .border-blue-800 { border-color: #002B5C; }
-          .border-blue-900 { border-color: #001D44; }
-          .ring-blue-500 { --tw-ring-color: #0054A4; }
-          .ring-blue-600 { --tw-ring-color: #00468C; }
-          .hover\\:bg-blue-600:hover { background-color: #00468C; }
-          .hover\\:text-blue-600:hover { color: #00468C; }
-          .hover\\:border-blue-600:hover { border-color: #00468C; }
-          .from-blue-600 { --tw-gradient-from: #00468C; --tw-gradient-to: rgba(0, 70, 140, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
-          .to-blue-800 { --tw-gradient-to: #002B5C; }
+          .border-blue-500 { border-color: #0A56B9; }
+          .border-blue-600 { border-color: #094AA4; }
+          .border-blue-700 { border-color: #083E8F; }
+          .border-blue-800 { border-color: #06327A; }
+          .border-blue-900 { border-color: #052665; }
+          .ring-blue-500 { --tw-ring-color: #0A56B9; }
+          .ring-blue-600 { --tw-ring-color: #094AA4; }
+          .hover\\:bg-blue-600:hover { background-color: #094AA4; }
+          .hover\\:text-blue-600:hover { color: #094AA4; }
+          .hover\\:border-blue-600:hover { border-color: #094AA4; }
+          .from-blue-600 { --tw-gradient-from: #094AA4; --tw-gradient-to: rgba(9, 74, 164, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+          .to-blue-800 { --tw-gradient-to: #06327A; }
           /* RISA Green color palette */
           .bg-green-100 { background-color: #E6F7ED; }
           .bg-green-200 { background-color: #BFEBD1; }
           .bg-green-300 { background-color: #99DFB5; }
           .bg-green-400 { background-color: #4DC77E; }
-          .bg-green-500 { background-color: #00A651; }
-          .bg-green-600 { background-color: #008E44; }
-          .bg-green-700 { background-color: #007637; }
-          .bg-green-800 { background-color: #005E2A; }
-          .bg-green-900 { background-color: #00461D; }
+          .bg-green-500 { background-color: #1A8E5F; }
+          .bg-green-600 { background-color: #168055; }
+          .bg-green-700 { background-color: #13724B; }
+          .bg-green-800 { background-color: #0F6441; }
+          .bg-green-900 { background-color: #0C5637; }
           .text-green-100 { color: #E6F7ED; }
           .text-green-200 { color: #BFEBD1; }
           .text-green-300 { color: #99DFB5; }
           .text-green-400 { color: #4DC77E; }
-          .text-green-500 { color: #00A651; }
-          .text-green-600 { color: #008E44; }
-          .text-green-700 { color: #007637; }
-          .text-green-800 { color: #005E2A; }
-          .text-green-900 { color: #00461D; }
+          .text-green-500 { color: #1A8E5F; }
+          .text-green-600 { color: #168055; }
+          .text-green-700 { color: #13724B; }
+          .text-green-800 { color: #0F6441; }
+          .text-green-900 { color: #0C5637; }
           .border-green-100 { border-color: #E6F7ED; }
           .border-green-200 { border-color: #BFEBD1; }
           .border-green-300 { border-color: #99DFB5; }
           .border-green-400 { border-color: #4DC77E; }
-          .border-green-500 { border-color: #00A651; }
-          .border-green-600 { border-color: #008E44; }
-          .border-green-700 { border-color: #007637; }
-          .border-green-800 { border-color: #005E2A; }
-          .border-green-900 { border-color: #00461D; }
+          .border-green-500 { border-color: #1A8E5F; }
+          .border-green-600 { border-color: #168055; }
+          .border-green-700 { border-color: #13724B; }
+          .border-green-800 { border-color: #0F6441; }
+          .border-green-900 { border-color: #0C5637; }
           /* Purple accent color palette */
           .bg-purple-100 { background-color: #F4E6FF; }
           .bg-purple-200 { background-color: #E3BFFF; }
           .bg-purple-300 { background-color: #D299FF; }
           .bg-purple-400 { background-color: #B14DFF; }
-          .bg-purple-500 { background-color: #6A0DAD; }
-          .bg-purple-600 { background-color: #5A0B94; }
-          .bg-purple-700 { background-color: #4A097B; }
-          .bg-purple-800 { background-color: #3A0762; }
-          .bg-purple-900 { background-color: #2A0549; }
+          .bg-purple-500 { background-color: #5E48A8; }
+          .bg-purple-600 { background-color: #534098; }
+          .bg-purple-700 { background-color: #483888; }
+          .bg-purple-800 { background-color: #3D3078; }
+          .bg-purple-900 { background-color: #322868; }
           .text-purple-100 { color: #F4E6FF; }
           .text-purple-200 { color: #E3BFFF; }
           .text-purple-300 { color: #D299FF; }
           .text-purple-400 { color: #B14DFF; }
-          .text-purple-500 { color: #6A0DAD; }
-          .text-purple-600 { color: #5A0B94; }
-          .text-purple-700 { color: #4A097B; }
-          .text-purple-800 { color: #3A0762; }
-          .text-purple-900 { color: #2A0549; }
+          .text-purple-500 { color: #5E48A8; }
+          .text-purple-600 { color: #534098; }
+          .text-purple-700 { color: #483888; }
+          .text-purple-800 { color: #3D3078; }
+          .text-purple-900 { color: #322868; }
           .border-purple-100 { border-color: #F4E6FF; }
           .border-purple-200 { border-color: #E3BFFF; }
           .border-purple-300 { border-color: #D299FF; }
           .border-purple-400 { border-color: #B14DFF; }
-          .border-purple-500 { border-color: #6A0DAD; }
-          .border-purple-600 { border-color: #5A0B94; }
-          .border-purple-700 { border-color: #4A097B; }
-          .border-purple-800 { border-color: #3A0762; }
-          .border-purple-900 { border-color: #2A0549; }
+          .border-purple-500 { border-color: #5E48A8; }
+          .border-purple-600 { border-color: #534098; }
+          .border-purple-700 { border-color: #483888; }
+          .border-purple-800 { border-color: #3D3078; }
+          .border-purple-900 { border-color: #322868; }
         `}
       </style>
-      
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -1242,7 +1243,6 @@ const Index = () => {
           </a>
         </div>
       </motion.div>
-      
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -1401,12 +1401,11 @@ const Index = () => {
           </div>
         </div>
       </motion.nav>
-      
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
-        className="relative py-12 md:py-16 lg:py-20"
+        className="relative py-12 md:py-16 lg:py-20 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -1458,7 +1457,7 @@ const Index = () => {
               <motion.img
                 src="/page3.jpg"
                 alt="Construction Plans Analysis"
-                className="max-w-full h-auto rounded-lg shadow-xl"
+                className="max-w-full h-auto rounded-xl shadow-xl"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
               />
@@ -1466,13 +1465,9 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-      
       <IconGrid />
-
       <WhoItsForSection />
-      
       <HowItWorks />
-      
       <motion.section
         id="features"
         className="py-12 md:py-16 bg-gray-50 dark:bg-gray-800"
@@ -1541,7 +1536,7 @@ const Index = () => {
                 whileHover={{ y: -10 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group">
+                <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 group">
                   <CardHeader className="pb-3 bg-gradient-to-r from-blue-100 to-blue-200">
                     <div className="flex justify-center mb-4">{f.icon}</div>
                     <CardTitle className="text-center text-gray-800 dark:text-white text-lg">{f.title}</CardTitle>
@@ -1555,10 +1550,9 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-      
       <motion.section
         id="pricing"
-        className="py-20"
+        className="py-20 bg-white dark:bg-gray-900"
         aria-labelledby="pricing-title"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -1584,7 +1578,7 @@ const Index = () => {
               {Array.from({ length: 3 }).map((_, i) => (
                 <Card
                   key={i}
-                  className="rounded-2xl border-0 shadow-xl bg-white/60 dark:bg-slate-900/60"
+                  className="rounded-xl border-0 shadow-xl bg-white/60 dark:bg-slate-900/60"
                 >
                   <CardContent className="p-8 animate-pulse">
                     <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded mb-6" />
@@ -1620,7 +1614,7 @@ const Index = () => {
                   whileHover={{ y: -10, transition: { duration: 0.3 } }}
                 >
                   <Card
-                    className={`relative rounded-2xl border-0 shadow-xl transition-transform ${
+                    className={`relative rounded-xl border-0 shadow-xl transition-transform ${
                       plan.popular ? "ring-2 ring-blue-500 scale-[1.02]" : ""
                     } bg-white/70 dark:bg-slate-900/60`}
                   >
@@ -1654,11 +1648,7 @@ const Index = () => {
                       </ul>
                       <Button
                         onClick={() => navigate("/auth?mode=signup")}
-                        className={`mt-8 w-full rounded-full py-5 ${
-                          plan.popular
-                            ? "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg hover:shadow-xl"
-                            : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80"
-                        }`}
+                        className="mt-8 w-full rounded-full py-5 bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg hover:shadow-xl"
                       >
                         Get Started
                       </Button>
@@ -1670,10 +1660,9 @@ const Index = () => {
           )}
         </div>
       </motion.section>
-      
       <motion.section
         id="payment-options"
-        className="py-16"
+        className="py-16 bg-gray-50 dark:bg-gray-800"
         aria-labelledby="payment-title"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -1696,13 +1685,9 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
-      
       <TestimonialsSection />
-      
       <FaqSection />
-      
       <CTABanner />
-      
       <motion.footer
         id="contact"
         className="border-t border-white/30 dark:border-slate-800/60 bg-white/50 dark:bg-slate-950/40"
@@ -1714,10 +1699,8 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center group select-none">
-              <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
-                <Pickaxe className="w-5 h-5 text-blue-600 dark:text-white" />
-              </div>
-              <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600 dark:text-white">
+              <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+              <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600">
                 Constructly
               </span>
             </div>
@@ -1823,5 +1806,4 @@ const Index = () => {
     </div>
   );
 };
-
 export default Index;

@@ -176,7 +176,7 @@ const Auth = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: RISA_LIGHT_GRAY }}>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Theme Toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
@@ -187,24 +187,22 @@ const Auth = () => {
         <div className="text-center mb-8">
           <button
             onClick={() => navigate("/")}
-            className="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors mb-4"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors mb-4 dark:text-gray-300 dark:hover:text-blue-400"
             style={{ color: RISA_BLUE }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </button>
           <div className="flex items-center justify-center mb-4">
-            <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
-              <Pickaxe className="sm:w-8 sm:h-8 text-blue-600" style={{ color: RISA_BLUE }} />
-            </div>
-            <span className="sm:text-2xl text-lg font-bold ml-3" style={{ color: RISA_BLUE }}>
+            <Pickaxe className="sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" />
+            <span className="sm:text-2xl text-lg font-bold ml-3 text-blue-600 dark:text-blue-400">
               Elaris
             </span>
           </div>
-          <h1 className="sm:text-3xl text-2xl font-bold mb-2" style={{ color: RISA_DARK_TEXT }}>
+          <h1 className="sm:text-3xl text-2xl font-bold mb-2 text-gray-900 dark:text-white">
             {mode === "signin" ? "Welcome Back" : "Get Started"}
           </h1>
-          <p className="text-gray-600 mt-2 text-base">
+          <p className="text-gray-600 mt-2 text-base dark:text-gray-300">
             {mode === "signin"
               ? "Sign in to your construction management account"
               : "Create your account and start building quotes"}
@@ -212,27 +210,23 @@ const Auth = () => {
         </div>
 
         {/* Auth Form */}
-        <Card className="risa-card" style={{ 
-          borderRadius: '12px', 
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-          border: 'none'
-        }}>
+        <Card className="risa-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-center text-xl" style={{ color: RISA_DARK_TEXT }}>
+            <CardTitle className="text-center text-xl text-gray-900 dark:text-white">
               {mode === "signin" ? "Sign In" : "Create Account"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
-              <Alert className="mb-4 border-red-200 bg-red-50">
-                <AlertDescription className="text-red-700">
+              <Alert className="mb-4 border-red-200 bg-red-50 dark:bg-red-900/30 dark:border-red-800">
+                <AlertDescription className="text-red-700 dark:text-red-300">
                   {error}
                 </AlertDescription>
               </Alert>
             )}
             {success && (
-              <Alert className="mb-4 border-green-200 bg-green-50">
-                <AlertDescription className="text-green-700">
+              <Alert className="mb-4 border-green-200 bg-green-50 dark:bg-green-900/30 dark:border-green-800">
+                <AlertDescription className="text-green-700 dark:text-green-300">
                   {success}
                 </AlertDescription>
               </Alert>
@@ -241,7 +235,7 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "signup" && (
                 <div>
-                  <Label htmlFor="name" className="text-sm font-medium" style={{ color: RISA_DARK_TEXT }}>Full Name</Label>
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-900 dark:text-white">Full Name</Label>
                   <Input
                     id="name"
                     name="name"
@@ -250,7 +244,7 @@ const Auth = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="John Doe"
-                    className="risa-input w-full mt-1"
+                    className="risa-input w-full mt-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                     style={{ 
                       borderRadius: '8px',
                       border: `1px solid ${RISA_MEDIUM_GRAY}`,
@@ -261,7 +255,7 @@ const Auth = () => {
               )}
 
               <div>
-                <Label htmlFor="email" className="text-sm font-medium" style={{ color: RISA_DARK_TEXT }}>Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white">Email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -270,7 +264,7 @@ const Auth = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="you@example.com"
-                  className="risa-input w-full mt-1"
+                  className="risa-input w-full mt-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   style={{ 
                     borderRadius: '8px',
                     border: `1px solid ${RISA_MEDIUM_GRAY}`,
@@ -280,7 +274,7 @@ const Auth = () => {
               </div>
 
               <div className="relative">
-                <Label htmlFor="password" className="text-sm font-medium" style={{ color: RISA_DARK_TEXT }}>Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-900 dark:text-white">Password</Label>
                 <Input
                   id="password"
                   name="password"
@@ -289,7 +283,7 @@ const Auth = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="••••••••"
-                  className="risa-input w-full mt-1 pr-10"
+                  className="risa-input w-full mt-1 pr-10 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                   style={{ 
                     borderRadius: '8px',
                     border: `1px solid ${RISA_MEDIUM_GRAY}`,
@@ -301,7 +295,7 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -314,7 +308,7 @@ const Auth = () => {
 
               {mode === "signup" && (
                 <div className="relative">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium" style={{ color: RISA_DARK_TEXT }}>Confirm Password</Label>
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-900 dark:text-white">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -323,7 +317,7 @@ const Auth = () => {
                     onChange={handleInputChange}
                     required
                     placeholder="••••••••"
-                    className="risa-input w-full mt-1"
+                    className="risa-input w-full mt-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
                     style={{ 
                       borderRadius: '8px',
                       border: `1px solid ${RISA_MEDIUM_GRAY}`,
@@ -334,7 +328,7 @@ const Auth = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                     tabIndex={-1}
                   >
                     {showPassword ? (
@@ -366,8 +360,8 @@ const Auth = () => {
             </form>
 
             <div className="my-6 relative text-center">
-              <span className="absolute left-0 top-1/2 w-full border-t" style={{ borderColor: RISA_MEDIUM_GRAY }}></span>
-              <span className="relative bg-white px-4 py-1 text-sm text-gray-500" style={{ backgroundColor: RISA_WHITE }}>
+              <span className="absolute left-0 top-1/2 w-full border-t border-gray-200 dark:border-gray-700"></span>
+              <span className="relative bg-white px-4 py-1 text-sm text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                 OR
               </span>
             </div>
@@ -396,7 +390,7 @@ const Auth = () => {
             </Button>
 
             <div className="mt-6 text-center">
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-sm dark:text-gray-300">
                 {mode === "signin"
                   ? "Don't have an account? "
                   : "Already have an account? "}
@@ -422,7 +416,7 @@ const Auth = () => {
       </div>
 
       {/* Custom CSS for RISA styling */}
-      <style jsx>{`
+      <style >{`
         .fade-in {
           animation: fadeIn 0.5s ease-in;
         }

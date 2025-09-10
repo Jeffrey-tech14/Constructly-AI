@@ -1377,7 +1377,7 @@ const Index = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <DraftingCompass className="h-5 w-5 md:h-6 md:w-6 text-blue-600 dark:text-blue-400" />
+              <Pickaxe className="h-5 w-5 md:h-6 md:w-6 text-blue-600 dark:text-blue-400" />
               <span className="text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">Elaris</span>
             </motion.div>
 
@@ -1580,7 +1580,7 @@ const Index = () => {
               <Badge className="mb-4 text-xs bg-blue-600 text-white dark:bg-blue-700">
                 <Star className="w-3 h-3 mr-1" /> Professional Construction Management
               </Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight text-blue-600 dark:text-blue-400">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight text-gray-900 dark:text-white">
                 Generate Accurate Quotes in Minutes
               </h1>
               <p className="text-lg md:text-xl mb-6 md:mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
@@ -1763,7 +1763,7 @@ const Index = () => {
             <Badge className="mb-4 text-xs bg-blue-600 text-white dark:bg-blue-700">
               <Star className="w-3 h-3 mr-1" /> Start free
             </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4" id="pricing-title" style={{ color: RISA_DARK_TEXT }}>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white" id="pricing-title">
               Choose your plan
             </h2>
           </div>
@@ -1889,7 +1889,7 @@ const Index = () => {
             <Badge className="mb-4 text-xs bg-blue-600 text-white dark:bg-blue-700">
               <CreditCard className="w-3 h-3 mr-1" /> Payment options
             </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4" id="payment-title" style={{ color: RISA_DARK_TEXT }}>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white" id="payment-title">
               Variety of payment options
             </h2>
           </div>
@@ -1918,9 +1918,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center group select-none">
-              <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
-                <Pickaxe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
+              <Pickaxe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600 dark:text-blue-400">
                 Elaris
               </span>

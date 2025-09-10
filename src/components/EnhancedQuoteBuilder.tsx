@@ -487,6 +487,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     if (quoteData.id) {
       try {
         await updateQuote(quoteData.id, {
+          id: quoteData.id,
           title: quoteData.title,
           client_name: quoteData.client_name,
           client_email: quoteData.client_email || null,
@@ -542,6 +543,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     } else {
       try {
         await createQuote({
+          id: quoteData.id,
           title: quoteData.title,
           client_name: quoteData.client_name,
           client_email: quoteData.client_email || null,

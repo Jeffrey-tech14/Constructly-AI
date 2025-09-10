@@ -181,8 +181,23 @@ export const useQuotes = () => {
       .update(updates)
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
+
     if (error) throw error;
+
+    if (!data) {
+      // not found → create instead
+      const { data: created, error: insertError } = await supabase
+        .from("quotes")
+        .insert([{ ...updates, id, user_id: user.id }])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      setQuotes((prev) => [...prev, created]);
+      return created;
+    }
+
     const updatedQuote = { ...data, status: data.status as Quote["status"] };
     setQuotes((prev) => prev.map((q) => (q.id === id ? updatedQuote : q)));
     return updatedQuote;

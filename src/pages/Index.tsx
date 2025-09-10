@@ -136,6 +136,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 // Updated Professional Color Palette
 const KCA_BLUE = "#0A56B9";           // More sophisticated blue
 const RISA_GREEN = "#1A8E5F";         // Muted professional green
@@ -145,13 +146,15 @@ const LIGHT_CREAM = "#F9F7F3";        // Warm but professional cream
 const CHARCOAL = "#2D3748";           // Professional charcoal gray
 const LIGHT_GRAY = "#F5F7FA";         // Light gray for backgrounds
 const MEDIUM_GRAY = "#E2E8F0";        // Medium gray for borders
-// Golden Color Variants for Cards
+
+// Golden Color Variants for Cards (kept for backward compatibility)
 const GOLDEN_GREEN = "#89945E";       // Golden Green
 const GOLDEN_BLACK = "#2C261F";       // Golden Black (Dark Brown)
 const GOLDEN_PURPLE = "#6A5A8C";      // Golden Purple
 const GOLDEN_ORANGE = "#B8860B";      // Golden Orange (Dark Goldenrod)
 const GOLDEN_RED = "#8B4513";         // Golden Red (SaddleBrown)
 const GOLDEN_TEAL = "#4A7C59";        // Golden Teal
+
 export interface Tier {
   id: number;
   name: string;
@@ -160,6 +163,7 @@ export interface Tier {
   features: string[];
   popular: boolean;
 }
+
 const PaymentMethod = ({ method }) => {
   return (
     <div
@@ -177,6 +181,7 @@ const PaymentMethod = ({ method }) => {
     </div>
   );
 };
+
 const TestimonialsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const testimonials = [
@@ -327,6 +332,7 @@ const TestimonialsSection = () => {
     </section>
   );
 };
+
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
@@ -362,6 +368,7 @@ const ThemeToggle = () => {
     </div>
   );
 };
+
 const VideoModal = ({ isOpen, onClose }) => {
   const videoRef = useRef(null);
   useEffect(() => {
@@ -413,6 +420,7 @@ const VideoModal = ({ isOpen, onClose }) => {
     </motion.div>
   );
 };
+
 const FaqSection = () => {
   const [activeCategory, setActiveCategory] = useState("General");
   const [openIndex, setOpenIndex] = useState(null);
@@ -487,17 +495,17 @@ const FaqSection = () => {
                 <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
                   <h4 className="font-medium mb-2">Online Payments</h4>
                   <ul className="space-y-1">
-                    <li>â€¢ Credit/Debit Cards</li>
-                    <li>â€¢ PayPal</li>
-                    <li>â€¢ Bank Transfer</li>
+                    <li>• Credit/Debit Cards</li>
+                    <li>• PayPal</li>
+                    <li>• Bank Transfer</li>
                   </ul>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                   <h4 className="font-medium mb-2">Other Options</h4>
                   <ul className="space-y-1">
-                    <li>â€¢ Annual billing discounts</li>
-                    <li>â€¢ Purchase orders</li>
-                    <li>â€¢ Wire transfers</li>
+                    <li>• Annual billing discounts</li>
+                    <li>• Purchase orders</li>
+                    <li>• Wire transfers</li>
                   </ul>
                 </div>
               </div>
@@ -554,17 +562,17 @@ const FaqSection = () => {
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300">
                   <h4 className="font-medium mb-2">File Preparation</h4>
                   <ul className="space-y-1">
-                    <li>â€¢ Use vector formats when possible</li>
-                    <li>â€¢ Ensure clear dimension labels</li>
-                    <li>â€¢ Use standard architectural scales</li>
+                    <li>• Use vector formats when possible</li>
+                    <li>• Ensure clear dimension labels</li>
+                    <li>• Use standard architectural scales</li>
                   </ul>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded border border-green-200 dark:border-green-800 text-xs text-green-700 dark:text-green-300">
                   <h4 className="font-medium mb-2">Best Practices</h4>
                   <ul className="space-y-1">
-                    <li>â€¢ Organize layers properly</li>
-                    <li>â€¢ Clean up unnecessary elements</li>
-                    <li>â€¢ Use standard symbols and notations</li>
+                    <li>• Organize layers properly</li>
+                    <li>• Clean up unnecessary elements</li>
+                    <li>• Use standard symbols and notations</li>
                   </ul>
                 </div>
               </div>
@@ -640,7 +648,7 @@ const FaqSection = () => {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 onClick={() => setSearch("")}
               >
-                Ã—
+                ×
               </button>
             )}
           </div>
@@ -746,6 +754,7 @@ const FaqSection = () => {
     </section>
   );
 };
+
 const HowItWorks = () => {
   const steps = [
     {
@@ -833,9 +842,9 @@ const HowItWorks = () => {
     </section>
   );
 };
+
 // Updated WhoItsForSection with partial color usage
-const WhoItsForSection = ({ navigate }) => { // FIXED: Accept navigate as prop
-  // const navigate = useNavigate(); // REMOVED: This line is commented out as we now receive navigate as a prop
+const WhoItsForSection = () => {
   const professionals = [
     {
       icon: <Building2 className="h-10 w-10 text-white" />,
@@ -880,6 +889,7 @@ const WhoItsForSection = ({ navigate }) => { // FIXED: Accept navigate as prop
       color: GOLDEN_TEAL
     }
   ];
+  const navigate = useNavigate();
   return (
     <section id="who-its-for" className="py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -958,7 +968,7 @@ const WhoItsForSection = ({ navigate }) => { // FIXED: Accept navigate as prop
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/auth?mode=signup")} // FIXED: Uses passed-in navigate prop
+            onClick={() => navigate("/auth?mode=signup")}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300"
             style={{ backgroundColor: KCA_BLUE }}
           >
@@ -969,7 +979,9 @@ const WhoItsForSection = ({ navigate }) => { // FIXED: Accept navigate as prop
     </section>
   );
 };
+
 // Removed IconGrid section as requested
+
 const CTABanner = () => {
   const navigate = useNavigate();
   return (
@@ -994,6 +1006,7 @@ const CTABanner = () => {
                   whileTap={{ scale: 0.95 }}
                   className="rounded-full bg-white text-gray-800 font-semibold px-6 py-3 shadow-md hover:shadow-lg transition-shadow"
                   onClick={() => navigate("/auth?mode=signin")}
+                  style={{ backgroundColor: RISA_GREEN, color: 'white' }}
                 >
                   Sign In
                 </motion.button>
@@ -1002,6 +1015,7 @@ const CTABanner = () => {
                   whileTap={{ scale: 0.95 }}
                   className="rounded-full bg-gray-900 text-white font-semibold px-6 py-3 shadow-md hover:shadow-lg transition-shadow"
                   onClick={() => navigate("/auth?mode=signup")}
+                  style={{ backgroundColor: KCA_BLUE, color: 'white' }}
                 >
                   Get Started
                 </motion.button>
@@ -1013,6 +1027,7 @@ const CTABanner = () => {
     </section>
   );
 };
+
 const Logo = ({ compact = false }: { compact?: boolean }) => (
   <div className="flex items-center group select-none">
     <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
@@ -1025,16 +1040,19 @@ const Logo = ({ compact = false }: { compact?: boolean }) => (
     )}
   </div>
 );
+
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
   // Pricing data from old version
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [tiersLoading, setTiersLoading] = useState(true);
   const [tiersError, setTiersError] = useState<string | null>(null);
+
   // Payment methods from old version
   const paymentMethods = [
     {
@@ -1062,6 +1080,7 @@ const Index = () => {
       description: "International payments processed securely.",
     },
   ];
+
   // Handle scroll for navbar animation
   useEffect(() => {
     const handleScroll = () => {
@@ -1075,6 +1094,7 @@ const Index = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [scrolled]);
+
   // Fetch tiers from database (from old version)
   useEffect(() => {
     let cancelled = false;
@@ -1099,6 +1119,7 @@ const Index = () => {
       cancelled = true;
     };
   }, []);
+
   // Fixed scrollTo function for navbar
   const scrollTo = (id) => {
     const element = document.getElementById(id);
@@ -1108,10 +1129,12 @@ const Index = () => {
       setMenuOpen(false);
     }
   };
+
   // Redirect if logged in
   useEffect(() => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
+
   return (
     <div
       className="min-h-screen font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300"
@@ -1226,6 +1249,7 @@ const Index = () => {
           .border-golden-teal { border-color: #4A7C59; }
         `}
       </style>
+
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -1263,6 +1287,7 @@ const Index = () => {
           </a>
         </div>
       </motion.div>
+
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -1329,6 +1354,7 @@ const Index = () => {
                 <button
                   onClick={() => navigate('/auth')}
                   className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-sm flex items-center"
+                  style={{ backgroundColor: RISA_GREEN, color: 'white', padding: '0.5rem 1rem', borderRadius: '9999px' }}
                 >
                   <User className="mr-1 h-4 w-4" /> Login
                 </button>
@@ -1340,6 +1366,7 @@ const Index = () => {
                 <button
                   onClick={() => navigate('/auth')}
                   className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white px-4 py-2 md:px-6 md:py-3 text-sm rounded-full shadow-md hover:shadow-lg transition-all"
+                  style={{ backgroundColor: KCA_BLUE }}
                 >
                   Get Started
                 </button>
@@ -1365,6 +1392,7 @@ const Index = () => {
                       className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
+                      style={{ backgroundColor: 'transparent', color: '#0A56B9' }}
                     >
                       Features
                     </motion.button>
@@ -1373,6 +1401,7 @@ const Index = () => {
                       className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
+                      style={{ backgroundColor: 'transparent', color: '#0A56B9' }}
                     >
                       Pricing
                     </motion.button>
@@ -1381,6 +1410,7 @@ const Index = () => {
                       className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
+                      style={{ backgroundColor: 'transparent', color: '#0A56B9' }}
                     >
                       How It Works
                     </motion.button>
@@ -1389,6 +1419,7 @@ const Index = () => {
                       className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
+                      style={{ backgroundColor: 'transparent', color: '#0A56B9' }}
                     >
                       Testimonials
                     </motion.button>
@@ -1397,12 +1428,14 @@ const Index = () => {
                       className="text-gray-700 dark:text-gray-300 hover:text-blue-600 text-left text-sm py-2"
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.95 }}
+                      style={{ backgroundColor: 'transparent', color: '#0A56B9' }}
                     >
                       FAQs
                     </motion.button>
                     <button
                       onClick={() => navigate('/auth')}
                       className="justify-start text-gray-700 dark:text-gray-300 hover:text-blue-600 pl-0 text-sm py-2 flex items-center"
+                      style={{ backgroundColor: RISA_GREEN, color: 'white', padding: '0.5rem 1rem', borderRadius: '9999px' }}
                     >
                       <User className="mr-2 h-4 w-4" /> Login
                     </button>
@@ -1411,6 +1444,7 @@ const Index = () => {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => navigate('/auth')}
                       className="bg-gradient-to-r from-blue-600 to-blue-800 text-white text-sm py-3 rounded-full"
+                      style={{ backgroundColor: KCA_BLUE, color: 'white' }}
                     >
                       Get Started
                     </motion.button>
@@ -1421,6 +1455,7 @@ const Index = () => {
           </div>
         </div>
       </motion.nav>
+
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1451,6 +1486,7 @@ const Index = () => {
                   <button
                     onClick={() => navigate('/auth')}
                     className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-full shadow-md hover:shadow-lg transition-all"
+                    style={{ backgroundColor: KCA_BLUE }}
                   >
                     Get Started
                   </button>
@@ -1462,6 +1498,7 @@ const Index = () => {
                   <button
                     className="bg-white dark:bg-gray-800 border border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 md:py-4 font-medium text-sm md:text-base rounded-full shadow-md hover:shadow-lg transition-all"
                     onClick={() => setDemoOpen(true)}
+                    style={{ backgroundColor: RISA_GREEN, color: 'white', border: 'none' }}
                   >
                     View Demo
                   </button>
@@ -1485,9 +1522,11 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+
       {/* Removed IconGrid section as requested */}
-      <WhoItsForSection navigate={navigate} /> {/* FIXED: Pass navigate as prop */}
+      <WhoItsForSection />
       <HowItWorks />
+
       <motion.section
         id="features"
         className="py-12 md:py-16 bg-gray-50 dark:bg-gray-800"
@@ -1582,9 +1621,11 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+
+      {/* ✅ REDESIGNED PRICING SECTION */}
       <motion.section
         id="pricing"
-        className="py-20 bg-white dark:bg-gray-900"
+        className="py-20 bg-gray-50 dark:bg-gray-900"
         aria-labelledby="pricing-title"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -1600,6 +1641,7 @@ const Index = () => {
               Choose your plan
             </h2>
           </div>
+
           {/* Loading / Error states */}
           {tiersLoading && (
             <div
@@ -1629,11 +1671,13 @@ const Index = () => {
               ))}
             </div>
           )}
+
           {tiersError && (
             <div className="mt-8 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300">
               Failed to load pricing tiers: {tiersError}
             </div>
           )}
+
           {!tiersLoading && !tiersError && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
               {tiers.map((plan) => (
@@ -1650,27 +1694,27 @@ const Index = () => {
                   }}
                 >
                   <Card
-                    className={`relative rounded-xl border-2 border-blue-300 shadow-xl transition-all duration-300 hover:shadow-2xl ${
+                    className={`relative rounded-2xl border-0 shadow-xl transition-all duration-300 hover:shadow-2xl overflow-hidden ${
                       plan.popular 
                         ? "ring-2 ring-blue-500 scale-[1.02]" 
                         : "hover:scale-105"
-                    } bg-white/70 dark:bg-slate-900/60`}
+                    } bg-white/90 dark:bg-slate-900/80`}
                   >
                     {plan.popular && (
                       <Badge className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-1 rounded-full shadow-md">
-                        âœ¨ Most Popular
+                        ✨ Most Popular
                       </Badge>
                     )}
                     <CardContent className="p-8">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-bold">{plan.name}</h3>
+                        <h3 className="text-2xl font-bold text-gray-800">{plan.name}</h3>
                         <Sparkles className="w-5 h-5 text-blue-500" />
                       </div>
                       <div className="mt-4">
                         <span className="text-4xl font-extrabold text-blue-600">
                           KES {plan.price}
                         </span>
-                        <span className="text-muted-foreground ml-1">
+                        <span className="text-gray-500 ml-1">
                           /{plan.period}
                         </span>
                       </div>
@@ -1678,7 +1722,7 @@ const Index = () => {
                         {plan.features?.map((f, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <CheckCircle className="w-5 h-5 mt-0.5 text-green-500 flex-shrink-0" />
-                            <span className="text-sm leading-relaxed text-muted-foreground">
+                            <span className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                               {f}
                             </span>
                           </li>
@@ -1686,12 +1730,12 @@ const Index = () => {
                       </ul>
                       <Button
                         onClick={() => navigate("/auth?mode=signup")}
-                        className={`mt-8 w-full rounded-full py-5 ${
+                        className={`mt-8 w-full rounded-full py-5 font-semibold transition-all duration-300 ${
                           plan.popular
                             ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
-                            : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80"
+                            : "bg-blue-500 hover:bg-blue-600 text-white"
                         }`}
-                        style={{ backgroundColor: plan.popular ? KCA_BLUE : undefined }}
+                        style={{ backgroundColor: plan.popular ? KCA_BLUE : '#0A56B9' }}
                       >
                         Get Started
                       </Button>
@@ -1703,6 +1747,7 @@ const Index = () => {
           )}
         </div>
       </motion.section>
+
       <motion.section
         id="payment-options"
         className="py-16 bg-gray-50 dark:bg-gray-800"
@@ -1728,9 +1773,11 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+
       <TestimonialsSection />
       <FaqSection />
       <CTABanner />
+
       <motion.footer
         id="contact"
         className="border-t border-white/30 dark:border-slate-800/60 bg-white/50 dark:bg-slate-950/40"
@@ -1762,6 +1809,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('features')}
+                    style={{ color: KCA_BLUE }}
                   >
                     Features
                   </button>
@@ -1770,6 +1818,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('pricing')}
+                    style={{ color: KCA_BLUE }}
                   >
                     Pricing
                   </button>
@@ -1778,6 +1827,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('how-it-works')}
+                    style={{ color: KCA_BLUE }}
                   >
                     How It Works
                   </button>
@@ -1791,6 +1841,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('testimonials')}
+                    style={{ color: KCA_BLUE }}
                   >
                     Testimonials
                   </button>
@@ -1799,6 +1850,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('faq')}
+                    style={{ color: KCA_BLUE }}
                   >
                     FAQs
                   </button>
@@ -1807,6 +1859,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => scrollTo('who-its-for')}
+                    style={{ color: KCA_BLUE }}
                   >
                     Who It's For
                   </button>
@@ -1821,6 +1874,7 @@ const Index = () => {
                   <a
                     className="hover:underline"
                     href="mailto:support@constructly.com"
+                    style={{ color: KCA_BLUE }}
                   >
                     support@constructly.com
                   </a>
@@ -1830,6 +1884,7 @@ const Index = () => {
                   <a
                     className="hover:underline"
                     href="tel:9499515815"
+                    style={{ color: KCA_BLUE }}
                   >
                     949 951 5815
                   </a>
@@ -1838,6 +1893,7 @@ const Index = () => {
                   <button
                     className="hover:underline hover:text-blue-600"
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    style={{ color: KCA_BLUE }}
                   >
                     Back to Top
                   </button>
@@ -1847,19 +1903,20 @@ const Index = () => {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-3">
-              <span>Â© {new Date().getFullYear()} Constructly. All rights reserved.</span>
+              <span>© {new Date().getFullYear()} Constructly. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-blue-600">
+              <a href="#" className="hover:text-blue-600" style={{ color: KCA_BLUE }}>
                 Privacy Policy
               </a>
-              <a href="#" className="hover:text-blue-600">
+              <a href="#" className="hover:text-blue-600" style={{ color: KCA_BLUE }}>
                 Terms of Service
               </a>
             </div>
           </div>
         </div>
       </motion.footer>
+
       {/* Modals */}
       <VideoModal
         isOpen={demoOpen}
@@ -1868,4 +1925,5 @@ const Index = () => {
     </div>
   );
 };
+
 export default Index;

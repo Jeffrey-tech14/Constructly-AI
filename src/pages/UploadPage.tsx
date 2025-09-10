@@ -203,7 +203,7 @@ const UploadPlan = () => {
     formData.append("file", file);
 
     const res = await fetch(
-      "https://ae8f0c23394a.ngrok-free.app/api/plan/upload",
+      "https://55df20a5f35b.ngrok-free.app/api/plan/upload",
       {
         method: "POST",
         body: formData,

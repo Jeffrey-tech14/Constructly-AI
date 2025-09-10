@@ -95,7 +95,7 @@ export const QuoteExportDialog = ({
         <div className="flex flex-col items-center justify-center space-y-3 bg-green-50 dark:bg-green-900  border border-green-400 dark:border-green-400 rounded-lg p-4">
           <Clock className="w-8 h-8 text-green-600 dark:text-green-300 animate-spin" />
           <p className="text-green-700 dark:text-green-400 font-semibold text-center text-lg">
-            Processing your PDF...
+            Processing your Document...
           </p>
           <p className="text-green-600 dark:text-green-300 text-sm text-center">
             This may take a few seconds. Please do not close the dialog.

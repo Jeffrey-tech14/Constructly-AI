@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 
 // RISA Color Palette
-const RISA_BLUE = "#015B97"; // Primary Brand Color
+const RISA_BLUE = "primary"; // Primary Brand Color
 const RISA_LIGHT_BLUE = "#3288e6"; // Secondary/Accent
 const RISA_WHITE = "#ffffff";
 const RISA_DARK_TEXT = "#2D3748"; // Charcoal for text
@@ -122,7 +122,7 @@ const Auth = () => {
 
   // Global styles for RISA design
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .risa-btn-primary {
         background-color: ${RISA_BLUE};
@@ -130,7 +130,7 @@ const Auth = () => {
         padding: 0.5rem 2rem;
         border-radius: 50px;
         border: none;
-        font-weight: bold;
+        font-weight: semibold;
         transition: all 0.3s ease;
       }
       .risa-btn-primary:hover {
@@ -144,7 +144,7 @@ const Auth = () => {
         padding: 0.5rem 2rem;
         border-radius: 50px;
         border: 1px solid ${RISA_BLUE};
-        font-weight: bold;
+        font-weight: semibold;
         transition: all 0.3s ease;
       }
       .risa-btn-outline:hover {
@@ -176,7 +176,7 @@ const Auth = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
       {/* Theme Toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
@@ -235,7 +235,12 @@ const Auth = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === "signup" && (
                 <div>
-                  <Label htmlFor="name" className="text-sm font-medium text-gray-900 dark:text-white">Full Name</Label>
+                  <Label
+                    htmlFor="name"
+                    className="text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Full Name
+                  </Label>
                   <Input
                     id="name"
                     name="name"
@@ -245,17 +250,22 @@ const Auth = () => {
                     required
                     placeholder="John Doe"
                     className="risa-input w-full mt-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    style={{ 
-                      borderRadius: '8px',
+                    style={{
+                      borderRadius: "8px",
                       border: `1px solid ${RISA_MEDIUM_GRAY}`,
-                      padding: '0.75rem'
+                      padding: "0.75rem",
                     }}
                   />
                 </div>
               )}
 
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white">Email</Label>
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -265,16 +275,21 @@ const Auth = () => {
                   required
                   placeholder="you@example.com"
                   className="risa-input w-full mt-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                  style={{ 
-                    borderRadius: '8px',
+                  style={{
+                    borderRadius: "8px",
                     border: `1px solid ${RISA_MEDIUM_GRAY}`,
-                    padding: '0.75rem'
+                    padding: "0.75rem",
                   }}
                 />
               </div>
 
               <div className="relative">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-900 dark:text-white">Password</Label>
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Password
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -284,10 +299,10 @@ const Auth = () => {
                   required
                   placeholder="••••••••"
                   className="risa-input w-full mt-1 pr-10 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                  style={{ 
-                    borderRadius: '8px',
+                  style={{
+                    borderRadius: "8px",
                     border: `1px solid ${RISA_MEDIUM_GRAY}`,
-                    padding: '0.75rem'
+                    padding: "0.75rem",
                   }}
                 />
 
@@ -308,7 +323,12 @@ const Auth = () => {
 
               {mode === "signup" && (
                 <div className="relative">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-900 dark:text-white">Confirm Password</Label>
+                  <Label
+                    htmlFor="confirmPassword"
+                    className="text-sm font-medium text-gray-900 dark:text-white"
+                  >
+                    Confirm Password
+                  </Label>
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -318,10 +338,10 @@ const Auth = () => {
                     required
                     placeholder="••••••••"
                     className="risa-input w-full mt-1 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    style={{ 
-                      borderRadius: '8px',
+                    style={{
+                      borderRadius: "8px",
                       border: `1px solid ${RISA_MEDIUM_GRAY}`,
-                      padding: '0.75rem'
+                      padding: "0.75rem",
                     }}
                   />
                   {/* Eye icon toggle */}
@@ -344,14 +364,14 @@ const Auth = () => {
                 type="submit"
                 className="w-full text-sm"
                 disabled={loading}
-                style={{ 
+                style={{
                   backgroundColor: RISA_BLUE,
                   color: RISA_WHITE,
-                  padding: '0.5rem 2rem',
-                  borderRadius: '50px',
-                  border: 'none',
-                  fontWeight: 'bold',
-                  cursor: loading ? 'not-allowed' : 'pointer'
+                  padding: "0.5rem 2rem",
+                  borderRadius: "50px",
+                  border: "none",
+                  fontWeight: "bold",
+                  cursor: loading ? "not-allowed" : "pointer",
                 }}
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -371,14 +391,14 @@ const Auth = () => {
               onClick={signInWithGoogle}
               className="w-full text-sm flex items-center justify-center gap-3"
               disabled={loading}
-              style={{ 
+              style={{
                 backgroundColor: RISA_WHITE,
                 color: RISA_DARK_TEXT,
-                padding: '0.5rem 2rem',
-                borderRadius: '50px',
+                padding: "0.5rem 2rem",
+                borderRadius: "50px",
                 border: `1px solid ${RISA_BLUE}`,
-                fontWeight: 'bold',
-                cursor: loading ? 'not-allowed' : 'pointer'
+                fontWeight: "bold",
+                cursor: loading ? "not-allowed" : "pointer",
               }}
             >
               <img
@@ -399,11 +419,11 @@ const Auth = () => {
                     setMode(mode === "signin" ? "signup" : "signin")
                   }
                   className="text-sm font-medium transition-colors"
-                  style={{ 
+                  style={{
                     color: RISA_BLUE,
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer'
+                    backgroundColor: "transparent",
+                    border: "none",
+                    cursor: "pointer",
                   }}
                   disabled={loading}
                 >
@@ -416,7 +436,7 @@ const Auth = () => {
       </div>
 
       {/* Custom CSS for RISA styling */}
-      <style >{`
+      <style>{`
         .fade-in {
           animation: fadeIn 0.5s ease-in;
         }

@@ -117,7 +117,7 @@ const Auth = () => {
 
   // Redirect to dashboard if authenticated
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return navigate("/dashboard");
   }
 
   // Global styles for RISA design

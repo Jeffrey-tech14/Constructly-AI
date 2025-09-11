@@ -543,8 +543,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     } else {
       try {
         await createQuote({
-          id: quoteData.id,
           title: quoteData.title,
+          id: quoteData.id,
           client_name: quoteData.client_name,
           client_email: quoteData.client_email || null,
           location: quoteData.location,

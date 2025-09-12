@@ -470,17 +470,17 @@ const FaqSection = () => {
                 <div className="bg-gray-50 p-3 rounded border text-xs text-green-700 dark:bg-gray-800 dark:text-green-300 dark:border-gray-700">
                   <h4 className="font-medium mb-2">Online Payments</h4>
                   <ul className="space-y-1">
-                    <li>• Credit/Debit Cards</li>
-                    <li>• PayPal</li>
-                    <li>• Bank Transfer</li>
+                    <li>â€¢ Credit/Debit Cards</li>
+                    <li>â€¢ PayPal</li>
+                    <li>â€¢ Bank Transfer</li>
                   </ul>
                 </div>
                 <div className="bg-gray-50 p-3 rounded border text-xs text-blue-700 dark:bg-gray-800 dark:text-blue-300 dark:border-gray-700">
                   <h4 className="font-medium mb-2">Other Options</h4>
                   <ul className="space-y-1">
-                    <li>• Annual billing discounts</li>
-                    <li>• Purchase orders</li>
-                    <li>• Wire transfers</li>
+                    <li>â€¢ Annual billing discounts</li>
+                    <li>â€¢ Purchase orders</li>
+                    <li>â€¢ Wire transfers</li>
                   </ul>
                 </div>
               </div>
@@ -537,17 +537,17 @@ const FaqSection = () => {
                 <div className="bg-blue-50 p-3 rounded border text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
                   <h4 className="font-medium mb-2">File Preparation</h4>
                   <ul className="space-y-1">
-                    <li>• Use vector formats when possible</li>
-                    <li>• Ensure clear dimension labels</li>
-                    <li>• Use standard architectural scales</li>
+                    <li>â€¢ Use vector formats when possible</li>
+                    <li>â€¢ Ensure clear dimension labels</li>
+                    <li>â€¢ Use standard architectural scales</li>
                   </ul>
                 </div>
                 <div className="bg-green-50 p-3 rounded border text-xs text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
                   <h4 className="font-medium mb-2">Best Practices</h4>
                   <ul className="space-y-1">
-                    <li>• Organize layers properly</li>
-                    <li>• Clean up unnecessary elements</li>
-                    <li>• Use standard symbols and notations</li>
+                    <li>â€¢ Organize layers properly</li>
+                    <li>â€¢ Clean up unnecessary elements</li>
+                    <li>â€¢ Use standard symbols and notations</li>
                   </ul>
                 </div>
               </div>
@@ -622,7 +622,7 @@ const FaqSection = () => {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 onClick={() => setSearch("")}
               >
-                ×
+                Ã—
               </button>
             )}
           </div>
@@ -1845,7 +1845,7 @@ const Index = () => {
                   >
                     {plan.popular && (
                       <Badge className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-1 rounded-full shadow-md">
-                        ✨ Most Popular
+                        âœ¨ Most Popular
                       </Badge>
                     )}
                     <CardContent className="p-8">
@@ -2049,7 +2049,7 @@ const Index = () => {
           <div className="border-t border-gray-200 dark:border-gray-700 mt-8 pt-8">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <span className="text-gray-700 dark:text-gray-400">© {new Date().getFullYear()} Elaris. All rights reserved.</span>
+                <span className="text-gray-700 dark:text-gray-400">Â© {new Date().getFullYear()} Elaris. All rights reserved.</span>
               </div>
               <div className="flex items-center gap-4">
                 <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300">

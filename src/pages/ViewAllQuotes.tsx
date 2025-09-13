@@ -345,6 +345,7 @@ const ViewAllQuotes = () => {
                               <strong>Project Type:</strong>{" "}
                               {quote.project_type}
                             </div>
+<<<<<<< HEAD
                             <div>
                               <strong className="text-white">Status:</strong>
                               <Badge
@@ -356,6 +357,21 @@ const ViewAllQuotes = () => {
                                   quote.status.slice(1).replace("_", " ")}
                               </Badge>
                             </div>
+=======
+                            {profile.tier !== "Free" && (
+                              <div>
+                                <strong className="text-white">Status:</strong>
+                                <Badge
+                                  className={`ml-2 ${getStatusColor(
+                                    quote.status
+                                  )}`}
+                                >
+                                  {quote.status.charAt(0).toUpperCase() +
+                                    quote.status.slice(1).replace("_", " ")}
+                                </Badge>
+                              </div>
+                            )}
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                           </div>
 
                           {/* Materials breakdown */}
@@ -408,19 +424,28 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.transport_costs && (
+=======
+                          {quote.transport_costs > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Transport costs</strong>
                               </p>
                               <p className="text-white">
                                 <strong>
+<<<<<<< HEAD
                                   KSh{" "}
                                   {formatCurrency(quote.transport_costs) || 0}
+=======
+                                  KSh {formatCurrency(quote.transport_costs)}
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                                 </strong>
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.profit_amount && (
                             <div className="flex justify-between">
                               <p className="text-white">
@@ -434,6 +459,9 @@ const ViewAllQuotes = () => {
                             </div>
                           )}
                           {quote.additional_services_cost && (
+=======
+                          {quote.additional_services_cost > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Additonal services</strong>
@@ -443,12 +471,20 @@ const ViewAllQuotes = () => {
                                   KSh{" "}
                                   {formatCurrency(
                                     quote.additional_services_cost
+<<<<<<< HEAD
                                   ) || 0}
+=======
+                                  )}
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                                 </strong>
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.addons_cost && (
+=======
+                          {quote.addons_cost > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Subcontractor costs</strong>
@@ -460,7 +496,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.materials_cost && (
+=======
+                          {quote.materials_cost > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Materials</strong>
@@ -473,7 +513,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.permit_cost && (
+=======
+                          {quote.permit_cost > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Permit costs</strong>
@@ -485,7 +529,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.overhead_amount && (
+=======
+                          {quote.overhead_amount > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Overhead amount</strong>
@@ -498,7 +546,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.contingency_amount && (
+=======
+                          {quote.contingency_amount > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Contingency</strong>
@@ -512,7 +564,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.labor_cost && (
+=======
+                          {quote.labor_cost > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Labour</strong>
@@ -524,7 +580,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.profit_amount && (
+=======
+                          {quote.profit_amount > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Profit</strong>
@@ -536,7 +596,11 @@ const ViewAllQuotes = () => {
                               </p>
                             </div>
                           )}
+<<<<<<< HEAD
                           {quote.total_amount && (
+=======
+                          {quote.total_amount > 0 && (
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                             <div className="flex justify-between">
                               <p className="text-white">
                                 <strong>Total</strong>

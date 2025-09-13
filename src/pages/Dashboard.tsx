@@ -22,7 +22,11 @@ import {
   PersonStandingIcon,
   LayoutDashboard,
 } from "lucide-react";
+<<<<<<< HEAD
 import { refreshApp, useAuth } from "@/contexts/AuthContext";
+=======
+import { useAuth } from "@/contexts/AuthContext";
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
 import { useQuotes } from "@/hooks/useQuotes";
 import { useClientReviews } from "@/hooks/useClientReviews";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
@@ -388,7 +392,14 @@ const Dashboard = () => {
                       {dashboardData.upcomingEvents.length > 0 ? (
                         <div className="space-y-3">
                           {dashboardData.upcomingEvents.map((event) => (
+<<<<<<< HEAD
                             <div key={event.id} className="p-3 border rounded">
+=======
+                            <div
+                              key={event.id}
+                              className="p-3 border-t dark:border-white/20 rounded"
+                            >
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
                               <div className="font-medium text-sm">
                                 {event.title}
                               </div>

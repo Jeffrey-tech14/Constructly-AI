@@ -110,10 +110,14 @@ const Auth = () => {
   }
 
   return (
+<<<<<<< HEAD
     <div
       className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
       style={{ fontFamily: "Poppins, Helvetica Neue, Arial, sans-serif" }}
     >
+=======
+    <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
       {/* Theme Toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
@@ -132,7 +136,16 @@ const Auth = () => {
             onClick={() => navigate("/")}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
+<<<<<<< HEAD
             transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
+=======
+            transition={{
+              delay: 0.2,
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+            }}
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
             whileHover={{ scale: 1.08, y: -3 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center text-sm font-medium mb-6 transition-colors group"
@@ -473,4 +486,8 @@ const Auth = () => {
   );
 };
 
+<<<<<<< HEAD
 export default Auth;
+=======
+export default Auth;
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31

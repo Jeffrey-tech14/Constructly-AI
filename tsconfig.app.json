@@ -25,5 +25,13 @@
       "@/*": ["./src/*"]
     }
   },
+<<<<<<< HEAD
   "include": ["src"]
+=======
+  "include": [
+    "src",
+    "elaris-plan-api/payments/payment_verification.ts",
+    "elaris-plan-api/payments/index.ts"
+  ]
+>>>>>>> c070c5125b2a47a53f0acc9e469ce7dfe0953e31
 }

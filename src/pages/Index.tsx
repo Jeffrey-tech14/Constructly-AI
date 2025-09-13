@@ -403,7 +403,7 @@ const ThemeToggle = ({ darkMode, toggleDarkMode }) => {
 };
 
 const VideoModal = ({ isOpen, onClose }) => {
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
@@ -420,39 +420,40 @@ const VideoModal = ({ isOpen, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        className="max-w-4xl w-full"
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative max-w-4xl w-full"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-end p-2">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={onClose}
-            className="text-gray-800 bg-white/80 hover:bg-white rounded-full p-2 dark:text-white dark:bg-gray-800/80"
-          >
-            <X className="h-4 w-4 md:h-5 md:w-5" />
-          </motion.button>
-        </div>
-        <video
-          ref={videoRef}
-          controls
-          autoPlay
-          loop
-          muted
-          className="w-full h-auto rounded-lg"
-          style={{ maxHeight: "80vh" }}
-          onContextMenu={(e) => e.preventDefault()}
+        {/* Close Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={onClose}
+          className="absolute -top-4 -right-4 z-10 rounded-full bg-white/90 p-2 text-gray-800 shadow-lg hover:bg-white dark:bg-gray-800/90 dark:text-white"
         >
-          <source src="/video.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+          <X className="h-5 w-5" />
+        </motion.button>
+
+        {/* Video Container */}
+        <div className="overflow-hidden rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full h-auto object-cover"
+          >
+            <source src="/video.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </motion.div>
     </motion.div>
   );

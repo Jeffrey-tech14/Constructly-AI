@@ -21,7 +21,11 @@
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "node",
-    "rootDir": "src",
+    "rootDir": "src"
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "elaris-plan-api/payments/payment_verification.ts",
+    "elaris-plan-api/payments/index.ts"
+  ]
 }

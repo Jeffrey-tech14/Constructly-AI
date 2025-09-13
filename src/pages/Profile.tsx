@@ -200,25 +200,37 @@ const Profile = () => {
     navigate("/auth");
   }
 
+  const getTierImage = (tier: string) => {
+    switch (tier) {
+      case "Free":
+        return <Shell className="w-6 h-6" />;
+      case "Intermediate":
+        return <Crown className="w-6 h-6" />;
+      case "Professional":
+        return <Shield className="w-6 h-6" />;
+      default:
+        return <span className="text-sm font-medium">{tier}</span>;
+    }
+  };
+
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "Free":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            <Shell className="w-3 h-3 mr-1" /> Free
+            {" "}
+            Free
           </Badge>
         );
       case "Intermediate":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <Crown className="w-3 h-3 mr-1" />
             Intermediate
           </Badge>
         );
       case "Professional":
         return (
           <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
-            <Shield className="w-3 h-3 mr-1" />
             Professional
           </Badge>
         );
@@ -477,9 +489,23 @@ const Profile = () => {
           <div className="space-y-6">
             <Card className="gradient-card">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Current Plan
-                  {getTierBadge(profile.tier)}
+                <CardTitle className="flex flex-col items-center justify-between">
+                  <span className="text-lg font-semibold">Current Plan</span>
+
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-full ${
+                        profile.tier === "Free"
+                          ? "bg-green-100 text-green-700"
+                          : profile.tier === "Intermediate"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-purple-100 text-purple-700"
+                      }`}
+                    >
+                      {getTierImage(profile.tier)}
+                    </div>
+                  </div>
+                  {profile.tier}
                 </CardTitle>
               </CardHeader>
               <CardContent>

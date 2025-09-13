@@ -1293,7 +1293,7 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-screen font-sans text-gray-900 transition-colors duration-300 dark:text-gray-100"
+      className="min-h-screen text-gray-900 transition-colors duration-300 dark:text-gray-100"
       style={{
         fontSize: "14px",
       }}

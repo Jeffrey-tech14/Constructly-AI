@@ -110,10 +110,7 @@ const Auth = () => {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
-      style={{ fontFamily: "Poppins, Helvetica Neue, Arial, sans-serif" }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
       {/* Theme Toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />

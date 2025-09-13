@@ -62,8 +62,6 @@ const Auth = () => {
         await signIn(formData.email, formData.password);
       }
     } catch (err: any) {
-      console.error("Auth error:", err);
-
       let friendlyMessage = "Something went wrong. Please try again.";
       const msg = err.message.toLowerCase();
 
@@ -106,7 +104,7 @@ const Auth = () => {
 
   // Redirect if authenticated
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return navigate("/dashboard");
   }
 
   return (

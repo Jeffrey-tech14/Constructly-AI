@@ -50,6 +50,7 @@ const Dashboard = () => {
     pendingQuotes: 0,
     upcomingEvents: [],
     recentQuotes: [],
+    allQuotes: [],
   });
 
   const hasLoadedOnce = useRef(false);
@@ -126,6 +127,10 @@ const Dashboard = () => {
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
         .slice(0, 5);
+      const allQuotes = quotes.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
       setDashboardData({
         totalQuotesValue,
@@ -134,6 +139,7 @@ const Dashboard = () => {
         pendingQuotes,
         upcomingEvents,
         recentQuotes,
+        allQuotes,
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -247,7 +253,7 @@ const Dashboard = () => {
                     ).toLocaleString()}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {quotes.length} quotes generated
+                    {dashboardData.allQuotes.length} quotes generated
                   </p>
                 </CardContent>
               </Card>

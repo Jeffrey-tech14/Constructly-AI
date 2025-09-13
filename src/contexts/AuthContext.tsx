@@ -206,6 +206,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         value: JSON.stringify(data.session),
       });
     }
+    if (error) {
+      throw error; // 👈 throw so handleSubmit can catch
+    }
     return { error };
   };
 
@@ -225,6 +228,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         data: { name: name || email.split("@")[0] },
       },
     });
+    if (error) {
+      throw error; // 👈 throw so handleSubmit can catch
+    }
     return { error };
   };
 
@@ -233,6 +239,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/` },
     });
+    if (error) {
+      throw error; // 👈 throw so handleSubmit can catch
+    }
     return { error };
   };
 

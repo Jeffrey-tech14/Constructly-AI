@@ -47,7 +47,7 @@ import {
 import { QuoteExportDialog } from "@/components/QuoteExportDialog";
 
 const ViewAllQuotes = () => {
-  const { quotes, loading, deleteQuote } = useQuotes();
+  const { fetchQuotes, quotes, loading, deleteQuote } = useQuotes();
   const { profile, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -58,6 +58,7 @@ const ViewAllQuotes = () => {
   const [selectedQuoteForExport, setSelectedQuoteForExport] =
     useState<any>(null);
   const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
+  const [quotesRefreshKey, setQuotesRefreshKey] = useState(0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -78,16 +79,26 @@ const ViewAllQuotes = () => {
     }
   };
 
-  const filteredQuotes = quotes.filter((quote) => {
-    const belongsToUser = quote.user_id === profile?.id;
-    const matchesSearch =
-      quote.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.client_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || quote.status === statusFilter;
+  useEffect(() => {
+    if (user && profile !== null) {
+      fetchQuotes();
+    }
+  }, [fetchQuotes, user, profile, location.key, quotesRefreshKey]);
 
-    return belongsToUser && matchesSearch && matchesStatus;
-  });
+  const [filteredQuotes, setFilteredQuotes] = useState<any[]>([]);
+
+  useEffect(() => {
+    const result = quotes.filter((quote) => {
+      const belongsToUser = quote.user_id === profile?.id;
+      const matchesSearch =
+        quote.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quote.client_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || quote.status === statusFilter;
+      return belongsToUser && matchesSearch && matchesStatus;
+    });
+    setFilteredQuotes(result);
+  }, [quotes, profile, searchTerm, statusFilter]);
 
   const handleDeleteQuote = async (quoteId: string, quoteTitle: string) => {
     setDeletingQuote(quoteId);
@@ -558,6 +569,9 @@ const ViewAllQuotes = () => {
                           <ProjectProgress
                             quoteId={quote.id}
                             quoteName={quote.title}
+                            onQuoteUpdated={() =>
+                              setQuotesRefreshKey((k) => k + 1)
+                            }
                           />
                         </DialogContent>
                       </Dialog>

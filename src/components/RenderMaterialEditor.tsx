@@ -56,7 +56,7 @@ export default function renderMaterialEditor(
                     bar.price_kes_per_kg;
 
               return (
-                <div key={idx} className="p-2 border rounded">
+                <div key={idx} className="p-2 border rounded-lg">
                   <div className="flex justify-between">
                     <span className="font-medium">{bar.size}</span>
                     <span className="text-xs text-gray-500">
@@ -123,7 +123,7 @@ export default function renderMaterialEditor(
           </span>
         </CollapsibleTrigger>
 
-        <CollapsibleContent className="space-y-2 animate-fade-in mt-2">
+        <CollapsibleContent className="space-y-2 animate-fade-in mt-2 rounded rounded-lg">
           <div className="space-y-2 mt-2">
             {effectivePrice.type.map((block, idx) => {
               const overridePrice =
@@ -132,7 +132,7 @@ export default function renderMaterialEditor(
                   : userOverride?.type?.[idx]?.price_kes ?? block.price_kes;
 
               return (
-                <div key={idx} className="p-2 border rounded">
+                <div key={idx} className="p-2 border rounded-lg">
                   <span className="font-medium">{block.name}</span>
                   <span className="ml-2 text-xs text-gray-500">
                     {block.dimensions_m.length}×{block.dimensions_m.height}×
@@ -204,10 +204,10 @@ export default function renderMaterialEditor(
           </span>
         </CollapsibleTrigger>
 
-        <CollapsibleContent className="space-y-2 animate-fade-in mt-2">
-          <div className="space-y-2 mt-2">
+        <CollapsibleContent className="space-y-2 animate-fade-in mt-2 rounded rounded-lg">
+          <div className="space-y-2 mt-2 rounded-lg">
             {effectivePrice.type.map((item, idx) => (
-              <div key={idx} className="p-2 border rounded">
+              <div key={idx} className="p-2 border rounded-lg">
                 <span className="font-medium">{item.type}</span>
 
                 {Object.entries(item.price_kes).map(([size, price]) => {

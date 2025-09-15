@@ -492,7 +492,7 @@ const Profile = () => {
                 <CardTitle className="flex flex-col items-center justify-between">
                   <span className="text-lg font-semibold">Current Plan</span>
 
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 mb-4">
                     <div
                       className={`flex h-12 w-12 items-center justify-center rounded-full ${
                         profile.tier === "Free"

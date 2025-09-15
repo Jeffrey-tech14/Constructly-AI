@@ -25,10 +25,12 @@ import {
   Pencil,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { useQuotes } from "@/hooks/useQuotes";
 
 interface ProjectProgressProps {
   quoteId: string;
   quoteName: string;
+  onQuoteUpdated?: () => void;
 }
 
 interface ProjectProgressData {
@@ -45,10 +47,15 @@ interface ProjectProgressData {
   milestone_date?: string;
 }
 
-const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
+const ProjectProgress = ({
+  quoteId,
+  quoteName,
+  onQuoteUpdated,
+}: ProjectProgressProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const { fetchQuotes } = useQuotes();
   const [progressData, setProgressData] = useState<ProjectProgressData>({
     status: "planning",
     progress_percentage: 0,
@@ -133,6 +140,8 @@ const ProjectProgress = ({ quoteId, quoteName }: ProjectProgressProps) => {
         description: "Project progress has been updated successfully",
       });
       fetchProjectProgress();
+      fetchQuotes();
+      if (onQuoteUpdated) onQuoteUpdated();
     } catch (error) {
       console.error("Error updating progress:", error);
       toast({

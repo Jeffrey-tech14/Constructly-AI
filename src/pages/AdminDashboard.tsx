@@ -522,7 +522,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Users Table */}
-                <div className="space-y-3 md:space-y-4">
+                <div className="space-y-3 md:space-y-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {filteredUsers.map((user) => (
                     <Card
                       key={user.id}
@@ -534,7 +534,7 @@ const AdminDashboard = () => {
                     >
                       <div>
                         {user.id === profile.id && (
-                          <Badge className="absolute -top-2 md:-top-3 transform translate-x-1/8 bg-primary text-white dark:bg-white dark:text-primary rounded-full px-3 md:px-4 py-0.5 md:py-1 text-xs md:text-sm">
+                          <Badge className="absolute -top-2 md:-top-3 transform translate-x-2 bg-primary text-white dark:bg-white dark:text-primary rounded-full px-3 md:px-4 py-0.5 md:py-1 text-xs md:text-sm">
                             Me
                           </Badge>
                         )}
@@ -542,8 +542,8 @@ const AdminDashboard = () => {
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                           {/* User Info Section */}
                           <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
-                            <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Users className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                            <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white/10 bg-primary/10">
+                              <Users className="w-4 h-4 md:w-5 md:h-5 text-primary dark:text-white" />
                             </div>
 
                             <div className="min-w-0 space-y-1">
@@ -583,14 +583,14 @@ const AdminDashboard = () => {
                           </div>
 
                           {/* Actions Section */}
-                          <div className="flex items-center justify-end md:justify-normal space-x-2">
+                          <div className="flex items-center justify-start ml-5 md:justify-normal space-x-2">
                             <Select
                               value={user.tier}
                               onValueChange={(value) =>
                                 updateUserTier(user.id, value)
                               }
                             >
-                              <SelectTrigger className="w-24 md:w-32 text-xs md:text-sm">
+                              <SelectTrigger className=" md:w-32 text-xs md:text-sm">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>

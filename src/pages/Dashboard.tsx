@@ -182,8 +182,8 @@ const Dashboard = () => {
     <div className="min-h-screen inset-0 scrollbar-hide">
       <div className="max-w-7xl scrollbar-hide mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8 animate-fade-in">
-          <div className="flex justify-between items-center">
+        <div className="mb-4 animate-fade-in">
+          <div className="sm:flex flex-1 justify-between items-center">
             <div>
               <div className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
                 <LayoutDashboard className="sm:w-8 sm:h-8 mr-2 text-blue-900 dark:text-white" />
@@ -195,7 +195,7 @@ const Dashboard = () => {
             </div>
             <Button
               onClick={() => setShowCalculator(true)}
-              className="text-sm px-5 py-4 rounded-xl shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
+              className="text-sm px-5 py-4 rounded-xl sm:mt-0 mt-4 shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
             >
               ⚡Quick Calculator
             </Button>

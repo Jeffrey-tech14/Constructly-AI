@@ -218,7 +218,7 @@ const ViewAllQuotes = () => {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
                       <CardTitle className="text-xl mb-2 flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-primary" />
+                        <Building2 className="w-5 h-5 text-primary dark:text-white" />
                         {quote.title}
                       </CardTitle>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -244,7 +244,7 @@ const ViewAllQuotes = () => {
                         </Badge>
                       )}
                       <div className="text-right">
-                        <div className="sm:text-2xl text-lg font-bold text-primary">
+                        <div className="sm:text-2xl text-lg font-bold text-primary dark:text-white">
                           KSh{" "}
                           {formatCurrency(quote.total_amount).toLocaleString()}
                         </div>

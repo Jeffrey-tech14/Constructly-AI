@@ -79,6 +79,20 @@ const Navbar = () => {
   if (location.pathname === "/" || location.pathname === "/auth") {
     return null;
   }
+
+  const getTierImage = (tier: string) => {
+    switch (tier) {
+      case "Free":
+        return <Shell className="w-4 h-4" />;
+      case "Intermediate":
+        return <Crown className="w-4 h-4" />;
+      case "Professional":
+        return <Shield className="w-4 h-4" />;
+      default:
+        return <span className="text-sm font-medium">{tier}</span>;
+    }
+  };
+
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "Free":
@@ -161,6 +175,17 @@ const Navbar = () => {
 
             {/* Right side actions */}
             <div className="flex items-center ml-auto space-x-2">
+              <div
+                className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                  profile.tier === "Free"
+                    ? "bg-green-100 text-green-700"
+                    : profile.tier === "Intermediate"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-purple-100 text-purple-700"
+                }`}
+              >
+                {getTierImage(profile.tier)}
+              </div>
               {/* Theme toggle */}
               <Button
                 variant="ghost"

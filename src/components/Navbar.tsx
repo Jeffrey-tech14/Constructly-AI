@@ -184,7 +184,7 @@ const Navbar = () => {
                     : "bg-purple-100 text-purple-700"
                 }`}
               >
-                {getTierImage(profile.tier)}
+                {getTierImage(profile?.tier)}
               </div>
               {/* Theme toggle */}
               <Button

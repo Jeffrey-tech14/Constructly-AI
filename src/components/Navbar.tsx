@@ -177,9 +177,9 @@ const Navbar = () => {
             <div className="flex items-center ml-auto space-x-2">
               <div
                 className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                  profile.tier === "Free"
+                  profile?.tier === "Free"
                     ? "bg-green-100 text-green-700"
-                    : profile.tier === "Intermediate"
+                    : profile?.tier === "Intermediate"
                     ? "bg-blue-100 text-blue-700"
                     : "bg-purple-100 text-purple-700"
                 }`}

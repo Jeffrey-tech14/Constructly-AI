@@ -392,7 +392,6 @@ export const useQuoteCalculations = () => {
 
       const calculatePreliminariesTotal = (): number => {
         if (!Array.isArray(preliminaries)) return 10;
-        console.log(preliminaries);
 
         return preliminaries.reduce((total, prelim) => {
           return (

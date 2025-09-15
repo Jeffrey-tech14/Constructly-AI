@@ -19,6 +19,7 @@ export interface Door {
 export interface Window {
   sizeType: string; // "standard" | "custom"
   standardSize: string;
+  price?: string; // Glass price per unit area or fixed price
   custom: { height: string; width: string; price?: string };
   type: string; // Clear | Frosted | Tinted
   count: number;
@@ -519,27 +520,67 @@ export default function useMasonryCalculator({
         const totalArea = area * window.count;
         openings += totalArea;
 
-        const glassLeafPrice = window.custom?.price
-          ? Number(window.custom.price)
-          : getMaterialPrice("Windows", window.type);
+        // Get the glass price - handle both cases where it might be an object or a number
+        let glassPrice = 0;
 
-        const glassPrice = window.frame?.price
-          ? Number(window.frame.price)
-          : glassLeafPrice[window.standardSize];
+        // If custom price is provided, use it
+        if (window.custom?.price) {
+          glassPrice = Number(window.custom.price);
+        }
+        // If window has a direct price property, use it
+        else if (window.price) {
+          glassPrice = Number(window.price);
+        }
+        // Otherwise, get the price from material base prices
+        else {
+          const glassLeafPrice = getMaterialPrice("Windows", window.type);
+          console.log("Window Glass Price Lookup:", {
+            type: window.type,
+            standardSize: window.standardSize,
+            glassLeafPrice: glassLeafPrice,
+          });
 
-        const frameLeafPrice = getMaterialPrice(
-          "Window Frames",
-          window.frame.type
-        );
+          // Handle different return types from getMaterialPrice
+          if (typeof glassLeafPrice === "number") {
+            glassPrice = glassLeafPrice;
+          } else if (
+            glassLeafPrice &&
+            typeof glassLeafPrice === "object" &&
+            window.standardSize
+          ) {
+            // If it's an object with size-based pricing
+            glassPrice = glassLeafPrice[window.standardSize] || 0;
+          }
+        }
 
-        const framePrice = window.frame?.price
-          ? Number(window.frame?.price)
-          : frameLeafPrice[window.frame.standardSize];
+        // Get frame price
+        let framePrice = 0;
 
-        const totalPrice = (glassPrice || 0 + framePrice || 0) * window.count;
+        if (window.frame?.price) {
+          framePrice = Number(window.frame.price);
+        } else {
+          const frameLeafPrice = getMaterialPrice(
+            "Window Frames",
+            window.frame.type
+          );
 
-        window.frame.price = framePrice;
-        window.price = glassPrice;
+          if (typeof frameLeafPrice === "number") {
+            framePrice = frameLeafPrice;
+          } else if (
+            frameLeafPrice &&
+            typeof frameLeafPrice === "object" &&
+            window.frame.standardSize
+          ) {
+            framePrice = frameLeafPrice[window.frame.standardSize] || 0;
+          } else {
+            framePrice = 5000; // Default frame price
+          }
+        }
+
+        const totalPrice = (glassPrice + framePrice) * window.count;
+
+        window.frame.price = framePrice.toString();
+        window.price = glassPrice.toString();
         openingsCost += totalPrice;
       });
 

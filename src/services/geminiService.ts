@@ -90,7 +90,7 @@ STRICT INSTRUCTIONS:
 
 2. **Ignore** anything that is not a direct material: preliminaries, professional fees, labor, permits, services, legal items, overheads.
 
-3. **Skip combined items** (like "Concrete", "Mortar", or anything that represents a mixture). Only include the individual base materials if they are explicitly listed elsewhere.
+3. **Skip combined items** (like "Concrete", "Mortar", "Total" or anything that represents a mixture). Only include the individual base materials if they are explicitly listed elsewhere.
 
 4. **Merge duplicates**:
    - If the same material appears with slightly different spellings (e.g., "Ceoemnt" vs "Cement"), treat them as the same item.

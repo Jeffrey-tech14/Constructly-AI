@@ -1377,80 +1377,89 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <h3 className="text-lg font-semibold mb-4">
                 Subcontractor Charges
               </h3>
-              <div className="grid md:grid-cols-2 space-y-4">
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {" "}
+                {/* Use gap instead of space-y for grid */}
+                {/* === Predefined Subcontractors === */}
                 {subContractors
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
+                    const isChecked = quoteData.subcontractors.some(
+                      (s) => s.id === service.id
+                    );
+
                     return (
-                      <Card key={service.id} className="p-4 gradient-card m-2">
+                      <Card key={service.id} className="p-4 gradient-card">
                         <div className="grid grid-cols-2">
                           <div className="flex items-center space-x-3">
                             <Checkbox
                               className="text-white"
-                              checked={quoteData.subcontractors.some(
-                                (s) => s.name === service.name
-                              )}
+                              checked={isChecked}
                               onCheckedChange={(checked) => {
                                 if (checked) {
                                   setQuoteData((prev) => ({
                                     ...prev,
                                     subcontractors: [
                                       ...prev.subcontractors,
-                                      service,
+                                      {
+                                        ...service,
+                                        subcontractor_payment_plan: "full", // default
+                                        total: service.price,
+                                      },
                                     ],
                                   }));
                                 } else {
                                   setQuoteData((prev) => ({
                                     ...prev,
                                     subcontractors: prev.subcontractors.filter(
-                                      (s) => s.name !== service.name
+                                      (s) => s.id !== service.id
                                     ),
                                   }));
                                 }
                               }}
                             />
-                            <div className="flex justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div>
-                                  <h4 className="font-medium">
-                                    {service.name}
-                                  </h4>
-                                </div>
-                              </div>
-                            </div>
+                            <h4 className="font-medium">{service.name}</h4>
                           </div>
-                          <div className="text-right justify-right">
+                          <div className="text-right">
                             <Badge className="text-black" variant="secondary">
                               KSh {service.price.toLocaleString()}/
                               {service.unit}
                             </Badge>
                           </div>
                         </div>
-                        {quoteData.subcontractors.some(
-                          (s) => s.id === service.id
-                        ) && (
+
+                        {isChecked && (
                           <div className="mt-3 animate-fade-in">
                             <Label>Payment Plan *</Label>
                             <Select
                               value={
                                 quoteData.subcontractors.find(
                                   (s) => s.id === service.id
-                                )?.subcontractor_payment_plan || ""
+                                )?.subcontractor_payment_plan || "full"
                               }
-                              required
                               onValueChange={(value: "daily" | "full") =>
-                                setQuoteData((prev) => {
-                                  const updated = prev.subcontractors.map(
+                                setQuoteData((prev) => ({
+                                  ...prev,
+                                  subcontractors: prev.subcontractors.map(
                                     (sub) =>
                                       sub.id === service.id
                                         ? {
                                             ...sub,
                                             subcontractor_payment_plan: value,
+                                            // Reset derived values
+                                            total:
+                                              value === "full"
+                                                ? sub.price
+                                                : sub.total,
+                                            price:
+                                              value === "daily"
+                                                ? sub.price
+                                                : sub.total || sub.price,
                                           }
                                         : sub
-                                  );
-                                  return { ...prev, subcontractors: updated };
-                                })
+                                  ),
+                                }))
                               }
                             >
                               <SelectTrigger>
@@ -1473,14 +1482,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               id={`contractorCost-${service.id}`}
                               type="number"
                               min="0"
-                              required
                               value={
                                 quoteData.subcontractors.find(
                                   (s) => s.id === service.id
                                 )?.subcontractor_payment_plan === "full"
                                   ? quoteData.subcontractors.find(
                                       (s) => s.id === service.id
-                                    )?.total || ""
+                                    )?.total || service.price
                                   : quoteData.subcontractors.find(
                                       (s) => s.id === service.id
                                     )?.price || service.price
@@ -1493,8 +1501,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   : "Daily rate"
                               }
                               onChange={(e) =>
-                                setQuoteData((prev) => {
-                                  const updated = prev.subcontractors.map(
+                                setQuoteData((prev) => ({
+                                  ...prev,
+                                  subcontractors: prev.subcontractors.map(
                                     (sub) =>
                                       sub.id === service.id
                                         ? {
@@ -1513,11 +1522,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                 : sub.price,
                                           }
                                         : sub
-                                  );
-                                  return { ...prev, subcontractors: updated };
-                                })
+                                  ),
+                                }))
                               }
                             />
+
                             {quoteData.subcontractors.find(
                               (s) => s.id === service.id
                             )?.subcontractor_payment_plan === "daily" && (
@@ -1536,8 +1545,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   }
                                   placeholder="e.g., 5"
                                   onChange={(e) =>
-                                    setQuoteData((prev) => {
-                                      const updated = prev.subcontractors.map(
+                                    setQuoteData((prev) => ({
+                                      ...prev,
+                                      subcontractors: prev.subcontractors.map(
                                         (sub) =>
                                           sub.id === service.id
                                             ? {
@@ -1546,12 +1556,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   parseInt(e.target.value) || 0,
                                               }
                                             : sub
-                                      );
-                                      return {
-                                        ...prev,
-                                        subcontractors: updated,
-                                      };
-                                    })
+                                      ),
+                                    }))
                                   }
                                 />
                               </>
@@ -1561,6 +1567,174 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </Card>
                     );
                   })}
+                {/* === Custom Subcontractors (not in subContractors list) === */}
+                {quoteData.subcontractors
+                  .filter((s) => !subContractors.some((srv) => srv.id === s.id))
+                  .map((sub) => (
+                    <Card key={sub.id} className="p-4 gradient-card">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Left: Name + Unit */}
+                        <div className="space-y-2">
+                          <Input
+                            type="text"
+                            value={sub.name}
+                            placeholder="Subcontractor name"
+                            onChange={(e) =>
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                subcontractors: prev.subcontractors.map((s) =>
+                                  s.id === sub.id
+                                    ? { ...s, name: e.target.value }
+                                    : s
+                                ),
+                              }))
+                            }
+                          />
+                        </div>
+
+                        {/* Right: Payment Plan + Cost + Days */}
+                        <div className="space-y-2">
+                          <Select
+                            value={sub.subcontractor_payment_plan || "full"}
+                            onValueChange={(value: "daily" | "full") =>
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                subcontractors: prev.subcontractors.map((s) =>
+                                  s.id === sub.id
+                                    ? {
+                                        ...s,
+                                        subcontractor_payment_plan: value,
+                                        // Optional: reset cost based on plan
+                                        total:
+                                          value === "full"
+                                            ? s.total || s.price
+                                            : s.total,
+                                        price:
+                                          value === "daily"
+                                            ? s.price || s.total
+                                            : s.price,
+                                      }
+                                    : s
+                                ),
+                              }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Payment Plan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="full">Full Amount</SelectItem>
+                              <SelectItem value="daily">
+                                Daily Payments
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder={
+                              sub.subcontractor_payment_plan === "full"
+                                ? "Total cost"
+                                : "Daily rate"
+                            }
+                            value={
+                              sub.subcontractor_payment_plan === "full"
+                                ? sub.total || ""
+                                : sub.price || ""
+                            }
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                subcontractors: prev.subcontractors.map((s) =>
+                                  s.id === sub.id
+                                    ? {
+                                        ...s,
+                                        total:
+                                          s.subcontractor_payment_plan ===
+                                          "full"
+                                            ? val
+                                            : s.total,
+                                        price:
+                                          s.subcontractor_payment_plan ===
+                                          "daily"
+                                            ? val
+                                            : s.price,
+                                      }
+                                    : s
+                                ),
+                              }));
+                            }}
+                          />
+
+                          {sub.subcontractor_payment_plan === "daily" && (
+                            <Input
+                              type="number"
+                              min="1"
+                              placeholder="Days"
+                              value={sub.days || ""}
+                              onChange={(e) =>
+                                setQuoteData((prev) => ({
+                                  ...prev,
+                                  subcontractors: prev.subcontractors.map((s) =>
+                                    s.id === sub.id
+                                      ? {
+                                          ...s,
+                                          days: parseInt(e.target.value) || 0,
+                                        }
+                                      : s
+                                  ),
+                                }))
+                              }
+                            />
+                          )}
+
+                          {/* Delete button */}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() =>
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                subcontractors: prev.subcontractors.filter(
+                                  (s) => s.id !== sub.id
+                                ),
+                              }))
+                            }
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                {/* === Add Custom Subcontractor Button === */}
+                <Card className="p-4 gradient-card flex items-center justify-center">
+                  <Button
+                    className="px-4 py-2 text-white hover:bg-blue-600"
+                    onClick={() => {
+                      const newId = `custom-${Date.now()}`;
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        subcontractors: [
+                          ...prev.subcontractors,
+                          {
+                            id: newId,
+                            name: "",
+                            unit: "day",
+                            price: 0,
+                            total: 0,
+                            days: 1,
+                            subcontractor_payment_plan: "daily",
+                          },
+                        ],
+                      }));
+                    }}
+                  >
+                    + Add Custom Subcontractor
+                  </Button>
+                </Card>
               </div>
             </div>
           </div>

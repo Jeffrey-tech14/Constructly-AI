@@ -103,7 +103,7 @@ const Auth = () => {
   };
 
   if (user) {
-    return navigate("/dashboard");
+    navigate("/dashboard");
   }
 
   return (

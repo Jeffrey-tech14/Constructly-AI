@@ -8,7 +8,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import QuoteBuilder from "./pages/QuoteBuilder";
@@ -18,6 +17,8 @@ import PaymentPage from "./pages/PaymentPage";
 import Variables from "./pages/Variables";
 import NotFound from "./pages/NotFound";
 import UploadPlan from "./pages/UploadPage";
+import Auth from "./pages/Auth";
+import PaymentAction from "./components/PaymentDialog";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,14 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/payments/action"
+                element={
+                  <ProtectedRoute>
+                    <PaymentAction />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/dashboard"
                 element={

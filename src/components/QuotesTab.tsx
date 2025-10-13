@@ -144,7 +144,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
   }
 
   return (
-    <Card className="gradient-card">
+    <Card className="">
       <CardHeader>
         <CardTitle>All Quotes</CardTitle>
       </CardHeader>
@@ -181,9 +181,9 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
 
         <div className="grid w-full grid-cols-1 md:grid-cols-2">
           {filteredQuotes.map((quote) => (
-            <div
+            <Card
               key={quote.id}
-              className="border gradient-card rounded-lg p-4 m-2 space-y-2"
+              className="border  rounded-lg p-4 m-2 space-y-2"
             >
               <div className="flex justify-between items-center">
                 <div>
@@ -220,7 +220,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
                   className="w-full h-3 bg-blue-50 dark:bg-white/80"
                 />
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </CardContent>

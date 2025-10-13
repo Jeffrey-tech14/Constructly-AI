@@ -34,16 +34,86 @@ export const generateQuoteExcel = async ({
     "Summary"
   );
 
-  // Materials
+  // BOQ Sheet
+  if (quote.boq_sections?.length) {
+    const boqData = [
+      // Header row
+      [
+        "Section",
+        "Item No.",
+        "Description",
+        "Unit",
+        "Quantity",
+        "Rate",
+        "Amount",
+        "Source",
+      ],
+    ];
+
+    // Add data rows
+    quote.boq_sections.forEach((section) => {
+      // Add section header
+      boqData.push([section.title, "", "", "", "", "", "", ""]);
+
+      // Add items
+      section.items.forEach((item) => {
+        if (item.isHeader) {
+          boqData.push(["", "", item.description, "", "", "", "", ""]);
+        } else {
+          boqData.push([
+            "",
+            item.itemNo,
+            item.description,
+            item.unit,
+            item.quantity,
+            item.rate,
+            item.amount,
+            item.sourceLocation || "",
+          ]);
+        }
+      });
+
+      // Add section total
+      const sectionTotal = section.items
+        .filter((item) => !item.isHeader)
+        .reduce((sum, item) => sum + (item.amount || 0), 0);
+      boqData.push(["", "", "Section Total", "", "", "", sectionTotal, ""]);
+      boqData.push([]); // Empty row for spacing
+    });
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(boqData),
+      "Bill of Quantities"
+    );
+  }
+
+  // Materials with Sources
   if (quote.materials?.length && !isClientExport) {
     const materialsData = [
-      ["Material", "Total Price"],
-      ...quote.materials.map((m) => [m.name, m.total_price]),
+      [
+        "Material",
+        "Category",
+        "Unit",
+        "Total Quantity",
+        "Unit Price",
+        "Total Price",
+        "Source Locations",
+      ],
+      ...quote.materials.map((m) => [
+        m.name,
+        m.category || "",
+        m.unit || "",
+        m.quantity || "",
+        m.unit_price || "",
+        m.total_price || "",
+        m.sourceLocations?.join(", ") || "",
+      ]),
     ];
     XLSX.utils.book_append_sheet(
       wb,
       XLSX.utils.aoa_to_sheet(materialsData),
-      "Materials"
+      "Materials Schedule"
     );
   }
 

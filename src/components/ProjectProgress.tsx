@@ -17,15 +17,18 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Calendar,
   CheckCircle,
   Clock,
   Play,
   Pause,
   Pencil,
+  CalendarIcon,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useQuotes } from "@/hooks/useQuotes";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Calendar } from "./ui/calendar";
+import { format } from "date-fns";
 
 interface ProjectProgressProps {
   quoteId: string;
@@ -159,7 +162,7 @@ const ProjectProgress = ({
       case "draft":
         return <Pencil className="w-4 h-4" />;
       case "planning":
-        return <Calendar className="w-4 h-4" />;
+        return <CalendarIcon className="w-4 h-4" />;
       case "started":
         return <Play className="w-4 h-4" />;
       case "in_progress":
@@ -169,7 +172,7 @@ const ProjectProgress = ({
       case "on_hold":
         return <Pause className="w-4 h-4" />;
       default:
-        return <Calendar className="w-4 h-4" />;
+        return <CalendarIcon className="w-4 h-4" />;
     }
   };
 
@@ -189,6 +192,25 @@ const ProjectProgress = ({
         return "hover:bg-red-100 bg-red-100 text-red-800";
       default:
         return "hover:bg-gray-100 bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getBackColor = (status: string) => {
+    switch (status) {
+      case "draft":
+        return "bg-gray-300/10";
+      case "planning":
+        return "bg-purple-300/10 ";
+      case "started":
+        return "bg-blue-300/10";
+      case "in_progress":
+        return "bg-amber-300/10 ";
+      case "completed":
+        return "bg-green-300/10";
+      case "on_hold":
+        return "bg-red-300/10";
+      default:
+        return "bg-gray-300/10";
     }
   };
 
@@ -223,8 +245,10 @@ const ProjectProgress = ({
   }
 
   return (
-    <Card className="bg-transparent">
-      <CardHeader>
+    <Card>
+      <CardHeader
+        className={`${getBackColor(progressData.status)} rounded-t-lg`}
+      >
         <CardTitle className="flex items-center justify-between">
           <span className="text-white">Project Progress - {quoteName}</span>
           <Badge className={getStatusColor(progressData.status)}>
@@ -235,7 +259,11 @@ const ProjectProgress = ({
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent
+        className={`${getBackColor(
+          progressData.status
+        )} space-y-6 rounded-b-lg`}
+      >
         <div>
           <div className="flex items-center justify-between mb-2">
             <Label className="text-white">Progress Percentage</Label>
@@ -302,21 +330,42 @@ const ProjectProgress = ({
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-col space-y-2">
           <Label className="text-white" htmlFor="milestone">
             Next Milestone Date
           </Label>
-          <Input
-            id="milestone"
-            type="date"
-            value={progressData.milestone_date}
-            onChange={(e) =>
-              setProgressData((prev) => ({
-                ...prev,
-                milestone_date: e.target.value,
-              }))
-            }
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={`w-[240px] justify-start text-left font-normal ${
+                  !progressData.milestone_date && "text-muted-foreground"
+                }`}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {progressData.milestone_date
+                  ? format(new Date(progressData.milestone_date), "PPP")
+                  : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  progressData.milestone_date
+                    ? new Date(progressData.milestone_date)
+                    : undefined
+                }
+                onSelect={(date) =>
+                  setProgressData((prev) => ({
+                    ...prev,
+                    milestone_date: date ? date.toISOString() : "",
+                  }))
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div>

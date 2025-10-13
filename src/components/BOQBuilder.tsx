@@ -10,6 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MaterialType } from "@/utils/advancedMaterialExtractor";
+import {
+  getMaterialConfig,
+  getMaterialBreakdown,
+} from "@/config/materialConfig";
 import {
   Table,
   TableBody,
@@ -18,8 +23,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Edit, Save, FolderPlus, Type } from "lucide-react";
-import { BOQItem, BOQSection } from "@/types/boq";
+import {
+  Plus,
+  Trash2,
+  Edit,
+  Save,
+  FolderPlus,
+  Type,
+  GripVertical,
+} from "lucide-react";
+import { BOQItem, BOQSection, MaterialBreakdown } from "@/types/boq";
 import {
   mapMasonryToBOQ,
   mapConcreteToBOQ,
@@ -28,6 +41,7 @@ import {
   mapWindowsToBOQ,
   mapDoorFramesToBOQ,
   mapWindowFramesToBOQ,
+  mapFoundationWallingToBOQ,
 } from "@/utils/boqMappers";
 
 interface BOQBuilderProps {
@@ -35,81 +49,336 @@ interface BOQBuilderProps {
   onBOQUpdate: (boqData: BOQSection[]) => void;
 }
 
+// Enhanced material breakdown system with relationships and properties
+const getDefaultMaterialBreakdown = (type: string): MaterialBreakdown[] => {
+  const config = getMaterialConfig(type.toLowerCase());
+  if (!config) return [];
+
+  // Get standard quantity (1 unit) breakdown with error handling
+  const { breakdown, errors, warnings } = getMaterialBreakdown(type, 1);
+
+  if (errors.length > 0) {
+    console.warn("Material breakdown errors:", errors);
+    return [];
+  }
+
+  if (warnings.length > 0) {
+    console.info("Material breakdown warnings:", warnings);
+  }
+
+  // Ensure material types are properly set
+  return breakdown.map((material) => ({
+    ...material,
+    materialType:
+      material.materialType ||
+      determineDefaultMaterialType(type, material.material),
+  }));
+};
+
+const determineDefaultMaterialType = (
+  category: string,
+  description: string
+): MaterialType => {
+  const lowerDesc = description.toLowerCase();
+  const lowerCat = category.toLowerCase();
+
+  if (lowerCat === "concrete") {
+    if (lowerDesc.includes("cement")) return "binding";
+    if (lowerDesc.includes("sand") || lowerDesc.includes("aggregate"))
+      return "primary";
+    if (lowerDesc.includes("water")) return "auxiliary";
+  }
+
+  if (lowerCat === "masonry") {
+    if (lowerDesc.includes("stone") || lowerDesc.includes("block"))
+      return "primary";
+    if (lowerDesc.includes("cement") || lowerDesc.includes("mortar"))
+      return "binding";
+    if (lowerDesc.includes("sand")) return "primary";
+    if (lowerDesc.includes("ties") || lowerDesc.includes("dpc"))
+      return "auxiliary";
+  }
+
+  if (lowerCat === "formwork") {
+    if (lowerDesc.includes("board")) return "primary";
+    if (lowerDesc.includes("timber") || lowerDesc.includes("support"))
+      return "structural-timber";
+    if (lowerDesc.includes("release")) return "auxiliary";
+  }
+
+  return "primary";
+};
+
 const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
   const [boqSections, setBoqSections] = useState<BOQSection[]>([]);
   const [editingItem, setEditingItem] = useState<{
     sectionIndex: number;
     itemIndex: number;
   } | null>(null);
+  const [dragItem, setDragItem] = useState<{
+    sectionIndex: number;
+    itemIndex: number;
+  } | null>(null);
 
-  // Initialize BOQ from quote data
+  // Add state for material type selection
+  const [selectedMaterialType, setSelectedMaterialType] =
+    useState<string>("other");
+  console.log(quoteData);
+
+  // Material type options
+  const materialTypes = [
+    { value: "concrete", label: "Concrete Works" },
+    { value: "masonry", label: "Masonry Works" },
+    { value: "formwork", label: "Formwork" },
+    { value: "steel", label: "Steel/Reinforcement" },
+    { value: "waterproofing", label: "Waterproofing" },
+    { value: "chemicals", label: "Chemical Treatment" },
+    { value: "earthworks", label: "Earthworks" },
+    { value: "other", label: "Other" },
+  ];
+
   useEffect(() => {
     const initializeBOQ = () => {
+      // Create an array to store all the sections
+      let allSections: BOQSection[] = [];
+
+      const concreteItems = mapConcreteToBOQ(
+        quoteData.concrete_rows || [],
+        quoteData.concrete_materials || []
+      );
+
+      const rebarItems = mapRebarToBOQ(
+        quoteData.rebar_calculations || [],
+        quoteData.rebar_rows || []
+      );
+
+      const foundationWallingItems = mapFoundationWallingToBOQ(
+        quoteData.concrete_rows || [],
+        quoteData.concrete_materials || {}
+      );
+      const masonryItems = mapMasonryToBOQ(quoteData.rooms || []);
+
+      const windowItems = mapWindowsToBOQ(quoteData.rooms || []);
+
+      const windowFrameItems = mapWindowFramesToBOQ(quoteData.rooms || []);
+
+      const doorItems = mapDoorsToBOQ(quoteData.rooms || []);
+
+      const doorFrameItems = mapDoorFramesToBOQ(quoteData.rooms || []);
+
       const sections: BOQSection[] = [
         {
-          title: "Element A: Substructure",
+          title: "1. Substructure Works",
           items: [
-            ...mapConcreteToBOQ(
-              quoteData.concrete_rows || [],
-              quoteData.concrete_materials || []
-            ).filter((item) => item.category === "substructure"),
-            ...mapRebarToBOQ(
-              quoteData.rebar_calculations || [],
-              quoteData.rebar_rows || []
-            ).filter((item) => item.category === "substructure"),
+            {
+              itemNo: "1.1",
+              description: "Concrete Works in Foundation",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "substructure",
+              element: "Header",
+            },
+
+            ...concreteItems.filter(
+              (item) =>
+                item.category === "substructure" &&
+                item.element?.toLowerCase().includes("foundation") &&
+                !item.element?.toLowerCase().includes("walling") // Exclude walling as it's handled separately
+            ),
+            {
+              itemNo: "1.0",
+              description: "Reinforcement in Substructure",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "substructure",
+              element: "Header",
+            },
+            ...rebarItems.filter((item) => item.category === "substructure"),
+            {
+              itemNo: "1.2",
+              description: "Foundation Walling",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "substructure",
+              element: "Header",
+            },
+            // NEW: Use the dedicated foundation walling items
+            ...foundationWallingItems,
           ],
         },
         {
-          title: "Element B: Superstructure",
+          title: "2. Superstructure Frame",
           items: [
-            ...mapConcreteToBOQ(
-              quoteData.concrete_rows || [],
-              quoteData.concrete_materials || []
-            ).filter((item) => item.category === "superstructure"),
-            ...mapRebarToBOQ(
-              quoteData.rebar_calculations || [],
-              quoteData.rebar_rows || []
-            ).filter((item) => item.category === "superstructure"),
+            {
+              itemNo: "2.0",
+              description: "Concrete Works in Superstructure",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "superstructure",
+              element: "Header",
+            },
+            ...concreteItems.filter(
+              (item) =>
+                item.category === "superstructure" &&
+                !item.element?.toLowerCase().includes("foundation")
+            ),
+            {
+              itemNo: "2.1",
+              description: "Reinforcement in Superstructure",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "superstructure",
+              element: "Header",
+            },
+            ...rebarItems.filter((item) => item.category === "superstructure"),
           ],
         },
         {
-          title: "Element C: External and Internal Walling",
-          items: [...mapMasonryToBOQ(quoteData.rooms || [])],
-        },
-        {
-          title: "Element D: Windows",
+          title: "3. Walling and Partitions",
           items: [
-            ...mapWindowsToBOQ(quoteData.rooms || []),
-            ...mapWindowFramesToBOQ(quoteData.rooms || []),
+            ...masonryItems.filter(
+              (item) =>
+                item.category !== "substructure" &&
+                !item.element?.toLowerCase().includes("foundation")
+            ),
           ],
         },
         {
-          title: "Element E: Doors",
+          title: "4. Openings",
           items: [
-            ...mapDoorsToBOQ(quoteData.rooms || []),
-            ...mapDoorFramesToBOQ(quoteData.rooms || []),
+            {
+              itemNo: "4.0",
+              description: "Doors and Frames",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "openings",
+              element: "Header",
+            },
+            ...doorItems,
+            ...doorFrameItems,
+            {
+              itemNo: "4.1",
+              description: "Windows and Frames",
+              isHeader: true,
+              unit: "",
+              quantity: 0,
+              rate: 0,
+              amount: 0,
+              category: "openings",
+              element: "Header",
+            },
+            ...windowItems,
+            ...windowFrameItems,
           ],
-        },
-        {
-          title: "Element F: Roof Finishes",
-          items: [],
-        },
-        {
-          title: "Element G: Floor Finishes",
-          items: [],
-        },
-        {
-          title: "Element H: Ceiling Finishes",
-          items: [],
-        },
-        {
-          title: "Element J: Joinery Fittings",
-          items: [],
         },
       ];
 
-      setBoqSections(sections);
-      onBOQUpdate(sections);
+      // ONLY add custom items from existing BOQ data if they don't conflict with mapper data
+      const existingBOQ = quoteData.boq_data || [];
+
+      // Create sets of mapper item keys to check for conflicts
+      const mapperItemKeys = new Set<string>();
+      const mapperHeaderKeys = new Set<string>();
+
+      sections.forEach((section) => {
+        section.items.forEach((item) => {
+          const key = `${item.category}_${item.element}_${item.description}`;
+          if (item.isHeader) {
+            mapperHeaderKeys.add(key);
+          } else {
+            mapperItemKeys.add(key);
+          }
+        });
+      });
+
+      // Add non-conflicting custom items from existing BOQ
+      existingBOQ.forEach((existingSection: BOQSection) => {
+        const matchingSection = sections.find(
+          (s) => s.title === existingSection.title
+        );
+
+        if (matchingSection) {
+          // Only add items that don't conflict with mapper data
+          existingSection.items.forEach((item: BOQItem) => {
+            const key = `${item.category}_${item.element}_${item.description}`;
+
+            if (item.isHeader) {
+              // Only add headers that don't exist in mapper data
+              if (!mapperHeaderKeys.has(key)) {
+                matchingSection.items.push({
+                  ...item,
+                  isExisting: true,
+                  wasMatched: false,
+                });
+              }
+            } else {
+              // Only add non-header items that don't conflict with mapper data
+              if (!mapperItemKeys.has(key)) {
+                matchingSection.items.push({
+                  ...item,
+                  isExisting: true,
+                  wasMatched: false,
+                });
+              }
+            }
+          });
+        } else {
+          // If section doesn't exist in mapper data, add the entire section
+          // but only if it contains non-conflicting items
+          const nonConflictingItems = existingSection.items.filter((item) => {
+            const key = `${item.category}_${item.element}_${item.description}`;
+            if (item.isHeader) {
+              return !mapperHeaderKeys.has(key);
+            } else {
+              return !mapperItemKeys.has(key);
+            }
+          });
+
+          if (nonConflictingItems.length > 0) {
+            sections.push({
+              title: existingSection.title,
+              items: nonConflictingItems.map((item) => ({
+                ...item,
+                isExisting: true,
+                wasMatched: false,
+              })),
+            });
+          }
+        }
+      });
+
+      // Sort sections by their titles (assuming numeric prefixes like "1.", "2.", etc.)
+      sections.sort((a, b) => {
+        const aNum = parseInt(a.title.split(".")[0]) || 999;
+        const bNum = parseInt(b.title.split(".")[0]) || 999;
+        return aNum - bNum;
+      });
+
+      // Filter out empty sections
+      const nonEmptySections = sections.filter(
+        (section) => section.items.length > 0
+      );
+
+      setBoqSections(nonEmptySections);
+      onBOQUpdate(nonEmptySections);
     };
 
     initializeBOQ();
@@ -133,14 +402,20 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
 
   const addCustomItem = (sectionIndex: number) => {
     const newSections = [...boqSections];
+    const section = newSections[sectionIndex];
+
+    // Find the last header to group items under
+    let insertIndex = section.items.length;
+
+    // Add the item at the end of the section
     newSections[sectionIndex].items.push({
-      itemNo: `CUS-${newSections[sectionIndex].items.length + 1}`,
+      itemNo: `CUS-${section.items.length + 1}`,
       description: "",
       unit: "",
       quantity: 0,
       rate: 0,
       amount: 0,
-      category: newSections[sectionIndex].title,
+      category: section.title,
       isHeader: false,
       element: "Custom",
     });
@@ -151,14 +426,17 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
 
   const addHeaderItem = (sectionIndex: number) => {
     const newSections = [...boqSections];
+    const section = newSections[sectionIndex];
+
+    // Add header at the end of the section
     newSections[sectionIndex].items.push({
-      itemNo: `HDR-${newSections[sectionIndex].items.length + 1}`,
+      itemNo: `HDR-${section.items.length + 1}`,
       description: "New Header/Note",
       unit: "",
       quantity: 0,
       rate: 0,
       amount: 0,
-      category: newSections[sectionIndex].title,
+      category: section.title,
       element: "Header",
       isHeader: true,
     });
@@ -205,18 +483,171 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     const newSections = [...boqSections];
     const item = newSections[sectionIndex].items[itemIndex];
 
-    if (field === "quantity" || field === "rate") {
-      item[field] = parseFloat(value) || 0;
-      // Recalculate amount if quantity or rate changes (skip for headers)
-      if (!item.isHeader) {
-        item.amount = item.quantity * item.rate;
+    try {
+      if (field === "materialType") {
+        item.materialType = value;
+        setSelectedMaterialType(value); // Update selected material type state
+
+        // Get material configuration for the new type
+        const config = getMaterialConfig(value);
+        if (config) {
+          // Update unit if not already set or if it's different from config
+          if (
+            !item.unit ||
+            (config.defaultUnit && item.unit !== config.defaultUnit)
+          ) {
+            item.unit = config.defaultUnit;
+          }
+
+          // Get material breakdown with proper error handling
+          item.materialBreakdown = getDefaultMaterialBreakdown(value);
+
+          // Update source location and category
+          item.sourceLocation = newSections[sectionIndex].title;
+          item.category = config.category || value; // Fallback to value if no category in config
+        } else {
+          console.warn(`No material configuration found for type: ${value}`);
+          // Clear the breakdown if no config is found
+          item.materialBreakdown = [];
+        }
+      } else if (field === "quantity" || field === "rate") {
+        const newValue = parseFloat(value) || 0;
+        if (newValue < 0) {
+          console.warn(
+            `Warning: Negative ${field} entered for item ${item.itemNo}`
+          );
+          return;
+        }
+
+        item[field] = newValue;
+
+        // Update material quantities based on ratios
+        if (field === "quantity" && item.materialBreakdown?.length > 0) {
+          try {
+            item.materialBreakdown = item.materialBreakdown.map((mat) => {
+              const ratio = mat.ratio || 0;
+              if (ratio < 0 || ratio > 1) {
+                console.warn(
+                  `Invalid ratio ${ratio} for material ${mat.material} in item ${item.itemNo}`
+                );
+              }
+              return {
+                ...mat,
+                quantity: newValue * ratio,
+              };
+            });
+          } catch (error) {
+            console.error(
+              `Error updating material quantities for item ${item.itemNo}:`,
+              error
+            );
+          }
+        }
+
+        // Recalculate amount if quantity or rate changes (skip for headers)
+        if (!item.isHeader) {
+          const quantity = item.quantity || 0;
+          const rate = item.rate || 0;
+          if (quantity < 0 || rate < 0) {
+            console.warn(
+              `Negative values detected for item ${item.itemNo} - quantity: ${quantity}, rate: ${rate}`
+            );
+          }
+          item.amount = quantity * rate;
+        }
+      } else {
+        item[field] = value;
       }
-    } else {
-      item[field] = value;
+
+      // Validate item after updates
+      validateItem(item);
+
+      setBoqSections(newSections);
+      onBOQUpdate(newSections);
+    } catch (error) {
+      console.error(`Error updating item ${item.itemNo}:`, error);
+      // You might want to show this error to the user via a toast notification
+    }
+  };
+
+  // Helper function to validate BOQ items
+  const validateItem = (item: BOQItem) => {
+    if (item.isHeader) return; // Skip validation for headers
+
+    const warnings: string[] = [];
+    const errors: string[] = [];
+
+    // Required fields validation
+    if (!item.description) {
+      errors.push("Description is required");
+    } else if (item.description.length < 3) {
+      warnings.push("Description seems too short");
     }
 
-    setBoqSections(newSections);
-    onBOQUpdate(newSections);
+    if (!item.unit) {
+      errors.push("Unit is required");
+    }
+
+    // Numeric validations
+    if (typeof item.quantity !== "number") {
+      errors.push("Quantity must be a number");
+    } else if (item.quantity === 0) {
+      warnings.push("Quantity should be greater than 0");
+    } else if (item.quantity < 0) {
+      errors.push("Quantity cannot be negative");
+    }
+
+    if (typeof item.rate !== "number") {
+      errors.push("Rate must be a number");
+    } else if (item.rate === 0) {
+      warnings.push("Rate should be greater than 0");
+    } else if (item.rate < 0) {
+      errors.push("Rate cannot be negative");
+    }
+
+    // Material type validation
+    if (item.materialType) {
+      if (!getMaterialConfig(item.materialType)) {
+        warnings.push(`Unknown material type: ${item.materialType}`);
+      }
+      if (!item.materialBreakdown?.length) {
+        warnings.push("Material type selected but no breakdown available");
+      } else {
+        // Validate material breakdown
+        const totalRatio = item.materialBreakdown.reduce(
+          (sum, mat) => sum + (mat.ratio || 0),
+          0
+        );
+        if (Math.abs(totalRatio - 1) > 0.0001) {
+          // Allow for small floating point differences
+          warnings.push(
+            `Material ratios sum to ${totalRatio.toFixed(4)}, should be 1.0`
+          );
+        }
+
+        item.materialBreakdown.forEach((mat, index) => {
+          if (!mat.material) {
+            errors.push(`Material name missing in breakdown item ${index + 1}`);
+          }
+          if (typeof mat.ratio !== "number") {
+            errors.push(
+              `Invalid ratio in material ${mat.material || `item ${index + 1}`}`
+            );
+          }
+        });
+      }
+    }
+
+    // Log all validation issues
+    if (errors.length > 0) {
+      console.error(`Validation errors for item ${item.itemNo}:`, errors);
+    }
+    if (warnings.length > 0) {
+      console.warn(`Validation warnings for item ${item.itemNo}:`, warnings);
+    }
+
+    // Return validation results
+    return { errors, warnings };
   };
 
   const removeItem = (sectionIndex: number, itemIndex: number) => {
@@ -235,7 +666,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       </div>
 
       {boqSections.map((section, sectionIndex) => (
-        <Card className="gradient-card" key={sectionIndex}>
+        <Card className="" key={sectionIndex}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <Input
               value={section.title}
@@ -268,32 +699,87 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                 {section.items.map((item, itemIndex) => (
                   <TableRow
                     key={itemIndex}
-                    className={
-                      item.isHeader
-                        ? "bg-muted/50 rounded-lg font-semibold"
-                        : ""
-                    }
+                    className={`
+                      ${
+                        item.isHeader
+                          ? "bg-muted/50 rounded-lg font-semibold"
+                          : ""
+                      }
+                      ${item.isHeader ? "" : "hover:bg-muted/30"}
+                      ${item.isExisting ? "border-l-2 border-primary" : ""}
+                      relative
+                    `}
                   >
-                    <TableCell>{item.isHeader ? "" : item.itemNo}</TableCell>
                     <TableCell>
-                      {editingItem?.sectionIndex === sectionIndex &&
-                      editingItem?.itemIndex === itemIndex ? (
-                        <Input
-                          value={item.description}
-                          onChange={(e) =>
-                            updateItem(
-                              sectionIndex,
-                              itemIndex,
-                              "description",
-                              e.target.value
-                            )
-                          }
-                        />
-                      ) : (
-                        <span className={item.isHeader ? "font-semibold" : ""}>
-                          {item.description}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {!item.isHeader && (
+                          <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
+                        )}
+                        {item.isHeader ? "" : item.itemNo}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        {editingItem?.sectionIndex === sectionIndex &&
+                        editingItem?.itemIndex === itemIndex ? (
+                          <>
+                            <Input
+                              value={item.description}
+                              onChange={(e) =>
+                                updateItem(
+                                  sectionIndex,
+                                  itemIndex,
+                                  "description",
+                                  e.target.value
+                                )
+                              }
+                            />
+                            {!item.isHeader && (
+                              <Select
+                                value={item.materialType || "other"}
+                                onValueChange={(value) =>
+                                  updateItem(
+                                    sectionIndex,
+                                    itemIndex,
+                                    "materialType",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select material type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {materialTypes.map((type) => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                    >
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </>
+                        ) : (
+                          <div>
+                            <span
+                              className={item.isHeader ? "font-semibold" : ""}
+                            >
+                              {item.description}
+                            </span>
+                            {!item.isHeader && item.materialType && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                Type:{" "}
+                                {materialTypes.find(
+                                  (t) => t.value === item.materialType
+                                )?.label || item.materialType}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       {item.isHeader ? (

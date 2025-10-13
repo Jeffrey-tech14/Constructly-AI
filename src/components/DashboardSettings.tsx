@@ -1,25 +1,18 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { useUserSettings } from '@/hooks/useUserSettings';
-import { 
-  Settings, 
-  Truck, 
-  Wrench, 
-  Plus,
-  DollarSign
-} from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { Settings, Truck, Wrench, Plus, DollarSign } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardSettings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const {profile} = useAuth();
+  const { profile } = useAuth();
   const {
     loading: settingsLoading,
     equipmentTypes,
@@ -32,41 +25,48 @@ const DashboardSettings = () => {
     updateServiceRate,
   } = useUserSettings();
 
-  const [tempValues, setTempValues] = useState<{[key: string]: number}>({});
+  const [tempValues, setTempValues] = useState<{ [key: string]: number }>({});
 
-  const handleUpdateEquipmentRate = async (equipmentTypeId: string, rate: number) => {
+  const handleUpdateEquipmentRate = async (
+    equipmentTypeId: string,
+    rate: number
+  ) => {
     setLoading(true);
     const { error } = await updateEquipmentRate(equipmentTypeId, rate);
-    
+
     if (error) {
       toast({
         title: "Error",
         description: "Failed to update equipment rate",
-        variant: "destructive"
+        variant: "destructive",
       });
     } else {
       toast({
         title: "Success",
-        description: "Equipment rate updated successfully"
+        description: "Equipment rate updated successfully",
       });
     }
     setLoading(false);
   };
 
-  const handleUpdateTransportRate = async (region: string, costPerKm: number, baseCost: number) => {
+  const handleUpdateTransportRate = async (
+    region: string,
+    costPerKm: number,
+    baseCost: number
+  ) => {
     setLoading(true);
     const { error } = await updateTransportRate(region, costPerKm, baseCost);
-    
+
     if (error) {
       toast({
         title: "Error",
         description: "Failed to update transport rate",
-        variant: "destructive"
+        variant: "destructive",
       });
     } else {
       toast({
         title: "Success",
-        description: "Transport rate updated successfully"
+        description: "Transport rate updated successfully",
       });
     }
     setLoading(false);
@@ -75,17 +75,17 @@ const DashboardSettings = () => {
   const handleUpdateServiceRate = async (serviceId: string, price: number) => {
     setLoading(true);
     const { error } = await updateServiceRate(serviceId, price);
-    
+
     if (error) {
       toast({
         title: "Error",
         description: "Failed to update service rate",
-        variant: "destructive"
+        variant: "destructive",
       });
     } else {
       toast({
         title: "Success",
-        description: "Service rate updated successfully"
+        description: "Service rate updated successfully",
       });
     }
     setLoading(false);
@@ -114,7 +114,7 @@ const DashboardSettings = () => {
         </TabsList>
 
         <TabsContent value="equipment" className="space-y-4">
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Wrench className="w-5 h-5 mr-2" />
@@ -123,38 +123,53 @@ const DashboardSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {equipmentTypes.map((equipmentType) => {
-                const userRate = equipmentRates.find(r => r.equipment_type_id === equipmentType.id);
-                const currentRate = userRate ? userRate.total_cost : equipmentType.total_cost;
-                
+                const userRate = equipmentRates.find(
+                  (r) => r.equipment_type_id === equipmentType.id
+                );
+                const currentRate = userRate
+                  ? userRate.total_cost
+                  : equipmentType.total_cost;
+
                 return (
-                  <div key={equipmentType.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={equipmentType.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div>
                       <h4 className="font-medium">{equipmentType.name}</h4>
                       <p className="text-sm text-muted-foreground">
                         Current: KSh {currentRate.toLocaleString()}/day
                       </p>
                       {equipmentType.description && (
-                        <p className="text-xs text-muted-foreground">{equipmentType.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {equipmentType.description}
+                        </p>
                       )}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Input
                         type="number"
-                    min='0'
+                        min="0"
                         placeholder={currentRate.toLocaleString()}
                         className="w-32"
-                        onChange={(e) => setTempValues({
-                          ...tempValues,
-                          [`equipment-${equipmentType.id}`]: parseFloat(e.target.value) || 0
-                        })}
+                        onChange={(e) =>
+                          setTempValues({
+                            ...tempValues,
+                            [`equipment-${equipmentType.id}`]:
+                              parseFloat(e.target.value) || 0,
+                          })
+                        }
                       />
                       <Button
                         size="sm"
-                        className='text-white'
-                        onClick={() => handleUpdateEquipmentRate(
-                          equipmentType.id,
-                          tempValues[`equipment-${equipmentType.id}`] || currentRate
-                        )}
+                        className="text-white"
+                        onClick={() =>
+                          handleUpdateEquipmentRate(
+                            equipmentType.id,
+                            tempValues[`equipment-${equipmentType.id}`] ||
+                              currentRate
+                          )
+                        }
                         disabled={loading}
                       >
                         Update
@@ -168,7 +183,7 @@ const DashboardSettings = () => {
         </TabsContent>
 
         <TabsContent value="transport" className="space-y-4">
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Truck className="w-5 h-5 mr-2" />
@@ -177,10 +192,10 @@ const DashboardSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {[profile.location].map((region) => {
-                const rate = transportRates.find(r => r.region === region);
+                const rate = transportRates.find((r) => r.region === region);
                 const costPerKm = rate ? rate.cost_per_km : 50;
                 const baseCost = rate ? rate.base_cost : 500;
-                
+
                 return (
                   <div key={region} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-4">
@@ -196,35 +211,43 @@ const DashboardSettings = () => {
                         <Label>Cost per KM (KSh)</Label>
                         <Input
                           type="number"
-                    min='0'
+                          min="0"
                           placeholder={costPerKm.toLocaleString()}
-                          onChange={(e) => setTempValues({
-                            ...tempValues,
-                            [`transport-km-${region}`]: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setTempValues({
+                              ...tempValues,
+                              [`transport-km-${region}`]:
+                                parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       </div>
                       <div>
                         <Label>Base Cost (KSh)</Label>
                         <Input
                           type="number"
-                    min='0'
+                          min="0"
                           placeholder={baseCost.toLocaleString()}
-                          onChange={(e) => setTempValues({
-                            ...tempValues,
-                            [`transport-base-${region}`]: parseFloat(e.target.value) || 0
-                          })}
+                          onChange={(e) =>
+                            setTempValues({
+                              ...tempValues,
+                              [`transport-base-${region}`]:
+                                parseFloat(e.target.value) || 0,
+                            })
+                          }
                         />
                       </div>
                     </div>
                     <Button
                       className="mt-4 text-white"
                       size="sm"
-                      onClick={() => handleUpdateTransportRate(
-                        region,
-                        tempValues[`transport-km-${region}`] || costPerKm,
-                        tempValues[`transport-base-${region}`] || baseCost
-                      )}
+                      onClick={() =>
+                        handleUpdateTransportRate(
+                          region,
+                          tempValues[`transport-km-${region}`] || costPerKm,
+                          tempValues[`transport-base-${region}`] || baseCost
+                        )
+                      }
                       disabled={loading}
                     >
                       Update Transport Rate
@@ -237,7 +260,7 @@ const DashboardSettings = () => {
         </TabsContent>
 
         <TabsContent value="services" className="space-y-4">
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Plus className="w-5 h-5 mr-2" />
@@ -246,39 +269,53 @@ const DashboardSettings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {additionalServices.map((service) => {
-                const userRate = serviceRates.find(r => r.service_id === service.id);
+                const userRate = serviceRates.find(
+                  (r) => r.service_id === service.id
+                );
                 const currentPrice = userRate ? userRate.price : service.price;
-                
+
                 return (
-                  <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div
+                    key={service.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
                     <div>
                       <h4 className="font-medium">{service.name}</h4>
                       <p className="text-sm text-muted-foreground">
                         Current: KSh {currentPrice.toLocaleString()}
                       </p>
                       {service.description && (
-                        <p className="text-xs text-muted-foreground">{service.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {service.description}
+                        </p>
                       )}
-                      <span className="text-xs text-black bg-secondary px-2 py-1 rounded">{service.category}</span>
+                      <span className="text-xs text-black bg-secondary px-2 py-1 rounded">
+                        {service.category}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Input
                         type="number"
-                    min='0'
+                        min="0"
                         className="w-32"
                         placeholder={currentPrice.toLocaleString()}
-                        onChange={(e) => setTempValues({
-                          ...tempValues,
-                          [`service-${service.id}`]: parseFloat(e.target.value) || 0
-                        })}
+                        onChange={(e) =>
+                          setTempValues({
+                            ...tempValues,
+                            [`service-${service.id}`]:
+                              parseFloat(e.target.value) || 0,
+                          })
+                        }
                       />
                       <Button
                         size="sm"
-                        className='text-white'
-                        onClick={() => handleUpdateServiceRate(
-                          service.id,
-                          tempValues[`service-${service.id}`] || currentPrice
-                        )}
+                        className="text-white"
+                        onClick={() =>
+                          handleUpdateServiceRate(
+                            service.id,
+                            tempValues[`service-${service.id}`] || currentPrice
+                          )
+                        }
                         disabled={loading}
                       >
                         Update

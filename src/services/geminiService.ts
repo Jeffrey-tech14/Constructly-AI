@@ -1,4 +1,20 @@
 // src/services/geminiService.ts
+export interface MaterialRelationship {
+  relatedMaterial: string;
+  relationType:
+    | "requires"
+    | "dependsOn"
+    | "precedes"
+    | "follows"
+    | "alternative";
+  description: string;
+}
+
+export interface MaterialRequirement {
+  type: "environmental" | "structural" | "aesthetic" | "performance";
+  description: string;
+}
+
 export interface GeminiMaterialAnalysis {
   category: string;
   location: string;
@@ -9,8 +25,22 @@ export interface GeminiMaterialAnalysis {
   rate: number;
   amount: number;
   confidence: number;
+  materialType:
+    | "primary"
+    | "secondary"
+    | "preparatory"
+    | "finishing"
+    | "protective"
+    | "joint"
+    | "auxiliary";
+  relationships: MaterialRelationship[];
+  requirements: MaterialRequirement[];
+  applicationContext: string;
   suggestedCategory?: string;
   notes?: string;
+  variations?: string[];
+  alternatives?: string[];
+  preparationSteps?: string[];
 }
 
 export interface GeminiMaterialResponse {
@@ -77,62 +107,61 @@ class GeminiService {
 
   private createAnalysisPrompt(quoteData: any): string {
     return `
-You are a construction quantity surveyor expert. Analyze the provided project data and extract **only real, individual construction materials**.
+You are an expert construction materials analyst. Analyze the provided construction data with these STRICT INSTRUCTIONS:
 
-STRICT INSTRUCTIONS:
+1. COMPREHENSIVE MATERIAL IDENTIFICATION:
+   - Identify ALL materials (explicit and implicit) in the construction data
+   - Ignore collective materials such as concrete, mortar etc.
+   - Do not add any materials that are not in the provided data, only identify from the provided data
+   - Ignore subcontractors in the data provided
 
-1. Extract **only physical construction materials**, including:
-   - Cement, Sand, Ballast, Water, Blocks, Bricks, Stone
-   - Reinforcement steel, Structural steel, Formwork
-   - Paints, Tiles, Flooring, Ceiling, Coatings, Varnish, Polish
-   - Doors, Door frames, Windows, Window frames, Glazing, Hinges, Locks
-   - Nails, Screws, Fasteners, Miscellaneous consumables
+2. MATERIAL CATEGORIES & RELATIONSHIPS:
+   A. Building Elements:
+      - Foundation materials (footings, slabs, beds, membranes)
+      - Wall materials (internal, external, partitions)
+      - Floor materials (base, finishing, treatments)
+      - Ceiling materials (structure, finishing)
+      - Roof materials (structure, covering, insulation)
+      - Finishing materials (paintings, tiles, claddings)
 
-2. **Ignore** anything that is not a direct material: preliminaries, professional fees, labor, permits, services, legal items, overheads.
+   B. Material Properties:
+      - Primary materials (main structural/functional materials)
+      - Secondary materials (supporting materials)
+      - Preparatory materials (primers, undercoats, etc.)
+      - Finishing materials (paints, varnishes, etc.)
+      - Protective materials (sealants, membranes)
+      - Joint materials (grout, sealants)
+      - Auxiliary materials (fixings, adhesives)
+      - Use the data in materialPrices to get the prices of the materials you are not sure of or cannot find in the related boq data
+      - Do not add any materials that are not in the provided data, only identify from the provided data
+      - Use the gross values, if none are found for an item use the net values
+      - Do not include materials that are a combination of other materials eg concrete, mortar, etc.
+      - If clientProviesWater under qsSettings is not true, do not include water in the materials, ignore it
+      - Pay special attention to cement so as to not repeat it or include combined materials
+      - Use values as they are, do not refactor, edit or create your own
 
-3. **Skip combined items** (like "Concrete", "Mortar", "Total" or anything that represents a mixture). Only include the individual base materials if they are explicitly listed elsewhere.
+3. For EACH material identified, provide:
+   {
+     "itemNo": "string (unique identifier)",
+     "category": "string (e.g., Concrete, Masonry, Finishes)",
+     "location": "string (specific usage location)",
+     "element": "string (building element type)",
+     "description": "string (detailed description)",
+     "unit": "string",
+     "quantity": number,
+     "rate": number,
+     "amount": number,
+     "materialType": "primary|secondary|preparatory|finishing|protective|joint|auxiliary",
+   }
 
-4. **Merge duplicates**:
-   - If the same material appears with slightly different spellings (e.g., "Ceoemnt" vs "Cement"), treat them as the same item.
-   - Sum up their **quantities** and **amounts**.
-   - Always use the **rate provided in the BOQ** (do not invent or recalculate rates).
-   - Recalculate **amount = quantity × rate** only when consolidating.
-
-5. For each material, provide these fields:
-   - itemNo: string (unique identifier)
-   - description: string
-   - unit: string
-   - quantity: number
-   - rate: number
-   - amount: number
-   - category: string (auto-generate, e.g., substructure, superstructure, masonry, finishes, doors, windows, miscellaneous)
-   - element: string (e.g., cement, reinforcement, masonry, door, window, finish)
-   - calculatedFrom: string? (optional, if amount was derived from qty × rate)
-   - isHeader: boolean (true if this is a section header in the BOQ)
-   - isProvision: boolean? (optional, if provisional)
-   - confidence: number? (AI certainty score 0–1)
-   - suggestedCategory: string? (optional refined category if unsure)
-
-6. **Return STRICT JSON only** in the format below, with no explanations, notes, or extra text:
-
+4. Return STRICT JSON only with this structure:
 {
-  "materials": [
-    {
-      "itemNo": "string",
-      "description": "string",
-      "unit": "string",
-      "quantity": number,
-      "rate": number,
-      "amount": number,
-      "category": "string",
-      "element": "string",
-      "calculatedFrom": "string?",
-      "isHeader": boolean,
-      "isProvision": boolean?,
-      "confidence": number?,
-      "suggestedCategory": "string?"
-    }
-  ]
+  "materials": [ (array of material objects as defined above) ],
+  "summary": {
+    "totalMaterials": number,
+    "totalCost": number,
+    "categories": { "categoryName": number (count) }
+  }
 }
 
 PROJECT DATA:

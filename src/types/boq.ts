@@ -1,3 +1,23 @@
+export interface MaterialRelationship {
+  material: string;
+  type: "requires" | "optional" | "precedes" | "follows";
+  description: string;
+}
+
+export interface MaterialBreakdown {
+  material: string;
+  unit: string;
+  ratio: number;
+  category: string;
+  quantity: number;
+  element: string;
+  materialType?: string;
+  relationships?: MaterialRelationship[];
+  requirements?: string[];
+  preparationSteps?: string[];
+  variations?: string[];
+}
+
 export interface BOQItem {
   itemNo: string;
   description: string;
@@ -10,6 +30,14 @@ export interface BOQItem {
   calculatedFrom?: string;
   isHeader: boolean;
   isProvision?: boolean;
+  // New fields for material tracking
+  materialType?: string;
+  materialBreakdown?: MaterialBreakdown[];
+  sourceLocation?: string;
+  workType?: string;
+  // Tracking properties for existing items
+  isExisting?: boolean;
+  wasMatched?: boolean;
 }
 
 export interface BOQSection {

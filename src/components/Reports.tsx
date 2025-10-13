@@ -149,7 +149,7 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="gradient-card card-hover">
+        <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
               <FileText className="sm:w-8 sm:h-8 text-blue-600" />
@@ -165,7 +165,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <Card className="gradient-card card-hover">
+        <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
               <CheckCircle className="sm:w-8 sm:h-8 text-green-600" />
@@ -181,7 +181,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <Card className="gradient-card card-hover">
+        <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
               <DollarSign className="sm:w-8 sm:h-8 text-blue-600" />
@@ -197,7 +197,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <Card className="gradient-card card-hover">
+        <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
               <TrendingUp className="sm:w-8 sm:h-8 text-purple-600" />
@@ -213,7 +213,7 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        {/* <Card className="gradient-card card-hover">
+        {/* <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
               <Star className="sm:w-8 sm:h-8 text-amber-600" />
@@ -228,7 +228,7 @@ const Reports = () => {
 
       {userQuotes.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader>
               <CardTitle>Revenue Trend</CardTitle>
             </CardHeader>
@@ -256,7 +256,7 @@ const Reports = () => {
             </CardContent>
           </Card>
 
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader>
               <CardTitle>Project Status Distribution</CardTitle>
             </CardHeader>
@@ -282,7 +282,7 @@ const Reports = () => {
           </Card>
 
           {monthlyData.length > 0 && (
-            <Card className="gradient-card lg:col-span-2">
+            <Card className=" lg:col-span-2">
               <CardHeader>
                 <CardTitle>Quote Generation Trend</CardTitle>
               </CardHeader>

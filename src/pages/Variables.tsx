@@ -217,7 +217,7 @@ const Variables = () => {
             value="materials"
             className="space-y-3 sm:space-y-4 animate-fade-in"
           >
-            <Card className="gradient-card animate-slide-in">
+            <Card className=" animate-slide-in">
               <CardHeader>
                 <CardTitle className="flex items-center text-sm sm:text-base">
                   <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -245,10 +245,7 @@ const Variables = () => {
                     const isCustomPrice = !!userOverride;
 
                     return (
-                      <Card
-                        key={material.id}
-                        className="gradient-card card-hover"
-                      >
+                      <Card key={material.id} className=" card-hover">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center mb-2">
                             <div>
@@ -373,7 +370,7 @@ const Variables = () => {
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-4 animate-fade-in">
-            <Card className="gradient-card animate-slide-in">
+            <Card className=" animate-slide-in">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Wrench className="w-5 h-5 mr-2" />
@@ -391,10 +388,7 @@ const Variables = () => {
                       : equipment.total_cost;
 
                     return (
-                      <Card
-                        key={equipment.id}
-                        className="gradient-card card-hover"
-                      >
+                      <Card key={equipment.id} className=" card-hover">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{equipment.name}</h4>
@@ -452,7 +446,7 @@ const Variables = () => {
           </TabsContent>
 
           <TabsContent value="transport" className="space-y-4 animate-fade-in">
-            <Card className="gradient-card animate-slide-in">
+            <Card className=" animate-slide-in">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Truck className="w-5 h-5 mr-2" />
@@ -476,7 +470,7 @@ const Variables = () => {
                     const baseCost = rate ? rate.base_cost : 500;
 
                     return (
-                      <Card key={region} className="gradient-card card-hover">
+                      <Card key={region} className=" card-hover">
                         <CardContent className="p-4">
                           <h4 className="font-medium mb-3">{region}</h4>
                           <div className="space-y-3">
@@ -563,7 +557,7 @@ const Variables = () => {
           </TabsContent>
 
           <TabsContent value="services" className="space-y-4 animate-fade-in">
-            <Card className="gradient-card animate-slide-in">
+            <Card className=" animate-slide-in">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Plus className="w-5 h-5 mr-2" />
@@ -581,10 +575,7 @@ const Variables = () => {
                       : service.price;
 
                     return (
-                      <Card
-                        key={service.id}
-                        className="gradient-card card-hover"
-                      >
+                      <Card key={service.id} className=" card-hover">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{service.name}</h4>
@@ -645,7 +636,7 @@ const Variables = () => {
             value="subcontractors"
             className="space-y-4 animate-fade-in"
           >
-            <Card className="gradient-card animate-slide-in">
+            <Card className=" animate-slide-in">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="w-5 h-5 mr-2" />
@@ -655,7 +646,7 @@ const Variables = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {services.map((sub) => (
-                    <Card key={sub.id} className="gradient-card card-hover">
+                    <Card key={sub.id} className=" card-hover">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-medium">{sub.name}</h4>

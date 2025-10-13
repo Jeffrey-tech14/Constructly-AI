@@ -19,14 +19,50 @@ app.add_middleware(
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
+# main.py - Add this function and use it in your endpoint
+ALLOWED_EXTENSIONS = {
+    'jpg', 'jpeg', 'png', 'pdf', 'dwg', 'dxf', 'rvt', 'ifc', 
+    'pln', 'zip', 'csv', 'xlsx', 'txt'
+}
+
+ALLOWED_MIME_TYPES = {
+    'image/jpeg', 'image/png', 'application/pdf',
+    'application/acad', 'application/x-acad', 'image/vnd.dwg',
+    'image/vnd.dxf', 'application/dxf', 'application/dwg',
+    'application/vnd.autodesk.revit', 'model/vnd.ifc',
+    'application/octet-stream', 'application/x-twinmotion',
+    'application/zip', 'application/x-zip-compressed',
+    'text/plain', 'text/csv',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+}
+
+def validate_file_type(filename: str, content_type: str) -> bool:
+    """Validate file against allowed extensions and MIME types"""
+    if not filename:
+        return False
+    
+    file_ext = filename.split('.')[-1].lower() if '.' in filename else ''
+    
+    # Check extension
+    if file_ext not in ALLOWED_EXTENSIONS:
+        return False
+    
+    # Check MIME type
+    if content_type and content_type not in ALLOWED_MIME_TYPES:
+        return False
+    
+    return True
 
 @app.post("/api/plan/upload")
 async def parse_plan(file: UploadFile = File(...)):
-
     # Validate file type
-    if not file.filename.lower().endswith(('.pdf', '.jpg', '.jpeg', '.png')):
-        raise HTTPException(status_code=400, detail="Unsupported file type")
-
+    print(f"📁 Received file: {file.filename}, Content-Type: {file.content_type}")
+    if not validate_file_type(file.filename, file.content_type):
+        raise HTTPException(
+            status_code=400, 
+            detail="Unsupported file type"
+        )
+    
     file_id = str(uuid.uuid4())
     file_path = UPLOAD_DIR / f"{file_id}_{file.filename}"
 
@@ -45,7 +81,7 @@ async def parse_plan(file: UploadFile = File(...)):
             capture_output=True,
             text=True,
             timeout=300,
-            cwd=os.path.dirname(os.path.abspath(__file__))  # Ensure correct working dir
+            cwd=os.path.dirname(os.path.abspath(__file__))
         )
 
         # Clean up file
@@ -53,9 +89,9 @@ async def parse_plan(file: UploadFile = File(...)):
 
         # Handle subprocess result
         if result.returncode != 0:
-            print(f"❌ Parser failed with return code {result.returncode}")  # LOG
-            print(f"STDERR: {result.stderr}")  # 🔥 THIS IS KEY
-            print(f"STDOUT: {result.stdout}")  # Sometimes has clues
+            print(f"❌ Parser failed with return code {result.returncode}")
+            print(f"STDERR: {result.stderr}")
+            print(f"STDOUT: {result.stdout}")
             raise HTTPException(
                 status_code=500,
                 detail=f"Parser script error: {result.stderr[:200]}"
@@ -63,14 +99,14 @@ async def parse_plan(file: UploadFile = File(...)):
 
         # Try to parse JSON
         output = result.stdout.strip()
-        print(f"📄 Parser output: {output}")  # LOG
+        print(f"📄 Parser output: {output}")
 
         try:
             parsed_data = json.loads(output)
             return parsed_data
         except json.JSONDecodeError as e:
-            print(f"❌ Invalid JSON from parser: {e}")  # LOG
-            print(f"Raw output: >>>{output}<<<")  # Show exactly what came out
+            print(f"❌ Invalid JSON from parser: {e}")
+            print(f"Raw output: >>>{output}<<<")
             raise HTTPException(
                 status_code=500,
                 detail=f"Parser returned invalid JSON: {str(e)}"
@@ -85,7 +121,7 @@ async def parse_plan(file: UploadFile = File(...)):
             except:
                 pass
 
-        print(f"💥 Unexpected error: {type(e).__name__}: {e}")  # 🔥 LOG FULL ERROR
+        print(f"💥 Unexpected error: {type(e).__name__}: {e}")
         import traceback
-        traceback.print_exc()  # Full stack trace
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Internal server error")

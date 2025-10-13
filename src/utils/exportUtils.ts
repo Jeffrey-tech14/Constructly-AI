@@ -92,7 +92,8 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
             ...projectInfo,
           },
           quote.preliminaries,
-          quote
+          quote,
+          audience === "client"
         );
       case "excel":
         await generateQuoteExcel({

@@ -9,6 +9,7 @@ export interface ConsolidatedMaterial {
   rate: number;
   amount: number;
   locations: string[];
+  category: string;
 }
 
 export class MaterialConsolidator {
@@ -18,6 +19,44 @@ export class MaterialConsolidator {
     const materialMap = new Map<string, ConsolidatedMaterial>();
 
     materials.forEach((material) => {
+      // Handle material breakdown if available
+      if (material.materialBreakdown) {
+        material.materialBreakdown.forEach((breakdown) => {
+          const key = `${this.cleanDescription(breakdown.material)}_${
+            breakdown.unit
+          }_${breakdown.category}`.toLowerCase();
+
+          if (materialMap.has(key)) {
+            const existing = materialMap.get(key)!;
+            existing.quantity += material.quantity * breakdown.ratio;
+            existing.amount +=
+              material.rate * breakdown.ratio * material.quantity;
+
+            if (
+              material.location &&
+              !existing.locations.includes(material.location)
+            ) {
+              existing.locations.push(material.location);
+            }
+
+            if (existing.quantity > 0) {
+              existing.rate = existing.amount / existing.quantity;
+            }
+          } else {
+            materialMap.set(key, {
+              itemNo: material.itemNo,
+              description: this.cleanDescription(breakdown.material),
+              unit: breakdown.unit,
+              quantity: material.quantity * breakdown.ratio,
+              rate: material.rate * breakdown.ratio,
+              amount: material.rate * breakdown.ratio * material.quantity,
+              locations: material.location ? [material.location] : [],
+              category: material.category,
+            });
+          }
+        });
+        return;
+      }
       // Create a more specific key to avoid over-consolidation
       const key = `${this.cleanDescription(material.description)}_${
         material.unit
@@ -48,6 +87,7 @@ export class MaterialConsolidator {
           rate: material.rate,
           amount: material.amount,
           locations: material.location ? [material.location] : [],
+          category: material.category,
         });
       }
     });
@@ -72,13 +112,9 @@ export class MaterialConsolidator {
   ): string {
     const baseDescription = material.description;
     if (material.locations.length > 0) {
-      const locationInfo =
-        material.locations.length > 3
-          ? `${material.locations.slice(0, 3).join(", ")} +${
-              material.locations.length - 3
-            } more`
-          : material.locations.join(", ");
-      return `${baseDescription} (${locationInfo})`;
+      // Format: "Material Name (from Work Section)"
+      // Only show first location as that's the primary source
+      return `${baseDescription} (from ${material.locations[0]})`;
     }
     return baseDescription;
   }

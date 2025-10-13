@@ -79,7 +79,7 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
   }
 
   return (
-    <Card className="gradient-card">
+    <Card className="">
       <CardHeader>
         <CardTitle>Subscription Tiers</CardTitle>
       </CardHeader>
@@ -87,7 +87,7 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
         {tiers.map((tier) => (
           <div
             key={tier.id}
-            className="grid grid-cols-3 gradient-card rounded-lg items-center gap-4 py-4"
+            className="grid grid-cols-3  rounded-lg items-center gap-4 py-4"
           >
             <div className="text-center font-medium">{tier.name}</div>
             <ul className="flex flex-col items-center space-y-2">

@@ -401,7 +401,7 @@ const AdminDashboard = () => {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -416,7 +416,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Project Revenue
@@ -433,7 +433,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Subscription Revenue
@@ -450,7 +450,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Total Quotes
@@ -465,7 +465,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="gradient-card">
+          <Card className="">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Active Projects
@@ -493,7 +493,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="users" className="space-y-6">
             {/* Search and Filter */}
-            <Card className="gradient-card">
+            <Card className="">
               <CardHeader>
                 <CardTitle>User Management</CardTitle>
               </CardHeader>
@@ -526,7 +526,7 @@ const AdminDashboard = () => {
                   {filteredUsers.map((user) => (
                     <Card
                       key={user.id}
-                      className={`p-3 md:p-4 bg-gradient-card relative ${
+                      className={`p-3 md:p-4 bg- relative ${
                         user.id === profile.id
                           ? "ring-2 ring-primary dark:ring-white"
                           : ""
@@ -663,7 +663,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">
-            <Card className="gradient-card">
+            <Card className="">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Settings className="w-5 h-5 mr-2" />
@@ -720,7 +720,7 @@ const AdminDashboard = () => {
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {quotes.length > 0 && (
-                <Card className="gradient-card">
+                <Card className="">
                   <CardHeader>
                     <CardTitle>Monthly Revenue</CardTitle>
                   </CardHeader>
@@ -750,7 +750,7 @@ const AdminDashboard = () => {
                 </Card>
               )}
 
-              <Card className="gradient-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle>User Tier Distribution</CardTitle>
                 </CardHeader>

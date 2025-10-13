@@ -28,7 +28,8 @@ const exportBOQPDF = async (
   boqData: BOQSection[],
   projectInfo: ProjectInfo,
   preliminaries: any[],
-  quote: any
+  quote: any,
+  isClientExport: boolean = false
 ): Promise<boolean> => {
   try {
     // --- Extract and consolidate material schedule ---
@@ -77,6 +78,7 @@ const exportBOQPDF = async (
       overhead_amount: quote.overhead_amount,
       labour: quote.labor_cost,
       permits: quote.permit_cost,
+      isClientExport,
     });
 
     const blob = await pdf(pdfReactElement as any).toBlob();

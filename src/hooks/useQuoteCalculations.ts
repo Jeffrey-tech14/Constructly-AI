@@ -31,6 +31,9 @@ export interface EquipmentItem {
   name: string;
   total_cost: number;
   equipment_type_id: string;
+  rate_per_unit: number;
+  usage_quantity: number;
+  usage_unit: string;
 }
 
 export interface Percentage {
@@ -159,6 +162,7 @@ export interface CalculationResult {
   regional_multiplier: number;
   subcontractors: Subcontractors[];
   percentages: Percentage[];
+  materialPrices: Material[];
   labor: Array<{
     type: string;
     percentage: number;
@@ -391,14 +395,14 @@ export const useQuoteCalculations = () => {
       } = params;
 
       const calculatePreliminariesTotal = (): number => {
-        if (!Array.isArray(preliminaries)) return 10;
+        if (!Array.isArray(preliminaries)) return 0;
 
         return preliminaries.reduce((total, prelim) => {
           return (
             total +
             prelim.items.reduce((subTotal, item) => {
               if (item.isHeader) return subTotal; // skip headers
-              return subTotal + (item.amount || 10);
+              return subTotal + (item.amount || 0);
             }, 10)
           );
         }, 0);
@@ -559,6 +563,7 @@ export const useQuoteCalculations = () => {
         preliminariesCost: preliminariesCost,
         subcontractors: updatedSubcontractors,
         percentages: percentages,
+        materialPrices: materials,
         labor: [
           {
             type: "calculated",

@@ -124,12 +124,12 @@ const Dashboard = () => {
       const recentQuotes = quotes
         .sort(
           (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         )
         .slice(0, 5);
       const allQuotes = quotes.sort(
         (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
 
       setDashboardData({
@@ -238,7 +238,7 @@ const Dashboard = () => {
                 profile.tier === "Free" ? "lg-grid-cols-3" : "lg:grid-cols-3"
               } gap-6`}
             >
-              <Card className="gradient-card card-hover">
+              <Card className=" card-hover">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Total Quotes Value
@@ -258,7 +258,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="gradient-card card-hover">
+              <Card className=" card-hover">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Active Projects
@@ -275,7 +275,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="gradient-card card-hover">
+              <Card className=" card-hover">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Completed Projects
@@ -293,7 +293,7 @@ const Dashboard = () => {
               </Card>
 
               {/* {profile.tier !== "Free" && (
-                <Card className="gradient-card card-hover">
+                <Card className=" card-hover">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
                       Client Rating
@@ -318,7 +318,7 @@ const Dashboard = () => {
             {/* Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Quotes */}
-              <Card className="gradient-card lg:col-span-2">
+              <Card className=" lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <FileText className="w-5 h-5 mr-2" />
@@ -383,7 +383,7 @@ const Dashboard = () => {
 
               {profile.tier !== "Free" && (
                 <div className="space-y-6">
-                  <Card className="gradient-card">
+                  <Card className="">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Clock className="w-5 h-5 mr-2" />
@@ -420,7 +420,7 @@ const Dashboard = () => {
                   </Card>
                   {/* 
                   {reviews.length > 0 && (
-                    <Card className="gradient-card">
+                    <Card className="">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <Star className="w-5 h-5 mr-2" />

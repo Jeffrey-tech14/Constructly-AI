@@ -49,7 +49,7 @@ export const generateQuoteExcel = async ({
   };
 
   // 1. Summary Sheet
-  const summaryData = [
+  const summaryData: any[] = [
     ["PROJECT SUMMARY"],
     ["Project Title", quote.title],
     ["Client Name", quote.client_name],
@@ -63,16 +63,20 @@ export const generateQuoteExcel = async ({
     ["COST BREAKDOWN"],
     ["Materials Cost", quote.materials_cost],
     ["Labor Cost", quote.labor_cost],
-    ["Equipment Cost", quote.equipment_cost],
-    ["Transport Cost", quote.transport_costs],
-    ["Services Cost", quote.services_cost],
-    ["Subcontractors Cost", quote.subcontractors_cost],
-    ["Preliminaries Cost", quote.preliminaries_cost],
-    ["Additional Items Cost", quote.addons_cost],
-    ["Permit Cost", quote.permit_cost],
-    [""],
-    ["Subtotal", quote.subtotal],
   ];
+
+  if (!isClientExport) {
+    summaryData.push(["Equipment Cost", quote.equipment_cost]);
+    summaryData.push(["Transport Cost", quote.transport_costs]);
+    summaryData.push(["Services Cost", quote.services_cost]);
+    summaryData.push(["Subcontractors Cost", quote.subcontractors_cost]);
+    summaryData.push(["Additional Items Cost", quote.addons_cost]);
+  }
+
+  summaryData.push(["Preliminaries Cost", quote.preliminaries_cost]);
+  summaryData.push(["Permit Cost", quote.permit_cost]);
+  summaryData.push([""]);
+  summaryData.push(["Subtotal", quote.subtotal]);
 
   // Add profit information based on audience
   if (!isClientExport) {
@@ -88,6 +92,12 @@ export const generateQuoteExcel = async ({
   summaryData.push([""], ["GRAND TOTAL", quote.total_amount]);
 
   const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+  // Improve spreadsheet appearance
+  // Header row bold
+  const headerCell = summaryWs["A1"];
+  if (headerCell) (headerCell as any).s = { font: { bold: true } };
+  // Set column widths
+  (summaryWs as any)["!cols"] = [{ wch: 26 }, { wch: 20 }];
   XLSX.utils.book_append_sheet(wb, summaryWs, "Summary");
 
   // 2. BOQ Sections (only for contractor)
@@ -168,6 +178,14 @@ export const generateQuoteExcel = async ({
       ]);
 
       const materialsWs = XLSX.utils.aoa_to_sheet(materialsData);
+      (materialsWs as any)["!cols"] = [
+        { wch: 8 },
+        { wch: 45 },
+        { wch: 10 },
+        { wch: 12 },
+        { wch: 14 },
+        { wch: 16 },
+      ];
       XLSX.utils.book_append_sheet(wb, materialsWs, "Materials");
     }
   }
@@ -216,6 +234,7 @@ export const generateQuoteExcel = async ({
     }
 
     const additionalCostsWs = XLSX.utils.aoa_to_sheet(additionalCostsData);
+    (additionalCostsWs as any)["!cols"] = [{ wch: 30 }, { wch: 18 }];
     XLSX.utils.book_append_sheet(wb, additionalCostsWs, "Additional Costs");
   }
 

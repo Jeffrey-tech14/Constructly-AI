@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Trash2, Edit, Save, FolderPlus, Type } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PrelimItem {
   itemNo: string;
@@ -35,13 +36,15 @@ const PreliminariesBuilder = ({
   onPreliminariesUpdate,
   onSaveToQuote,
 }: PreliminariesBuilderProps) => {
+  const { user } = useAuth();
+
   const sections: PrelimSection[] = useMemo(() => {
     const prelims = quoteData?.preliminaries;
     if (Array.isArray(prelims) && prelims.length > 0) {
       return JSON.parse(JSON.stringify(prelims));
     }
     return [{ title: "General Preliminaries", items: [] }];
-  }, [quoteData?.preliminaries]);
+  }, [quoteData?.preliminaries, user]);
 
   const [editingItem, setEditingItem] = useState<{
     sectionIndex: number;
@@ -93,7 +96,9 @@ const PreliminariesBuilder = ({
     });
     updateSections(newSections);
   };
-
+  useEffect(() => {
+    updateSections(sections);
+  }, [quoteData?.preliminaries, user, sections]);
   const addHeader = (sectionIndex: number) => {
     const newSections = [...sections];
     const newItemNo = `HDR-${
@@ -152,7 +157,7 @@ const PreliminariesBuilder = ({
       </div>
 
       {sections.map((section, sectionIndex) => (
-        <Card key={sectionIndex} className="gradient-card">
+        <Card key={sectionIndex} className="">
           <CardHeader className="flex flex-row items-center justify-between">
             <Input
               value={section.title}
@@ -188,7 +193,9 @@ const PreliminariesBuilder = ({
                     <TableRow
                       key={`${sectionIndex}-${itemIndex}-${item.itemNo}`}
                       className={
-                        item.isHeader ? "bg-gray-900 font-semibold" : ""
+                        item.isHeader
+                          ? "bg-gray-100 dark:bg-gray-700 rounded-lg font-semibold"
+                          : ""
                       }
                     >
                       <TableCell>{item.isHeader ? "" : item.itemNo}</TableCell>

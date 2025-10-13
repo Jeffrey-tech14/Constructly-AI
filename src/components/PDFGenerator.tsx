@@ -9,7 +9,7 @@ import {
   Font,
   Image,
 } from "@react-pdf/renderer";
-import { BOQSection, BOQItem } from "@/types/boq";
+import { BOQSection, BOQItem, MaterialBreakdown } from "@/types/boq";
 import {
   AdvancedMaterialExtractor,
   CategorizedMaterial,
@@ -19,17 +19,50 @@ import {
   ConsolidatedMaterial,
   MaterialConsolidator,
 } from "@/utils/materialConsolidator";
+
 import { Pickaxe } from "lucide-react";
 
 // --- Register Outfit Font ---
 Font.register({
   family: "Outfit",
   fonts: [
-    { src: "/fonts/Outfit-Regular.ttf", fontWeight: "normal" },
-    { src: "/fonts/Outfit-Bold.ttf", fontWeight: "bold" },
-    { src: "/fonts/Outfit-Light.ttf", fontWeight: "light" },
-    { src: "/fonts/Outfit-Medium.ttf", fontWeight: "medium" },
-    { src: "/fonts/Outfit-SemiBold.ttf", fontWeight: "semibold" },
+    {
+      src: "/fonts/Outfit-Regular.ttf",
+      fontWeight: "normal",
+      fontStyle: "normal",
+    },
+    { src: "/fonts/Outfit-Bold.ttf", fontWeight: "bold", fontStyle: "normal" },
+    {
+      src: "/fonts/Outfit-Light.ttf",
+      fontWeight: "light",
+      fontStyle: "normal",
+    },
+    {
+      src: "/fonts/Outfit-Medium.ttf",
+      fontWeight: "medium",
+      fontStyle: "normal",
+    },
+    {
+      src: "/fonts/Outfit-SemiBold.ttf",
+      fontWeight: "semibold",
+      fontStyle: "normal",
+    },
+    // Since Outfit doesn't have a true italic variant, use the regular font for italic style
+    {
+      src: "/fonts/Outfit-Regular.ttf",
+      fontWeight: "normal",
+      fontStyle: "italic",
+    },
+    {
+      src: "/fonts/Outfit-Light.ttf",
+      fontWeight: "light",
+      fontStyle: "italic",
+    },
+    {
+      src: "/fonts/Outfit-Medium.ttf",
+      fontWeight: "medium",
+      fontStyle: "italic",
+    },
   ],
 });
 
@@ -48,7 +81,34 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
-    borderBottomStyle: "solid",
+  },
+  materialCategoryHeader: {
+    fontSize: 12,
+    fontWeight: "medium",
+    marginTop: 12,
+    marginBottom: 4,
+    padding: 6,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 4,
+  },
+  materialSource: {
+    fontSize: 8,
+    color: "#6B7280",
+    fontWeight: "light",
+    marginTop: 2,
+  },
+  sectionHeader: {
+    backgroundColor: "#F3F4F6",
+    padding: 8,
+    marginVertical: 8,
+    fontWeight: "bold",
+  },
+  subSectionHeader: {
+    backgroundColor: "#F9FAFB",
+    padding: 6,
+    marginVertical: 4,
+    fontWeight: "medium",
+    fontSize: 9,
   },
   title: {
     fontSize: 18,
@@ -277,7 +337,7 @@ const styles = StyleSheet.create({
   },
 
   materialScheduleColDescription: {
-    width: "30%",
+    width: "90%",
     padding: 5,
     textAlign: "left",
     fontSize: 9,
@@ -360,9 +420,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     padding: 8,
     backgroundColor: "#3B82F6",
-    color: "#FFFFFF",
-    borderRadius: 4,
-    textAlign: "center",
   },
   materialScheduleHeaderRow: {
     flexDirection: "row",
@@ -515,6 +572,7 @@ interface PDFGeneratorProps {
   overhead_amount: number;
   labour: number;
   permits: number;
+  isClientExport?: boolean;
 }
 // Add these interfaces to your types section
 interface EquipmentItem {
@@ -584,10 +642,11 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   overhead_amount = 0,
   labour = 0,
   permits = 0,
+  isClientExport = false,
 }) => {
   // --- Filter out empty sections ---
   const nonEmptySections = useMemo(() => {
-    return boqData.filter((section) => {
+    return boqData?.filter((section) => {
       // Include sections that have either non-header items OR are important structural sections
       const hasNonHeaderItems = section.items.some((item) => !item.isHeader);
       const hasHeadersOnly = section.items.some((item) => item.isHeader);
@@ -641,6 +700,15 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     () => consolidatedMaterials.reduce((sum, m) => sum + m.amount, 0),
     [consolidatedMaterials]
   );
+  // Group materials by category
+  const materialsByCategory = materialSchedule.reduce((acc, material) => {
+    const category = material.category || "Uncategorized";
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(material);
+    return acc;
+  }, {} as Record<string, ConsolidatedMaterial[]>);
 
   const renderAdditionalCostDetails = () => {
     return (
@@ -694,23 +762,27 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             </Text>
           </View>
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableColDescription, { width: "70%" }]}>
-              Profit:
-            </Text>
-            <Text style={[styles.tableColAmount, { width: "30%" }]}>
-              {formatCurrency(profit)}
-            </Text>
-          </View>
+          {!isClientExport && (
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                Profit:
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                {formatCurrency(profit)}
+              </Text>
+            </View>
+          )}
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableColDescription, { width: "70%" }]}>
-              Transport Cost:
-            </Text>
-            <Text style={[styles.tableColAmount, { width: "30%" }]}>
-              {formatCurrency(transportCost)}
-            </Text>
-          </View>
+          {!isClientExport && (
+            <View style={styles.tableRow}>
+              <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                Transport Cost:
+              </Text>
+              <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                {formatCurrency(transportCost)}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -718,6 +790,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   // Add these rendering functions for separate pages
   const renderEquipmentPage = (equipment: EquipmentItem[]) => {
     if (!equipment || equipment.length === 0) return null;
+    if (isClientExport) return null;
 
     return (
       <Page key="equipment-page" style={styles.page}>
@@ -734,6 +807,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
 
   const renderSubcontractorsPage = (subcontractors: Subcontractor[]) => {
     if (!subcontractors || subcontractors.length === 0) return null;
+    if (isClientExport) return null;
 
     return (
       <Page key="subcontractors-page" style={styles.page}>
@@ -779,79 +853,189 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       </Page>
     );
   };
-
+  const renderMaterialRow = (material: ConsolidatedMaterial) => (
+    <View style={styles.materialScheduleRow}>
+      <Text style={styles.materialScheduleColItem}>{material.itemNo}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.materialScheduleColDescription}>
+          {material.description}
+        </Text>
+        {material.category && (
+          <Text style={styles.materialSource}>From: {material.category}</Text>
+        )}
+      </View>
+      <Text style={styles.materialScheduleColUnit}>{material.unit}</Text>
+      <Text style={styles.materialScheduleColQty}>
+        {material.quantity.toFixed(2)}
+      </Text>
+      <Text style={styles.materialScheduleColRate}>
+        {material.rate?.toLocaleString()}
+      </Text>
+      <Text style={styles.materialScheduleColAmount}>
+        {material.amount?.toLocaleString()}
+      </Text>
+    </View>
+  );
   // Remove the renderMaterialSchedule function and replace with a simple table renderer:
   const renderConsolidatedMaterials = (materials: ConsolidatedMaterial[]) => {
     if (materials.length === 0) return null;
 
+    // Group materials by category
+    const materialsByCategory = materials.reduce((acc, material) => {
+      const category = material.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(material);
+      return acc;
+    }, {} as Record<string, ConsolidatedMaterial[]>);
+
     const materialsTotal = materials.reduce((sum, m) => sum + m.amount, 0);
-    const itemChunks = chunkArray(materials, 20);
 
-    return itemChunks.map((chunk, chunkIndex) => (
-      <Page key={`materials-chunk-${chunkIndex}`} style={styles.page}>
-        <CompanyHeader />
+    // Return pages for each category
+    // Return pages for each category
+    return Object.entries(materialsByCategory).flatMap(
+      ([category, categoryMaterials]) => {
+        const itemChunks = chunkArray(categoryMaterials, 18); // Reduced to account for category headers
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>MATERIALS SCHEDULE</Text>
+        return itemChunks.map((chunk, chunkIndex) => (
+          <Page
+            key={`materials-${category}-${chunkIndex}`}
+            size="A4"
+            style={styles.page}
+          >
+            <CompanyHeader />
+            <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
+            <Text style={styles.materialCategoryHeader}>
+              {category.toUpperCase()}
+            </Text>
 
-          {/* Use the material schedule specific table structure */}
-          <View style={styles.materialScheduleTable}>
-            {/* Table headers */}
-            <View style={styles.materialScheduleHeaderRow}>
-              <Text style={styles.materialScheduleColHeaderItem}>ITEM</Text>
-              <Text style={styles.materialScheduleColHeaderDescription}>
-                DESCRIPTION
-              </Text>
-              <Text style={styles.materialScheduleColHeaderUnit}>UNIT</Text>
-              <Text style={styles.materialScheduleColHeaderQty}>QTY</Text>
-              <Text style={styles.materialScheduleColHeaderRate}>RATE</Text>
-              <Text style={styles.materialScheduleColHeaderAmount}>AMOUNT</Text>
-            </View>
-
-            {chunk.map((material, index) => (
-              <View key={index} style={styles.materialScheduleRow}>
-                <Text style={styles.materialScheduleColItem}>
-                  {material.itemNo}
+            <View style={styles.materialScheduleTable}>
+              <View style={styles.materialScheduleHeaderRow}>
+                <Text style={styles.materialScheduleColHeaderItem}>Item</Text>
+                <Text style={styles.materialScheduleColHeaderDescription}>
+                  Description
                 </Text>
-                <Text style={styles.materialScheduleColDescription}>
-                  {material.description}
-                </Text>
-                <Text style={styles.materialScheduleColUnit}>
-                  {material.unit}
-                </Text>
-                <Text style={styles.materialScheduleColQty}>
-                  {formatQuantity(material.quantity)}
-                </Text>
-                <Text style={styles.materialScheduleColRate}>
-                  {formatCurrency(material.rate)}
-                </Text>
-                <Text style={styles.materialScheduleColAmount}>
-                  {formatCurrency(material.amount)}
+                <Text style={styles.materialScheduleColHeaderUnit}>Unit</Text>
+                <Text style={styles.materialScheduleColHeaderQty}>Qty</Text>
+                <Text style={styles.materialScheduleColHeaderRate}>Rate</Text>
+                <Text style={styles.materialScheduleColHeaderAmount}>
+                  Amount
                 </Text>
               </View>
-            ))}
-          </View>
 
-          {/* Total on last chunk */}
-          {chunkIndex === itemChunks.length - 1 && (
-            <View style={styles.sectionTotalRow}>
-              <Text style={styles.sectionTotalLabel}>
-                TOTAL MATERIALS COST:
-              </Text>
-              <Text style={styles.sectionTotalValue}>
-                {formatCurrency(materialsTotal)}
-              </Text>
+              {chunk.map((material, index) => renderMaterialRow(material))}
+
+              {/* Category total */}
+              {chunkIndex === itemChunks.length - 1 && (
+                <View style={styles.sectionTotalRow}>
+                  <Text style={styles.sectionTotalLabel}>
+                    Total for {category}:
+                  </Text>
+                  <Text style={styles.sectionTotalValue}>
+                    {formatCurrency(
+                      categoryMaterials.reduce(
+                        (sum, m) => sum + (m.amount || 0),
+                        0
+                      )
+                    )}
+                  </Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
 
-        <View style={styles.boqFooter} fixed>
-          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
-          <Text>{projectInfo.title}</Text>
-          <Text>{projectInfo.clientName}</Text>
-        </View>
-      </Page>
-    ));
+            {/* Show grand total on the last page of the last category */}
+            {category ===
+              Object.keys(materialsByCategory)[
+                Object.keys(materialsByCategory).length - 1
+              ] &&
+              chunkIndex === itemChunks.length - 1 && (
+                <View style={styles.grandTotalRow}>
+                  <Text style={styles.grandTotalLabel}>
+                    TOTAL MATERIALS COST:
+                  </Text>
+                  <Text style={styles.grandTotalValue}>
+                    {formatCurrency(materialsTotal)}
+                  </Text>
+                </View>
+              )}
+
+            <View style={styles.boqFooter} fixed>
+              <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+              <Text>{projectInfo.title}</Text>
+              <Text>{projectInfo.clientName}</Text>
+            </View>
+          </Page>
+        ));
+      }
+    );
+
+    // return itemChunks.map((chunk, chunkIndex) => (
+    //   <Page key={`materials-chunk-${chunkIndex}`} style={styles.page}>
+    //     <CompanyHeader />
+
+    //     <View style={styles.section}>
+    //       <Text style={styles.sectionTitle}>MATERIALS SCHEDULE</Text>
+
+    //       {/* Use the material schedule specific table structure */}
+    //       <View style={styles.materialScheduleTable}>
+    //         {/* Table headers */}
+    //         <View style={styles.materialScheduleHeaderRow}>
+    //           <Text style={styles.materialScheduleColHeaderItem}>ITEM</Text>
+    //           <Text style={styles.materialScheduleColHeaderDescription}>
+    //             DESCRIPTION
+    //           </Text>
+    //           <Text style={styles.materialScheduleColHeaderUnit}>UNIT</Text>
+    //           <Text style={styles.materialScheduleColHeaderQty}>QTY</Text>
+    //           <Text style={styles.materialScheduleColHeaderRate}>RATE</Text>
+    //           <Text style={styles.materialScheduleColHeaderAmount}>AMOUNT</Text>
+    //         </View>
+
+    //         {chunk.map((material, index) => (
+    //           <View key={index} style={styles.materialScheduleRow}>
+    //             <Text style={styles.materialScheduleColItem}>
+    //               {material.itemNo}
+    //             </Text>
+    //             <Text style={styles.materialScheduleColDescription}>
+    //               {/* Description now includes the source/location information */}
+    //               {material.description}
+    //             </Text>
+    //             <Text style={styles.materialScheduleColUnit}>
+    //               {material.unit}
+    //             </Text>
+    //             <Text style={styles.materialScheduleColQty}>
+    //               {formatQuantity(material.quantity)}
+    //             </Text>
+    //             <Text style={styles.materialScheduleColRate}>
+    //               {formatCurrency(material.rate)}
+    //             </Text>
+    //             <Text style={styles.materialScheduleColAmount}>
+    //               {formatCurrency(material.amount)}
+    //             </Text>
+    //           </View>
+    //         ))}
+    //       </View>
+
+    //       {/* Total on last chunk */}
+    //       {chunkIndex === itemChunks.length - 1 && (
+    //         <View style={styles.sectionTotalRow}>
+    //           <Text style={styles.sectionTotalLabel}>
+    //             TOTAL MATERIALS COST:
+    //           </Text>
+    //           <Text style={styles.sectionTotalValue}>
+    //             {formatCurrency(materialsTotal)}
+    //           </Text>
+    //         </View>
+    //       )}
+    //     </View>
+
+    //     <View style={styles.boqFooter} fixed>
+    //       <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+    //       <Text>{projectInfo.title}</Text>
+    //       <Text>{projectInfo.clientName}</Text>
+    //     </View>
+    //   </Page>
+    // ));
   };
 
   // --- Calculate Section Totals ---

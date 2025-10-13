@@ -23,6 +23,10 @@ import {
   HardDriveDownload,
   FileIcon,
   LucideFileText,
+  AlertTriangle,
+  AlertCircle,
+  Eye,
+  X,
 } from "lucide-react";
 import { ExtractedPlan, usePlan } from "@/contexts/PlanContext";
 import { usePlanUpload } from "@/hooks/usePlanUpload";
@@ -74,19 +78,68 @@ export interface ParsedPlan {
   file_url?: string;
   uploaded_at?: string;
   file_name?: string;
+  note?: string;
 }
+
+// Preview Modal Component
+const PreviewModal = ({
+  fileUrl,
+  fileType,
+}: {
+  fileUrl: string;
+  fileType: string;
+}) => {
+  const isPDF =
+    fileType === "application/pdf" || fileUrl.toLowerCase().endsWith(".pdf");
+  const isImage =
+    fileType.startsWith("image/") ||
+    fileUrl.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|bmp)$/);
+
+  return (
+    <div className="p-4 max-h-[80vh] w-full overflow-auto">
+      {isPDF ? (
+        <iframe
+          src={fileUrl}
+          className="w-full h-[70vh] rounded-lg border border-slate-200 dark:border-slate-600"
+          title="PDF Preview"
+        />
+      ) : isImage ? (
+        <img
+          src={fileUrl}
+          alt="Plan preview"
+          className="max-w-full max-h-[70vh] mx-auto rounded-lg shadow-lg object-contain"
+        />
+      ) : (
+        <div className="text-center py-8">
+          <FileIcon className="w-16 h-16 mx-auto text-slate-400 mb-4" />
+          <p className="text-slate-600 dark:text-slate-300">
+            Preview not available for this file type
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const UploadPlan = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<
-    "idle" | "uploading" | "analyzing" | "complete"
+    "idle" | "uploading" | "analyzing" | "complete" | "error"
   >("idle");
   const [confidence, setConfidence] = useState<number>(0);
   const [extractedDataPreview, setExtractedDataPreview] =
     useState<ParsedPlan | null>(null);
   const [editablePlan, setEditablePlan] = useState<ExtractedPlan | null>(null);
+  const [response, setResponse] = useState([]);
+  const [error, setError] = useState<{
+    message: string;
+    type: "upload" | "analysis" | "save" | "network";
+    retryable: boolean;
+  } | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const location = useLocation();
@@ -94,6 +147,8 @@ const UploadPlan = () => {
   const { uploadPlan, deletePlan } = usePlanUpload();
   const { setExtractedPlan } = usePlan();
   const { toast } = useToast();
+
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     if (quoteData?.plan_file_url) {
@@ -104,13 +159,11 @@ const UploadPlan = () => {
 
   async function downloadFile(publicUrl, file_name) {
     try {
-      // First, try to get file info to see if it's accessible
       const url = new URL(publicUrl);
       const pathParts = url.pathname.split("/");
       const bucketName = pathParts[5];
       const filePath = pathParts.slice(6).join("/");
 
-      // Try to get file info (this will work for both public and private)
       const { data: fileInfo, error: infoError } = await supabase.storage
         .from(bucketName)
         .list("", {
@@ -118,7 +171,6 @@ const UploadPlan = () => {
           search: filePath.split("/").pop(),
         });
 
-      // Try direct download first (for public files)
       const response = await fetch(publicUrl);
 
       if (response.ok) {
@@ -138,7 +190,6 @@ const UploadPlan = () => {
         return;
       }
 
-      // If direct download fails, try signed URL (for private files)
       const { data, error } = await supabase.storage
         .from(bucketName)
         .createSignedUrl(filePath, 60);
@@ -147,7 +198,6 @@ const UploadPlan = () => {
         throw error;
       }
 
-      // Download using signed URL
       const signedResponse = await fetch(data.signedUrl);
       if (!signedResponse.ok) {
         throw new Error(`HTTP error! status: ${signedResponse.status}`);
@@ -172,7 +222,6 @@ const UploadPlan = () => {
 
   const handleRemoveFile = async () => {
     if (fileUrl && quoteData?.id) {
-      // Delete from Supabase
       await deletePlan(fileUrl);
       await supabase
         .from("quotes")
@@ -189,32 +238,76 @@ const UploadPlan = () => {
     setCurrentStep("idle");
     setExtractedDataPreview(null);
     setEditablePlan(null);
+    setError(null);
+    setRetryCount(0);
   };
 
   const handleRetry = () => {
     if (selectedFile) {
+      setError(null);
+      setRetryCount((prev) => prev + 1);
       handleFileChange({ target: { files: [selectedFile] } } as any);
     }
   };
 
-  // --- Analyze with backend (only) ---
-  const analyzePlan = async (file: File): Promise<ParsedPlan> => {
+  const analyzePlan = async (
+    file: File,
+    setError: Function,
+    setCurrentStep: Function
+  ): Promise<ParsedPlan> => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch(
-      "https://constructly-backend.onrender.com/api/plan/upload",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const res = await fetch("http://192.168.0.100:8000/api/plan/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-    if (!res.ok) throw new Error("Failed to parse plan");
-    return res.json();
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Analysis failed: ${res.status} - ${errorText}`);
+    }
+
+    const result = await res.json();
+
+    // ✅ Detect problematic note responses
+    if (result.note) {
+      const noteText = result.note.toString().toLowerCase();
+      const errorKeywords = [
+        "error",
+        "failed",
+        "invalid",
+        "missing",
+        "unable",
+        "issue",
+        "exception",
+      ];
+
+      const containsError = errorKeywords.some((word) =>
+        noteText.includes(word)
+      );
+      if (containsError) {
+        // Update UI immediately
+        setError({
+          message: result.note,
+          type: "analysis",
+          retryable: false,
+        });
+        setCurrentStep("error");
+
+        // Throw structured error for upper-level handling
+        throw new Error(`Server reported issue: ${result.note}`);
+      }
+    }
+
+    // ✅ Validate the response structure
+    if (!result.rooms || !Array.isArray(result.rooms)) {
+      throw new Error("Invalid response format: missing rooms array");
+    }
+
+    return result;
   };
 
-  // --- Upload permanently to Supabase + update DB ---
   const uploadAndSave = async (file: File): Promise<string> => {
     const fileUrl = await uploadPlan(file);
     await supabase
@@ -224,20 +317,87 @@ const UploadPlan = () => {
     return fileUrl;
   };
 
-  // --- Handle file input (preview only) ---
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const file = e.target.files[0];
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
 
+    const validExtensions = [
+      "jpg",
+      "jpeg",
+      "png",
+      "pdf",
+      "dwg",
+      "dxf",
+      "rvt",
+      "ifc",
+      "pln",
+      "zip",
+      "csv",
+      "xlsx",
+      "txt",
+      "webp",
+    ];
+
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "application/pdf",
+      "application/acad",
+      "application/x-acad",
+      "image/vnd.dwg",
+      "image/vnd.dxf",
+      "application/dxf",
+      "application/dwg",
+      "application/vnd.autodesk.revit",
+      "model/vnd.ifc",
+      "application/octet-stream",
+      "application/x-twinmotion",
+      "application/zip",
+      "application/x-zip-compressed",
+      "text/plain",
+      "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "image/webp",
+    ];
+
+    // ✅ New validation: pass if MIME or extension is valid
+    const isValidType =
+      validTypes.includes(file.type) || validExtensions.includes(fileExt || "");
+
+    if (!isValidType) {
+      setError({
+        message:
+          "Please upload a supported file format (JPEG, PNG, PDF, DWG, DXF, RVT, IFC, ZIP, CSV, XLSX, TXT, WEBP)",
+        type: "upload",
+        retryable: true,
+      });
+      setCurrentStep("error");
+      return;
+    }
+
+    // ✅ Size validation
+    if (file.size > 10 * 1024 * 1024) {
+      setError({
+        message: "File size must be less than 10MB",
+        type: "upload",
+        retryable: true,
+      });
+      setCurrentStep("error");
+      return;
+    }
+
+    // ✅ Continue as before
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
     setConfidence(0);
+    setError(null);
 
     try {
       setCurrentStep("uploading");
       setCurrentStep("analyzing");
 
-      const data = await analyzePlan(file);
+      const data = await analyzePlan(file, setError, setCurrentStep);
 
       setEditablePlan({
         ...data,
@@ -248,31 +408,55 @@ const UploadPlan = () => {
 
       setConfidence(Math.min(80 + Math.random() * 20, 100));
       setCurrentStep("complete");
+      setRetryCount(0);
     } catch (err) {
-      console.error(err);
+      console.error("Analysis error:", err);
+      let errorType: "analysis" | "network" = "analysis";
+      let errorMessage = "Failed to analyze plan. Please try again.";
+
+      if (
+        err.message.includes("Failed to fetch") ||
+        err.message.includes("Network")
+      ) {
+        errorType = "network";
+        errorMessage =
+          "Network error. Please check your connection and try again.";
+      } else if (err.message.includes("Invalid response format")) {
+        errorMessage =
+          "The analysis service returned an unexpected format. Please try again.";
+      } else if (err.message.includes("Server reported issue")) {
+        errorMessage =
+          "Server reported issue: Automatic detection failed. Please try again";
+      }
+
+      setError({
+        message: errorMessage,
+        type: errorType,
+        retryable: retryCount < MAX_RETRIES,
+      });
+      setCurrentStep("error");
+
       toast({
-        title: "Error",
-        description: "Failed to analyze plan.",
+        title: "Analysis Failed",
+        description: errorMessage,
         variant: "destructive",
       });
-      setCurrentStep("idle");
     }
   };
 
-  // --- Handle final save (Supabase + context + navigate) ---
   const handleDone = async () => {
     if (!selectedFile || !quoteData?.id || !editablePlan) return;
 
     try {
-      // 1. Upload to Supabase + update quote
+      setCurrentStep("uploading");
       toast({
         title: "Uploading plan",
         description: "Please wait",
       });
+
       const fileUrl = await uploadAndSave(selectedFile);
       setFileUrl(fileUrl);
 
-      // 2. Finalize plan with user edits
       const finalPlan: ExtractedPlan = {
         ...editablePlan,
         file_url: fileUrl,
@@ -288,17 +472,46 @@ const UploadPlan = () => {
         description: `${finalPlan.rooms.length} rooms across ${finalPlan.floors} floor(s).`,
       });
 
-      // 3. Navigate back
-      const quote = quoteData;
-      navigate("/quotes/new", { state: { quote } });
+      navigate("/quotes/new", { state: { quote: quoteData } });
     } catch (error) {
       console.error("Error saving plan:", error);
+      setError({
+        message: "Failed to save plan. Please try again.",
+        type: "save",
+        retryable: true,
+      });
+      setCurrentStep("error");
+
       toast({
         title: "Error",
         description: "Could not save plan.",
         variant: "destructive",
       });
-      setCurrentStep("idle");
+    }
+  };
+
+  const getErrorIcon = () => {
+    console.log(error);
+    switch (error?.type) {
+      case "network":
+        return <AlertCircle className="w-6 h-6" />;
+      case "analysis":
+        return <AlertTriangle className="w-6 h-6" />;
+      default:
+        return <AlertCircle className="w-6 h-6" />;
+    }
+  };
+
+  const getErrorColor = () => {
+    switch (error?.type) {
+      case "network":
+        return "text-orange-500 dark:text-orange-200";
+      case "analysis":
+        return "text-red-500 dark:text-red-200";
+      case "save":
+        return "text-red-500 dark:text-red-200";
+      default:
+        return "text-red-500 dark:text-red-200";
     }
   };
 
@@ -380,7 +593,7 @@ const UploadPlan = () => {
         </div>
 
         {/* Progress Steps */}
-        {currentStep !== "idle" && (
+        {currentStep !== "idle" && currentStep !== "error" && (
           <div className="mb-10 p-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 transform transition-all duration-500 hover:shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               {["Uploading", "Analyzing", "Complete"].map((label, idx) => {
@@ -444,8 +657,72 @@ const UploadPlan = () => {
           </div>
         )}
 
+        {/* Error State */}
+        {currentStep === "error" && error && (
+          <div className="mb-10 p-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-xl border border-red-200 dark:border-red-800 transform transition-all duration-500">
+            <div className="flex items-center space-x-4 mb-4">
+              <div
+                className={`p-3 rounded-full bg-red-100 dark:bg-red-900 ${getErrorColor()}`}
+              >
+                {getErrorIcon()}
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-red-800 dark:text-red-200">
+                  {error.type === "network"
+                    ? "Connection Error"
+                    : error.type === "analysis"
+                    ? "Analysis Failed"
+                    : "Save Error"}
+                </h3>
+                <p className="text-red-600 dark:text-red-300">
+                  {error.message}
+                </p>
+                {retryCount > 0 && (
+                  <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                    Attempt {retryCount} of {MAX_RETRIES}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex space-x-4 mt-6">
+              <Button
+                variant="outline"
+                onClick={handleRemoveFile}
+                className="flex-1 border-red-200 text-red-600 hover:text-white hover:bg-red-700"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove File
+              </Button>
+
+              {error.retryable && (
+                <Button
+                  onClick={handleRetry}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={retryCount >= MAX_RETRIES}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {retryCount >= MAX_RETRIES
+                    ? "Max Retries Reached"
+                    : "Try Again"}
+                </Button>
+              )}
+            </div>
+
+            {retryCount >= MAX_RETRIES && (
+              <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                  💡 <strong>Tip:</strong> Try uploading a clearer image or a
+                  different file format. Make sure your plan has clear room
+                  labels and dimensions.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Main Card */}
-        <Card className="backdrop-blur-md bg-white/85 dark:bg-slate-800/85 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:shadow-3xl">
+        <Card className=" shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:shadow-3xl">
           <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-800 text-white py-6">
             <CardTitle className="sm:text-xl font-bold">
               Upload Your Floor Plan
@@ -498,7 +775,7 @@ const UploadPlan = () => {
                     className="text-slate-700 dark:text-slate-200  h-14"
                   >
                     <RefreshCw className="w-6 h-6 mr-2" />
-                    Retry
+                    Retry Analysis
                   </Button>
                 </div>
               </div>
@@ -508,13 +785,19 @@ const UploadPlan = () => {
                 <p className="mb-4  text-slate-600 dark:text-slate-300">
                   Drag & drop your plan or click to upload
                 </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                  Supported formats: JPEG, PNG, PDF, DWG, DXF, RVT, IFC, ZIP,
+                  CSV, XLSX, WEBP (Max 10MB)
+                </p>
+
                 <Input
                   type="file"
-                  accept=".jpg,.png,.pdf"
+                  accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
                   onChange={handleFileChange}
                   className="hidden"
                   id="fileUpload"
                 />
+
                 <Label
                   htmlFor="fileUpload"
                   className="cursor-pointer inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
@@ -538,6 +821,31 @@ const UploadPlan = () => {
                     <Trash2 className="sm:w-6 sm:h-6" />
                   </Button>
                 </div>
+
+                {/* Preview Card for Selected File */}
+                {previewUrl && (
+                  <Card className="border border-slate-200 dark:border-slate-600 overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center">
+                        <Eye className="w-5 h-5 mr-2 text-blue-500" />
+                        Plan Preview
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div
+                        className="w-full h-[700px] rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-600"
+                        onClick={() => setShowPreviewModal(true)}
+                      >
+                        <div className="h-full flex flex-col items-center justify-center p-4">
+                          <PreviewModal
+                            fileUrl={previewUrl}
+                            fileType={selectedFile?.type || ""}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {currentStep === "complete" && editablePlan && (
                   <div className="scrollbar-hide">
@@ -585,9 +893,9 @@ const UploadPlan = () => {
                       </div>
 
                       {editablePlan.rooms.map((room, i) => (
-                        <div
+                        <Card
                           key={i}
-                          className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
+                          className="p-6 rounded-xl border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
                         >
                           <h4 className="sm:text-xl font-bold mb-4 text-blue-600 dark:text-blue-400">
                             Room {i + 1}: {room.room_name || "Unnamed"}
@@ -846,7 +1154,7 @@ const UploadPlan = () => {
                               />
                             </div>
                           </div>
-                        </div>
+                        </Card>
                       ))}
                     </div>
                   </div>
@@ -862,7 +1170,7 @@ const UploadPlan = () => {
               >
                 Cancel
               </Button>
-              {!fileUrl && selectedFile && (
+              {!fileUrl && selectedFile && currentStep !== "error" && (
                 <Button
                   onClick={handleDone}
                   disabled={

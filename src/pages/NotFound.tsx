@@ -14,7 +14,7 @@ const NotFound = () => {
   return (
     <div className="min-h-screen animate-fade-in flex items-center justify-center p-4 smooth-transition">
       <div className="text-center">
-        <Card className="gradient-card rounded-2xl border-0 shadow-2xl max-w-md mx-auto fade-in">
+        <Card className=" rounded-2xl border-0 shadow-2xl max-w-md mx-auto fade-in">
           <CardContent className="pt-6">
             <div className="flex items-center justify-center mb-6">
               <div className="p-3 rounded-xl  ">

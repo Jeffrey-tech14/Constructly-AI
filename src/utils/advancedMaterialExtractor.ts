@@ -1,9 +1,97 @@
 // src/utils/advancedMaterialExtractor.ts
-import { BOQSection } from "@/types/boq";
+import { BOQSection, MaterialBreakdown } from "@/types/boq";
 import {
   geminiService,
   GeminiMaterialResponse,
 } from "@/services/geminiService";
+import {
+  getMaterialConfig,
+  getMaterialBreakdown,
+  calculateMaterialQuantities,
+} from "@/config/materialConfig";
+
+// Material type definitions
+export type MaterialType =
+  // Primary structural materials
+  | "structural-concrete" // Reinforced concrete, precast elements
+  | "structural-steel" // Beams, columns, trusses
+  | "structural-timber" // Engineered wood, heavy timber
+  | "structural-masonry" // Load-bearing walls, columns
+
+  // Base materials
+  | "primary" // Main construction materials
+  | "aggregate" // Crushed stone, gravel, sand
+  | "binding" // Cement, lime, mortar
+  | "auxiliary" // Support materials
+
+  // Building envelope
+  | "roofing" // Tiles, sheets, membranes
+  | "insulation" // Thermal, acoustic insulation
+  | "waterproofing" // Membranes, sealants
+  | "cladding" // External wall finishes
+
+  // Interior materials
+  | "partition" // Non-load bearing walls
+  | "ceiling" // Suspended ceilings, panels
+  | "flooring" // Tiles, wood, carpet
+  | "wall-finish" // Plaster, paint, wallpaper
+
+  // Mechanical & Electrical
+  | "plumbing" // Pipes, fixtures
+  | "electrical" // Wiring, fixtures
+  | "hvac" // Heating, ventilation, AC
+  | "lighting" // Light fixtures, controls
+
+  // Joinery & Fixtures
+  | "door" // Internal, external doors
+  | "window" // Windows, glazing
+  | "cabinet" // Built-in furniture
+  | "hardware" // Handles, hinges, locks
+
+  // Site materials
+  | "earthwork" // Soil, fill material
+  | "foundation" // Footings, base materials
+  | "paving" // External hard surfaces
+  | "landscaping" // Plants, mulch, topsoil
+
+  // Process materials
+  | "formwork" // Temporary supports
+  | "scaffolding" // Access platforms
+  | "temporary" // Site facilities
+  | "preparatory" // Surface preparation
+
+  // Finishing materials
+  | "finishing" // Decorative finishes
+  | "painting" // Paints, varnishes
+  | "coating" // Protective coatings
+  | "sealant" // Joint sealants
+
+  // Safety & Protection
+  | "fire-protection" // Fire-rated materials
+  | "safety-equipment" // Guards, handrails
+  | "security" // Access control
+  | "protective" // Weather protection
+
+  // Specialty materials
+  | "acoustic" // Sound control
+  | "environmental" // Sustainable materials
+  | "decorative" // Ornamental elements
+  | "signage" // Signs, wayfinding
+
+  // Infrastructure
+  | "drainage" // Stormwater, sewage
+  | "utility" // Service infrastructure
+  | "road-base" // Road construction
+  | "reinforcement"; // Rebar, mesh;
+
+export interface MaterialProperty {
+  requirements: string[];
+  preparationSteps: string[];
+}
+
+export interface MaterialPropertyMap {
+  [key: string]: MaterialProperty;
+}
 
 export interface CategorizedMaterial {
   itemNo: string;
@@ -17,18 +105,300 @@ export interface CategorizedMaterial {
   source: string;
   location?: string;
   confidence?: number;
+  materialBreakdown?: MaterialBreakdown[];
+  materialType?: string;
+  workType?: string;
+  requirements?: string[];
+  preparationSteps?: string[];
+  relationships?: Array<{
+    material: string;
+    type: "requires" | "optional" | "precedes" | "follows";
+    description: string;
+  }>;
 }
 
 export type MaterialSchedule = CategorizedMaterial[];
 
+// --- Class ---
 export class AdvancedMaterialExtractor {
   private static itemCounter = 1;
+
+  // Default material properties
+  private static readonly defaultMaterialProperties: MaterialPropertyMap = {
+    // Primary structural materials
+    "structural-concrete": {
+      requirements: [
+        "Verify concrete mix design",
+        "Check reinforcement details",
+        "Monitor curing conditions",
+        "Check strength requirements",
+      ],
+      preparationSteps: [
+        "Setup formwork",
+        "Place reinforcement",
+        "Prepare surface",
+        "Check weather conditions",
+      ],
+    },
+    "structural-steel": {
+      requirements: [
+        "Check steel grade",
+        "Verify connection details",
+        "Confirm dimensions",
+        "Review welding specifications",
+      ],
+      preparationSteps: [
+        "Prepare connections",
+        "Check alignment",
+        "Setup welding equipment",
+        "Verify protective coating",
+      ],
+    },
+    "structural-timber": {
+      requirements: [
+        "Check moisture content",
+        "Verify grade and treatment",
+        "Review connection details",
+        "Check load specifications",
+      ],
+      preparationSteps: [
+        "Acclimatize material",
+        "Prepare joints",
+        "Check support conditions",
+        "Verify ventilation requirements",
+      ],
+    },
+    "structural-masonry": {
+      requirements: [
+        "Check unit specifications",
+        "Verify mortar mix",
+        "Review bond pattern",
+        "Check structural requirements",
+      ],
+      preparationSteps: [
+        "Prepare foundation",
+        "Setup guides",
+        "Mix mortar",
+        "Check weather conditions",
+      ],
+    },
+
+    // Base materials
+    primary: {
+      requirements: [
+        "Check material specifications",
+        "Store properly",
+        "Handle with care",
+        "Verify quantities",
+      ],
+      preparationSteps: [
+        "Check material quality",
+        "Prepare storage area",
+        "Review installation method",
+        "Setup handling equipment",
+      ],
+    },
+    aggregate: {
+      requirements: [
+        "Check gradation",
+        "Verify cleanliness",
+        "Test moisture content",
+        "Check contamination",
+      ],
+      preparationSteps: [
+        "Prepare storage area",
+        "Setup washing facility",
+        "Arrange stockpiles",
+        "Check drainage",
+      ],
+    },
+    binding: {
+      requirements: [
+        "Store in dry conditions",
+        "Use within specified time",
+        "Check mix specifications",
+        "Monitor temperature",
+      ],
+      preparationSteps: [
+        "Check mixing ratios",
+        "Prepare mixing area",
+        "Ensure water supply",
+        "Setup mixing equipment",
+      ],
+    },
+
+    // Building envelope
+    roofing: {
+      requirements: [
+        "Check weather resistance",
+        "Verify slope requirements",
+        "Check material compatibility",
+        "Review warranty conditions",
+      ],
+      preparationSteps: [
+        "Prepare substrate",
+        "Check ventilation",
+        "Setup safety equipment",
+        "Verify drainage",
+      ],
+    },
+    insulation: {
+      requirements: [
+        "Check R-value",
+        "Verify moisture protection",
+        "Review fire rating",
+        "Check vapor barrier requirements",
+      ],
+      preparationSteps: [
+        "Clean cavity",
+        "Check ventilation",
+        "Prepare barriers",
+        "Setup protection",
+      ],
+    },
+    waterproofing: {
+      requirements: [
+        "Check product compatibility",
+        "Verify coverage rates",
+        "Review cure times",
+        "Check weather conditions",
+      ],
+      preparationSteps: [
+        "Clean surface",
+        "Repair cracks",
+        "Apply primer",
+        "Setup protection",
+      ],
+    },
+
+    // Interior materials
+    "wall-finish": {
+      requirements: [
+        "Check surface preparation",
+        "Verify material compatibility",
+        "Review application conditions",
+        "Check coverage rates",
+      ],
+      preparationSteps: [
+        "Clean surface",
+        "Repair defects",
+        "Apply primer",
+        "Protect adjacent areas",
+      ],
+    },
+    flooring: {
+      requirements: [
+        "Check substrate condition",
+        "Verify moisture levels",
+        "Review installation pattern",
+        "Check material acclimation",
+      ],
+      preparationSteps: [
+        "Level substrate",
+        "Clean surface",
+        "Apply primer",
+        "Setup layout lines",
+      ],
+    },
+
+    // Process materials
+    formwork: {
+      requirements: [
+        "Check structural stability",
+        "Verify dimensions",
+        "Review release agents",
+        "Check support spacing",
+      ],
+      preparationSteps: [
+        "Clean panels",
+        "Apply release agent",
+        "Check alignment",
+        "Verify bracing",
+      ],
+    },
+    scaffolding: {
+      requirements: [
+        "Check load capacity",
+        "Verify stability",
+        "Review safety requirements",
+        "Check access requirements",
+      ],
+      preparationSteps: [
+        "Level base",
+        "Check components",
+        "Install guardrails",
+        "Verify ties",
+      ],
+    },
+
+    // Finishing materials
+    finishing: {
+      requirements: [
+        "Check surface preparation",
+        "Verify environmental conditions",
+        "Review application method",
+        "Check cure times",
+      ],
+      preparationSteps: [
+        "Clean surface",
+        "Protect surroundings",
+        "Check ventilation",
+        "Setup equipment",
+      ],
+    },
+    painting: {
+      requirements: [
+        "Check paint compatibility",
+        "Verify coverage rates",
+        "Review environmental conditions",
+        "Check color consistency",
+      ],
+      preparationSteps: [
+        "Prepare surface",
+        "Mask areas",
+        "Check ventilation",
+        "Mix paint",
+      ],
+    },
+
+    // Process steps
+    preparatory: {
+      requirements: [
+        "Check surface conditions",
+        "Verify site readiness",
+        "Review sequence",
+        "Check equipment",
+      ],
+      preparationSteps: [
+        "Clean work area",
+        "Setup equipment",
+        "Verify access",
+        "Check safety measures",
+      ],
+    },
+    auxiliary: {
+      requirements: [
+        "Check compatibility",
+        "Verify quantities",
+        "Review installation method",
+        "Check storage requirements",
+      ],
+      preparationSteps: [
+        "Prepare work area",
+        "Setup equipment",
+        "Check access",
+        "Verify conditions",
+      ],
+    },
+  };
 
   // --- Public API ---
   static async extractWithGemini(quote: any): Promise<MaterialSchedule> {
     try {
       const geminiAnalysis = await geminiService.analyzeMaterials(quote);
-      return this.convertGeminiToMaterials(geminiAnalysis);
+      const materials = this.convertGeminiToMaterials(geminiAnalysis);
+      const localMaterials = await this.extractLocally(quote);
+      return this.consolidateMaterials(materials, localMaterials);
     } catch (error) {
       console.warn(
         "Gemini analysis failed, falling back to local extraction:",
@@ -39,29 +409,145 @@ export class AdvancedMaterialExtractor {
   }
 
   static extractLocally(quote: any): MaterialSchedule {
-    let allMaterials: CategorizedMaterial[] = [];
+    try {
+      let allMaterials: CategorizedMaterial[] = [];
 
-    if (quote.boqData) {
-      allMaterials.push(...this.extractBOQMaterials(quote.boqData));
+      // Process BOQ data if available
+      if (quote.boqData) {
+        try {
+          const boqMaterials = this.extractBOQMaterials(quote.boqData);
+          allMaterials.push(...boqMaterials);
+        } catch (error) {
+          console.warn("Error extracting BOQ materials:", error);
+        }
+      }
+
+      // Process concrete materials with proper type handling
+      if (quote.concrete_materials) {
+        try {
+          const concreteMaterials = this.extractConcreteMaterials(
+            quote.concrete_materials
+          );
+          // Enhance concrete materials with proper material types and relationships
+          const enhancedConcreteMaterials = concreteMaterials.map(
+            (material) => ({
+              ...material,
+              materialType: "structural-concrete" as MaterialType,
+              relationships: [
+                {
+                  material: "formwork",
+                  type: "requires" as const,
+                  description: "Requires formwork for casting",
+                },
+                {
+                  material: "reinforcement",
+                  type: "requires" as const,
+                  description: "Requires steel reinforcement",
+                },
+              ],
+            })
+          );
+          allMaterials.push(...enhancedConcreteMaterials);
+        } catch (error) {
+          console.warn("Error extracting concrete materials:", error);
+        }
+      }
+
+      // Process rebar with enhanced validation
+      if (quote.rebar_calculations) {
+        try {
+          const rebarMaterials = this.extractRebarMaterials(
+            quote.rebar_calculations
+          );
+          // Add material type and relationships for rebar
+          const enhancedRebarMaterials = rebarMaterials.map((material) => ({
+            ...material,
+            materialType: "reinforcement" as MaterialType,
+            relationships: [
+              {
+                material: "binding wire",
+                type: "requires" as const,
+                description: "Requires binding wire for assembly",
+              },
+              {
+                material: "spacer blocks",
+                type: "requires" as const,
+                description: "Requires spacer blocks for cover",
+              },
+            ],
+          }));
+          allMaterials.push(...enhancedRebarMaterials);
+        } catch (error) {
+          console.warn("Error extracting rebar materials:", error);
+        }
+      }
+
+      // Process room data with comprehensive material extraction
+      if (quote.rooms) {
+        try {
+          const roomMaterials = this.extractRoomMaterials(quote.rooms);
+          // Add relationships and dependencies for room materials
+          const enhancedRoomMaterials = roomMaterials.map((material) => {
+            // Add specific relationships based on material type
+            const relationships = [];
+            if (material.materialType === "masonry") {
+              relationships.push(
+                {
+                  material: "mortar",
+                  type: "requires" as const,
+                  description: "Requires mortar for bonding",
+                },
+                {
+                  material: "wall ties",
+                  type: "requires" as const,
+                  description: "Requires wall ties for stability",
+                }
+              );
+            }
+            return {
+              ...material,
+              relationships,
+            };
+          });
+          allMaterials.push(...enhancedRoomMaterials);
+        } catch (error) {
+          console.warn("Error extracting room materials:", error);
+        }
+      }
+
+      // Sort materials by category and element
+      allMaterials.sort((a, b) => {
+        if (a.category === b.category) {
+          return a.element.localeCompare(b.element);
+        }
+        return a.category.localeCompare(b.category);
+      });
+
+      // Validate and normalize all materials
+      allMaterials = allMaterials.map((material) => ({
+        ...material,
+        quantity: Math.max(0, Number(material.quantity) || 0),
+        rate: Math.max(0, Number(material.rate) || 0),
+        amount: Math.max(0, Number(material.amount) || 0),
+        requirements:
+          material.requirements ||
+          this.getMaterialRequirements(
+            material.category,
+            material.materialType as MaterialType
+          ),
+        preparationSteps:
+          material.preparationSteps ||
+          this.getPreparationSteps(
+            material.category,
+            material.materialType as MaterialType
+          ),
+      }));
+
+      return allMaterials;
+    } catch (error) {
+      console.error("Error in local extraction:", error);
+      return [];
     }
-
-    if (quote.concrete_materials) {
-      allMaterials.push(
-        ...this.extractConcreteMaterials(quote.concrete_materials)
-      );
-    }
-
-    if (quote.rebar_calculations) {
-      allMaterials.push(
-        ...this.extractRebarMaterials(quote.rebar_calculations)
-      );
-    }
-
-    if (quote.rooms) {
-      allMaterials.push(...this.extractRoomMaterials(quote.rooms));
-    }
-
-    return allMaterials;
   }
 
   // --- Gemini Conversion ---
@@ -83,31 +569,108 @@ export class AdvancedMaterialExtractor {
     }));
   }
 
-  // --- Local Extraction Helpers ---
+  // --- Local Extractors ---
   private static extractBOQMaterials(boqData: BOQSection[]): MaterialSchedule {
     const materials: CategorizedMaterial[] = [];
 
-    boqData.forEach((section) => {
-      section.items.forEach((item) => {
-        if (item.isHeader) return; // skip headers
+    for (const section of boqData) {
+      for (const item of section.items) {
+        if (item.isHeader) continue;
 
-        materials.push({
-          itemNo:
-            item.itemNo ||
-            `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-          category: item.category || this.autoCategory(item.description),
-          element: item.element || this.autoElement(item.description),
-          description: item.description,
-          unit: item.unit || "Unit",
-          quantity: item.quantity || 0,
-          rate: item.rate || 0,
-          amount: item.amount || 0,
-          source: "boq",
-          location: section.title,
-        });
-      });
-    });
+        if (item.materialBreakdown?.length) {
+          for (const breakdown of item.materialBreakdown) {
+            const materialType = this.determineMaterialType(
+              breakdown.category,
+              breakdown.material
+            );
+            materials.push({
+              itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
+              category: breakdown.category,
+              element: breakdown.element,
+              description: breakdown.material,
+              unit: breakdown.unit,
+              quantity: item.quantity ? item.quantity * breakdown.ratio : 0,
+              rate: item.rate || 0,
+              amount:
+                (item.rate || 0) *
+                (item.quantity ? item.quantity * breakdown.ratio : 0),
+              source: "boq",
+              location: section.title,
+              requirements:
+                breakdown.requirements ||
+                this.getMaterialRequirements(breakdown.category, materialType),
+              preparationSteps:
+                breakdown.preparationSteps ||
+                this.getPreparationSteps(breakdown.category, materialType),
+              relationships: breakdown.relationships || [],
+              materialType: breakdown.materialType || materialType,
+              workType: item.workType,
+            });
+          }
+          continue;
+        }
 
+        const config = getMaterialConfig(item.category?.toLowerCase() || "");
+        if (config) {
+          // Get breakdown with proper error handling
+          const breakdownResult = getMaterialBreakdown(
+            item.category || "",
+            item.quantity || 0
+          );
+
+          if (breakdownResult.errors.length > 0) {
+            console.warn("Material breakdown errors:", breakdownResult.errors);
+          }
+
+          for (const material of breakdownResult.breakdown) {
+            materials.push({
+              itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
+              category: material.category,
+              element: material.element,
+              description: material.material,
+              unit: material.unit,
+              quantity: material.quantity || 0,
+              rate: item.rate || 0,
+              amount: (item.rate || 0) * (material.quantity || 0),
+              source: "boq",
+              location: section.title,
+              requirements: material.requirements || [],
+              preparationSteps: material.preparationSteps || [],
+              relationships: material.relationships || [],
+              materialType: material.materialType,
+              workType: item.workType,
+            });
+          }
+        } else {
+          const materialType = this.determineMaterialType(
+            item.category || "",
+            item.description
+          );
+          materials.push({
+            itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
+            category: item.category || "Unknown",
+            element: item.element || "Main Material",
+            description: item.description,
+            unit: item.unit || "Unit",
+            quantity: item.quantity || 0,
+            rate: item.rate || 0,
+            amount: item.amount || 0,
+            source: "boq",
+            location: section.title,
+            requirements: this.getMaterialRequirements(
+              item.category || "",
+              materialType
+            ),
+            preparationSteps: this.getPreparationSteps(
+              item.category || "",
+              materialType
+            ),
+            relationships: [],
+            materialType,
+          });
+        }
+      }
+    }
     return materials;
   }
 
@@ -145,124 +708,361 @@ export class AdvancedMaterialExtractor {
 
   private static extractRoomMaterials(rooms: any[]): MaterialSchedule {
     const materials: CategorizedMaterial[] = [];
-    rooms.forEach((room) => {
-      if (room.cementBags) {
-        materials.push({
-          itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-          category: "masonry",
-          element: "masonry",
-          description: `Cement - ${room.room_name}`,
-          unit: "Bags",
-          quantity: parseFloat(room.cementBags),
-          rate: room.cementCost / parseFloat(room.cementBags) || 0,
-          amount: room.cementCost || 0,
-          source: "masonry",
-          location: room.room_name,
-        });
-      }
-      if (room.sandVolume) {
-        materials.push({
-          itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-          category: "masonry",
-          element: "masonry",
-          description: `Sand - ${room.room_name}`,
-          unit: "m³",
-          quantity: parseFloat(room.sandVolume),
-          rate: room.sandCost / parseFloat(room.sandVolume) || 0,
-          amount: room.sandCost || 0,
-          source: "masonry",
-          location: room.room_name,
-        });
-      }
-      if (room.blocks) {
-        materials.push({
-          itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-          category: "masonry",
-          element: "masonry",
-          description: `${room.blockType || "Block"} - ${room.room_name}`,
-          unit: "No.",
-          quantity: room.blocks,
-          rate: room.blockCost / room.blocks || 0,
-          amount: room.blockCost || 0,
-          source: "masonry",
-          location: room.room_name,
-        });
-      }
+    for (const room of rooms) {
+      if (room.wallArea) {
+        const quantityResult = calculateMaterialQuantities(
+          "masonry",
+          room.wallArea
+        );
+        const breakdownResult = getMaterialBreakdown("masonry", room.wallArea);
 
-      ["doors", "windows"].forEach((type) => {
-        if (room[type]) {
-          room[type].forEach((item: any) => {
-            // main item
-            materials.push({
-              itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-              category: "openings",
-              element: type === "doors" ? "door" : "window",
-              description: `${item.type || item.glass} ${type.slice(0, -1)} - ${
-                room.room_name
-              }`,
-              unit: "No.",
-              quantity: item.count || 1,
-              rate: item.price || 0,
-              amount: (item.price || 0) * (item.count || 1),
-              source: "openings",
-              location: room.room_name,
-            });
-
-            // frame if exists
-            if (item.frame?.price) {
-              materials.push({
-                itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
-                category: "openings",
-                element: `${type.slice(0, -1)}-frame`,
-                description: `${item.frame.type} Frame - ${room.room_name}`,
-                unit: "No.",
-                quantity: item.count || 1,
-                rate: item.frame.price,
-                amount: item.frame.price * (item.count || 1),
-                source: "openings",
-                location: room.room_name,
-              });
-            }
-          });
+        if (breakdownResult.errors.length > 0) {
+          console.warn(
+            "Room material breakdown errors:",
+            breakdownResult.errors
+          );
         }
-      });
-    });
 
+        if (quantityResult.errors.length > 0) {
+          console.warn(
+            "Room quantity calculation errors:",
+            quantityResult.errors
+          );
+        }
+
+        breakdownResult.breakdown.forEach((mat) => {
+          const quantity = quantityResult.quantities?.[mat.material] || 0;
+          materials.push({
+            itemNo: `WM${(this.itemCounter++).toString().padStart(3, "0")}`,
+            category: "Masonry",
+            element: mat.element,
+            description: mat.material,
+            unit: mat.unit,
+            quantity: quantity,
+            rate: room.wallRate || 0,
+            amount: (room.wallRate || 0) * quantity,
+            source: "room-calculator",
+            location: room.room_name || "Unknown Room",
+            requirements: mat.requirements,
+            preparationSteps: mat.preparationSteps,
+            relationships: mat.relationships,
+            materialType: "masonry",
+          });
+        });
+      }
+    }
     return materials;
   }
 
-  // --- Auto Categorization & Element Detection ---
+  // --- Helpers ---
   private static autoCategory(description: string): string {
-    const d = description.toLowerCase();
-    if (/foundation|footing|substructure|blinding/.test(d))
-      return "substructure";
-    if (/beam|column|slab|frame|structural/.test(d)) return "superstructure";
-    if (/block|brick|wall|masonry|mortar/.test(d)) return "masonry";
-    if (/paint|tile|floor|ceiling|finish/.test(d)) return "finishes";
-    if (/door|window|frame|glazing|lock|hinge|handle/.test(d))
-      return "openings";
-    return "miscellaneous";
+    const lowerDesc = description.toLowerCase();
+    const config = getMaterialConfig(lowerDesc);
+    if (config) return config.category;
+    if (lowerDesc.includes("concrete") || lowerDesc.includes("cement"))
+      return "concrete";
+    if (lowerDesc.includes("stone") || lowerDesc.includes("block"))
+      return "masonry";
+    if (lowerDesc.includes("rebar") || lowerDesc.includes("steel"))
+      return "steel";
+    if (lowerDesc.includes("board") || lowerDesc.includes("timber"))
+      return "formwork";
+    return "other";
   }
 
   private static autoElement(description: string): string {
-    const d = description.toLowerCase();
-    if (/cement|sand|ballast/.test(d)) return "concrete";
-    if (/steel|rebar/.test(d)) return "reinforcement";
-    if (/block|brick|masonry/.test(d)) return "masonry";
-    if (/door/.test(d)) return "door";
-    if (/window/.test(d)) return "window";
-    if (/frame/.test(d)) return "frame";
-    if (/paint|tile|finish/.test(d)) return "finish";
+    const lowerDesc = description.toLowerCase();
+    if (lowerDesc.includes("foundation")) return "foundation";
+    if (lowerDesc.includes("column")) return "column";
+    if (lowerDesc.includes("beam")) return "beam";
+    if (lowerDesc.includes("wall")) return "wall";
+    if (lowerDesc.includes("slab")) return "slab";
     return "general";
   }
 
   private static autoUnit(description: string): string {
-    const d = description.toLowerCase();
-    if (/cement/.test(d)) return "Bags";
-    if (/sand|ballast/.test(d)) return "m³";
-    if (/block|brick/.test(d)) return "No.";
-    if (/steel|rebar/.test(d)) return "Kg";
-    if (/door|window|frame/.test(d)) return "No.";
-    return "Unit";
+    const lowerDesc = description.toLowerCase();
+    if (lowerDesc.includes("concrete")) return "m³";
+    if (lowerDesc.includes("steel") || lowerDesc.includes("rebar")) return "kg";
+    if (lowerDesc.includes("formwork") || lowerDesc.includes("wall"))
+      return "m²";
+    if (lowerDesc.includes("door") || lowerDesc.includes("window")) return "No";
+    return "unit";
+  }
+
+  private static determineMaterialType(
+    category: string,
+    description: string
+  ): MaterialType {
+    const lowerDesc = description.toLowerCase();
+    const lowerCat = category.toLowerCase();
+
+    // Structural materials
+    if (lowerCat.includes("concrete") || lowerDesc.includes("concrete")) {
+      if (
+        lowerDesc.includes("beam") ||
+        lowerDesc.includes("column") ||
+        lowerDesc.includes("slab")
+      )
+        return "structural-concrete";
+      if (lowerDesc.includes("cement")) return "binding";
+      if (lowerDesc.includes("sand") || lowerDesc.includes("aggregate"))
+        return "aggregate";
+      if (lowerDesc.includes("water")) return "auxiliary";
+    }
+
+    if (lowerCat.includes("steel") || lowerDesc.includes("steel")) {
+      if (
+        lowerDesc.includes("beam") ||
+        lowerDesc.includes("column") ||
+        lowerDesc.includes("truss")
+      )
+        return "structural-steel";
+      if (lowerDesc.includes("reinforcement") || lowerDesc.includes("rebar"))
+        return "reinforcement";
+      if (lowerDesc.includes("wire") || lowerDesc.includes("spacer"))
+        return "auxiliary";
+    }
+
+    if (lowerCat.includes("timber") || lowerDesc.includes("timber")) {
+      if (
+        lowerDesc.includes("beam") ||
+        lowerDesc.includes("joist") ||
+        lowerDesc.includes("truss")
+      )
+        return "structural-timber";
+      return "primary";
+    }
+
+    if (lowerCat.includes("masonry") || lowerDesc.includes("masonry")) {
+      if (
+        lowerDesc.includes("load bearing") ||
+        lowerDesc.includes("structural")
+      )
+        return "structural-masonry";
+      if (lowerDesc.includes("partition")) return "partition";
+      if (lowerDesc.includes("cement")) return "binding";
+      if (lowerDesc.includes("sand")) return "aggregate";
+      if (lowerDesc.includes("ties") || lowerDesc.includes("dpc"))
+        return "auxiliary";
+    }
+
+    // Building envelope
+    if (
+      lowerDesc.includes("roof") ||
+      lowerDesc.includes("tile") ||
+      lowerDesc.includes("sheet")
+    )
+      return "roofing";
+    if (
+      lowerDesc.includes("insulation") ||
+      lowerDesc.includes("thermal") ||
+      lowerDesc.includes("acoustic")
+    )
+      return "insulation";
+    if (lowerDesc.includes("waterproof") || lowerDesc.includes("membrane"))
+      return "waterproofing";
+    if (lowerDesc.includes("cladding") || lowerDesc.includes("facade"))
+      return "cladding";
+
+    // Interior materials
+    if (lowerDesc.includes("partition") || lowerDesc.includes("dividing wall"))
+      return "partition";
+    if (lowerDesc.includes("ceiling") || lowerDesc.includes("suspended"))
+      return "ceiling";
+    if (
+      lowerDesc.includes("floor") ||
+      lowerDesc.includes("tile") ||
+      lowerDesc.includes("carpet")
+    )
+      return "flooring";
+    if (
+      lowerDesc.includes("plaster") ||
+      lowerDesc.includes("paint") ||
+      lowerDesc.includes("wallpaper")
+    )
+      return "wall-finish";
+
+    // MEP materials
+    if (lowerDesc.includes("pipe") || lowerDesc.includes("plumbing"))
+      return "plumbing";
+    if (lowerDesc.includes("wire") || lowerDesc.includes("electrical"))
+      return "electrical";
+    if (lowerDesc.includes("hvac") || lowerDesc.includes("duct")) return "hvac";
+    if (lowerDesc.includes("light") || lowerDesc.includes("lamp"))
+      return "lighting";
+
+    // Joinery & fixtures
+    if (lowerDesc.includes("door")) return "door";
+    if (lowerDesc.includes("window")) return "window";
+    if (lowerDesc.includes("cabinet") || lowerDesc.includes("cupboard"))
+      return "cabinet";
+    if (
+      lowerDesc.includes("handle") ||
+      lowerDesc.includes("hinge") ||
+      lowerDesc.includes("lock")
+    )
+      return "hardware";
+
+    // Site materials
+    if (lowerDesc.includes("soil") || lowerDesc.includes("excavation"))
+      return "earthwork";
+    if (lowerDesc.includes("foundation") || lowerDesc.includes("footing"))
+      return "foundation";
+    if (lowerDesc.includes("paving") || lowerDesc.includes("pavement"))
+      return "paving";
+    if (lowerDesc.includes("landscape") || lowerDesc.includes("plant"))
+      return "landscaping";
+
+    // Process materials
+    if (lowerDesc.includes("formwork") || lowerDesc.includes("shuttering"))
+      return "formwork";
+    if (lowerDesc.includes("scaffold")) return "scaffolding";
+    if (lowerDesc.includes("temporary")) return "temporary";
+    if (lowerDesc.includes("preparation") || lowerDesc.includes("clean"))
+      return "preparatory";
+
+    // Finishing materials
+    if (lowerDesc.includes("finish")) return "finishing";
+    if (lowerDesc.includes("paint")) return "painting";
+    if (lowerDesc.includes("coat")) return "coating";
+    if (lowerDesc.includes("sealant")) return "sealant";
+
+    // Safety & protection
+    if (lowerDesc.includes("fire") || lowerDesc.includes("fireproof"))
+      return "fire-protection";
+    if (lowerDesc.includes("guard") || lowerDesc.includes("handrail"))
+      return "safety-equipment";
+    if (lowerDesc.includes("security") || lowerDesc.includes("access control"))
+      return "security";
+
+    // Infrastructure
+    if (lowerDesc.includes("drain") || lowerDesc.includes("sewer"))
+      return "drainage";
+    if (lowerDesc.includes("utility") || lowerDesc.includes("service"))
+      return "utility";
+    if (lowerDesc.includes("road") || lowerDesc.includes("pavement"))
+      return "road-base";
+
+    // Default to primary if no specific type is identified
+    return "primary";
+  }
+
+  private static getConfigProperty(
+    category: string,
+    propertyName: keyof MaterialProperty,
+    materialType: MaterialType
+  ): string[] {
+    const config = getMaterialConfig(category.toLowerCase());
+    if (config?.properties?.[propertyName]) {
+      return config.properties[propertyName];
+    }
+    return this.defaultMaterialProperties[materialType]?.[propertyName] || [];
+  }
+
+  private static getMaterialRequirements(
+    category: string,
+    materialType: MaterialType
+  ): string[] {
+    return this.getConfigProperty(category, "requirements", materialType);
+  }
+
+  private static getPreparationSteps(
+    category: string,
+    materialType: MaterialType
+  ): string[] {
+    return this.getConfigProperty(category, "preparationSteps", materialType);
+  }
+
+  private static consolidateMaterials(
+    materialsA: MaterialSchedule,
+    materialsB: MaterialSchedule
+  ): MaterialSchedule {
+    // Create a map to store consolidated materials
+    const consolidatedMap = new Map<string, CategorizedMaterial>();
+
+    // Helper function to generate a unique key for a material
+    const getMaterialKey = (material: CategorizedMaterial): string => {
+      return `${material.category}_${material.description}_${material.unit}_${
+        material.location || "default"
+      }`;
+    };
+
+    // Helper function to merge two materials
+    const mergeMaterials = (
+      existing: CategorizedMaterial,
+      incoming: CategorizedMaterial
+    ): CategorizedMaterial => {
+      const merged = { ...existing };
+
+      // Sum quantities and amounts
+      merged.quantity = (existing.quantity || 0) + (incoming.quantity || 0);
+      merged.amount = (existing.amount || 0) + (incoming.amount || 0);
+
+      // Calculate weighted average rate
+      if (existing.quantity && incoming.quantity) {
+        merged.rate =
+          (existing.rate * existing.quantity +
+            incoming.rate * incoming.quantity) /
+          (existing.quantity + incoming.quantity);
+      }
+
+      // Merge requirements and preparation steps without duplicates
+      merged.requirements = Array.from(
+        new Set([
+          ...(existing.requirements || []),
+          ...(incoming.requirements || []),
+        ])
+      );
+
+      merged.preparationSteps = Array.from(
+        new Set([
+          ...(existing.preparationSteps || []),
+          ...(incoming.preparationSteps || []),
+        ])
+      );
+
+      // Merge relationships without duplicates
+      merged.relationships = Array.from(
+        new Map(
+          [
+            ...(existing.relationships || []),
+            ...(incoming.relationships || []),
+          ].map((rel) => [rel.material + rel.type, rel])
+        ).values()
+      );
+
+      // Use the highest confidence if available
+      merged.confidence = Math.max(
+        existing.confidence || 0,
+        incoming.confidence || 0
+      );
+
+      // Combine sources
+      merged.source = Array.from(
+        new Set([existing.source, incoming.source])
+      ).join("+");
+
+      return merged;
+    };
+
+    // Process all materials from both sources
+    [...materialsA, ...materialsB].forEach((material) => {
+      const key = getMaterialKey(material);
+      if (consolidatedMap.has(key)) {
+        consolidatedMap.set(
+          key,
+          mergeMaterials(consolidatedMap.get(key)!, material)
+        );
+      } else {
+        consolidatedMap.set(key, { ...material });
+      }
+    });
+
+    // Convert map back to array and ensure proper item numbering
+    return Array.from(consolidatedMap.values()).map((material, index) => ({
+      ...material,
+      itemNo: `M${(index + 1).toString().padStart(3, "0")}`,
+    }));
   }
 }

@@ -18,36 +18,41 @@ import useMasonryCalculator, {
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
-
 const blockTypes = [
   {
     id: 1,
-    displayName: "Standard Block (400×200×200mm)",
+    displayName: "Standard Block (400\u00D7200\u00D7200mm)",
     name: "Standard Block",
     size: { length: 0.4, height: 0.2, thickness: 0.2 },
   },
   {
     id: 2,
-    displayName: "Half Block (400×200×100mm)",
+    displayName: "Half Block (400\u00D7200\u00D7100mm)",
     name: "Half Block",
     size: { length: 0.4, height: 0.2, thickness: 0.1 },
   },
   {
     id: 3,
-    displayName: "Brick (225×112.5×75mm)",
+    displayName: "Brick (225\u00D7112.5\u00D775mm)",
     name: "Brick",
     size: { length: 0.225, height: 0.075, thickness: 0.1125 },
   },
   { id: 4, displayName: "Custom", name: "Custom", size: null },
 ];
-
 const doorTypes = ["Flush", "Panel", "Metal", "Glass"];
 const windowGlassTypes = ["Clear", "Tinted", "Frosted"];
 const frameTypes = ["Wood", "Steel", "Aluminum"];
 const plasterOptions = ["None", "One Side", "Both Sides"];
-const standardDoorSizes = ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"];
-const standardWindowSizes = ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"];
-
+const standardDoorSizes = [
+  "0.9 \u00D7 2.1 m",
+  "1.0 \u00D7 2.1 m",
+  "1.2 \u00D7 2.4 m",
+];
+const standardWindowSizes = [
+  "1.2 \u00D7 1.2 m",
+  "1.5 \u00D7 1.2 m",
+  "2.0 \u00D7 1.5 m",
+];
 interface MasonryCalculatorFormProps {
   quote: any;
   setQuote: (quote: any) => void;
@@ -63,7 +68,6 @@ interface MasonryCalculatorFormProps {
     regionalMultipliers: any[]
   ) => any;
 }
-
 export default function MasonryCalculatorForm({
   quote,
   setQuote,
@@ -96,14 +100,12 @@ export default function MasonryCalculatorForm({
     userRegion,
     getEffectiveMaterialPrice,
   });
-
   const handleQsSettingChange = (key: keyof MasonryQSSettings, value: any) => {
     updateQsSettings({
       ...qsSettings,
       [key]: value,
     });
   };
-
   const handleNumericQsSettingChange = (
     key: keyof MasonryQSSettings,
     value: string
@@ -111,14 +113,12 @@ export default function MasonryCalculatorForm({
     const numValue = parseFloat(value);
     handleQsSettingChange(key, isNaN(numValue) ? 0 : numValue);
   };
-
   const handleMortarRatioChange = (value: string) => {
     setQuote((prev: any) => ({
       ...prev,
       mortarRatio: value,
     }));
   };
-
   const handleJointThicknessChange = (value: string) => {
     const numValue = parseFloat(value);
     setQuote((prev: any) => ({
@@ -126,10 +126,8 @@ export default function MasonryCalculatorForm({
       jointThickness: isNaN(numValue) ? 0.01 : numValue,
     }));
   };
-
   return (
     <div className="space-y-4">
-      {/* Summary Card */}
       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
         <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100">
           Total Cost: Ksh {results.grossTotalCost?.toLocaleString() || 0}
@@ -171,7 +169,6 @@ export default function MasonryCalculatorForm({
         </div>
       </div>
 
-      {/* Calculation Settings */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="mortar-ratio">Mortar Ratio (Cement:Sand)</Label>
@@ -217,7 +214,6 @@ export default function MasonryCalculatorForm({
         </div>
       </div>
 
-      {/* Water Information */}
       {qsSettings.clientProvidesWater ? (
         <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
           <p className="text-sm text-green-800 dark:text-green-200">
@@ -241,12 +237,10 @@ export default function MasonryCalculatorForm({
         </div>
       ) : null}
 
-      {/* Professional QS Settings */}
       <div className="p-4 bg-gray-50 dark:bg-gray-700 border rounded-lg space-y-6">
         <div className="space-y-4">
           <h3 className="font-semibold text-lg">Professional QS Settings</h3>
 
-          {/* Wastage Settings */}
           <div className="flex-1">
             <div className="flex-1">
               <h4 className="font-medium text-sm mb-3">Wastage Percentages</h4>
@@ -322,7 +316,6 @@ export default function MasonryCalculatorForm({
               </div>
             </div>
 
-            {/* Water Settings */}
             <div className="w-full">
               <h4 className="font-medium text-sm mb-3 mt-5">Water Settings</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
@@ -386,7 +379,6 @@ export default function MasonryCalculatorForm({
         </div>
       </div>
 
-      {/* Rooms */}
       <div className="space-y-4">
         {rooms.map((room: Room, index: number) => (
           <RoomSection
@@ -417,7 +409,6 @@ export default function MasonryCalculatorForm({
     </div>
   );
 }
-
 interface RoomSectionProps {
   room: Room;
   index: number;
@@ -444,7 +435,6 @@ interface RoomSectionProps {
   onRemoveRoom: () => void;
   roomBreakdown?: any;
 }
-
 function RoomSection({
   room,
   index,
@@ -459,7 +449,6 @@ function RoomSection({
 }: RoomSectionProps) {
   return (
     <Card className="border rounded-lg overflow-hidden">
-      {/* Room Header */}
       <div className="p-4 bg-gray-50 dark:bg-slate-800 border-b">
         <div className="flex items-center justify-between">
           <Input
@@ -467,7 +456,7 @@ function RoomSection({
             value={room.room_name || ""}
             onChange={(e) => onRoomChange(index, "room_name", e.target.value)}
             placeholder="Room Name"
-            className="text-lg font-bold border-0 bg-transparent p-0 focus:ring-0 w-auto"
+            className="text-lg font-bold border-0 pl-3 bg-transparent focus:ring-0 w-auto"
           />
           <Button variant="destructive" size="sm" onClick={onRemoveRoom}>
             <Trash className="w-4 h-4 mr-1" />
@@ -476,9 +465,7 @@ function RoomSection({
         </div>
       </div>
 
-      {/* Room Configuration */}
       <div className="p-4 space-y-4 rounded-lg">
-        {/* Dimensions and Block Type */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <Label>Length (m)</Label>
@@ -533,7 +520,6 @@ function RoomSection({
           </div>
         </div>
 
-        {/* Custom Block Inputs */}
         {room.blockType === "Custom" && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <div>
@@ -595,7 +581,6 @@ function RoomSection({
           </div>
         )}
 
-        {/* Plaster Selection */}
         <div className="max-w-xs">
           <Label>Plastering</Label>
           <Select
@@ -615,7 +600,6 @@ function RoomSection({
           </Select>
         </div>
 
-        {/* Doors Section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Doors</h4>
@@ -639,7 +623,6 @@ function RoomSection({
           ))}
         </div>
 
-        {/* Windows Section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold">Windows</h4>
@@ -663,7 +646,6 @@ function RoomSection({
           ))}
         </div>
 
-        {/* Room Breakdown */}
         {roomBreakdown && (
           <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <h4 className="font-semibold text-lg mb-3">Room Breakdown</h4>
@@ -700,7 +682,6 @@ function RoomSection({
     </Card>
   );
 }
-
 interface DoorWindowItemProps {
   type: "door" | "window";
   item: Door | Window;
@@ -721,7 +702,6 @@ interface DoorWindowItemProps {
   standardSizes: string[];
   types: string[];
 }
-
 function DoorWindowItem({
   type,
   item,
@@ -733,12 +713,9 @@ function DoorWindowItem({
   types,
 }: DoorWindowItemProps) {
   const field = type === "door" ? "doors" : "windows";
-
   return (
     <div className="p-3 border rounded-lg bg-gray-50 dark:bg-slate-800 space-y-3">
-      {/* Main Configuration */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-        {/* Size Type */}
         <Select
           value={item.sizeType}
           onValueChange={(value) =>
@@ -754,7 +731,6 @@ function DoorWindowItem({
           </SelectContent>
         </Select>
 
-        {/* Standard Size */}
         {item.sizeType === "standard" && (
           <Select
             value={item.standardSize}
@@ -775,7 +751,6 @@ function DoorWindowItem({
           </Select>
         )}
 
-        {/* Custom Size Inputs */}
         {item.sizeType === "custom" && (
           <>
             <Input
@@ -817,7 +792,6 @@ function DoorWindowItem({
           </>
         )}
 
-        {/* Type Selection */}
         <Select
           value={item.type}
           onValueChange={(value) =>
@@ -838,7 +812,6 @@ function DoorWindowItem({
           </SelectContent>
         </Select>
 
-        {/* Quantity */}
         <Input
           placeholder="Qty"
           type="number"
@@ -855,7 +828,6 @@ function DoorWindowItem({
           }
         />
 
-        {/* Remove Button */}
         <Button
           size="icon"
           variant="destructive"
@@ -865,7 +837,6 @@ function DoorWindowItem({
         </Button>
       </div>
 
-      {/* Frame Configuration */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-2  rounded">
         <Select
           value={item.frame.type}

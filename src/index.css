@@ -72,7 +72,7 @@
       rgba(255, 255, 255, 0.1) 100%
     );
 
-    /* Stripe gradients for light mode */
+
     --stripe-light: repeating-linear-gradient(
       45deg,
       hsl(100 20% 96%),
@@ -97,12 +97,12 @@
       hsl(270 65% 95% / 0.5) 20px
     );
 
-    /* Glass morphism effects */
+
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.2);
     --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
 
-    /* Elegant shadows */
+
     --shadow-elegant: 0 20px 60px -15px rgba(158, 65, 45, 0.25);
     --shadow-glow: 0 0 60px rgba(158, 70, 55, 0.4);
     --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.15);
@@ -151,7 +151,7 @@
     --input: 220 15% 18%;
     --ring: 224.3 76.3% 94.1%;
 
-    /* Dark mode gradients */
+
     --gradient-primary: linear-gradient(
       135deg,
       hsl(262 70% 55%) 0%,
@@ -192,7 +192,7 @@
       rgba(255, 255, 255, 0.05) 100%
     );
 
-    /* Stripe gradients for dark mode */
+
     --stripe-light: repeating-linear-gradient(
       45deg,
       hsl(210 10% 10%),
@@ -298,7 +298,7 @@
     box-shadow: var(--shadow-glass);
   }
 
-  /* Gradient utilities */
+
   .gradient-primary {
     background: var(--gradient-primary);
   }
@@ -315,7 +315,7 @@
     background: var(--gradient-hero);
   }
 
-  /* Stripe gradient utilities */
+
   .stripe-light {
     background: var(--stripe-light);
   }
@@ -328,7 +328,7 @@
     background: var(--stripe-accent);
   }
 
-  /* Enhanced shadows */
+
   .shadow-elegant {
     box-shadow: var(--shadow-elegant);
   }
@@ -341,7 +341,7 @@
     box-shadow: var(--shadow-soft);
   }
 
-  /* Animation utilities */
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
@@ -350,7 +350,7 @@
     animation: glow-pulse 2s ease-in-out infinite alternate;
   }
 
-  /* Text gradients */
+
   .text-gradient-primary {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -415,12 +415,12 @@
     stroke: hsl(var(--border));
   }
 }
-/* Hide scrollbars project-wide */
+
 * {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 *::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }

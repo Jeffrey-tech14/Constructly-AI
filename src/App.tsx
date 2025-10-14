@@ -19,11 +19,8 @@ import NotFound from "./pages/NotFound";
 import UploadPlan from "./pages/UploadPage";
 import Auth from "./pages/Auth";
 import PaymentAction from "./components/PaymentDialog";
-
 const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => (<QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
         <TooltipProvider>
@@ -32,87 +29,40 @@ const App = () => (
           <div className="min-h-screen fixed sticky scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-900/20 transition-all duration-50">
             <Navbar />
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/payments/action"
-                element={
-                  <ProtectedRoute>
+              <Route path="/" element={<Index />}/>
+              <Route path="/auth" element={<Auth />}/>
+              <Route path="/payments/action" element={<ProtectedRoute>
                     <PaymentAction />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/dashboard" element={<ProtectedRoute>
                     <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/upload/plan"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/upload/plan" element={<ProtectedRoute>
                     <UploadPlan />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/profile" element={<ProtectedRoute>
                     <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/payment"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/payment" element={<ProtectedRoute>
                     <PaymentPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/quotes/new"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/quotes/new" element={<ProtectedRoute>
                     <QuoteBuilder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/quotes/all"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/quotes/all" element={<ProtectedRoute>
                     <ViewAllQuotes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/variables"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/variables" element={<ProtectedRoute>
                     <Variables />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
+                  </ProtectedRoute>}/>
+              <Route path="/admin" element={<ProtectedRoute>
                     <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
+                  </ProtectedRoute>}/>
+              <Route path="*" element={<NotFound />}/>
             </Routes>
           </div>
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
-  </QueryClientProvider>
-);
-
+  </QueryClientProvider>);
 export default App;

@@ -1,4 +1,4 @@
-# parser.py - PDF-FIRST APPROACH with enhanced local extraction
+
 import sys
 import json
 import os
@@ -12,12 +12,12 @@ from typing import Any
 from PIL import Image, ImageOps
 import numpy as np
 import cv2
-# Load environment
+
 load_dotenv()
 
-# -----------------------------
-# CONFIGURATION / PLACEHOLDERS
-# -----------------------------
+
+
+
 DPI = 300
 MAX_PAGES = 6
 DEFAULT_HEIGHT = "2.7"
@@ -25,13 +25,13 @@ DEFAULT_THICKNESS = "0.2"
 DEFAULT_BLOCK_TYPE = "Standard Block"
 DEFAULT_PLASTER = "Both Sides"
 
-# Gemini key uses GOOGLE_API_KEY or GEMINI_API_KEY env var
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 GEMINI_ENABLED = bool(GEMINI_API_KEY)
 
-# -----------------------------
-# OPTIONAL DEPENDENCIES (soft)
-# -----------------------------
+
+
+
 _missing = []
 try:
     import cv2
@@ -48,7 +48,7 @@ except Exception:
     _missing.append('pytesseract')
 
 try:
-    import fitz  # PyMuPDF
+    import fitz
 except Exception:
     fitz = None
     _missing.append('PyMuPDF (fitz)')
@@ -62,9 +62,9 @@ except Exception:
 if _missing:
     print(f"⚠️ Optional dependencies missing: {', '.join(_missing)}. Some parsers will be disabled.", file=sys.stderr)
 
-# -----------------------------
-# ENHANCED UTILITIES
-# -----------------------------
+
+
+
 def normalize_whitespace(text: str) -> str:
     return re.sub(r'\s+', ' ', text.strip())
 
@@ -101,24 +101,24 @@ def parse_dimension_value(value: str) -> Optional[float]:
 def extract_dimensions_from_text(text: str) -> Tuple[Optional[float], Optional[float]]:
     """Enhanced dimension extraction with multiple patterns"""
     patterns = [
-        # Standard dimension patterns: 4.5×3.2, 4.5 x 3.2, 4500×3200
+
         r'(\d+[.,]?\d*)\s*[×xX*]\s*(\d+[.,]?\d*)',
         r'(\d+[.,]?\d*)\s*by\s*(\d+[.,]?\d*)',
-        
-        # Labeled dimensions: L=4.5 W=3.2, Length: 4.5 Width: 3.2
+
+
         r'[Ll](?:ength)?\s*[=:]\s*(\d+[.,]?\d*).*?[Ww](?:idth)?\s*[=:]\s*(\d+[.,]?\d*)',
         r'[Ww](?:idth)?\s*[=:]\s*(\d+[.,]?\d*).*?[Ll](?:ength)?\s*[=:]\s*(\d+[.,]?\d*)',
-        
-        # Dimension lines: ─4.5─, -4.5-, |4.5|
+
+
         r'[─\-|]\s*(\d+[.,]?\d*)\s*[─\-|]',
-        
-        # Room size notations: 4.5m x 3.2m, 4500x3200mm
+
+
         r'(\d+[.,]?\d*)\s*[mм]?\s*[×xX*]\s*(\d+[.,]?\d*)\s*[mм]?',
-        
-        # Parenthetical dimensions: (4.5×3.2), [4.5×3.2]
+
+
         r'[\(\[]\s*(\d+[.,]?\d*)\s*[×xX*]\s*(\d+[.,]?\d*)\s*[\)\]]',
     ]
-    
+
     for pattern in patterns:
         matches = re.findall(pattern, text, re.IGNORECASE)
         if matches:
@@ -128,22 +128,22 @@ def extract_dimensions_from_text(text: str) -> Tuple[Optional[float], Optional[f
                     width = parse_dimension_value(match[1])
                     if length and width and 1.0 <= length <= 25.0 and 1.0 <= width <= 25.0:
                         return length, width
-    
-    # Fallback: look for number pairs that could be dimensions
+
+
     numbers = re.findall(r'\d+[.,]?\d*', text)
     if len(numbers) >= 2:
         potential_dims = []
         for num in numbers:
             dim = parse_dimension_value(num)
-            if dim and 1.0 <= dim <= 15.0:  # Reasonable room dimension range
+            if dim and 1.0 <= dim <= 15.0:
                 potential_dims.append(dim)
-        
+
         if len(potential_dims) >= 2:
-            # Sort by size, assume larger is length
+
             potential_dims.sort(reverse=True)
-            # Use the two largest reasonable numbers
+
             return potential_dims[0], potential_dims[1]
-    
+
     return None, None
 
 def identify_room_type(text: str) -> Optional[str]:
@@ -184,26 +184,26 @@ def identify_room_type(text: str) -> Optional[str]:
 def extract_floor_info(texts: List[str]) -> int:
     """Enhanced floor detection"""
     full_text = " ".join(texts).lower()
-    
+
     floor_indicators = {
         2: ['first floor', '1st floor', 'ground floor', 'level 1', 'floor 1'],
         3: ['second floor', '2nd floor', 'level 2', 'floor 2'],
         4: ['third floor', '3rd floor', 'level 3', 'floor 3'],
         5: ['fourth floor', '4th floor', 'level 4', 'floor 4']
     }
-    
+
     multi_story_terms = ['two story', 'two-storey', 'double story', 'multi-level', 'two level']
-    
-    # Check for multi-story indicators first
+
+
     if any(term in full_text for term in multi_story_terms):
         return 2
-    
-    # Check for specific floor mentions
+
+
     max_floor = 1
     for floor_num, indicators in floor_indicators.items():
         if any(indicator in full_text for indicator in indicators):
             max_floor = max(max_floor, floor_num)
-    
+
     return max_floor
 
 def extract_doors_windows(texts: List[str]) -> Tuple[List[Dict], List[Dict]]:
@@ -295,42 +295,42 @@ def create_room_record(roomType: str, length: float, width: float, doors=None, w
 def deskew_image_if_needed(pil_img: Image.Image) -> Image.Image:
     """Enhanced deskewing with better orientation detection"""
     try:
-        # Handle EXIF orientation
+
         pil_img = ImageOps.exif_transpose(pil_img)
-        
-        # Convert to grayscale for processing
+
+
         gray = pil_img.convert("L")
-        
-        # Use OpenCV for advanced deskewing if available
+
+
         if cv2 and np:
             img_array = np.array(gray)
-            
-            # Threshold and find contours to detect document edges
+
+
             _, thresh = cv2.threshold(img_array, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
             contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
+
             if contours:
-                # Find the largest contour (likely the document)
+
                 largest_contour = max(contours, key=cv2.contourArea)
                 rect = cv2.minAreaRect(largest_contour)
                 angle = rect[-1]
-                
-                # Adjust angle for proper deskewing
+
+
                 if angle < -45:
                     angle = -(90 + angle)
                 else:
                     angle = -angle
-                
-                # Rotate if significant skew detected
+
+
                 if abs(angle) > 1.0:
                     center = (img_array.shape[1] // 2, img_array.shape[0] // 2)
                     rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-                    deskewed = cv2.warpAffine(img_array, rotation_matrix, (img_array.shape[1], img_array.shape[0]), 
+                    deskewed = cv2.warpAffine(img_array, rotation_matrix, (img_array.shape[1], img_array.shape[0]),
                                             flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
                     return Image.fromarray(deskewed)
-        
+
         return pil_img
-        
+
     except Exception:
         return pil_img
 
@@ -369,56 +369,56 @@ def multi_pass_tesseract_on_image(cv_img: np.ndarray) -> List[Dict[str, Any]]:
     results = []
     if pytesseract is None:
         return results
-        
-    # PSM configurations optimized for architectural drawings
+
+
     configs = [
-        '--oem 3 --psm 6',  # Uniform block of text
-        '--oem 3 --psm 4',  # Single column of text of variable sizes
-        '--oem 3 --psm 8',  # Single word
-        '--oem 3 --psm 11', # Sparse text
-        '--oem 3 --psm 12', # Sparse text with OSD
+        '--oem 3 --psm 6',
+        '--oem 3 --psm 4',
+        '--oem 3 --psm 8',
+        '--oem 3 --psm 11',
+        '--oem 3 --psm 12',
     ]
-    
+
     for cfg in configs:
         try:
             data = pytesseract.image_to_data(cv_img, config=cfg, output_type=pytesseract.Output.DICT)
             for i in range(len(data['text'])):
                 word = data['text'][i].strip()
                 conf = int(data['conf'][i])
-                
-                # Enhanced filtering for architectural content
+
+
                 if (word and len(word) > 1 and conf > 30 and
-                    not re.match(r'^[^a-zA-Z0-9]*$', word)):  # Filter symbols-only
-                    
+                    not re.match(r'^[^a-zA-Z0-9]*$', word)):
+
                     x, y, w, h = data['left'][i], data['top'][i], data['width'][i], data['height'][i]
-                    
-                    # Calculate font size approximation
+
+
                     font_size = max(h, w // max(len(word), 1))
-                    
+
                     results.append({
-                        'text': word, 
-                        'box': [x, y, x+w, y+h], 
+                        'text': word,
+                        'box': [x, y, x+w, y+h],
                         'conf': conf,
                         'font_size': font_size
                     })
         except Exception:
             continue
-    
-    # Advanced de-duplication with spatial awareness
+
+
     seen = set()
     unique_results = []
-    
+
     for result in results:
-        # Create spatial signature
-        spatial_key = (result['text'].lower(), 
-                      result['box'][0] // 10,  # Group by approximate position
+
+        spatial_key = (result['text'].lower(),
+                      result['box'][0] // 10,
                       result['box'][1] // 10,
-                      result['font_size'] // 5)  # Group by font size
-        
+                      result['font_size'] // 5)
+
         if spatial_key not in seen:
             unique_results.append(result)
             seen.add(spatial_key)
-    
+
     return unique_results
 
 def extract_text_with_boxes_from_cvimg(cv_img: np.ndarray) -> List[Dict[str, Any]]:
@@ -433,25 +433,25 @@ def pdf_to_images(pdf_path: str, max_pages: int = MAX_PAGES) -> List[np.ndarray]
     """Enhanced PDF to image conversion with quality optimization"""
     if fitz is None or Image is None or cv2 is None or np is None:
         raise RuntimeError("PDF->image conversion dependencies missing")
-        
+
     doc = fitz.open(pdf_path)
     images = []
-    
+
     for i in range(min(len(doc), max_pages)):
         page = doc[i]
-        
-        # Higher DPI for better text recognition
+
+
         mat = fitz.Matrix(DPI / 72, DPI / 72)
         pix = page.get_pixmap(matrix=mat, alpha=False)
         img_data = pix.tobytes("png")
-        
+
         img = Image.open(io.BytesIO(img_data)).convert("RGB")
         img = deskew_image_if_needed(img)
-        
-        # Convert to OpenCV format
+
+
         cv_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
         images.append(cv_img)
-    
+
     doc.close()
     return images
 
@@ -484,53 +484,53 @@ def extract_room_data(texts: List[str]) -> List[Dict[str, Any]]:
     """Human-like room data extraction with spatial context awareness"""
     rooms = []
     processed_room_types = set()
-    
-    # Group text by approximate spatial regions (simulating human reading pattern)
+
+
     text_groups = []
     current_group = []
-    
+
     for i, text in enumerate(texts):
-        if len(current_group) < 5:  # Group nearby text
+        if len(current_group) < 5:
             current_group.append((i, text))
         else:
             text_groups.append(current_group)
             current_group = [(i, text)]
-    
+
     if current_group:
         text_groups.append(current_group)
-    
+
     for group in text_groups:
         group_texts = [text for _, text in group]
         group_indices = [idx for idx, _ in group]
-        
-        # Look for room labels and their associated dimensions
+
+
         for idx, text in zip(group_indices, group_texts):
             room_type = identify_room_type(text)
-            
+
             if room_type and room_type not in processed_room_types:
                 length, width = None, None
-                
-                # Search in context (current group + adjacent groups)
+
+
                 search_range = []
                 for search_group in text_groups:
                     search_range.extend([t for _, t in search_group])
-                
-                # Priority 1: Look for explicit dimensions near room label
+
+
                 for search_text in search_range:
                     l, w = extract_dimensions_from_text(search_text)
                     if l and w:
                         length, width = l, w
                         break
-                
-                # Priority 2: Look for dimension patterns in the same area
+
+
                 if not length or not width:
                     for j, search_text in enumerate(texts[max(0, idx-3):min(len(texts), idx+4)]):
                         l, w = extract_dimensions_from_text(search_text)
                         if l and w:
                             length, width = l, w
                             break
-                
-                # Priority 3: Use intelligent defaults based on room type
+
+
                 if not length or not width:
                     default_sizes = {
                         'Living Room': (5.5, 4.5),
@@ -549,31 +549,31 @@ def extract_room_data(texts: List[str]) -> List[Dict[str, Any]]:
                         'Wardrobe': (2.5, 2.0),
                     }
                     length, width = default_sizes.get(room_type, (4.0, 3.5))
-                
-                # Extract doors and windows for this specific room
+
+
                 room_doors, room_windows = [], []
-                for search_text in search_range[:10]:  # Limit search to nearby text
+                for search_text in search_range[:10]:
                     d, w = extract_doors_windows([search_text])
                     if d:
                         room_doors.extend(d)
                     if w:
                         room_windows.extend(w)
-                
-                # Use the first door/window found, or empty lists
+
+
                 room_data = create_room_record(
-                    room_type, length, width, 
+                    room_type, length, width,
                     doors=room_doors[:1] if room_doors else [],
                     windows=room_windows[:1] if room_windows else []
                 )
-                
+
                 rooms.append(room_data)
                 processed_room_types.add(room_type)
-    
+
     return rooms
 
-# -----------------------------
-# GEMINI INTEGRATION (primary)
-# -----------------------------
+
+
+
 def call_gemini(file_path: str, prompt: str) -> Optional[Dict[str, Any]]:
     if not GEMINI_ENABLED:
         print("ℹ️ Gemini disabled (no API key).", file=sys.stderr)
@@ -601,7 +601,7 @@ def call_gemini(file_path: str, prompt: str) -> Optional[Dict[str, Any]]:
             try:
                 return json.loads(cleaned)
             except json.JSONDecodeError:
-                # try to extract first {...}
+
                 m = re.search(r'\{.*\}', cleaned, re.DOTALL)
                 if m:
                     try:
@@ -649,6 +649,7 @@ Analyze this construction document and extract ALL available information about:
 - Identify floor levels (single story, multi-story)
 - Look for any construction notes or specifications
 - Note any special features like fireplaces, built-in cabinets, etc.
+- If a room cannot be plasters for whatever reason, mark as "None"
 
 ### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS (NEW FOCUS): 
 # - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 
@@ -691,7 +692,17 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     }
   ],
   "floors": 1
-  "foundationDetails": { "foundationType": "Strip Footing", "totalPerimeter": 50.5, // Total length of all exterior foundation walls in meters "masonryType": "Standard Block", // e.g., "Standard Block", "Rubble Stone" "wallThickness": "0.200", // Thickness of the block/stone wall in meters "wallHeight": "1.0", // Height of the block/stone wall in meters "blockDimensions": "0.400 x 0.200 x 0.200" // L x W x H in meters (optional) } 
+  "foundationDetails": { 
+    "foundationType": "Strip Footing", 
+    "totalPerimeter": 50.5, // Total length of all exterior foundation walls in meters 
+    "masonryType": "Standard Block", // e.g., "Standard Block", "Rubble Stone" 
+    "wallThickness": "0.200", // Thickness of the block/stone wall in meters
+    "wallHeight": "1.0", // Height of the block/stone wall in meters 
+    "blockDimensions": "0.400 x 0.200 x 0.200" // L x W x H in meters (optional) 
+    "height": "1.0" // Depth or height of the foundation
+    "length": "5.0" // Length of the foundation
+    "width"" "6.0" //Width of the foundation
+    } 
   }
 
 IMPORTANT: 
@@ -705,16 +716,16 @@ IMPORTANT:
 - Convert all measurements to meters (mm ÷ 1000)
 - Be precise with room identification and dimensions
 """
-    
+
     try:
         return call_gemini(file_path, GEMINI_PROMPT)
     except Exception as e:
         print(f"❌ analyze_with_gemini failed: {e}", file=sys.stderr)
         return None
 
-# -----------------------------
-# ENHANCED LOCAL ANALYSIS
-# -----------------------------
+
+
+
 def analyze_locally(file_path: str) -> Optional[Dict[str, Any]]:
     """Enhanced local analysis with human-like reasoning"""
     print("🔄 Running enhanced local analysis...", file=sys.stderr)

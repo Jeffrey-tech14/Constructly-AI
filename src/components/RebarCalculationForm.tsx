@@ -37,32 +37,28 @@ import { Trash, Plus, Settings, Calculator, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 interface Props {
   quote: any;
   setQuote: any;
   onExport?: (snapshotJson: string) => void;
   initialRows?: RebarRow[];
 }
-
 const sizeOptions: RebarSize[] = ["Y8", "Y10", "Y12", "Y16", "Y20", "Y25"];
-
-// In your form component, update the makeDefaultRow function:
 const makeDefaultRow = (): RebarRow => ({
   id: Math.random().toString(36).substr(2, 9),
   name: `Element`,
   element: "slab",
-  length: "5.0", // Provide default values instead of empty strings
-  width: "0.3",
-  depth: "0.2",
-  columnHeight: "3.0",
-  mainBarSpacing: "200",
-  distributionBarSpacing: "200",
-  stirrupSpacing: "200",
-  tieSpacing: "250",
-  mainBarsCount: "4",
-  distributionBarsCount: "2",
-  slabLayers: "1",
+  length: "",
+  width: "",
+  depth: "",
+  columnHeight: "",
+  mainBarSpacing: "",
+  distributionBarSpacing: "",
+  stirrupSpacing: "",
+  tieSpacing: "",
+  mainBarsCount: "",
+  distributionBarsCount: "",
+  slabLayers: "",
   mainBarSize: "Y12",
   distributionBarSize: "Y12",
   stirrupSize: "Y8",
@@ -70,7 +66,6 @@ const makeDefaultRow = (): RebarRow => ({
   category: "superstructure",
   number: "1",
 });
-
 function validateRow(row: RebarRow): string[] {
   const errs: string[] = [];
   if (!row.length || parseFloat(row.length) <= 0)
@@ -78,10 +73,8 @@ function validateRow(row: RebarRow): string[] {
   if (!row.width || parseFloat(row.width) <= 0) errs.push("Width must be > 0");
   if (!row.depth || parseFloat(row.depth) <= 0)
     errs.push("Thickness/Depth must be > 0");
-
   const isPosInt = (v?: string) =>
     v !== undefined && !isNaN(parseFloat(v)) && parseFloat(v) > 0;
-
   if (row.element === "slab" || row.element === "foundation") {
     if (!isPosInt(row.mainBarSpacing))
       errs.push("Main bar spacing must be a positive number (mm)");
@@ -109,7 +102,6 @@ function validateRow(row: RebarRow): string[] {
   }
   return errs;
 }
-
 export default function RebarCalculatorForm({
   quote,
   setQuote,
@@ -118,10 +110,7 @@ export default function RebarCalculatorForm({
   const rows = quote?.rebar_rows || [];
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const { profile } = useAuth();
-
-  // ---- Local UI state for rows ----------------------------------------------
   const [rowsState, setRowsState] = useState<RebarRow[]>(rows);
-
   useEffect(() => {
     if (Array.isArray(quote?.rebar_rows)) {
       setRowsState(quote.rebar_rows);
@@ -129,11 +118,8 @@ export default function RebarCalculatorForm({
       setRowsState([]);
     }
   }, [quote?.rebar_rows]);
-
-  // ---- Debounce for persisting rows -----------------------------------------
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const DEBOUNCE_MS = 500;
-
   const pushRowsDebounced = useCallback(
     (nextRows: RebarRow[]) => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -148,19 +134,15 @@ export default function RebarCalculatorForm({
     },
     [setQuote]
   );
-
-  // ---- Global QS Settings state --------------------------------------
   const [qsSettings, setQsSettings] = useState<RebarQSSettings>(
     defaultRebarQSSettings
   );
-
   const updateQSSetting = <K extends keyof RebarQSSettings>(
     key: K,
     value: RebarQSSettings[K]
   ) => {
     setQsSettings((prev) => ({ ...prev, [key]: value }));
   };
-
   const updateRow = <K extends keyof RebarRow>(
     id: string,
     key: K,
@@ -172,7 +154,6 @@ export default function RebarCalculatorForm({
       return next;
     });
   };
-
   const addRow = () => {
     const newRow = makeDefaultRow();
     setRowsState((prev) => {
@@ -181,7 +162,6 @@ export default function RebarCalculatorForm({
       return next;
     });
   };
-
   const removeRow = (id: string) => {
     setRowsState((prev) => {
       const next = prev.filter((r) => r.id !== id);
@@ -189,15 +169,11 @@ export default function RebarCalculatorForm({
       return next;
     });
   };
-
-  // ---- Use the new hook for calculations ------------------------------------
   const { results, totals } = useRebarCalculator(
     rowsState,
     qsSettings,
     profile?.location || "Nairobi"
   );
-
-  // ---- Update quote with line items -----------------------------------------
   useEffect(() => {
     if (results.length === 0) {
       if (
@@ -208,7 +184,6 @@ export default function RebarCalculatorForm({
       }
       return;
     }
-
     const lineItems = results.flatMap((r) => [
       {
         rowId: r.id,
@@ -227,7 +202,6 @@ export default function RebarCalculatorForm({
         total_price: r.bindingWirePrice,
       },
     ]);
-
     const totalsRows = [
       {
         rowId: "totals",
@@ -254,7 +228,6 @@ export default function RebarCalculatorForm({
         total_price: totals.totalPrice + totals.bindingWirePrice,
       },
     ];
-
     const nextItems = [...lineItems, ...totalsRows];
     const currItems = Array.isArray(quote?.rebar_materials)
       ? quote.rebar_materials
@@ -264,14 +237,12 @@ export default function RebarCalculatorForm({
       setQuote((prev: any) => ({ ...prev, rebar_materials: nextItems }));
     }
   }, [results, totals, setQuote, quote?.rebar_materials]);
-
   const exportJSON = () => {
     const snapshot = createRebarSnapshot(rowsState, qsSettings);
     const json = JSON.stringify(snapshot, null, 2);
     if (onExport) onExport(json);
     else console.log("Rebar Project Snapshot:", json);
   };
-
   const getElementColor = (element: ElementTypes) => {
     const colors = {
       slab: "bg-blue-100 text-blue-800 border-blue-200",
@@ -281,14 +252,11 @@ export default function RebarCalculatorForm({
     };
     return colors[element];
   };
-
   const getTotalCost = useMemo(() => {
     return (totals.totalPrice || 0) + (totals.bindingWirePrice || 0);
   }, [totals]);
-
   return (
     <div className="space-y-6">
-      {/* Header Summary Card */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 border-blue-200">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
@@ -324,7 +292,6 @@ export default function RebarCalculatorForm({
             </div>
           </div>
 
-          {/* Breakdown */}
           {totals.breakdown && (
             <div className="mt-4 pt-4 border-t border-blue-200">
               <div className="text-sm text-blue-700 dark:text-blue-50 font-medium mb-2">
@@ -348,7 +315,6 @@ export default function RebarCalculatorForm({
         </CardContent>
       </Card>
 
-      {/* QS Settings */}
       <Card className="border-amber-200 bg-amber-50 dark:bg-amber-900/10">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-amber-900 dark:text-amber-200 text-lg">
@@ -555,20 +521,10 @@ export default function RebarCalculatorForm({
         </CardContent>
       </Card>
 
-      {/* Elements Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Reinforcement Elements</h3>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportJSON}
-              className="border-green-200 text-green-100 hover:bg-green-50 bg-green-900 hover:text-green-900"
-            >
-              <Download className="w-4 h-4 mr-1" />
-              Export
-            </Button>
+          <div className="flex gap-2 items-center">
             <Button
               onClick={addRow}
               className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -591,7 +547,7 @@ export default function RebarCalculatorForm({
               </p>
               <Button
                 onClick={addRow}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add First Element
@@ -603,14 +559,12 @@ export default function RebarCalculatorForm({
         {rowsState.map((row, i) => {
           const result = results.find((r) => r.id === row.id);
           const errors = validateRow(row);
-
           return (
             <Card
               key={row.id}
               className="border-l-4 border-l-blue-500 dark:border-l-blue-200 shadow-sm"
             >
               <CardContent className="p-6 space-y-4">
-                {/* Header */}
                 <div className="sm:flex flex-1 items-start justify-between">
                   <div className="flex items-center gap-3 flex-1">
                     <Input
@@ -646,7 +600,6 @@ export default function RebarCalculatorForm({
                   </div>
                 </div>
 
-                {/* Basic Configuration */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Element Type</Label>
@@ -725,7 +678,6 @@ export default function RebarCalculatorForm({
                   </div>
                 </div>
 
-                {/* Dimensions */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">
@@ -784,11 +736,16 @@ export default function RebarCalculatorForm({
                   </div>
                 </div>
 
-                {/* Element-specific configuration */}
                 {(row.element === "slab" || row.element === "foundation") && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 dark:bg-slate-700 rounded-lg">
+                  <div
+                    className={`grid grid-cols-1 md:grid-cols-3 gap-4 p-4 ${
+                      row.element === "slab"
+                        ? "bg-blue-100 dark:bg-blue-700 text-blue-700 dark:text-blue-50"
+                        : "bg-orange-100 dark:bg-orange-700 text-orange-700 dark:text-orange-50"
+                    } rounded-lg`}
+                  >
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                      <Label className="text-sm font-medium ">
                         Main Bar Spacing (mm)
                       </Label>
                       <Input
@@ -803,7 +760,7 @@ export default function RebarCalculatorForm({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                      <Label className="text-sm font-medium ">
                         Distribution Bar Spacing (mm)
                       </Label>
                       <Input
@@ -822,9 +779,7 @@ export default function RebarCalculatorForm({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                        Layers
-                      </Label>
+                      <Label className="text-sm font-medium ">Layers</Label>
                       <Input
                         type="number"
                         min="1"
@@ -895,7 +850,7 @@ export default function RebarCalculatorForm({
                 )}
 
                 {row.element === "column" && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-purple-50 dark:bg-purple-800/70 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-purple-100 dark:bg-purple-800/70 rounded-lg">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-purple-700  dark:text-purple-50">
                         Main Bars Count
@@ -945,7 +900,6 @@ export default function RebarCalculatorForm({
                   </div>
                 )}
 
-                {/* Errors */}
                 {errors.length > 0 && (
                   <div className="rounded-md border border-red-300 bg-red-50 dark:bg-destructive p-4">
                     <div className="font-medium text-red-800 dark:text-red-100 mb-2">
@@ -959,10 +913,9 @@ export default function RebarCalculatorForm({
                   </div>
                 )}
 
-                {/* Results */}
                 {result && (
                   <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-200">
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-200 rounded-lg">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div className="space-y-1">
                           <div className="text-green-700 dark:text-green-50 font-medium">
@@ -1001,7 +954,6 @@ export default function RebarCalculatorForm({
                         </div>
                       </div>
 
-                      {/* Weight Breakdown */}
                       <div className="mt-3 pt-3 border-t border-green-200">
                         <div className="text-xs text-green-700 dark:text-green-50 font-medium mb-2">
                           Weight Breakdown (kg):

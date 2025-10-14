@@ -1,4 +1,3 @@
-// ConcreteCalculatorForm.tsx
 import React, {
   useMemo,
   useState,
@@ -30,7 +29,6 @@ import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import useMasonryCalculator from "@/hooks/useMasonryCalculator";
 import { Card } from "./ui/card";
-
 interface Props {
   quote: any;
   setQuote: (updater: (prev: any) => any) => void | ((next: any) => void);
@@ -38,7 +36,6 @@ interface Props {
   userMaterialPrices;
   getEffectiveMaterialPrice;
 }
-
 export default function ConcreteCalculatorForm({
   quote,
   setQuote,
@@ -51,7 +48,6 @@ export default function ConcreteCalculatorForm({
   const [regionalMultipliers, setRegionalMultipliers] = useState<
     RegionalMultiplier[]
   >([]);
-
   const userRegion = profile?.location;
   const { qsSettings, updateQsSettings } = useMasonryCalculator({
     setQuote,
@@ -62,8 +58,6 @@ export default function ConcreteCalculatorForm({
     userRegion,
     getEffectiveMaterialPrice,
   });
-
-  // ---- Load regional multipliers --------------------------------------------
   useEffect(() => {
     const loadMultipliers = async () => {
       const { data } = await supabase.from("regional_multipliers").select("*");
@@ -71,8 +65,28 @@ export default function ConcreteCalculatorForm({
     };
     loadMultipliers();
   }, []);
-
-  // ---- Make a new empty element row -----------------------------------------
+  const makeFoundationRow = useCallback((): ConcreteRow => {
+    const id = Math.random().toString(36).substr(2, 9);
+    return {
+      id,
+      name: `Element ${id}`,
+      element: "foundation",
+      length: quote.foundationDetails?.length || "",
+      width: quote.foundationDetails?.width || "",
+      height: quote.foundationDetails?.height || "",
+      mix: "",
+      category: "substructure",
+      number: "1",
+      hasMasonryWall: false,
+      foundationType: quote.foundationDetails?.foundationType,
+      masonryBlockType: quote.foundationDetails?.masonryBlockType || "",
+      masonryBlockDimensions:
+        quote.foundationDetails?.masonryBlockDimensions || "",
+      masonryWallThickness: quote.foundationDetails?.masonryWallThickness || "",
+      masonryWallHeight: quote.foundationDetails?.masonryWallHeight || "",
+      masonryWallPerimeter: quote.foundationDetails?.totalPerimeter || "",
+    };
+  }, []);
   const makeDefaultRow = useCallback((): ConcreteRow => {
     const id = Math.random().toString(36).substr(2, 9);
     return {
@@ -82,20 +96,19 @@ export default function ConcreteCalculatorForm({
       length: "",
       width: "",
       height: "",
-      mix: "1:2:4",
-      category: "substructure",
+      mix: "",
+      category: "superstructure",
       number: "1",
       hasMasonryWall: false,
-      masonryBlockType: "Standard Block",
-      masonryBlockDimensions: "0.4x0.2x0.2",
-      masonryWallThickness: "0.200",
-      masonryWallHeight: "1.000",
+      foundationType: "",
+      masonryBlockType: "",
+      masonryBlockDimensions: "",
+      masonryWallThickness: "",
+      masonryWallHeight: "",
+      masonryWallPerimeter: 0,
     };
   }, []);
-
-  // ---- Local UI state for rows ----------------------------------------------
   const [rows, setRows] = useState<ConcreteRow[]>([]);
-
   useEffect(() => {
     if (Array.isArray(quote?.concrete_rows)) {
       setRows(quote.concrete_rows);
@@ -103,11 +116,8 @@ export default function ConcreteCalculatorForm({
       setRows([]);
     }
   }, [quote?.concrete_rows]);
-
-  // ---- Debounce for persisting rows -----------------------------------------
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const DEBOUNCE_MS = 500;
-
   const pushRowsDebounced = useCallback(
     (nextRows: ConcreteRow[]) => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -122,7 +132,6 @@ export default function ConcreteCalculatorForm({
     },
     [setQuote]
   );
-
   const updateRow = useCallback(
     <K extends keyof ConcreteRow>(
       id: string,
@@ -139,7 +148,6 @@ export default function ConcreteCalculatorForm({
     },
     [pushRowsDebounced]
   );
-
   const addRow = useCallback(() => {
     const newRow = makeDefaultRow();
     setRows((prev) => {
@@ -148,7 +156,14 @@ export default function ConcreteCalculatorForm({
       return next;
     });
   }, [makeDefaultRow, setQuote]);
-
+  const addFoundationRow = useCallback(() => {
+    const newRow = makeFoundationRow();
+    setRows((prev) => {
+      const next = [...prev, newRow];
+      setQuote((qPrev: any) => ({ ...qPrev, concrete_rows: next }));
+      return next;
+    });
+  }, [makeFoundationRow, setQuote]);
   const removeRow = useCallback(
     (id: string) => {
       setRows((prev) => {
@@ -159,24 +174,18 @@ export default function ConcreteCalculatorForm({
     },
     [setQuote]
   );
-
-  // ---- Fetch materials with overrides + multipliers -------------------------
   const fetchMaterials = useCallback(async () => {
     if (!profile?.id) return;
-
     const { data: baseMaterials } = await supabase
       .from("material_base_prices")
       .select("*");
-
     const { data: overrides } = await supabase
       .from("user_material_prices")
       .select("material_id, region, price")
       .eq("user_id", profile.id);
-
     const userRegion = profile?.location || "Nairobi";
     const multiplier =
       regionalMultipliers.find((r) => r.region === userRegion)?.multiplier || 1;
-
     const merged =
       baseMaterials?.map((material) => {
         const userRate = overrides?.find(
@@ -184,28 +193,21 @@ export default function ConcreteCalculatorForm({
         );
         const materialP = (material.price || 0) * multiplier;
         const price = userRate ? userRate.price : materialP ?? 0;
-
         return {
           ...material,
           price,
           source: userRate ? "user" : material.price != null ? "base" : "none",
         };
       }) || [];
-
     setMaterials(merged);
   }, [profile, regionalMultipliers]);
-
   useEffect(() => {
     if (user && profile !== null) {
       fetchMaterials();
     }
   }, [user, profile, fetchMaterials]);
-
-  // ---- Use the new hook for calculations ------------------------------------
   const { results, totals, calculateConcreteRateForRow } =
     useConcreteCalculator(rows, materials, qsSettings);
-
-  // Get material prices for display
   const cementMat = materials.find((m) => m.name?.toLowerCase() === "cement");
   const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
   const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
@@ -216,8 +218,6 @@ export default function ConcreteCalculatorForm({
     (m) => m.name?.toLowerCase() === "formwork"
   );
   const waterMat = materials.find((m) => m.name?.toLowerCase() === "water");
-
-  // NEW: Get the price for the specific foundation masonry material used in the rows
   const foundationMasonryType =
     rows.find((r) => r.masonryBlockType?.toLocaleLowerCase())
       ?.masonryBlockType || "Standard Block";
@@ -234,7 +234,6 @@ export default function ConcreteCalculatorForm({
     "Bricks",
     foundationMasonryType
   );
-
   useEffect(() => {
     if (!cementMat || !sandMat || !ballastMat) return;
     if (results.length === 0) {
@@ -246,31 +245,29 @@ export default function ConcreteCalculatorForm({
       }
       return;
     }
-
     const masonryPrice = foundationBlockMat;
-
     const lineItems = results.flatMap((r) => {
       const rowItems: any[] = [
         {
           rowId: r.id,
           name: `Cement (${r.name})`,
           quantity: r.grossCementBags,
-          unit_price: 0, // Included in concrete rate
-          total_price: 0,
+          unit_price: cementMat.price,
+          total_price: r.grossCementBags * cementMat.price,
         },
         {
           rowId: r.id,
           name: `Sand (${r.name})`,
           quantity: r.grossSandM3,
-          unit_price: 0, // Included in concrete rate
-          total_price: 0,
+          unit_price: sandMat.price,
+          total_price: r.grossSandM3 * sandMat.price,
         },
         {
           rowId: r.id,
           name: `Ballast (${r.name})`,
           quantity: r.grossStoneM3,
-          unit_price: 0, // Included in concrete rate
-          total_price: 0,
+          unit_price: ballastMat.price,
+          total_price: r.grossStoneM3 * ballastMat.price,
         },
         {
           rowId: r.id,
@@ -289,17 +286,15 @@ export default function ConcreteCalculatorForm({
           ),
         },
       ];
-
       if (!qsSettings.clientProvidesWater) {
         rowItems.push({
           rowId: r.id,
           name: `Water (${r.name})`,
           quantity: r.grossWaterRequiredL,
-          unit_price: 0, // Included in concrete rate
-          total_price: 0,
+          unit_price: waterMat.price,
+          total_price: r.grossWaterRequiredL * waterMat.price,
         });
       }
-
       if (r.grossMortarCementBags > 0) {
         rowItems.push({
           rowId: r.id,
@@ -316,8 +311,6 @@ export default function ConcreteCalculatorForm({
           total_price: Math.round(r.grossMortarSandM3 * sandMat.price),
         });
       }
-
-      // Total rows
       rowItems.push({
         rowId: r.id,
         name: `Concrete Total`,
@@ -325,7 +318,6 @@ export default function ConcreteCalculatorForm({
         quantity: Math.round(r.totalVolume),
         total_price: r.totalConcreteCost,
       });
-
       if (r.bedVolume > 0) {
         rowItems.push({
           rowId: r.id,
@@ -335,29 +327,24 @@ export default function ConcreteCalculatorForm({
           total_price: r.totalConcreteCost,
         });
       }
-
       const totalRowCost =
         r.totalConcreteCost +
         (r.grossTotalBlocks > 0
           ? Math.round(r.grossTotalBlocks * masonryPrice)
           : 0);
-
       rowItems.push({
         rowId: r.id,
         name: "Total items",
         quantity: Math.round(r.totalVolume),
         total_price: totalRowCost,
       });
-
       return rowItems;
     });
-
-    // Totals Rows for the quote footer/summary
     const totalsRows = [
       {
         rowId: "totals",
         name: "Total Cement (Concrete + Mortar)",
-        quantity: totals.cement + totals.mortarCementBags,
+        quantity: totals.cement + totals.mortarCementBags || 0,
         unit_price: cementMat.price,
         total_price: Math.round(
           (totals.cement + totals.mortarCementBags) * cementMat.price
@@ -366,7 +353,7 @@ export default function ConcreteCalculatorForm({
       {
         rowId: "totals",
         name: "Total Sand (Concrete + Mortar)",
-        quantity: totals.sand + totals.mortarSandM3,
+        quantity: totals.sand + totals.mortarSandM3 || 0,
         unit_price: sandMat.price,
         total_price: Math.round(
           (totals.sand + totals.mortarSandM3) * sandMat.price
@@ -395,7 +382,6 @@ export default function ConcreteCalculatorForm({
           totals.aggregateVolume * (aggregateMat?.price || 0)
         ),
       },
-      // NEW: Water totals
       ...(!qsSettings.clientProvidesWater
         ? [
             {
@@ -422,19 +408,15 @@ export default function ConcreteCalculatorForm({
         rowId: "totals",
         name: "Concrete Rate (Avg.)",
         quantity: 1,
-        unit_price: Math.round(
-          (totals.materialCost + totals.transportCost) / (totals.volume || 1)
-        ),
-        total_price: Math.round(
-          (totals.materialCost + totals.transportCost) / (totals.volume || 1)
-        ),
+        unit_price: Math.round(totals.materialCost / (totals.volume || 1)),
+        total_price: Math.round(totals.materialCost / (totals.volume || 1)),
       },
       {
         rowId: "totals",
         name: "Concrete Total Cost",
         quantity: Math.round(totals.volume),
         unit_price: 0,
-        total_price: Math.round(totals.materialCost + totals.transportCost),
+        total_price: Math.round(totals.materialCost),
       },
       {
         rowId: "totals",
@@ -443,7 +425,6 @@ export default function ConcreteCalculatorForm({
         total_price: Math.round(totals.totalCost),
       },
     ];
-
     const nextItems = [...lineItems, ...totalsRows];
     const currItems = Array.isArray(quote?.concrete_materials)
       ? quote.concrete_materials
@@ -467,39 +448,31 @@ export default function ConcreteCalculatorForm({
     qsSettings,
     foundationBlockMat,
   ]);
-
   useEffect(() => {
     setQuote((prev: any) => ({ ...prev, qsSettings: qsSettings }));
   }, [user, qsSettings]);
-
-  // Handler functions for qsSettings
   const handleQsSettingChange = (key: keyof QSSettings, value: any) => {
     updateQsSettings({
       ...qsSettings,
       [key]: value,
     });
   };
-
   const handleNumericQsSettingChange = (
     key: keyof QSSettings,
     value: string
   ) => {
     handleQsSettingChange(key, parseFloat(value) || 0);
   };
-
   const handleIntegerQsSettingChange = (
     key: keyof QSSettings,
     value: string
   ) => {
     handleQsSettingChange(key, parseInt(value) || 0);
   };
-
-  // ---- UI -------------------------------------------------------------------
   return (
     <div className="mt-8 space-y-4 border dark:border-white/10 border-primary/30 p-3 rounded-lg">
       <h2 className="text-xl font-bold">Concrete & Foundation Calculator</h2>
 
-      {/* Updated QS Settings section - now connected to quote */}
       <Card className="flex-1 gap-4 p-4 rounded-lg">
         <div className="space-y-2">
           <h2 className="font-semibold text-sm">Wastage Percentages</h2>
@@ -512,6 +485,7 @@ export default function ConcreteCalculatorForm({
                 step="0.5"
                 min="0"
                 max="20"
+                placeholder="e.g., 2"
                 value={qsSettings.wastageCementPercent}
                 onChange={(e) =>
                   handleNumericQsSettingChange(
@@ -528,6 +502,7 @@ export default function ConcreteCalculatorForm({
                 type="number"
                 step="0.5"
                 min="0"
+                placeholder="e.g., 2"
                 max="20"
                 value={qsSettings.wastageSandPercent}
                 onChange={(e) =>
@@ -544,6 +519,7 @@ export default function ConcreteCalculatorForm({
                 id="wastage-stone"
                 type="number"
                 step="0.5"
+                placeholder="e.g., 2"
                 min="0"
                 max="20"
                 value={qsSettings.wastageStonePercent}
@@ -562,6 +538,7 @@ export default function ConcreteCalculatorForm({
                 type="number"
                 step="0.5"
                 min="0"
+                placeholder="e.g., 2"
                 max="20"
                 value={qsSettings.wastageBlocksPercent}
                 onChange={(e) =>
@@ -596,6 +573,7 @@ export default function ConcreteCalculatorForm({
                 step="0.05"
                 min="0.4"
                 max="0.6"
+                placeholder="e.g., 0.4"
                 value={qsSettings.cementWaterRatio}
                 onChange={(e) =>
                   handleQsSettingChange("cementWaterRatio", e.target.value)
@@ -615,6 +593,7 @@ export default function ConcreteCalculatorForm({
                   type="number"
                   step="0.5"
                   min="0"
+                  placeholder="e.g., 2"
                   max="10"
                   value={qsSettings.aggregateMoistureContentPercent}
                   onChange={(e) =>
@@ -632,6 +611,7 @@ export default function ConcreteCalculatorForm({
                   type="number"
                   step="0.5"
                   min="0"
+                  placeholder="e.g., 2"
                   max="10"
                   value={qsSettings.aggregateAbsorptionPercent}
                   onChange={(e) =>
@@ -651,6 +631,7 @@ export default function ConcreteCalculatorForm({
                   id="curing-rate"
                   type="number"
                   step="0.5"
+                  placeholder="e.g., 5"
                   min="0"
                   value={qsSettings.curingWaterRateLM2PerDay}
                   onChange={(e) =>
@@ -668,6 +649,7 @@ export default function ConcreteCalculatorForm({
                   type="number"
                   step="1"
                   min="0"
+                  placeholder="e.g., 4"
                   max="14"
                   value={qsSettings.curingDays}
                   onChange={(e) =>
@@ -683,6 +665,7 @@ export default function ConcreteCalculatorForm({
                 id="other-water"
                 type="number"
                 step="1"
+                placeholder="e.g., 10"
                 min="0"
                 value={qsSettings.otherSiteWaterAllowanceLM3}
                 onChange={(e) =>
@@ -696,7 +679,6 @@ export default function ConcreteCalculatorForm({
           </div>
         </div>
 
-        {/* Masonry Settings */}
         <div className="space-y-2 mt-5">
           <h2 className="font-semibold text-sm">Masonry Settings</h2>
           <div>
@@ -706,6 +688,7 @@ export default function ConcreteCalculatorForm({
               type="number"
               step="0.001"
               min="0.005"
+              placeholder="e.g., 0.01"
               max="0.02"
               value={qsSettings.mortarJointThicknessM}
               onChange={(e) =>
@@ -740,7 +723,7 @@ export default function ConcreteCalculatorForm({
           </div>
         </div>
       )}
-      {/* Show water price info even when contractor provides water */}
+
       {qsSettings.clientProvidesWater && totals.waterRequired > 0 && (
         <div className="mb-3 p-2 bg-green-50 border border-blue-200 dark:bg-green-500/30 dark:border-green-500/50 rounded-lg">
           <p className="text-sm">
@@ -754,13 +737,11 @@ export default function ConcreteCalculatorForm({
 
       {rows.map((row) => {
         const result = results.find((r) => r.id === row.id);
-
         return (
           <Card
             key={row.id}
             className="p-4 border dark:border-white/20 border-primary/40 rounded-lg space-y-2"
           >
-            {/* top row */}
             <div className="grid sm:grid-cols-4 gap-2">
               <Input
                 type="text"
@@ -805,38 +786,25 @@ export default function ConcreteCalculatorForm({
               </Button>
             </div>
 
-            {/* dimensions */}
             <div className="grid sm:grid-cols-4 gap-2">
               <Input
                 type="number"
                 value={row.length}
                 onChange={(e) => updateRow(row.id, "length", e.target.value)}
-                placeholder={
-                  row.element === "foundation"
-                    ? "Total Perimeter (m)"
-                    : "Length (m)"
-                }
+                placeholder={"Length (m)"}
               />
               <Input
                 type="number"
                 value={row.width}
                 onChange={(e) => updateRow(row.id, "width", e.target.value)}
-                placeholder={
-                  row.element === "foundation"
-                    ? "Footing Width (m)"
-                    : "Width (m)"
-                }
+                placeholder={"Width (m)"}
               />
               <Input
                 type="number"
                 value={row.height}
                 step="0.1"
                 onChange={(e) => updateRow(row.id, "height", e.target.value)}
-                placeholder={
-                  row.element === "foundation"
-                    ? "Footing Height (m)"
-                    : "Height/Thickness (m)"
-                }
+                placeholder={"Height/Thickness (m)"}
               />
               <Input
                 type="number"
@@ -851,7 +819,45 @@ export default function ConcreteCalculatorForm({
 
             {row.element === "foundation" && (
               <div className="space-y-4">
-                {/* Concrete Bed */}
+                <Select
+                  value={row.foundationType}
+                  onValueChange={(value) =>
+                    updateRow(row.id, "foundationType", value as any)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select foundation type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Strip Footing">Strip Footing</SelectItem>
+                    <SelectItem value="Isolated Footing">
+                      Isolated Footing
+                    </SelectItem>
+                    <SelectItem value="Combined Footing">
+                      Combined Footing
+                    </SelectItem>
+                    <SelectItem value="Strap Footing">Strap Footing</SelectItem>
+                    <SelectItem value="Raft (Mat) Foundation">
+                      Raft (Mat) Foundation
+                    </SelectItem>
+                    <SelectItem value="Pile Foundation">
+                      Pile Foundation
+                    </SelectItem>
+                    <SelectItem value="Pier Foundation">
+                      Pier Foundation
+                    </SelectItem>
+                    <SelectItem value="Caisson Foundation">
+                      Caisson Foundation
+                    </SelectItem>
+                    <SelectItem value="Grillage Foundation">
+                      Grillage Foundation
+                    </SelectItem>
+                    <SelectItem value="Floating (Compensated) Foundation">
+                      Floating (Compensated) Foundation
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -885,7 +891,6 @@ export default function ConcreteCalculatorForm({
                   )}
                 </div>
 
-                {/* Aggregate Bed */}
                 <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -919,7 +924,6 @@ export default function ConcreteCalculatorForm({
                   )}
                 </div>
 
-                {/* Masonry Wall Section */}
                 <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -1024,7 +1028,6 @@ export default function ConcreteCalculatorForm({
                   {Math.round(result.totalConcreteCost).toLocaleString()}
                 </p>
 
-                {/* Foundation Workings */}
                 {result.element === "foundation" && (
                   <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                     <h4 className="font-semibold mb-2">Foundation Workings:</h4>
@@ -1070,7 +1073,6 @@ export default function ConcreteCalculatorForm({
                       </div>
                     )}
 
-                    {/* Masonry Wall Workings */}
                     {result.grossTotalBlocks > 0 && (
                       <div className="mt-2">
                         <h4 className="font-semibold">
@@ -1094,7 +1096,6 @@ export default function ConcreteCalculatorForm({
                   </div>
                 )}
 
-                {/* Material Breakdown */}
                 <div className="mt-2">
                   <h4 className="font-semibold">Material Breakdown:</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">
@@ -1141,7 +1142,6 @@ export default function ConcreteCalculatorForm({
                     </b>
                   </p>
 
-                  {/* NEW: Water breakdown */}
                   {!qsSettings.clientProvidesWater && (
                     <p>
                       <b>Water:</b> {result.netWaterRequiredL?.toFixed(0)} L
@@ -1153,7 +1153,6 @@ export default function ConcreteCalculatorForm({
                     </p>
                   )}
 
-                  {/* Water breakdown details */}
                   <div className="ml-4 mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
                     <p>
                       <b>Water Breakdown:</b>
@@ -1167,7 +1166,6 @@ export default function ConcreteCalculatorForm({
                     </p>
                   </div>
 
-                  {/* Masonry Breakdown */}
                   {result.grossTotalBlocks > 0 && (
                     <>
                       <p>
@@ -1212,7 +1210,6 @@ export default function ConcreteCalculatorForm({
                     </>
                   )}
 
-                  {/* Cost breakdown */}
                   <div className="ml-4 mt-1 p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
                     <p>
                       <b>Cost Breakdown:</b>
@@ -1279,7 +1276,6 @@ export default function ConcreteCalculatorForm({
           </b>
         </p>
 
-        {/* NEW: Water in totals */}
         {!qsSettings.clientProvidesWater && totals.waterCost > 0 && (
           <p>
             <b>Total Water:</b> {totals.waterRequired?.toFixed(0)} liters —{" "}
@@ -1287,7 +1283,6 @@ export default function ConcreteCalculatorForm({
           </p>
         )}
 
-        {/* Masonry Totals */}
         {totals.totalBlocks > 0 && (
           <>
             <p>
@@ -1301,7 +1296,7 @@ export default function ConcreteCalculatorForm({
               </b>
             </p>
             <p>
-              <b>Total Mortar Cement:</b> {totals.mortarCementBags.toFixed(1)}{" "}
+              <b>Total Mortar Cement:</b> {totals.mortarCementBags?.toFixed(1)}{" "}
               bags —{" "}
               <b>
                 Ksh{" "}
@@ -1311,7 +1306,7 @@ export default function ConcreteCalculatorForm({
               </b>
             </p>
             <p>
-              <b>Total Mortar Sand:</b> {totals.mortarSandM3.toFixed(2)} m³ —{" "}
+              <b>Total Mortar Sand:</b> {totals.mortarSandM3?.toFixed(2)} m³ —{" "}
               <b>
                 Ksh{" "}
                 {Math.round(
@@ -1322,7 +1317,6 @@ export default function ConcreteCalculatorForm({
           </>
         )}
 
-        {/* Cost breakdown in totals */}
         <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm">
           <p>
             <b>Cost Breakdown:</b>

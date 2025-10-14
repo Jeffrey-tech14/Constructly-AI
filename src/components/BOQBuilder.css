@@ -1,4 +1,4 @@
-/* Drag and Drop styles */
+
 .cursor-move {
   cursor: grab;
   transition: all 0.2s ease-in-out;
@@ -13,14 +13,14 @@
   background-color: rgba(0, 0, 0, 0.03);
 }
 
-/* Drag visual feedback */
+
 .dragging {
   opacity: 0.6;
   background-color: rgba(0, 0, 0, 0.02);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
-/* Drag target styles */
+
 .drag-over {
   position: relative;
 }
@@ -42,19 +42,19 @@
   transform: scaleX(1);
 }
 
-/* Animation for row reordering */
+
 .table-row-move {
   transition: transform 0.3s ease-in-out, background-color 0.2s ease;
 }
 
-/* Prevent text selection during drag */
+
 [draggable="true"],
 [draggable="false"] {
   user-select: none;
   -webkit-user-drag: element;
 }
 
-/* Visual feedback for draggable items */
+
 [draggable="true"]:not(.bg-muted\/50) {
   background-color: transparent;
   transition: background-color 0.2s ease, transform 0.2s ease;
@@ -74,13 +74,13 @@
   opacity: 1;
 }
 
-/* Disable drag for header rows */
+
 [draggable="false"] {
   cursor: default;
   pointer-events: none;
 }
 
-/* Grip handle styles */
+
 .grip-handle {
   color: hsl(var(--muted-foreground));
   cursor: grab;

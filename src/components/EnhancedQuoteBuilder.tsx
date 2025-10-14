@@ -14,7 +14,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { v4 as uuidv4 } from "uuid"; // install with: npm install uuid
+import { v4 as uuidv4 } from "uuid";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BOQSection, PrelimItem, PrelimSection } from "@/types/boq";
 import { useToast } from "@/hooks/use-toast";
@@ -66,7 +66,6 @@ import {
   TableRow,
 } from "./ui/table";
 import PreliminariesBuilder from "./PreliminariesBuilder";
-
 interface Room {
   room_name: string;
   length: string;
@@ -100,7 +99,6 @@ interface Room {
   stoneVolume: number;
   totalCost: number;
 }
-
 const EnhancedQuoteBuilder = ({ quote }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -125,7 +123,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const { roomTypes } = useUserSettings();
   const { profile, user } = useAuth();
   const [direction, setDirection] = useState<"left" | "right">("right");
-
   const variants = {
     enter: (direction: "left" | "right") => ({
       x: direction === "right" ? 300 : -300,
@@ -140,7 +137,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       opacity: 0,
     }),
   };
-
   const regions = [
     { value: "Nairobi", label: "Nairobi" },
     { value: "Mombasa", label: "Mombasa" },
@@ -150,12 +146,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { value: "Thika", label: "Thika" },
     { value: "Machakos", label: "Machakos" },
   ];
-
   const projects = [
     { value: "construction", label: "Construction" },
     { value: "renovation", label: "Renovation" },
   ];
-
   const houseTypes = [
     { value: "Bungalow", label: "Bungalow" },
     { value: "Maisonette", label: "Maisonette" },
@@ -165,7 +159,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { value: "Warehouse", label: "Warehouse" },
     { value: "Mansion", label: "Mansion" },
   ];
-
   const [currentStep, setCurrentStep] = useState(1);
   const [calculation, setCalculation] = useState<CalculationResult | null>(
     null
@@ -176,7 +169,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
-
   const fetchLimit = async () => {
     if (!profile?.tier) return;
     setLoading(true);
@@ -185,7 +177,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       .select("quotes_limit")
       .eq("name", profile.tier)
       .single();
-
     if (error) {
       console.error("Error fetching tier limit:", error);
       setLimit(0);
@@ -194,20 +185,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }
     setLoading(false);
   };
-
   const fetchRates = async () => {
     const { data: baseServices, error: baseError } = await supabase
       .from("subcontractor_prices")
       .select("*");
-
     const { data: overrides, error: overrideError } = await supabase
       .from("user_subcontractor_rates")
       .select("service_id, price")
       .eq("user_id", profile.id);
-
     if (baseError) console.error("Base rates error:", baseError);
     if (overrideError) console.error("Overrides error:", overrideError);
-
     const merged = baseServices.map((service) => {
       const userRate = overrides?.find((o) => o.service_id === service.id);
       const rate = userRate
@@ -215,7 +202,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         : service.price != null
         ? Number(service.price)
         : 0;
-
       return {
         ...service,
         price: rate,
@@ -223,10 +209,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         source: userRate ? "user" : service.price != null ? "base" : "none",
       };
     });
-
     setServices(merged);
   };
-
   const [quoteData, setQuoteData] = useState<QuoteCalculation>({
     rooms: [] as Room[],
     client_name: "",
@@ -248,6 +232,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     equipment: [],
     services: [],
     percentages: [],
+    boq_data: [],
     distance_km: 0,
     contract_type: "full_contract",
     region: "",
@@ -268,34 +253,32 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     total_plaster_volume: 0,
     boqData: [],
     preliminaries: [],
-
+    qsSettings: [],
     labor_percentages: 0,
     overhead_percentages: 0,
     profit_percentages: 0,
     contingency_percentages: 0,
     permit_cost: 0,
+    foundationDetails: {},
   });
-
   useEffect(() => {
     if (quote) {
       setQuoteData((prev) => ({
         ...prev,
         ...quote,
         rooms: quote.rooms || [],
+        foundationDetails: quote.foundationDetails,
         selected_equipment: quote.selected_equipment || [],
         selected_services: quote.selected_services || [],
       }));
     }
   }, [quote]);
-
   useEffect(() => {
     fetchRates();
     fetchLimit();
   }, [user, location.key]);
-
-  // When an extracted plan exists, seed rooms and floors
   useEffect(() => {
-    if (extractedPlan && extractedPlan.rooms?.length) {
+    if (extractedPlan) {
       setQuoteData((prev) => ({
         ...prev,
         floors: extractedPlan.floors || prev.floors,
@@ -306,7 +289,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           height: room.height || "2.7",
           doors: room.doors || [],
           windows: room.windows || [],
-          blockType: room.blockType || "Standard Block (400×200×200mm)",
+          blockType:
+            room.blockType || "Standard Block (400\u00D7200\u00D7200mm)",
           thickness: room.thickness || "0.2",
           customBlock: room.customBlock || {
             price: "",
@@ -332,10 +316,21 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           stoneVolume: 0,
           totalCost: 0,
         })),
+        foundationDetails: {
+          foundationType: extractedPlan.foundationDetails.foundationType,
+          totalPerimeter: extractedPlan.foundationDetails.totalPerimeter,
+          masonryWallHeight: extractedPlan.foundationDetails.wallHeight,
+          masonryWallThickness: extractedPlan.foundationDetails.wallThickness,
+          masonryBlockDimensions:
+            extractedPlan.foundationDetails.blockDimensions,
+          width: extractedPlan.foundationDetails.width,
+          height: extractedPlan.foundationDetails.height,
+          length: extractedPlan.foundationDetails.length,
+          masonryBlockType: extractedPlan.foundationDetails.masonryType,
+        },
       }));
     }
   }, [extractedPlan]);
-
   const steps = [
     { id: 1, name: "Project Details", icon: <FileText className="w-5 h-5" /> },
     {
@@ -347,7 +342,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { id: 4, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
     { id: 5, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
     { id: 6, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
-    { id: 7, name: "BOQ Builder", icon: <FileText className="w-5 h-5" /> }, // New step
+    { id: 7, name: "BOQ Builder", icon: <FileText className="w-5 h-5" /> },
     {
       id: 8,
       name: "Preliminaries and Legal",
@@ -359,7 +354,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       icon: <Calculator className="w-5 h-5" />,
     },
   ];
-
   const updatePercentageField = (field: keyof Percentage, value: number) => {
     setQuoteData((prev) => ({
       ...prev,
@@ -383,7 +377,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             ],
     }));
   };
-
   const nextStep = () => {
     if (!validateStep(currentStep)) {
       toast({
@@ -393,7 +386,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       });
       return;
     }
-
     if (currentStep < steps.length) {
       setDirection("right");
       setCurrentStep(currentStep + 1);
@@ -402,14 +394,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       }
     }
   };
-
   const prevStep = () => {
     if (currentStep > 1) {
       setDirection("left");
       setCurrentStep(currentStep - 1);
     }
   };
-
   const handleCalculate = async () => {
     try {
       const result = await calculateQuote({
@@ -428,11 +418,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         subcontractors: quoteData.subcontractors,
         percentages: quoteData.percentages,
         boqData: boqData,
+        boq_data: boqData,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
         equipment: quoteData.equipment,
         services: quoteData.services,
+        qsSettings: quoteData.qsSettings,
+        foundationDetails: quoteData.foundationDetails,
         distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
         contract_type: quoteData.contract_type,
         region: quoteData.region,
@@ -477,13 +470,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       });
     }
   };
-
   const handleSaveQuote = async () => {
     if (!calculation) {
       console.error("calculation is empty " + calculation);
       return;
     }
-
     if (quoteData.id) {
       try {
         await updateQuote(quoteData.id, {
@@ -506,6 +497,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           rebar_rows: quoteData.rebar_rows,
           boq_data: boqData,
           rebar_calculations: quoteData.rebar_calculations,
+          qsSettings: quoteData.qsSettings,
           labor_cost: Math.round(calculation.labor_cost),
           additional_services_cost: Math.round(
             calculation.selected_services_cost
@@ -526,13 +518,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           profit_amount: calculation.profit_amount,
           subcontractors: quoteData.subcontractors,
           percentages: calculation.percentages,
+          foundationDetails: quoteData.foundationDetails,
           materialPrices: calculation.materialPrices,
         });
         toast({
           title: "Quote Updated",
           description: "Quote has been updated successfully",
         });
-        navigate("/dashboard");
+        navigate("/quotes/all");
       } catch (error) {
         console.error("Error updating quote:", error);
         toast({
@@ -582,6 +575,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plaster_thickness: quoteData.plaster_thickness,
           profit_amount: calculation.profit_amount,
           subcontractors: calculation.subcontractors,
+          foundationDetails: quoteData.foundationDetails,
+          qsSettings: quoteData.qsSettings,
           percentages: calculation.percentages,
           materialPrices: calculation.materialPrices,
         });
@@ -600,7 +595,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       }
     }
   };
-
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
@@ -627,7 +621,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return false;
     }
   };
-
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -797,7 +790,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-
       case 2:
         return (
           <div className="space-y-6">
@@ -953,7 +945,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-
       case 3:
         return (
           <div className="border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg">
@@ -969,7 +960,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             />
           </div>
         );
-
       case 4:
         return (
           <div className="space-y-6">
@@ -988,7 +978,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     const equipmentItem = quoteData.equipment.find(
                       (eq) => eq.equipment_type_id === equipment.id
                     );
-
                     return (
                       <Card key={equipment.id} className="p-4">
                         <div className="items-center justify-between">
@@ -1006,12 +995,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           equipment_type_id: equipment.id,
                                           name: equipment.name,
                                           desc: equipment.description,
-                                          usage_quantity: 1, // Default quantity
-                                          usage_unit: "day", // Default unit
+                                          usage_quantity: 1,
+                                          usage_unit: "day",
                                           rate_per_unit:
                                             equipment.rate_per_unit || 0,
                                           total_cost:
-                                            equipment.rate_per_unit || 0, // Initial total
+                                            equipment.rate_per_unit || 0,
                                         },
                                       ],
                                     }));
@@ -1040,7 +1029,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
                             {isChecked && (
                               <div className="space-y-3">
-                                {/* Usage Quantity and Unit */}
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
                                     <Label htmlFor={`quantity-${equipment.id}`}>
@@ -1126,7 +1114,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   </div>
                                 </div>
 
-                                {/* Rate per Unit */}
                                 <div>
                                   <Label htmlFor={`rate-${equipment.id}`}>
                                     Rate per{" "}
@@ -1159,7 +1146,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   />
                                 </div>
 
-                                {/* Total Cost (Uneditable) */}
                                 <div>
                                   <Label htmlFor={`total-${equipment.id}`}>
                                     Total Cost
@@ -1196,7 +1182,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     );
                   })}
 
-                {/* Custom Equipment Section */}
                 {quoteData.equipment
                   .filter(
                     (eq) =>
@@ -1205,7 +1190,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   .map((eq) => {
                     const totalCost =
                       (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
-
                     return (
                       <Card key={eq.equipment_type_id} className="p-4">
                         <div className="space-y-3">
@@ -1254,7 +1238,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             </Button>
                           </div>
 
-                          {/* Usage Quantity and Unit */}
                           <div className="grid grid-cols-2 gap-2">
                             <div>
                               <Label
@@ -1323,7 +1306,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             </div>
                           </div>
 
-                          {/* Rate per Unit */}
                           <div>
                             <Label
                               htmlFor={`custom-rate-${eq.equipment_type_id}`}
@@ -1356,7 +1338,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             />
                           </div>
 
-                          {/* Total Cost (Uneditable) */}
                           <div>
                             <Label
                               htmlFor={`custom-total-${eq.equipment_type_id}`}
@@ -1391,7 +1372,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     );
                   })}
 
-                {/* Add Custom Equipment Button */}
                 <Card className="p-4 flex flex-col items-center justify-center">
                   <Button
                     className="px-4 py-2 text-white hover:bg-blue-600"
@@ -1434,7 +1414,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     const checked = quoteData.services.some(
                       (s) => s.id === service.id
                     );
-
                     return (
                       <Card key={service.id} className="p-4 m-1 ">
                         <div className="flex items-center justify-between">
@@ -1479,7 +1458,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     );
                   })}
 
-                {/* Custom services */}
                 {quoteData.services
                   .filter((s) => !services.some((srv) => srv.id === s.id))
                   .map((service) => (
@@ -1548,7 +1526,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               }));
                             }}
                           />
-                          {/* Remove only for custom */}
+
                           <Button
                             variant="destructive"
                             onClick={() =>
@@ -1567,7 +1545,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     </Card>
                   ))}
 
-                {/* Add Custom Service Button */}
                 <Card className="p-4 m-1  flex flex-col items-center justify-center">
                   <Button
                     className="px-4 py-2 text-white hover:bg-blue-600"
@@ -1594,7 +1571,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               </div>
             </div>
 
-            {/* Additional Specifications */}
             <div>
               <Label htmlFor="customSpecs">Additional Specifications</Label>
               <Textarea
@@ -1612,7 +1588,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-
       case 6:
         return (
           <div className="space-y-6">
@@ -1623,15 +1598,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
               <div className="grid md:grid-cols-2 gap-4">
                 {" "}
-                {/* Use gap instead of space-y for grid */}
-                {/* === Predefined Subcontractors === */}
                 {subContractors
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
                     const isChecked = quoteData.subcontractors.some(
                       (s) => s.id === service.id
                     );
-
                     return (
                       <Card key={service.id} className="p-4 ">
                         <div className="grid grid-cols-2">
@@ -1647,7 +1619,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       ...prev.subcontractors,
                                       {
                                         ...service,
-                                        subcontractor_payment_plan: "full", // default
+                                        subcontractor_payment_plan: "full",
                                         total: service.price,
                                       },
                                     ],
@@ -1690,7 +1662,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                         ? {
                                             ...sub,
                                             subcontractor_payment_plan: value,
-                                            // Reset derived values
                                             total:
                                               value === "full"
                                                 ? sub.price
@@ -1810,13 +1781,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </Card>
                     );
                   })}
-                {/* === Custom Subcontractors (not in subContractors list) === */}
                 {quoteData.subcontractors
                   .filter((s) => !subContractors.some((srv) => srv.id === s.id))
                   .map((sub) => (
                     <Card key={sub.id} className="p-4 ">
                       <div className="grid grid-cols-2 gap-3">
-                        {/* Left: Name + Unit */}
                         <div className="space-y-2">
                           <Input
                             type="text"
@@ -1835,7 +1804,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                           />
                         </div>
 
-                        {/* Right: Payment Plan + Cost + Days */}
                         <div className="space-y-2">
                           <Select
                             value={sub.subcontractor_payment_plan || "full"}
@@ -1847,7 +1815,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     ? {
                                         ...s,
                                         subcontractor_payment_plan: value,
-                                        // Optional: reset cost based on plan
                                         total:
                                           value === "full"
                                             ? s.total || s.price
@@ -1933,7 +1900,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             />
                           )}
 
-                          {/* Delete button */}
                           <Button
                             variant="destructive"
                             size="sm"
@@ -1952,7 +1918,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </div>
                     </Card>
                   ))}
-                {/* === Add Custom Subcontractor Button === */}
                 <Card className="p-4  flex items-center justify-center">
                   <Button
                     className="px-4 py-2 text-white hover:bg-blue-600"
@@ -1982,14 +1947,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-
-      case 7: // BOQ Builder step
+      case 7:
         return (
           <div className="space-y-6">
             <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />
           </div>
         );
-
       case 8:
         return (
           <div className="space-y-6">
@@ -1997,7 +1960,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               quoteData={quoteData}
               onPreliminariesUpdate={setPreliminaries}
               onSaveToQuote={(sections) => {
-                // Save to quote.preliminaries
                 setQuoteData((prev: any) => ({
                   ...prev,
                   preliminaries: sections,
@@ -2006,15 +1968,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             />
           </div>
         );
-
       case 9:
         return (
           <div className="space-y-6">
             {calculation ? (
               <>
-                {/* <pre className="text-blue-700 bg-blue-100 p-4 rounded-md overflow-auto max-h-96">
-                {JSON.stringify(calculation, null, 2)}
-              </pre> */}
                 {boqData.length > 0 && (
                   <div>
                     <h3 className="text-lg font-semibold mb-4">
@@ -2044,7 +2002,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 section.items.map((item, idx) => {
                                   const isHeader =
                                     item.element?.toLowerCase() === "header";
-
                                   return (
                                     <TableRow key={idx}>
                                       {isHeader ? (
@@ -2181,12 +2138,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-
       default:
         return null;
     }
   };
-
   if (settingsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -2194,7 +2149,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       </div>
     );
   }
-
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "Free":
@@ -2221,7 +2175,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return <Badge>{tier}</Badge>;
     }
   };
-
   if (limit !== null && profile?.quotes_used >= limit) {
     return (
       <div className="min-h-screen flex items-center justify-center animate-fade-in">
@@ -2249,7 +2202,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen animate-fade-in transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -2292,11 +2244,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     {step.name}
                   </p>
                 </div>
-                {/* {step.id < steps.length && (
-                  <div className={`flex-1 h-0.5 xs:mx-4 mx-2 -pl-1 -pr-1 ${
-                    currentStep > step.id ? 'bg-primary' : 'bg-gray-300'
-                  }`} />
-                )} */}
               </div>
             ))}
           </div>
@@ -2345,5 +2292,4 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     </div>
   );
 };
-
 export default EnhancedQuoteBuilder;

@@ -1,252 +1,150 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Calculator from "@/components/Calculator";
 import { Badge } from "@/components/ui/badge";
-import {
-  Wrench,
-  User,
-  LogOut,
-  Moon,
-  Sun,
-  Shield,
-  Crown,
-  Calculator as CalculatorIcon,
-  Plus,
-  BarChart,
-  Settings,
-  Eye,
-  Menu,
-  X,
-  Star,
-  ThumbsUp,
-  Shell,
-  Building,
-  Building2,
-  DoorOpen,
-  DraftingCompass,
-  Pickaxe,
-} from "lucide-react";
+import { Wrench, User, LogOut, Moon, Sun, Shield, Crown, Calculator as CalculatorIcon, Plus, BarChart, Settings, Eye, Menu, X, Star, ThumbsUp, Shell, Building, Building2, DoorOpen, DraftingCompass, Pickaxe, } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { AlertDialog } from "@radix-ui/react-alert-dialog";
-import {
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "./ui/alert-dialog";
-
+import { AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "./ui/alert-dialog";
 const Navbar = () => {
-  const { user, profile, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    setTimeout(async () => {
-      await signOut();
-      toast({
-        title: "Signed out successfully",
-      });
-      navigate("/");
-    });
-  };
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: BarChart },
-    { path: "/quotes/new", label: "New Quote", icon: Building2 },
-    { path: "/quotes/all", label: "All Quotes", icon: Eye },
-    { path: "/variables", label: "Variables", icon: Settings },
-  ];
-
-  if (location.pathname === "/" || location.pathname === "/auth") {
-    return null;
-  }
-
-  const getTierImage = (tier: string) => {
-    switch (tier) {
-      case "Free":
-        return <Shell className="w-4 h-4" />;
-      case "Intermediate":
-        return <Crown className="w-4 h-4" />;
-      case "Professional":
-        return <Shield className="w-4 h-4" />;
-      default:
-        return <span className="text-sm font-medium">{tier}</span>;
+    const { user, profile, signOut } = useAuth();
+    const { theme, toggleTheme } = useTheme();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const handleSignOut = async () => {
+        setTimeout(async () => {
+            await signOut();
+            toast({
+                title: "Signed out successfully",
+            });
+            navigate("/");
+        });
+    };
+    const isActive = (path: string) => location.pathname === path;
+    const navItems = [
+        { path: "/dashboard", label: "Dashboard", icon: BarChart },
+        { path: "/quotes/new", label: "New Quote", icon: Building2 },
+        { path: "/quotes/all", label: "All Quotes", icon: Eye },
+        { path: "/variables", label: "Variables", icon: Settings },
+    ];
+    if (location.pathname === "/" || location.pathname === "/auth") {
+        return null;
     }
-  };
-
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case "Free":
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            <Shell className="w-3 h-3 mr-1" />
+    const getTierImage = (tier: string) => {
+        switch (tier) {
+            case "Free":
+                return <Shell className="w-4 h-4"/>;
+            case "Intermediate":
+                return <Crown className="w-4 h-4"/>;
+            case "Professional":
+                return <Shield className="w-4 h-4"/>;
+            default:
+                return <span className="text-sm font-medium">{tier}</span>;
+        }
+    };
+    const getTierBadge = (tier: string) => {
+        switch (tier) {
+            case "Free":
+                return (<Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            <Shell className="w-3 h-3 mr-1"/>
             Free
-          </Badge>
-        );
-      case "Intermediate":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <Crown className="w-3 h-3 mr-1" />
+          </Badge>);
+            case "Intermediate":
+                return (<Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            <Crown className="w-3 h-3 mr-1"/>
             Intermediate
-          </Badge>
-        );
-      case "Professional":
-        return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
-            <Shield className="w-3 h-3 mr-1" />
+          </Badge>);
+            case "Professional":
+                return (<Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
+            <Shield className="w-3 h-3 mr-1"/>
             Professional
-          </Badge>
-        );
-      default:
-        return <Badge>{tier}</Badge>;
-    }
-  };
-
-  return (
-    <>
+          </Badge>);
+            default:
+                return <Badge>{tier}</Badge>;
+        }
+    };
+    return (<>
       <nav className="fixed sticky top-0 z-50 backdrop-blur-sm border-b border-blue-900/20 dark:border-slate-700/50 shadow-sm">
         <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
+            
             <div className="flex items-center space-x-1">
               <div className="p-2 mr-1 bg-transparent rounded-lg group-hover:scale-110 transition-transform">
-                <Pickaxe className="w-6 h-6 text-primary dark:text-white" />
+                <Pickaxe className="w-6 h-6 text-primary dark:text-white"/>
               </div>
               <span className="text-xl md:sm:text-2xl text-lg font-bold text-primary dark:text-white">
                 Elaris
               </span>
             </div>
 
-            {/* Desktop Navigation */}
-            {user && (
-              <div className="hidden md:flex ml-auto items-center space-x-1">
+            
+            {user && (<div className="hidden md:flex ml-auto items-center space-x-1">
                 {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Button
-                      key={item.path}
-                      onClick={() => navigate(item.path)}
-                      variant={isActive(item.path) ? "default" : "ghost"}
-                      className={`card-hover ${
-                        isActive(item.path) ? "bg-primary text-white" : ""
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
+                const Icon = item.icon;
+                return (<Button key={item.path} onClick={() => navigate(item.path)} variant={isActive(item.path) ? "default" : "ghost"} className={`card-hover ${isActive(item.path) ? "bg-primary text-white" : ""}`}>
+                      <Icon className="w-4 h-4"/>
                       <span className="hidden xl:inline ml-2">
                         {item.label}
                       </span>{" "}
-                      {/* Hide text below xl */}
-                    </Button>
-                  );
-                })}
+                      
+                    </Button>);
+            })}
 
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsCalculatorOpen(true)}
-                  className="card-hover"
-                >
-                  <CalculatorIcon className="w-4 h-4" />
+                <Button variant="ghost" onClick={() => setIsCalculatorOpen(true)} className="card-hover">
+                  <CalculatorIcon className="w-4 h-4"/>
                 </Button>
 
                 <Badge className="bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent">
                   {getTierBadge(profile?.tier)}
                 </Badge>
-              </div>
-            )}
+              </div>)}
 
-            {/* Right side actions */}
+            
             <div className="flex items-center ml-auto space-x-2">
-              <div
-                className={`flex h-6 w-6 items-center justify-center rounded-full ${
-                  profile?.tier === "Free"
-                    ? "bg-green-100 text-green-700"
-                    : profile?.tier === "Intermediate"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-purple-100 text-purple-700"
-                }`}
-              >
+              <div className={`flex h-6 w-6 items-center justify-center rounded-full ${profile?.tier === "Free"
+            ? "bg-green-100 text-green-700"
+            : profile?.tier === "Intermediate"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-purple-100 text-purple-700"}`}>
                 {getTierImage(profile?.tier)}
               </div>
-              {/* Theme toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleTheme}
-                className="card-hover"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
+              
+              <Button variant="ghost" size="sm" onClick={toggleTheme} className="card-hover">
+                {theme === "dark" ? (<Sun className="w-4 h-4"/>) : (<Moon className="w-4 h-4"/>)}
               </Button>
 
-              {user ? (
-                <>
-                  {/* Mobile menu button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="md:hidden"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  >
-                    {isMobileMenuOpen ? (
-                      <X className="w-4 h-4" />
-                    ) : (
-                      <Menu className="w-4 h-4" />
-                    )}
+              {user ? (<>
+                  
+                  <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                    {isMobileMenuOpen ? (<X className="w-4 h-4"/>) : (<Menu className="w-4 h-4"/>)}
                   </Button>
 
-                  {/* User menu */}
+                  
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="card-hover">
-                        <User className="w-4 h-4 mr-2" />
+                        <User className="w-4 h-4 mr-2"/>
                         {profile?.name || user.email}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-">
-                      <DropdownMenuItem
-                        className=" w-full bg-transparent text-black dark:text-white"
-                        onClick={() => navigate("/profile")}
-                      >
-                        <User className="w-4 h-4 mr-2" />
+                      <DropdownMenuItem className=" w-full bg-transparent text-black dark:text-white" onClick={() => navigate("/profile")}>
+                        <User className="w-4 h-4 mr-2"/>
                         Profile
                       </DropdownMenuItem>
-                      {profile?.is_admin && (
-                        <DropdownMenuItem
-                          className=" bg-transparent text-black dark:text-white"
-                          onClick={() => navigate("/admin")}
-                        >
-                          <BarChart className="w-4 h-4 mr-2" />
+                      {profile?.is_admin && (<DropdownMenuItem className=" bg-transparent text-black dark:text-white" onClick={() => navigate("/admin")}>
+                          <BarChart className="w-4 h-4 mr-2"/>
                           Admin Dashboard
-                        </DropdownMenuItem>
-                      )}
+                        </DropdownMenuItem>)}
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onSelect={(e) => e.preventDefault()}
-                        className="focus:bg-red-50 focus:text-red-900"
-                      >
-                        <LogOut className="w-4 h-4 mr-2 text-red-700" />
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="focus:bg-red-50 focus:text-red-900">
+                        <LogOut className="w-4 h-4 mr-2 text-red-700"/>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button className="bg-transparent text-red-600 h-6 hover:text-red-700 hover:bg-transparent">
@@ -263,10 +161,7 @@ const Navbar = () => {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleSignOut()}
-                                className="bg-red-600 hover:bg-red-200 hover:text-red-800 text-white"
-                              >
+                              <AlertDialogAction onClick={() => handleSignOut()} className="bg-red-600 hover:bg-red-200 hover:text-red-800 text-white">
                                 Log Out
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -275,65 +170,38 @@ const Navbar = () => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </>
-              ) : (
-                <Button
-                  className="text-white"
-                  asChild
-                  onClick={() => navigate("/auth")}
-                >
+                </>) : (<Button className="text-white" asChild onClick={() => navigate("/auth")}>
                   Sign In
-                </Button>
-              )}
+                </Button>)}
             </div>
           </div>
 
-          {/* Mobile Navigation */}
-          {user && isMobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border animate-slide-down">
+          
+          {user && isMobileMenuOpen && (<div className="md:hidden py-4 border-t border-border animate-slide-down">
               <div className="flex flex-col space-y-2">
                 {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Button
-                      key={item.path}
-                      variant={isActive(item.path) ? "default" : "ghost"}
-                      className={`justify-start ${
-                        isActive(item.path) ? "bg-primary text-white" : ""
-                      }`}
-                      onClick={() => {
+                const Icon = item.icon;
+                return (<Button key={item.path} variant={isActive(item.path) ? "default" : "ghost"} className={`justify-start ${isActive(item.path) ? "bg-primary text-white" : ""}`} onClick={() => {
                         setIsMobileMenuOpen(false);
                         navigate(item.path);
-                      }}
-                    >
-                      <Icon className="w-4 h-4 mr-2" />
+                    }}>
+                      <Icon className="w-4 h-4 mr-2"/>
                       {item.label}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setIsCalculatorOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="justify-start"
-                >
-                  <CalculatorIcon className="w-4 h-4 mr-2" />
+                    </Button>);
+            })}
+                <Button variant="ghost" onClick={() => {
+                setIsCalculatorOpen(true);
+                setIsMobileMenuOpen(false);
+            }} className="justify-start">
+                  <CalculatorIcon className="w-4 h-4 mr-2"/>
                   Calculator
                 </Button>
               </div>
-            </div>
-          )}
+            </div>)}
         </div>
       </nav>
 
-      <Calculator
-        isOpen={isCalculatorOpen}
-        onClose={() => setIsCalculatorOpen(false)}
-      />
-    </>
-  );
+      <Calculator isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)}/>
+    </>);
 };
-
 export default Navbar;

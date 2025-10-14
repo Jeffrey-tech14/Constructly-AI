@@ -1,10 +1,6 @@
-// hooks/useConcreteCalculator.ts
 import { useCallback, useEffect, useState } from "react";
-
-// --- TYPE DEFINITIONS ---
 export type ElementType = "slab" | "beam" | "column" | "foundation";
 export type Category = "substructure" | "superstructure";
-
 export interface ConcreteRow {
   id: string;
   name: string;
@@ -16,8 +12,6 @@ export interface ConcreteRow {
   formwork?: string;
   category: Category;
   number: string;
-
-  // Foundation specific
   hasConcreteBed?: boolean;
   bedDepth?: string;
   hasAggregateBed?: boolean;
@@ -27,12 +21,11 @@ export interface ConcreteRow {
   masonryBlockDimensions?: string;
   masonryWallThickness?: string;
   masonryWallHeight?: string;
-
-  // Water settings
+  masonryWallPerimeter?: number;
+  foundationType?: string;
   clientProvidesWater?: boolean;
   cementWaterRatio?: string;
 }
-
 export interface QSSettings {
   wastageCementPercent: number;
   wastageSandPercent: number;
@@ -48,7 +41,6 @@ export interface QSSettings {
   otherSiteWaterAllowanceLM3: number;
   mortarJointThicknessM: number;
 }
-
 export interface ConcreteResult {
   id: string;
   name: string;
@@ -70,8 +62,6 @@ export interface ConcreteResult {
   waterRequired?: number;
   waterCost?: number;
   cementWaterRatio?: number;
-
-  // Net quantities
   netCementBags: number;
   netSandM3: number;
   netStoneM3: number;
@@ -79,8 +69,6 @@ export interface ConcreteResult {
   netTotalBlocks?: number;
   netMortarCementBags?: number;
   netMortarSandM3?: number;
-
-  // Gross quantities
   grossCementBags: number;
   grossSandM3: number;
   grossStoneM3: number;
@@ -88,43 +76,35 @@ export interface ConcreteResult {
   grossTotalBlocks?: number;
   grossMortarCementBags?: number;
   grossMortarSandM3?: number;
-
-  // Water breakdown
   waterMixingL: number;
   waterCuringL: number;
   waterOtherL: number;
   waterAggregateAdjustmentL: number;
-
-  // Costs
   materialCost: number;
   totalConcreteCost: number;
   unitRate: number;
 }
-
-// --- CORRECTED CONSTANTS ---
-const CEMENT_DENSITY = 1440; // kg/m³
-const SAND_DENSITY = 1600; // kg/m³
-const STONE_DENSITY = 1500; // kg/m³
+const CEMENT_DENSITY = 1440;
+const SAND_DENSITY = 1600;
+const STONE_DENSITY = 1500;
 const CEMENT_BAG_KG = 50;
-const CEMENT_BAG_VOLUME_M3 = 0.035; // 35L per bag
-
-// Standard concrete mix proportions (by VOLUME)
+const CEMENT_BAG_VOLUME_M3 = 0.035;
 const STANDARD_MIXES: {
-  [key: string]: { cement: number; sand: number; stone: number };
+  [key: string]: {
+    cement: number;
+    sand: number;
+    stone: number;
+  };
 } = {
   "1:2:4": { cement: 1, sand: 2, stone: 4 },
   "1:1.5:3": { cement: 1, sand: 1.5, stone: 3 },
   "1:3:6": { cement: 1, sand: 3, stone: 6 },
   "1:4:8": { cement: 1, sand: 4, stone: 8 },
 };
-
-// Masonry constants
-const MASONRY_MORTAR_MIX = { cement: 1, sand: 4 }; // by volume
-const MORTAR_DRY_VOLUME_FACTOR = 1.3; // 30% bulking
-const STANDARD_BLOCK_SIZE = { length: 0.4, height: 0.2, thickness: 0.2 }; // 400×200×200mm
-const BRICK_SIZE = { length: 0.225, height: 0.075, thickness: 0.1125 }; // 225×75×112.5mm
-
-// --- CORRECTED UTILITY FUNCTIONS ---
+const MASONRY_MORTAR_MIX = { cement: 1, sand: 4 };
+const MORTAR_DRY_VOLUME_FACTOR = 1.3;
+const STANDARD_BLOCK_SIZE = { length: 0.4, height: 0.2, thickness: 0.2 };
+const BRICK_SIZE = { length: 0.225, height: 0.075, thickness: 0.1125 };
 export function parseMix(mix?: string): {
   cement: number;
   sand: number;
@@ -133,13 +113,10 @@ export function parseMix(mix?: string): {
   if (!mix) return STANDARD_MIXES["1:2:4"];
   return STANDARD_MIXES[mix] || STANDARD_MIXES["1:2:4"];
 }
-
 export function parseCementWaterRatio(ratio: string): number {
   const parsed = parseFloat(ratio);
   return isNaN(parsed) || parsed <= 0 ? 0.5 : parsed;
 }
-
-// CORRECTED: Calculate concrete materials based on VOLUME proportions
 export function calculateConcreteMaterials(
   volumeM3: number,
   mix: string,
@@ -154,22 +131,15 @@ export function calculateConcreteMaterials(
 } {
   const mixRatio = parseMix(mix);
   const totalParts = mixRatio.cement + mixRatio.sand + mixRatio.stone;
-
-  // Calculate volumes of each material (based on volume proportions)
   const cementVolumeM3 = (mixRatio.cement / totalParts) * volumeM3;
   const sandVolumeM3 = (mixRatio.sand / totalParts) * volumeM3;
   const stoneVolumeM3 = (mixRatio.stone / totalParts) * volumeM3;
-
-  // Convert to practical units
   const cementBags = cementVolumeM3 / CEMENT_BAG_VOLUME_M3;
   const sandM3 = sandVolumeM3;
   const stoneM3 = stoneVolumeM3;
-
-  // Calculate masses for water calculation
   const cementMass = cementVolumeM3 * CEMENT_DENSITY;
   const sandMass = sandVolumeM3 * SAND_DENSITY;
   const stoneMass = stoneVolumeM3 * STONE_DENSITY;
-
   return {
     cementBags,
     sandM3,
@@ -179,8 +149,6 @@ export function calculateConcreteMaterials(
     stoneMass,
   };
 }
-
-// CORRECTED: Water calculation
 export function calculateWaterRequirements(
   cementMass: number,
   cementWaterRatio: string,
@@ -197,11 +165,7 @@ export function calculateWaterRequirements(
   totalWaterL: number;
 } {
   const ratio = parseCementWaterRatio(cementWaterRatio);
-
-  // Water for cement hydration (0.4-0.6 water:cement ratio by mass)
   const hydrationWater = cementMass * ratio;
-
-  // Adjust for aggregate moisture and absorption
   const waterInSand =
     sandMass * (settings.aggregateMoistureContentPercent / 100);
   const waterInStone =
@@ -210,22 +174,14 @@ export function calculateWaterRequirements(
     sandMass * (settings.aggregateAbsorptionPercent / 100);
   const waterAbsorbedByStone =
     stoneMass * (settings.aggregateAbsorptionPercent / 100);
-
   const totalWaterInAggregate = waterInSand + waterInStone;
   const totalWaterAbsorbed = waterAbsorbedBySand + waterAbsorbedByStone;
   const waterAggregateAdjustment = totalWaterInAggregate - totalWaterAbsorbed;
-
   const waterMixingL = Math.max(0, hydrationWater - waterAggregateAdjustment);
-
-  // Curing water (typically 5-7 L/m²/day for 7-14 days)
   const waterCuringL =
     surfaceAreaM2 * settings.curingWaterRateLM2PerDay * settings.curingDays;
-
-  // Other site water
   const waterOtherL = totalConcreteVolume * settings.otherSiteWaterAllowanceLM3;
-
   const totalWaterL = waterMixingL + waterCuringL + waterOtherL;
-
   return {
     waterMixingL,
     waterCuringL,
@@ -234,40 +190,33 @@ export function calculateWaterRequirements(
     totalWaterL,
   };
 }
-
-// CORRECTED: Block calculation for masonry walls
 export function calculateMasonryQuantities(
   wallLength: number,
   wallHeight: number,
   wallThickness: number,
   blockDimensions: string,
   settings: QSSettings
-): { blocks: number; mortarVolume: number } {
-  const [bL, bH, bT] = blockDimensions.split("x").map(parseFloat);
+): {
+  blocks: number;
+  mortarVolume: number;
+} {
+  const [bL, bH, bT] = blockDimensions?.split("x").map(parseFloat) || [
+    0.4, 0.4, 0.2,
+  ];
   const joint = settings.mortarJointThicknessM;
-
-  // Calculate blocks in both directions
   const blocksLength = Math.ceil(wallLength / (bL + joint));
   const blocksHeight = Math.ceil(wallHeight / (bH + joint));
-
-  // For wall thickness: calculate how many blocks thick
   const blocksThickness = Math.ceil(wallThickness / bT);
-
   const totalBlocks = blocksLength * blocksHeight * blocksThickness;
-
-  // Calculate mortar volume (simplified - based on joints)
   const horizontalJointVolume =
     wallLength * wallThickness * joint * blocksHeight;
   const verticalJointVolume = wallHeight * wallThickness * joint * blocksLength;
   const mortarVolume = horizontalJointVolume + verticalJointVolume;
-
   return {
     blocks: totalBlocks,
     mortarVolume,
   };
 }
-
-// CORRECTED: Main calculation function
 export function calculateConcrete(
   row: ConcreteRow,
   materials: any[],
@@ -287,13 +236,13 @@ export function calculateConcrete(
     hasAggregateBed,
     aggregateDepth,
     hasMasonryWall,
-    masonryBlockDimensions = "0.4x0.2x0.2",
-    masonryWallThickness = "0.2",
+    masonryBlockDimensions,
+    masonryWallThickness,
     masonryWallHeight,
+    masonryWallPerimeter,
+    masonryBlockType,
     cementWaterRatio = settings.cementWaterRatio,
   } = row;
-
-  // Parse numeric values
   const len = parseFloat(length) || 0;
   const wid = parseFloat(width) || 0;
   const hei = parseFloat(height) || 0;
@@ -302,67 +251,51 @@ export function calculateConcrete(
   const aggregateDepthNum = parseFloat(aggregateDepth) || 0;
   const wallThicknessNum = parseFloat(masonryWallThickness) || 0.2;
   const wallHeightNum = parseFloat(masonryWallHeight) || 0;
-
-  // CORRECTED: Volume calculation based on element type
   let mainVolume = 0;
   let surfaceAreaM2 = 0;
   let formworkM2 = 0;
-
   switch (element) {
     case "slab":
       mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = len * wid * num; // Top surface for curing
-      formworkM2 = len * wid * num; // Bottom formwork
+      surfaceAreaM2 = len * wid * num;
+      formworkM2 = len * wid * num;
       break;
-
     case "beam":
       mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = (2 * (len * hei) + len * wid) * num; // Sides + bottom for curing
-      formworkM2 = (2 * hei * len + wid * len) * num; // 2 sides + bottom
+      surfaceAreaM2 = (2 * (len * hei) + len * wid) * num;
+      formworkM2 = (2 * hei * len + wid * len) * num;
       break;
-
     case "column":
       mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = 2 * (len + wid) * hei * num; // All sides for curing
-      formworkM2 = 2 * (len + wid) * hei * num; // All sides
+      surfaceAreaM2 = 2 * (len + wid) * hei * num;
+      formworkM2 = 2 * (len + wid) * hei * num;
       break;
-
     case "foundation":
-      // For strip foundation: length = total perimeter, width = footing width, height = footing depth
       mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = len * wid * num; // Top surface
-      formworkM2 = 2 * len * hei * num; // Two vertical sides
+      surfaceAreaM2 = len * wid * num;
+      formworkM2 = 2 * len * hei * num;
       break;
   }
-
-  // Foundation beds
   let bedVolume = 0;
   let bedArea = 0;
   let aggregateVolume = 0;
   let aggregateArea = 0;
-
   if (element === "foundation") {
     if (hasConcreteBed && bedDepthNum > 0) {
       bedArea = len * wid * num;
       bedVolume = bedArea * bedDepthNum;
     }
-
     if (hasAggregateBed && aggregateDepthNum > 0) {
       aggregateArea = len * wid * num;
       aggregateVolume = aggregateArea * aggregateDepthNum;
     }
   }
-
   const totalConcreteVolume = mainVolume + bedVolume;
-
-  // CORRECTED: Calculate concrete materials using VOLUME-based approach
   const concreteMaterials = calculateConcreteMaterials(
     totalConcreteVolume,
     mix,
     settings
   );
-
-  // CORRECTED: Water calculation
   const waterCalc = calculateWaterRequirements(
     concreteMaterials.cementMass,
     cementWaterRatio,
@@ -372,39 +305,29 @@ export function calculateConcrete(
     surfaceAreaM2,
     totalConcreteVolume
   );
-
-  // Masonry calculations
   let netTotalBlocks = 0;
   let netMortarCementBags = 0;
   let netMortarSandM3 = 0;
-
   if (hasMasonryWall && wallHeightNum > 0 && element === "foundation") {
     const masonry = calculateMasonryQuantities(
-      len * num, // Total wall length
+      len * num,
       wallHeightNum,
       wallThicknessNum,
       masonryBlockDimensions,
       settings
     );
-
     netTotalBlocks = masonry.blocks;
-
-    // Calculate mortar materials
     const mortarVolume = masonry.mortarVolume;
     const dryMortarVolume = mortarVolume * MORTAR_DRY_VOLUME_FACTOR;
     const totalMortarParts =
       MASONRY_MORTAR_MIX.cement + MASONRY_MORTAR_MIX.sand;
-
     const mortarCementVolume =
       (MASONRY_MORTAR_MIX.cement / totalMortarParts) * dryMortarVolume;
     const mortarSandVolume =
       (MASONRY_MORTAR_MIX.sand / totalMortarParts) * dryMortarVolume;
-
     netMortarCementBags = mortarCementVolume / CEMENT_BAG_VOLUME_M3;
     netMortarSandM3 = mortarSandVolume;
   }
-
-  // Apply wastage
   const grossCementBags =
     Math.ceil(
       concreteMaterials.cementBags * (1 + settings.wastageCementPercent / 100)
@@ -418,13 +341,11 @@ export function calculateConcrete(
   const grossTotalBlocks = Math.ceil(
     netTotalBlocks * (1 + settings.wastageBlocksPercent / 100)
   );
-  const grossMortarCementBags =
-    Math.ceil(netMortarCementBags * (1 + settings.wastageCementPercent / 100)) /
-    CEMENT_BAG_KG;
+  const grossMortarCementBags = Math.ceil(
+    netMortarCementBags * (1 + settings.wastageCementPercent / 100)
+  );
   const grossMortarSandM3 =
     netMortarSandM3 * (1 + settings.wastageSandPercent / 100);
-
-  // Cost calculation
   const cement = materials.find((m) => m.name?.toLowerCase() === "cement");
   const sand = materials.find((m) => m.name?.toLowerCase() === "sand");
   const stone = materials.find(
@@ -432,7 +353,6 @@ export function calculateConcrete(
       m.name?.toLowerCase() === "ballast" || m.name?.toLowerCase() === "stone"
   );
   const water = materials.find((m) => m.name?.toLowerCase() === "water");
-
   const cementCost = grossCementBags * (cement?.price || 0);
   const sandCost = grossSandM3 * (sand?.price || 0);
   const stoneCost = grossStoneM3 * (stone?.price || 0);
@@ -441,7 +361,6 @@ export function calculateConcrete(
     : (grossWaterRequiredL / 1000) * (water?.price || 0);
   const mortarCementCost = (grossMortarCementBags || 0) * (cement?.price || 0);
   const mortarSandCost = (grossMortarSandM3 || 0) * (sand?.price || 0);
-
   const totalConcreteCost =
     cementCost +
     sandCost +
@@ -451,7 +370,6 @@ export function calculateConcrete(
     mortarSandCost;
   const unitRate =
     totalConcreteVolume > 0 ? totalConcreteCost / totalConcreteVolume : 0;
-
   return {
     id,
     name,
@@ -473,38 +391,29 @@ export function calculateConcrete(
     waterRequired: grossWaterRequiredL,
     waterCost,
     cementWaterRatio: parseCementWaterRatio(cementWaterRatio),
-
-    // Net quantities
-    netCementBags: concreteMaterials.cementBags,
+    netCementBags: concreteMaterials.cementBags / CEMENT_BAG_KG,
     netSandM3: concreteMaterials.sandM3,
     netStoneM3: concreteMaterials.stoneM3,
     netWaterRequiredL: waterCalc.totalWaterL,
     netTotalBlocks,
     netMortarCementBags,
     netMortarSandM3,
-
-    // Gross quantities
-    grossCementBags,
+    grossCementBags: grossCementBags,
     grossSandM3,
     grossStoneM3,
     grossWaterRequiredL,
     grossTotalBlocks,
     grossMortarCementBags,
     grossMortarSandM3,
-
-    // Water breakdown
     waterMixingL: waterCalc.waterMixingL,
     waterCuringL: waterCalc.waterCuringL,
     waterOtherL: waterCalc.waterOtherL,
     waterAggregateAdjustmentL: waterCalc.waterAggregateAdjustmentL,
-
     materialCost: totalConcreteCost,
     totalConcreteCost,
     unitRate,
   };
 }
-
-// CORRECTED: Rate calculation
 export function computeConcreteRatePerM3(
   mix: string,
   cementWaterRatio: string,
@@ -514,59 +423,66 @@ export function computeConcreteRatePerM3(
     stonePrice: number;
     waterPrice: number;
   },
-  settings: QSSettings
-) {
+  settings: QSSettings,
+  element: ElementType,
+  length: number,
+  width: number,
+  height: number,
+  number: number = 1
+): number {
   const { cementPrice, sandPrice, stonePrice, waterPrice } = prices;
-
-  // Calculate materials for 1m³ of concrete
-  const materialsPerM3 = calculateConcreteMaterials(1, mix, settings);
-
-  // Calculate water for 1m³ (approximate surface area)
+  let volume = 0;
+  let surfaceArea = 0;
+  let formworkArea = 0;
+  switch (element) {
+    case "slab":
+      volume = length * width * height * number;
+      surfaceArea = length * width * number;
+      formworkArea = length * width * number;
+      break;
+    case "beam":
+      volume = length * width * height * number;
+      surfaceArea = (2 * (length * height) + length * width) * number;
+      formworkArea = (2 * height * length + width * length) * number;
+      break;
+    case "column":
+      volume = length * width * height * number;
+      surfaceArea = 2 * (length + width) * height * number;
+      formworkArea = 2 * (length + width) * height * number;
+      break;
+    case "foundation":
+      volume = length * width * height * number;
+      surfaceArea = length * width * number;
+      formworkArea = 2 * length * height * number;
+      break;
+  }
+  const materials = calculateConcreteMaterials(volume, mix, settings);
   const waterCalc = calculateWaterRequirements(
-    materialsPerM3.cementMass,
+    materials.cementMass,
     cementWaterRatio,
     settings,
-    materialsPerM3.sandMass,
-    materialsPerM3.stoneMass,
-    6, // Approx surface area per m³
-    1
+    materials.sandMass,
+    materials.stoneMass,
+    surfaceArea,
+    volume
   );
-
-  // Apply wastage
   const grossCementBags =
-    materialsPerM3.cementBags * (1 + settings.wastageCementPercent / 100);
+    materials.cementBags * (1 + settings.wastageCementPercent / 100);
   const grossSandM3 =
-    materialsPerM3.sandM3 * (1 + settings.wastageSandPercent / 100);
+    materials.sandM3 * (1 + settings.wastageSandPercent / 100);
   const grossStoneM3 =
-    materialsPerM3.stoneM3 * (1 + settings.wastageStonePercent / 100);
-  const grossWaterM3 =
-    (waterCalc.totalWaterL / 1000) * (1 + settings.wastageWaterPercent / 100);
-
+    materials.stoneM3 * (1 + settings.wastageStonePercent / 100);
+  const grossWaterRequiredL =
+    waterCalc.totalWaterL * (1 + settings.wastageWaterPercent / 100);
   const effectiveWaterPrice = settings.clientProvidesWater ? 0 : waterPrice;
-
   const cementCost = grossCementBags * cementPrice;
   const sandCost = grossSandM3 * sandPrice;
   const stoneCost = grossStoneM3 * stonePrice;
-  const waterCost = grossWaterM3 * effectiveWaterPrice;
-
-  const ratePerM3 = cementCost + sandCost + stoneCost + waterCost;
-
-  return {
-    ratePerM3: Math.round(ratePerM3),
-    breakdown: {
-      cementBagsPerM3: grossCementBags,
-      sandM3PerM3: grossSandM3,
-      stoneM3PerM3: grossStoneM3,
-      waterM3PerM3: grossWaterM3,
-      cementCostPerM3: cementCost,
-      sandCostPerM3: sandCost,
-      stoneCostPerM3: stoneCost,
-      waterCostPerM3: waterCost,
-    },
-  };
+  const waterCost = (grossWaterRequiredL / 1000) * effectiveWaterPrice;
+  const totalCost = cementCost + sandCost + stoneCost + waterCost;
+  const ratePerM3 = volume > 0 ? totalCost / volume : 0;
+  return ratePerM3;
 }
-
-// Hook remains largely the same
 export function useConcreteCalculator(
   rows: ConcreteRow[],
   materials: any[],
@@ -574,14 +490,12 @@ export function useConcreteCalculator(
 ) {
   const [results, setResults] = useState<ConcreteResult[]>([]);
   const [totals, setTotals] = useState<any>({});
-
   useEffect(() => {
     const calculatedResults = rows.map((row) =>
       calculateConcrete(row, materials, settings)
     );
     setResults(calculatedResults);
   }, [rows, materials, settings]);
-
   useEffect(() => {
     const newTotals = results.reduce(
       (acc, r) => {
@@ -589,9 +503,14 @@ export function useConcreteCalculator(
         acc.cement += r.grossCementBags;
         acc.sand += r.grossSandM3;
         acc.stone += r.grossStoneM3;
+        acc.mortarCementBags += r.grossMortarCementBags || 0;
         acc.formworkM2 += r.formworkM2;
         acc.waterRequired += r.grossWaterRequiredL;
         acc.waterCost += r.waterCost || 0;
+        acc.mortarSandM3 += r.grossMortarSandM3 || 0;
+        acc.aggregateVolume += r.aggregateVolume || 0;
+        acc.totalBlocks += r.grossTotalBlocks || 0;
+        acc.materialCost += r.materialCost;
         acc.totalCost += r.totalConcreteCost;
         return acc;
       },
@@ -600,16 +519,19 @@ export function useConcreteCalculator(
         cement: 0,
         sand: 0,
         stone: 0,
+        mortarCementBags: 0,
         formworkM2: 0,
+        mortarSandM3: 0,
+        aggregateVolume: 0,
+        totalBlocks: 0,
+        materialCost: 0,
         waterRequired: 0,
         waterCost: 0,
         totalCost: 0,
       }
     );
-
     setTotals(newTotals);
   }, [results]);
-
   const calculateConcreteRateForRow = useCallback(
     (row: ConcreteRow): number => {
       const cement = materials.find((m) => m.name?.toLowerCase() === "cement");
@@ -620,10 +542,12 @@ export function useConcreteCalculator(
           m.name?.toLowerCase() === "stone"
       );
       const water = materials.find((m) => m.name?.toLowerCase() === "water");
-
       if (!cement || !sand || !stone) return 0;
-
-      const { ratePerM3 } = computeConcreteRatePerM3(
+      const len = parseFloat(row.length) || 0;
+      const wid = parseFloat(row.width) || 0;
+      const hei = parseFloat(row.height) || 0;
+      const num = parseInt(row.number) || 1;
+      return computeConcreteRatePerM3(
         row.mix,
         row.cementWaterRatio || settings.cementWaterRatio,
         {
@@ -632,14 +556,16 @@ export function useConcreteCalculator(
           stonePrice: stone.price,
           waterPrice: water?.price || 0,
         },
-        settings
+        settings,
+        row.element,
+        len,
+        wid,
+        hei,
+        num
       );
-
-      return ratePerM3;
     },
     [materials, settings]
   );
-
   return {
     results,
     totals,

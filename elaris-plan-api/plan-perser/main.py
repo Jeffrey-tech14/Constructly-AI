@@ -1,4 +1,4 @@
-# main.py
+
 import uuid
 import subprocess
 import json
@@ -19,9 +19,9 @@ app.add_middleware(
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
-# main.py - Add this function and use it in your endpoint
+
 ALLOWED_EXTENSIONS = {
-    'jpg', 'jpeg', 'png', 'pdf', 'dwg', 'dxf', 'rvt', 'ifc', 
+    'jpg', 'jpeg', 'png', 'pdf', 'dwg', 'dxf', 'rvt', 'ifc',
     'pln', 'zip', 'csv', 'xlsx', 'txt'
 }
 

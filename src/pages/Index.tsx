@@ -137,19 +137,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-// === RISA Color Palette (Original Blue Theme) ===
+// === RISA Color Palette ===
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
 const RISA_WHITE = "#ffffff";
 const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
-
-// === KCA Gold Accents (used sparingly) ===
 const KCA_GOLD = "#D4AF37";
 const KCA_GOLD_DARK = "#B8860B";
 
-// Icon colors for "Who Uses Jtech AI"
 const ICON_COLORS = [
   RISA_BLUE,
   RISA_LIGHT_BLUE,
@@ -160,52 +155,305 @@ const ICON_COLORS = [
 ];
 
 // ========================
-// PaymentMethod Component
+// REVISED: WhoUses Section — RISA Grid Layout
+// ========================
+const WhoItsForSection = () => {
+  const professionals = [
+    {
+      icon: <Building2 className="h-10 w-10 text-white" />,
+      title: "General Contractors",
+      description: "Quickly generate accurate quotes for clients and manage multiple projects efficiently.",
+      features: ["Project estimation", "Client management", "Cost tracking"],
+      color: ICON_COLORS[0]
+    },
+    {
+      icon: <Calculator className="h-10 w-10 text-white" />,
+      title: "Quantity Surveyors",
+      description: "Streamline your takeoff process with AI-powered measurement tools.",
+      features: ["Automated takeoffs", "Precision measurements", "Custom reports"],
+      color: ICON_COLORS[1]
+    },
+    {
+      icon: <ClipboardCheck className="h-10 w-10 text-white" />,
+      title: "Construction Managers",
+      description: "Keep projects on budget with real-time cost monitoring and forecasting.",
+      features: ["Budget management", "Resource allocation", "Progress tracking"],
+      color: ICON_COLORS[2]
+    },
+    {
+      icon: <HardHat className="h-10 w-10 text-white" />,
+      title: "Subcontractors",
+      description: "Submit competitive bids faster with accurate material and labor estimates.",
+      features: ["Specialized estimating", "Quick proposals", "Trade-specific templates"],
+      color: ICON_COLORS[3]
+    },
+    {
+      icon: <Ruler className="h-10 w-10 text-white" />,
+      title: "Construction Estimators",
+      description: "Enhance your estimating workflow with AI-assisted quantity takeoffs.",
+      features: ["AI measurements", "Database integration", "Historical data analysis"],
+      color: ICON_COLORS[4]
+    },
+    {
+      icon: <Home className="h-10 w-10 text-white" />,
+      title: "Home Builders",
+      description: "Create detailed estimates for residential projects of any scale.",
+      features: ["Residential templates", "Material optimization", "Client presentations"],
+      color: ICON_COLORS[5]
+    }
+  ];
+
+  const navigate = useNavigate();
+
+  return (
+    <section id="who-its-for" className="py-16 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+          className="text-center mb-12 md:mb-16"
+        >
+          <Badge 
+            className="mb-4 text-xs text-white px-3 py-1"
+            style={{ 
+              background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})`,
+            }}
+          >
+            <Users className="w-3 h-3 mr-1" /> Designed For Professionals
+          </Badge>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+            Who Uses Jtech AI
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-base dark:text-gray-300">
+            Built for construction professionals across all specialties and project types
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {professionals.map((pro, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.08 }}
+              viewport={{ once: true }}
+              className="text-center group"
+            >
+              <motion.div 
+                className="mx-auto mb-5 flex items-center justify-center w-16 h-16 rounded-xl"
+                style={{ backgroundColor: pro.color }}
+                whileHover={{ scale: 1.1, y: -5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                {pro.icon}
+              </motion.div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{pro.title}</h3>
+              <p className="text-gray-600 mb-4 text-sm dark:text-gray-300">{pro.description}</p>
+              <ul className="text-left space-y-1.5">
+                {pro.features.map((feature, i) => (
+                  <motion.li 
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ delay: index * 0.08 + i * 0.05 }}
+                    viewport={{ once: true }}
+                    className="flex items-start text-sm"
+                  >
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0 dark:text-green-400" />
+                    <span className="text-gray-600 dark:text-gray-300">{feature}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div 
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          viewport={{ once: true }}
+        >
+          <p className="text-gray-600 mb-6 max-w-3xl mx-auto text-base dark:text-gray-300">
+            No matter your role in construction, Jtech AI provides the tools you need to save time, 
+            reduce errors, and win more bids with professional, accurate estimates.
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05, backgroundColor: KCA_GOLD }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/auth?mode=signup")}
+            className="font-semibold py-3 px-8 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-white"
+            style={{ 
+              backgroundColor: RISA_BLUE,
+              borderRadius: '50px',
+              border: 'none'
+            }}
+          >
+            Find Your Plan <ArrowRight className="ml-2 h-4 w-4 inline" />
+          </motion.button>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+// ========================
+// UPDATED: PaymentMethod with Real Icons
 // ========================
 const PaymentMethod = ({ method }) => {
   return (
     <motion.div
       whileHover={{ 
-        y: -10, 
-        scale: 1.03,
-        boxShadow: "0 12px 30px -8px rgba(0,0,0,0.15)",
-        borderColor: KCA_GOLD
+        scale: 1.12,
+        y: -10,
+        boxShadow: "0 10px 30px -8px rgba(0,0,0,0.2)"
       }}
-      className="
-        border p-6 rounded-xl text-center shadow-sm transition-all duration-300 
-        bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700
-        flex flex-col items-center group h-full flex-grow
-      "
-      style={{ 
-        borderColor: RISA_BLUE,
-        minHeight: '220px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center'
-      }}
+      className="flex items-center justify-center p-2"
     >
-      {/* Placeholder for real icon — replace src with actual path later */}
-      {method.image ? (
-        <img 
-          src={method.image} 
-          alt={method.name} 
-          className="w-16 h-16 mb-4 object-contain"
-        />
-      ) : (
-        <div className="text-4xl mb-4 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
-          {method.icon}
-        </div>
-      )}
-      <h4 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">{method.name}</h4>
-      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mt-2">
-        {method.description}
-      </p>
+      <img 
+        src={method.image} 
+        alt={method.name} 
+        className="h-20 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+        loading="lazy"
+      />
     </motion.div>
   );
 };
 
 // ========================
-// TestimonialsSection
+// UPDATED: PaymentOptionsSection with Real Payment Icons (M-Pesa removed)
+// ========================
+const PaymentOptionsSection = () => {
+  const paymentMethods = [
+    {
+      id: "visa",
+      name: "Visa",
+      image: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg",
+    },
+    {
+      id: "mastercard",
+      name: "Mastercard",
+      image: "https://upload.wikimedia.org/wikipedia/commons/0/04/Mastercard-logo.png",
+    },
+    {
+      id: "paypal",
+      name: "PayPal",
+      image: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
+    },
+  ];
+
+  return (
+    <motion.section
+      id="payment-options"
+      className="py-16 bg-gray-50 dark:bg-gray-800"
+      aria-labelledby="payment-title"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+      viewport={{ once: true }}
+    >
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12 md:mb-16">
+          <Badge 
+            className="mb-4 text-xs text-white px-3 py-1"
+            style={{ background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})` }}
+          >
+            <CreditCard className="w-3 h-3 mr-1" /> Payment options
+          </Badge>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white" id="payment-title">
+            Multiple Payment Methods
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-base dark:text-gray-300">
+            Secure and convenient payment options for your business
+          </p>
+        </div>
+
+        <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
+          {paymentMethods.map((method, i) => (
+            <PaymentMethod key={i} method={method} />
+          ))}
+        </div>
+
+        <motion.div 
+          className="mt-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.3 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex items-center justify-center space-x-2 text-green-600 dark:text-green-400">
+            <ShieldCheck className="w-4 h-4" />
+            <span className="text-sm font-medium">Secure & Encrypted Payments</span>
+          </div>
+        </motion.div>
+      </div>
+    </motion.section>
+  );
+};
+
+// ========================
+// NEW: Integration Partners Section
+// ========================
+const IntegrationPartners = () => {
+  const partners = [
+    { name: "AutoCAD", description: "Direct DWG file integration" },
+    { name: "Revit", description: "Seamless BIM workflow" },
+    { name: "QuickBooks", description: "Financial management sync" },
+    { name: "Xero", description: "Accounting integration" },
+  ];
+
+  return (
+    <section className="py-16 bg-white dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <Badge 
+            className="mb-4 text-xs text-white px-3 py-1"
+            style={{ background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})` }}
+          >
+            <Globe className="w-3 h-3 mr-1" /> Integrations
+          </Badge>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+            Works With Your Tools
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-base dark:text-gray-300">
+            Seamlessly integrate with the software you already use
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {partners.map((partner, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="text-center p-6 bg-gray-50 rounded-xl dark:bg-gray-800"
+            >
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 dark:bg-blue-900">
+                <Code className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{partner.name}</h3>
+              <p className="text-gray-600 text-sm dark:text-gray-300">{partner.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ========================
+// ENHANCED: TestimonialsSection with better design
 // ========================
 const TestimonialsSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -266,7 +514,7 @@ const TestimonialsSection = () => {
           className="text-center mb-12"
         >
           <Badge 
-            className="mb-4 text-xs bg-gradient-to-r from-blue-600 to-gold-500 text-white"
+            className="mb-4 text-xs text-white px-3 py-1"
             style={{ background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})` }}
           >
             <Star className="w-3 h-3 mr-1 fill-current" /> Client Testimonials
@@ -293,8 +541,17 @@ const TestimonialsSection = () => {
               <div className="p-6 md:p-8 lg:p-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                   <div className="lg:w-2/3">
-                    <div className="text-gold-500 text-4xl mb-4 dark:text-gold-300">
-                      <Quote className="opacity-70" />
+                    <div className="flex mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < currentTestimonial.rating
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
                     </div>
                     <p className="text-lg mb-6 leading-relaxed italic text-gray-900 dark:text-gray-100">
                       "{currentTestimonial.quote}"
@@ -312,7 +569,6 @@ const TestimonialsSection = () => {
                       </div>
                     </div>
                   </div>
-
                   <div className="lg:w-1/3">
                     <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Key Achievements</h3>
                     <div className="space-y-4">
@@ -324,7 +580,7 @@ const TestimonialsSection = () => {
                           transition={{ delay: index * 0.1 }}
                           className="p-4 rounded-xl border"
                           style={{ 
-                            background: `linear-gradient(135deg, ${RISA_LIGHT_GRAY}, ${RISA_WHITE})`,
+                            background: `linear-gradient(135deg, #f8f9fa, #ffffff)`,
                             borderColor: KCA_GOLD,
                             boxShadow: `0 4px 6px -1px rgba(212, 175, 55, 0.2)`
                           }}
@@ -362,26 +618,24 @@ const TestimonialsSection = () => {
 };
 
 // ========================
-// ThemeToggle
+// Theme Toggle Component
 // ========================
-const ThemeToggle = ({ darkMode, toggleDarkMode }) => {
-  return (
-    <div className="flex items-center ml-4">
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={toggleDarkMode}
-        className="p-2 rounded-full bg-gray-100 text-gray-600 transition-colors duration-300 dark:bg-gray-800 dark:text-gray-300"
-        aria-label="Toggle dark mode"
-      >
-        {darkMode ? <Moon className="h-4 w-4 md:h-5 md:w-5" /> : <Sun className="h-4 w-4 md:h-5 md:w-5" />}
-      </motion.button>
-    </div>
-  );
-};
+const ThemeToggle = ({ darkMode, toggleDarkMode }) => (
+  <div className="flex items-center ml-4">
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onClick={toggleDarkMode}
+      className="p-2 rounded-full bg-gray-100 text-gray-600 transition-colors duration-300 dark:bg-gray-800 dark:text-gray-300"
+      aria-label="Toggle dark mode"
+    >
+      {darkMode ? <Moon className="h-4 w-4 md:h-5 md:w-5" /> : <Sun className="h-4 w-4 md:h-5 md:w-5" />}
+    </motion.button>
+  </div>
+);
 
 // ========================
-// VideoModal
+// Video Modal Component
 // ========================
 const VideoModal = ({ isOpen, onClose }) => {
   const videoRef = useRef(null);
@@ -393,9 +647,7 @@ const VideoModal = ({ isOpen, onClose }) => {
       });
     }
   }, [isOpen]);
-
   if (!isOpen) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -441,13 +693,12 @@ const VideoModal = ({ isOpen, onClose }) => {
 };
 
 // ========================
-// FAQ Section (unchanged logic, kept for completeness)
+// ENHANCED: FAQ Section
 // ========================
 const FaqSection = () => {
   const [activeCategory, setActiveCategory] = useState("General");
   const [openIndex, setOpenIndex] = useState(null);
   const [search, setSearch] = useState("");
-
   const faqsData = {
     "General": {
       icon: <HelpCircle className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />,
@@ -605,11 +856,9 @@ const FaqSection = () => {
       ],
     },
   };
-
   const filteredFaqs = faqsData[activeCategory].items.filter((faq) =>
     faq.question.toLowerCase().includes(search.toLowerCase())
   );
-
   return (
     <section id="faq" className="py-16 md:py-20 bg-white dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -780,7 +1029,7 @@ const FaqSection = () => {
 };
 
 // ========================
-// HowItWorks (unchanged)
+// ENHANCED: HowItWorks Section
 // ========================
 const HowItWorks = () => {
   const steps = [
@@ -870,179 +1119,7 @@ const HowItWorks = () => {
 };
 
 // ========================
-// WhoItsForSection — Enhanced with Framer Motion (RISA-style)
-// ========================
-const WhoItsForSection = () => {
-  const professionals = [
-    {
-      icon: <Building2 className="h-10 w-10 text-white" />,
-      title: "General Contractors",
-      description: "Quickly generate accurate quotes for clients and manage multiple projects efficiently.",
-      features: ["Project estimation", "Client management", "Cost tracking"],
-      color: ICON_COLORS[0]
-    },
-    {
-      icon: <Calculator className="h-10 w-10 text-white" />,
-      title: "Quantity Surveyors",
-      description: "Streamline your takeoff process with AI-powered measurement tools.",
-      features: ["Automated takeoffs", "Precision measurements", "Custom reports"],
-      color: ICON_COLORS[1]
-    },
-    {
-      icon: <ClipboardCheck className="h-10 w-10 text-white" />,
-      title: "Construction Managers",
-      description: "Keep projects on budget with real-time cost monitoring and forecasting.",
-      features: ["Budget management", "Resource allocation", "Progress tracking"],
-      color: ICON_COLORS[2]
-    },
-    {
-      icon: <HardHat className="h-10 w-10 text-white" />,
-      title: "Subcontractors",
-      description: "Submit competitive bids faster with accurate material and labor estimates.",
-      features: ["Specialized estimating", "Quick proposals", "Trade-specific templates"],
-      color: ICON_COLORS[3]
-    },
-    {
-      icon: <Ruler className="h-10 w-10 text-white" />,
-      title: "Construction Estimators",
-      description: "Enhance your estimating workflow with AI-assisted quantity takeoffs.",
-      features: ["AI measurements", "Database integration", "Historical data analysis"],
-      color: ICON_COLORS[4]
-    },
-    {
-      icon: <Home className="h-10 w-10 text-white" />,
-      title: "Home Builders",
-      description: "Create detailed estimates for residential projects of any scale.",
-      features: ["Residential templates", "Material optimization", "Client presentations"],
-      color: ICON_COLORS[5]
-    }
-  ];
-
-  const navigate = useNavigate();
-
-  return (
-    <section id="who-its-for" className="py-16 bg-white dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true }}
-          className="text-center mb-12 md:mb-16"
-        >
-          <Badge 
-            className="mb-4 text-xs text-white"
-            style={{ 
-              background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})`,
-              padding: '0.25rem 0.75rem'
-            }}
-          >
-            <Users className="w-3 h-3 mr-1" /> Designed For Professionals
-          </Badge>
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-            Who Uses Jtech AI
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-base dark:text-gray-300">
-            Built for construction professionals across all specialties and project types
-          </p>
-        </motion.div>
-
-        <div className="space-y-12">
-          {professionals.map((pro, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 50, rotateX: 10 }}
-              whileInView={{ 
-                opacity: 1, 
-                y: 0, 
-                rotateX: 0,
-                transition: {
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15,
-                  delay: index * 0.1
-                }
-              }}
-              viewport={{ once: true }}
-              className={`flex flex-col ${
-                index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-              } items-center gap-8 md:gap-12`}
-            >
-              <motion.div 
-                className="flex-shrink-0"
-                whileHover={{ 
-                  scale: 1.1, 
-                  rotateY: 10,
-                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)"
-                }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div 
-                  className="p-4 rounded-2xl flex items-center justify-center w-24 h-24"
-                  style={{ backgroundColor: pro.color }}
-                >
-                  {pro.icon}
-                </div>
-              </motion.div>
-              <div className={`max-w-2xl ${index % 2 === 0 ? 'md:text-left' : 'md:text-right'} text-center`}>
-                <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">{pro.title}</h3>
-                <p className="text-gray-600 mb-5 text-base dark:text-gray-300">{pro.description}</p>
-                <div className="inline-block">
-                  <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">Key Features:</h4>
-                  <ul className="text-sm space-y-1">
-                    {pro.features.map((feature, i) => (
-                      <motion.li 
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 + i * 0.05 }}
-                        viewport={{ once: true }}
-                        className="flex items-start"
-                      >
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0 dark:text-green-400" />
-                        <span className="text-gray-600 dark:text-gray-300">{feature}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div 
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <p className="text-gray-600 mb-6 max-w-3xl mx-auto text-base dark:text-gray-300">
-            No matter your role in construction, Jtech AI provides the tools you need to save time, 
-            reduce errors, and win more bids with professional, accurate estimates.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05, backgroundColor: KCA_GOLD }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/auth?mode=signup")}
-            className="font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-white"
-            style={{ 
-              backgroundColor: RISA_BLUE, 
-              padding: '0.5rem 2rem',
-              borderRadius: '50px',
-              border: 'none'
-            }}
-          >
-            Find Your Plan <ArrowRight className="ml-2 h-4 w-4 inline" />
-          </motion.button>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
-
-// ========================
-// CTABanner (with gold hover)
+// ENHANCED: CTA Banner
 // ========================
 const CTABanner = () => {
   const navigate = useNavigate();
@@ -1055,12 +1132,12 @@ const CTABanner = () => {
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
         >
-          <div className="rounded-2xl text-gray-900 dark:text-white shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+          <Card className="rounded-2xl text-gray-900 dark:text-white shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-800 dark:to-blue-900">
             <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <p className="uppercase tracking-wider text-gray-500 text-xs mb-1 dark:text-gray-400">Ready to build better?</p>
+              <div className="text-white">
+                <p className="uppercase tracking-wider text-blue-200 text-xs mb-1">Ready to build better?</p>
                 <h3 className="text-2xl md:text-3xl font-bold">Create your first quote in minutes</h3>
-                <p className="text-gray-600 mt-2 dark:text-gray-300">No credit card required. Cancel anytime.</p>
+                <p className="text-blue-100 mt-2">No credit card required. Cancel anytime.</p>
               </div>
               <div className="flex gap-3">
                 <motion.button
@@ -1087,28 +1164,12 @@ const CTABanner = () => {
                 </motion.button>
               </div>
             </CardContent>
-          </div>
+          </Card>
         </motion.div>
       </div>
     </section>
   );
 };
-
-// ========================
-// Logo
-// ========================
-const Logo = ({ compact = false }: { compact?: boolean }) => (
-  <div className="flex items-center group select-none">
-    <div className="p-2 rounded-xl bg-transparent shadow-md group-hover:scale-105 transition-transform">
-      <TargetIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-    </div>
-    {!compact && (
-      <span className="ml-2 font-bold text-lg sm:text-2xl text-blue-600 dark:text-blue-400">
-        Jtech AI
-      </span>
-    )}
-  </div>
-);
 
 // ========================
 // Main Index Component
@@ -1123,38 +1184,6 @@ const Index = () => {
   const [tiersLoading, setTiersLoading] = useState(true);
   const [tiersError, setTiersError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-
-  // Updated payment methods with image placeholders
-  const paymentMethods = [
-    {
-      id: "credit",
-      name: "Credit/Debit Card",
-      icon: <CreditCard className="w-10 h-10 text-blue-600 dark:text-blue-400" />,
-      image: "https://www.co-opbank.co.ke/wp-content/uploads/2021/11/COOP-ATM-CARD-Credit.jpg", // ← Replace with real path
-      description: "Secure payments via Visa, Mastercard, and American Express.",
-    },
-    {
-      id: "mpesa",
-      name: "M-Pesa",
-      icon: <Smartphone className="w-10 h-10 text-blue-600 dark:text-blue-400" />,
-      image: "https://tech-ish.com/wp-content/uploads/2020/03/MPESA-QR-CODES-Kenya.png", // ← Replace with real path
-      description: "Convenient mobile payments for Kenyan users.",
-    },
-    {
-      id: "bank",
-      name: "Bank Transfer",
-      icon: <DollarSign className="w-10 h-10 text-blue-600 dark:text-blue-400" />,
-      image: "https://www.co-opbank.co.ke/wp-content/uploads/2024/07/Money-Transfer_336-by-240-E4FREE-copy-1.jpg", // ← Replace with real path
-      description: "Direct bank transfers for enterprise payments.",
-    },
-    {
-      id: "paypal",
-      name: "PayPal",
-      icon: <Coins className="w-10 h-10 text-blue-600 dark:text-blue-400" />,
-      image: "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1f/31/22/1f312232-4c89-61c3-494d-80c3d6f4423e/AppIcon-0-0-1x_U007ephone-0-1-0-GLES2_U002c0-85-220.png/1200x600wa.png", // ← Replace with real path
-      description: "International payments processed securely.",
-    },
-  ];
 
   // Theme & Scroll Effects
   useEffect(() => {
@@ -1222,34 +1251,6 @@ const Index = () => {
       <style>
         {`
           html { font-size: 14px; }
-          .risa-btn-primary {
-            background-color: #015B97;
-            color: white;
-            padding: 0.5rem 2rem;
-            border-radius: 50px;
-            border: none;
-            font-weight: bold;
-            transition: all 0.3s ease;
-          }
-          .risa-btn-primary:hover {
-            background-color: white;
-            color: #015B97;
-            border: 1px solid #015B97;
-          }
-          .risa-btn-outline {
-            background-color: white;
-            color: #015B97;
-            padding: 0.5rem 2rem;
-            border-radius: 50px;
-            border: 1px solid #015B97;
-            font-weight: bold;
-            transition: all 0.3s ease;
-          }
-          .risa-btn-outline:hover {
-            background-color: #015B97;
-            color: white;
-            border: 1px solid #015B97;
-          }
           .video-container {
             position: relative;
             padding-bottom: 56.25%;
@@ -1267,73 +1268,6 @@ const Index = () => {
             object-fit: contain;
             background-color: #000;
           }
-          .hero-section {
-            position: relative;
-            padding: 120px 0 80px;
-          }
-          .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-          }
-          .hero-content {
-            position: relative;
-            z-index: 2;
-            color: white;
-          }
-          .hero-title {
-            font-size: 3.5em;
-            line-height: 1.1;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-          }
-          .hero-text {
-            font-size: 1.2em;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-            max-width: 600px;
-          }
-          @media (max-width: 768px) {
-            .hero-title { font-size: 2.5em; }
-            .hero-text { font-size: 1em; }
-          }
-          .contact-dropdown {
-            position: relative;
-            display: inline-block;
-          }
-          .contact-dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: white;
-            min-width: 200px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1000;
-            border: 1px solid ${RISA_BLUE};
-            border-radius: 8px;
-            padding: 8px 0;
-          }
-          .contact-dropdown:hover .contact-dropdown-content {
-            display: block;
-          }
-          .contact-dropdown-item {
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            color: ${RISA_DARK_TEXT};
-            transition: background-color 0.3s;
-          }
-          .contact-dropdown-item:hover {
-            background-color: #f1f1f1;
-            color: ${RISA_BLUE};
-          }
         `}
       </style>
 
@@ -1345,34 +1279,9 @@ const Index = () => {
         className="bg-white py-1.5 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end space-x-6 md:space-x-8">
-          <div className="contact-dropdown group">
-            <motion.button 
-              className="flex items-center lowercase text-gray-700 hover:text-blue-600 transition text-xs dark:text-gray-300 dark:hover:text-blue-400"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              style={{ color: RISA_BLUE }}
-            >
-              <Mail className="mr-1 h-3.5 w-3.5" />
-              contact us 
-              <ChevronDown className="ml-1 h-3.5 w-3.5" />
-            </motion.button>
-            <div className="contact-dropdown-content">
-              <a
-                href="mailto:support@jtechai.com"
-                className="contact-dropdown-item"
-                style={{ color: RISA_DARK_TEXT }}
-              >
-                <Mail className="mr-2 h-4 w-4" /> Support
-              </a>
-              <a
-                href="mailto:sales@jtechai.com"
-                className="contact-dropdown-item"
-                style={{ color: RISA_DARK_TEXT }}
-              >
-                <Mail className="mr-2 h-4 w-4" /> Sales/General
-              </a>
-            </div>
-          </div>
+          <a href="mailto:support@jtechai.com" className="flex items-center hover:text-blue-600 text-gray-700 text-xs dark:text-gray-300 dark:hover:text-blue-400" style={{ color: RISA_BLUE }}>
+            <Mail className="mr-1 h-3.5 w-3.5" /> support@jtechai.com
+          </a>
           <a href="tel:9499515815" className="flex items-center hover:text-blue-600 text-gray-700 text-xs dark:text-gray-300 dark:hover:text-blue-400" style={{ color: RISA_BLUE }}>
             <PhoneCall className="mr-1 h-3.5 w-3.5" /> 949 951 5815
           </a>
@@ -1580,6 +1489,8 @@ const Index = () => {
         </div>
       </motion.section>
 
+      {/* REMOVED: Stats Section - No longer included */}
+
       <WhoItsForSection />
       <HowItWorks />
 
@@ -1691,6 +1602,9 @@ const Index = () => {
           </div>
         </div>
       </motion.section>
+
+      {/* NEW: Integration Partners */}
+      <IntegrationPartners />
 
       {/* Pricing Section */}
       <motion.section
@@ -1823,41 +1737,16 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Payment Options */}
-      <motion.section
-        id="payment-options"
-        className="py-16 bg-gray-50 dark:bg-gray-800"
-        aria-labelledby="payment-title"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        viewport={{ once: true }}
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 md:mb-16">
-            <Badge 
-              className="mb-4 text-xs text-white"
-              style={{ background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})` }}
-            >
-              <CreditCard className="w-3 h-3 mr-1" /> Payment options
-            </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white" id="payment-title">
-              Variety of payment options
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 w-full mt-10">
-            {paymentMethods.map((method, i) => (
-              <PaymentMethod key={i} method={method} />
-            ))}
-          </div>
-        </div>
-      </motion.section>
+      {/* UPDATED: Payment section with real payment icons (M-Pesa removed) */}
+      <PaymentOptionsSection />
 
+      {/* Use redesigned testimonials */}
       <TestimonialsSection />
+
       <FaqSection />
       <CTABanner />
 
-      {/* Footer */}
+      {/* Footer - Fixed text visibility */}
       <motion.footer
         id="contact"
         className="border-t bg-white dark:bg-gray-800 dark:border-gray-700"
@@ -1886,7 +1775,7 @@ const Index = () => {
                 {['features', 'pricing', 'how-it-works'].map((id) => (
                   <li key={id}>
                     <button
-                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
                       onClick={() => scrollTo(id)}
                       style={{ color: RISA_BLUE }}
                     >
@@ -1902,7 +1791,7 @@ const Index = () => {
                 {['testimonials', 'faq', 'who-its-for'].map((id) => (
                   <li key={id}>
                     <button
-                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
                       onClick={() => scrollTo(id)}
                       style={{ color: RISA_BLUE }}
                     >
@@ -1918,7 +1807,7 @@ const Index = () => {
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   <a
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
+                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
                     href="mailto:support@jtechai.com"
                     style={{ color: RISA_BLUE }}
                   >
@@ -1928,7 +1817,7 @@ const Index = () => {
                 <li className="flex items-center gap-2">
                   <PhoneCall className="w-4 h-4" />
                   <a
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
+                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
                     href="tel:9499515815"
                     style={{ color: RISA_BLUE }}
                   >
@@ -1937,7 +1826,7 @@ const Index = () => {
                 </li>
                 <li>
                   <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
+                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     style={{ color: RISA_BLUE }}
                   >
@@ -1953,10 +1842,10 @@ const Index = () => {
                 <span className="text-gray-700 dark:text-gray-400">© {new Date().getFullYear()} Jtech AI. All rights reserved.</span>
               </div>
               <div className="flex items-center gap-4">
-                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300">
+                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-xs">
                   Privacy Policy
                 </a>
-                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300">
+                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-xs">
                   Terms of Service
                 </a>
               </div>

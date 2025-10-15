@@ -144,7 +144,6 @@ const RISA_WHITE = "#ffffff";
 const RISA_DARK_TEXT = "#2D3748";
 const KCA_GOLD = "#D4AF37";
 const KCA_GOLD_DARK = "#B8860B";
-
 const ICON_COLORS = [
   RISA_BLUE,
   RISA_LIGHT_BLUE,
@@ -202,9 +201,7 @@ const WhoItsForSection = () => {
       color: ICON_COLORS[5]
     }
   ];
-
   const navigate = useNavigate();
-
   return (
     <section id="who-its-for" className="py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -230,7 +227,6 @@ const WhoItsForSection = () => {
             Built for construction professionals across all specialties and project types
           </p>
         </motion.div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {professionals.map((pro, index) => (
             <motion.div
@@ -269,7 +265,6 @@ const WhoItsForSection = () => {
             </motion.div>
           ))}
         </div>
-
         <motion.div 
           className="mt-16 text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -301,30 +296,23 @@ const WhoItsForSection = () => {
 };
 
 // ========================
-// UPDATED: PaymentMethod with Real Icons
+// UPDATED: PaymentMethod — NO hover, original colors
 // ========================
 const PaymentMethod = ({ method }) => {
   return (
-    <motion.div
-      whileHover={{ 
-        scale: 1.12,
-        y: -10,
-        boxShadow: "0 10px 30px -8px rgba(0,0,0,0.2)"
-      }}
-      className="flex items-center justify-center p-2"
-    >
+    <div className="flex items-center justify-center p-2">
       <img 
         src={method.image} 
         alt={method.name} 
-        className="h-20 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+        className="h-14 w-auto object-contain" // consistent height, scales down
         loading="lazy"
       />
-    </motion.div>
+    </div>
   );
 };
 
 // ========================
-// UPDATED: PaymentOptionsSection with Real Payment Icons (M-Pesa removed)
+// UPDATED: PaymentOptionsSection — NO hover, responsive
 // ========================
 const PaymentOptionsSection = () => {
   const paymentMethods = [
@@ -344,7 +332,6 @@ const PaymentOptionsSection = () => {
       image: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
     },
   ];
-
   return (
     <motion.section
       id="payment-options"
@@ -370,13 +357,11 @@ const PaymentOptionsSection = () => {
             Secure and convenient payment options for your business
           </p>
         </div>
-
-        <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
+        <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12">
           {paymentMethods.map((method, i) => (
             <PaymentMethod key={i} method={method} />
           ))}
         </div>
-
         <motion.div 
           className="mt-12 text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -404,7 +389,6 @@ const IntegrationPartners = () => {
     { name: "QuickBooks", description: "Financial management sync" },
     { name: "Xero", description: "Accounting integration" },
   ];
-
   return (
     <section className="py-16 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -428,7 +412,6 @@ const IntegrationPartners = () => {
             Seamlessly integrate with the software you already use
           </p>
         </motion.div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {partners.map((partner, index) => (
             <motion.div
@@ -492,17 +475,13 @@ const TestimonialsSection = () => {
       ]
     }
   ];
-
   const nextTestimonial = () => setActiveIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
   const prevTestimonial = () => setActiveIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
-
   useEffect(() => {
     const interval = setInterval(nextTestimonial, 5000);
     return () => clearInterval(interval);
   }, []);
-
   const currentTestimonial = testimonials[activeIndex];
-
   return (
     <section id="testimonials" className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -526,7 +505,6 @@ const TestimonialsSection = () => {
             Hear from professionals who transformed their workflow with Jtech AI.
           </p>
         </motion.div>
-
         <div className="max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
@@ -595,7 +573,6 @@ const TestimonialsSection = () => {
               </div>
             </motion.div>
           </AnimatePresence>
-
           {testimonials.length > 1 && (
             <div className="flex justify-center mt-8 space-x-2">
               {testimonials.map((_, index) => (
@@ -1119,7 +1096,7 @@ const HowItWorks = () => {
 };
 
 // ========================
-// ENHANCED: CTA Banner
+// ENHANCED: CTA Banner (text visibility improved)
 // ========================
 const CTABanner = () => {
   const navigate = useNavigate();
@@ -1413,84 +1390,83 @@ const Index = () => {
         </div>
       </motion.nav>
 
-      {/* Hero Section */}
+      {/* Hero Section – FIXED: Same layout on all screens, scaled down */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7 }}
-        className="relative py-12 md:py-16 lg:py-20 bg-white dark:bg-gray-900"
+        className="relative py-10 md:py-16 lg:py-20 bg-white dark:bg-gray-900"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
+          <div className="flex flex-nowrap items-center gap-6 md:gap-10 overflow-x-hidden">
+            {/* Text Column */}
+            <div className="flex-shrink-0 w-1/2">
               <Badge 
-                className="mb-4 text-xs text-white"
+                className="mb-3 text-[10px] md:text-xs text-white px-2 py-1"
                 style={{ background: `linear-gradient(90deg, ${RISA_BLUE}, ${KCA_GOLD})` }}
               >
-                <Star className="w-3 h-3 mr-1 fill-current" /> Professional Construction Management
+                <Star className="w-2.5 h-2.5 mr-1 fill-current" /> Professional Construction Management
               </Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight" style={{ color: RISA_BLUE }}>
+              <h1 
+                className="font-bold mb-3 md:mb-4 leading-tight text-gray-900 dark:text-white"
+                style={{ 
+                  fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', // responsive text
+                  color: RISA_BLUE 
+                }}
+              >
                 Generate Accurate Quotes in Minutes
               </h1>
-              <p className="text-lg md:text-xl mb-6 md:mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
+              <p 
+                className="mb-4 md:mb-6 text-gray-700 dark:text-gray-300"
+                style={{ fontSize: 'clamp(0.875rem, 2.5vw, 1.25rem)' }}
+              >
                 Upload your construction plans and get precise material estimates and professional quotes in minutes, not hours.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <button
-                    onClick={() => navigate('/auth')}
-                    className="text-white px-6 py-3 md:px-8 md:py-4 font-medium text-sm md:text-base rounded-full shadow-md hover:shadow-lg transition-all"
-                    style={{ 
-                      backgroundColor: RISA_BLUE,
-                      padding: '0.5rem 2rem',
-                      borderRadius: '50px',
-                      border: 'none'
-                    }}
-                  >
-                    Get Started
-                  </button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <button
-                    className="text-blue-600 hover:bg-blue-50 px-6 py-3 md:py-4 font-medium text-sm md:text-base rounded-full shadow-md hover:shadow-lg transition-all dark:text-blue-400 dark:hover:bg-gray-800"
-                    onClick={() => setDemoOpen(true)}
-                    style={{ 
-                      backgroundColor: RISA_WHITE,
-                      color: RISA_BLUE,
-                      padding: '0.5rem 2rem',
-                      borderRadius: '50px',
-                      border: `1px solid ${RISA_BLUE}`
-                    }}
-                  >
-                    View Demo
-                  </button>
-                </motion.div>
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/auth')}
+                  className="text-white font-medium rounded-full shadow transition-all text-[13px] md:text-sm"
+                  style={{ 
+                    backgroundColor: RISA_BLUE,
+                    padding: '0.45rem 1.5rem',
+                    border: 'none'
+                  }}
+                >
+                  Get Started
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setDemoOpen(true)}
+                  className="text-blue-600 font-medium rounded-full shadow transition-all text-[13px] md:text-sm"
+                  style={{ 
+                    backgroundColor: RISA_WHITE,
+                    color: RISA_BLUE,
+                    padding: '0.45rem 1.5rem',
+                    border: `1px solid ${RISA_BLUE}`
+                  }}
+                >
+                  View Demo
+                </motion.button>
               </div>
-            </motion.div>
-            <motion.div
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-              className="flex justify-center"
-            >
-              <motion.img
+            </div>
+
+            {/* Image Column */}
+            <div className="flex-shrink-0 w-1/2 flex justify-center">
+              <img
                 src="/page3.jpg"
                 alt="Construction Plans Analysis"
-                className="max-w-full h-auto rounded-xl shadow-xl"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                className="max-h-[250px] w-auto object-contain rounded-lg shadow-md"
+                loading="lazy"
               />
-            </motion.div>
+            </div>
           </div>
         </div>
       </motion.section>
 
       {/* REMOVED: Stats Section - No longer included */}
-
       <WhoItsForSection />
       <HowItWorks />
 
@@ -1737,16 +1713,15 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* UPDATED: Payment section with real payment icons (M-Pesa removed) */}
+      {/* UPDATED: Payment section – NO hover, responsive */}
       <PaymentOptionsSection />
 
       {/* Use redesigned testimonials */}
       <TestimonialsSection />
-
       <FaqSection />
       <CTABanner />
 
-      {/* Footer - Fixed text visibility */}
+      {/* Footer */}
       <motion.footer
         id="contact"
         className="border-t bg-white dark:bg-gray-800 dark:border-gray-700"
@@ -1775,7 +1750,7 @@ const Index = () => {
                 {['features', 'pricing', 'how-it-works'].map((id) => (
                   <li key={id}>
                     <button
-                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
                       onClick={() => scrollTo(id)}
                       style={{ color: RISA_BLUE }}
                     >
@@ -1791,7 +1766,7 @@ const Index = () => {
                 {['testimonials', 'faq', 'who-its-for'].map((id) => (
                   <li key={id}>
                     <button
-                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
                       onClick={() => scrollTo(id)}
                       style={{ color: RISA_BLUE }}
                     >
@@ -1807,7 +1782,7 @@ const Index = () => {
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   <a
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
+                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
                     href="mailto:support@jtechai.com"
                     style={{ color: RISA_BLUE }}
                   >
@@ -1817,7 +1792,7 @@ const Index = () => {
                 <li className="flex items-center gap-2">
                   <PhoneCall className="w-4 h-4" />
                   <a
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
+                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
                     href="tel:9499515815"
                     style={{ color: RISA_BLUE }}
                   >
@@ -1826,7 +1801,7 @@ const Index = () => {
                 </li>
                 <li>
                   <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-sm"
+                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300"
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     style={{ color: RISA_BLUE }}
                   >
@@ -1842,10 +1817,10 @@ const Index = () => {
                 <span className="text-gray-700 dark:text-gray-400">© {new Date().getFullYear()} Jtech AI. All rights reserved.</span>
               </div>
               <div className="flex items-center gap-4">
-                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-xs">
+                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300">
                   Privacy Policy
                 </a>
-                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300 text-xs">
+                <a href="#" className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-300">
                   Terms of Service
                 </a>
               </div>

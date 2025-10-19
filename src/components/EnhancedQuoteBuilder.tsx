@@ -1,4 +1,4 @@
-import { ElementType, useEffect, useState } from "react";
+import { ElementType, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,19 @@ import {
   Trash,
   House,
   CopyrightIcon,
+  UploadCloud,
+  Truck,
+  ClipboardList,
+  MapPin,
+  Target,
+  Users,
+  DollarSign,
+  HardHat,
+  ListStartIcon,
+  Mailbox,
+  LucideEarth,
+  Earth,
+  Newspaper,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +66,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ElementTypes } from "@/hooks/useRebarCalculator";
 import RebarCalculatorForm from "./RebarCalculationForm";
 import MasonryCalculatorForm from "./MasonryCalculatorForm";
-import useMasonryCalculator from "@/hooks/useMasonryCalculator";
+import useMasonryCalculator, {
+  MasonryQSSettings,
+} from "@/hooks/useMasonryCalculator";
 import ConcreteCalculatorForm from "./ConcreteCalculatorForm";
 import { useDynamicPricing } from "@/hooks/useDynamicPricing";
 import BOQBuilder from "./BOQBuilder";
@@ -66,6 +81,7 @@ import {
   TableRow,
 } from "./ui/table";
 import PreliminariesBuilder from "./PreliminariesBuilder";
+import QSSettings from "./QSSettings";
 interface Room {
   room_name: string;
   length: string;
@@ -150,15 +166,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { value: "construction", label: "Construction" },
     { value: "renovation", label: "Renovation" },
   ];
-  const houseTypes = [
-    { value: "Bungalow", label: "Bungalow" },
-    { value: "Maisonette", label: "Maisonette" },
-    { value: "Apartment", label: "Apartment" },
-    { value: "Villa", label: "Villa" },
-    { value: "Townhouse", label: "Townhouse" },
-    { value: "Warehouse", label: "Warehouse" },
-    { value: "Mansion", label: "Mansion" },
-  ];
   const [currentStep, setCurrentStep] = useState(1);
   const [calculation, setCalculation] = useState<CalculationResult | null>(
     null
@@ -211,6 +218,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     });
     setServices(merged);
   };
+
   const [quoteData, setQuoteData] = useState<QuoteCalculation>({
     rooms: [] as Room[],
     client_name: "",
@@ -261,6 +269,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     permit_cost: 0,
     foundationDetails: {},
   });
+
   useEffect(() => {
     if (quote) {
       setQuoteData((prev) => ({
@@ -335,21 +344,27 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { id: 1, name: "Project Details", icon: <FileText className="w-5 h-5" /> },
     {
       id: 2,
-      name: "Concrete and Rebar",
-      icon: <Building className="w-5 h-5" />,
+      name: "QS Settings",
+      icon: <HardHat className="w-5 h-5" />,
     },
-    { id: 3, name: "House and Materials", icon: <House className="w-5 h-5" /> },
-    { id: 4, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
-    { id: 5, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
-    { id: 6, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
-    { id: 7, name: "BOQ Builder", icon: <FileText className="w-5 h-5" /> },
+
+    {
+      id: 3,
+      name: "Concrete and Rebar",
+      icon: <Earth className="w-5 h-5" />,
+    },
+    { id: 4, name: "House and Materials", icon: <House className="w-5 h-5" /> },
+    { id: 5, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
+    { id: 6, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
+    { id: 7, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
     {
       id: 8,
       name: "Preliminaries and Legal",
       icon: <FileSpreadsheet className="w-5 h-5" />,
     },
+    { id: 9, name: "BOQ Builder", icon: <ListStartIcon className="w-5 h-5" /> },
     {
-      id: 9,
+      id: 10,
       name: "Review & Export",
       icon: <Calculator className="w-5 h-5" />,
     },
@@ -389,7 +404,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     if (currentStep < steps.length) {
       setDirection("right");
       setCurrentStep(currentStep + 1);
-      if (currentStep + 1 === 9) {
+      if (currentStep + 1 === 10) {
         handleCalculate();
       }
     }
@@ -625,215 +640,270 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
-            {profile.tier !== "Free" && (
-              <Button
-                onClick={() =>
-                  navigate("/upload/plan", { state: { quoteData } })
-                }
-                className="-mb-3 animate-bounce-gentle bg-primary text-white"
-              >
-                Upload Plan
-              </Button>
-            )}
-            <div>
-              <Label htmlFor="projectName">Project Name *</Label>
-              <Input
-                id="projectName"
-                required
-                placeholder="Enter project name"
-                value={quoteData.title}
-                onChange={(e) =>
-                  setQuoteData((prev) => ({ ...prev, title: e.target.value }))
-                }
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="clientName">Client Name *</Label>
-                <Input
-                  id="clientName"
-                  required
-                  placeholder="Enter client name"
-                  value={quoteData.client_name}
-                  onChange={(e) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      client_name: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="clientEmail">Client Email *</Label>
-                <Input
-                  id="clientEmail"
-                  type="email"
-                  required
-                  placeholder="client@example.com"
-                  value={quoteData.client_email}
-                  onChange={(e) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      client_email: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="projectType">Project Type *</Label>
-              <Select
-                value={quoteData.project_type}
-                required
-                onValueChange={(value) =>
-                  setQuoteData((prev) => ({ ...prev, project_type: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select project type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((region) => (
-                    <SelectItem key={region.value} value={region.value}>
-                      {region.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="location">Project Location *</Label>
-              <Input
-                id="location"
-                placeholder="Enter specific location or address"
-                required
-                value={quoteData.location}
-                onChange={(e) =>
-                  setQuoteData((prev) => ({
-                    ...prev,
-                    location: e.target.value,
-                  }))
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="region">Region *</Label>
-              <Select
-                value={quoteData.region}
-                required
-                onValueChange={(value) =>
-                  setQuoteData((prev) => ({ ...prev, region: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select region for pricing" />
-                </SelectTrigger>
-                <SelectContent>
-                  {regions.map((region) => (
-                    <SelectItem key={region.value} value={region.value}>
-                      {region.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Contract Type *</Label>
-              <Select
-                value={quoteData.contract_type || ""}
-                required
-                onValueChange={(value: "full_contract" | "labor_only") =>
-                  setQuoteData((prev) => ({ ...prev, contract_type: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select contract type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full_contract">
-                    Full Contract (Materials + Labor)
-                  </SelectItem>
-                  <SelectItem value="labor_only">
-                    Labor Only (Client Provides Materials)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label
+                    htmlFor="projectName"
+                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                  >
+                    <Target className="w-4 h-4" />
+                    Project Name *
+                  </Label>
+                  <Input
+                    id="projectName"
+                    required
+                    placeholder="Enter project name"
+                    value={quoteData.title}
+                    onChange={(e) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
+                    className=""
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="clientName"
+                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      Client Name *
+                    </Label>
+                    <Input
+                      id="clientName"
+                      required
+                      placeholder="Enter client name"
+                      value={quoteData.client_name}
+                      onChange={(e) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          client_name: e.target.value,
+                        }))
+                      }
+                      className=""
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="clientEmail"
+                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      Client Email *
+                    </Label>
+                    <Input
+                      id="clientEmail"
+                      type="email"
+                      required
+                      placeholder="client@example.com"
+                      value={quoteData.client_email}
+                      onChange={(e) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          client_email: e.target.value,
+                        }))
+                      }
+                      className=""
+                    />
+                  </div>
+                </div>
 
-              <p className="text-sm text-muted-foreground mt-2">
-                {quoteData.contract_type === "full_contract"
-                  ? "You provide all materials and labor"
-                  : "Client provides materials, you provide labor only"}
-              </p>
+                <div>
+                  <Label className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                    <ClipboardList className="w-4 h-4" />
+                    Contract Type *
+                  </Label>
+                  <Select
+                    value={quoteData.contract_type || ""}
+                    required
+                    onValueChange={(value: "full_contract" | "labor_only") =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        contract_type: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="">
+                      <SelectValue placeholder="Select contract type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_contract">
+                        Full Contract (Materials + Labor)
+                      </SelectItem>
+                      <SelectItem value="labor_only">
+                        Labor Only (Client Provides Materials)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                    {quoteData.contract_type === "full_contract"
+                      ? "You provide all materials and labor"
+                      : "Client provides materials, you provide labor only"}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Label
+                    htmlFor="location"
+                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Project Location *
+                  </Label>
+                  <Input
+                    id="location"
+                    placeholder="Enter specific location or address"
+                    required
+                    value={quoteData.location}
+                    onChange={(e) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        location: e.target.value,
+                      }))
+                    }
+                    className=""
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="region"
+                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Region *
+                  </Label>
+                  <Select
+                    value={quoteData.region}
+                    required
+                    onValueChange={(value) =>
+                      setQuoteData((prev) => ({ ...prev, region: value }))
+                    }
+                  >
+                    <SelectTrigger className="">
+                      <SelectValue placeholder="Select region for pricing" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regions.map((region) => (
+                        <SelectItem key={region.value} value={region.value}>
+                          {region.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label
+                    htmlFor="projectType"
+                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                  >
+                    <Building className="w-4 h-4" />
+                    Project Type *
+                  </Label>
+                  <Select
+                    value={quoteData.project_type}
+                    required
+                    onValueChange={(value) =>
+                      setQuoteData((prev) => ({ ...prev, project_type: value }))
+                    }
+                  >
+                    <SelectTrigger className="">
+                      <SelectValue placeholder="Select project type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((region) => (
+                        <SelectItem key={region.value} value={region.value}>
+                          {region.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label
+                    htmlFor="distanceKm"
+                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                  >
+                    <Truck className="w-4 h-4" />
+                    Distance from site location (KM)
+                  </Label>
+                  <Input
+                    id="distanceKm"
+                    type="number"
+                    min="0"
+                    required
+                    placeholder="Distance in kilometers"
+                    value={quoteData.distance_km}
+                    onChange={(e) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        distance_km: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className=""
+                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                    Used to calculate transport costs
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="distanceKm">
-                Distance from site location (KM)
-              </Label>
-              <Input
-                id="distanceKm"
-                type="number"
-                min="0"
-                required
-                placeholder="Distance in kilometers"
-                value={quoteData.distance_km}
-                onChange={(e) =>
-                  setQuoteData((prev) => ({
-                    ...prev,
-                    distance_km: parseFloat(e.target.value) || 0,
-                  }))
-                }
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                Used to calculate transport costs
-              </p>
-            </div>
-          </div>
+
+            {/* Upload Plan Button at Bottom */}
+            {profile.tier !== "Free" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8"
+              >
+                <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+                  <CardContent className="p-6 text-center">
+                    <UploadCloud className="w-12 h-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                      Upload Construction Plans
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Upload your construction plans for automatic room
+                      detection and measurements
+                    </p>
+                    <Button
+                      onClick={() =>
+                        navigate("/upload/plan", { state: { quoteData } })
+                      }
+                      className="rounded-full font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      <UploadCloud className="w-4 h-4 mr-2" />
+                      Upload Plan
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </motion.div>
         );
       case 2:
         return (
+          <QSSettings
+            quoteData={quoteData}
+            setQuoteData={setQuoteData}
+            updatePercentageField={updatePercentageField}
+          />
+        );
+      case 3:
+        return (
           <div className="space-y-6">
             <div>
-              <div className="border dark:border-white/10 border-primary/30 mb-3 p-3 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">House Type *</h3>
-                </div>
-                <Select
-                  required
-                  value={quoteData.house_type}
-                  onValueChange={(value) =>
-                    setQuoteData((prev) => ({ ...prev, house_type: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select house type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {houseTypes.map((region) => (
-                      <SelectItem key={region.value} value={region.value}>
-                        {region.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <h3 className="text-l font-semibold mt-3">Floors *</h3>
-                <Input
-                  id="floors"
-                  placeholder="Floors"
-                  type="number"
-                  min="0"
-                  value={quoteData.floors}
-                  required
-                  onChange={(e) => {
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      floors: parseFloat(e.target.value),
-                    }));
-                  }}
-                />
-              </div>
-
               <ConcreteCalculatorForm
                 quote={quoteData}
                 setQuote={setQuoteData}
@@ -851,103 +921,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 onExport={(json) => console.log("Exported JSON:", json)}
               />
             </div>
-
-            <div className="mt-6 border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg">
-              <h3 className="text-lg font-semibold mb-3">Financial Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="laborPercentage">Labor % of Materials</Label>
-                  <Input
-                    id="laborPercentage"
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="e.g., 10"
-                    value={quoteData.percentages[0]?.labour ?? ""}
-                    onChange={(e) =>
-                      updatePercentageField(
-                        "labour",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="overheadPercentage">Overhead (%)</Label>
-                  <Input
-                    id="overheadPercentage"
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="e.g., 10"
-                    value={quoteData.percentages[0]?.overhead ?? ""}
-                    onChange={(e) =>
-                      updatePercentageField(
-                        "overhead",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="profitPercentage">Profit (%)</Label>
-                  <Input
-                    id="profitPercentage"
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="e.g., 5"
-                    value={quoteData.percentages[0]?.profit ?? ""}
-                    onChange={(e) =>
-                      updatePercentageField(
-                        "profit",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contingencyPercentage">Contingency (%)</Label>
-                  <Input
-                    id="contingencyPercentage"
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="e.g., 5"
-                    value={quoteData.percentages[0]?.contingency ?? ""}
-                    onChange={(e) =>
-                      updatePercentageField(
-                        "contingency",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <Label htmlFor="permitCost">Permit Cost (KSh)</Label>
-                <Input
-                  id="permitCost"
-                  type="number"
-                  min="0"
-                  required
-                  placeholder="e.g., 50000"
-                  value={quoteData.permit_cost}
-                  onChange={(e) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      permit_cost: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                />
-              </div>
-            </div>
           </div>
         );
-      case 3:
+      case 4:
         return (
-          <div className="border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg">
+          <Card className="border dark:border-white/10 border-primary/30 mb-3 p-3 rounded-lg">
             <h3 className="text-lg font-semibold mb-3 mt-1">Room Details *</h3>
             <MasonryCalculatorForm
               quote={quoteData}
@@ -958,9 +936,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               userRegion={profile.location}
               getEffectiveMaterialPrice={getEffectiveMaterialPrice}
             />
-          </div>
+          </Card>
         );
-      case 4:
+      case 5:
         return (
           <div className="space-y-6">
             <div>
@@ -981,7 +959,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     return (
                       <Card key={equipment.id} className="p-4">
                         <div className="items-center justify-between">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 checked={isChecked}
@@ -996,7 +974,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           name: equipment.name,
                                           desc: equipment.description,
                                           usage_quantity: 1,
-                                          usage_unit: "day",
+                                          usage_unit:
+                                            equipment?.usage_unit || "day",
                                           rate_per_unit:
                                             equipment.rate_per_unit || 0,
                                           total_cost:
@@ -1188,16 +1167,17 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       !equipmentRates.some((e) => e.id === eq.equipment_type_id)
                   )
                   .map((eq) => {
+                    console.log(eq.usage_unit);
                     const totalCost =
                       (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
                     return (
                       <Card key={eq.equipment_type_id} className="p-4">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2 flex-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 items-center justify-center sm:space-x-2">
                               <Label
                                 htmlFor={`name-${eq.equipment_type_id}`}
-                                className="whitespace-nowrap"
+                                className="whitespace-nowrap sm:mb-0 mb-1"
                               >
                                 Equipment Name
                               </Label>
@@ -1223,6 +1203,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             <Button
                               variant="destructive"
                               size="icon"
+                              className=" justify-center"
                               onClick={() =>
                                 setQuoteData((prev) => ({
                                   ...prev,
@@ -1277,32 +1258,32 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               >
                                 Unit
                               </Label>
-                              <select
-                                id={`custom-unit-${eq.equipment_type_id}`}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={eq.usage_unit || "day"}
-                                onChange={(e) => {
+                              <Select
+                                value={eq?.usage_unit}
+                                onValueChange={(value) => {
                                   setQuoteData((prev) => ({
                                     ...prev,
                                     equipment: prev.equipment.map((item) =>
                                       item.equipment_type_id ===
                                       eq.equipment_type_id
-                                        ? {
-                                            ...item,
-                                            usage_unit: e.target.value,
-                                          }
+                                        ? { ...item, usage_unit: value }
                                         : item
                                     ),
                                   }));
                                 }}
                               >
-                                <option value="hour">Hour</option>
-                                <option value="day">Day</option>
-                                <option value="week">Week</option>
-                                <option value="month">Month</option>
-                                <option value="unit">Unit</option>
-                                <option value="trip">Trip</option>
-                              </select>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="hour">Hour</SelectItem>
+                                  <SelectItem value="day">Day</SelectItem>
+                                  <SelectItem value="week">Week</SelectItem>
+                                  <SelectItem value="month">Month</SelectItem>
+                                  <SelectItem value="unit">Unit</SelectItem>
+                                  <SelectItem value="trip">Trip</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
 
@@ -1400,31 +1381,42 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-      case 5:
+      case 6:
         return (
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-semibold mb-4">
                 Additional Services
               </h3>
-              <div className="space-y-4 grid w-full md:grid-cols-2">
+
+              <div className="grid md:grid-cols-2 gap-4">
                 {services
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
-                    const checked = quoteData.services.some(
+                    const isChecked = quoteData.services.some(
                       (s) => s.id === service.id
                     );
                     return (
-                      <Card key={service.id} className="p-4 m-1 ">
-                        <div className="flex items-center justify-between">
+                      <Card key={service.id} className="p-4">
+                        <div className="grid grid-cols-2">
                           <div className="flex items-center space-x-3">
                             <Checkbox
-                              checked={checked}
+                              className="text-white"
+                              checked={isChecked}
                               onCheckedChange={(checked) => {
                                 if (checked) {
                                   setQuoteData((prev) => ({
                                     ...prev,
-                                    services: [...prev.services, service],
+                                    services: [
+                                      ...prev.services,
+                                      {
+                                        ...service,
+                                        payment_plan: "full",
+                                        total: service.price,
+                                        days: 1,
+                                        unit: service.unit || "item",
+                                      },
+                                    ],
                                   }));
                                 } else {
                                   setQuoteData((prev) => ({
@@ -1447,88 +1439,394 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                           </div>
                           <div className="text-right">
                             <Badge className="text-black" variant="secondary">
-                              KSh {service.price.toLocaleString()}
+                              KSh {service.price.toLocaleString()}/
+                              {service.unit || "item"}
                             </Badge>
                             <p className="text-xs text-black text-muted-foreground">
                               {service.category}
                             </p>
                           </div>
                         </div>
+
+                        {isChecked && (
+                          <div className="mt-3 animate-fade-in space-y-3">
+                            <div>
+                              <Label>Payment Plan *</Label>
+                              <Select
+                                value={
+                                  quoteData.services.find(
+                                    (s) => s.id === service.id
+                                  )?.payment_plan || "full"
+                                }
+                                onValueChange={(value: "interval" | "full") =>
+                                  setQuoteData((prev) => ({
+                                    ...prev,
+                                    services: prev.services.map((serv) =>
+                                      serv.id === service.id
+                                        ? {
+                                            ...serv,
+                                            payment_plan: value,
+                                            total:
+                                              value === "full"
+                                                ? serv.price
+                                                : (serv.price || 0) *
+                                                  (serv.days || 1),
+                                          }
+                                        : serv
+                                    ),
+                                  }))
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Payment Plan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="full">
+                                    Full Amount
+                                  </SelectItem>
+                                  <SelectItem value="interval">
+                                    Interval Payments
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label htmlFor={`serviceCost-${service.id}`}>
+                                {quoteData.services.find(
+                                  (s) => s.id === service.id
+                                )?.payment_plan === "full"
+                                  ? "Total Cost"
+                                  : "Rate per Unit"}
+                              </Label>
+                              <Input
+                                id={`serviceCost-${service.id}`}
+                                type="number"
+                                min="0"
+                                value={
+                                  quoteData.services.find(
+                                    (s) => s.id === service.id
+                                  )?.payment_plan === "full"
+                                    ? quoteData.services.find(
+                                        (s) => s.id === service.id
+                                      )?.total || service.price
+                                    : quoteData.services.find(
+                                        (s) => s.id === service.id
+                                      )?.price || service.price
+                                }
+                                placeholder={
+                                  quoteData.services.find(
+                                    (s) => s.id === service.id
+                                  )?.payment_plan === "full"
+                                    ? "Total cost"
+                                    : "Rate per unit"
+                                }
+                                onChange={(e) =>
+                                  setQuoteData((prev) => ({
+                                    ...prev,
+                                    services: prev.services.map((serv) =>
+                                      serv.id === service.id
+                                        ? {
+                                            ...serv,
+                                            total:
+                                              serv.payment_plan === "full"
+                                                ? parseFloat(e.target.value) ||
+                                                  0
+                                                : (parseFloat(e.target.value) ||
+                                                    0) * (serv.days || 1),
+                                            price:
+                                              serv.payment_plan === "interval"
+                                                ? parseFloat(e.target.value) ||
+                                                  0
+                                                : serv.price,
+                                          }
+                                        : serv
+                                    ),
+                                  }))
+                                }
+                              />
+                            </div>
+
+                            {quoteData.services.find((s) => s.id === service.id)
+                              ?.payment_plan === "interval" && (
+                              <>
+                                <div>
+                                  <Label>
+                                    Unit
+                                    <Select
+                                      value={
+                                        quoteData.services.find(
+                                          (s) => s.id === service.id
+                                        )?.unit || "day"
+                                      }
+                                      onValueChange={(e) =>
+                                        setQuoteData((prev) => ({
+                                          ...prev,
+                                          services: prev.services.map((serv) =>
+                                            serv.id === service.id
+                                              ? {
+                                                  ...serv,
+                                                  unit: e,
+                                                }
+                                              : serv
+                                          ),
+                                        }))
+                                      }
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select unit" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="hour">
+                                          Hour
+                                        </SelectItem>
+                                        <SelectItem value="day">Day</SelectItem>
+                                        <SelectItem value="week">
+                                          Week
+                                        </SelectItem>
+                                        <SelectItem value="month">
+                                          Month
+                                        </SelectItem>
+                                        <SelectItem value="unit">
+                                          Unit
+                                        </SelectItem>
+                                        <SelectItem value="trip">
+                                          Trip
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </Label>
+                                </div>
+
+                                <div>
+                                  <Label htmlFor={`serviceDays-${service.id}`}>
+                                    Number of{" "}
+                                    {quoteData.services.find(
+                                      (s) => s.id === service.id
+                                    )?.unit || "days"}
+                                  </Label>
+                                  <Input
+                                    id={`serviceDays-${service.id}`}
+                                    type="number"
+                                    min="1"
+                                    value={
+                                      quoteData.services.find(
+                                        (s) => s.id === service.id
+                                      )?.days || ""
+                                    }
+                                    placeholder="e.g., 5"
+                                    onChange={(e) =>
+                                      setQuoteData((prev) => ({
+                                        ...prev,
+                                        services: prev.services.map((serv) =>
+                                          serv.id === service.id
+                                            ? {
+                                                ...serv,
+                                                days:
+                                                  parseInt(e.target.value) || 0,
+                                                total:
+                                                  (serv.price || 0) *
+                                                  (parseInt(e.target.value) ||
+                                                    0),
+                                              }
+                                            : serv
+                                        ),
+                                      }))
+                                    }
+                                  />
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </Card>
                     );
                   })}
 
+                {/* Custom Services */}
                 {quoteData.services
                   .filter((s) => !services.some((srv) => srv.id === s.id))
                   .map((service) => (
-                    <Card key={service.id} className="p-4 m-1 ">
-                      <div className="grid grid-cols-2 items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Checkbox
-                            checked={true}
-                            onCheckedChange={() =>
-                              setQuoteData((prev) => ({
-                                ...prev,
-                                services: prev.services.filter(
-                                  (s) => s.id !== service.id
-                                ),
-                              }))
-                            }
-                          />
-                          <div className="space-y-2">
-                            <Input
-                              type="text"
-                              value={service.name}
-                              onChange={(e) =>
-                                setQuoteData((prev) => ({
-                                  ...prev,
-                                  services: prev.services.map((s) =>
-                                    s.id === service.id
-                                      ? { ...s, name: e.target.value }
-                                      : s
-                                  ),
-                                }))
-                              }
-                              placeholder="Custom Service Name"
-                            />
-                            <Input
-                              type="text"
-                              value={service.category}
-                              onChange={(e) =>
-                                setQuoteData((prev) => ({
-                                  ...prev,
-                                  services: prev.services.map((s) =>
-                                    s.id === service.id
-                                      ? { ...s, category: e.target.value }
-                                      : s
-                                  ),
-                                }))
-                              }
-                              placeholder="Category"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="text-right space-y-1">
+                    <Card key={service.id} className="p-4">
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="space-y-2">
                           <Input
-                            type="number"
-                            min="0"
-                            value={service.price}
-                            onChange={(e) => {
-                              const newPrice = parseInt(e.target.value) || 0;
+                            type="text"
+                            value={service.name}
+                            placeholder="Service name"
+                            onChange={(e) =>
                               setQuoteData((prev) => ({
                                 ...prev,
                                 services: prev.services.map((s) =>
                                   s.id === service.id
-                                    ? { ...s, price: newPrice }
+                                    ? { ...s, name: e.target.value }
+                                    : s
+                                ),
+                              }))
+                            }
+                          />
+
+                          <Input
+                            type="text"
+                            value={service.category}
+                            placeholder="Category"
+                            onChange={(e) =>
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                services: prev.services.map((s) =>
+                                  s.id === service.id
+                                    ? { ...s, category: e.target.value }
+                                    : s
+                                ),
+                              }))
+                            }
+                          />
+
+                          {service.description && (
+                            <Input
+                              type="text"
+                              value={service.description}
+                              placeholder="Description"
+                              onChange={(e) =>
+                                setQuoteData((prev) => ({
+                                  ...prev,
+                                  services: prev.services.map((s) =>
+                                    s.id === service.id
+                                      ? { ...s, description: e.target.value }
+                                      : s
+                                  ),
+                                }))
+                              }
+                            />
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Select
+                            value={service.payment_plan || "full"}
+                            onValueChange={(value: "interval" | "full") =>
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                services: prev.services.map((s) =>
+                                  s.id === service.id
+                                    ? {
+                                        ...s,
+                                        payment_plan: value,
+                                        total:
+                                          value === "full"
+                                            ? s.total || s.price
+                                            : (s.price || 0) * (s.days || 1),
+                                      }
+                                    : s
+                                ),
+                              }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Payment Plan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="full">Full Amount</SelectItem>
+                              <SelectItem value="interval">
+                                Interval Payments
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder={
+                              service.payment_plan === "full"
+                                ? "Total cost"
+                                : "Rate per unit"
+                            }
+                            value={
+                              service.payment_plan === "full"
+                                ? service.total || ""
+                                : service.price || ""
+                            }
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setQuoteData((prev) => ({
+                                ...prev,
+                                services: prev.services.map((s) =>
+                                  s.id === service.id
+                                    ? {
+                                        ...s,
+                                        total:
+                                          s.payment_plan === "full"
+                                            ? val
+                                            : val * (s.days || 1),
+                                        price:
+                                          s.payment_plan === "interval"
+                                            ? val
+                                            : s.price,
+                                      }
                                     : s
                                 ),
                               }));
                             }}
                           />
 
+                          {service.payment_plan === "interval" && (
+                            <>
+                              <Select
+                                value={service.unit}
+                                onValueChange={(value) => {
+                                  setQuoteData((prev) => ({
+                                    ...prev,
+                                    services: prev.services.map((s) =>
+                                      s.id === service.id
+                                        ? { ...s, unit: value }
+                                        : s
+                                    ),
+                                  }));
+                                }}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select unit" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="hour">Hour</SelectItem>
+                                  <SelectItem value="day">Day</SelectItem>
+                                  <SelectItem value="week">Week</SelectItem>
+                                  <SelectItem value="month">Month</SelectItem>
+                                  <SelectItem value="unit">Unit</SelectItem>
+                                  <SelectItem value="trip">Trip</SelectItem>
+                                </SelectContent>
+                              </Select>
+
+                              <Input
+                                type="number"
+                                min="1"
+                                placeholder={`Number of ${
+                                  service.unit || "days"
+                                }`}
+                                value={service.days || ""}
+                                onChange={(e) =>
+                                  setQuoteData((prev) => ({
+                                    ...prev,
+                                    services: prev.services.map((s) =>
+                                      s.id === service.id
+                                        ? {
+                                            ...s,
+                                            days: parseInt(e.target.value) || 0,
+                                            total:
+                                              (s.price || 0) *
+                                              (parseInt(e.target.value) || 0),
+                                          }
+                                        : s
+                                    ),
+                                  }))
+                                }
+                              />
+                            </>
+                          )}
+
                           <Button
                             variant="destructive"
+                            size="sm"
                             onClick={() =>
                               setQuoteData((prev) => ({
                                 ...prev,
@@ -1538,14 +1836,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               }))
                             }
                           >
-                            <Trash />
+                            Remove
                           </Button>
                         </div>
                       </div>
                     </Card>
                   ))}
 
-                <Card className="p-4 m-1  flex flex-col items-center justify-center">
+                <Card className="p-4 flex items-center justify-center">
                   <Button
                     className="px-4 py-2 text-white hover:bg-blue-600"
                     onClick={() => {
@@ -1560,6 +1858,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             description: "",
                             category: "",
                             price: 0,
+                            total: 0,
+                            days: 1,
+                            unit: "day",
+                            payment_plan: "interval",
                           },
                         ],
                       }));
@@ -1588,7 +1890,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-      case 6:
+      case 7:
         return (
           <div className="space-y-6">
             <div>
@@ -1947,12 +2249,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </div>
         );
-      case 7:
-        return (
-          <div className="space-y-6">
-            <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />
-          </div>
-        );
       case 8:
         return (
           <div className="space-y-6">
@@ -1969,6 +2265,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           </div>
         );
       case 9:
+        return (
+          <div className="space-y-6">
+            <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />
+          </div>
+        );
+      case 10:
         return (
           <div className="space-y-6">
             {calculation ? (
@@ -2203,51 +2505,69 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     );
   }
   return (
-    <div className="min-h-screen animate-fade-in transition-all duration-300">
+    <div className="min-h-screen animate-fade-in transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-3xl text-2xl font-bold bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
-            <BuildingIcon className="sm:w-8 sm:h-8 sm:mt-0 mt-1 mr-2 text-blue-900 dark:text-white" />
+          <div className="flex sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+            <BuildingIcon className="sm:w-7 sm:h-7 sm:mt-0 mt-1 mr-2 text-primary dark:text-white" />
             Enhanced Quote Builder
           </div>
-          <p className="bg-gradient-to-r from-blue-900 via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
+          <p className="bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
         </div>
 
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            {steps.map((step) => (
-              <div
-                key={step.id}
-                className={`flex items-center ${
-                  step.id < steps.length ? "flex-1" : ""
-                }`}
-              >
+            {steps.map((step) => {
+              const newStep = step.id;
+              return (
                 <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                    currentStep >= step.id
-                      ? "bg-primary border-primary text-white"
-                      : "border-gray-300 text-gray-400"
+                  key={step.id}
+                  onClick={() => {
+                    if (currentStep < newStep) {
+                      setDirection("right");
+                      setCurrentStep(newStep);
+                      if (currentStep + 1 === 10) {
+                        handleCalculate();
+                      }
+                    } else {
+                      setDirection("left");
+                      setCurrentStep(newStep);
+                      if (currentStep + 1 === 10) {
+                        handleCalculate();
+                      }
+                    }
+                  }}
+                  className={`flex items-center cursor-pointer ${
+                    step.id < steps.length ? "flex-1" : ""
                   }`}
                 >
-                  {step.icon}
-                </div>
-                <div className="hidden lg:inline">
-                  <p
-                    className={`ml-2 mr-2 text-sm font-medium ${
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                       currentStep >= step.id
-                        ? "text-primary dark:text-blue-500"
-                        : "text-gray-400"
+                        ? "bg-primary border-primary text-white"
+                        : "border-gray-300 text-gray-400"
                     }`}
                   >
-                    {step.name}
-                  </p>
+                    {step.icon}
+                  </div>
+                  <div className="hidden lg:inline">
+                    <p
+                      className={`ml-2 mr-2 text-sm font-medium ${
+                        currentStep >= step.id
+                          ? "text-primary dark:text-blue-500"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {step.name}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <Progress value={(currentStep / 9) * 100} className="w-full" />
+          <Progress value={(currentStep / 10) * 100} className="w-full" />
         </div>
 
         <AnimatePresence mode="wait" custom={direction}>
@@ -2258,16 +2578,25 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.1 }}
+            transition={{ duration: 0.2 }}
           >
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  {steps[currentStep - 1].icon}
-                  <span className="ml-2">{steps[currentStep - 1].name}</span>
+            <Card className="mb-8 border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+              <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
+                  <div className="p-2 rounded-full bg-blue-50 dark:bg-primary">
+                    {steps[currentStep - 1]?.icon}
+                  </div>
+                  <div>
+                    <div className="text-lg font-semibold">
+                      {steps[currentStep - 1]?.name}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
+                      Step {currentStep} of {steps?.length}
+                    </div>
+                  </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent>{renderStepContent()}</CardContent>
+              <CardContent className="pt-6">{renderStepContent()}</CardContent>
             </Card>
           </motion.div>
         </AnimatePresence>
@@ -2281,7 +2610,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 9 && (
+          {currentStep < 10 && (
             <Button onClick={nextStep} className="text-white">
               Next
               <ArrowRight className="w-4 h-4 ml-2 text-white" />

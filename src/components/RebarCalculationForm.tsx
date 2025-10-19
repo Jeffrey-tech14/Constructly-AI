@@ -259,7 +259,7 @@ export default function RebarCalculatorForm({
     <div className="space-y-6">
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 border-blue-200">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+          <CardTitle className="flex items-center gap-2 text-primary dark:text-blue-100">
             <Calculator className="w-5 h-5" />
             Rebar Calculator Summary
           </CardTitle>
@@ -268,7 +268,7 @@ export default function RebarCalculatorForm({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div className="space-y-1">
               <div className="text-blue-700 font-medium">Total Length</div>
-              <div className="text-lg font-bold text-blue-900 dark:text-blue-600">
+              <div className="text-lg font-bold text-primary dark:text-blue-600">
                 {totals.totalLengthM?.toFixed(0) || 0} m
               </div>
             </div>
@@ -565,8 +565,8 @@ export default function RebarCalculatorForm({
               className="border-l-4 border-l-blue-500 dark:border-l-blue-200 shadow-sm"
             >
               <CardContent className="p-6 space-y-4">
-                <div className="sm:flex flex-1 items-start justify-between">
-                  <div className="flex items-center gap-3 flex-1">
+                <div className="sm:flex flex-1 space-y-3 items-start justify-between">
+                  <div className="sm:flex space-y-3 items-center gap-3 flex-1">
                     <Input
                       type="text"
                       value={row.name}

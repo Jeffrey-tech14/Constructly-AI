@@ -49,7 +49,7 @@ export default function ConcreteCalculatorForm({
     RegionalMultiplier[]
   >([]);
   const userRegion = profile?.location;
-  const { qsSettings, updateQsSettings } = useMasonryCalculator({
+  const { qsSettings } = useMasonryCalculator({
     setQuote,
     quote,
     materialBasePrices,
@@ -156,6 +156,7 @@ export default function ConcreteCalculatorForm({
       return next;
     });
   }, [makeDefaultRow, setQuote]);
+
   const addFoundationRow = useCallback(() => {
     const newRow = makeFoundationRow();
     setRows((prev) => {
@@ -164,6 +165,13 @@ export default function ConcreteCalculatorForm({
       return next;
     });
   }, [makeFoundationRow, setQuote]);
+
+  useEffect(() => {
+    if (quote.foundationDetails?.totalPerimeter) {
+      addFoundationRow();
+    }
+  }, []);
+
   const removeRow = useCallback(
     (id: string) => {
       setRows((prev) => {
@@ -451,257 +459,9 @@ export default function ConcreteCalculatorForm({
   useEffect(() => {
     setQuote((prev: any) => ({ ...prev, qsSettings: qsSettings }));
   }, [user, qsSettings]);
-  const handleQsSettingChange = (key: keyof QSSettings, value: any) => {
-    updateQsSettings({
-      ...qsSettings,
-      [key]: value,
-    });
-  };
-  const handleNumericQsSettingChange = (
-    key: keyof QSSettings,
-    value: string
-  ) => {
-    handleQsSettingChange(key, parseFloat(value) || 0);
-  };
-  const handleIntegerQsSettingChange = (
-    key: keyof QSSettings,
-    value: string
-  ) => {
-    handleQsSettingChange(key, parseInt(value) || 0);
-  };
   return (
-    <div className="mt-8 space-y-4 border dark:border-white/10 border-primary/30 p-3 rounded-lg">
+    <div className="space-y-4 p-3 rounded-lg">
       <h2 className="text-xl font-bold">Concrete & Foundation Calculator</h2>
-
-      <Card className="flex-1 gap-4 p-4 rounded-lg">
-        <div className="space-y-2">
-          <h2 className="font-semibold text-sm">Wastage Percentages</h2>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label htmlFor="wastage-cement">Cement (%)</Label>
-              <Input
-                id="wastage-cement"
-                type="number"
-                step="0.5"
-                min="0"
-                max="20"
-                placeholder="e.g., 2"
-                value={qsSettings.wastageCementPercent}
-                onChange={(e) =>
-                  handleNumericQsSettingChange(
-                    "wastageCementPercent",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="wastage-sand">Sand (%)</Label>
-              <Input
-                id="wastage-sand"
-                type="number"
-                step="0.5"
-                min="0"
-                placeholder="e.g., 2"
-                max="20"
-                value={qsSettings.wastageSandPercent}
-                onChange={(e) =>
-                  handleNumericQsSettingChange(
-                    "wastageSandPercent",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="wastage-stone">Ballast (%)</Label>
-              <Input
-                id="wastage-stone"
-                type="number"
-                step="0.5"
-                placeholder="e.g., 2"
-                min="0"
-                max="20"
-                value={qsSettings.wastageStonePercent}
-                onChange={(e) =>
-                  handleNumericQsSettingChange(
-                    "wastageStonePercent",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="wastage-blocks">Blocks (%)</Label>
-              <Input
-                id="wastage-blocks"
-                type="number"
-                step="0.5"
-                min="0"
-                placeholder="e.g., 2"
-                max="20"
-                value={qsSettings.wastageBlocksPercent}
-                onChange={(e) =>
-                  handleNumericQsSettingChange(
-                    "wastageBlocksPercent",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2 mt-5">
-          <h2 className="font-semibold text-sm">Water Settings</h2>
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <Checkbox
-                checked={qsSettings.clientProvidesWater}
-                onCheckedChange={(checked) =>
-                  handleQsSettingChange("clientProvidesWater", checked === true)
-                }
-              />
-              <span>Client provides water</span>
-            </Label>
-
-            <div>
-              <Label htmlFor="water-cement-ratio">Water-Cement Ratio</Label>
-              <Input
-                id="water-cement-ratio"
-                type="number"
-                step="0.05"
-                min="0.4"
-                max="0.6"
-                placeholder="e.g., 0.4"
-                value={qsSettings.cementWaterRatio}
-                onChange={(e) =>
-                  handleQsSettingChange("cementWaterRatio", e.target.value)
-                }
-              />
-              <span className="text-xs text-gray-500">
-                {qsSettings.cementWaterRatio}:1 (water:cement) - Typical:
-                0.4-0.6
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor="moisture-content">Aggregate Moisture (%)</Label>
-                <Input
-                  id="moisture-content"
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  placeholder="e.g., 2"
-                  max="10"
-                  value={qsSettings.aggregateMoistureContentPercent}
-                  onChange={(e) =>
-                    handleNumericQsSettingChange(
-                      "aggregateMoistureContentPercent",
-                      e.target.value
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="absorption">Aggregate Absorption (%)</Label>
-                <Input
-                  id="absorption"
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  placeholder="e.g., 2"
-                  max="10"
-                  value={qsSettings.aggregateAbsorptionPercent}
-                  onChange={(e) =>
-                    handleNumericQsSettingChange(
-                      "aggregateAbsorptionPercent",
-                      e.target.value
-                    )
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor="curing-rate">Curing Rate (L/m²/day)</Label>
-                <Input
-                  id="curing-rate"
-                  type="number"
-                  step="0.5"
-                  placeholder="e.g., 5"
-                  min="0"
-                  value={qsSettings.curingWaterRateLM2PerDay}
-                  onChange={(e) =>
-                    handleNumericQsSettingChange(
-                      "curingWaterRateLM2PerDay",
-                      e.target.value
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="curing-days">Curing Days</Label>
-                <Input
-                  id="curing-days"
-                  type="number"
-                  step="1"
-                  min="0"
-                  placeholder="e.g., 4"
-                  max="14"
-                  value={qsSettings.curingDays}
-                  onChange={(e) =>
-                    handleIntegerQsSettingChange("curingDays", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="other-water">Other Water (L/m³)</Label>
-              <Input
-                id="other-water"
-                type="number"
-                step="1"
-                placeholder="e.g., 10"
-                min="0"
-                value={qsSettings.otherSiteWaterAllowanceLM3}
-                onChange={(e) =>
-                  handleNumericQsSettingChange(
-                    "otherSiteWaterAllowanceLM3",
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2 mt-5">
-          <h2 className="font-semibold text-sm">Masonry Settings</h2>
-          <div>
-            <Label htmlFor="joint-thickness">Mortar Joint Thickness (m)</Label>
-            <Input
-              id="joint-thickness"
-              type="number"
-              step="0.001"
-              min="0.005"
-              placeholder="e.g., 0.01"
-              max="0.02"
-              value={qsSettings.mortarJointThicknessM}
-              onChange={(e) =>
-                handleNumericQsSettingChange(
-                  "mortarJointThicknessM",
-                  e.target.value
-                )
-              }
-            />
-            <span className="text-xs text-gray-500">Typical: 0.01m (10mm)</span>
-          </div>
-        </div>
-      </Card>
 
       {!qsSettings.clientProvidesWater && totals.waterRequired > 0 && (
         <div className="mb-3 p-3 bg-green-50 border border-blue-200 dark:bg-green-500/30 dark:border-green-500/50 rounded-lg">
@@ -1099,8 +859,8 @@ export default function ConcreteCalculatorForm({
                 <div className="mt-2">
                   <h4 className="font-semibold">Material Breakdown:</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">
-                    (Cement, sand, ballast, water, formwork, aggregate are
-                    included in the concrete rate)
+                    (Cement, sand, ballast, water, aggregate are included in the
+                    concrete rate)
                   </p>
                   <p>
                     <b>Cement:</b> {result.netCementBags.toFixed(1)} bags (net)
@@ -1153,7 +913,7 @@ export default function ConcreteCalculatorForm({
                     </p>
                   )}
 
-                  <div className="ml-4 mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
+                  <div className="ml-4 mt-1 p-2 bg-blue-50 dark:bg-primary/20 rounded text-xs">
                     <p>
                       <b>Water Breakdown:</b>
                     </p>

@@ -18,6 +18,7 @@ import useMasonryCalculator, {
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
+import { RebarSize } from "@/hooks/useRebarCalculator";
 const blockTypes = [
   {
     id: 1,
@@ -89,7 +90,6 @@ export default function MasonryCalculatorForm({
     removeNested,
     removeEntry,
     qsSettings,
-    updateQsSettings,
     waterPrice,
   } = useMasonryCalculator({
     setQuote,
@@ -100,19 +100,6 @@ export default function MasonryCalculatorForm({
     userRegion,
     getEffectiveMaterialPrice,
   });
-  const handleQsSettingChange = (key: keyof MasonryQSSettings, value: any) => {
-    updateQsSettings({
-      ...qsSettings,
-      [key]: value,
-    });
-  };
-  const handleNumericQsSettingChange = (
-    key: keyof MasonryQSSettings,
-    value: string
-  ) => {
-    const numValue = parseFloat(value);
-    handleQsSettingChange(key, isNaN(numValue) ? 0 : numValue);
-  };
   const handleMortarRatioChange = (value: string) => {
     setQuote((prev: any) => ({
       ...prev,
@@ -128,8 +115,8 @@ export default function MasonryCalculatorForm({
   };
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100">
+      <div className="p-4 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <h3 className="font-semibold text-lg text-primary dark:text-blue-100">
           Total Cost: Ksh {results.grossTotalCost?.toLocaleString() || 0}
         </h3>
         <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
@@ -194,24 +181,6 @@ export default function MasonryCalculatorForm({
           />
           <span className="text-xs text-gray-500">Typical: 0.01m (10mm)</span>
         </div>
-
-        <div>
-          <Label htmlFor="cement-water-ratio">Water-Cement Ratio</Label>
-          <Input
-            id="cement-water-ratio"
-            type="number"
-            step="0.05"
-            min="0.4"
-            max="0.6"
-            value={qsSettings.cementWaterRatio}
-            onChange={(e) =>
-              handleQsSettingChange("cementWaterRatio", e.target.value)
-            }
-          />
-          <span className="text-xs text-gray-500">
-            {qsSettings.cementWaterRatio}:1 (water:cement) - Typical: 0.4-0.6
-          </span>
-        </div>
       </div>
 
       {qsSettings.clientProvidesWater ? (
@@ -222,7 +191,7 @@ export default function MasonryCalculatorForm({
           </p>
         </div>
       ) : results.grossWaterCost > 0 ? (
-        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <div className="p-3 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
             <div className="font-medium">💧 Water Cost Calculation:</div>
             <div>• Water Required: {results.grossWater?.toFixed(0)} liters</div>
@@ -236,148 +205,6 @@ export default function MasonryCalculatorForm({
           </div>
         </div>
       ) : null}
-
-      <div className="p-4 bg-gray-50 dark:bg-gray-700 border rounded-lg space-y-6">
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Professional QS Settings</h3>
-
-          <div className="flex-1">
-            <div className="flex-1">
-              <h4 className="font-medium text-sm mb-3">Wastage Percentages</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-4 max-md:grid-cols-2 w-full gap-3">
-                <div>
-                  <Label htmlFor="wastage-blocks">Blocks (%)</Label>
-                  <Input
-                    id="wastage-blocks"
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    max="20"
-                    value={qsSettings.wastageBlocksPercent}
-                    onChange={(e) =>
-                      handleNumericQsSettingChange(
-                        "wastageBlocksPercent",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="wastage-cement">Cement (%)</Label>
-                  <Input
-                    id="wastage-cement"
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    max="20"
-                    value={qsSettings.wastageCementPercent}
-                    onChange={(e) =>
-                      handleNumericQsSettingChange(
-                        "wastageCementPercent",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="wastage-sand">Sand (%)</Label>
-                  <Input
-                    id="wastage-sand"
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    max="20"
-                    value={qsSettings.wastageSandPercent}
-                    onChange={(e) =>
-                      handleNumericQsSettingChange(
-                        "wastageSandPercent",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="wastage-water">Water (%)</Label>
-                  <Input
-                    id="wastage-water"
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    max="20"
-                    value={qsSettings.wastageWaterPercent}
-                    onChange={(e) =>
-                      handleNumericQsSettingChange(
-                        "wastageWaterPercent",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="w-full">
-              <h4 className="font-medium text-sm mb-3 mt-5">Water Settings</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                <div className="space-y-3 flex-1">
-                  <Label className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={qsSettings.clientProvidesWater}
-                      onCheckedChange={(checked) =>
-                        handleQsSettingChange(
-                          "clientProvidesWater",
-                          checked === true
-                        )
-                      }
-                    />
-                    <span>Client provides water</span>
-                  </Label>
-
-                  <div className="grid grid-cols-2 space-x-4">
-                    <Label htmlFor="sand-moisture">
-                      Sand Moisture Content (%)
-                      <Input
-                        id="sand-moisture"
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        max="10"
-                        value={qsSettings.sandMoistureContentPercent}
-                        onChange={(e) =>
-                          handleNumericQsSettingChange(
-                            "sandMoistureContentPercent",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </Label>
-
-                    <Label htmlFor="other-water">
-                      Other Site Water (L/m³)
-                      <Input
-                        id="other-water"
-                        type="number"
-                        step="1"
-                        min="0"
-                        value={qsSettings.otherSiteWaterAllowanceLM3}
-                        onChange={(e) =>
-                          handleNumericQsSettingChange(
-                            "otherSiteWaterAllowanceLM3",
-                            e.target.value
-                          )
-                        }
-                      />
-                      <span className="text-xs text-gray-500">
-                        For cleaning, curing, etc.
-                      </span>
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="space-y-4">
         {rooms.map((room: Room, index: number) => (
@@ -449,7 +276,7 @@ function RoomSection({
 }: RoomSectionProps) {
   return (
     <Card className="border rounded-lg overflow-hidden">
-      <div className="p-4 bg-gray-50 dark:bg-slate-800 border-b">
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b">
         <div className="flex items-center justify-between">
           <Input
             type="text"
@@ -828,6 +655,14 @@ function DoorWindowItem({
           }
         />
 
+        <Input
+          placeholder="Frame Price (Ksh)"
+          type="number"
+          min="0"
+          value={item.price}
+          onChange={(e) => onNestedChange(index, field, itemIndex, "price", e)}
+        />
+
         <Button
           size="icon"
           variant="destructive"
@@ -858,6 +693,91 @@ function DoorWindowItem({
             ))}
           </SelectContent>
         </Select>
+
+        <Select
+          value={item.frame?.sizeType || ""}
+          onValueChange={(value) =>
+            onNestedChange(index, field, itemIndex, "frame", {
+              ...item.frame,
+              sizeType: value,
+            })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Frame Size Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="standard">Standard</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {item.frame?.sizeType === "standard" && (
+          <Select
+            value={item.frame?.standardSize || ""}
+            onValueChange={(value) =>
+              onNestedChange(index, field, itemIndex, "frame", {
+                ...item.frame,
+                standardSize: value,
+              })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Frame Size" />
+            </SelectTrigger>
+            <SelectContent>
+              {standardSizes.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {item.frame?.sizeType === "custom" && (
+          <>
+            <Input
+              placeholder="Height (m)"
+              type="number"
+              value={item.frame?.custom?.height || ""}
+              onChange={(e) =>
+                onNestedChange(index, field, itemIndex, "frame", {
+                  ...item.frame,
+                  custom: {
+                    ...item.frame?.custom,
+                    height: e.target.value,
+                  },
+                })
+              }
+            />
+            <Input
+              placeholder="Width (m)"
+              type="number"
+              value={item.frame?.custom?.width || ""}
+              onChange={(e) =>
+                onNestedChange(index, field, itemIndex, "frame", {
+                  ...item.frame,
+                  custom: {
+                    ...item.frame?.custom,
+                    width: e.target.value,
+                  },
+                })
+              }
+            />
+            <Input
+              placeholder="Price (Ksh)"
+              type="number"
+              value={item.frame?.price || ""}
+              onChange={(e) =>
+                onNestedChange(index, field, itemIndex, "frame", {
+                  ...item.frame.custom,
+                  price: e.target.value,
+                })
+              }
+            />
+          </>
+        )}
 
         <Input
           placeholder="Frame Price (Ksh)"

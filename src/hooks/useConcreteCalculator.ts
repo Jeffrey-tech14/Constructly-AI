@@ -328,10 +328,9 @@ export function calculateConcrete(
     netMortarCementBags = mortarCementVolume / CEMENT_BAG_VOLUME_M3;
     netMortarSandM3 = mortarSandVolume;
   }
-  const grossCementBags =
-    Math.ceil(
-      concreteMaterials.cementBags * (1 + settings.wastageCementPercent / 100)
-    ) / CEMENT_BAG_KG;
+  const grossCementBags = Math.ceil(
+    concreteMaterials.cementBags * (1 + settings.wastageCementPercent / 100)
+  );
   const grossSandM3 =
     concreteMaterials.sandM3 * (1 + settings.wastageSandPercent / 100);
   const grossStoneM3 =
@@ -391,7 +390,7 @@ export function calculateConcrete(
     waterRequired: grossWaterRequiredL,
     waterCost,
     cementWaterRatio: parseCementWaterRatio(cementWaterRatio),
-    netCementBags: concreteMaterials.cementBags / CEMENT_BAG_KG,
+    netCementBags: concreteMaterials.cementBags,
     netSandM3: concreteMaterials.sandM3,
     netStoneM3: concreteMaterials.stoneM3,
     netWaterRequiredL: waterCalc.totalWaterL,

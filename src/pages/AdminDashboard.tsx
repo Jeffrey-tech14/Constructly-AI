@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +73,7 @@ interface UserProfile {
   is_admin: boolean;
   avatar_url?: string;
 }
+
 interface DashboardStats {
   totalUsers: number;
   totalRevenue: number;
@@ -80,6 +81,7 @@ interface DashboardStats {
   activeProjects: number;
   subscriptionRevenue: number;
 }
+
 const AdminDashboard = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -373,9 +375,6 @@ const AdminDashboard = () => {
               <div className="sm:text-2xl text-lg font-bold">
                 {stats.totalUsers}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Registered contractors
-              </p>
             </CardContent>
           </Card>
 
@@ -390,9 +389,6 @@ const AdminDashboard = () => {
               <div className="sm:text-2xl text-lg font-bold">
                 KSh {formatCurrency(stats.totalRevenue)}
               </div>
-              <p className="text-xs text-muted-foreground">
-                From active projects
-              </p>
             </CardContent>
           </Card>
 
@@ -407,9 +403,6 @@ const AdminDashboard = () => {
               <div className="sm:text-2xl text-lg font-bold">
                 KSh {formatCurrency(stats.subscriptionRevenue)}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Monthly subscriptions
-              </p>
             </CardContent>
           </Card>
 
@@ -424,7 +417,6 @@ const AdminDashboard = () => {
               <div className="sm:text-2xl text-lg font-bold">
                 {stats.totalQuotes}
               </div>
-              <p className="text-xs text-muted-foreground">Generated quotes</p>
             </CardContent>
           </Card>
 
@@ -439,18 +431,67 @@ const AdminDashboard = () => {
               <div className="sm:text-2xl text-lg font-bold">
                 {stats.activeProjects}
               </div>
-              <p className="text-xs text-muted-foreground">In progress</p>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="system">Settings</TabsTrigger>
-            <TabsTrigger value="quotes">Quotes</TabsTrigger>
-            <TabsTrigger value="tiers">Tiers</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+            <TabsTrigger 
+              value="users"
+              className="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 rounded-lg transition-all"
+              style={{ 
+                color: RISA_DARK_TEXT,
+                backgroundColor: "transparent"
+              }}
+            >
+              <Users className="w-4 h-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger 
+              value="system"
+              className="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 rounded-lg transition-all"
+              style={{ 
+                color: RISA_DARK_TEXT,
+                backgroundColor: "transparent"
+              }}
+            >
+              <Settings className="w-4 h-4" />
+              Settings
+            </TabsTrigger>
+            <TabsTrigger 
+              value="quotes"
+              className="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 rounded-lg transition-all"
+              style={{ 
+                color: RISA_DARK_TEXT,
+                backgroundColor: "transparent"
+              }}
+            >
+              <FileText className="w-4 h-4" />
+              Quotes
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tiers"
+              className="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 rounded-lg transition-all"
+              style={{ 
+                color: RISA_DARK_TEXT,
+                backgroundColor: "transparent"
+              }}
+            >
+              <Crown className="w-4 h-4" />
+              Tiers
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics"
+              className="flex items-center justify-center gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-blue-400 rounded-lg transition-all"
+              style={{ 
+                color: RISA_DARK_TEXT,
+                backgroundColor: "transparent"
+              }}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
@@ -528,9 +569,18 @@ const AdminDashboard = () => {
                                 )}
                               </div>
 
-                              <p className="text-xs md:text-sm text-muted-foreground truncate">
-                                {user.email}
-                              </p>
+                              <div className="min-w-0 space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                                    {user.name}
+                                  </h3>
+                                  {user.is_admin && (
+                                    <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 text-xs">
+                                      <Crown className="w-3 h-3 mr-1" />
+                                      Admin
+                                    </Badge>
+                                  )}
+                                </div>
 
                               <div className="flex flex-wrap items-center gap-2 md:gap-4">
                                 <Badge
@@ -540,13 +590,14 @@ const AdminDashboard = () => {
                                   {getTierBadge(user.tier)}
                                 </Badge>
 
-                                <span className="text-xs text-muted-foreground">
-                                  {user.quotes_used} quotes •{" "}
-                                  {user.total_projects} projects
-                                </span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {getTierBadge(user.tier)}
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {user.quotes_used} quotes • {user.total_projects} projects
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
                           <div className="flex items-center justify-start ml-5 md:justify-normal space-x-2">
                             <Select
@@ -614,7 +665,53 @@ const AdminDashboard = () => {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-                        </div>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="system" className="space-y-6">
+              <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                    <Settings className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                    System Settings
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-300">
+                    Configure platform-wide settings and pricing
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-white">Platform Configuration</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl">
+                          <h4 className="font-medium mb-2 text-gray-900 dark:text-white">Material Base Prices</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Manage base material prices for all contractors
+                          </p>
+                          <MaterialPricesDialog />
+                        </Card>
+
+                        <Card className="p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl">
+                          <h4 className="font-medium mb-2 text-gray-900 dark:text-white">Regional Pricing</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Manage regional price multipliers
+                          </p>
+                          <RegionalPricingDialog />
+                        </Card>
+
+                        <Card className="p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl">
+                          <h4 className="font-medium mb-2 text-gray-900 dark:text-white">Equipment Types</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                            Manage available equipment types
+                          </p>
+                          <EquipmentTypesDialog />
+                        </Card>
                       </div>
                     </Card>
                   ))}
@@ -665,10 +762,9 @@ const AdminDashboard = () => {
                       </Card>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
           <TabsContent value="quotes" className="space-y-6">
             <QuotesTab refreshKey={refreshKey} />
@@ -683,7 +779,10 @@ const AdminDashboard = () => {
               {quotes.length > 0 && (
                 <Card className="">
                   <CardHeader>
-                    <CardTitle>Monthly Revenue</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                      <Users className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                      User Tier Distribution
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -749,4 +848,5 @@ const AdminDashboard = () => {
     </div>
   );
 };
+
 export default AdminDashboard;

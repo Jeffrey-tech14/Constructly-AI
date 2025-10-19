@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,9 +29,18 @@ import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import Calculator from "@/components/Calculator";
 import Reports from "@/components/Reports";
 import CalendarComponent from "@/components/Calendar";
-import DashboardSettings from "@/components/DashboardSettings";
 import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+
+// RISA Color Palette (Matching index.tsx)
+const RISA_BLUE = "#015B97";
+const RISA_LIGHT_BLUE = "#3288e6";
+const RISA_WHITE = "#ffffff";
+const RISA_DARK_TEXT = "#2D3748";
+const RISA_LIGHT_GRAY = "#F5F7FA";
+const RISA_MEDIUM_GRAY = "#E2E8F0";
+
 const Dashboard = () => {
   const { profile, user } = useAuth();
   const { toast } = useToast();
@@ -380,10 +389,46 @@ const Dashboard = () => {
             </TabsContent>
           )}
 
-          <TabsContent value="calendar">
-            <CalendarComponent />
-          </TabsContent>
-        </Tabs>
+                    {/* Quick Actions */}
+                    <Card className="border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-800 rounded-xl">
+                      <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
+                          <Zap className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                          Quick Actions
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-3">
+                        <motion.button
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => navigate("/quotes/new")}
+                          className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
+                              <FileText className="w-4 h-4" style={{ color: RISA_BLUE }} />
+                            </div>
+                            <span className="font-medium text-gray-900 dark:text-white">New Quote</span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                        </motion.button>
+
+                        <motion.button
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowCalculator(true)}
+                          className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
+                              <DollarSign className="w-4 h-4" style={{ color: RISA_BLUE }} />
+                            </div>
+                            <span className="font-medium text-gray-900 dark:text-white">Cost Calculator</span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                        </motion.button>
+                      </CardContent>
+                    </Card>
 
         <Calculator
           isOpen={showCalculator}
@@ -393,4 +438,5 @@ const Dashboard = () => {
     </div>
   );
 };
+
 export default Dashboard;

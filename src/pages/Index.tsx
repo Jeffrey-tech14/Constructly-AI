@@ -263,12 +263,11 @@ const TestimonialsSection = () => {
           <Badge className="mb-4 text-xs bg-blue-600 text-white dark:bg-blue-700">
             <Star className="w-3 h-3 mr-1" /> Client Testimonials
           </Badge>
-          <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-gray-900 dark:text-white">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-gray-900 dark:text-white">
             Trusted by Industry Leaders
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-base dark:text-gray-300">
-            Hear from industry professionals who have transformed their
-            estimation process with our solution.
+            Hear from professionals who transformed their workflow with Jtech AI.
           </p>
         </motion.div>
 
@@ -288,23 +287,15 @@ const TestimonialsSection = () => {
                     <div className="text-blue-500 text-3xl md:text-4xl mb-4 dark:text-blue-400">
                       <Quote className="opacity-70" />
                     </div>
-                    <p className="text-base md:text-lg mb-6 leading-relaxed italic text-gray-900 dark:text-gray-100">
+                    <p className="text-lg mb-6 leading-relaxed italic text-gray-900 dark:text-gray-100">
                       "{currentTestimonial.quote}"
                     </p>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between">
-                      <div className="flex items-center mb-4 md:mb-0">
-                        <div className="bg-blue-600 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-semibold text-base md:text-lg flex-shrink-0 dark:bg-blue-500">
-                          {currentTestimonial.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="ml-3 md:ml-4">
-                          <h4 className="font-semibold text-base text-gray-900 dark:text-white">
-                            {currentTestimonial.name}
-                          </h4>
-                          <p className="text-gray-600 text-sm dark:text-gray-300">
-                            {currentTestimonial.title},{" "}
-                            {currentTestimonial.company}
-                          </p>
-                        </div>
+                    <div className="flex items-center">
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                        style={{ backgroundColor: KCA_GOLD }}
+                      >
+                        {currentTestimonial.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
@@ -345,9 +336,9 @@ const TestimonialsSection = () => {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
 
           {testimonials.length > 1 && (
             <div className="flex justify-center mt-4 md:mt-6 space-x-2">
@@ -471,10 +462,7 @@ const FaqSection = () => {
                 <li>SketchUp files (SKP)</li>
               </ul>
               <div className="bg-blue-50 p-3 rounded border text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
-                <p>
-                  Tip: For best results, use vector-based files rather than
-                  raster images when possible.
-                </p>
+                <p>Tip: For best results, use vector-based files rather than raster images when possible.</p>
               </div>
             </div>
           ),
@@ -490,10 +478,7 @@ const FaqSection = () => {
                 <li>Consistent results across various project types</li>
               </ul>
               <div className="bg-green-50 p-3 rounded border text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-                <p>
-                  Note: Accuracy may vary based on plan quality and complexity.
-                  We recommend reviewing estimates before finalizing quotes.
-                </p>
+                <p>Note: Accuracy may vary based on plan quality and complexity. We recommend reviewing estimates before finalizing quotes.</p>
               </div>
             </div>
           ),
@@ -511,10 +496,7 @@ const FaqSection = () => {
                 <li>Multiple currency and unit options</li>
               </ol>
               <div className="bg-green-50 p-3 rounded border text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-                <p>
-                  Professional and Enterprise plans offer advanced customization
-                  options.
-                </p>
+                <p>Professional and Enterprise plans offer advanced customization options.</p>
               </div>
             </div>
           ),
@@ -565,10 +547,7 @@ const FaqSection = () => {
                 <li>Confirm the changes</li>
               </ol>
               <div className="bg-purple-50 p-3 rounded border text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700">
-                <p>
-                  Note: Plan changes take effect immediately. Prorated charges
-                  or credits will be applied to your next invoice.
-                </p>
+                <p>Note: Plan changes take effect immediately. Prorated charges or credits will be applied to your next invoice.</p>
               </div>
             </div>
           ),
@@ -593,10 +572,7 @@ const FaqSection = () => {
                 <li>Contact support if issues persist</li>
               </ol>
               <div className="bg-red-50 p-3 rounded border text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
-                <p>
-                  Emergency: Contact support immediately for critical issues
-                  affecting your business operations.
-                </p>
+                <p>Emergency: Contact support immediately for critical issues affecting your business operations.</p>
               </div>
             </div>
           ),
@@ -866,11 +842,9 @@ const HowItWorks = () => {
             How JTech AI Works
           </h2>
           <p className="text-gray-600 max-w-3xl mx-auto text-base dark:text-gray-300">
-            Transform your construction plans into accurate, professional quotes
-            with our specialized analysis system
+            Transform your construction plans into accurate, professional quotes with our specialized analysis system
           </p>
         </motion.div>
-
         <div className="relative">
           <div
             className="absolute hidden md:block top-16 left-0 right-0 h-0.5"
@@ -897,11 +871,11 @@ const HowItWorks = () => {
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     {step.icon}
-                    <div className="absolute -top-2 -right-2 bg-white text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold shadow-md dark:bg-gray-800 dark:text-blue-400">
+                    <div className="absolute -top-2 -right-2 bg-white text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md dark:bg-gray-800 dark:text-blue-400">
                       {i + 1}
                     </div>
                   </motion.div>
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">
+                  <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">
                     {step.title}
                   </h3>
                   <p className="text-gray-600 text-sm dark:text-gray-300">
@@ -1107,16 +1081,10 @@ const CTABanner = () => {
         >
           <div className="rounded-2xl text-gray-900 dark:text-white shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
             <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <p className="uppercase tracking-wider text-gray-500 text-xs mb-1 dark:text-gray-400">
-                  Ready to build better?
-                </p>
-                <h3 className="text-2xl md:text-3xl font-semibold">
-                  Create your first quote in minutes
-                </h3>
-                <p className="text-gray-600 mt-2 dark:text-gray-300">
-                  No credit card required. Cancel anytime.
-                </p>
+              <div className="text-white">
+                <p className="uppercase tracking-wider text-blue-200 text-xs mb-1">Ready to build better?</p>
+                <h3 className="text-2xl md:text-3xl font-bold">Create your first quote in minutes</h3>
+                <p className="text-blue-100 mt-2">No credit card required. Cancel anytime.</p>
               </div>
               <div className="flex gap-3">
                 <motion.button
@@ -1143,7 +1111,7 @@ const CTABanner = () => {
                 </motion.button>
               </div>
             </CardContent>
-          </div>
+          </Card>
         </motion.div>
       </div>
     </section>
@@ -1363,141 +1331,14 @@ const Index = () => {
       {/* Global Styles (Mimicking RISA) */}
       <style>
         {`
-          html {
-            font-size: 14px;
-          }
-          .card-custom {
-            overflow: hidden;
-            min-height: 300px;
-            box-shadow: 1.39px 1.39px 4.96px rgb(0 0 0 / 20%);
-            min-width: 16em;
-          }
-          .card-custom-img {
-            min-height: 160px;
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center;
-            border-color: inherit;
-          }
-          .btn-small {
-            display: inline-block;
-            font-weight: 400;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            padding: .5rem 1rem;
-            margin-left: 10px;
-            font-size: .75em;
-            border-radius: 1.25rem;
-            border: solid 1px #015B97;
-            transition: all .15s ease-in-out;
-          }
-          .btn-outline-primary:hover {
-            color: #fff;
-            background-color: #015B97;
-            border: 1px solid #015B97;
-            border-color: none;
-          }
-          @media (min-width: 992px) {
-            .col-lg-4 {
-              -ms-flex: 25%;
-              flex: 25%;
-              max-width: 25%;
-            }
-          }
-          .features-7:after, .features-2:after, .features-8:after {
-            display: block;
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            background-color: rgba(0, 0, 0, 0.6);
-          }
-          .info p {
-            color: #888888;
-            padding: 0 15px;
-            font-size: 1.1em;
-            text-align: justify;
-          }
-          p {
-            margin-top: 0;
-            margin-bottom: 0rem;
-          }
-          h4, .h4 {
-            font-size: 1.5em;
-            line-height: 1.45em;
-            margin-top: 30px;
-            margin-bottom: 60px;
-          }
-          .n-logo {
-            margin: auto;
-            width: 70px;
-            padding-bottom: 10px;
-          }
-          h1 {
-            font-size: 1.5em;
-          }
-          .align-center {
-            align-items: center;
-          }
-          .spacer {
-            margin: 10rem;
-          }
-          @media only screen and (max-width: 768px) {
-            .mb-3 {
-              display: none;
-            }
-            h1.hero {
-              font-size: 3.5em;
-            }
-            h2.hero {
-              font-size: 2em;
-            }
-          }
-          /* Custom Button Styles */
-          .risa-btn-primary {
-            background-color: #015B97;
-            color: white;
-            padding: 0.5rem 2rem;
-            border-radius: 50px;
-            border: none;
-            font-weight: semibold;
-            transition: all 0.3s ease;
-          }
-          .risa-btn-primary:hover {
-            background-color: white;
-            color: #015B97;
-            border: 1px solid #015B97;
-          }
-          .risa-btn-outline {
-            background-color: white;
-            color: #015B97;
-            padding: 0.5rem 2rem;
-            border-radius: 50px;
-            border: 1px solid #015B97;
-            font-weight: semibold;
-            transition: all 0.3s ease;
-          }
-          .risa-btn-outline:hover {
-            background-color: #015B97;
-            color: white;
-            border: 1px solid #015B97;
-          }
-          /* Video Container */
+          html { font-size: 14px; }
           .video-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
             height: 0;
             overflow: hidden;
             border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
           }
           .video-container video {
             position: absolute;
@@ -1505,7 +1346,8 @@ const Index = () => {
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: #000;
           }
         `}
       </style>
@@ -1580,7 +1422,6 @@ const Index = () => {
                 JTech AI
               </span>
             </motion.div>
-
             <div className="hidden lg:flex items-center space-x-6 md:space-x-8">
               <motion.button
                 onClick={() => scrollTo("features")}
@@ -1670,7 +1511,6 @@ const Index = () => {
                 toggleDarkMode={toggleDarkMode}
               />
             </div>
-
             <div className="flex items-center space-x-2 lg:hidden">
               <ThemeToggle
                 darkMode={darkMode}
@@ -1790,12 +1630,11 @@ const Index = () => {
                 <Star className="w-3 h-3 mr-1" /> Professional Construction
                 Management
               </Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold mb-4 md:mb-6 leading-tight text-gray-900 dark:text-white">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight" style={{ color: RISA_BLUE }}>
                 Generate Accurate Quotes in Minutes
               </h1>
               <p className="text-lg md:text-xl mb-6 md:mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
-                Upload your construction plans and get precise material
-                estimates and professional quotes in minutes, not hours.
+                Upload your construction plans and get precise material estimates and professional quotes in minutes, not hours.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <motion.div
@@ -1853,6 +1692,8 @@ const Index = () => {
         </div>
       </motion.section>
 
+      {/* REMOVED: Stats Section - No longer included */}
+
       <WhoItsForSection />
       <HowItWorks />
 
@@ -1880,11 +1721,9 @@ const Index = () => {
               Why Choose JTech AI AI?
             </h2>
             <p className="text-gray-600 max-w-3xl mx-auto text-base dark:text-gray-300">
-              Experience the future of construction estimation with our
-              cutting-edge AI technology.
+              Experience the future of construction estimation with our cutting-edge AI technology.
             </p>
           </motion.div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ x: -50, opacity: 0 }}
@@ -1932,12 +1771,8 @@ const Index = () => {
                       {feature.icon}
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
-                        {feature.title}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300">
-                        {feature.description}
-                      </p>
+                      <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -2046,6 +1881,7 @@ const Index = () => {
                   whileHover={{
                     y: -10,
                     scale: 1.02,
+                    borderColor: KCA_GOLD,
                     transition: { duration: 0.3 },
                   }}
                 >
@@ -2069,7 +1905,7 @@ const Index = () => {
                         <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="mt-4">
-                        <span className="text-4xl font-extrabold text-blue-600 dark:text-blue-400">
+                        <span className="text-4xl font-extrabold" style={{ color: KCA_GOLD }}>
                           KES {plan.price}
                         </span>
                         <span className="text-gray-500 ml-1 dark:text-gray-400">
@@ -2109,7 +1945,9 @@ const Index = () => {
 
       <PaymentOptionsSection />
 
+      {/* Use redesigned testimonials */}
       <TestimonialsSection />
+
       <FaqSection />
       <CTABanner />
 
@@ -2130,17 +1968,8 @@ const Index = () => {
                 JTech AI
               </span>
             </div>
-            <p className="mt-3 text-sm max-w-xl mx-auto text-gray-700 dark:text-gray-300">
-              Empowering construction professionals across Kenya with modern
-              quote, takeoff, and project tools.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm mb-8">
-            <div className="text-center sm:text-left">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
-                Navigation
-              </h4>
+            <div className="lg:col-span-1">
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Navigation</h4>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -2168,11 +1997,8 @@ const Index = () => {
                 </li>
               </ul>
             </div>
-
-            <div className="text-center">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
-                Resources
-              </h4>
+            <div className="lg:col-span-1">
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Resources</h4>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -2200,11 +2026,8 @@ const Index = () => {
                 </li>
               </ul>
             </div>
-
-            <div className="text-center sm:text-right">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
-                Support
-              </h4>
+            <div className="lg:col-span-1">
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Support</h4>
               <ul className="space-y-2">
                 <li className="flex items-center justify-center sm:justify-end gap-2">
                   <Mail className="w-4 h-4" />

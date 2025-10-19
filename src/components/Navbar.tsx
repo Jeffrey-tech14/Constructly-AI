@@ -42,6 +42,16 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 import { AlertDialog } from "@radix-ui/react-alert-dialog";
 import {
   AlertDialogAction,
@@ -173,7 +183,12 @@ const Navbar = () => {
                   <CalculatorIcon className="w-4 h-4" />
                 </Button>
 
-                <Badge className="bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent">
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                  className="ml-2"
+                >
                   {getTierBadge(profile?.tier)}
                 </Badge>
               </div>
@@ -474,4 +489,5 @@ const Navbar = () => {
     </>
   );
 };
+
 export default Navbar;

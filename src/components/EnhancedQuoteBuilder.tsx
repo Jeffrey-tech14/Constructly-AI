@@ -1,7 +1,7 @@
 import { ElementType, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -58,6 +58,16 @@ import {
   LucideEarth,
   Earth,
   Newspaper,
+  Target,
+  Users,
+  MapPin,
+  Calendar,
+  DollarSign,
+  BarChart3,
+  ClipboardList,
+  Truck,
+  HardHat,
+  Eye,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +92,14 @@ import {
 } from "./ui/table";
 import PreliminariesBuilder from "./PreliminariesBuilder";
 import QSSettings from "./QSSettings";
+// RISA Color Palette
+const RISA_BLUE = "#015B97";
+const RISA_LIGHT_BLUE = "#3288e6";
+const RISA_WHITE = "#ffffff";
+const RISA_DARK_TEXT = "#2D3748";
+const RISA_LIGHT_GRAY = "#F5F7FA";
+const RISA_MEDIUM_GRAY = "#E2E8F0";
+
 interface Room {
   room_name: string;
   length: string;
@@ -115,6 +133,7 @@ interface Room {
   stoneVolume: number;
   totalCost: number;
 }
+
 const EnhancedQuoteBuilder = ({ quote }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -167,15 +186,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { value: "renovation", label: "Renovation" },
   ];
   const [currentStep, setCurrentStep] = useState(1);
-  const [calculation, setCalculation] = useState<CalculationResult | null>(
-    null
-  );
+  const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [subContractors, setServices] = useState<any[]>([]);
   const location = useLocation();
   const [limit, setLimit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
+  
   const fetchLimit = async () => {
     if (!profile?.tier) return;
     setLoading(true);
@@ -192,6 +210,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }
     setLoading(false);
   };
+
   const fetchRates = async () => {
     const { data: baseServices, error: baseError } = await supabase
       .from("subcontractor_prices")
@@ -240,7 +259,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     equipment: [],
     services: [],
     percentages: [],
-    boq_data: [],
     distance_km: 0,
     contract_type: "full_contract",
     region: "",
@@ -261,13 +279,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     total_plaster_volume: 0,
     boqData: [],
     preliminaries: [],
-    qsSettings: [],
     labor_percentages: 0,
     overhead_percentages: 0,
     profit_percentages: 0,
     contingency_percentages: 0,
     permit_cost: 0,
-    foundationDetails: {},
   });
 
   useEffect(() => {
@@ -276,18 +292,19 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         ...prev,
         ...quote,
         rooms: quote.rooms || [],
-        foundationDetails: quote.foundationDetails,
         selected_equipment: quote.selected_equipment || [],
         selected_services: quote.selected_services || [],
       }));
     }
   }, [quote]);
+
   useEffect(() => {
     fetchRates();
     fetchLimit();
   }, [user, location.key]);
+
   useEffect(() => {
-    if (extractedPlan) {
+    if (extractedPlan && extractedPlan.rooms?.length) {
       setQuoteData((prev) => ({
         ...prev,
         floors: extractedPlan.floors || prev.floors,
@@ -298,8 +315,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           height: room.height || "2.7",
           doors: room.doors || [],
           windows: room.windows || [],
-          blockType:
-            room.blockType || "Standard Block (400\u00D7200\u00D7200mm)",
+          blockType: room.blockType || "Standard Block (400×200×200mm)",
           thickness: room.thickness || "0.2",
           customBlock: room.customBlock || {
             price: "",
@@ -325,21 +341,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           stoneVolume: 0,
           totalCost: 0,
         })),
-        foundationDetails: {
-          foundationType: extractedPlan.foundationDetails.foundationType,
-          totalPerimeter: extractedPlan.foundationDetails.totalPerimeter,
-          masonryWallHeight: extractedPlan.foundationDetails.wallHeight,
-          masonryWallThickness: extractedPlan.foundationDetails.wallThickness,
-          masonryBlockDimensions:
-            extractedPlan.foundationDetails.blockDimensions,
-          width: extractedPlan.foundationDetails.width,
-          height: extractedPlan.foundationDetails.height,
-          length: extractedPlan.foundationDetails.length,
-          masonryBlockType: extractedPlan.foundationDetails.masonryType,
-        },
       }));
     }
   }, [extractedPlan]);
+
   const steps = [
     { id: 1, name: "Project Details", icon: <FileText className="w-5 h-5" /> },
     {
@@ -368,7 +373,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       name: "Review & Export",
       icon: <Calculator className="w-5 h-5" />,
     },
+    { id: 2, name: "Concrete and Rebar", icon: <Building className="w-5 h-5" /> },
+    { id: 3, name: "House and Materials", icon: <House className="w-5 h-5" /> },
+    { id: 4, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
+    { id: 5, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
+    { id: 6, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
+    { id: 7, name: "BOQ Builder", icon: <FileText className="w-5 h-5" /> },
+    { id: 8, name: "Preliminaries and Legal", icon: <FileSpreadsheet className="w-5 h-5" /> },
+    { id: 9, name: "Review & Export", icon: <Calculator className="w-5 h-5" /> },
   ];
+
   const updatePercentageField = (field: keyof Percentage, value: number) => {
     setQuoteData((prev) => ({
       ...prev,
@@ -392,6 +406,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             ],
     }));
   };
+
   const nextStep = () => {
     if (!validateStep(currentStep)) {
       toast({
@@ -409,12 +424,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       }
     }
   };
+
   const prevStep = () => {
     if (currentStep > 1) {
       setDirection("left");
       setCurrentStep(currentStep - 1);
     }
   };
+
   const handleCalculate = async () => {
     try {
       const result = await calculateQuote({
@@ -433,14 +450,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         subcontractors: quoteData.subcontractors,
         percentages: quoteData.percentages,
         boqData: boqData,
-        boq_data: boqData,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
         equipment: quoteData.equipment,
         services: quoteData.services,
-        qsSettings: quoteData.qsSettings,
-        foundationDetails: quoteData.foundationDetails,
         distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
         contract_type: quoteData.contract_type,
         region: quoteData.region,
@@ -485,6 +499,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       });
     }
   };
+
   const handleSaveQuote = async () => {
     if (!calculation) {
       console.error("calculation is empty " + calculation);
@@ -512,7 +527,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           rebar_rows: quoteData.rebar_rows,
           boq_data: boqData,
           rebar_calculations: quoteData.rebar_calculations,
-          qsSettings: quoteData.qsSettings,
           labor_cost: Math.round(calculation.labor_cost),
           additional_services_cost: Math.round(
             calculation.selected_services_cost
@@ -533,14 +547,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           profit_amount: calculation.profit_amount,
           subcontractors: quoteData.subcontractors,
           percentages: calculation.percentages,
-          foundationDetails: quoteData.foundationDetails,
           materialPrices: calculation.materialPrices,
         });
         toast({
           title: "Quote Updated",
           description: "Quote has been updated successfully",
         });
-        navigate("/quotes/all");
+        navigate("/dashboard");
       } catch (error) {
         console.error("Error updating quote:", error);
         toast({
@@ -590,8 +603,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plaster_thickness: quoteData.plaster_thickness,
           profit_amount: calculation.profit_amount,
           subcontractors: calculation.subcontractors,
-          foundationDetails: quoteData.foundationDetails,
-          qsSettings: quoteData.qsSettings,
           percentages: calculation.percentages,
           materialPrices: calculation.materialPrices,
         });
@@ -610,6 +621,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       }
     }
   };
+
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1:
@@ -636,6 +648,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return false;
     }
   };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -654,6 +667,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                   >
                     <Target className="w-4 h-4" />
+                  <Label htmlFor="projectName" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                    <Target className="w-4 h-4" style={{ color: RISA_BLUE }} />
                     Project Name *
                   </Label>
                   <Input
@@ -668,6 +683,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       }))
                     }
                     className=""
+                      setQuoteData((prev) => ({ ...prev, title: e.target.value }))
+                    }
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-4">
@@ -677,6 +695,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                     >
                       <Users className="w-4 h-4" />
+                    <Label htmlFor="clientName" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                      <Users className="w-4 h-4" style={{ color: RISA_BLUE }} />
                       Client Name *
                     </Label>
                     <Input
@@ -699,6 +719,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                     >
                       <Users className="w-4 h-4" />
+                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="clientEmail" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                      <Users className="w-4 h-4" style={{ color: RISA_BLUE }} />
                       Client Email *
                     </Label>
                     <Input
@@ -750,6 +776,33 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       ? "You provide all materials and labor"
                       : "Client provides materials, you provide labor only"}
                   </p>
+                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="projectType" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                    <Building className="w-4 h-4" style={{ color: RISA_BLUE }} />
+                    Project Type *
+                  </Label>
+                  <Select
+                    value={quoteData.project_type}
+                    required
+                    onValueChange={(value) =>
+                      setQuoteData((prev) => ({ ...prev, project_type: value }))
+                    }
+                  >
+                    <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                      <SelectValue placeholder="Select project type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((region) => (
+                        <SelectItem key={region.value} value={region.value}>
+                          {region.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="space-y-4">
@@ -759,6 +812,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                   >
                     <MapPin className="w-4 h-4" />
+                  <Label htmlFor="location" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                    <MapPin className="w-4 h-4" style={{ color: RISA_BLUE }} />
                     Project Location *
                   </Label>
                   <Input
@@ -781,6 +836,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                   >
                     <MapPin className="w-4 h-4" />
+                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="region" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                    <MapPin className="w-4 h-4" style={{ color: RISA_BLUE }} />
                     Region *
                   </Label>
                   <Select
@@ -921,7 +982,51 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 onExport={(json) => console.log("Exported JSON:", json)}
               />
             </div>
-          </div>
+
+            {/* Upload Plan Button at Bottom */}
+            {profile.tier !== "Free" && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8"
+              >
+                <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+                  <CardContent className="p-6 text-center">
+                    <UploadCloud className="w-12 h-12 mx-auto mb-4" style={{ color: RISA_BLUE }} />
+                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                      Upload Construction Plans
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Upload your construction plans for automatic room detection and measurements
+                    </p>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <Button
+                        onClick={() =>
+                          navigate("/upload/plan", { state: { quoteData } })
+                        }
+                        className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                        style={{
+                          backgroundColor: RISA_BLUE,
+                          color: RISA_WHITE,
+                          padding: "0.75rem 2rem",
+                        }}
+                      >
+                        <UploadCloud className="w-4 h-4 mr-2" />
+                        Upload Plan
+                      </Button>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </motion.div>
         );
       case 4:
         return (
@@ -932,20 +1037,23 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               setQuote={setQuoteData}
               materialBasePrices={materialBasePrices}
               userMaterialPrices={userMaterialPrices}
-              regionalMultipliers={regionalMultipliers}
-              userRegion={profile.location}
               getEffectiveMaterialPrice={getEffectiveMaterialPrice}
             />
           </Card>
         );
       case 5:
         return (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
             <div>
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                <Wrench className="w-5 h-5" style={{ color: RISA_BLUE }} />
                 Select Required Equipment
               </h3>
-
               <div className="grid grid-cols-1 gap-4">
                 {equipmentRates
                   .sort((a, b) => a.name.localeCompare(b.name))
@@ -957,7 +1065,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       (eq) => eq.equipment_type_id === equipment.id
                     );
                     return (
-                      <Card key={equipment.id} className="p-4">
+                      <Card key={equipment.id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                         <div className="items-center justify-between">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="flex items-center space-x-2">
@@ -995,22 +1103,21 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 }}
                               />
                               <div>
-                                <h4 className="font-medium">
+                                <h4 className="font-medium text-gray-900 dark:text-white">
                                   {equipment.name}
                                 </h4>
                                 {equipment.description && (
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">
                                     {equipment.description}
                                   </p>
                                 )}
                               </div>
                             </div>
-
                             {isChecked && (
                               <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
-                                    <Label htmlFor={`quantity-${equipment.id}`}>
+                                    <Label htmlFor={`quantity-${equipment.id}`} className="text-gray-900 dark:text-white">
                                       Quantity
                                     </Label>
                                     <Input
@@ -1038,10 +1145,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           ),
                                         }));
                                       }}
+                                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor={`unit-${equipment.id}`}>
+                                    <Label htmlFor={`unit-${equipment.id}`} className="text-gray-900 dark:text-white">
                                       Unit
                                     </Label>
                                     <div id={`unit-${equipment.id}`}>
@@ -1065,7 +1173,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           }));
                                         }}
                                       >
-                                        <SelectTrigger className="h-10 w-full">
+                                        <SelectTrigger className="h-10 w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                           <SelectValue placeholder="Select unit" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -1092,9 +1200,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     </div>
                                   </div>
                                 </div>
-
                                 <div>
-                                  <Label htmlFor={`rate-${equipment.id}`}>
+                                  <Label htmlFor={`rate-${equipment.id}`} className="text-gray-900 dark:text-white">
                                     Rate per{" "}
                                     {equipmentItem?.usage_unit || "unit"}
                                   </Label>
@@ -1122,11 +1229,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                         ),
                                       }));
                                     }}
+                                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                   />
                                 </div>
-
                                 <div>
-                                  <Label htmlFor={`total-${equipment.id}`}>
+                                  <Label htmlFor={`total-${equipment.id}`} className="text-gray-900 dark:text-white">
                                     Total Cost
                                   </Label>
                                   <Input
@@ -1139,11 +1246,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       minimumFractionDigits: 2,
                                       maximumFractionDigits: 2,
                                     })}`}
-                                    className="bg-muted font-medium"
+                                    className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
                                   />
-                                  <p className="text-xs text-muted-foreground mt-1">
+                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                                     {equipmentItem?.usage_quantity || 0}{" "}
-                                    {equipmentItem?.usage_unit || "unit"} × $
+                                    {equipmentItem?.usage_unit || "unit"} × KES
                                     {(
                                       equipmentItem?.rate_per_unit || 0
                                     ).toLocaleString(undefined, {
@@ -1160,7 +1267,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </Card>
                     );
                   })}
-
                 {quoteData.equipment
                   .filter(
                     (eq) =>
@@ -1171,7 +1277,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     const totalCost =
                       (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
                     return (
-                      <Card key={eq.equipment_type_id} className="p-4">
+                      <Card key={eq.equipment_type_id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="grid grid-cols-1 sm:grid-cols-2 items-center justify-center sm:space-x-2">
@@ -1197,7 +1303,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   }))
                                 }
                                 placeholder="e.g., Specialized Crane"
-                                className="flex-1"
+                                className="flex-1 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                             </div>
                             <Button
@@ -1218,11 +1324,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               <Trash className="w-4 h-4" />
                             </Button>
                           </div>
-
                           <div className="grid grid-cols-2 gap-2">
                             <div>
                               <Label
                                 htmlFor={`custom-quantity-${eq.equipment_type_id}`}
+                                className="text-gray-900 dark:text-white"
                               >
                                 Quantity
                               </Label>
@@ -1250,11 +1356,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     ),
                                   }));
                                 }}
+                                className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               />
                             </div>
                             <div>
                               <Label
                                 htmlFor={`custom-unit-${eq.equipment_type_id}`}
+                                className="text-gray-900 dark:text-white"
                               >
                                 Unit
                               </Label>
@@ -1286,10 +1394,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               </Select>
                             </div>
                           </div>
-
                           <div>
                             <Label
                               htmlFor={`custom-rate-${eq.equipment_type_id}`}
+                              className="text-gray-900 dark:text-white"
                             >
                               Rate per {eq.usage_unit || "unit"}
                             </Label>
@@ -1316,12 +1424,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   ),
                                 }));
                               }}
+                              className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             />
                           </div>
-
                           <div>
                             <Label
                               htmlFor={`custom-total-${eq.equipment_type_id}`}
+                              className="text-gray-900 dark:text-white"
                             >
                               Total Cost
                             </Label>
@@ -1329,15 +1438,15 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               id={`custom-total-${eq.equipment_type_id}`}
                               type="text"
                               readOnly
-                              value={`$${totalCost.toLocaleString(undefined, {
+                              value={`KES ${totalCost.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}`}
-                              className="bg-muted font-medium"
+                              className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
                             />
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                               {eq.usage_quantity || 0} {eq.usage_unit || "unit"}{" "}
-                              × $
+                              × KES
                               {(eq.rate_per_unit || 0).toLocaleString(
                                 undefined,
                                 {
@@ -1352,10 +1461,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </Card>
                     );
                   })}
-
-                <Card className="p-4 flex flex-col items-center justify-center">
+                <Card className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col items-center justify-center">
                   <Button
-                    className="px-4 py-2 text-white hover:bg-blue-600"
                     onClick={() => {
                       const customId = uuidv4();
                       setQuoteData((prev) => ({
@@ -1373,19 +1480,31 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                         ],
                       }));
                     }}
+                    className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    style={{
+                      backgroundColor: RISA_BLUE,
+                      color: RISA_WHITE,
+                      padding: "0.75rem 2rem",
+                    }}
                   >
                     + Add Custom Equipment
                   </Button>
                 </Card>
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       case 6:
         return (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
             <div>
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                <Plus className="w-5 h-5" style={{ color: RISA_BLUE }} />
                 Additional Services
               </h3>
 
@@ -1429,9 +1548,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               }}
                             />
                             <div>
-                              <h4 className="font-medium">{service.name}</h4>
+                              <h4 className="font-medium text-gray-900 dark:text-white">{service.name}</h4>
                               {service.description && (
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
                                   {service.description}
                                 </p>
                               )}
@@ -1442,7 +1561,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               KSh {service.price.toLocaleString()}/
                               {service.unit || "item"}
                             </Badge>
-                            <p className="text-xs text-black text-muted-foreground">
+                            <p className="text-xs text-gray-600 dark:text-gray-300">
                               {service.category}
                             </p>
                           </div>
@@ -1767,6 +1886,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 ),
                               }));
                             }}
+                            className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
 
                           {service.payment_plan === "interval" && (
@@ -1845,7 +1965,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
                 <Card className="p-4 flex items-center justify-center">
                   <Button
-                    className="px-4 py-2 text-white hover:bg-blue-600"
                     onClick={() => {
                       const customId = uuidv4();
                       setQuoteData((prev) => ({
@@ -1866,15 +1985,20 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                         ],
                       }));
                     }}
+                    className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    style={{
+                      backgroundColor: RISA_BLUE,
+                      color: RISA_WHITE,
+                      padding: "0.75rem 2rem",
+                    }}
                   >
                     + Add Custom Service
                   </Button>
                 </Card>
               </div>
             </div>
-
             <div>
-              <Label htmlFor="customSpecs">Additional Specifications</Label>
+              <Label htmlFor="customSpecs" className="text-gray-900 dark:text-white">Additional Specifications</Label>
               <Textarea
                 id="customSpecs"
                 placeholder="Any additional requirements or specifications..."
@@ -1886,20 +2010,25 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     custom_specs: e.target.value,
                   }))
                 }
+                className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
-          </div>
+          </motion.div>
         );
       case 7:
         return (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
             <div>
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                <Zap className="w-5 h-5" style={{ color: RISA_BLUE }} />
                 Subcontractor Charges
               </h3>
-
               <div className="grid md:grid-cols-2 gap-4">
-                {" "}
                 {subContractors
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
@@ -1907,11 +2036,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       (s) => s.id === service.id
                     );
                     return (
-                      <Card key={service.id} className="p-4 ">
+                      <Card key={service.id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                         <div className="grid grid-cols-2">
                           <div className="flex items-center space-x-3">
                             <Checkbox
-                              className="text-white"
                               checked={isChecked}
                               onCheckedChange={(checked) => {
                                 if (checked) {
@@ -1936,19 +2064,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 }
                               }}
                             />
-                            <h4 className="font-medium">{service.name}</h4>
+                            <h4 className="font-medium text-gray-900 dark:text-white">{service.name}</h4>
                           </div>
                           <div className="text-right">
-                            <Badge className="text-black" variant="secondary">
+                            <Badge className="text-black bg-blue-100 dark:bg-blue-900/20" variant="secondary">
                               KSh {service.price.toLocaleString()}/
                               {service.unit}
                             </Badge>
                           </div>
                         </div>
-
                         {isChecked && (
                           <div className="mt-3 animate-fade-in">
-                            <Label>Payment Plan *</Label>
+                            <Label className="text-gray-900 dark:text-white">Payment Plan *</Label>
                             <Select
                               value={
                                 quoteData.subcontractors.find(
@@ -1978,7 +2105,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 }))
                               }
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                 <SelectValue placeholder="Select Payment Plan" />
                               </SelectTrigger>
                               <SelectContent>
@@ -1990,8 +2117,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 </SelectItem>
                               </SelectContent>
                             </Select>
-
-                            <Label htmlFor={`contractorCost-${service.id}`}>
+                            <Label htmlFor={`contractorCost-${service.id}`} className="text-gray-900 dark:text-white">
                               Contractor Cost
                             </Label>
                             <Input
@@ -2041,13 +2167,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   ),
                                 }))
                               }
+                              className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             />
-
                             {quoteData.subcontractors.find(
                               (s) => s.id === service.id
                             )?.subcontractor_payment_plan === "daily" && (
                               <>
-                                <Label htmlFor={`days-${service.id}`}>
+                                <Label htmlFor={`days-${service.id}`} className="text-gray-900 dark:text-white">
                                   Number of Days
                                 </Label>
                                 <Input
@@ -2075,6 +2201,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       ),
                                     }))
                                   }
+                                  className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                 />
                               </>
                             )}
@@ -2086,7 +2213,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 {quoteData.subcontractors
                   .filter((s) => !subContractors.some((srv) => srv.id === s.id))
                   .map((sub) => (
-                    <Card key={sub.id} className="p-4 ">
+                    <Card key={sub.id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
                           <Input
@@ -2103,9 +2230,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 ),
                               }))
                             }
+                            className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
                         </div>
-
                         <div className="space-y-2">
                           <Select
                             value={sub.subcontractor_payment_plan || "full"}
@@ -2131,7 +2258,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               }))
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                               <SelectValue placeholder="Payment Plan" />
                             </SelectTrigger>
                             <SelectContent>
@@ -2141,7 +2268,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               </SelectItem>
                             </SelectContent>
                           </Select>
-
                           <Input
                             type="number"
                             min="0"
@@ -2178,8 +2304,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 ),
                               }));
                             }}
+                            className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           />
-
                           {sub.subcontractor_payment_plan === "daily" && (
                             <Input
                               type="number"
@@ -2199,9 +2325,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   ),
                                 }))
                               }
+                              className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             />
                           )}
-
                           <Button
                             variant="destructive"
                             size="sm"
@@ -2220,9 +2346,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </div>
                     </Card>
                   ))}
-                <Card className="p-4  flex items-center justify-center">
+                <Card className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center">
                   <Button
-                    className="px-4 py-2 text-white hover:bg-blue-600"
                     onClick={() => {
                       const newId = `custom-${Date.now()}`;
                       setQuoteData((prev) => ({
@@ -2241,17 +2366,28 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                         ],
                       }));
                     }}
+                    className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    style={{
+                      backgroundColor: RISA_BLUE,
+                      color: RISA_WHITE,
+                      padding: "0.75rem 2rem",
+                    }}
                   >
                     + Add Custom Subcontractor
                   </Button>
                 </Card>
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       case 8:
         return (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
             <PreliminariesBuilder
               quoteData={quoteData}
               onPreliminariesUpdate={setPreliminaries}
@@ -2262,7 +2398,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 }));
               }}
             />
-          </div>
+          </motion.div>
         );
       case 9:
         return (
@@ -2277,26 +2413,26 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <>
                 {boqData.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
                       Bill of Quantities
                     </h3>
                     {boqData.map((section, index) => (
-                      <Card key={index} className="mb-4">
+                      <Card key={index} className="mb-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                         <CardHeader>
-                          <CardTitle>{section.title}</CardTitle>
+                          <CardTitle className="text-gray-900 dark:text-white">{section.title}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>Item</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Element</TableHead>
-                                <TableHead>Unit</TableHead>
-                                <TableHead>Qty</TableHead>
-                                <TableHead>Rate</TableHead>
-                                <TableHead>Amount</TableHead>
-                                <TableHead>Source</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Item</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Description</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Element</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Unit</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Qty</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Rate</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Amount</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">Source</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -2310,39 +2446,39 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                         <>
                                           <TableCell
                                             colSpan={8}
-                                            className="font-bold text-base"
+                                            className="font-bold text-base text-gray-900 dark:text-white"
                                           >
                                             {item.description || "-"}
                                           </TableCell>
                                         </>
                                       ) : (
                                         <>
-                                          <TableCell>
+                                          <TableCell className="text-gray-900 dark:text-white">
                                             {item.itemNo || "-"}
                                           </TableCell>
-                                          <TableCell className="font-semibold">
+                                          <TableCell className="font-semibold text-gray-900 dark:text-white">
                                             {item.description || "-"}
                                           </TableCell>
-                                          <TableCell>
+                                          <TableCell className="text-gray-900 dark:text-white">
                                             {item.element || "-"}
                                           </TableCell>
-                                          <TableCell>
+                                          <TableCell className="text-gray-900 dark:text-white">
                                             {item.unit || "-"}
                                           </TableCell>
-                                          <TableCell>
+                                          <TableCell className="text-gray-900 dark:text-white">
                                             {item.quantity ?? "-"}
                                           </TableCell>
-                                          <TableCell>
+                                          <TableCell className="text-gray-900 dark:text-white">
                                             {item.rate
                                               ? item.rate.toLocaleString()
                                               : "-"}
                                           </TableCell>
-                                          <TableCell>
+                                          <TableCell className="text-gray-900 dark:text-white">
                                             {item.amount
                                               ? item.amount.toLocaleString()
                                               : "-"}
                                           </TableCell>
-                                          <TableCell className="text-xs text-gray-500">
+                                          <TableCell className="text-xs text-gray-500 dark:text-gray-400">
                                             {item.calculatedFrom || "-"}
                                           </TableCell>
                                         </>
@@ -2362,9 +2498,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               )}
                             </TableBody>
                           </Table>
-
                           {section.items.length > 0 && (
-                            <div className="mt-4 text-right font-bold">
+                            <div className="mt-4 text-right font-bold text-gray-900 dark:text-white">
                               Total: KSh{" "}
                               {section.items
                                 .reduce((sum, i) => sum + (i.amount || 0), 0)
@@ -2376,30 +2511,29 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     ))}
                   </div>
                 )}
-
-                <Card className="">
+                <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <CardHeader>
-                    <CardTitle>Labour and Total</CardTitle>
+                    <CardTitle className="text-gray-900 dark:text-white">Labour and Total</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="space-y-2">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Labour</p>
                         <p>KSh {calculation?.labor_cost?.toLocaleString()}</p>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Profit</p>
                         <p>
                           KSh {calculation?.profit_amount?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Materials</p>
                         <p>
                           KSh {calculation?.materials_cost?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Preliminaries</p>
                         <p>
                           KSh {calculation?.preliminariesCost?.toLocaleString()}
@@ -2408,24 +2542,26 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     </div>
                   </CardContent>
                 </Card>
-
-                <div className="flex justify-between font-bold text-lg">
+                <div className="flex justify-between font-bold text-lg text-gray-900 dark:text-white">
                   <span>Total:</span>
                   <span>KSh {calculation.total_amount.toLocaleString()}</span>
                 </div>
-
                 <div className="flex space-x-4">
                   <Button
                     onClick={handleSaveQuote}
-                    className="flex-1 text-white"
-                    variant="default"
+                    className="flex-1 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    style={{
+                      backgroundColor: RISA_BLUE,
+                      color: RISA_WHITE,
+                      padding: "0.75rem 2rem",
+                    }}
                   >
                     Save Quote
                   </Button>
                 </div>
               </>
             ) : (
-              <div className="text-center py-5 text-gray-350">
+              <div className="text-center py-5 text-gray-500 dark:text-gray-400">
                 No calculation done. Click on calculate to generate quotation
               </div>
             )}
@@ -2433,42 +2569,57 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <Button
                 onClick={handleCalculate}
                 disabled={calculationLoading}
-                className="flex-1 text-white"
+                className="flex-1 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                style={{
+                  backgroundColor: RISA_BLUE,
+                  color: RISA_WHITE,
+                  padding: "0.75rem 2rem",
+                }}
               >
                 {calculationLoading ? "Calculating..." : "Recalculate"}
               </Button>
             </div>
-          </div>
+          </motion.div>
         );
       default:
         return null;
     }
   };
+
   if (settingsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: RISA_BLUE }}></div>
+          <p className="text-gray-600 dark:text-gray-300" style={{ color: RISA_BLUE }}>Loading quote builder...</p>
+        </motion.div>
       </div>
     );
   }
+
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "Free":
         return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            <Shell className="w-3 h-3 mr-1" /> Free
+          <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300">
+            <Shell className="w-3 h-3 mr-1" />
+            Free
           </Badge>
         );
       case "Intermediate":
         return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
             <Crown className="w-3 h-3 mr-1" />
             Intermediate
           </Badge>
         );
       case "Professional":
         return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
+          <Badge className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300">
             <Shield className="w-3 h-3 mr-1" />
             Professional
           </Badge>
@@ -2477,33 +2628,45 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return <Badge>{tier}</Badge>;
     }
   };
+
   if (limit !== null && profile?.quotes_used >= limit) {
     return (
-      <div className="min-h-screen flex items-center justify-center animate-fade-in">
-        <Card className=" p-10 rounded-lg">
-          <div className="text-center">
-            <h2 className="sm:text-2xl text-lg font-bold mb-4">
-              You have used up the allocated monthly quotes
-            </h2>
-            <p className="text-muted-foreground">
-              Please upgrade your plan to access more quote allocations and
-              features.
-            </p>
-            <div className="text-muted-foreground">
-              Current Plan: {getTierBadge(profile.tier)}
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
+        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 max-w-md w-full rounded-xl">
+          <CardContent className="text-center p-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+              <CreditCard className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
-            <Button
-              className="w-full mt-10 text-white"
-              onClick={() => navigate("/payment")}
+            <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
+              Quote Limit Reached
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Please upgrade your plan to access more quote allocations.
+            </p>
+            <div className="mb-6">{getTierBadge(profile.tier)}</div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <CreditCard className="w-4 h-4 mr-2" />
-              Upgrade Plan
-            </Button>
-          </div>
+              <Button
+                onClick={() => navigate("/payment")}
+                className="w-full rounded-full font-semibold"
+                style={{
+                  backgroundColor: RISA_BLUE,
+                  color: RISA_WHITE,
+                  padding: "0.75rem 2rem",
+                }}
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                Upgrade Plan
+              </Button>
+            </motion.div>
+          </CardContent>
         </Card>
       </div>
     );
   }
+
   return (
     <div className="min-h-screen animate-fade-in transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -2515,9 +2678,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <p className="bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
-        </div>
-
-        <div className="mb-8">
+        </motion.div>
+        {/* Progress Steps */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-8"
+        >
           <div className="flex items-center justify-between mb-4">
             {steps.map((step) => {
               const newStep = step.id;
@@ -2600,12 +2768,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </Card>
           </motion.div>
         </AnimatePresence>
-
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={currentStep === 1}
+        {/* Navigation Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex justify-between items-center"
+        >
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
@@ -2615,10 +2787,30 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               Next
               <ArrowRight className="w-4 h-4 ml-2 text-white" />
             </Button>
+          </motion.div>
+          {currentStep < 9 && (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                onClick={nextStep}
+                className="rounded-full px-6 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                style={{
+                  backgroundColor: RISA_BLUE,
+                  color: RISA_WHITE,
+                  padding: "0.75rem 2rem",
+                }}
+              >
+                Next
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 };
+
 export default EnhancedQuoteBuilder;

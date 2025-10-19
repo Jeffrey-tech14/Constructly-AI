@@ -1,9 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Home, ArrowLeft, DraftingCompass, Target } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
+
 const NotFound = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -68,4 +69,5 @@ const NotFound = () => {
     </div>
   );
 };
+
 export default NotFound;

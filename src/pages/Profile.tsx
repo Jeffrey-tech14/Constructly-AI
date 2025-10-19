@@ -30,6 +30,15 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
+import { motion } from "framer-motion";
+
+// RISA Color Palette (from Index.tsx)
+const RISA_BLUE = "#015B97";
+const RISA_LIGHT_BLUE = "#3288e6";
+const RISA_WHITE = "#ffffff";
+const RISA_DARK_TEXT = "#2D3748";
+const RISA_LIGHT_GRAY = "#F5F7FA";
+
 const Profile = () => {
   const navigate = useNavigate();
   const { profile, user, updateProfile } = useAuth();
@@ -226,12 +235,8 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="sm:text-2xl text-lg font-bold mb-4">
-            Loading Profile...
-          </h2>
-          <p className="text-muted-foreground">
-            Please wait while we load your profile information.
-          </p>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Loading Profile...</h2>
+          <p className="text-gray-600 dark:text-gray-400">Please wait while we load your profile.</p>
         </div>
       </div>
     );
@@ -274,15 +279,15 @@ const Profile = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="w-5 h-5 mr-2" />
                   Personal Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col items-center mb-4">
+              <CardContent className="space-y-6">
+                <div className="flex flex-col items-center">
                   <div className="relative">
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={avatarUrl || undefined} />
@@ -393,41 +398,27 @@ const Profile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="text-center">
-                      <p className="sm:text-2xl text-lg font-bold text-primary">
-                        {stats.total_projects}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Total Projects
-                      </p>
+                      <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total_projects}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Projects</p>
                     </div>
                     <div className="text-center">
-                      <p className="sm:text-2xl text-lg font-bold text-green-600">
-                        {stats.completed_projects}
-                      </p>
-                      <p className="text-sm text-muted-foreground">Completed</p>
+                      <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">{stats.completed_projects}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
                     </div>
                     <div className="text-center">
-                      <p className="sm:text-2xl text-lg font-bold text-blue-600">
-                        {Math.round(stats.completionRate)}%
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Success Rate
-                      </p>
+                      <p className="text-xl md:text-2xl font-bold text-purple-600 dark:text-purple-400">{Math.round(stats.completionRate)}%</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
                     </div>
                     <div className="text-center">
-                      <p className="sm:text-2xl text-lg font-bold text-purple-600">
-                        KSh {formatCurrency(stats.total_revenue)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Total Revenue
-                      </p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">KSh {formatCurrency(stats.total_revenue)}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
                     </div>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="flex justify-between text-sm mb-2">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2 text-gray-700 dark:text-gray-300">
                       <span>Project Completion Rate</span>
                       <span>{Math.round(projectCompletionRate)}%</span>
                     </div>
@@ -468,8 +459,8 @@ const Profile = () => {
                     >
                       {getTierImage(profile.tier)}
                     </div>
+                    <span className="font-bold text-lg">{profile.tier} Plan</span>
                   </div>
-                  {profile.tier}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -512,6 +503,7 @@ const Profile = () => {
                     </div>
                   )}
 
+                {profile.tier !== "Professional" && (
                   <div className="space-y-2">
                     <h4 className="font-semibold text-md">Features:</h4>
                     {tierData?.features?.map((feature, idx) => (
@@ -523,6 +515,7 @@ const Profile = () => {
                       <p className="text-sm text-red-500">No features found</p>
                     )}
                   </div>
+                )}
 
                   <Button className="w-full text-white" onClick={handleUpgrade}>
                     <CreditCard className="w-4 h-4 mr-2" />
@@ -531,36 +524,48 @@ const Profile = () => {
                       : "Upgrade Plan"}
                   </Button>
                 </div>
+
+                <Button
+                  onClick={handleUpgrade}
+                  className="w-full rounded-full font-semibold"
+                  style={{
+                    backgroundColor: RISA_BLUE,
+                    color: RISA_WHITE,
+                  }}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {profile.tier === "Professional" ? "Manage Subscription" : "Upgrade Plan"}
+                </Button>
               </CardContent>
             </Card>
 
-            <Card className="">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />
                   Account Info
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>Member since:</span>
-                  <span>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Member since:</span>
+                  <span className="text-gray-900 dark:text-white">
                     {new Date(profile.created_at).toLocaleDateString()}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Last updated:</span>
-                  <span>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Last updated:</span>
+                  <span className="text-gray-900 dark:text-white">
                     {new Date(profile.updated_at).toLocaleDateString()}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Account type:</span>
-                  <span>{profile.is_admin ? "Administrator" : "User"}</span>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Account type:</span>
+                  <span className="text-gray-900 dark:text-white">{profile.is_admin ? "Administrator" : "User"}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Quotes used:</span>
-                  <span>{profile.quotes_used}</span>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Quotes used:</span>
+                  <span className="text-gray-900 dark:text-white">{profile.quotes_used}</span>
                 </div>
               </CardContent>
             </Card>
@@ -570,4 +575,5 @@ const Profile = () => {
     </div>
   );
 };
+
 export default Profile;

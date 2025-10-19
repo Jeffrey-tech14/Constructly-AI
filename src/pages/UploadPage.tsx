@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,17 @@ import { usePlanUpload } from "@/hooks/usePlanUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
+
+// RISA Color Palette
+const RISA_BLUE = "#015B97";
+const RISA_LIGHT_BLUE = "#3288e6";
+const RISA_WHITE = "#ffffff";
+const RISA_DARK_TEXT = "#2D3748";
+const RISA_LIGHT_GRAY = "#F5F7FA";
+const RISA_MEDIUM_GRAY = "#E2E8F0";
+
+// --- Interfaces ---
 export interface Door {
   sizeType: string;
   standardSize: string;
@@ -672,6 +683,12 @@ const UploadPlan = () => {
                 </Button>
               )}
             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
             {retryCount >= MAX_RETRIES && (
               <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
@@ -1091,6 +1108,14 @@ const UploadPlan = () => {
                     <HardDriveDownload className="w-6 h-6" />
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
                 <div className="flex space-x-4">
                   <Button
@@ -1148,6 +1173,228 @@ const UploadPlan = () => {
               >
                 Cancel
               </Button>
+            </motion.div>
+            <div className="text-center flex-1">
+              <Badge className="mb-3 text-xs bg-blue-600 text-white dark:bg-blue-700">
+                <UploadCloud className="w-3 h-3 mr-1" /> AI Plan Analysis
+              </Badge>
+              <h1 className="text-2xl md:text-3xl font-bold" style={{ color: RISA_BLUE }}>
+                Upload & Analyze Plan
+              </h1>
+              <p className="text-gray-600 mt-2 dark:text-gray-300 text-sm max-w-2xl mx-auto">
+                AI-powered extraction of rooms, dimensions, doors, and windows — instantly generate accurate construction estimates.
+              </p>
+            </div>
+            <div className="w-10"></div>
+          </div>
+        </motion.div>
+
+        {/* Progress Steps */}
+        {currentStep !== "idle" && currentStep !== "error" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-8"
+          >
+            <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  {[
+                    { label: "Uploading", icon: UploadCloud },
+                    { label: "Analyzing", icon: BarChart3 },
+                    { label: "Complete", icon: CheckCircle }
+                  ].map((step, idx) => {
+                    const isDone =
+                      (currentStep === "analyzing" && idx < 1) ||
+                      (currentStep === "complete" && idx < 2) ||
+                      (idx === 2 && currentStep === "complete");
+                    const isActive =
+                      (currentStep === "uploading" && idx === 0) ||
+                      (currentStep === "analyzing" && idx === 1) ||
+                      (currentStep === "complete" && idx === 2);
+                    const IconComponent = step.icon;
+                    return (
+                      <div key={idx} className="flex flex-col items-center space-y-3 flex-1">
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                            isDone
+                              ? "bg-green-500 text-white shadow-lg"
+                              : isActive
+                              ? "bg-blue-600 text-white shadow-lg"
+                              : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                          }`}
+                        >
+                          {isDone ? (
+                            <CheckCircle className="w-6 h-6" />
+                          ) : (
+                            <IconComponent className="w-5 h-5" />
+                          )}
+                        </motion.div>
+                        <span
+                          className={`text-sm font-medium ${
+                            isActive || isDone 
+                              ? "text-blue-600 dark:text-blue-400" 
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+                  <motion.div
+                    className="h-2 rounded-full"
+                    initial={{ width: "0%" }}
+                    animate={{
+                      width:
+                        currentStep === "uploading"
+                          ? "33%"
+                          : currentStep === "analyzing"
+                          ? "66%"
+                          : "100%",
+                    }}
+                    transition={{ duration: 0.5 }}
+                    style={{ backgroundColor: RISA_BLUE }}
+                  />
+                </div>
+                <motion.p 
+                  className="text-center text-sm text-gray-600 dark:text-gray-300 mt-4"
+                  key={currentStep}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {currentStep === "uploading" && (
+                    <span className="flex items-center justify-center gap-2">
+                      <UploadCloud className="w-4 h-4" />
+                      Uploading your construction plan...
+                    </span>
+                  )}
+                  {currentStep === "analyzing" && (
+                    <span className="flex flex-col items-center justify-center gap-2">
+                      <div className="flex space-x-1 mb-2">
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-2 h-2 bg-blue-500 rounded-full"
+                            animate={{ scale: [1, 1.5, 1] }}
+                            transition={{
+                              duration: 1.2,
+                              repeat: Infinity,
+                              delay: i * 0.2,
+                              repeatType: "loop",
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <span className="flex items-center gap-2">
+                        <Zap className="w-4 h-4" />
+                        AI is analyzing your plan...
+                      </span>
+                      {analysisTimeLeft !== null && (
+                        <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                          Est. time: {analysisTimeLeft}s
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {currentStep === "complete" && (
+                    <span className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
+                      <CheckCircle className="w-4 h-4" />
+                      Plan successfully parsed! Review and edit below.
+                    </span>
+                  )}
+                </motion.p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Error State */}
+        {currentStep === "error" && error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <Card className="border border-red-200 dark:border-red-800 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div
+                    className={`p-3 rounded-full bg-red-100 dark:bg-red-900 ${getErrorColor()}`}
+                  >
+                    {getErrorIcon()}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-red-800 dark:text-red-200">
+                      {error.type === "network"
+                        ? "Connection Error"
+                        : error.type === "analysis"
+                        ? "Analysis Failed"
+                        : "Save Error"}
+                    </h3>
+                    <p className="text-red-600 dark:text-red-300">
+                      {error.message}
+                    </p>
+                    {retryCount > 0 && (
+                      <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                        Attempt {retryCount} of {MAX_RETRIES}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex space-x-4 mt-6">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="outline"
+                      onClick={handleRemoveFile}
+                      className="w-full border-red-200 text-red-600 hover:text-white hover:bg-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove File
+                    </Button>
+                  </motion.div>
+                  {error.retryable && (
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex-1"
+                    >
+                      <Button
+                        onClick={handleRetry}
+                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        disabled={retryCount >= MAX_RETRIES}
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        {retryCount >= MAX_RETRIES
+                          ? "Max Retries Reached"
+                          : "Try Again"}
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
+                {retryCount >= MAX_RETRIES && (
+                  <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                      💡 <strong>Tip:</strong> Try uploading a clearer image or a
+                      different file format. Make sure your plan has clear room
+                      labels and dimensions.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
               {(editablePlan && currentStep === "complete") ||
               (selectedFile && !fileUrl && currentStep !== "error") ? (
@@ -1173,10 +1420,75 @@ const UploadPlan = () => {
                 </Button>
               ) : null}
             </div>
-          </CardContent>
-        </Card>
+          </motion.div>
+
+          {/* Info Panel */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="space-y-6"
+          >
+            <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                  <Zap className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                  AI-Powered Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {[
+                    { icon: Building, text: "Automatic room detection" },
+                    { icon: Ruler, text: "Precise dimension extraction" },
+                    { icon: DoorOpen, text: "Door and window identification" },
+                    { icon: BarChart3, text: "Material quantity calculations" },
+                    { icon: Target, text: "95%+ accuracy guarantee" }
+                  ].map((item, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    >
+                      <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20">
+                        <item.icon className="w-4 h-4" style={{ color: RISA_BLUE }} />
+                      </div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                  <Eye className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                  Supported Formats
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  <p>• JPG/JPEG images</p>
+                  <p>• PNG images</p>
+                  <p>• PDF documents</p>
+                  <p>• DWG/DXF CAD files</p>
+                  <p>• RVT/IFC BIM files</p>
+                  <p>• ZIP archives</p>
+                  <p>• CSV/XLSX data files</p>
+                  <p>• WEBP images</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                    Maximum file size: 10MB
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
 };
+
 export default UploadPlan;

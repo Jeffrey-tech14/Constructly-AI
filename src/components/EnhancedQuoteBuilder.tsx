@@ -2746,7 +2746,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <Button
             onClick={prevStep}
             variant="outline"
-            className="rounded-full px-6 font-semibold bg-background text-white shadow-md hover:shadow-lg transition-all duration-300"
+            className="rounded-full px-6 font-semibold bg-background shadow-md hover:shadow-lg transition-all duration-300"
           >
             <ArrowLeft className="w-4 h-4 ml-2" />
             Previous

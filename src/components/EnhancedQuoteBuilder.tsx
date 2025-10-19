@@ -1,7 +1,13 @@
 import { ElementType, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -46,13 +52,6 @@ import {
   House,
   CopyrightIcon,
   UploadCloud,
-  Truck,
-  ClipboardList,
-  MapPin,
-  Target,
-  Users,
-  DollarSign,
-  HardHat,
   ListStartIcon,
   Mailbox,
   LucideEarth,
@@ -68,6 +67,7 @@ import {
   Truck,
   HardHat,
   Eye,
+  Loader2,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -186,14 +186,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { value: "renovation", label: "Renovation" },
   ];
   const [currentStep, setCurrentStep] = useState(1);
-  const [calculation, setCalculation] = useState<CalculationResult | null>(null);
+  const [calculation, setCalculation] = useState<CalculationResult | null>(
+    null
+  );
   const [subContractors, setServices] = useState<any[]>([]);
   const location = useLocation();
   const [limit, setLimit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
-  
+
   const fetchLimit = async () => {
     if (!profile?.tier) return;
     setLoading(true);
@@ -245,6 +247,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     title: "",
     location: "",
     id: uuidv4(),
+    qsSettings: [],
+    boq_data: [],
+    foundationDetails: [],
     subcontractors: [],
     concrete_rows: [],
     rebar_rows: [],
@@ -373,14 +378,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       name: "Review & Export",
       icon: <Calculator className="w-5 h-5" />,
     },
-    { id: 2, name: "Concrete and Rebar", icon: <Building className="w-5 h-5" /> },
-    { id: 3, name: "House and Materials", icon: <House className="w-5 h-5" /> },
-    { id: 4, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
-    { id: 5, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
-    { id: 6, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
-    { id: 7, name: "BOQ Builder", icon: <FileText className="w-5 h-5" /> },
-    { id: 8, name: "Preliminaries and Legal", icon: <FileSpreadsheet className="w-5 h-5" /> },
-    { id: 9, name: "Review & Export", icon: <Calculator className="w-5 h-5" /> },
   ];
 
   const updatePercentageField = (field: keyof Percentage, value: number) => {
@@ -444,6 +441,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         location: quoteData.location,
         status: quoteData.status,
         custom_specs: quoteData.custom_specs,
+        qsSettings: quoteData.qsSettings,
+        boq_data: quoteData.boq_data,
+        foundationDetails: quoteData.foundationDetails,
         floors: quoteData.floors,
         mortar_ratio: quoteData.mortar_ratio,
         concrete_mix_ratio: quoteData.concrete_mix_ratio,
@@ -653,305 +653,262 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     switch (currentStep) {
       case 1:
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="projectName"
-                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
-                  >
-                    <Target className="w-4 h-4" />
-                  <Label htmlFor="projectName" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                    <Target className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                    Project Name *
-                  </Label>
-                  <Input
-                    id="projectName"
-                    required
-                    placeholder="Enter project name"
-                    value={quoteData.title}
-                    onChange={(e) =>
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    className=""
-                      setQuoteData((prev) => ({ ...prev, title: e.target.value }))
-                    }
-                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-                <div className="grid grid-cols-1 gap-4">
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
                   <div>
                     <Label
-                      htmlFor="clientName"
+                      htmlFor="projectName"
                       className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                     >
-                      <Users className="w-4 h-4" />
-                    <Label htmlFor="clientName" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                      <Users className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                      Client Name *
+                      <Target className="w-4 h-4" />
+                      Project Name *
                     </Label>
                     <Input
-                      id="clientName"
+                      id="projectName"
                       required
-                      placeholder="Enter client name"
-                      value={quoteData.client_name}
+                      placeholder="Enter project name"
+                      value={quoteData.title}
                       onChange={(e) =>
                         setQuoteData((prev) => ({
                           ...prev,
-                          client_name: e.target.value,
+                          title: e.target.value,
                         }))
                       }
                       className=""
                     />
                   </div>
-                  <div>
-                    <Label
-                      htmlFor="clientEmail"
-                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
-                    >
-                      <Users className="w-4 h-4" />
-                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label
+                        htmlFor="clientName"
+                        className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                      >
+                        <Users className="w-4 h-4" />
+                        Client Name *
+                      </Label>
+                      <Input
+                        id="clientName"
+                        required
+                        placeholder="Enter client name"
+                        value={quoteData.client_name}
+                        onChange={(e) =>
+                          setQuoteData((prev) => ({
+                            ...prev,
+                            client_name: e.target.value,
+                          }))
+                        }
+                        className=""
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="clientEmail"
+                        className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                      >
+                        <Users className="w-4 h-4" />
+                        Client Email *
+                      </Label>
+                      <Input
+                        id="clientEmail"
+                        type="email"
+                        required
+                        placeholder="client@example.com"
+                        value={quoteData.client_email}
+                        onChange={(e) =>
+                          setQuoteData((prev) => ({
+                            ...prev,
+                            client_email: e.target.value,
+                          }))
+                        }
+                        className=""
+                      />
+                    </div>
                   </div>
+
                   <div>
-                    <Label htmlFor="clientEmail" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                      <Users className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                      Client Email *
+                    <Label className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
+                      <ClipboardList className="w-4 h-4" />
+                      Contract Type *
                     </Label>
-                    <Input
-                      id="clientEmail"
-                      type="email"
+                    <Select
+                      value={quoteData.contract_type || ""}
                       required
-                      placeholder="client@example.com"
-                      value={quoteData.client_email}
-                      onChange={(e) =>
+                      onValueChange={(value: "full_contract" | "labor_only") =>
                         setQuoteData((prev) => ({
                           ...prev,
-                          client_email: e.target.value,
+                          contract_type: value,
                         }))
                       }
-                      className=""
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                    <ClipboardList className="w-4 h-4" />
-                    Contract Type *
-                  </Label>
-                  <Select
-                    value={quoteData.contract_type || ""}
-                    required
-                    onValueChange={(value: "full_contract" | "labor_only") =>
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        contract_type: value,
-                      }))
-                    }
-                  >
-                    <SelectTrigger className="">
-                      <SelectValue placeholder="Select contract type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full_contract">
-                        Full Contract (Materials + Labor)
-                      </SelectItem>
-                      <SelectItem value="labor_only">
-                        Labor Only (Client Provides Materials)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                    {quoteData.contract_type === "full_contract"
-                      ? "You provide all materials and labor"
-                      : "Client provides materials, you provide labor only"}
-                  </p>
-                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="projectType" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                    <Building className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                    Project Type *
-                  </Label>
-                  <Select
-                    value={quoteData.project_type}
-                    required
-                    onValueChange={(value) =>
-                      setQuoteData((prev) => ({ ...prev, project_type: value }))
-                    }
-                  >
-                    <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                      <SelectValue placeholder="Select project type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((region) => (
-                        <SelectItem key={region.value} value={region.value}>
-                          {region.label}
+                    >
+                      <SelectTrigger className="">
+                        <SelectValue placeholder="Select contract type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full_contract">
+                          Full Contract (Materials + Labor)
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="location"
-                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
-                  >
-                    <MapPin className="w-4 h-4" />
-                  <Label htmlFor="location" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                    <MapPin className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                    Project Location *
-                  </Label>
-                  <Input
-                    id="location"
-                    placeholder="Enter specific location or address"
-                    required
-                    value={quoteData.location}
-                    onChange={(e) =>
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
-                    className=""
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="region"
-                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
-                  >
-                    <MapPin className="w-4 h-4" />
-                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="region" className="flex items-center gap-2 text-gray-900 dark:text-white mb-2">
-                    <MapPin className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                    Region *
-                  </Label>
-                  <Select
-                    value={quoteData.region}
-                    required
-                    onValueChange={(value) =>
-                      setQuoteData((prev) => ({ ...prev, region: value }))
-                    }
-                  >
-                    <SelectTrigger className="">
-                      <SelectValue placeholder="Select region for pricing" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {regions.map((region) => (
-                        <SelectItem key={region.value} value={region.value}>
-                          {region.label}
+                        <SelectItem value="labor_only">
+                          Labor Only (Client Provides Materials)
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label
-                    htmlFor="projectType"
-                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
-                  >
-                    <Building className="w-4 h-4" />
-                    Project Type *
-                  </Label>
-                  <Select
-                    value={quoteData.project_type}
-                    required
-                    onValueChange={(value) =>
-                      setQuoteData((prev) => ({ ...prev, project_type: value }))
-                    }
-                  >
-                    <SelectTrigger className="">
-                      <SelectValue placeholder="Select project type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((region) => (
-                        <SelectItem key={region.value} value={region.value}>
-                          {region.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label
-                    htmlFor="distanceKm"
-                    className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
-                  >
-                    <Truck className="w-4 h-4" />
-                    Distance from site location (KM)
-                  </Label>
-                  <Input
-                    id="distanceKm"
-                    type="number"
-                    min="0"
-                    required
-                    placeholder="Distance in kilometers"
-                    value={quoteData.distance_km}
-                    onChange={(e) =>
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        distance_km: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    className=""
-                  />
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                    Used to calculate transport costs
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Upload Plan Button at Bottom */}
-            {profile.tier !== "Free" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="mt-8"
-              >
-                <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
-                  <CardContent className="p-6 text-center">
-                    <UploadCloud className="w-12 h-12 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                      Upload Construction Plans
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      Upload your construction plans for automatic room
-                      detection and measurements
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                      {quoteData.contract_type === "full_contract"
+                        ? "You provide all materials and labor"
+                        : "Client provides materials, you provide labor only"}
                     </p>
-                    <Button
-                      onClick={() =>
-                        navigate("/upload/plan", { state: { quoteData } })
-                      }
-                      className="rounded-full font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300"
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label
+                      htmlFor="projectType"
+                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
                     >
-                      <UploadCloud className="w-4 h-4 mr-2" />
-                      Upload Plan
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </motion.div>
+                      <Building className="w-4 h-4" />
+                      Project Type *
+                    </Label>
+                    <Select
+                      value={quoteData.project_type}
+                      required
+                      onValueChange={(value) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          project_type: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="">
+                        <SelectValue placeholder="Select project type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map((region) => (
+                          <SelectItem key={region.value} value={region.value}>
+                            {region.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="location"
+                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      Project Location *
+                    </Label>
+                    <Input
+                      id="location"
+                      placeholder="Enter specific location or address"
+                      required
+                      value={quoteData.location}
+                      onChange={(e) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          location: e.target.value,
+                        }))
+                      }
+                      className=""
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="region"
+                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      Region *
+                    </Label>
+                    <Select
+                      value={quoteData.region}
+                      required
+                      onValueChange={(value) =>
+                        setQuoteData((prev) => ({ ...prev, region: value }))
+                      }
+                    >
+                      <SelectTrigger className="">
+                        <SelectValue placeholder="Select region for pricing" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regions.map((region) => (
+                          <SelectItem key={region.value} value={region.value}>
+                            {region.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="distanceKm"
+                      className="flex items-center gap-2 text-gray-900 dark:text-white mb-2"
+                    >
+                      <Truck className="w-4 h-4" />
+                      Distance from site location (KM)
+                    </Label>
+                    <Input
+                      id="distanceKm"
+                      type="number"
+                      min="0"
+                      required
+                      placeholder="Distance in kilometers"
+                      value={quoteData.distance_km}
+                      onChange={(e) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          distance_km: parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      className=""
+                    />
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                      Used to calculate transport costs
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upload Plan Button at Bottom */}
+              {profile.tier !== "Free" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="mt-8"
+                >
+                  <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+                    <CardContent className="p-6 text-center">
+                      <UploadCloud className="w-12 h-12 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                        Upload Construction Plans
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4">
+                        Upload your construction plans for automatic room
+                        detection and measurements
+                      </p>
+                      <Button
+                        onClick={() =>
+                          navigate("/upload/plan", { state: { quoteData } })
+                        }
+                        className="rounded-full font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300"
+                      >
+                        <UploadCloud className="w-4 h-4 mr-2" />
+                        Upload Plan
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
         );
       case 2:
         return (
@@ -982,51 +939,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 onExport={(json) => console.log("Exported JSON:", json)}
               />
             </div>
-
-            {/* Upload Plan Button at Bottom */}
-            {profile.tier !== "Free" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="mt-8"
-              >
-                <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
-                  <CardContent className="p-6 text-center">
-                    <UploadCloud className="w-12 h-12 mx-auto mb-4" style={{ color: RISA_BLUE }} />
-                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                      Upload Construction Plans
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      Upload your construction plans for automatic room detection and measurements
-                    </p>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.4 }}
-                    >
-                      <Button
-                        onClick={() =>
-                          navigate("/upload/plan", { state: { quoteData } })
-                        }
-                        className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                        style={{
-                          backgroundColor: RISA_BLUE,
-                          color: RISA_WHITE,
-                          padding: "0.75rem 2rem",
-                        }}
-                      >
-                        <UploadCloud className="w-4 h-4 mr-2" />
-                        Upload Plan
-                      </Button>
-                    </motion.div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </motion.div>
+          </div>
         );
       case 4:
         return (
@@ -1035,6 +948,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <MasonryCalculatorForm
               quote={quoteData}
               setQuote={setQuoteData}
+              regionalMultipliers={regionalMultipliers}
+              userRegion={profile?.location}
               materialBasePrices={materialBasePrices}
               userMaterialPrices={userMaterialPrices}
               getEffectiveMaterialPrice={getEffectiveMaterialPrice}
@@ -1051,7 +966,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           >
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                <Wrench className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                <Wrench className="w-5 h-5" />
                 Select Required Equipment
               </h3>
               <div className="grid grid-cols-1 gap-4">
@@ -1065,7 +980,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       (eq) => eq.equipment_type_id === equipment.id
                     );
                     return (
-                      <Card key={equipment.id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                      <Card
+                        key={equipment.id}
+                        className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      >
                         <div className="items-center justify-between">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="flex items-center space-x-2">
@@ -1117,7 +1035,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
-                                    <Label htmlFor={`quantity-${equipment.id}`} className="text-gray-900 dark:text-white">
+                                    <Label
+                                      htmlFor={`quantity-${equipment.id}`}
+                                      className="text-gray-900 dark:text-white"
+                                    >
                                       Quantity
                                     </Label>
                                     <Input
@@ -1145,11 +1066,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           ),
                                         }));
                                       }}
-                                      className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                      className=""
                                     />
                                   </div>
                                   <div>
-                                    <Label htmlFor={`unit-${equipment.id}`} className="text-gray-900 dark:text-white">
+                                    <Label
+                                      htmlFor={`unit-${equipment.id}`}
+                                      className="text-gray-900 dark:text-white"
+                                    >
                                       Unit
                                     </Label>
                                     <div id={`unit-${equipment.id}`}>
@@ -1173,7 +1097,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           }));
                                         }}
                                       >
-                                        <SelectTrigger className="h-10 w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                        <SelectTrigger className="h-10 w-full ">
                                           <SelectValue placeholder="Select unit" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -1201,7 +1125,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   </div>
                                 </div>
                                 <div>
-                                  <Label htmlFor={`rate-${equipment.id}`} className="text-gray-900 dark:text-white">
+                                  <Label
+                                    htmlFor={`rate-${equipment.id}`}
+                                    className="text-gray-900 dark:text-white"
+                                  >
                                     Rate per{" "}
                                     {equipmentItem?.usage_unit || "unit"}
                                   </Label>
@@ -1229,11 +1156,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                         ),
                                       }));
                                     }}
-                                    className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    className=""
                                   />
                                 </div>
                                 <div>
-                                  <Label htmlFor={`total-${equipment.id}`} className="text-gray-900 dark:text-white">
+                                  <Label
+                                    htmlFor={`total-${equipment.id}`}
+                                    className="text-gray-900 dark:text-white"
+                                  >
                                     Total Cost
                                   </Label>
                                   <Input
@@ -1277,7 +1207,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     const totalCost =
                       (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
                     return (
-                      <Card key={eq.equipment_type_id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                      <Card
+                        key={eq.equipment_type_id}
+                        className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      >
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="grid grid-cols-1 sm:grid-cols-2 items-center justify-center sm:space-x-2">
@@ -1303,7 +1236,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   }))
                                 }
                                 placeholder="e.g., Specialized Crane"
-                                className="flex-1 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="flex-1 "
                               />
                             </div>
                             <Button
@@ -1356,7 +1289,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     ),
                                   }));
                                 }}
-                                className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className=""
                               />
                             </div>
                             <div>
@@ -1424,7 +1357,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   ),
                                 }));
                               }}
-                              className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              className=""
                             />
                           </div>
                           <div>
@@ -1438,10 +1371,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               id={`custom-total-${eq.equipment_type_id}`}
                               type="text"
                               readOnly
-                              value={`KES ${totalCost.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}`}
+                              value={`KES ${totalCost.toLocaleString(
+                                undefined,
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}`}
                               className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
                             />
                             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
@@ -1504,7 +1440,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           >
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                <Plus className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                <Plus className="w-5 h-5" />
                 Additional Services
               </h3>
 
@@ -1548,7 +1484,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               }}
                             />
                             <div>
-                              <h4 className="font-medium text-gray-900 dark:text-white">{service.name}</h4>
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {service.name}
+                              </h4>
                               {service.description && (
                                 <p className="text-sm text-gray-600 dark:text-gray-300">
                                   {service.description}
@@ -1886,7 +1824,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 ),
                               }));
                             }}
-                            className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className=""
                           />
 
                           {service.payment_plan === "interval" && (
@@ -1998,7 +1936,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               </div>
             </div>
             <div>
-              <Label htmlFor="customSpecs" className="text-gray-900 dark:text-white">Additional Specifications</Label>
+              <Label
+                htmlFor="customSpecs"
+                className="text-gray-900 dark:text-white"
+              >
+                Additional Specifications
+              </Label>
               <Textarea
                 id="customSpecs"
                 placeholder="Any additional requirements or specifications..."
@@ -2010,7 +1953,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     custom_specs: e.target.value,
                   }))
                 }
-                className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className=""
               />
             </div>
           </motion.div>
@@ -2025,7 +1968,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           >
             <div>
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                <Zap className="w-5 h-5" style={{ color: RISA_BLUE }} />
+                <Zap className="w-5 h-5" />
                 Subcontractor Charges
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
@@ -2036,7 +1979,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       (s) => s.id === service.id
                     );
                     return (
-                      <Card key={service.id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                      <Card
+                        key={service.id}
+                        className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      >
                         <div className="grid grid-cols-2">
                           <div className="flex items-center space-x-3">
                             <Checkbox
@@ -2064,10 +2010,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 }
                               }}
                             />
-                            <h4 className="font-medium text-gray-900 dark:text-white">{service.name}</h4>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              {service.name}
+                            </h4>
                           </div>
                           <div className="text-right">
-                            <Badge className="text-black bg-blue-100 dark:bg-blue-900/20" variant="secondary">
+                            <Badge className="text-black" variant="secondary">
                               KSh {service.price.toLocaleString()}/
                               {service.unit}
                             </Badge>
@@ -2075,7 +2023,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                         </div>
                         {isChecked && (
                           <div className="mt-3 animate-fade-in">
-                            <Label className="text-gray-900 dark:text-white">Payment Plan *</Label>
+                            <Label className="text-gray-900 dark:text-white">
+                              Payment Plan *
+                            </Label>
                             <Select
                               value={
                                 quoteData.subcontractors.find(
@@ -2105,7 +2055,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 }))
                               }
                             >
-                              <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                              <SelectTrigger className="">
                                 <SelectValue placeholder="Select Payment Plan" />
                               </SelectTrigger>
                               <SelectContent>
@@ -2117,7 +2067,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 </SelectItem>
                               </SelectContent>
                             </Select>
-                            <Label htmlFor={`contractorCost-${service.id}`} className="text-gray-900 dark:text-white">
+                            <Label
+                              htmlFor={`contractorCost-${service.id}`}
+                              className="text-gray-900 dark:text-white"
+                            >
                               Contractor Cost
                             </Label>
                             <Input
@@ -2167,13 +2120,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   ),
                                 }))
                               }
-                              className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              className=""
                             />
                             {quoteData.subcontractors.find(
                               (s) => s.id === service.id
                             )?.subcontractor_payment_plan === "daily" && (
                               <>
-                                <Label htmlFor={`days-${service.id}`} className="text-gray-900 dark:text-white">
+                                <Label
+                                  htmlFor={`days-${service.id}`}
+                                  className="text-gray-900 dark:text-white"
+                                >
                                   Number of Days
                                 </Label>
                                 <Input
@@ -2201,7 +2157,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       ),
                                     }))
                                   }
-                                  className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                  className=""
                                 />
                               </>
                             )}
@@ -2213,7 +2169,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 {quoteData.subcontractors
                   .filter((s) => !subContractors.some((srv) => srv.id === s.id))
                   .map((sub) => (
-                    <Card key={sub.id} className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                    <Card
+                      key={sub.id}
+                      className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                    >
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
                           <Input
@@ -2230,7 +2189,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 ),
                               }))
                             }
-                            className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className=""
                           />
                         </div>
                         <div className="space-y-2">
@@ -2258,7 +2217,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               }))
                             }
                           >
-                            <SelectTrigger className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <SelectTrigger className="">
                               <SelectValue placeholder="Payment Plan" />
                             </SelectTrigger>
                             <SelectContent>
@@ -2304,7 +2263,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 ),
                               }));
                             }}
-                            className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className=""
                           />
                           {sub.subcontractor_payment_plan === "daily" && (
                             <Input
@@ -2325,7 +2284,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   ),
                                 }))
                               }
-                              className="border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              className=""
                             />
                           )}
                           <Button
@@ -2417,22 +2376,43 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       Bill of Quantities
                     </h3>
                     {boqData.map((section, index) => (
-                      <Card key={index} className="mb-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                      <Card
+                        key={index}
+                        className="mb-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                      >
                         <CardHeader>
-                          <CardTitle className="text-gray-900 dark:text-white">{section.title}</CardTitle>
+                          <CardTitle className="text-gray-900 dark:text-white">
+                            {section.title}
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="text-gray-900 dark:text-white">Item</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Description</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Element</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Unit</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Qty</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Rate</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Amount</TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">Source</TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Item
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Description
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Element
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Unit
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Qty
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Rate
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Amount
+                                </TableHead>
+                                <TableHead className="text-gray-900 dark:text-white">
+                                  Source
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -2513,7 +2493,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 )}
                 <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                   <CardHeader>
-                    <CardTitle className="text-gray-900 dark:text-white">Labour and Total</CardTitle>
+                    <CardTitle className="text-gray-900 dark:text-white">
+                      Labour and Total
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="space-y-2">
@@ -2579,7 +2561,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 {calculationLoading ? "Calculating..." : "Recalculate"}
               </Button>
             </div>
-          </motion.div>
+          </div>
         );
       default:
         return null;
@@ -2588,14 +2570,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
   if (settingsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: RISA_BLUE }}></div>
-          <p className="text-gray-600 dark:text-gray-300" style={{ color: RISA_BLUE }}>Loading quote builder...</p>
+          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
+          <p className="text-gray-600 dark:text-gray-300">
+            Loading quote builder...
+          </p>
         </motion.div>
       </div>
     );
@@ -2631,7 +2615,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
   if (limit !== null && profile?.quotes_used >= limit) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 max-w-md w-full rounded-xl">
           <CardContent className="text-center p-8">
             <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
@@ -2644,18 +2628,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               Please upgrade your plan to access more quote allocations.
             </p>
             <div className="mb-6">{getTierBadge(profile.tier)}</div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={() => navigate("/payment")}
-                className="w-full rounded-full font-semibold"
-                style={{
-                  backgroundColor: RISA_BLUE,
-                  color: RISA_WHITE,
-                  padding: "0.75rem 2rem",
-                }}
+                className="w-full rounded-full font-semibold text-white"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
                 Upgrade Plan
@@ -2678,15 +2654,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <p className="bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
-        </motion.div>
-        {/* Progress Steps */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between  mt-2  mb-4">
             {steps.map((step) => {
               const newStep = step.id;
               return (
@@ -2748,7 +2716,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             exit="exit"
             transition={{ duration: 0.2 }}
           >
-            <Card className="mb-8 border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+            <Card className="mb-8 rounded-xl">
               <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
                 <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
                   <div className="p-2 rounded-full bg-blue-50 dark:bg-primary">
@@ -2775,24 +2743,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex justify-between items-center"
         >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
+            onClick={prevStep}
+            variant="outline"
+            className="rounded-full px-6 font-semibold bg-background text-white shadow-md hover:shadow-lg transition-all duration-300"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 ml-2" />
             Previous
           </Button>
           {currentStep < 10 && (
-            <Button onClick={nextStep} className="text-white">
-              Next
-              <ArrowRight className="w-4 h-4 ml-2 text-white" />
-            </Button>
-          </motion.div>
-          {currentStep < 9 && (
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <>
               <Button
                 onClick={nextStep}
                 className="rounded-full px-6 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
@@ -2805,7 +2765,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 Next
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-            </motion.div>
+            </>
           )}
         </motion.div>
       </div>

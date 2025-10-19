@@ -43,17 +43,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "./ui/alert-dialog";
-import { AlertDialog } from "@radix-ui/react-alert-dialog";
-import {
+  AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
@@ -183,12 +173,7 @@ const Navbar = () => {
                   <CalculatorIcon className="w-4 h-4" />
                 </Button>
 
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.5 }}
-                  className="ml-2"
-                >
+                <Badge className="bg-transparent hover:bg-transparent">
                   {getTierBadge(profile?.tier)}
                 </Badge>
               </div>

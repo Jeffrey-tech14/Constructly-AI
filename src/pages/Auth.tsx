@@ -5,7 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DraftingCompass, ArrowLeft, Loader2, Target } from "lucide-react";
+import {
+  DraftingCompass,
+  ArrowLeft,
+  Loader2,
+  Target,
+  EyeOff,
+  Eye,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "@/hooks/use-toast";

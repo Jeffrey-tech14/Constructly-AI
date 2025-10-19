@@ -403,10 +403,7 @@ const PaymentPage = () => {
                   });
                 }}
                 disabled={
-                  processing ||
-                  !selectedPlan ||
-                  selectedPlanDetails?.price === 0 ||
-                  selectedPlan === profile?.tier
+                  processing || !selectedPlan || selectedPlan === profile?.tier
                 }
               >
                 {processing ? (

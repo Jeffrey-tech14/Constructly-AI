@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +27,9 @@ import {
   PersonStanding,
   PersonStandingIcon,
   LayoutDashboard,
+  Zap,
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuotes } from "@/hooks/useQuotes";
@@ -32,6 +41,7 @@ import CalendarComponent from "@/components/Calendar";
 import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import Calendar from "@/components/Calendar";
 
 // RISA Color Palette (Matching index.tsx)
 const RISA_BLUE = "#015B97";
@@ -163,7 +173,7 @@ const Dashboard = () => {
   if (quotesLoading) {
     return (
       <div className="min-h-screen grid flex grid-rows-2 items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
       </div>
     );
   }
@@ -173,8 +183,8 @@ const Dashboard = () => {
         <div className="mb-4 animate-fade-in">
           <div className="sm:flex flex-1 justify-between items-center">
             <div>
-              <div className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
-                <LayoutDashboard className="sm:w-8 sm:h-8 mr-2 text-primary dark:text-white" />
+              <div className="sm:text-2xl items-center text-xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+                <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
                 Welcome back, {profile?.name}!
               </div>
               <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
@@ -341,45 +351,90 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {profile.tier !== "Free" && (
-                <div className="space-y-6">
-                  <Card className="">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Clock className="w-5 h-5 mr-2" />
-                        Upcoming Events
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {dashboardData.upcomingEvents.length > 0 ? (
-                        <div className="space-y-3">
-                          {dashboardData.upcomingEvents.map((event) => (
-                            <div
-                              key={event.id}
-                              className="p-3 border-t dark:border-white/20 rounded"
-                            >
-                              <div className="font-medium text-sm">
-                                {event.title}
+              <div>
+                {profile.tier !== "Free" && (
+                  <div className="space-y-6 mb-5">
+                    <Card className="">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Clock className="w-5 h-5 mr-2" />
+                          Upcoming Events
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {dashboardData.upcomingEvents.length > 0 ? (
+                          <div className="space-y-3">
+                            {dashboardData.upcomingEvents.map((event) => (
+                              <div
+                                key={event.id}
+                                className="p-3 border-t dark:border-white/20 rounded"
+                              >
+                                <div className="font-medium text-sm">
+                                  {event.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(
+                                    new Date(event.event_date),
+                                    "MMM d, yyyy"
+                                  )}
+                                  {event.event_time &&
+                                    ` at ${event.event_time}`}
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground">
-                                {format(
-                                  new Date(event.event_date),
-                                  "MMM d, yyyy"
-                                )}
-                                {event.event_time && ` at ${event.event_time}`}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No upcoming events
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+                {/* Quick Actions */}
+                <Card>
+                  <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
+                      <Zap className="w-5 h-5" />
+                      Quick Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-3">
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate("/quotes/new")}
+                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
+                          <FileText className="w-4 h-4" />
                         </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No upcoming events
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          New Quote
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                    </motion.button>
+
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowCalculator(true)}
+                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
+                          <DollarSign className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          Cost Calculator
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                    </motion.button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
@@ -388,47 +443,12 @@ const Dashboard = () => {
               <Reports />
             </TabsContent>
           )}
-
-                    {/* Quick Actions */}
-                    <Card className="border border-gray-200 dark:border-gray-700 shadow-lg bg-white dark:bg-gray-800 rounded-xl">
-                      <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                        <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
-                          <Zap className="w-5 h-5" style={{ color: RISA_BLUE }} />
-                          Quick Actions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-3">
-                        <motion.button
-                          whileHover={{ scale: 1.02, x: 5 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate("/quotes/new")}
-                          className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
-                              <FileText className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                            </div>
-                            <span className="font-medium text-gray-900 dark:text-white">New Quote</span>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-                        </motion.button>
-
-                        <motion.button
-                          whileHover={{ scale: 1.02, x: 5 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setShowCalculator(true)}
-                          className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
-                              <DollarSign className="w-4 h-4" style={{ color: RISA_BLUE }} />
-                            </div>
-                            <span className="font-medium text-gray-900 dark:text-white">Cost Calculator</span>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-                        </motion.button>
-                      </CardContent>
-                    </Card>
+          {profile.tier !== "Free" && (
+            <TabsContent value="calendar">
+              <Calendar />
+            </TabsContent>
+          )}
+        </Tabs>
 
         <Calculator
           isOpen={showCalculator}

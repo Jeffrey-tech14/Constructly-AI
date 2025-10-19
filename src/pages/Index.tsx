@@ -267,7 +267,8 @@ const TestimonialsSection = () => {
             Trusted by Industry Leaders
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto text-base dark:text-gray-300">
-            Hear from professionals who transformed their workflow with Jtech AI.
+            Hear from professionals who transformed their workflow with Jtech
+            AI.
           </p>
         </motion.div>
 
@@ -291,7 +292,7 @@ const TestimonialsSection = () => {
                       "{currentTestimonial.quote}"
                     </p>
                     <div className="flex items-center">
-                      <div 
+                      <div
                         className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                         style={{ backgroundColor: KCA_GOLD }}
                       >
@@ -336,27 +337,27 @@ const TestimonialsSection = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
 
-          {testimonials.length > 1 && (
-            <div className="flex justify-center mt-4 md:mt-6 space-x-2">
-              {testimonials.map((_, index) => (
-                <motion.button
-                  key={index}
-                  onClick={() => setActiveIndex(index)}
-                  whileHover={{ scale: 1.2 }}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === activeIndex
-                      ? "bg-blue-500 dark:bg-blue-400"
-                      : "bg-gray-300 dark:bg-gray-600"
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
+            {testimonials.length > 1 && (
+              <div className="flex justify-center mt-4 md:mt-6 space-x-2">
+                {testimonials.map((_, index) => (
+                  <motion.button
+                    key={index}
+                    onClick={() => setActiveIndex(index)}
+                    whileHover={{ scale: 1.2 }}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === activeIndex
+                        ? "bg-blue-500 dark:bg-blue-400"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                    aria-label={`Go to testimonial ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
@@ -462,7 +463,10 @@ const FaqSection = () => {
                 <li>SketchUp files (SKP)</li>
               </ul>
               <div className="bg-blue-50 p-3 rounded border text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
-                <p>Tip: For best results, use vector-based files rather than raster images when possible.</p>
+                <p>
+                  Tip: For best results, use vector-based files rather than
+                  raster images when possible.
+                </p>
               </div>
             </div>
           ),
@@ -478,7 +482,10 @@ const FaqSection = () => {
                 <li>Consistent results across various project types</li>
               </ul>
               <div className="bg-green-50 p-3 rounded border text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-                <p>Note: Accuracy may vary based on plan quality and complexity. We recommend reviewing estimates before finalizing quotes.</p>
+                <p>
+                  Note: Accuracy may vary based on plan quality and complexity.
+                  We recommend reviewing estimates before finalizing quotes.
+                </p>
               </div>
             </div>
           ),
@@ -496,7 +503,10 @@ const FaqSection = () => {
                 <li>Multiple currency and unit options</li>
               </ol>
               <div className="bg-green-50 p-3 rounded border text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
-                <p>Professional and Enterprise plans offer advanced customization options.</p>
+                <p>
+                  Professional and Enterprise plans offer advanced customization
+                  options.
+                </p>
               </div>
             </div>
           ),
@@ -547,7 +557,10 @@ const FaqSection = () => {
                 <li>Confirm the changes</li>
               </ol>
               <div className="bg-purple-50 p-3 rounded border text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700">
-                <p>Note: Plan changes take effect immediately. Prorated charges or credits will be applied to your next invoice.</p>
+                <p>
+                  Note: Plan changes take effect immediately. Prorated charges
+                  or credits will be applied to your next invoice.
+                </p>
               </div>
             </div>
           ),
@@ -572,7 +585,10 @@ const FaqSection = () => {
                 <li>Contact support if issues persist</li>
               </ol>
               <div className="bg-red-50 p-3 rounded border text-xs text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
-                <p>Emergency: Contact support immediately for critical issues affecting your business operations.</p>
+                <p>
+                  Emergency: Contact support immediately for critical issues
+                  affecting your business operations.
+                </p>
               </div>
             </div>
           ),
@@ -842,7 +858,8 @@ const HowItWorks = () => {
             How JTech AI Works
           </h2>
           <p className="text-gray-600 max-w-3xl mx-auto text-base dark:text-gray-300">
-            Transform your construction plans into accurate, professional quotes with our specialized analysis system
+            Transform your construction plans into accurate, professional quotes
+            with our specialized analysis system
           </p>
         </motion.div>
         <div className="relative">
@@ -1082,9 +1099,15 @@ const CTABanner = () => {
           <div className="rounded-2xl text-gray-900 dark:text-white shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
             <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-white">
-                <p className="uppercase tracking-wider text-blue-200 text-xs mb-1">Ready to build better?</p>
-                <h3 className="text-2xl md:text-3xl font-bold">Create your first quote in minutes</h3>
-                <p className="text-blue-100 mt-2">No credit card required. Cancel anytime.</p>
+                <p className="uppercase tracking-wider text-blue-200 text-xs mb-1">
+                  Ready to build better?
+                </p>
+                <h3 className="text-2xl md:text-3xl font-bold">
+                  Create your first quote in minutes
+                </h3>
+                <p className="text-blue-100 mt-2">
+                  No credit card required. Cancel anytime.
+                </p>
               </div>
               <div className="flex gap-3">
                 <motion.button
@@ -1111,7 +1134,7 @@ const CTABanner = () => {
                 </motion.button>
               </div>
             </CardContent>
-          </Card>
+          </div>
         </motion.div>
       </div>
     </section>
@@ -1630,11 +1653,15 @@ const Index = () => {
                 <Star className="w-3 h-3 mr-1" /> Professional Construction
                 Management
               </Badge>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight" style={{ color: RISA_BLUE }}>
+              <h1
+                className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight"
+                style={{ color: RISA_BLUE }}
+              >
                 Generate Accurate Quotes in Minutes
               </h1>
               <p className="text-lg md:text-xl mb-6 md:mb-8 leading-relaxed text-gray-700 dark:text-gray-300">
-                Upload your construction plans and get precise material estimates and professional quotes in minutes, not hours.
+                Upload your construction plans and get precise material
+                estimates and professional quotes in minutes, not hours.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <motion.div
@@ -1721,7 +1748,8 @@ const Index = () => {
               Why Choose JTech AI AI?
             </h2>
             <p className="text-gray-600 max-w-3xl mx-auto text-base dark:text-gray-300">
-              Experience the future of construction estimation with our cutting-edge AI technology.
+              Experience the future of construction estimation with our
+              cutting-edge AI technology.
             </p>
           </motion.div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -1771,8 +1799,12 @@ const Index = () => {
                       {feature.icon}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
+                      <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300">
+                        {feature.description}
+                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -1905,7 +1937,10 @@ const Index = () => {
                         <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="mt-4">
-                        <span className="text-4xl font-extrabold" style={{ color: KCA_GOLD }}>
+                        <span
+                          className="text-4xl font-extrabold"
+                          style={{ color: KCA_GOLD }}
+                        >
                           KES {plan.price}
                         </span>
                         <span className="text-gray-500 ml-1 dark:text-gray-400">
@@ -1969,7 +2004,9 @@ const Index = () => {
               </span>
             </div>
             <div className="lg:col-span-1">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Navigation</h4>
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
+                Navigation
+              </h4>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -1998,7 +2035,9 @@ const Index = () => {
               </ul>
             </div>
             <div className="lg:col-span-1">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Resources</h4>
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
+                Resources
+              </h4>
               <ul className="space-y-2">
                 <li>
                   <button
@@ -2027,7 +2066,9 @@ const Index = () => {
               </ul>
             </div>
             <div className="lg:col-span-1">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Support</h4>
+              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
+                Support
+              </h4>
               <ul className="space-y-2">
                 <li className="flex items-center justify-center sm:justify-end gap-2">
                   <Mail className="w-4 h-4" />

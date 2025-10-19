@@ -27,6 +27,7 @@ import {
   Camera,
   Check,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
@@ -235,8 +236,13 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Loading Profile...</h2>
-          <p className="text-gray-600 dark:text-gray-400">Please wait while we load your profile.</p>
+          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+            Loading Profile...
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Please wait while we load your profile.
+          </p>
         </div>
       </div>
     );
@@ -400,20 +406,36 @@ const Profile = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="text-center">
-                      <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total_projects}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Projects</p>
+                      <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {stats.total_projects}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Projects
+                      </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">{stats.completed_projects}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
+                      <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
+                        {stats.completed_projects}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Completed
+                      </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xl md:text-2xl font-bold text-purple-600 dark:text-purple-400">{Math.round(stats.completionRate)}%</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
+                      <p className="text-xl md:text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {Math.round(stats.completionRate)}%
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Success Rate
+                      </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">KSh {formatCurrency(stats.total_revenue)}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                        KSh {formatCurrency(stats.total_revenue)}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Total Revenue
+                      </p>
                     </div>
                   </div>
 
@@ -459,8 +481,8 @@ const Profile = () => {
                     >
                       {getTierImage(profile.tier)}
                     </div>
-                    <span className="font-bold text-lg">{profile.tier} Plan</span>
                   </div>
+                  {profile.tier}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -503,7 +525,6 @@ const Profile = () => {
                     </div>
                   )}
 
-                {profile.tier !== "Professional" && (
                   <div className="space-y-2">
                     <h4 className="font-semibold text-md">Features:</h4>
                     {tierData?.features?.map((feature, idx) => (
@@ -515,7 +536,6 @@ const Profile = () => {
                       <p className="text-sm text-red-500">No features found</p>
                     )}
                   </div>
-                )}
 
                   <Button className="w-full text-white" onClick={handleUpgrade}>
                     <CreditCard className="w-4 h-4 mr-2" />
@@ -524,18 +544,6 @@ const Profile = () => {
                       : "Upgrade Plan"}
                   </Button>
                 </div>
-
-                <Button
-                  onClick={handleUpgrade}
-                  className="w-full rounded-full font-semibold"
-                  style={{
-                    backgroundColor: RISA_BLUE,
-                    color: RISA_WHITE,
-                  }}
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  {profile.tier === "Professional" ? "Manage Subscription" : "Upgrade Plan"}
-                </Button>
               </CardContent>
             </Card>
 
@@ -548,24 +556,36 @@ const Profile = () => {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Member since:</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Member since:
+                  </span>
                   <span className="text-gray-900 dark:text-white">
                     {new Date(profile.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Last updated:</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Last updated:
+                  </span>
                   <span className="text-gray-900 dark:text-white">
                     {new Date(profile.updated_at).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Account type:</span>
-                  <span className="text-gray-900 dark:text-white">{profile.is_admin ? "Administrator" : "User"}</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Account type:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {profile.is_admin ? "Administrator" : "User"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Quotes used:</span>
-                  <span className="text-gray-900 dark:text-white">{profile.quotes_used}</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Quotes used:
+                  </span>
+                  <span className="text-gray-900 dark:text-white">
+                    {profile.quotes_used}
+                  </span>
                 </div>
               </CardContent>
             </Card>

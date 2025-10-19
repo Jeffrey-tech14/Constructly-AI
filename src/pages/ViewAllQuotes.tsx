@@ -44,6 +44,7 @@ import {
   Trash2,
   Pen,
   Target,
+  Loader2,
 } from "lucide-react";
 import { QuoteExportDialog } from "@/components/QuoteExportDialog";
 const ViewAllQuotes = () => {
@@ -145,7 +146,7 @@ const ViewAllQuotes = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
         </div>
       </div>
     );

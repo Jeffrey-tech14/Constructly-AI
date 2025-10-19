@@ -6,7 +6,7 @@ import { Material } from "./useQuoteCalculations";
 import { useMaterialPrices } from "./useMaterialPrices";
 export type ElementTypes = "slab" | "beam" | "column" | "foundation";
 export type RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
-const REBAR_PROPERTIES: Record<
+export const REBAR_PROPERTIES: Record<
   RebarSize,
   {
     diameterMm: number;
@@ -333,7 +333,7 @@ function generateBarSchedule(
   if (breakdown.mainBarsCount && breakdown.mainBarsCount > 0) {
     schedule.push({
       barMark: createMark("MB"),
-      diameter: REBAR_PROPERTIES[mainBarSize]?.diameterMm,
+      diameter: REBAR_PROPERTIES[mainBarSize].diameterMm,
       shape: "Straight",
       cuttingLength:
         (breakdown.mainBarsLength || 0) / (breakdown.mainBarsCount || 1),
@@ -1063,10 +1063,10 @@ export const useRebarPrices = (region: string) => {
     const fetchAndProcessPrices = async () => {
       try {
         let prices: PriceMap = {} as PriceMap;
-        const bindingWireMaterial = materials.find(
-          (m) => m.name?.toLowerCase() === "binding wire"
+        setBindingWirePrice(
+          materials.find((m) => m.name?.toLowerCase() === "binding wire")
+            ?.price || 0
         );
-        setBindingWirePrice(bindingWireMaterial?.price || 0);
         const { data: base } = await supabase
           .from("material_base_prices")
           .select("type")
@@ -1127,7 +1127,7 @@ export function useRebarCalculator(
       calculateRebar(row, settings, prices)
     );
     setResults(calculatedResults);
-  }, [rows, settings]);
+  }, [rows, settings, prices]);
   useEffect(() => {
     const newTotals = results.reduce(
       (acc, r) => {
@@ -1187,7 +1187,7 @@ export function useRebarCalculator(
       }
     );
     setTotals(newTotals);
-  }, [results]);
+  }, [results, prices]);
   return { results, totals };
 }
 export function useRebarCalculatorRow(

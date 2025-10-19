@@ -16,7 +16,7 @@ services:
   - type: web
     name: constructly-backend
     env: python
-    rootDir: ./elaris-plan-api
+    rootDir: ./jtech-plan-api
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     plan: free

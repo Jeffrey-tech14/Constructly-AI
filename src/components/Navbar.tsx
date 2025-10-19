@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import Calculator from "@/components/Calculator";
 import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Wrench,
   User,
@@ -30,10 +31,15 @@ import {
   Star,
   ThumbsUp,
   Shell,
+  Building,
   Building2,
+  DoorOpen,
+  DraftingCompass,
   Target,
-  Zap,
   ChevronDown,
+  Settings2,
+  AlertCircle,
+  XCircle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -47,16 +53,18 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { AlertDialog } from "@radix-ui/react-alert-dialog";
-import { motion, AnimatePresence } from "framer-motion";
-
-// RISA Color Palette
-const RISA_BLUE = "#015B97";
-const RISA_LIGHT_BLUE = "#3288e6";
-const RISA_WHITE = "#ffffff";
-const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
-
+import {
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { Avatar, AvatarImage } from "./ui/avatar";
+import { AvatarFallback } from "@radix-ui/react-avatar";
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -64,28 +72,27 @@ const Navbar = () => {
   const location = useLocation();
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showSubAlert, setShowSubAlert] = useState(true);
 
   const handleSignOut = async () => {
-    await signOut();
-    toast({
-      title: "Signed out successfully",
+    setTimeout(async () => {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+      });
+      navigate("/");
     });
-    navigate("/");
   };
-
   const isActive = (path: string) => location.pathname === path;
-
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart },
     { path: "/quotes/new", label: "New Quote", icon: Building2 },
     { path: "/quotes/all", label: "All Quotes", icon: Eye },
     { path: "/variables", label: "Variables", icon: Settings },
   ];
-
   if (location.pathname === "/" || location.pathname === "/auth") {
     return null;
   }
-
   const getTierImage = (tier: string) => {
     switch (tier) {
       case "Free":
@@ -98,24 +105,23 @@ const Navbar = () => {
         return <span className="text-sm font-medium">{tier}</span>;
     }
   };
-
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "Free":
         return (
-          <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300">
+          <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100">
             <Shell className="w-3 h-3 mr-1" /> Free
           </Badge>
         );
       case "Intermediate":
         return (
-          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
+          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Crown className="w-3 h-3 mr-1" /> Intermediate
           </Badge>
         );
       case "Professional":
         return (
-          <Badge className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300">
+          <Badge className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-100">
             <Shield className="w-3 h-3 mr-1" /> Professional
           </Badge>
         );
@@ -123,37 +129,20 @@ const Navbar = () => {
         return <Badge>{tier}</Badge>;
     }
   };
-
   return (
     <>
-      <motion.nav 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="sticky top-0 z-50 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 shadow-sm backdrop-blur-sm bg-white/95 dark:bg-gray-800/95"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="fixed sticky top-0 z-50 glass border-b border-primary/20 dark:border-slate-700/50 shadow-sm">
+        <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center space-x-3 cursor-pointer"
-              onClick={() => navigate("/dashboard")}
-            >
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
-                <Target className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-1">
+              <div className="p-2 bg-transparent rounded-lg group-hover:scale-102 transition-transform">
+                <Target className="w-5 h-5 text-primary dark:text-white" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                  Jtech AI
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
-                  Construction Intelligence
-                </span>
-              </div>
-            </motion.div>
+              <span className="text-lg md:sm:text-xl max-md:hidden text-lg font-bold text-primary dark:text-white">
+                JTech AI
+              </span>
+            </div>
 
-            {/* Desktop Navigation */}
             {user && (
               <div className="hidden md:flex ml-auto items-center space-x-1">
                 {navItems.map((item, index) => {
@@ -163,44 +152,36 @@ const Navbar = () => {
                       key={item.path}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     >
                       <Button
                         onClick={() => navigate(item.path)}
                         variant={isActive(item.path) ? "default" : "ghost"}
                         className={`relative font-medium transition-all duration-300 ${
                           isActive(item.path)
-                            ? "bg-blue-600 text-white shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-                            : "text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                            ? " text-white shadow-lg"
+                            : " dark:text-gray-300"
                         } rounded-xl px-4`}
                       >
-                        <Icon className="w-4 h-4 mr-2" />
-                        <span className="hidden xl:inline">{item.label}</span>
-                        {isActive(item.path) && (
-                          <motion.div
-                            layoutId="activeNavIndicator"
-                            className="absolute bottom-0 left-0 w-full h-0.5 bg-white dark:bg-blue-200 rounded-full"
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                          />
-                        )}
+                        <Icon className="w-4 h-4" />
+                        <span className="hidden ml-2 xl:inline">
+                          {item.label}
+                        </span>
                       </Button>
                     </motion.div>
                   );
                 })}
-
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.4 }}
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsCalculatorOpen(true)}
+                  className="card-hover"
                 >
-                  <Button
-                    variant="ghost"
-                    onClick={() => setIsCalculatorOpen(true)}
-                    className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700 rounded-xl"
-                  >
-                    <CalculatorIcon className="w-4 h-4" />
-                  </Button>
-                </motion.div>
+                  <CalculatorIcon className="w-4 h-4" />
+                </Button>
 
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -209,73 +190,63 @@ const Navbar = () => {
                   className="ml-2"
                 >
                   {getTierBadge(profile?.tier)}
-                </motion.div>
+                </Badge>
               </div>
             )}
 
-            {/* Right side actions */}
             <div className="flex items-center ml-auto space-x-2">
-              {/* Tier Indicator */}
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className={`flex h-8 w-8 items-center justify-center rounded-xl shadow-sm ${
+              <div
+                className={`flex h-6 w-6 items-center justify-center rounded-full ${
                   profile?.tier === "Free"
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                    ? "bg-green-100 text-green-700"
                     : profile?.tier === "Intermediate"
-                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                    : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-purple-100 text-purple-700"
                 }`}
               >
                 {getTierImage(profile?.tier)}
-              </motion.div>
+              </div>
 
-              {/* Theme toggle */}
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleTheme}
-                  className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700 rounded-xl"
-                >
-                  {theme === "dark" ? (
-                    <Sun className="w-4 h-4" />
-                  ) : (
-                    <Moon className="w-4 h-4" />
-                  )}
-                </Button>
-              </motion.div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="card-hover"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </Button>
 
               {user ? (
                 <>
-                  {/* Mobile menu button */}
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }} 
-                    whileTap={{ scale: 0.95 }}
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="md:hidden"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700 rounded-xl"
-                      onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    >
-                      {isMobileMenuOpen ? (
-                        <X className="w-4 h-4" />
-                      ) : (
-                        <Menu className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </motion.div>
+                    {isMobileMenuOpen ? (
+                      <X className="w-4 h-4" />
+                    ) : (
+                      <Menu className="w-4 h-4" />
+                    )}
+                  </Button>
 
-                  {/* User menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="ghost"
-                          className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700 rounded-xl"
-                        >
-                          <User className="w-4 h-4 mr-2" />
+                      <motion.div>
+                        <Button variant="ghost" className=" rounded-xl">
+                          <Avatar className="w-6 h-6 items-center">
+                            <AvatarImage
+                              src={profile?.avatar_url || undefined}
+                            />
+                            <AvatarFallback className="text-2xl">
+                              <User className="w-4 h-4"></User>
+                            </AvatarFallback>
+                          </Avatar>
                           <span className="max-w-32 truncate">
                             {profile?.name || user.email}
                           </span>
@@ -283,8 +254,8 @@ const Navbar = () => {
                         </Button>
                       </motion.div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="end" 
+                    <DropdownMenuContent
+                      align="end"
                       className="w-64 border border-gray-200 dark:border-gray-700 shadow-xl bg-white dark:bg-gray-800 rounded-xl p-2"
                     >
                       <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
@@ -298,13 +269,20 @@ const Navbar = () => {
                           {getTierBadge(profile?.tier)}
                         </div>
                       </div>
-                      
+
                       <DropdownMenuItem
                         onClick={() => navigate("/profile")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 transition-colors duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
                       >
-                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                          <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <div className="rounded-lg bg-blue-100 dark:bg-primary/30 items-center">
+                          <Avatar className="w-8 h-8 items-center justify-center text-center">
+                            <AvatarImage
+                              src={profile?.avatar_url || undefined}
+                            />
+                            <AvatarFallback className="items-center justify-center text-center">
+                              <User className="w-4 h-4 justify-center text-center text-blue-600 dark:text-blue-400"></User>
+                            </AvatarFallback>
+                          </Avatar>
                         </div>
                         <div>
                           <p className="font-medium">Profile</p>
@@ -317,10 +295,10 @@ const Navbar = () => {
                       {profile?.is_admin && (
                         <DropdownMenuItem
                           onClick={() => navigate("/admin")}
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 transition-colors duration-200"
+                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
                         >
-                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                            <BarChart className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-primary/30">
+                            <Settings2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
                             <p className="font-medium">Admin Dashboard</p>
@@ -330,12 +308,12 @@ const Navbar = () => {
                           </div>
                         </DropdownMenuItem>
                       )}
-                      
+
                       <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-gray-700" />
-                      
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <div className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-colors duration-200">
+                          <div className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-red-600 hover:bg-red-200 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-colors duration-200">
                             <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
                               <LogOut className="w-4 h-4" />
                             </div>
@@ -358,7 +336,8 @@ const Navbar = () => {
                               <span className="font-semibold text-gray-900 dark:text-white">
                                 {profile?.name || user.email}
                               </span>
-                              ? You will need to sign in again to access your account.
+                              ? You will need to sign in again to access your
+                              account.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -379,91 +358,130 @@ const Navbar = () => {
                   </DropdownMenu>
                 </>
               ) : (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    onClick={() => navigate("/auth")}
-                    className="rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                    style={{
-                      backgroundColor: RISA_BLUE,
-                      color: RISA_WHITE,
-                    }}
-                  >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Button>
-                </motion.div>
+                <Button
+                  className="text-white"
+                  asChild
+                  onClick={() => navigate("/auth")}
+                >
+                  Sign In
+                </Button>
               )}
             </div>
           </div>
 
-          {/* Mobile Navigation */}
-          <AnimatePresence>
-            {user && isMobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-              >
-                <div className="flex flex-col space-y-2">
-                  {navItems.map((item, index) => {
-                    const Icon = item.icon;
-                    return (
-                      <motion.div
-                        key={item.path}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                      >
-                        <Button
-                          variant={isActive(item.path) ? "default" : "ghost"}
-                          className={`justify-start w-full rounded-xl font-medium transition-all duration-300 ${
-                            isActive(item.path)
-                              ? "bg-blue-600 text-white shadow-lg hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-                              : "text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700"
-                          }`}
-                          onClick={() => {
-                            setIsMobileMenuOpen(false);
-                            navigate(item.path);
-                          }}
-                        >
-                          <Icon className="w-4 h-4 mr-3" />
-                          {item.label}
-                          {isActive(item.path) && (
-                            <motion.div
-                              layoutId="mobileActiveNavIndicator"
-                              className="ml-auto w-2 h-2 bg-white dark:bg-blue-200 rounded-full"
-                            />
-                          )}
-                        </Button>
-                      </motion.div>
-                    );
-                  })}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: navItems.length * 0.1 }}
-                  >
+          {user && isMobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-border animate-slide-down">
+              <div className="flex flex-col space-y-2">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
                     <Button
-                      variant="ghost"
+                      key={item.path}
+                      variant={isActive(item.path) ? "default" : "ghost"}
+                      className={`justify-start ${
+                        isActive(item.path) ? "bg-primary text-white" : ""
+                      }`}
                       onClick={() => {
-                        setIsCalculatorOpen(true);
                         setIsMobileMenuOpen(false);
+                        navigate(item.path);
                       }}
-                      className="justify-start w-full rounded-xl text-gray-600 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700"
                     >
-                      <CalculatorIcon className="w-4 h-4 mr-3" />
-                      Calculator
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.label}
                     </Button>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  );
+                })}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setIsCalculatorOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="justify-start"
+                >
+                  <CalculatorIcon className="w-4 h-4 mr-2" />
+                  Calculator
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-      </motion.nav>
+        {user &&
+          profile?.subscription_status !== "active" &&
+          showSubAlert &&
+          (() => {
+            const status = profile?.subscription_status?.toLowerCase();
 
+            const statusConfig = {
+              expired: {
+                bg: "bg-yellow-50 dark:bg-yellow-900/30",
+                border: "border-yellow-200 dark:border-yellow-700",
+                text: "text-yellow-800 dark:text-yellow-200",
+                icon: (
+                  <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-300" />
+                ),
+                message:
+                  "Your subscription has expired. Please renew to continue using premium features.",
+              },
+              cancelled: {
+                bg: "bg-red-50 dark:bg-red-900/30",
+                border: "border-red-200 dark:border-red-700",
+                text: "text-red-800 dark:text-red-200",
+                icon: (
+                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-300" />
+                ),
+                message:
+                  "Your subscription was cancelled. Update your plan to regain access.",
+              },
+              inactive: {
+                bg: "bg-gray-50 dark:bg-gray-900/30",
+                border: "border-gray-200 dark:border-gray-700",
+                text: "text-gray-800 dark:text-gray-200",
+                icon: (
+                  <AlertCircle className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                ),
+                message:
+                  "Your subscription is inactive. Please reactivate your plan.",
+              },
+              pending: {
+                bg: "bg-blue-50 dark:bg-blue-900/30",
+                border: "border-blue-200 dark:border-blue-700",
+                text: "text-blue-800 dark:text-blue-200",
+                icon: (
+                  <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-300" />
+                ),
+                message:
+                  "Your subscription is pending confirmation. It will activate once payment is verified.",
+              },
+            }[status] || {
+              bg: "bg-neutral-50 dark:bg-neutral-900/30",
+              border: "border-neutral-200 dark:border-neutral-700",
+              text: "text-neutral-800 dark:text-neutral-200",
+              icon: (
+                <AlertCircle className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+              ),
+              message:
+                "Your subscription status is unknown. Please check your billing details.",
+            };
+
+            return (
+              <div
+                className={`w-full ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text} py-2 px-4 flex items-center justify-between text-sm animate-slide-down`}
+              >
+                <div className="flex items-center space-x-2">
+                  {statusConfig.icon}
+                  <span>{statusConfig.message}</span>
+                </div>
+                <button
+                  onClick={() => setShowSubAlert(false)}
+                  className="hover:opacity-70 transition"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })()}
+      </nav>
       <Calculator
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}

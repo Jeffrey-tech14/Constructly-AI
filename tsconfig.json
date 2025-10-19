@@ -25,7 +25,7 @@
   },
   "include": [
     "src",
-    "elaris-plan-api/payments/payment_verification.ts",
-    "elaris-plan-api/payments/index.ts"
+    "jtech-plan-api/payments/payment_verification.ts",
+    "jtech-plan-api/payments/index.ts"
   ]
 }

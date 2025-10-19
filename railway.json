@@ -15,7 +15,7 @@
       "buildCommand": "pip install -r requirements.txt",
       "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
       "port": 8000,
-      "rootDirectory": "./elaris-plan-api"
+      "rootDirectory": "./jtech-plan-api"
     }
   ]
 }

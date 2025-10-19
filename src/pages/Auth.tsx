@@ -5,16 +5,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Loader2, Eye, EyeOff, TargetIcon, Mail, PhoneCall } from "lucide-react";
+import { DraftingCompass, ArrowLeft, Loader2, Target } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
-// RISA Color Palette (from Index.tsx)
+// RISA Color Palette
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
 const RISA_WHITE = "#ffffff";
+const RISA_DARK_TEXT = "#2D3748";
+const RISA_LIGHT_GRAY = "#F5F7FA";
+const RISA_MEDIUM_GRAY = "#E2E8F0";
+const KCA_GOLD = "#D4AF37";
+const KCA_GOLD_DARK = "#B8860B";
+const ICON_COLORS = [
+  RISA_BLUE,
+  RISA_LIGHT_BLUE,
+  RISA_BLUE,
+  RISA_LIGHT_BLUE,
+  RISA_BLUE,
+  RISA_LIGHT_BLUE,
+];
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -31,7 +44,7 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, profile, signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,8 +60,11 @@ const Auth = () => {
         if (formData.password.length < 6) {
           throw new Error("Password must be at least 6 characters");
         }
+
         await signUp(formData.email, formData.password, formData.name);
-        setSuccess("Account created successfully! Please check your email to verify.");
+        setSuccess(
+          "Account created successfully! Please check your email to verify your account."
+        );
       }
 
       if (mode === "signin") {
@@ -62,14 +78,18 @@ const Auth = () => {
         friendlyMessage = "Your passwords do not match.";
       } else if (msg.includes("at least 6 characters")) {
         friendlyMessage = "Password must be at least 6 characters long.";
-      } else if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
-        friendlyMessage = "Invalid email or password.";
+      } else if (
+        msg.includes("invalid login") ||
+        msg.includes("invalid credentials")
+      ) {
+        friendlyMessage = "Invalid email or password. Please try again.";
       } else if (msg.includes("user not found")) {
         friendlyMessage = "No account found with that email.";
       } else if (msg.includes("email already in use")) {
         friendlyMessage = "This email is already registered. Try signing in.";
       } else if (msg.includes("network")) {
-        friendlyMessage = "Network error. Please check your connection.";
+        friendlyMessage =
+          "Network error. Please check your internet connection.";
       }
 
       toast({
@@ -77,6 +97,7 @@ const Auth = () => {
         description: friendlyMessage,
         variant: "destructive",
       });
+
       setError(friendlyMessage);
     } finally {
       setLoading(false);
@@ -92,11 +113,10 @@ const Auth = () => {
 
   if (user) {
     navigate("/dashboard");
-    return null;
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen flex items-center justify-center p-4 duration-300 transition-colors">
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>
@@ -109,6 +129,7 @@ const Auth = () => {
       >
         {/* Header */}
         <div className="text-center mb-8">
+          {/* Animated Back Button */}
           <motion.button
             onClick={() => navigate("/")}
             initial={{ opacity: 0, y: -10 }}
@@ -125,15 +146,17 @@ const Auth = () => {
             style={{ color: RISA_BLUE }}
           >
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:translate-x-[-2px] transition-transform" />
-            Back to Home
+            <span className="relative overflow-hidden">
+              <span className="block">Back to Home</span>
+            </span>
           </motion.button>
 
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center justify-center mb-4 group">
             <motion.div
               whileHover={{ rotate: 15, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
             >
-              <TargetIcon className="sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" />
+              <Target className="sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" />
             </motion.div>
             <motion.span
               initial={{ opacity: 0, x: 20 }}
@@ -141,7 +164,7 @@ const Auth = () => {
               transition={{ delay: 0.3 }}
               className="sm:text-2xl text-lg font-bold ml-3 text-blue-600 dark:text-blue-400"
             >
-              Jtech AI
+              JTech AI
             </motion.span>
           </div>
 
@@ -162,7 +185,7 @@ const Auth = () => {
           >
             {mode === "signin"
               ? "Sign in to your construction management account"
-              : "Create your account and start building quotes with Jtech AI"}
+              : "Create your account and start building quotes"}
           </motion.p>
         </div>
 
@@ -201,20 +224,25 @@ const Auth = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.7 }}
                   >
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-900 dark:text-white block mb-2">
+                    <Label
+                      htmlFor="name"
+                      className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
+                    >
                       Full Name
                     </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="John Doe"
-                      className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border"
-                      style={{ borderColor: RISA_BLUE }}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="John Doe"
+                        className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300"
+                        style={{ borderColor: RISA_BLUE }}
+                      />
+                    </div>
                   </motion.div>
                 )}
 
@@ -223,20 +251,25 @@ const Auth = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.8 }}
                 >
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white block mb-2">
+                  <Label
+                    htmlFor="email"
+                    className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
+                  >
                     Email
                   </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="you@example.com"
-                    className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border"
-                    style={{ borderColor: RISA_BLUE }}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="you@example.com"
+                      className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300"
+                      style={{ borderColor: RISA_BLUE }}
+                    />
+                  </div>
                 </motion.div>
 
                 <motion.div
@@ -244,7 +277,10 @@ const Auth = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.9 }}
                 >
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-900 dark:text-white block mb-2">
+                  <Label
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
+                  >
                     Password
                   </Label>
                   <div className="relative">
@@ -256,16 +292,20 @@ const Auth = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="••••••••"
-                      className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border pr-12"
+                      className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 pr-12"
                       style={{ borderColor: RISA_BLUE }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                       tabIndex={-1}
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
                     </button>
                   </div>
                 </motion.div>
@@ -276,7 +316,10 @@ const Auth = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1.0 }}
                   >
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-900 dark:text-white block mb-2">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
+                    >
                       Confirm Password
                     </Label>
                     <div className="relative">
@@ -288,16 +331,20 @@ const Auth = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="••••••••"
-                        className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border pr-12"
+                        className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 pr-12"
                         style={{ borderColor: RISA_BLUE }}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                         tabIndex={-1}
                       >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
                   </motion.div>
@@ -307,7 +354,7 @@ const Auth = () => {
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full text-sm font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-white"
+                  className="w-full text-sm font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-white relative overflow-hidden"
                   disabled={loading}
                   style={{
                     backgroundColor: RISA_BLUE,
@@ -316,7 +363,9 @@ const Auth = () => {
                     border: "none",
                   }}
                 >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />}
+                  {loading && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
+                  )}
                   {mode === "signin" ? "Sign In" : "Create Account"}
                 </motion.button>
               </form>
@@ -359,11 +408,13 @@ const Auth = () => {
                   <motion.button
                     whileHover={{ scale: 1.05, color: RISA_LIGHT_BLUE }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                    className="text-sm font-medium"
+                    onClick={() =>
+                      setMode(mode === "signin" ? "signup" : "signin")
+                    }
+                    className="text-sm font-medium transition-colors"
                     style={{
                       color: RISA_BLUE,
-                      background: "transparent",
+                      backgroundColor: "transparent",
                       border: "none",
                       cursor: "pointer",
                     }}
@@ -377,6 +428,54 @@ const Auth = () => {
           </Card>
         </motion.div>
       </motion.div>
+
+      {/* Global Styles */}
+      <style>{`
+        .auth-input {
+          border-radius: 50px;
+          border: 1px solid ${RISA_MEDIUM_GRAY};
+          padding: 0.75rem 1rem;
+          transition: all 0.3s ease;
+        }
+        .auth-input:focus {
+          border-color: ${RISA_BLUE};
+          box-shadow: 0 0 0 2px rgba(1, 91, 151, 0.2);
+          outline: none;
+        }
+        .auth-card {
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+          border: none;
+        }
+        .risa-btn-primary {
+          background-color: ${RISA_BLUE};
+          color: ${RISA_WHITE};
+          padding: 0.5rem 2rem;
+          border-radius: 50px;
+          border: none;
+          font-weight: bold;
+          transition: all 0.3s ease;
+        }
+        .risa-btn-primary:hover {
+          background-color: ${RISA_WHITE};
+          color: ${RISA_BLUE};
+          border: 1px solid ${RISA_BLUE};
+        }
+        .risa-btn-outline {
+          background-color: ${RISA_WHITE};
+          color: ${RISA_BLUE};
+          padding: 0.5rem 2rem;
+          border-radius: 50px;
+          border: 1px solid ${RISA_BLUE};
+          font-weight: bold;
+          transition: all 0.3s ease;
+        }
+        .risa-btn-outline:hover {
+          background-color: ${RISA_BLUE};
+          color: ${RISA_WHITE};
+          border: 1px solid ${RISA_BLUE};
+        }
+      `}</style>
     </div>
   );
 };

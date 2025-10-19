@@ -4,16 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 interface ProtectedRouteProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { user, loading } = useAuth();
-    const { refreshProfile } = useAuth();
-    if (loading) {
-        return (<div className="min-h-screen flex items-center justify-center">
+  const { user, loading } = useAuth();
+  const { refreshProfile } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
         <Card className=" rounded-2xl border-0 shadow-2xl">
           <CardContent className="pt-6 text-center">
-            <Loader2 className="sm:w-8 sm:h-8 animate-spin mx-auto mb-4 text-primary"/>
+            <Loader2 className="sm:w-7 sm:h-7 animate-spin mx-auto mb-4 text-primary" />
             <h2 className="sm:text-2xl text-lg font-bold mb-4">Loading...</h2>
             <p className="text-muted-foreground">
               Please wait while we authenticate you.
@@ -23,11 +24,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             </p>
           </CardContent>
         </Card>
-      </div>);
-    }
-    if (!user) {
-        return <Navigate to="/auth" replace/>;
-    }
-    return <>{children}</>;
+      </div>
+    );
+  }
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  return <>{children}</>;
 };
 export default ProtectedRoute;

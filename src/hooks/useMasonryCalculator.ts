@@ -627,7 +627,7 @@ export default function useMasonryCalculator({
             return doorType?.price_kes || 0;
             // Return the first price in the price_kes object
           } else {
-            return (Object.values(doorType?.price_kes)[0] as number) || 0;
+            return 0;
           }
         }
       } else if (effectiveMaterial.name === "Door Frames") {
@@ -641,7 +641,7 @@ export default function useMasonryCalculator({
             return doorFrameType?.price_kes || 10;
             // Return the first price in the price_kes object
           } else {
-            return (Object.values(doorFrameType?.price_kes)[0] as number) || 0;
+            return 0;
           }
         }
       } else if (effectiveMaterial.name === "Windows") {
@@ -655,7 +655,7 @@ export default function useMasonryCalculator({
             // Return the first price in the price_kes object
             return windowType?.price_kes || 0;
           } else {
-            return (Object.values(windowType.price_kes)[0] as number) || 0;
+            return 0;
           }
         }
       } else if (effectiveMaterial.name === "Window Frames") {
@@ -1330,8 +1330,16 @@ export default function useMasonryCalculator({
           ? Number(door.frame?.custom?.price)
           : frameLeafPrice[door.frame.standardSize];
 
-        door.frame.price = framePrice;
-        door.price = doorPrice;
+        if (door.frame?.custom?.price) {
+          door.frame.custom.price = framePrice;
+        } else {
+          door.frame.price = framePrice;
+        }
+        if (door.custom?.price) {
+          door.custom.price = doorPrice;
+        } else {
+          door.price = doorPrice;
+        }
         netDoorsCost += doorPrice * door.count;
         netDoorFramesCost += framePrice * door.count;
         netDoorFrames += door.count;
@@ -1354,8 +1362,16 @@ export default function useMasonryCalculator({
           ? Number(window.frame?.custom?.price)
           : frameLeafPrice[window.frame.standardSize];
 
-        window.price = windowPrice;
-        window.frame.price = framePrice;
+        if (window.frame?.custom?.price) {
+          window.frame.custom.price = framePrice;
+        } else {
+          window.frame.price = framePrice;
+        }
+        if (window.custom?.price) {
+          window.custom.price = windowPrice;
+        } else {
+          window.price = windowPrice;
+        }
         netWindowsCost += windowPrice * window.count;
         netWindowFramesCost += framePrice * window.count;
         netWindowFrames += window.count;

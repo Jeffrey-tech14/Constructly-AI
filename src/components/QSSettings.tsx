@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -32,43 +32,44 @@ export default function QSSettings({
   setQuoteData,
   updatePercentageField,
 }: MasonrySettingsProps) {
-  const qsSettings = quoteData?.qsSettings
-    ? quoteData?.qsSettings
-    : {
-        wastageBlocksPercent: 5,
-        wastageCementPercent: 5,
-        wastageSandPercent: 7,
-        wastageWaterPercent: 11,
-        wastageStonePercent: 5,
-        clientProvidesWater: true,
-        cementWaterRatio: "0.5",
-        sandMoistureContentPercent: 4,
-        otherSiteWaterAllowanceLM3: 5,
-        aggregateMoistureContentPercent: 4,
-        aggregateAbsorptionPercent: 1.5,
-        curingWaterRateLM2PerDay: 5,
-        curingDays: 3,
-        mortarJointThicknessM: 0.01,
-        concreteMixRatio: "1:2:4",
-        concreteWaterCementRatio: 0.5,
-        lintelRebarSize: "Y12",
-        verticalRebarSize: "Y12",
-        bedJointRebarSize: "Y8",
-        includesLintels: true,
-        includesReinforcement: false,
-        includesDPC: true,
-        includesScaffolding: true,
-        includesMovementJoints: false,
-        includesWasteRemoval: true,
-        lintelDepth: 0.15,
-        lintelWidth: 0.2,
-        reinforcementSpacing: 3,
-        verticalReinforcementSpacing: 1.2,
-        DPCWidth: 0.225,
-        movementJointSpacing: 6,
-        scaffoldingDailyRate: 150,
-        wasteRemovalRate: 800,
-      };
+  const qsSettings =
+    quoteData?.qsSettings.length > 0
+      ? quoteData?.qsSettings
+      : {
+          wastageBlocksPercent: 5,
+          wastageCementPercent: 5,
+          wastageSandPercent: 7,
+          wastageWaterPercent: 11,
+          wastageStonePercent: 5,
+          clientProvidesWater: true,
+          cementWaterRatio: "0.5",
+          sandMoistureContentPercent: 4,
+          otherSiteWaterAllowanceLM3: 5,
+          aggregateMoistureContentPercent: 4,
+          aggregateAbsorptionPercent: 1.5,
+          curingWaterRateLM2PerDay: 5,
+          curingDays: 3,
+          mortarJointThicknessM: 0.01,
+          concreteMixRatio: "1:2:4",
+          concreteWaterCementRatio: 0.5,
+          lintelRebarSize: "Y12" as RebarSize,
+          verticalRebarSize: "Y12" as RebarSize,
+          bedJointRebarSize: "Y8" as RebarSize,
+          includesLintels: true,
+          includesReinforcement: false,
+          includesDPC: true,
+          includesScaffolding: true,
+          includesMovementJoints: false,
+          includesWasteRemoval: true,
+          lintelDepth: 0.15,
+          lintelWidth: 0.2,
+          reinforcementSpacing: 3,
+          verticalReinforcementSpacing: 1.2,
+          DPCWidth: 0.225,
+          movementJointSpacing: 6,
+          scaffoldingDailyRate: 150,
+          wasteRemovalRate: 800,
+        };
   const [localSettings, setLocalSettings] =
     useState<MasonryQSSettings>(qsSettings);
 

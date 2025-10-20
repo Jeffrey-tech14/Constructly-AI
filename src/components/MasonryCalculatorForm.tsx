@@ -655,14 +655,6 @@ function DoorWindowItem({
           }
         />
 
-        <Input
-          placeholder="Frame Price (Ksh)"
-          type="number"
-          min="0"
-          value={item.price}
-          onChange={(e) => onNestedChange(index, field, itemIndex, "price", e)}
-        />
-
         <Button
           size="icon"
           variant="destructive"
@@ -735,7 +727,7 @@ function DoorWindowItem({
           </Select>
         )}
 
-        {item.frame?.sizeType === "custom" && (
+        {item.frame?.sizeType === "custom" ? (
           <>
             <Input
               placeholder="Height (m)"
@@ -768,29 +760,32 @@ function DoorWindowItem({
             <Input
               placeholder="Price (Ksh)"
               type="number"
-              value={item.frame?.price || ""}
+              value={item.frame?.custom?.price || ""}
               onChange={(e) =>
                 onNestedChange(index, field, itemIndex, "frame", {
-                  ...item.frame.custom,
-                  price: e.target.value,
+                  ...item.frame,
+                  custom: {
+                    ...item.frame.custom,
+                    price: e.target.value,
+                  },
                 })
               }
             />
           </>
+        ) : (
+          <Input
+            placeholder="Frame Price (Ksh)"
+            type="number"
+            min="0"
+            value={item.frame.price}
+            onChange={(e) =>
+              onNestedChange(index, field, itemIndex, "frame", {
+                ...item.frame,
+                price: e.target.value,
+              })
+            }
+          />
         )}
-
-        <Input
-          placeholder="Frame Price (Ksh)"
-          type="number"
-          min="0"
-          value={item.frame.price}
-          onChange={(e) =>
-            onNestedChange(index, field, itemIndex, "frame", {
-              ...item.frame,
-              price: e.target.value,
-            })
-          }
-        />
       </div>
     </div>
   );

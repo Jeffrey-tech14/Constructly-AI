@@ -1098,14 +1098,14 @@ const CTABanner = () => {
         >
           <div className="rounded-2xl text-gray-900 dark:text-white shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
             <CardContent className="p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="text-white">
-                <p className="uppercase tracking-wider text-blue-200 text-xs mb-1">
+              <div className="">
+                <p className="uppercase tracking-wider dark:text-blue-200 text-primary text-xs mb-1">
                   Ready to build better?
                 </p>
                 <h3 className="text-2xl md:text-3xl font-bold">
                   Create your first quote in minutes
                 </h3>
-                <p className="text-blue-100 mt-2">
+                <p className=" dark:text-blue-200 text-primary mt-2">
                   No credit card required. Cancel anytime.
                 </p>
               </div>
@@ -2003,102 +2003,104 @@ const Index = () => {
                 JTech AI
               </span>
             </div>
-            <div className="lg:col-span-1">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
-                Navigation
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => scrollTo("features")}
-                  >
-                    Features
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => scrollTo("pricing")}
-                  >
-                    Pricing
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => scrollTo("how-it-works")}
-                  >
-                    How It Works
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div className="lg:col-span-1">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
-                Resources
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => scrollTo("testimonials")}
-                  >
-                    Testimonials
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => scrollTo("faq")}
-                  >
-                    FAQs
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => scrollTo("who-its-for")}
-                  >
-                    Who It's For
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div className="lg:col-span-1">
-              <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
-                Support
-              </h4>
-              <ul className="space-y-2">
-                <li className="flex items-center justify-center sm:justify-end gap-2">
-                  <Mail className="w-4 h-4" />
-                  <a
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    href="mailto:support@jtechai.com"
-                  >
-                    support@jtechai.com
-                  </a>
-                </li>
-                <li className="flex items-center justify-center sm:justify-end gap-2">
-                  <PhoneCall className="w-4 h-4" />
-                  <a
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    href="tel:9499515815"
-                  >
-                    949 951 5815
-                  </a>
-                </li>
-                <li>
-                  <button
-                    className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() =>
-                      window.scrollTo({ top: 0, behavior: "smooth" })
-                    }
-                  >
-                    Back to Top
-                  </button>
-                </li>
-              </ul>
+            <div className="grid grid-cols-3 mt-5">
+              <div className="lg:col-span-1">
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
+                  Navigation
+                </h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() => scrollTo("features")}
+                    >
+                      Features
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() => scrollTo("pricing")}
+                    >
+                      Pricing
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() => scrollTo("how-it-works")}
+                    >
+                      How It Works
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <div className="lg:col-span-1">
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
+                  Resources
+                </h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() => scrollTo("testimonials")}
+                    >
+                      Testimonials
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() => scrollTo("faq")}
+                    >
+                      FAQs
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() => scrollTo("who-its-for")}
+                    >
+                      Who It's For
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <div className="lg:col-span-1">
+                <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">
+                  Support
+                </h4>
+                <ul className="space-y-2">
+                  <li className="flex items-center justify-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    <a
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      href="mailto:support@jtechai.com"
+                    >
+                      support@jtechai.com
+                    </a>
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <PhoneCall className="w-4 h-4" />
+                    <a
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      href="tel:9499515815"
+                    >
+                      949 951 5815
+                    </a>
+                  </li>
+                  <li>
+                    <button
+                      className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+                      onClick={() =>
+                        window.scrollTo({ top: 0, behavior: "smooth" })
+                      }
+                    >
+                      Back to Top
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 

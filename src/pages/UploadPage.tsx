@@ -306,7 +306,7 @@ const UploadPlan = () => {
   ): Promise<ParsedPlan> => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("http://192.168.0.100:8000/api/plan/upload", {
+    const res = await fetch("http://192.168.0.101:8000/api/plan/upload", {
       method: "POST",
       body: formData,
     });
@@ -842,7 +842,7 @@ const UploadPlan = () => {
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Main Content */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -1352,75 +1352,6 @@ const UploadPlan = () => {
                       )}
                     </Button>
                   ) : null}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Info Panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="space-y-6"
-          >
-            <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                  <Zap className="w-5 h-5" style={{ color: RISA_BLUE }} />
-                  AI-Powered Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    { icon: Building, text: "Automatic room detection" },
-                    { icon: Ruler, text: "Precise dimension extraction" },
-                    { icon: DoorOpen, text: "Door and window identification" },
-                    { icon: BarChart3, text: "Material quantity calculations" },
-                    { icon: Target, text: "95%+ accuracy guarantee" },
-                  ].map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-                    >
-                      <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20">
-                        <item.icon
-                          className="w-4 h-4"
-                          style={{ color: RISA_BLUE }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {item.text}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                  <Eye className="w-5 h-5" style={{ color: RISA_BLUE }} />
-                  Supported Formats
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <p>• JPG/JPEG images</p>
-                  <p>• PNG images</p>
-                  <p>• PDF documents</p>
-                  <p>• DWG/DXF CAD files</p>
-                  <p>• RVT/IFC BIM files</p>
-                  <p>• ZIP archives</p>
-                  <p>• CSV/XLSX data files</p>
-                  <p>• WEBP images</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-                    Maximum file size: 10MB
-                  </p>
                 </div>
               </CardContent>
             </Card>

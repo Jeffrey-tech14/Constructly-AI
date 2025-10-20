@@ -2688,7 +2688,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   >
                     {step.icon}
                   </div>
-                  <div className="hidden lg:inline">
+                  <div className="hidden xl:inline">
                     <p
                       className={`ml-2 mr-2 text-sm font-medium ${
                         currentStep >= step.id

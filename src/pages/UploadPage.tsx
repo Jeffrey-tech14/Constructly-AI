@@ -64,7 +64,17 @@ export interface Door {
     price?: string;
   };
   type: string;
-  frame: string;
+  frame: {
+    type: string;
+    sizeType: string; // "standard" | "custom"
+    standardSize: string;
+
+    custom: {
+      height: string;
+      width: string;
+      price?: string;
+    };
+  };
   count: number;
 }
 export interface Window {
@@ -76,7 +86,17 @@ export interface Window {
     price?: string;
   };
   glass: string;
-  frame: string;
+  frame: {
+    type: string;
+    sizeType: string; // "standard" | "custom"
+    standardSize: string;
+
+    custom: {
+      height: string;
+      width: string;
+      price?: string;
+    };
+  };
   count: number;
 }
 export interface Room {
@@ -306,10 +326,13 @@ const UploadPlan = () => {
   ): Promise<ParsedPlan> => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("http://192.168.0.101:8000/api/plan/upload", {
-      method: "POST",
-      body: formData,
-    });
+    const res = await fetch(
+      "https://f42c2ab6302f.ngrok-free.app/api/plan/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -1171,7 +1194,18 @@ const UploadPlan = () => {
                                                               price: "",
                                                             },
                                                             type: "Panel",
-                                                            frame: "Wood",
+                                                            frame: {
+                                                              type: "Wood",
+                                                              sizeType:
+                                                                "standard", // "standard" | "custom"
+                                                              standardSize:
+                                                                "1.2 x 1.2 m",
+                                                              custom: {
+                                                                height: "1.2",
+                                                                width: "1.2",
+                                                                price: "",
+                                                              },
+                                                            },
                                                             count: 1,
                                                           }
                                                       ),
@@ -1221,7 +1255,18 @@ const UploadPlan = () => {
                                                               price: "",
                                                             },
                                                             glass: "Clear",
-                                                            frame: "Aluminum",
+                                                            frame: {
+                                                              type: "Wood",
+                                                              sizeType:
+                                                                "standard", // "standard" | "custom"
+                                                              standardSize:
+                                                                "1.2 x 1.2 m",
+                                                              custom: {
+                                                                height: "1.2",
+                                                                width: "1.2",
+                                                                price: "",
+                                                              },
+                                                            },
                                                             count: 1,
                                                           }
                                                       ),

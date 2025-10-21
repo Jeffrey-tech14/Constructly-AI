@@ -72,6 +72,10 @@ const PreliminariesBuilder = ({
     setSections(initialSections);
   }, [initialSections]);
 
+  useEffect(() => {
+    onSaveToQuote(sections);
+  }, [sections]);
+
   const generateWithAI = async () => {
     if (!quoteData || Object.keys(quoteData).length === 0) {
       setLastError("No project data available for AI generation");
@@ -82,7 +86,6 @@ const PreliminariesBuilder = ({
     setLastError(null);
 
     try {
-      console.log("Starting preliminaries generation with Gemini AI...");
       const aiSections = await generatePreliminariesWithGemini(quoteData);
 
       // Merge AI sections with existing user sections
@@ -90,24 +93,8 @@ const PreliminariesBuilder = ({
 
       setSections(mergedSections);
       updateSections(mergedSections);
-      console.log("Preliminaries AI generation completed successfully");
     } catch (error) {
       console.error("Gemini AI generation failed:", error);
-
-      // Fallback to mock generation
-      try {
-        console.log("Attempting fallback preliminaries generation...");
-        const mergedSections = mergeSectionsWithAI(sections, []);
-
-        setSections(mergedSections);
-        updateSections(mergedSections);
-        setLastError("Using calculated preliminaries - AI service unavailable");
-      } catch (mockError) {
-        console.error("Fallback generation failed:", mockError);
-        setLastError(
-          "Unable to generate preliminaries. Please add items manually."
-        );
-      }
     } finally {
       setIsGenerating(false);
     }

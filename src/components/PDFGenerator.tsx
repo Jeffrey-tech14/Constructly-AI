@@ -1388,9 +1388,11 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       {preliminariesData.length > 0 && (
         <Page size="A4" style={styles.prelimPage}>
           <CompanyHeader />
-          {preliminariesData.map((items, index) => (
-            <Text style={styles.prelimTitle}>{items.title}</Text>
-          ))}
+
+          {/* Remove this duplicate title mapping - it shows all titles at once */}
+          {/* {preliminariesData.map((items, index) => (
+      <Text style={styles.prelimTitle}>{items.title}</Text>
+    ))} */}
 
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeaderRow]}>
@@ -1407,49 +1409,73 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               </Text>
             </View>
 
-            {preliminariesData.map((prelim, index) =>
-              prelim.items.map((item, subIndex) => {
-                if (item.isHeader) {
+            {preliminariesData.map((category, categoryIndex) => (
+              <View key={`category-${categoryIndex}`}>
+                {/* Category Header Row */}
+                <View style={[styles.tableRow, { backgroundColor: "#F3F4F6" }]}>
+                  <Text style={[styles.tableCol, { width: "10%" }]}></Text>
+                  <Text
+                    style={[
+                      styles.tableColDescription,
+                      { width: "70%", fontWeight: "bold" },
+                    ]}
+                  >
+                    {category.title}
+                  </Text>
+                  <Text
+                    style={[styles.tableColAmount, { width: "20%" }]}
+                  ></Text>
+                </View>
+
+                {/* Category Items */}
+                {category.items.map((item, itemIndex) => {
+                  if (item.isHeader) {
+                    return (
+                      <View
+                        style={[
+                          styles.tableRow,
+                          { backgroundColor: "#F3F4F6" },
+                        ]}
+                        key={`item-header-${categoryIndex}-${itemIndex}`}
+                      >
+                        <Text
+                          style={[styles.tableCol, { width: "10%" }]}
+                        ></Text>
+                        <Text
+                          style={[
+                            styles.tableColDescription,
+                            { width: "70%", fontWeight: "bold" },
+                          ]}
+                        >
+                          {item.description}
+                        </Text>
+                        <Text
+                          style={[styles.tableColAmount, { width: "20%" }]}
+                        ></Text>
+                      </View>
+                    );
+                  }
                   return (
                     <View
-                      style={[styles.tableRow, { backgroundColor: "#F3F4F6" }]}
-                      key={`prelim-header-${index}-${subIndex}`}
+                      style={styles.tableRow}
+                      key={`item-${categoryIndex}-${itemIndex}`}
                     >
-                      <Text style={[styles.tableCol, { width: "10%" }]}></Text>
+                      <Text style={[styles.tableCol, { width: "10%" }]}>
+                        {item.itemNo}
+                      </Text>
                       <Text
-                        style={[
-                          styles.tableColDescription,
-                          { width: "70%", fontWeight: "bold" },
-                        ]}
+                        style={[styles.tableColDescription, { width: "70%" }]}
                       >
                         {item.description}
                       </Text>
-                      <Text
-                        style={[styles.tableColAmount, { width: "20%" }]}
-                      ></Text>
+                      <Text style={[styles.tableColAmount, { width: "20%" }]}>
+                        {formatCurrency(item.amount)}
+                      </Text>
                     </View>
                   );
-                }
-                return (
-                  <View
-                    style={styles.tableRow}
-                    key={`prelim-${index}-${subIndex}`}
-                  >
-                    <Text style={[styles.tableCol, { width: "10%" }]}>
-                      {item.itemNo}
-                    </Text>
-                    <Text
-                      style={[styles.tableColDescription, { width: "70%" }]}
-                    >
-                      {item.description}
-                    </Text>
-                    <Text style={[styles.tableColAmount, { width: "20%" }]}>
-                      {formatCurrency(item.amount)}
-                    </Text>
-                  </View>
-                );
-              })
-            )}
+                })}
+              </View>
+            ))}
 
             <View style={[styles.tableRow, { backgroundColor: "#F3F4F6" }]}>
               <Text

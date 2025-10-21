@@ -655,6 +655,14 @@ function DoorWindowItem({
           }
         />
 
+        <Input
+          placeholder="Price (Ksh)"
+          type="number"
+          min="0"
+          value={item.price}
+          onChange={(e) => onNestedChange(index, field, itemIndex, "price", e)}
+        />
+
         <Button
           size="icon"
           variant="destructive"

@@ -167,9 +167,19 @@ export default function ConcreteCalculatorForm({
   }, [makeFoundationRow, setQuote]);
 
   useEffect(() => {
-    if (quote.foundationDetails?.totalPerimeter) {
-      addFoundationRow();
-    }
+    const timer = setTimeout(() => {
+      const hasFoundationRow = quote.concrete_rows.some(
+        (row) => row.element === "foundation"
+      );
+      const hasFoundationDetails = quote.foundationDetails?.totalPerimeter;
+
+      if (hasFoundationDetails && !hasFoundationRow) {
+        addFoundationRow();
+      }
+    }, 2000);
+
+    // Cleanup in case the component unmounts before timeout
+    return () => clearTimeout(timer);
   }, []);
 
   const removeRow = useCallback(
@@ -215,7 +225,7 @@ export default function ConcreteCalculatorForm({
     }
   }, [user, profile, fetchMaterials]);
   const { results, totals, calculateConcreteRateForRow } =
-    useConcreteCalculator(rows, materials, qsSettings);
+    useConcreteCalculator(rows, materials, qsSettings, quote);
   const cementMat = materials.find((m) => m.name?.toLowerCase() === "cement");
   const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
   const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
@@ -300,7 +310,7 @@ export default function ConcreteCalculatorForm({
           name: `Water (${r.name})`,
           quantity: r.grossWaterRequiredL,
           unit_price: waterMat.price,
-          total_price: r.grossWaterRequiredL * waterMat.price,
+          total_price: (r.grossWaterRequiredL / 1000) * waterMat.price,
         });
       }
       if (r.grossMortarCementBags > 0) {
@@ -458,7 +468,8 @@ export default function ConcreteCalculatorForm({
   ]);
   useEffect(() => {
     setQuote((prev: any) => ({ ...prev, qsSettings: qsSettings }));
-  }, [user, qsSettings]);
+  }, [user, qsSettings, location]);
+
   return (
     <div className="space-y-4 p-3 rounded-lg">
       <h2 className="text-xl font-bold">Concrete & Foundation Calculator</h2>
@@ -767,13 +778,6 @@ export default function ConcreteCalculatorForm({
               </div>
             )}
 
-            <Input
-              type="text"
-              value={row.mix}
-              onChange={(e) => updateRow(row.id, "mix", e.target.value)}
-              placeholder="Concrete Mix ratio (e.g. 1:2:4)"
-            />
-
             {result && (
               <div className="mt-2 text-sm">
                 <p>
@@ -792,67 +796,54 @@ export default function ConcreteCalculatorForm({
                   <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                     <h4 className="font-semibold mb-2">Foundation Workings:</h4>
 
-                    {result.bedVolume > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Concrete Bed Workings:
-                        </h4>
-                        <p>
-                          <b>Bed Area:</b> {result.bedArea?.toFixed(2)} m²
-                        </p>
-                        <p>
-                          <b>Bed Volume:</b> {result.bedVolume?.toFixed(2)} m³
-                        </p>
-                        <p>
-                          <b>Bed Cost:</b> Ksh{" "}
-                          {Math.round(
-                            result.bedVolume * calculateConcreteRateForRow(row)
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-                    {result.aggregateVolume > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Aggregate Bed Workings:
-                        </h4>
-                        <p>
-                          <b>Aggregate Area:</b>{" "}
-                          {result.aggregateArea?.toFixed(2)} m²
-                        </p>
-                        <p>
-                          <b>Aggregate Volume:</b>{" "}
-                          {result.aggregateVolume?.toFixed(2)} m³
-                        </p>
-                        <p>
-                          <b>Aggregate Cost:</b> Ksh{" "}
-                          {Math.round(
-                            result.aggregateVolume * (aggregateMat?.price || 0)
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-
-                    {result.grossTotalBlocks > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Masonry Wall Workings:
-                        </h4>
-                        <p>
-                          <b>Blocks/Stones:</b>{" "}
-                          {Math.ceil(result.grossTotalBlocks).toLocaleString()}{" "}
-                          units
-                        </p>
-                        <p>
-                          <b>Mortar Cement:</b>{" "}
-                          {result.grossMortarCementBags?.toFixed(1)} bags
-                        </p>
-                        <p>
-                          <b>Mortar Sand:</b>{" "}
-                          {result.grossMortarSandM3?.toFixed(2)} m³
-                        </p>
-                      </div>
-                    )}
+                    <div className="mt-2">
+                      <h4 className="font-semibold">Concrete Bed Workings:</h4>
+                      <p>
+                        <b>Bed Area:</b> {result.bedArea?.toFixed(2)} m²
+                      </p>
+                      <p>
+                        <b>Bed Volume:</b> {result.bedVolume?.toFixed(2)} m³
+                      </p>
+                      <p>
+                        <b>Bed Cost:</b> Ksh{" "}
+                        {Math.round(
+                          result.bedVolume * calculateConcreteRateForRow(row)
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="mt-2">
+                      <h4 className="font-semibold">Aggregate Bed Workings:</h4>
+                      <p>
+                        <b>Aggregate Area:</b>{" "}
+                        {result.aggregateArea?.toFixed(2)} m²
+                      </p>
+                      <p>
+                        <b>Aggregate Volume:</b>{" "}
+                        {result.aggregateVolume?.toFixed(2)} m³
+                      </p>
+                      <p>
+                        <b>Aggregate Cost:</b> Ksh{" "}
+                        {Math.round(
+                          result.aggregateVolume * (aggregateMat?.price || 0)
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="mt-2">
+                      <h4 className="font-semibold">Masonry Wall Workings:</h4>
+                      <p>
+                        <b>Blocks/Stones:</b>{" "}
+                        {Math.ceil(result.grossTotalBlocks).toLocaleString()}{" "}
+                        units
+                      </p>
+                      <p>
+                        <b>Mortar Cement:</b>{" "}
+                        {result.grossMortarCementBags?.toFixed(1)} bags
+                      </p>
+                      <p>
+                        <b>Mortar Sand:</b>{" "}
+                        {result.grossMortarSandM3?.toFixed(2)} m³
+                      </p>
+                    </div>
                   </div>
                 )}
 

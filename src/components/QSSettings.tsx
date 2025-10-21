@@ -33,8 +33,8 @@ export default function QSSettings({
   updatePercentageField,
 }: MasonrySettingsProps) {
   const qsSettings =
-    quoteData?.qsSettings.length > 0
-      ? quoteData?.qsSettings
+    quoteData?.qsSettings !== null
+      ? quoteData.qsSettings
       : {
           wastageBlocksPercent: 5,
           wastageCementPercent: 5,
@@ -82,6 +82,13 @@ export default function QSSettings({
     },
     [setQuoteData]
   );
+
+  useEffect(() => {
+    setQuoteData((prev) => ({
+      ...prev,
+      qsSettings: qsSettings,
+    }));
+  }, []);
 
   const handleChange = (key: keyof MasonryQSSettings, value: any) => {
     const updated = { ...localSettings, [key]: value };

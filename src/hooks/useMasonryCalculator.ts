@@ -374,13 +374,9 @@ export default function useMasonryCalculator({
   });
 
   const { user, profile } = useAuth();
-  const MORTAR_PER_SQM = 0.003;
   const PLASTER_THICKNESS = 0.015;
-  const CEMENT_PER_M3_MORTAR = 300;
-  const SAND_PER_M3_MORTAR = 1.2;
-  const CEMENT_PER_M3_PLASTER = 600;
-  const SAND_PER_M3_PLASTER = 1.8;
   const CEMENT_DENSITY = 1440;
+  const MORTAR_PER_SQM = 0.017;
   const SAND_DENSITY = 1600;
   const CEMENT_BAG_KG = 50;
   const qsSettings = quote?.qsSettings;
@@ -530,26 +526,23 @@ export default function useMasonryCalculator({
     },
     [parseCementWaterRatio]
   );
-  const getBlockAreaWithJoint = useCallback(
-    (room: Room): number => {
-      const joint = qsSettings.mortarJointThicknessM;
-      if (
-        room.blockType === "Custom" &&
-        room.customBlock?.length &&
-        room.customBlock?.height
-      ) {
-        const l = Number(room.customBlock.length) + joint;
-        const h = Number(room.customBlock.height) + joint;
-        return l * h;
-      }
-      const blockDef = blockTypes.find((b) => b.name === room.blockType);
-      if (blockDef?.size) {
-        return (blockDef.size.length + joint) * (blockDef.size.height + joint);
-      }
-      return (0.225 + joint) * (0.075 + joint);
-    },
-    [qsSettings.mortarJointThicknessM]
-  );
+  const getBlockAreaWithJoint = useCallback((room: Room): number => {
+    const joint = qsSettings.mortarJointThicknessM;
+    if (
+      room.blockType === "Custom" &&
+      room.customBlock?.length &&
+      room.customBlock?.height
+    ) {
+      const l = Number(room.customBlock.length) + joint;
+      const h = Number(room.customBlock.height) + joint;
+      return l * h;
+    }
+    const blockDef = blockTypes.find((b) => b.name === room.blockType);
+    if (blockDef?.size) {
+      return (blockDef.size.length + joint) * (blockDef.size.height + joint);
+    }
+    return (0.225 + joint) * (0.075 + joint);
+  }, []);
   const calculateWallArea = useCallback(
     (room: Room): number => {
       if (!validateRoomDimensions(room)) return 0;
@@ -669,9 +662,7 @@ export default function useMasonryCalculator({
             // Return the first price in the price_kes object
             return windowFrameType?.price_kes || 0;
           } else {
-            return (
-              (Object.values(windowFrameType?.price_kes)[0] as number) || 0
-            );
+            return 0;
           }
         }
       } else {
@@ -1150,6 +1141,40 @@ export default function useMasonryCalculator({
     fetchAllRebarPrices();
   }, [getRebarPrice, profile?.id]);
 
+  // Parse the mortar ratio from quote settings
+  const parseMortarRatio = useCallback((ratio: string) => {
+    if (!ratio) return { cement: 1, sand: 4 }; // Default fallback
+
+    const parts = ratio.split(":").map((part) => parseFloat(part.trim()));
+    if (parts.length !== 2 || parts.some(isNaN) || parts.some((p) => p <= 0)) {
+      return { cement: 1, sand: 4 }; // Default fallback
+    }
+    return { cement: parts[0], sand: parts[1] };
+  }, []);
+
+  // Calculate mortar materials based on the ratio
+  const calculateMortarMaterials = useCallback(
+    (volume: number, ratio: string) => {
+      const mixRatio = parseMortarRatio(ratio);
+      const totalParts = mixRatio.cement + mixRatio.sand;
+
+      // Calculate volumes based on ratio (by volume)
+      const cementVolume = (mixRatio.cement / totalParts) * volume;
+      const sandVolume = (mixRatio.sand / totalParts) * volume;
+
+      // Convert cement volume to bags (1 bag = 0.035 m³)
+      const cementBags = cementVolume / 0.035;
+      const cementKg = cementBags * CEMENT_BAG_KG;
+
+      return {
+        cementBags,
+        cementKg,
+        sandM3: sandVolume,
+      };
+    },
+    [parseMortarRatio]
+  );
+
   const calculateMasonry = useCallback(() => {
     if (!rooms.length || !rooms.some(validateRoomDimensions)) return;
     const currentQsSettings = quote?.qsSettings || qsSettings;
@@ -1285,15 +1310,30 @@ export default function useMasonryCalculator({
       const netWallArea = Math.max(0, grossWallArea - openingsArea);
       const blockAreaWithJoint = getBlockAreaWithJoint(room);
       const netBlocks = getBlockCount(room);
+      // Use the mortar ratio from quote settings
+      const mortarRatio = quote?.mortar_ratio || "1:4";
       const netMortarVolume = netWallArea * MORTAR_PER_SQM;
-      const netMortarCementKg = netMortarVolume * CEMENT_PER_M3_MORTAR;
-      const netMortarSandM3 = netMortarVolume * SAND_PER_M3_MORTAR;
+      const mortarMaterials = calculateMortarMaterials(
+        netMortarVolume,
+        mortarRatio
+      );
+
+      const netMortarCementKg = mortarMaterials.cementKg;
+      const netMortarSandM3 = mortarMaterials.sandM3;
       let netPlasterArea = 0;
       if (room.plaster === "One Side") netPlasterArea = netWallArea;
       else if (room.plaster === "Both Sides") netPlasterArea = netWallArea * 2;
       const netPlasterVolume = netPlasterArea * PLASTER_THICKNESS;
-      const netPlasterCementKg = netPlasterVolume * CEMENT_PER_M3_PLASTER;
-      const netPlasterSandM3 = netPlasterVolume * SAND_PER_M3_PLASTER;
+      // For plaster - you might want a separate ratio or use the same
+      const plasterRatio =
+        currentQsSettings.plaster_ratio || quote.mortar_ratio || "1:4";
+      const plasterMaterials = calculateMortarMaterials(
+        netPlasterVolume,
+        plasterRatio
+      );
+
+      const netPlasterCementKg = plasterMaterials.cementKg;
+      const netPlasterSandM3 = plasterMaterials.sandM3;
       const mortarWater = calculateWaterRequirements(
         netMortarCementKg,
         netMortarSandM3,
@@ -1330,16 +1370,8 @@ export default function useMasonryCalculator({
           ? Number(door.frame?.custom?.price)
           : frameLeafPrice[door.frame.standardSize];
 
-        if (door.frame?.custom?.price) {
-          door.frame.custom.price = framePrice;
-        } else {
-          door.frame.price = framePrice;
-        }
-        if (door.custom?.price) {
-          door.custom.price = doorPrice;
-        } else {
-          door.price = doorPrice;
-        }
+        door.price = doorPrice;
+
         netDoorsCost += doorPrice * door.count;
         netDoorFramesCost += framePrice * door.count;
         netDoorFrames += door.count;
@@ -1362,16 +1394,8 @@ export default function useMasonryCalculator({
           ? Number(window.frame?.custom?.price)
           : frameLeafPrice[window.frame.standardSize];
 
-        if (window.frame?.custom?.price) {
-          window.frame.custom.price = framePrice;
-        } else {
-          window.frame.price = framePrice;
-        }
-        if (window.custom?.price) {
-          window.custom.price = windowPrice;
-        } else {
-          window.price = windowPrice;
-        }
+        window.price = windowPrice;
+
         netWindowsCost += windowPrice * window.count;
         netWindowFramesCost += framePrice * window.count;
         netWindowFrames += window.count;
@@ -1821,7 +1845,7 @@ export default function useMasonryCalculator({
     if (quote?.rooms && quote.rooms.length > 0) {
       calculateMasonry();
     }
-  }, [quote?.rooms, calculateMasonry]);
+  }, [rooms]);
   return {
     rooms,
     addRoom,

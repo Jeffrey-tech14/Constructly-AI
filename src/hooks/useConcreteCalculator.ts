@@ -105,6 +105,20 @@ const MASONRY_MORTAR_MIX = { cement: 1, sand: 4 };
 const MORTAR_DRY_VOLUME_FACTOR = 1.3;
 const STANDARD_BLOCK_SIZE = { length: 0.4, height: 0.2, thickness: 0.2 };
 const BRICK_SIZE = { length: 0.225, height: 0.075, thickness: 0.1125 };
+
+function parseMortarRatio(ratio: string): {
+  sand: number;
+  cement: number;
+} {
+  if (!ratio) return { cement: 1, sand: 4 }; // Default fallback
+
+  const parts = ratio.split(":").map((part) => parseFloat(part.trim()));
+  if (parts.length !== 2 || parts.some(isNaN) || parts.some((p) => p <= 0)) {
+    return { cement: 1, sand: 4 }; // Default fallback
+  }
+  return { cement: parts[0], sand: parts[1] };
+}
+
 export function parseMix(mix?: string): {
   cement: number;
   sand: number;
@@ -220,7 +234,8 @@ export function calculateMasonryQuantities(
 export function calculateConcrete(
   row: ConcreteRow,
   materials: any[],
-  settings: QSSettings
+  settings: QSSettings,
+  quote
 ): ConcreteResult {
   const {
     length,
@@ -273,7 +288,7 @@ export function calculateConcrete(
     case "foundation":
       mainVolume = len * wid * hei * num;
       surfaceAreaM2 = len * wid * num;
-      formworkM2 = 2 * len * hei * num;
+      formworkM2 = 2 * (len + wid) * hei * num;
       break;
   }
   let bedVolume = 0;
@@ -319,12 +334,12 @@ export function calculateConcrete(
     netTotalBlocks = masonry.blocks;
     const mortarVolume = masonry.mortarVolume;
     const dryMortarVolume = mortarVolume * MORTAR_DRY_VOLUME_FACTOR;
-    const totalMortarParts =
-      MASONRY_MORTAR_MIX.cement + MASONRY_MORTAR_MIX.sand;
+    const mortar_ratio = parseMortarRatio(quote.mortar_ratio);
+    const totalMortarParts = mortar_ratio.cement + mortar_ratio.sand;
     const mortarCementVolume =
-      (MASONRY_MORTAR_MIX.cement / totalMortarParts) * dryMortarVolume;
+      (mortar_ratio.cement / totalMortarParts) * dryMortarVolume;
     const mortarSandVolume =
-      (MASONRY_MORTAR_MIX.sand / totalMortarParts) * dryMortarVolume;
+      (mortar_ratio.sand / totalMortarParts) * dryMortarVolume;
     netMortarCementBags = mortarCementVolume / CEMENT_BAG_VOLUME_M3;
     netMortarSandM3 = mortarSandVolume;
   }
@@ -485,13 +500,14 @@ export function computeConcreteRatePerM3(
 export function useConcreteCalculator(
   rows: ConcreteRow[],
   materials: any[],
-  settings: QSSettings
+  settings: QSSettings,
+  quote
 ) {
   const [results, setResults] = useState<ConcreteResult[]>([]);
   const [totals, setTotals] = useState<any>({});
   useEffect(() => {
     const calculatedResults = rows.map((row) =>
-      calculateConcrete(row, materials, settings)
+      calculateConcrete(row, materials, settings, quote)
     );
     setResults(calculatedResults);
   }, [rows, materials, settings]);

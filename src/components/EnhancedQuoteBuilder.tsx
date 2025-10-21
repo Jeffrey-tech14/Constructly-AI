@@ -30,7 +30,11 @@ import {
   QuoteCalculation,
   Percentage,
 } from "@/hooks/useQuoteCalculations";
-import { RoomType, useUserSettings } from "@/hooks/useUserSettings";
+import {
+  RoomType,
+  UserTransportRate,
+  useUserSettings,
+} from "@/hooks/useUserSettings";
 import { useQuotes } from "@/hooks/useQuotes";
 import {
   ArrowLeft,
@@ -138,12 +142,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const {
-    equipmentRates,
-    services,
-    calculateQuote,
-    loading: calculationLoading,
-  } = useQuoteCalculations();
-  const {
     materialBasePrices,
     userMaterialPrices,
     regionalMultipliers,
@@ -152,6 +150,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     getEffectiveMaterialPriceSingle,
     updateMaterialPriceSingle,
   } = useDynamicPricing();
+  const {
+    updateRegion,
+    equipmentRates,
+    services,
+    calculateQuote,
+    loading: calculationLoading,
+  } = useQuoteCalculations();
   const { extractedPlan } = usePlan();
   const { loading: settingsLoading } = useUserSettings();
   const { createQuote, updateQuote } = useQuotes();
@@ -292,6 +297,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   });
 
   useEffect(() => {
+    if (quoteData.region) {
+      updateRegion(quoteData.region);
+    }
+  }, [quoteData.region]);
+
+  useEffect(() => {
     if (quote) {
       setQuoteData((prev) => ({
         ...prev,
@@ -307,7 +318,68 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     fetchRates();
     fetchLimit();
   }, [user, location.key]);
+  const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
 
+  const fetchTransportRates = useCallback(async () => {
+    const { data: baseRates, error: baseError } = await supabase
+      .from("transport_rates")
+      .select("*");
+    const { data: overrides, error: overrideError } = await supabase
+      .from("user_transport_rates")
+      .select("region, cost_per_km, base_cost")
+      .eq("user_id", profile.id);
+    if (baseError) console.error("Base transport rates error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
+    const allRegions = [
+      "Nairobi",
+      "Mombasa",
+      "Kisumu",
+      "Nakuru",
+      "Eldoret",
+      "Thika",
+      "Machakos",
+    ];
+    const merged = allRegions.map((region) => {
+      const base = baseRates.find(
+        (r) => r.region.toLowerCase() === region.toLowerCase()
+      );
+      const userRate = overrides?.find(
+        (o) => o.region.toLowerCase() === region.toLowerCase()
+      );
+      return {
+        id: profile.id,
+        region,
+        cost_per_km: userRate?.cost_per_km ?? base?.cost_per_km ?? 50,
+        base_cost: userRate?.base_cost ?? base?.base_cost ?? 500,
+        source: userRate ? "user" : base ? "base" : "default",
+      };
+    });
+    setTransportRates(merged);
+  }, [user, location.key]);
+
+  const transportCost = (() => {
+    const region = quoteData?.region || "Nairobi";
+    const rateForRegion = transportRates.find((r) => r.region === region);
+    const defaultTransportRate = { cost_per_km: 50, base_cost: 500 };
+    if (!rateForRegion) {
+      console.warn(`No transport rate for ${region}. Using defaults.`);
+      return (
+        quoteData.distance_km * defaultTransportRate.cost_per_km +
+        defaultTransportRate.base_cost
+      );
+    }
+    return (
+      quoteData.distance_km * rateForRegion.cost_per_km +
+      rateForRegion.base_cost
+    );
+  })();
+
+  useEffect(() => {
+    if (user && profile !== null) {
+      fetchTransportRates();
+      fetchRates();
+    }
+  }, [user, profile, location.key]);
   useEffect(() => {
     if (extractedPlan && extractedPlan.rooms?.length) {
       setQuoteData((prev) => ({
@@ -346,6 +418,17 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           stoneVolume: 0,
           totalCost: 0,
         })),
+        foundationDetails: extractedPlan.foundationDetails || {
+          foundationType: "",
+          totalPerimeter: 0,
+          masonryType: "",
+          wallThickness: "",
+          wallHeight: "",
+          blockDimensions: "",
+          length: "",
+          width: "",
+          height: "",
+        },
       }));
     }
   }, [extractedPlan]);
@@ -471,7 +554,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         total_wall_area: Math.round(quoteData.total_rebar_weight),
         project_type: quoteData.project_type,
         equipment_costs: quoteData.equipment_costs,
-        transport_costs: quoteData.transport_costs,
+        transport_costs: transportCost,
         additional_services_cost: quoteData.additional_services_cost,
         show_profit_to_client: quoteData.show_profit_to_client,
         house_type: quoteData.house_type,
@@ -870,7 +953,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       className=""
                     />
                     <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                      Used to calculate transport costs
+                      Used to calculate transport costs {transportCost}
                     </p>
                   </div>
                 </div>
@@ -2507,6 +2590,19 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                         <p>Profit</p>
                         <p>
                           KSh {calculation?.profit_amount?.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex justify-between text-gray-900 dark:text-white">
+                        <p>Contingency</p>
+                        <p>
+                          KSh{" "}
+                          {calculation?.contingency_amount?.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex justify-between text-gray-900 dark:text-white">
+                        <p>Overhead</p>
+                        <p>
+                          KSh {calculation?.overhead_amount?.toLocaleString()}
                         </p>
                       </div>
                       <div className="flex justify-between text-gray-900 dark:text-white">

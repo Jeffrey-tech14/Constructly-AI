@@ -173,6 +173,10 @@ export interface CalculationResult {
 }
 export type FullQuoteCalculation = QuoteCalculation & CalculationResult;
 export const useQuoteCalculations = () => {
+  const [region, setRegion] = useState(null);
+
+  const updateRegion = (newRegion) => setRegion(newRegion);
+
   const { user, profile } = useAuth();
   const [services, setServices] = useState<UserServiceRate[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -180,8 +184,8 @@ export const useQuoteCalculations = () => {
   const [subContractors, setSubcontractors] = useState<Subcontractors[]>([]);
   const location = useLocation();
   const [equipmentRates, setEquipmentRates] = useState<UserEquipmentRate[]>([]);
-  const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
   const [regionalMultipliers] = useState<RegionalMultiplier[]>([]);
+
   const fetchMaterials = useCallback(async () => {
     const { data: baseMaterials, error: baseError } = await supabase
       .from("material_base_prices")
@@ -193,7 +197,7 @@ export const useQuoteCalculations = () => {
     if (baseError) console.error("Base materials error:", baseError);
     if (overrideError) console.error("Overrides error:", overrideError);
     const merged = baseMaterials.map((material) => {
-      const userRegion = profile?.location || "Nairobi";
+      const userRegion = region || "Nairobi";
       const userRate = overrides?.find(
         (o) => o.material_id === material.id && o.region === userRegion
       );
@@ -209,7 +213,7 @@ export const useQuoteCalculations = () => {
       };
     });
     setMaterials(merged);
-  }, [user, profile?.location, location.key]);
+  }, [user, location, location.key]);
   const fetchServices = useCallback(async () => {
     const { data: baseServices, error: baseError } = await supabase
       .from("additional_services")
@@ -284,48 +288,12 @@ export const useQuoteCalculations = () => {
     });
     setEquipmentRates(merged);
   }, [user, location.key]);
-  const fetchTransportRates = useCallback(async () => {
-    const { data: baseRates, error: baseError } = await supabase
-      .from("transport_rates")
-      .select("*");
-    const { data: overrides, error: overrideError } = await supabase
-      .from("user_transport_rates")
-      .select("region, cost_per_km, base_cost")
-      .eq("user_id", profile.id);
-    if (baseError) console.error("Base transport rates error:", baseError);
-    if (overrideError) console.error("Overrides error:", overrideError);
-    const allRegions = [
-      "Nairobi",
-      "Mombasa",
-      "Kisumu",
-      "Nakuru",
-      "Eldoret",
-      "Thika",
-      "Machakos",
-    ];
-    const merged = allRegions.map((region) => {
-      const base = baseRates.find(
-        (r) => r.region.toLowerCase() === region.toLowerCase()
-      );
-      const userRate = overrides?.find(
-        (o) => o.region.toLowerCase() === region.toLowerCase()
-      );
-      return {
-        id: profile.id,
-        region,
-        cost_per_km: userRate?.cost_per_km ?? base?.cost_per_km ?? 50,
-        base_cost: userRate?.base_cost ?? base?.base_cost ?? 500,
-        source: userRate ? "user" : base ? "base" : "default",
-      };
-    });
-    setTransportRates(merged);
-  }, [user, location.key]);
+
   useEffect(() => {
     if (user && profile !== null) {
       fetchMaterials();
       fetchServices();
       fetchEquipment();
-      fetchTransportRates();
       fetchRates();
     }
   }, [user, profile, location.key]);
@@ -339,7 +307,11 @@ export const useQuoteCalculations = () => {
         include_wastage,
         boqData,
         equipment,
+        location,
+        boq_data,
+        transport_costs,
         services,
+        region,
         subcontractors,
         distance_km,
         labor_percentages,
@@ -393,21 +365,7 @@ export const useQuoteCalculations = () => {
           contingency: contingency_percentages,
         },
       ];
-      const transportCost = (() => {
-        const region = profile?.location || "Nairobi";
-        const rateForRegion = transportRates.find((r) => r.region === region);
-        const defaultTransportRate = { cost_per_km: 50, base_cost: 500 };
-        if (!rateForRegion) {
-          console.warn(`No transport rate for ${region}. Using defaults.`);
-          return (
-            distance_km * defaultTransportRate.cost_per_km +
-            defaultTransportRate.base_cost
-          );
-        }
-        return (
-          distance_km * rateForRegion.cost_per_km + rateForRegion.base_cost
-        );
-      })();
+
       const selectedSubcontractors = subcontractors ?? [];
       const { updatedSubcontractors, subcontractorRates, subcontractorProfit } =
         (() => {
@@ -457,13 +415,33 @@ export const useQuoteCalculations = () => {
           (parseFloat(contingency_percentages.toString()) || 0)) /
         100;
       const subtotalWithExtras =
-        subtotalBeforeExtras + overheadAmount + contingencyAmount + permitCost;
+        subtotalBeforeExtras + overheadAmount + contingencyAmount;
       const profitAmount = Math.round(subcontractorProfit + materialProfits);
       const totalAmount = Math.round(subtotalWithExtras + profitAmount);
+      console.log(
+        `Materials: ${materials_cost} 
+        + Labor: ${laborCost} 
+        + Subcontractors: ${subcontractorRates}
+         + Prelims: ${preliminariesCost} 
+         + Overhead: ${overheadAmount} 
+         + Contingency: ${contingencyAmount}
+          + SubProfit: ${subcontractorProfit}
+           + MatProfit: ${materialProfits} = ${
+          materials_cost +
+          laborCost +
+          subcontractorRates +
+          preliminariesCost +
+          overheadAmount +
+          contingencyAmount +
+          subcontractorProfit +
+          materialProfits
+        }`
+      );
+
       return {
         labor_cost: laborCost,
         equipment_cost: equipmentCost,
-        transport_cost: transportCost,
+        transport_cost: transport_costs,
         selected_services_cost: servicesCost,
         subcontractors_cost: subcontractorRates,
         subcontractors_profit: subcontractorProfit,
@@ -499,9 +477,8 @@ export const useQuoteCalculations = () => {
           price: s.price ?? 0,
         })),
         regional_multiplier:
-          regionalMultipliers.find(
-            (r) => r.region === (profile?.location || "Nairobi")
-          )?.multiplier || 1,
+          regionalMultipliers.find((r) => r.region === (region || "Nairobi"))
+            ?.multiplier || 1,
         contract_type: contract_type,
       };
     } finally {
@@ -511,9 +488,9 @@ export const useQuoteCalculations = () => {
   return {
     materials,
     equipmentRates,
-    transportRates,
     services,
     loading,
+    updateRegion,
     calculateQuote,
   };
 };

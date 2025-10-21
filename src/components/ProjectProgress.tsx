@@ -218,19 +218,15 @@ const ProjectProgress = ({
   };
   if (loading) {
     return (
-      <Card className="bg-transparent">
-        <CardContent className="pt-6 text-center">
-          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
-          <p className="text-white mt-2">Loading project progress...</p>
-        </CardContent>
-      </Card>
+      <div className="pt-6 flex flex-col items-center justify-center text-center flex-1">
+        <Loader2 className="animate-spin text-white rounded-full h-8 w-8" />
+        <p className="text-white mt-5">Loading project progress...</p>
+      </div>
     );
   }
   return (
-    <Card>
-      <CardHeader
-        className={`${getBackColor(progressData.status)} rounded-t-lg`}
-      >
+    <>
+      <CardHeader className={`${getBackColor(progressData.status)} rounded-lg`}>
         <CardTitle className="flex items-center justify-between">
           <span className="text-white">Project Progress - {quoteName}</span>
           <Badge className={getStatusColor(progressData.status)}>
@@ -242,11 +238,9 @@ const ProjectProgress = ({
         </CardTitle>
       </CardHeader>
       <CardContent
-        className={`${getBackColor(
-          progressData.status
-        )} space-y-6 rounded-b-lg`}
+        className={`${getBackColor(progressData.status)} space-y-6 rounded-lg`}
       >
-        <div>
+        <div className="mt-5">
           <div className="flex items-center justify-between mb-2">
             <Label className="text-white">Progress Percentage</Label>
             <span
@@ -333,6 +327,7 @@ const ProjectProgress = ({
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
+                className="glass"
                 selected={
                   progressData.milestone_date
                     ? new Date(progressData.milestone_date)
@@ -373,7 +368,7 @@ const ProjectProgress = ({
           {updating ? "Updating..." : "Update Progress"}
         </Button>
       </CardContent>
-    </Card>
+    </>
   );
 };
 export default ProjectProgress;

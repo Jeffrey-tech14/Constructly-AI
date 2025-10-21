@@ -74,39 +74,17 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
         setLastError(null);
 
         try {
-          console.log("Starting initial BOQ generation with AI...");
           const boq = await generateBOQWithAI(quoteData);
 
           if (boq && boq.length > 0) {
             setBoqSections(boq);
             onBOQUpdate(boq);
             setGenerationMethod("ai");
-            console.log("Initial BOQ generation completed successfully");
           } else {
             throw new Error("No BOQ data generated");
           }
         } catch (error) {
           console.error("AI BOQ generation failed:", error);
-
-          // Try mock generation as final fallback
-          try {
-            console.log("Attempting mock BOQ generation...");
-            const mockBOQ = await generateMockBOQ(quoteData);
-            if (mockBOQ && mockBOQ.length > 0) {
-              setBoqSections(mockBOQ);
-              onBOQUpdate(mockBOQ);
-              setGenerationMethod("mock");
-              setLastError("Using simplified BOQ - AI service unavailable");
-            } else {
-              throw new Error("Mock generation also failed");
-            }
-          } catch (mockError) {
-            console.error("All BOQ generation methods failed:", mockError);
-            setLastError("Unable to generate BOQ with available data");
-            setBoqSections([]);
-            onBOQUpdate([]);
-            setGenerationMethod("none");
-          }
         } finally {
           setIsGenerating(false);
         }

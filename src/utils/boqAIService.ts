@@ -23,13 +23,10 @@ export const generateBOQWithAI = async (
   quoteData: any
 ): Promise<BOQSection[]> => {
   try {
-    console.log("Attempting AI BOQ generation...");
-
     // Try AI generation first
     const aiBOQ = await callGeminiAPI(quoteData);
 
     if (aiBOQ && aiBOQ.length > 0 && isValidBOQ(aiBOQ)) {
-      console.log("AI BOQ generation successful");
       return aiBOQ;
     } else {
       throw new Error("AI returned invalid or empty BOQ");
@@ -80,7 +77,6 @@ const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
     }
 
     const data = await response.json();
-    console.log("Gemini API response data:", data);
 
     // Handle different possible response structures
     const responseText = extractResponseText(data);
@@ -263,8 +259,6 @@ const parseAIResponse = (responseText: string): BOQSection[] => {
       throw new Error("Empty or invalid response from AI");
     }
 
-    console.log("Raw AI response:", responseText);
-
     // Clean the response text
     let jsonString = responseText.trim();
 
@@ -314,14 +308,12 @@ const parseAIResponse = (responseText: string): BOQSection[] => {
         }),
       }));
 
-      console.log("Parsed and cleaned BOQ:", cleanedSections);
       return cleanedSections;
     }
 
     throw new Error("AI response is not a JSON array");
   } catch (error) {
     console.error("Failed to parse AI response:", error);
-    console.log("Raw response that failed:", responseText);
     throw new Error(
       `Invalid AI response format: ${
         error instanceof Error ? error.message : "Unknown parsing error"
@@ -384,8 +376,6 @@ const isValidBOQ = (sections: BOQSection[]): boolean => {
 export const generateMockBOQ = async (
   quoteData: any
 ): Promise<BOQSection[]> => {
-  console.log("Using enhanced mock BOQ generation");
-
   // Return empty array if no data
   if (!quoteData || Object.keys(quoteData).length === 0) {
     return [];

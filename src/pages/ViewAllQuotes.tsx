@@ -600,7 +600,7 @@ const ViewAllQuotes = () => {
                           <Button
                             size="sm"
                             onClick={() => setSelectedQuoteForExport(quote)}
-                            className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-primary/90"
+                            className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
                           >
                             <FileText className="w-4 h-4 mr-2 text-white" />
                             Generate BOQ

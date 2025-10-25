@@ -134,11 +134,28 @@ export interface WasteRemoval {
 }
 
 export interface MasonryQSSettings {
-  wastageBlocksPercent: number;
-  wastageCementPercent: number;
-  wastageSandPercent: number;
-  wastageWaterPercent: number;
-  wastageStonePercent: number;
+  wastageConcrete: number;
+  wastageReinforcement: number;
+  wastageMasonry: number;
+  wastageRoofing: number;
+  wastageFinishes: number;
+  wastageElectricals: number;
+  labour_fixed: number;
+  overhead_fixed: number;
+
+  profit_fixed: number;
+  contingency_fixed: number;
+  permit_cost_fixed: number;
+  financialModes: {
+    labour: "percentage" | "fixed";
+    overhead: "percentage" | "fixed";
+    profit: "percentage" | "fixed";
+    contingency: "percentage" | "fixed";
+    permit_cost: "percentage" | "fixed";
+  };
+
+  wastageWater: number;
+  wastagePlumbing: number;
   clientProvidesWater: boolean;
   cementWaterRatio: string;
   sandMoistureContentPercent: number;
@@ -1352,6 +1369,7 @@ export default function useMasonryCalculator({
         netWindowsCost = 0,
         netDoorFramesCost = 0,
         netWindowFramesCost = 0;
+
       room.doors.forEach((door) => {
         netDoors += door.count;
 
@@ -1368,9 +1386,10 @@ export default function useMasonryCalculator({
 
         const framePrice = door.frame?.custom?.price
           ? Number(door.frame?.custom?.price)
-          : frameLeafPrice[door.frame.standardSize];
+          : frameLeafPrice[door.standardSize];
 
         door.price = doorPrice;
+        door.frame.price = framePrice;
 
         netDoorsCost += doorPrice * door.count;
         netDoorFramesCost += framePrice * door.count;
@@ -1392,9 +1411,10 @@ export default function useMasonryCalculator({
 
         const framePrice = window.frame?.custom?.price
           ? Number(window.frame?.custom?.price)
-          : frameLeafPrice[window.frame.standardSize];
+          : frameLeafPrice[window.standardSize];
 
         window.price = windowPrice;
+        window.frame.price = framePrice;
 
         netWindowsCost += windowPrice * window.count;
         netWindowFramesCost += framePrice * window.count;
@@ -1403,20 +1423,19 @@ export default function useMasonryCalculator({
       const netOpeningsCost =
         netDoorsCost + netWindowsCost + netDoorFramesCost + netWindowFramesCost;
       const grossBlocks = Math.ceil(
-        netBlocks * (1 + currentQsSettings.wastageBlocksPercent / 100)
+        netBlocks * (1 + currentQsSettings.wastageMasonry / 100)
       );
-      const openingsWastagePercent = 2;
       const grossDoors = Math.ceil(
-        netDoors * (1 + openingsWastagePercent / 100)
+        netDoors * (1 + currentQsSettings.wastageMasonry / 100)
       );
       const grossWindows = Math.ceil(
-        netWindows * (1 + openingsWastagePercent / 100)
+        netWindows * (1 + currentQsSettings.wastageMasonry / 100)
       );
       const grossDoorFrames = Math.ceil(
-        netDoorFrames * (1 + openingsWastagePercent / 100)
+        netDoorFrames * (1 + currentQsSettings.wastageMasonry / 100)
       );
       const grossWindowFrames = Math.ceil(
-        netWindowFrames * (1 + openingsWastagePercent / 100)
+        netWindowFrames * (1 + currentQsSettings.wastageMasonry / 100)
       );
       const netBlocksCost = netBlocks * blockPrice;
       const netMortarCost =
@@ -1486,12 +1505,12 @@ export default function useMasonryCalculator({
 
       const grossCementKg =
         Math.ceil(
-          totalNetCementKg * (1 + currentQsSettings.wastageCementPercent / 100)
+          totalNetCementKg * (1 + currentQsSettings.wastageMasonry / 100)
         ) / CEMENT_BAG_KG;
       const grossSandM3 =
-        totalNetSandM3 * (1 + currentQsSettings.wastageSandPercent / 100);
+        totalNetSandM3 * (1 + currentQsSettings.wastageMasonry / 100);
       const grossWater =
-        totalNetWater * (1 + currentQsSettings.wastageWaterPercent / 100);
+        totalNetWater * (1 + currentQsSettings.wastageWater / 100);
 
       const grossBlocksCost = grossBlocks * blockPrice;
       const grossMortarCost =

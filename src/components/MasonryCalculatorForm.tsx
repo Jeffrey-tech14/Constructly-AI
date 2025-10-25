@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,6 +100,17 @@ export default function MasonryCalculatorForm({
     userRegion,
     getEffectiveMaterialPrice,
   });
+
+  const onSettingsChange = useCallback(
+    (newSettings: MasonryQSSettings) => {
+      setQuote((prev) => ({
+        ...prev,
+        qsSettings: newSettings,
+      }));
+    },
+    [setQuote]
+  );
+
   const handleMortarRatioChange = (value: string) => {
     setQuote((prev: any) => ({
       ...prev,
@@ -164,6 +175,22 @@ export default function MasonryCalculatorForm({
             type="text"
             value={quote.mortarRatio || "1:4"}
             onChange={(e) => handleMortarRatioChange(e.target.value)}
+            placeholder="e.g., 1:4"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="wastage">Wastage</Label>
+          <Input
+            id="wastage"
+            type="number"
+            value={qsSettings.wastageMasonry || 5}
+            onChange={(e) =>
+              onSettingsChange({
+                ...qsSettings,
+                wastageMasonry: parseFloat(e.target.value),
+              })
+            }
             placeholder="e.g., 1:4"
           />
         </div>
@@ -712,7 +739,7 @@ function DoorWindowItem({
           </SelectContent>
         </Select>
 
-        {item.frame?.sizeType === "standard" && (
+        {/* {item.frame?.sizeType === "standard" && (
           <Select
             value={item.frame?.standardSize || ""}
             onValueChange={(value) =>
@@ -733,7 +760,7 @@ function DoorWindowItem({
               ))}
             </SelectContent>
           </Select>
-        )}
+        )} */}
 
         {item.frame?.sizeType === "custom" ? (
           <>

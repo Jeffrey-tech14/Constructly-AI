@@ -45,7 +45,9 @@ Please generate preliminary sections and items with these guidelines:
 4. DO NOT ADD ANYTHING THAT IS NOT IN THE DATA PROVIDED!
 5. Include transport costs, equipment, services and other similar data
 6. If linked to a trade (e.g. “Mixer for concrete works”) → skip it. Only include general (e.g. “Site generator”)
-7. Return ONLY valid JSON in this exact format:
+7. Do not include labor costs, overheads, contingency, or profit margins
+8. Structure the response as sections with items, each item having an item number, description, and amount
+9. Return ONLY valid JSON in this exact format:
 {
   "sections": [
     {

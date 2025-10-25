@@ -154,7 +154,7 @@ const PaymentPage = () => {
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="h-32 dark:bg-gray-900 bg-gray-300 rounded-md animate-pulse"
+                        className="h-32 glass rounded-md animate-pulse"
                       ></div>
                     ))}
                   </div>
@@ -170,12 +170,12 @@ const PaymentPage = () => {
                   const isSelected = selectedPlan === plan.name;
                   const isCurrent = plan.name === profile?.tier;
                   return (
-                    <div
+                    <Card
                       key={plan.id}
-                      className={`relative overflow-hidden rounded-2xl border-2 p-6 transition-all duration-300
+                      className={` glass overflow-hidden rounded-2xl border-1 p-6 transition-all duration-300
         ${
           isSelected
-            ? "border-primary shadow-lg shadow-primary/20 dark:shadow-white/30 dark:border-white bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-900"
+            ? "border-primary shadow-lg shadow-primary/20 dark:shadow-white/30 dark:border-white"
             : "border-border hover:border-primary/30 dark:hover:border-white/20 hover:shadow-md bg-white dark:bg-slate-900"
         }
         ${
@@ -264,7 +264,7 @@ const PaymentPage = () => {
                           Active Plan
                         </div>
                       )}
-                    </div>
+                    </Card>
                   );
                 })}
               </CardContent>

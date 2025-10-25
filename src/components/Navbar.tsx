@@ -151,11 +151,11 @@ const Navbar = () => {
                       <Button
                         onClick={() => navigate(item.path)}
                         variant={isActive(item.path) ? "default" : "ghost"}
-                        className={`relative font-medium transition-all duration-300 ${
+                        className={`relative font-medium transition-colors duration-500 ${
                           isActive(item.path)
                             ? " text-white shadow-lg"
                             : " dark:text-gray-300"
-                        } rounded-xl px-4`}
+                        } px-4`}
                       >
                         <Icon className="w-4 h-4" />
                         <span className="hidden ml-2 xl:inline">

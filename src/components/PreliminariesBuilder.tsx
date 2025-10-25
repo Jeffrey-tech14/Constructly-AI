@@ -69,8 +69,12 @@ const PreliminariesBuilder = ({
 
   // Update local state when initialSections changes (on quoteData change)
   useEffect(() => {
-    setSections(initialSections);
-  }, [initialSections]);
+    // Only load preliminaries from quoteData on first mount
+    if (sections.length === 0 && initialSections.length > 0) {
+      setSections(initialSections);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     onSaveToQuote(sections);

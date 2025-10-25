@@ -17,6 +17,14 @@ import { useLocation } from "react-router-dom";
 import { Sun } from "lucide-react";
 import { calculateConcrete } from "./useConcreteCalculator";
 import ConcreteCalculatorForm from "@/components/ConcreteCalculatorForm";
+import { ElectricalSystem } from "./useElectricalCalculator";
+import { PlumbingSystem } from "./usePlumbingCalculator";
+import {
+  FinishCalculation,
+  FinishElement,
+} from "./useUniversalFinishesCalculator";
+import { RoofStructure } from "./useRoofingCalculator";
+
 export interface Material {
   id: string;
   name: string;
@@ -25,6 +33,7 @@ export interface Material {
   price: number;
   category: string;
 }
+
 export interface EquipmentItem {
   name: string;
   total_cost: number;
@@ -33,12 +42,18 @@ export interface EquipmentItem {
   usage_quantity: number;
   usage_unit: string;
 }
+
 export interface Percentage {
   labour: number;
   overhead: number;
   profit: number;
   contingency: number;
+  labourMode: "percent" | "cash";
+  overheadMode: "percent" | "cash";
+  profitMode: "percent" | "cash";
+  contingencyMode: "percent" | "cash";
 }
+
 export interface Subcontractors {
   id: string;
   name: string;
@@ -47,10 +62,12 @@ export interface Subcontractors {
   days: number;
   total: number;
 }
+
 export interface Addons {
   name: string;
   price: number;
 }
+
 export interface QuoteCalculation {
   rooms: Array<{
     room_name: string;
@@ -96,14 +113,63 @@ export interface QuoteCalculation {
   location: string;
   subcontractors: Subcontractors[];
   custom_specs: string;
-  qsSettings: [];
+  qsSettings: any;
+  external_works: any[];
+  earthworks: any[];
   floors: number;
   status: string;
-  concrete_rows: [];
-  rebar_rows: [];
+  concrete_rows: Array<{
+    id: string;
+    name: string;
+    element: string;
+    length: string;
+    width: string;
+    height: string;
+    mix: string;
+    formwork: string;
+    category: string;
+    number: string;
+    hasConcreteBed: boolean;
+    bedDepth: string;
+    hasAggregateBed: boolean;
+    aggregateDepth: string;
+    hasMasonryWall: boolean;
+    masonryBlockType?: string;
+    masonryBlockDimensions?: string;
+    masonryWallThickness?: string;
+    masonryWallHeight?: string;
+    masonryWallPerimeter?: string;
+    foundationType?: string;
+    clientProvidesWater: boolean;
+    cementWaterRatio: string;
+    reinforcement: {
+      mainBarSize: string;
+      mainBarSpacing: string;
+    };
+    staircaseDetails?: any;
+    tankDetails?: any;
+  }>;
+
+  rebar_rows: Array<{
+    id: string;
+    element: string;
+    name: string;
+    length: string;
+    width: string;
+    depth: string;
+    mainBarSize: string;
+    mainBarSpacing: string;
+    distributionBarSize?: string;
+    distributionBarSpacing?: string;
+  }>;
+
   mortar_ratio: string;
   concrete_mix_ratio: string;
   plaster_thickness: number;
+  electrical_systems: ElectricalSystem[];
+  plumbing_systems: PlumbingSystem[];
+  finishes: FinishElement[];
+  roof_structures: RoofStructure[];
   include_wastage: boolean;
   equipment: EquipmentItem[];
   services: AdditionalService[];
@@ -135,6 +201,7 @@ export interface QuoteCalculation {
   permit_cost: number;
   foundationDetails: {};
 }
+
 export interface CalculationResult {
   labor_cost: number;
   subcontractors_profit: number;
@@ -171,10 +238,11 @@ export interface CalculationResult {
     price: number;
   }>;
 }
+
 export type FullQuoteCalculation = QuoteCalculation & CalculationResult;
+
 export const useQuoteCalculations = () => {
   const [region, setRegion] = useState(null);
-
   const updateRegion = (newRegion) => setRegion(newRegion);
 
   const { user, profile } = useAuth();
@@ -214,6 +282,7 @@ export const useQuoteCalculations = () => {
     });
     setMaterials(merged);
   }, [user, location, location.key]);
+
   const fetchServices = useCallback(async () => {
     const { data: baseServices, error: baseError } = await supabase
       .from("additional_services")
@@ -235,6 +304,7 @@ export const useQuoteCalculations = () => {
     });
     setServices(merged);
   }, [user, profile, location.key]);
+
   const fetchRates = async () => {
     const { data: baseServices, error: baseError } = await supabase
       .from("subcontractor_prices")
@@ -261,6 +331,7 @@ export const useQuoteCalculations = () => {
     });
     setSubcontractors(merged);
   };
+
   const fetchEquipment = useCallback(async () => {
     const { data: baseEquipment, error: baseError } = await supabase
       .from("equipment_types")
@@ -297,6 +368,7 @@ export const useQuoteCalculations = () => {
       fetchRates();
     }
   }, [user, profile, location.key]);
+
   const calculateQuote = async (
     params: QuoteCalculation
   ): Promise<CalculationResult> => {
@@ -314,14 +386,27 @@ export const useQuoteCalculations = () => {
         region,
         subcontractors,
         distance_km,
-        labor_percentages,
-        overhead_percentages,
-        profit_percentages,
-        contingency_percentages,
         permit_cost,
         contract_type,
         preliminaries,
+        qsSettings,
       } = params;
+
+      // Get percentage settings from either percentages array or qsSettings
+      const percentageSettings =
+        params.percentages && params.percentages.length > 0
+          ? params.percentages[0]
+          : {
+              labour: params.labor_percentages || 0,
+              overhead: params.overhead_percentages || 0,
+              profit: params.profit_percentages || 0,
+              contingency: params.contingency_percentages || 0,
+              labourMode: "percent" as const,
+              overheadMode: "percent" as const,
+              profitMode: "percent" as const,
+              contingencyMode: "percent" as const,
+            };
+
       const calculatePreliminariesTotal = (): number => {
         if (!Array.isArray(preliminaries)) return 0;
         return preliminaries.reduce((total, prelim) => {
@@ -334,6 +419,7 @@ export const useQuoteCalculations = () => {
           );
         }, 0);
       };
+
       const calculateMaterialTotals = (): number => {
         let total = 0;
         const boqItems = params.boqData || params.boq_data || [];
@@ -348,23 +434,19 @@ export const useQuoteCalculations = () => {
         }
         return total;
       };
+
       const materials_cost = calculateMaterialTotals();
       const preliminariesCost = calculatePreliminariesTotal();
-      const defaultProfitMargin =
-        parseFloat(profit_percentages.toString()) / 100;
-      const materialProfits = materials_cost * defaultProfitMargin;
-      const laborCost = Math.round(materials_cost * (labor_percentages / 100));
+
+      // Calculate material profits based on profit mode
+      const materialProfits =
+        percentageSettings.profitMode === "percent"
+          ? materials_cost * (percentageSettings.profit / 100)
+          : 0; // If profit is fixed, material profits are handled separately
+
       const equipmentCost = equipment.reduce((total, item) => {
         return total + item.total_cost;
       }, 0);
-      const percentages = [
-        {
-          labour: labor_percentages,
-          overhead: overhead_percentages,
-          profit: profit_percentages,
-          contingency: contingency_percentages,
-        },
-      ];
 
       const selectedSubcontractors = subcontractors ?? [];
       const { updatedSubcontractors, subcontractorRates, subcontractorProfit } =
@@ -381,7 +463,12 @@ export const useQuoteCalculations = () => {
               total = Number(sub.total) || 0;
             }
             sub.total = total;
-            profitSub = total * profit_percentages;
+
+            // Calculate subcontractor profit based on profit mode
+            if (percentageSettings.profitMode === "percent") {
+              profitSub += total * (percentageSettings.profit / 100);
+            }
+
             totalAll += total;
             return {
               ...sub,
@@ -394,11 +481,27 @@ export const useQuoteCalculations = () => {
             subcontractorProfit: profitSub,
           };
         })();
+
       const servicesCost = services.reduce((total, s) => {
         return total + (s.price ?? 0);
       }, 0);
-      const permitCost = permit_cost || 0;
-      var subtotalBeforeExtras;
+
+      // Handle permit cost based on mode (if stored in qsSettings)
+      const permitCostMode =
+        qsSettings?.financialModes?.permit_cost || "percentage";
+      const permitCost =
+        permitCostMode === "percentage"
+          ? permit_cost || 0
+          : qsSettings?.permit_cost_fixed || 0;
+
+      // Calculate labor cost based on mode
+      const laborCost =
+        percentageSettings.labourMode === "percent"
+          ? Math.round(materials_cost * (percentageSettings.labour / 100))
+          : qsSettings?.labour_fixed || 0;
+
+      // Calculate subtotal based on contract type
+      let subtotalBeforeExtras;
       if (contract_type === "full_contract") {
         subtotalBeforeExtras =
           materials_cost + laborCost + subcontractorRates + preliminariesCost;
@@ -406,37 +509,32 @@ export const useQuoteCalculations = () => {
         subtotalBeforeExtras =
           laborCost + preliminariesCost + subcontractorRates;
       }
+
+      // Calculate overhead based on mode
       const overheadAmount =
-        (subtotalBeforeExtras *
-          (parseFloat(overhead_percentages.toString()) || 0)) /
-        100;
+        percentageSettings.overheadMode === "percent"
+          ? Math.round(
+              subtotalBeforeExtras * (percentageSettings.overhead / 100)
+            )
+          : qsSettings?.overhead_fixed || 0;
+
+      // Calculate contingency based on mode
       const contingencyAmount =
-        (subtotalBeforeExtras *
-          (parseFloat(contingency_percentages.toString()) || 0)) /
-        100;
+        percentageSettings.contingencyMode === "percent"
+          ? Math.round(
+              subtotalBeforeExtras * (percentageSettings.contingency / 100)
+            )
+          : qsSettings?.contingency_fixed || 0;
+
+      // Calculate profit based on mode
+      const profitAmount =
+        percentageSettings.profitMode === "percent"
+          ? Math.round(subcontractorProfit + materialProfits)
+          : qsSettings?.profit_fixed || 0;
+
       const subtotalWithExtras =
         subtotalBeforeExtras + overheadAmount + contingencyAmount;
-      const profitAmount = Math.round(subcontractorProfit + materialProfits);
       const totalAmount = Math.round(subtotalWithExtras + profitAmount);
-      console.log(
-        `Materials: ${materials_cost} 
-        + Labor: ${laborCost} 
-        + Subcontractors: ${subcontractorRates}
-         + Prelims: ${preliminariesCost} 
-         + Overhead: ${overheadAmount} 
-         + Contingency: ${contingencyAmount}
-          + SubProfit: ${subcontractorProfit}
-           + MatProfit: ${materialProfits} = ${
-          materials_cost +
-          laborCost +
-          subcontractorRates +
-          preliminariesCost +
-          overheadAmount +
-          contingencyAmount +
-          subcontractorProfit +
-          materialProfits
-        }`
-      );
 
       return {
         labor_cost: laborCost,
@@ -456,12 +554,12 @@ export const useQuoteCalculations = () => {
         materials_cost: materials_cost,
         preliminariesCost: preliminariesCost,
         subcontractors: updatedSubcontractors,
-        percentages: percentages,
+        percentages: [percentageSettings],
         materialPrices: materials,
         labor: [
           {
             type: "calculated",
-            percentage: labor_percentages,
+            percentage: percentageSettings.labour,
             cost: laborCost,
           },
         ],
@@ -485,6 +583,7 @@ export const useQuoteCalculations = () => {
       setLoading(false);
     }
   };
+
   return {
     materials,
     equipmentRates,

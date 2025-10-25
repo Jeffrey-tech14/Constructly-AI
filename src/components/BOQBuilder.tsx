@@ -62,8 +62,8 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
 
       // Check if quoteData already has BOQ sections
       if (quoteData.boqSections && quoteData.boqSections.length > 0) {
-        setBoqSections(quoteData.boqSections);
-        onBOQUpdate(quoteData.boqSections);
+        setBoqSections(quoteData.boq_data);
+        onBOQUpdate(quoteData.boq_data);
         setGenerationMethod("existing");
         return;
       }

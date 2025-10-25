@@ -102,6 +102,39 @@ Analyze this construction document and extract ALL available information about:
 - Note any specific room names or numbers
 - Pay special attention to room boundaries and labels within floor plans
 - Identify if rooms are marked as "Master Bedroom", "Bedroom 1", "Bedroom 2", etc.
+- Identify en-suite bathrooms vs shared bathrooms
+
+**Plumbing:**
+- System types: "water-supply", "drainage", "sewage", "rainwater", "hot-water", "fire-fighting", "gas-piping", "irrigation"
+- Pipe materials: "PVC-u", "PVC-c", "copper", "PEX", "galvanized-steel", "HDPE", "PPR", "cast-iron", "vitrified-clay"
+- Fixture types: "water-closet", "urinal", "lavatory", "kitchen-sink", "shower", "bathtub", "bidet", "floor-drain", "cleanout", "hose-bib"
+- Quality: "standard", "premium", "luxury"
+
+**Electrical:**
+- System types: "lighting", "power", "data", "security", "cctv", "fire-alarm", "access-control", "av-systems", "emergency-lighting", "renewable-energy"
+- Cable types: "NYM-J", "PVC/PVC", "XLPE", "MICC", "SWA", "Data-CAT6", "Ethernet", "Fiber-Optic", "Coaxial"
+- Outlet types: "power-socket", "light-switch", "dimmer-switch", "data-port", "tv-point", "telephone", "usb-charger", "gpo"
+- Lighting types: "led-downlight", "fluorescent", "halogen", "emergency-light", "floodlight", "street-light", "decorative"
+- Installation methods: "surface", "concealed", "underground", "trunking"
+- Amperes: "6, 10, 13, 16, 20, 25, 32, 40, 45, 63"
+
+**Roofing:**
+- Roof types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
+- Roof materials: "concrete-tiles", "clay-tiles", "metal-sheets", "box-profile", "thatch", "slate", "asphalt-shingles", "green-roof", "membrane"
+- Timber sizes: "50x25", "50x50", "75x50", "100x50", "100x75", "150x50", "200x50"
+- Underlayment: "felt-30", "felt-40", "synthetic", "rubberized", "breathable"
+- Insulation: "glass-wool", "rock-wool", "eps", "xps", "polyurethane", "reflective-foil"
+- Accessories: Use exact types (e.g., gutterType: "PVC", "Galvanized Steel", etc.)
+
+**Finishes:**
+- Categories: "flooring", "ceiling", "wall-finishes", "painting", "glazing", "joinery"
+- Only use these specified categories: skip glass, blocks etc that are not in this list
+- Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
+
+**Concrete & Structure:**
+- Element types: "slab", "beam", "column", "foundation", "strip-footing", "raft-foundation", etc.
+- Categories: "substructure", "superstructure"
+- Rebar sizes follow standard notation (e.g., "Y10", "Y12")
 
 ### 📐 DIMENSION EXTRACTION:
 - Extract room dimensions (length × width) in meters
@@ -168,7 +201,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         "custom": {"height": "1.2", "width": "1.2", "price": ""},
         "glass": "Clear",
         "frame: {
-            type: "Wood",
+            type: "Steel",
             sizeType: "standard", // "standard" | "custom"
             standardSize: 1.2 x 1.2 m;
             custom: {
@@ -191,10 +224,285 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     "length": "5.0" // Length of the foundation
     "width"" "6.0" //Width of the foundation
     } 
+    "projectType": "residential" | "commercial" | "industrial" | "institutional",
+    "floors": number,
+    "totalArea": number,
+    "description": string
+  
+  "earthworks": [ {
+      "id": "excavation-01",
+      "type": "foundation-excavation",
+      "length": "15.5",
+      "width": "10.2", 
+      "depth": "1.2",
+      "volume": "189.72",
+      "material": "soil"
+    } 
+  ],
+  "concreteStructures": [
+    {
+      "id": "uuid-001",
+      "name": "Ground Floor Slab",
+      "element": "slab",
+      "length": "12.5",
+      "width": "10.0",
+      "height": "0.15",
+      "mix": "C25",
+      "category": "superstructure",
+      "number": "1",
+      "foundationType": "raft-foundation",
+      "reinforcement": {
+        "mainBarSize": "Y12",
+        "mainBarSpacing": "200",
+        "distributionBarSize": "Y10",
+        "distributionBarSpacing": "200"
+      }
+    },
+    {
+      "id": "uuid-002",
+      "name": "Strip Footing",
+      "element": "strip-footing",
+      "length": "20.0",
+      "width": "0.6",
+      "height": "0.3",
+      "mix": "C20",
+      "category": "substructure",
+      "number": "2",
+      "foundationType": "strip",
+      "reinforcement": {
+        "mainBarSize": "Y16",
+        "mainBarSpacing": "150",
+        "distributionBarSize": "Y12",
+        "distributionBarSpacing": "200"
+      }
+    },
+    {
+      "id": "uuid-003",
+      "name": "Septic Tank Base",
+      "element": "septic-tank",
+      "length": "3.0",
+      "width": "2.0",
+      "height": "0.25",
+      "mix": "C25",
+      "category": "substructure",
+      "number": "3",
+      "foundationType": "raft-foundation",
+      "reinforcement": {
+        "mainBarSize": "Y10",
+        "mainBarSpacing": "150",
+        "distributionBarSize": "Y10",
+        "distributionBarSpacing": "150"
+      }
+    }
+  ],
+  "reinforcement":[
+    {
+      id?: string;
+      element: ElementTypes;
+      name: string;
+      length: string;
+      width: string;
+      depth: string;
+      columnHeight?: string;
+      mainBarSpacing?: string;
+      distributionBarSpacing?: string;
+      mainBarsCount?: string;
+      distributionBarsCount?: string;
+      slabLayers?: string;
+      mainBarSize?: RebarSize;
+      distributionBarSize?: RebarSize;
+      stirrupSize?: RebarSize;
+      tieSize?: RebarSize;
+      stirrupSpacing?: string;
+      tieSpacing?: string;
+      category?: Category;
+      number?: string;
+      reinforcementType?: ReinforcementType;
+      meshGrade?: string;
+      meshSheetWidth?: string;
+      meshSheetLength?: string;
+      meshLapLength?: string;
+      footingType?: FootingType;
+      longitudinalBars?: string;
+      transverseBars?: string;
+      topReinforcement?: string;
+      bottomReinforcement?: string;
+    }
+  ],
+  "masonry": [
+    {
+      "id": string,
+      "type": "block" | "brick",
+      "blockType": string,
+      "length": string,
+      "height": string,
+      "thickness": string,
+      "area": string
+    }
+  ],
+  "roofing": [
+    {
+      "id": string,
+      "name": string,
+      "type": RoofType,
+      "material": RoofMaterial,
+      "area": number,
+      "pitch": number, // degrees
+      "length": number,
+      "width": number,
+      "eavesOverhang": number,
+      "covering": {
+        "type": string,
+        "material": RoofMaterial,
+        "underlayment"?: UnderlaymentType,
+        "insulation"?: { "type": InsulationType, "thickness": number }
+      },
+      "timbers": [
+        {
+          "id": string,
+          "type": string, // e.g., "rafter", "battens"
+          "size": TimberSize,
+          "spacing": number,
+          "grade": "standard" | "structural" | "premium",
+          "treatment": "untreated" | "pressure-treated" | "fire-retardant",
+          "quantity": number,
+          "length": number,
+          "unit": "m" | "pcs"
+        }
+      ],
+      "accessories": {
+        "gutters": number,
+        "gutterType": GutterType,
+        "downpipes": number,
+        "downpipeType": DownpipeType,
+        "flashings": number,
+        "flashingType": FlashingType,
+        "fascia": number,
+        "fasciaType": FasciaType,
+        "soffit": number,
+        "soffitType": SoffitType
+      },
+    }
+  ],
+  "plumbing": [
+    {
+      "id": string,
+      "name": string,
+      "systemType": PlumbingSystemType,
+      "pipes": [
+        {
+          "id": string,
+          "material": PipeMaterial,
+          "diameter": number, // from [15,20,...200]
+          "length": number,
+          "quantity": number,
+          "pressureRating"?: string,
+          "insulation"?: { "type": string, "thickness": number },
+          "trenchDetails"?: { "width": number, "depth": number, "length": number }
+        }
+      ],
+      "fixtures": [
+        {
+          "id": string,
+          "type": FixtureType,
+          "count": number,
+          "location": string,
+          "quality": "standard" | "premium" | "luxury",
+          "connections": {
+            "waterSupply": boolean,
+            "drainage": boolean,
+            "vent": boolean
+          }
+        }
+      ],
+      "tanks": [],
+      "pumps": [],
+      "fittings": []
+    }
+  ],
+  "electrical": [
+    {
+      "id": string,
+      "name": string,
+      "systemType": ElectricalSystemType,
+      "cables": [
+        {
+          "id": string,
+          "type": CableType,
+          "size": number, // mm² (from commonCableSizes)
+          "length": number,
+          "quantity": number,
+          "circuit": string,
+          "protection": string,
+          "installationMethod": InstallationMethod
+        }
+      ],
+      "outlets": [
+        {
+          "id": string,
+          "type": OutletType,
+          "count": number,
+          "location": string,
+          "circuit": string,
+          "rating": number, // from commonOutletRatings
+          "gang": number, // 1–4
+          "mounting": "surface" | "flush"
+        }
+      ],
+      "lighting": [
+        {
+          "id": string,
+          "type": LightingType,
+          "count": number,
+          "location": string,
+          "circuit": string,
+          "wattage": number, // from LIGHTING_WATTAGE
+          "controlType": "switch" | "dimmer" | "sensor" | "smart",
+          "emergency": boolean
+        }
+      ],
+      "distributionBoards": [
+        {
+          "id": string,
+          "type": "main" | "sub",
+          "circuits": number,
+          "rating": number,
+          "mounting": "surface" | "flush",
+          "accessories": string[]
+        }
+      ],
+      "protectionDevices": [],
+      "voltage": 230 // default if not specified
+    }
+  ],
+  "finishes": [
+    {
+      "id": string,
+      "category": FinishCategory,
+      "type": string,
+      "material": string, // from COMMON_MATERIALS[category]
+      "area": number,
+      "unit": "m²" | "m" | "pcs",
+      "quantity": number,
+      "location": string
+    }
+  ],
   }
 
 IMPORTANT: 
+1. **DO NOT invent dimensions** that are not visible or inferable.
+2. **Use defaults only when reasonable**:
+   - Room height → 2.7 m
+   - Roof wastage → 5%
+   - Electrical voltage → 230V
+   - Fixture quality → "standard"
+   - Timber grade/treatment → "structural" / "pressure-treated" for structural elements
+3. **Map extracted names to closest enum** (e.g., "toilet" → "water-closet", "LED light" → "led-downlight")
+4. **If a section has no data, return empty array** (`[]`) or omit optional objects.
+5. **All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
+6. **Be consistent with your type system** — no arbitrary strings.
 - Base your analysis on what you can actually see in the drawing
+- External works should be in the concreteStructures section
 - Use reasonable architectural standards for missing information
 - Return at least one room if any building elements are visible
 - Prefer custom sizes when specific dimensions are visible
@@ -202,6 +510,8 @@ IMPORTANT:
 - For bathrooms, identify if they are "En-suite" or shared
 - Pay special attention to dimension lines and labels
 - Convert all measurements to meters (mm ÷ 1000)
+- Use the specific types provided
+- Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not chnage the speling or characters
 - Be precise with room identification and dimensions
 """
 

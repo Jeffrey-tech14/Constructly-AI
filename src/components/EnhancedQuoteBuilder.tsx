@@ -1,4 +1,4 @@
-import { ElementType, useCallback, useEffect, useState } from "react";
+import { ElementType, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,7 @@ import {
   CalculationResult,
   QuoteCalculation,
   Percentage,
+  Material,
 } from "@/hooks/useQuoteCalculations";
 import {
   RoomType,
@@ -72,6 +73,11 @@ import {
   HardHat,
   Eye,
   Loader2,
+  Pipette,
+  Hourglass,
+  Paintbrush,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,6 +101,35 @@ import {
   TableRow,
 } from "./ui/table";
 import PreliminariesBuilder from "./PreliminariesBuilder";
+import PlumbingCalculator from "./PlumbingCalculator";
+import ElectricalCalculator from "./ElectricalCalculator";
+import {
+  CableType,
+  ElectricalSystem,
+  InstallationMethod,
+  LightingType,
+  OutletType,
+} from "@/hooks/useElectricalCalculator";
+import {
+  FixtureType,
+  PipeMaterial,
+  PlumbingSystem,
+} from "@/hooks/usePlumbingCalculator";
+import RoofingCalculator, { DEFAULT_TIMBERS } from "./RoofingCalculator";
+import FinishesCalculator from "./FinishesCalculator";
+import { M } from "node_modules/framer-motion/dist/types.d-Cjd591yU";
+import {
+  DownpipeType,
+  FasciaType,
+  FlashingType,
+  GutterType,
+  RoofStructure,
+  SoffitType,
+} from "@/hooks/useRoofingCalculator";
+import {
+  FinishCategory,
+  FinishElement,
+} from "@/hooks/useUniversalFinishesCalculator";
 import QSSettings from "./QSSettings";
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
@@ -266,6 +301,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     concrete_mix_ratio: "1:2:4",
     plaster_thickness: 0.012,
     include_wastage: true,
+    external_works: [],
+    earthworks: [],
     equipment: [],
     services: [],
     percentages: [],
@@ -284,6 +321,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     rebar_calculations: [],
     total_wall_area: 0,
     total_concrete_volume: 0,
+    electrical_systems: [],
+    plumbing_systems: [],
+    finishes: [],
+    roof_structures: [],
     total_formwork_area: 0,
     total_rebar_weight: 0,
     total_plaster_volume: 0,
@@ -295,13 +336,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     contingency_percentages: 0,
     permit_cost: 0,
   });
-
-  useEffect(() => {
-    if (quoteData.region) {
-      updateRegion(quoteData.region);
-    }
-  }, [quoteData.region]);
-
   useEffect(() => {
     if (quote) {
       setQuoteData((prev) => ({
@@ -314,9 +348,45 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }
   }, [quote]);
 
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [finishes, setFinishes] = useState<FinishElement[]>();
+
+  const [electricalSystems, setElectricalSystems] =
+    useState<ElectricalSystem[]>();
+  const [plumbingSystems, setPlumbingSystems] = useState<PlumbingSystem[]>();
+  const [roofStructure, setRoofStructure] = useState<RoofStructure[]>();
+  useEffect(() => {
+    setPlumbingSystems(quoteData.plumbing_systems);
+    setRoofStructure(quoteData.roof_structures);
+    setElectricalSystems(quoteData.electrical_systems);
+    setFinishes(quoteData.finishes);
+  }, [
+    quoteData.plumbing_systems,
+    quoteData.roof_structures,
+    quoteData.electrical_systems,
+    quoteData.finishes,
+  ]);
+  useEffect(() => {
+    if (quoteData.region) {
+      updateRegion(quoteData.region);
+    }
+  }, [quoteData.region]);
+
+  // useEffect(() => {
+  //   setQuoteData((prev: any) => ({
+  //     ...prev,
+  //     plumbing_systems: plumbingSystems,
+  //     electrical_systems: electricalSystems,
+  //     roof_structures: roofStructure,
+  //     finishes: finishes,
+  //   }));
+  //   console.log("updated quote data");
+  // }, [plumbingSystems, electricalSystems, roofStructure, finishes]);
+
   useEffect(() => {
     fetchRates();
     fetchLimit();
+    fetchMaterials();
   }, [user, location.key]);
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
 
@@ -380,58 +450,375 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       fetchRates();
     }
   }, [user, profile, location.key]);
+
   useEffect(() => {
-    if (extractedPlan && extractedPlan.rooms?.length) {
+    if (extractedPlan) {
       setQuoteData((prev) => ({
         ...prev,
         floors: extractedPlan.floors || prev.floors,
-        rooms: extractedPlan.rooms.map((room) => ({
-          room_name: room.room_name,
-          length: room.length,
-          width: room.width,
-          height: room.height || "2.7",
-          doors: room.doors || [],
-          windows: room.windows || [],
-          blockType: room.blockType || "Standard Block (400×200×200mm)",
-          thickness: room.thickness || "0.2",
-          customBlock: room.customBlock || {
-            price: "",
-            height: "",
-            length: "",
-            thickness: "",
-          },
-          roomArea: 0,
-          plasterArea: 0,
-          openings: 0,
-          netArea: 0,
-          blocks: 0,
-          mortar: 0,
-          plaster: room.plaster || "Both Sides",
-          blockCost: 0,
-          mortarCost: 0,
-          plasterCost: 0,
-          openingsCost: 0,
-          cementBags: 0,
-          cementCost: 0,
-          sandVolume: 0,
-          sandCost: 0,
-          stoneVolume: 0,
-          totalCost: 0,
-        })),
-        foundationDetails: extractedPlan.foundationDetails || {
-          foundationType: "",
-          totalPerimeter: 0,
-          masonryType: "",
-          wallThickness: "",
-          wallHeight: "",
-          blockDimensions: "",
-          length: "",
-          width: "",
-          height: "",
-        },
+        house_type: extractedPlan.houseType || prev.house_type,
+        total_wall_area:
+          extractedPlan.masonry?.reduce(
+            (sum: number, item: any) => sum + (parseFloat(item.area) || 0),
+            0
+          ) || prev.total_wall_area,
+        total_concrete_volume:
+          extractedPlan.concreteStructures?.reduce(
+            (sum: number, item: any) =>
+              sum +
+              (parseFloat(item.volume) ||
+                parseFloat(item.length) *
+                  parseFloat(item.width) *
+                  parseFloat(item.height) ||
+                0),
+            0
+          ) || prev.total_concrete_volume,
+
+        // Rooms mapping
+        rooms:
+          extractedPlan.rooms?.map((room: any) => ({
+            room_name: room.room_name,
+            length: room.length,
+            width: room.width,
+            height: room.height || "2.7",
+            doors: room.doors || [],
+            windows: room.windows || [],
+            blockType: room.blockType || "Standard Block (400×200×200mm)",
+            thickness: room.thickness || "0.2",
+            customBlock: room.customBlock || {
+              price: "",
+              height: "",
+              length: "",
+              thickness: "",
+            },
+            roomArea: 0,
+            plasterArea: 0,
+            openings: 0,
+            netArea: 0,
+            blocks: 0,
+            mortar: 0,
+            plaster: room.plaster || "Both Sides",
+            blockCost: 0,
+            mortarCost: 0,
+            plasterCost: 0,
+            openingsCost: 0,
+            cementBags: 0,
+            cementCost: 0,
+            sandVolume: 0,
+            sandCost: 0,
+            stoneVolume: 0,
+            totalCost: 0,
+          })) || prev.rooms,
+
+        // Concrete structures
+        concrete_rows:
+          extractedPlan.concreteStructures?.map(
+            (structure: any, index: number) => ({
+              id: structure.id || `concrete-${index}`,
+              name: structure.name,
+              element: structure.element,
+              length: structure.length,
+              width: structure.width,
+              height: structure.height,
+              mix: structure.mix || "C25",
+              formwork: structure.formwork,
+              category: structure.category || "substructure",
+              number: structure.number || "1",
+              hasConcreteBed: structure.hasConcreteBed || false,
+              bedDepth: structure.bedDepth || "0.1",
+              hasAggregateBed: structure.hasAggregateBed || false,
+              aggregateDepth: structure.aggregateDepth || "0.15",
+              hasMasonryWall: structure.hasMasonryWall || false,
+              masonryBlockType: structure.masonryBlockType,
+              masonryBlockDimensions: structure.masonryBlockDimensions,
+              masonryWallThickness: structure.masonryWallThickness,
+              masonryWallHeight: structure.masonryWallHeight,
+              masonryWallPerimeter: structure.masonryWallPerimeter,
+              foundationType: structure.foundationType,
+              clientProvidesWater: structure.clientProvidesWater || false,
+              cementWaterRatio: structure.cementWaterRatio || "0.5",
+              reinforcement: structure.reinforcement || {
+                mainBarSize: "Y12",
+                mainBarSpacing: "0.2",
+              },
+              staircaseDetails: structure.staircaseDetails,
+              tankDetails: structure.tankDetails,
+            })
+          ) || prev.concrete_rows,
+
+        // Reinforcement
+        rebar_rows:
+          extractedPlan.reinforcement?.map((rebar: any, index: number) => ({
+            id: rebar.id || `rebar-${index}`,
+            element: rebar.element,
+            name: rebar.name,
+            length: rebar.length,
+            width: rebar.width,
+            depth: rebar.depth,
+            columnHeight: rebar.columnHeight || "",
+            mainBarSpacing: rebar.mainBarSpacing || "200",
+            distributionBarSpacing: rebar.distributionBarSpacing || "200",
+            mainBarsCount: rebar.mainBarsCount || "",
+            distributionBarsCount: rebar.distributionBarsCount || "",
+            slabLayers: rebar.slabLayers || "1",
+            mainBarSize: rebar.mainBarSize || "Y12",
+            distributionBarSize: rebar.distributionBarSize || "Y12",
+            stirrupSize: rebar.stirrupSize || "Y8",
+            tieSize: rebar.tieSize || "Y8",
+            stirrupSpacing: rebar.stirrupSpacing || "200",
+            tieSpacing: rebar.tieSpacing || "250",
+            category: rebar.category || "superstructure",
+            number: rebar.number || "1",
+            // Reinforcement type and mesh fields
+            reinforcementType: rebar.reinforcementType || "individual_bars",
+            meshGrade: rebar.meshGrade || "A142",
+            meshSheetWidth: rebar.meshSheetWidth || "2.4",
+            meshSheetLength: rebar.meshSheetLength || "4.8",
+            meshLapLength: rebar.meshLapLength || "0.3",
+            // Strip footing specific fields
+            footingType: rebar.footingType || "strip",
+            longitudinalBars: rebar.longitudinalBars || "",
+            transverseBars: rebar.transverseBars || "",
+            topReinforcement: rebar.topReinforcement || "",
+            bottomReinforcement: rebar.bottomReinforcement || "",
+          })) || prev.rebar_rows,
+
+        // Masonry
+        masonry_materials:
+          extractedPlan.masonry?.map((masonry: any, index: number) => ({
+            id: masonry.id || `masonry-${index}`,
+            type: masonry.type,
+            blockType: masonry.blockType,
+            length: masonry.length,
+            height: masonry.height,
+            thickness: masonry.thickness,
+            area: masonry.area,
+          })) || prev.masonry_materials,
+
+        // Roof Structures
+        roof_structures:
+          extractedPlan.roofing?.map((roof: any, index: number) => ({
+            id: roof.id || `roof-${index}`,
+            name: roof.name || `Roof Structure ${index + 1}`,
+            type: roof.type || "pitched",
+            material: roof.material || "concrete-tiles",
+            area: parseFloat(roof.area) || 0,
+            pitch: parseFloat(roof.pitch) || 30,
+            length: parseFloat(roof.length) || 0,
+            width: parseFloat(roof.width) || 0,
+            eavesOverhang: 0.5,
+            ridgeLength: roof.ridgeLength,
+            covering: {
+              type: roof.material || "concrete-tiles",
+              material: roof.material || "concrete-tiles",
+              thickness: roof.thickness,
+              underlayment: roof.underlayment || "felt-30",
+              insulation: roof.insulation,
+            },
+            grade: "structural",
+            treatment: "pressure-treated",
+            timbers: DEFAULT_TIMBERS.map((timber) => ({
+              ...timber,
+              length:
+                roof.structure === "timber-truss"
+                  ? parseFloat(roof.span) / 2 || 4.5
+                  : timber.length,
+            })),
+            accessories: {
+              gutters: parseFloat(roof.perimeter) || 0,
+              gutterType: "PVC" as GutterType,
+              downpipes: Math.ceil((parseFloat(roof.perimeter) || 0) / 10),
+              downpipeType: "PVC" as DownpipeType,
+              flashings: parseFloat(roof.flashingLength) || 0,
+              flashingType: "PVC" as FlashingType,
+              fascia: parseFloat(roof.perimeter) || 0,
+              fasciaType: "PVC" as FasciaType,
+              soffit: parseFloat(roof.perimeter) || 0,
+              soffitType: "PVC" as SoffitType,
+              ridgeCaps: parseFloat(roof.ridgeLength) || 0,
+              valleyTrays: parseFloat(roof.valleyLength) || 0,
+            },
+            wastagePercentage: 10,
+          })) || prev.roof_structures,
+
+        // Plumbing Systems
+        plumbing_systems:
+          extractedPlan.plumbing?.map((system: any, index: number) => ({
+            id: system.id || `plumbing-${index}`,
+            name: system.name || `Plumbing System ${index + 1}`,
+            systemType: system.system || "water-supply",
+            pipes:
+              system.pipes?.map((pipe: any, pipeIndex: number) => ({
+                id: pipe.id || `pipe-${index}-${pipeIndex}`,
+                material:
+                  (pipe.material
+                    ?.toLowerCase()
+                    .replace(" ", "-") as PipeMaterial) || "PVC-u",
+                diameter: parseFloat(pipe.diameter) || 25,
+                length: parseFloat(pipe.length) || 0,
+                quantity: 1,
+                pressureRating: pipe.pressureRating,
+                insulation: pipe.insulation,
+                trenchDetails: pipe.trenchDetails,
+              })) || [],
+            fixtures:
+              system.fixtures?.map((fixture: any, fixtureIndex: number) => ({
+                id: fixture.id || `fixture-${index}-${fixtureIndex}`,
+                type:
+                  (fixture.type
+                    ?.toLowerCase()
+                    .replace(" ", "-") as FixtureType) || "water-closet",
+                count: fixture.count || 1,
+                location: fixture.location || "Unknown",
+                quality: "standard" as const,
+                waterConsumption: fixture.waterConsumption,
+                connections: {
+                  waterSupply: true,
+                  drainage: true,
+                  vent: true,
+                },
+              })) || [],
+            tanks: system.tanks || [],
+            pumps: system.pumps || [],
+            fittings: system.fittings || [],
+          })) || prev.plumbing_systems,
+
+        // Electrical Systems
+        electrical_systems:
+          extractedPlan.electrical?.map((system: any, index: number) => ({
+            id: system.id || `electrical-${index}`,
+            name: system.name || `Electrical System ${index + 1}`,
+            systemType: system.system || "power",
+            cables:
+              system.cables?.map((cable: any, cableIndex: number) => ({
+                id: cable.id || `cable-${index}-${cableIndex}`,
+                type: (cable.type as CableType) || "NYM-J",
+                size: parseFloat(cable.size) || 2.5,
+                length: parseFloat(cable.length) || 0,
+                quantity: 1,
+                circuit: cable.circuit || "Circuit 1",
+                protection: cable.protection,
+                installationMethod:
+                  (cable.installationMethod as InstallationMethod) ||
+                  "concealed",
+              })) || [],
+            outlets:
+              system.outlets?.map((outlet: any, outletIndex: number) => ({
+                id: outlet.id || `outlet-${index}-${outletIndex}`,
+                type:
+                  (outlet.type
+                    ?.toLowerCase()
+                    .replace(" ", "-") as OutletType) || "power-socket",
+                count: outlet.count || 1,
+                location: outlet.location || "Unknown",
+                circuit: outlet.circuit || "Circuit 1",
+                rating: parseFloat(outlet.rating) || 16,
+                gang: outlet.gang || 1,
+                mounting: outlet.mounting || "flush",
+              })) || [],
+            lighting:
+              system.lighting?.map((light: any, lightIndex: number) => ({
+                id: light.id || `light-${index}-${lightIndex}`,
+                type:
+                  (light.type
+                    ?.toLowerCase()
+                    .replace("-", "") as LightingType) || "led-downlight",
+                count: light.count || 1,
+                location: light.location || "Unknown",
+                circuit: light.circuit || "Lighting Circuit",
+                wattage: parseFloat(light.wattage) || 12,
+                controlType: light.controlType || "switch",
+                emergency: light.emergency || false,
+              })) || [],
+            distributionBoards:
+              system.panels?.map((panel: any, panelIndex: number) => ({
+                id: panel.id || `db-${index}-${panelIndex}`,
+                type:
+                  panel.type === "main-distribution"
+                    ? ("main" as const)
+                    : ("sub" as const),
+                circuits: panel.circuits || 12,
+                rating: parseFloat(panel.rating) || 100,
+                mounting: "flush" as const,
+                accessories: panel.accessories || [],
+              })) || [],
+            protectionDevices: system.protectionDevices || [],
+            voltage: parseFloat(system.voltage) || 230,
+          })) || prev.electrical_systems,
+
+        // Finishes
+        finishes:
+          extractedPlan.finishes?.map((finish: any, index: number) => ({
+            id: finish.id || `finish-${index}`,
+            category: (finish.type as FinishCategory) || "flooring",
+            type: finish.material || "Ceramic Tiles",
+            material: finish.material || "Ceramic Tiles",
+            area: parseFloat(finish.area) || 0,
+            length: parseFloat(finish.length) || 0,
+            width: parseFloat(finish.width) || 0,
+            height: parseFloat(finish.height) || 0,
+            unit: "m²" as const,
+            quantity: parseFloat(finish.area) || 1,
+            location: finish.room || "Unknown",
+            specifications: finish.specifications || {},
+          })) || prev.finishes,
+
+        // External Works
+        external_works:
+          extractedPlan.externalWorks?.map((work: any, index: number) => ({
+            id: work.id || `external-${index}`,
+            type: work.type,
+            material: work.material,
+            area: parseFloat(work.area) || 0,
+            length: parseFloat(work.length) || 0,
+            width: parseFloat(work.width) || 0,
+            quantity: 1,
+          })) || prev.external_works,
+
+        // Earthworks
+        earthworks:
+          extractedPlan.earthworks?.map((earthwork: any, index: number) => ({
+            id: earthwork.id || `earthwork-${index}`,
+            type: earthwork.type,
+            length: parseFloat(earthwork.length) || 0,
+            width: parseFloat(earthwork.width) || 0,
+            depth: parseFloat(earthwork.depth) || 0,
+            volume: parseFloat(earthwork.volume) || 0,
+            material: earthwork.material,
+          })) || prev.earthworks,
       }));
     }
+    console.log("Extracted Plan Changed:");
   }, [extractedPlan]);
+
+  const fetchMaterials = useCallback(async () => {
+    const { data: baseMaterials, error: baseError } = await supabase
+      .from("material_base_prices")
+      .select("*");
+    const { data: overrides, error: overrideError } = await supabase
+      .from("user_material_prices")
+      .select("material_id, region, price")
+      .eq("user_id", profile.id);
+    if (baseError) console.error("Base materials error:", baseError);
+    if (overrideError) console.error("Overrides error:", overrideError);
+    const merged = baseMaterials.map((material) => {
+      const userRegion = quoteData.region || "Nairobi";
+      const userRate = overrides?.find(
+        (o) => o.material_id === material.id && o.region === userRegion
+      );
+      const price = userRate ? userRate.price : material.price ?? 0;
+      const multiplier =
+        regionalMultipliers.find((r) => r.region === userRegion)?.multiplier ||
+        1;
+      const result = price * multiplier;
+      return {
+        ...material,
+        result,
+        source: userRate ? "user" : material.price != null ? "base" : "none",
+      };
+    });
+    setMaterials(merged);
+  }, [user, location, location.key, quoteData.region, regionalMultipliers]);
 
   const steps = [
     { id: 1, name: "Project Details", icon: <FileText className="w-5 h-5" /> },
@@ -443,34 +830,53 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
     {
       id: 3,
-      name: "Concrete and Rebar",
+      name: "Concrete and Reinforcement",
       icon: <Earth className="w-5 h-5" />,
     },
     { id: 4, name: "House and Materials", icon: <House className="w-5 h-5" /> },
-    { id: 5, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
-    { id: 6, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
-    { id: 7, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
     {
-      id: 8,
+      id: 5,
+      name: "Plumbing and Electricals",
+      icon: <Pipette className="w-5 h-5" />,
+    },
+    { id: 6, name: "Roofing", icon: <Hourglass className="w-5 h-5" /> },
+    { id: 7, name: "Finishes", icon: <Paintbrush className="w-5 h-5" /> },
+    { id: 8, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
+    { id: 9, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
+    { id: 10, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
+    {
+      id: 11,
       name: "Preliminaries and Legal",
       icon: <FileSpreadsheet className="w-5 h-5" />,
     },
-    { id: 9, name: "BOQ Builder", icon: <ListStartIcon className="w-5 h-5" /> },
     {
-      id: 10,
+      id: 12,
+      name: "BOQ Builder",
+      icon: <ListStartIcon className="w-5 h-5" />,
+    },
+    {
+      id: 13,
       name: "Review & Export",
       icon: <Calculator className="w-5 h-5" />,
     },
   ];
 
-  const updatePercentageField = (field: keyof Percentage, value: number) => {
+  const LOCAL_QUOTE_KEY = "jtech_quote_data";
+
+  useEffect(() => {
+    // ✅ On first load — try loading saved data
     setQuoteData((prev) => ({
       ...prev,
-      ...(field === "labour" && { labor_percentages: value }),
-      ...(field === "overhead" && { overhead_percentages: value }),
-      ...(field === "profit" && { profit_percentages: value }),
-      ...(field === "contingency" && { contingency_percentages: value }),
-      percentages:
+      material_prices: materials,
+    }));
+  }, []);
+
+  const updatePercentageField = (
+    field: keyof Percentage,
+    value: number | string
+  ) => {
+    setQuoteData((prev) => {
+      const updatedPercentages =
         prev.percentages.length > 0
           ? prev.percentages.map((p, i) =>
               i === 0 ? { ...p, [field]: value } : p
@@ -481,10 +887,28 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 overhead: 0,
                 profit: 0,
                 contingency: 0,
+                labourMode: "percent",
+                overheadMode: "percent",
+                profitMode: "percent",
+                contingencyMode: "percent",
                 [field]: value,
               },
-            ],
-    }));
+            ];
+
+      const updates: Record<string, any> = { percentages: updatedPercentages };
+
+      // Keep backwards compatibility with old flat fields
+      if (field === "labour" && typeof value === "number")
+        updates.labor_percentages = value;
+      if (field === "overhead" && typeof value === "number")
+        updates.overhead_percentages = value;
+      if (field === "profit" && typeof value === "number")
+        updates.profit_percentages = value;
+      if (field === "contingency" && typeof value === "number")
+        updates.contingency_percentages = value;
+
+      return { ...prev, ...updates };
+    });
   };
 
   const nextStep = () => {
@@ -499,7 +923,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     if (currentStep < steps.length) {
       setDirection("right");
       setCurrentStep(currentStep + 1);
-      if (currentStep + 1 === 10) {
+      if (currentStep + 1 === 13) {
         handleCalculate();
       }
     }
@@ -533,10 +957,16 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         subcontractors: quoteData.subcontractors,
         percentages: quoteData.percentages,
         boqData: boqData,
+        external_works: quoteData.external_works,
+        earthworks: quoteData.earthworks,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
         equipment: quoteData.equipment,
+        electrical_systems: electricalSystems,
+        plumbing_systems: plumbingSystems,
+        finishes: finishes,
+        roof_structures: roofStructure,
         services: quoteData.services,
         distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
         contract_type: quoteData.contract_type,
@@ -611,6 +1041,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           boq_data: boqData,
           rebar_calculations: quoteData.rebar_calculations,
           labor_cost: Math.round(calculation.labor_cost),
+          electrical_systems: quoteData.electrical_systems,
+          plumbing_systems: quoteData.plumbing_systems,
+          finishes: quoteData.finishes,
+          roof_structures: quoteData.roof_structures,
           additional_services_cost: Math.round(
             calculation.selected_services_cost
           ),
@@ -667,6 +1101,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           concrete_rows: quoteData.concrete_rows,
           rebar_rows: quoteData.rebar_rows,
           labor_cost: Math.round(calculation.labor_cost),
+          electrical_systems: electricalSystems,
+          plumbing_systems: plumbingSystems,
+          finishes: finishes,
+          roof_structures: roofStructure,
           additional_services_cost: Math.round(
             calculation.selected_services_cost
           ),
@@ -726,6 +1164,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       case 7:
       case 8:
       case 9:
+      case 10:
+      case 11:
+      case 12:
         return true;
       default:
         return false;
@@ -1014,8 +1455,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               />
             </div>
 
-            <div className="mt-6 border dark:border-white/10 border-primary/30 mb-3 mt-6 p-3 rounded-lg">
-              <h3 className="text-lg font-semibold mb-3">Rebar Calculator</h3>
+            <div className="mt-6">
+              <h3 className="text-xl font-bold mb-3">Rebar Calculator</h3>
               <RebarCalculatorForm
                 quote={quoteData}
                 setQuote={setQuoteData}
@@ -1026,8 +1467,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         );
       case 4:
         return (
-          <Card className="border dark:border-white/10 border-primary/30 mb-3 p-3 rounded-lg">
-            <h3 className="text-lg font-semibold mb-3 mt-1">Room Details *</h3>
+          <Card className="border dark:border-white/10 border-primary/30 mb-3 p-1 rounded-lg">
+            <h3 className="text-lg font-semibold mb-3 mt-1 ml-3">
+              Room Details *
+            </h3>
             <MasonryCalculatorForm
               quote={quoteData}
               setQuote={setQuoteData}
@@ -1040,6 +1483,55 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           </Card>
         );
       case 5:
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                Plumbing Systems
+              </h3>
+              <PlumbingCalculator
+                plumbingSystems={plumbingSystems}
+                onPlumbingSystemsUpdate={setPlumbingSystems}
+                materialPrices={materials}
+                setQuoteData={setQuoteData}
+                quote={quoteData}
+              />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                Electrical Systems
+              </h3>
+              <ElectricalCalculator
+                electricalSystems={electricalSystems}
+                materialPrices={materials}
+                onElectricalSystemsUpdate={setElectricalSystems}
+                setQuoteData={setQuoteData}
+                quote={quoteData}
+              />
+            </div>
+          </div>
+        );
+      case 6:
+        return (
+          <RoofingCalculator
+            roofStructures={roofStructure}
+            onRoofStructuresUpdate={setRoofStructure}
+            materialPrices={materials}
+            setQuoteData={setQuoteData}
+            quote={quoteData}
+          />
+        );
+      case 7:
+        return (
+          <FinishesCalculator
+            finishes={finishes}
+            onFinishesUpdate={setFinishes}
+            materialPrices={materials}
+            setQuoteData={setQuoteData}
+            quote={quoteData}
+          />
+        );
+      case 8:
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1065,7 +1557,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     return (
                       <Card
                         key={equipment.id}
-                        className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                        className="p-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                       >
                         <div className="items-center justify-between">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1513,7 +2005,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </motion.div>
         );
-      case 6:
+      case 9:
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -2041,7 +2533,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </motion.div>
         );
-      case 7:
+      case 10:
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -2422,7 +2914,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </motion.div>
         );
-      case 8:
+      case 11:
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -2442,13 +2934,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             />
           </motion.div>
         );
-      case 9:
+      case 12:
         return (
           <div className="space-y-6">
             <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />
           </div>
         );
-      case 10:
+      case 13:
         return (
           <div className="space-y-6">
             {calculation ? (
@@ -2740,7 +3232,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   }
 
   return (
-    <div className="min-h-screen animate-fade-in transition-colors duration-300">
+    <div className="min-h-screen animate-fade-in transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
@@ -2750,56 +3242,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <p className="bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
-          <div className="flex items-center justify-between  mt-2  mb-4">
-            {steps.map((step) => {
-              const newStep = step.id;
-              return (
-                <div
-                  key={step.id}
-                  onClick={() => {
-                    if (currentStep < newStep) {
-                      setDirection("right");
-                      setCurrentStep(newStep);
-                      if (currentStep + 1 === 10) {
-                        handleCalculate();
-                      }
-                    } else {
-                      setDirection("left");
-                      setCurrentStep(newStep);
-                      if (currentStep + 1 === 10) {
-                        handleCalculate();
-                      }
-                    }
-                  }}
-                  className={`flex items-center cursor-pointer ${
-                    step.id < steps.length ? "flex-1" : ""
-                  }`}
-                >
-                  <div
-                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                      currentStep >= step.id
-                        ? "bg-primary border-primary text-white"
-                        : "border-gray-300 text-gray-400"
-                    }`}
-                  >
-                    {step.icon}
-                  </div>
-                  <div className="hidden xl:inline">
-                    <p
-                      className={`ml-2 mr-2 text-sm font-medium ${
-                        currentStep >= step.id
-                          ? "text-primary dark:text-blue-500"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {step.name}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <Progress value={(currentStep / 10) * 100} className="w-full" />
+          <Stepper
+            steps={steps}
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+            setDirection={setDirection}
+            handleCalculate={handleCalculate}
+          />
+          <Progress value={(currentStep / 13) * 100} className="w-full" />
         </div>
 
         <AnimatePresence mode="wait" custom={direction}>
@@ -2812,18 +3262,20 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             exit="exit"
             transition={{ duration: 0.2 }}
           >
-            <Card className="mb-8 rounded-xl">
+            <Card className="mb-8">
               <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                <CardTitle className="flex items-center gap-3 text-gray-900 dark:text-white">
-                  <div className="p-2 rounded-full bg-blue-50 dark:bg-primary">
-                    {steps[currentStep - 1]?.icon}
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold">
-                      {steps[currentStep - 1]?.name}
+                <CardTitle className="flex justify-between items-center gap-3 text-gray-900 dark:text-white">
+                  <div className="flex gap-3  items-center">
+                    <div className="p-2 rounded-full bg-blue-200 dark:bg-primary">
+                      {steps[currentStep - 1]?.icon}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
-                      Step {currentStep} of {steps?.length}
+                    <div>
+                      <div className="text-lg font-semibold">
+                        {steps[currentStep - 1]?.name}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
+                        Step {currentStep} of {steps?.length}
+                      </div>
                     </div>
                   </div>
                 </CardTitle>
@@ -2837,17 +3289,17 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex justify-between items-center"
+          className="flex justify-between items-center mb-8"
         >
           <Button
             onClick={prevStep}
             variant="outline"
             className="rounded-full px-6 font-semibold bg-background shadow-md hover:shadow-lg transition-all duration-300"
           >
-            <ArrowLeft className="w-4 h-4 ml-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 10 && (
+          {currentStep < 13 && (
             <>
               <Button
                 onClick={nextStep}
@@ -2870,3 +3322,102 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 };
 
 export default EnhancedQuoteBuilder;
+
+export function Stepper({
+  steps,
+  currentStep,
+  setCurrentStep,
+  setDirection,
+  handleCalculate,
+}) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Center current step when it changes
+  useEffect(() => {
+    const activeStep = document.getElementById(`step-${currentStep}`);
+    if (activeStep && scrollContainerRef.current) {
+      activeStep.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [currentStep]);
+
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const scrollAmount = 200; // adjust as needed
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  return (
+    <div className="relative mt-2 mb-4">
+      {/* Left chevron */}
+      <button
+        onClick={() => scroll("left")}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/70 rounded-full p-1 shadow-md hover:bg-white"
+      >
+        <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+      </button>
+
+      {/* Scrollable steps */}
+      <div
+        ref={scrollContainerRef}
+        className="flex overflow-x-auto no-scrollbar scroll-smooth gap-2 px-8 py-2"
+      >
+        {steps.map((step) => {
+          const newStep = step.id;
+          const isActive = currentStep >= step.id;
+          return (
+            <div
+              key={step.id}
+              id={`step-${step.id}`}
+              onClick={() => {
+                setDirection(currentStep < newStep ? "right" : "left");
+                setCurrentStep(newStep);
+                if (newStep === 13) handleCalculate();
+              }}
+              className={`flex items-center cursor-pointer flex-shrink-0 transition-all ${
+                step.id < steps.length ? "flex-1" : ""
+              }`}
+            >
+              <div
+                className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
+                  isActive
+                    ? "bg-primary border-primary text-white"
+                    : "border-gray-300 text-gray-400"
+                }`}
+              >
+                {step.icon}
+              </div>
+              <div className="hidden xl:inline">
+                <p
+                  className={`ml-2 mr-2 text-sm font-medium ${
+                    isActive
+                      ? "text-primary dark:text-blue-500"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {step.name}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Right chevron */}
+      <button
+        onClick={() => scroll("right")}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/70 rounded-full p-1 shadow-md hover:bg-white"
+      >
+        <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+      </button>
+    </div>
+  );
+}

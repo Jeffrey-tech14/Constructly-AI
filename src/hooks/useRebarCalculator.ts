@@ -4,8 +4,17 @@ import { useMemo, useEffect, useState, useCallback } from "react";
 import { Category } from "./useConcreteCalculator";
 import { Material } from "./useQuoteCalculations";
 import { useMaterialPrices } from "./useMaterialPrices";
-export type ElementTypes = "slab" | "beam" | "column" | "foundation";
+
+export type ElementTypes =
+  | "slab"
+  | "beam"
+  | "column"
+  | "foundation"
+  | "strip_footing";
 export type RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
+export type ReinforcementType = "individual_bars" | "mesh";
+export type FootingType = "isolated" | "strip" | "combined";
+
 export const REBAR_PROPERTIES: Record<
   RebarSize,
   {
@@ -59,6 +68,52 @@ export const REBAR_PROPERTIES: Record<
     standardLengths: [12, 15, 18],
   },
 };
+
+// BRC Mesh properties
+export const MESH_PROPERTIES: Record<
+  string,
+  { weightPerSqm: number; wireDiameter: number; spacing: number }
+> = {
+  A142: {
+    weightPerSqm: 2.22,
+    wireDiameter: 6,
+    spacing: 200,
+  },
+  A193: {
+    weightPerSqm: 3.02,
+    wireDiameter: 7,
+    spacing: 200,
+  },
+  A252: {
+    weightPerSqm: 3.95,
+    wireDiameter: 8,
+    spacing: 200,
+  },
+  A393: {
+    weightPerSqm: 6.16,
+    wireDiameter: 10,
+    spacing: 200,
+  },
+  C283: {
+    weightPerSqm: 4.34,
+    wireDiameter: 7,
+    spacing: 100,
+  },
+  C385: {
+    weightPerSqm: 6.0,
+    wireDiameter: 8.5,
+    spacing: 100,
+  },
+};
+
+export const STANDARD_MESH_SHEETS = [
+  { width: 2.4, length: 4.8 },
+  { width: 2.4, length: 6.0 },
+  { width: 2.4, length: 7.2 },
+  { width: 3.0, length: 6.0 },
+  { width: 3.6, length: 6.0 },
+];
+
 export interface CodeComplianceLimits {
   minSlabReinforcement: number;
   maxSlabReinforcement: number;
@@ -66,6 +121,8 @@ export interface CodeComplianceLimits {
   maxBeamReinforcement: number;
   minColumnReinforcement: number;
   maxColumnReinforcement: number;
+  minStripFootingReinforcement: number;
+  maxStripFootingReinforcement: number;
   minBarSpacing: number;
   maxBarSpacing: number;
   minSlabCover: number;
@@ -74,6 +131,7 @@ export interface CodeComplianceLimits {
   minFoundationCover: number;
   maxCrackControlSpacing: number;
 }
+
 export interface BarScheduleItem {
   barMark: string;
   diameter: number;
@@ -85,6 +143,7 @@ export interface BarScheduleItem {
   bendingInstructions?: string;
   bendingDiagram?: string;
 }
+
 export interface EfficiencyMetrics {
   materialUtilization: number;
   standardBarUtilization: number;
@@ -92,6 +151,7 @@ export interface EfficiencyMetrics {
   cuttingEfficiency: number;
   complianceScore: number;
 }
+
 export interface CuttingPattern {
   standardLength: number;
   requiredLengths: number[];
@@ -103,6 +163,16 @@ export interface CuttingPattern {
   totalWaste: number;
   efficiency: number;
 }
+
+export interface MeshReinforcementResult {
+  totalSheets: number;
+  totalArea: number;
+  totalWeight: number;
+  lapArea: number;
+  netArea: number;
+  wastePercentage: number;
+}
+
 export interface RebarQSSettings {
   wastagePercent: number;
   bindingWirePercent: number;
@@ -116,14 +186,21 @@ export interface RebarQSSettings {
   beamMainReinforcementRatio: number;
   beamDistributionReinforcementRatio: number;
   columnReinforcementRatio: number;
+  stripFootingMainReinforcementRatio: number;
+  stripFootingDistributionReinforcementRatio: number;
   minSlabBars: number;
   minBeamMainBars: number;
   minBeamDistributionBars: number;
   minColumnBars: number;
+  minStripFootingBars: number;
   complianceLimits: CodeComplianceLimits;
   optimizeCutting: boolean;
   allowMultipleStandardLengths: boolean;
+  // Mesh settings
+  meshWastagePercent: number;
+  standardMeshLap: number;
 }
+
 export interface CalcInput {
   id: string;
   element: ElementTypes;
@@ -145,7 +222,20 @@ export interface CalcInput {
   tieSpacing?: string;
   category: Category;
   number: string;
+  // New fields for mesh reinforcement
+  reinforcementType: ReinforcementType;
+  meshGrade?: string;
+  meshSheetWidth?: string;
+  meshSheetLength?: string;
+  meshLapLength?: string;
+  // Strip footing specific fields
+  footingType?: FootingType;
+  longitudinalBars?: string;
+  transverseBars?: string;
+  topReinforcement?: string;
+  bottomReinforcement?: string;
 }
+
 export interface CalcBreakdown {
   mainBarsLength?: number;
   distributionBarsLength?: number;
@@ -156,13 +246,16 @@ export interface CalcBreakdown {
   stirrupsCount?: number;
   tiesCount?: number;
 }
+
 export interface WeightBreakdownKg {
   mainBars?: number;
   distributionBars?: number;
   stirrups?: number;
   ties?: number;
 }
+
 type PriceMap = Record<RebarSize, number>;
+
 export interface CalcResult {
   id: string;
   name: string;
@@ -197,7 +290,15 @@ export interface CalcResult {
     cuttingPatterns: CuttingPattern[];
     savedMaterialKg: number;
   };
+  // New mesh reinforcement fields
+  reinforcementType: ReinforcementType;
+  meshResult?: MeshReinforcementResult;
+  meshPricePerSqm?: number;
+  meshTotalPrice?: number;
+  // Strip footing specific fields
+  footingType?: FootingType;
 }
+
 const mmToM = (mm: number) => (isNaN(mm) ? 0 : mm / 1000);
 const withWaste = (quantity: number, wastePct: number) =>
   isNaN(quantity) || isNaN(wastePct) ? 0 : quantity * (1 + wastePct / 100);
@@ -217,6 +318,7 @@ const safeParseInt = (
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? defaultValue : parsed;
 };
+
 function optimizeCuttingPatterns(
   requiredLengths: number[],
   availableLengths: number[],
@@ -277,6 +379,7 @@ function optimizeCuttingPatterns(
   }
   return patterns;
 }
+
 function calculateActualWaste(
   requiredLengths: number[],
   standardLength: number,
@@ -317,6 +420,7 @@ function calculateActualWaste(
     patterns,
   };
 }
+
 function generateBarSchedule(
   element: ElementTypes,
   breakdown: CalcBreakdown,
@@ -324,68 +428,110 @@ function generateBarSchedule(
   mainBarSize: RebarSize,
   distributionBarSize: RebarSize,
   stirrupSize: RebarSize,
-  tieSize: RebarSize
+  tieSize: RebarSize,
+  footingType?: FootingType
 ): BarScheduleItem[] {
   const schedule: BarScheduleItem[] = [];
   let markCounter = 1;
   const createMark = (type: string) =>
     `${element.charAt(0).toUpperCase()}${type}${markCounter++}`;
-  if (breakdown.mainBarsCount && breakdown.mainBarsCount > 0) {
-    schedule.push({
-      barMark: createMark("MB"),
-      diameter: REBAR_PROPERTIES[mainBarSize].diameterMm,
-      shape: "Straight",
-      cuttingLength:
-        (breakdown.mainBarsLength || 0) / (breakdown.mainBarsCount || 1),
-      numberRequired: breakdown.mainBarsCount,
-      totalLength: breakdown.mainBarsLength || 0,
-      weight: weightBreakdown.mainBars || 0,
-      bendingInstructions: "Straight bar - no bending required",
-    });
-  }
-  if (breakdown.distributionBarsCount && breakdown.distributionBarsCount > 0) {
-    schedule.push({
-      barMark: createMark("DB"),
-      diameter: REBAR_PROPERTIES[distributionBarSize].diameterMm,
-      shape: "Straight",
-      cuttingLength:
-        (breakdown.distributionBarsLength || 0) /
-        (breakdown.distributionBarsCount || 1),
-      numberRequired: breakdown.distributionBarsCount,
-      totalLength: breakdown.distributionBarsLength || 0,
-      weight: weightBreakdown.distributionBars || 0,
-      bendingInstructions: "Straight bar - no bending required",
-    });
-  }
-  if (breakdown.stirrupsCount && breakdown.stirrupsCount > 0) {
-    schedule.push({
-      barMark: createMark("ST"),
-      diameter: REBAR_PROPERTIES[stirrupSize].diameterMm,
-      shape: "U-shaped",
-      cuttingLength:
-        (breakdown.stirrupsLength || 0) / (breakdown.stirrupsCount || 1),
-      numberRequired: breakdown.stirrupsCount,
-      totalLength: breakdown.stirrupsLength || 0,
-      weight: weightBreakdown.stirrups || 0,
-      bendingInstructions: "Bend to U-shape with 135\u00B0 hooks at ends",
-      bendingDiagram: "U-shape with dimensions",
-    });
-  }
-  if (breakdown.tiesCount && breakdown.tiesCount > 0) {
-    schedule.push({
-      barMark: createMark("TI"),
-      diameter: REBAR_PROPERTIES[tieSize].diameterMm,
-      shape: "Rectangular",
-      cuttingLength: (breakdown.tiesLength || 0) / (breakdown.tiesCount || 1),
-      numberRequired: breakdown.tiesCount,
-      totalLength: breakdown.tiesLength || 0,
-      weight: weightBreakdown.ties || 0,
-      bendingInstructions: "Bend to rectangular shape with 135\u00B0 hooks",
-      bendingDiagram: "Rectangle with dimensions",
-    });
+
+  if (footingType) {
+    // Strip footing bar schedule
+    if (breakdown.mainBarsCount && breakdown.mainBarsCount > 0) {
+      schedule.push({
+        barMark: createMark("LB"),
+        diameter: REBAR_PROPERTIES[mainBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown?.mainBarsLength || 0) / (breakdown?.mainBarsCount || 1),
+        numberRequired: breakdown?.mainBarsCount,
+        totalLength: breakdown?.mainBarsLength || 0,
+        weight: weightBreakdown?.mainBars || 0,
+        bendingInstructions: "Longitudinal bars - straight",
+      });
+    }
+    if (
+      breakdown.distributionBarsCount &&
+      breakdown.distributionBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("TB"),
+        diameter: REBAR_PROPERTIES[distributionBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown?.distributionBarsLength || 0) /
+          (breakdown?.distributionBarsCount || 1),
+        numberRequired: breakdown?.distributionBarsCount,
+        totalLength: breakdown?.distributionBarsLength || 0,
+        weight: weightBreakdown?.distributionBars || 0,
+        bendingInstructions: "Transverse bars - straight",
+      });
+    }
+  } else {
+    // Original bar schedule for other elements
+    if (breakdown.mainBarsCount && breakdown.mainBarsCount > 0) {
+      schedule.push({
+        barMark: createMark("MB"),
+        diameter: REBAR_PROPERTIES[mainBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown?.mainBarsLength || 0) / (breakdown?.mainBarsCount || 1),
+        numberRequired: breakdown?.mainBarsCount,
+        totalLength: breakdown?.mainBarsLength || 0,
+        weight: weightBreakdown?.mainBars || 0,
+        bendingInstructions: "Straight bar - no bending required",
+      });
+    }
+    if (
+      breakdown.distributionBarsCount &&
+      breakdown.distributionBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("DB"),
+        diameter: REBAR_PROPERTIES[distributionBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown?.distributionBarsLength || 0) /
+          (breakdown?.distributionBarsCount || 1),
+        numberRequired: breakdown?.distributionBarsCount,
+        totalLength: breakdown?.distributionBarsLength || 0,
+        weight: weightBreakdown?.distributionBars || 0,
+        bendingInstructions: "Straight bar - no bending required",
+      });
+    }
+    if (breakdown.stirrupsCount && breakdown.stirrupsCount > 0) {
+      schedule.push({
+        barMark: createMark("ST"),
+        diameter: REBAR_PROPERTIES[stirrupSize]?.diameterMm,
+        shape: "U-shaped",
+        cuttingLength:
+          (breakdown?.stirrupsLength || 0) / (breakdown?.stirrupsCount || 1),
+        numberRequired: breakdown?.stirrupsCount,
+        totalLength: breakdown?.stirrupsLength || 0,
+        weight: weightBreakdown?.stirrups || 0,
+        bendingInstructions: "Bend to U-shape with 135\u00B0 hooks at ends",
+        bendingDiagram: "U-shape with dimensions",
+      });
+    }
+    if (breakdown.tiesCount && breakdown.tiesCount > 0) {
+      schedule.push({
+        barMark: createMark("TI"),
+        diameter: REBAR_PROPERTIES[tieSize]?.diameterMm,
+        shape: "Rectangular",
+        cuttingLength:
+          (breakdown?.tiesLength || 0) / (breakdown?.tiesCount || 1),
+        numberRequired: breakdown?.tiesCount,
+        totalLength: breakdown?.tiesLength || 0,
+        weight: weightBreakdown?.ties || 0,
+        bendingInstructions: "Bend to rectangular shape with 135\u00B0 hooks",
+        bendingDiagram: "Rectangle with dimensions",
+      });
+    }
   }
   return schedule;
 }
+
 function validateCodeCompliance(
   input: CalcInput,
   settings: RebarQSSettings,
@@ -404,6 +550,7 @@ function validateCodeCompliance(
   const L = safeParseFloat(input.length, 0);
   const W = safeParseFloat(input.width, 0);
   const D = safeParseFloat(input.depth, 0);
+
   if (reinforcementRatio !== undefined) {
     let minRatio = 0;
     let maxRatio = 0;
@@ -419,6 +566,10 @@ function validateCodeCompliance(
       case "column":
         minRatio = limits.minColumnReinforcement;
         maxRatio = limits.maxColumnReinforcement;
+        break;
+      case "strip_footing":
+        minRatio = limits.minStripFootingReinforcement;
+        maxRatio = limits.maxStripFootingReinforcement;
         break;
     }
     if (reinforcementRatio < minRatio) {
@@ -437,6 +588,7 @@ function validateCodeCompliance(
       complianceScore -= 30;
     }
   }
+
   const mainSpacing = safeParseFloat(input.mainBarSpacing, 200);
   if (mainSpacing < limits.minBarSpacing) {
     warnings.push(
@@ -450,6 +602,7 @@ function validateCodeCompliance(
     );
     complianceScore -= 10;
   }
+
   const currentCover =
     input.element === "slab"
       ? settings.slabCover * 1000
@@ -472,7 +625,8 @@ function validateCodeCompliance(
     );
     complianceScore -= 15;
   }
-  const barDiameter = REBAR_PROPERTIES[input.mainBarSize].diameterMm;
+
+  const barDiameter = REBAR_PROPERTIES[input.mainBarSize]?.diameterMm;
   const requiredDevLength = barDiameter * settings.developmentLengthFactor;
   const availableDevLength = (Math.min(L, W, D) * 1000) / 2;
   if (requiredDevLength > availableDevLength) {
@@ -483,6 +637,7 @@ function validateCodeCompliance(
     );
     complianceScore -= 10;
   }
+
   return {
     isValid: errors.length === 0,
     warnings,
@@ -490,6 +645,7 @@ function validateCodeCompliance(
     score: Math.max(0, complianceScore),
   };
 }
+
 function calculateEfficiencyMetrics(
   totalWeightKg: number,
   theoreticalWeightKg: number,
@@ -517,14 +673,17 @@ function calculateEfficiencyMetrics(
     complianceScore,
   };
 }
+
 function calculateHookLength(barSize: RebarSize): number {
   const diaM = REBAR_PROPERTIES[barSize]?.diameterMm / 1000 || 0.012;
   return Math.max(0.075, 10 * diaM);
 }
+
 function calculateBendDeduction(barSize: RebarSize, bends: number = 2): number {
   const diaM = REBAR_PROPERTIES[barSize]?.diameterMm / 1000 || 0.012;
   return bends * diaM;
 }
+
 function calculateDevelopmentLength(
   factor: number,
   barSize: RebarSize
@@ -532,10 +691,12 @@ function calculateDevelopmentLength(
   const diaM = REBAR_PROPERTIES[barSize]?.diameterMm / 1000 || 0.012;
   return (isNaN(factor) ? 40 : factor) * diaM;
 }
+
 function calculateLapLength(lapFactor: number, barSize: RebarSize): number {
   const diaM = REBAR_PROPERTIES[barSize]?.diameterMm / 1000 || 0.012;
   return (isNaN(lapFactor) ? 50 : lapFactor) * diaM;
 }
+
 function calculateOptimizedBars(
   requiredLength: number,
   standardBarLength: number,
@@ -554,8 +715,9 @@ function calculateOptimizedBars(
   const totalLength = barsNeeded * std;
   return { barsNeeded, totalLength };
 }
+
 function calculateBarCountsByRatio(
-  element: "beam" | "column",
+  element: "beam" | "column" | "strip_footing",
   crossSectionM2: number,
   barSize: RebarSize,
   ratio: number,
@@ -574,6 +736,7 @@ function calculateBarCountsByRatio(
   const actualRatio = providedArea / (crossSectionM2 * 1000000);
   return { barCount, requiredArea, providedArea, actualRatio };
 }
+
 function createEmptyResult(
   input: CalcInput,
   rebarPrices: Record<RebarSize, number>,
@@ -616,19 +779,277 @@ function createEmptyResult(
       cuttingPatterns: [],
       savedMaterialKg: 0,
     },
+    reinforcementType: input.reinforcementType || "individual_bars",
+    footingType: input.footingType,
   };
 }
+
+function createEmptyMeshResult(
+  input: CalcInput,
+  meshPrices: Record<string, number>
+): CalcResult {
+  return {
+    ...createEmptyResult(input, {} as Record<RebarSize, number>, 0),
+    reinforcementType: "mesh",
+    meshResult: {
+      totalSheets: 0,
+      totalArea: 0,
+      totalWeight: 0,
+      lapArea: 0,
+      netArea: 0,
+      wastePercentage: 0,
+    },
+    meshPricePerSqm: meshPrices[input.meshGrade || "A142"] || 0,
+    meshTotalPrice: 0,
+  };
+}
+
+function calculateStripFootingReinforcement(
+  input: CalcInput,
+  settings: RebarQSSettings,
+  cover: number
+): {
+  mainBarsLength: number;
+  distributionBarsLength: number;
+  mainBarsCount: number;
+  distributionBarsCount: number;
+  requiredSteelAreaMm2: number;
+  providedSteelAreaMm2: number;
+  reinforcementRatio: number;
+} {
+  const L = safeParseFloat(input.length, 0);
+  const W = safeParseFloat(input.width, 0);
+  const D = safeParseFloat(input.depth, 0);
+  const count = safeParseInt(input.number, 1);
+
+  const mainSpacing = mmToM(safeParseFloat(input.mainBarSpacing, 150));
+  const distSpacing = mmToM(safeParseFloat(input.distributionBarSpacing, 200));
+
+  const devLengthMain = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    input.mainBarSize
+  );
+  const devLengthDist = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    input.distributionBarSize || input.mainBarSize
+  );
+
+  // Calculate bar counts - main bars run along length, distribution bars along width
+  const mainBarsCount = Math.max(
+    settings.minStripFootingBars,
+    Math.ceil(W / Math.max(mainSpacing, 0.001)) + 1
+  );
+  const distributionBarsCount = Math.max(
+    settings.minStripFootingBars,
+    Math.ceil(L / Math.max(distSpacing, 0.001)) + 1
+  );
+
+  // Calculate bar lengths with development length
+  const mainBarLength = L + 2 * devLengthMain; // Main bars run full length
+  const distBarLength = W + 2 * devLengthDist; // Distribution bars run full width
+
+  // Total lengths
+  const mainBarsLength = mainBarsCount * mainBarLength * count;
+  const distributionBarsLength = distributionBarsCount * distBarLength * count;
+
+  // Steel area calculations
+  const crossSectionArea = W * D;
+  const mainBarArea = REBAR_PROPERTIES[input.mainBarSize]?.areaMm2 || 113.1;
+  const distBarArea =
+    REBAR_PROPERTIES[input.distributionBarSize || input.mainBarSize]?.areaMm2 ||
+    113.1;
+
+  const providedSteelAreaMm2 =
+    mainBarsCount * mainBarArea + distributionBarsCount * distBarArea;
+  const requiredSteelAreaMm2 =
+    crossSectionArea * 1000000 * settings.stripFootingMainReinforcementRatio;
+  const reinforcementRatio =
+    providedSteelAreaMm2 / (crossSectionArea * 1000000);
+
+  return {
+    mainBarsLength,
+    distributionBarsLength,
+    mainBarsCount,
+    distributionBarsCount,
+    requiredSteelAreaMm2,
+    providedSteelAreaMm2,
+    reinforcementRatio,
+  };
+}
+
+function calculateMeshReinforcement(
+  slabLength: number,
+  slabWidth: number,
+  meshGrade: string,
+  sheetWidth: number,
+  sheetLength: number,
+  lapLength: number,
+  wastagePercent: number
+): MeshReinforcementResult {
+  const meshProps = MESH_PROPERTIES[meshGrade] || MESH_PROPERTIES["A142"];
+
+  // Calculate number of sheets required
+  const sheetsInLength = Math.ceil(slabLength / (sheetLength - lapLength));
+  const sheetsInWidth = Math.ceil(slabWidth / (sheetWidth - lapLength));
+  const totalSheets = sheetsInLength * sheetsInWidth;
+
+  // Calculate areas
+  const sheetArea = sheetWidth * sheetLength;
+  const totalArea = totalSheets * sheetArea;
+  const lapArea =
+    (sheetsInLength - 1) * slabWidth * lapLength +
+    (sheetsInWidth - 1) * slabLength * lapLength;
+  const netArea = slabLength * slabWidth;
+
+  // Calculate weight
+  const netWeight = netArea * meshProps.weightPerSqm;
+  const totalWeight = withWaste(netWeight, wastagePercent);
+
+  return {
+    totalSheets,
+    totalArea,
+    totalWeight: Math.round(totalWeight),
+    lapArea,
+    netArea,
+    wastePercentage: wastagePercent,
+  };
+}
+
+function generateMeshBarSchedule(
+  meshResult: MeshReinforcementResult,
+  meshGrade: string
+): BarScheduleItem[] {
+  return [
+    {
+      barMark: "MESH-01",
+      diameter: MESH_PROPERTIES[meshGrade]?.wireDiameter || 6,
+      shape: "Sheet",
+      cuttingLength: 0,
+      numberRequired: meshResult.totalSheets,
+      totalLength: 0,
+      weight: meshResult.totalWeight,
+      bendingInstructions: "BRC Mesh - lay flat with specified lap length",
+    },
+  ];
+}
+
+function calculateMeshRebar(
+  input: CalcInput,
+  settings: RebarQSSettings,
+  {
+    meshPrices,
+  }: {
+    meshPrices: Record<string, number>;
+  }
+): CalcResult {
+  const {
+    id,
+    name,
+    element,
+    length,
+    width,
+    category,
+    number,
+    meshGrade = "A142",
+    meshSheetWidth = "2.4",
+    meshSheetLength = "4.8",
+    meshLapLength = "0.3",
+  } = input;
+
+  const L = safeParseFloat(length, 0);
+  const W = safeParseFloat(width, 0);
+  const count = safeParseInt(number, 1);
+  const sheetWidth = safeParseFloat(meshSheetWidth, 2.4);
+  const sheetLength = safeParseFloat(meshSheetLength, 4.8);
+  const lapLength = safeParseFloat(meshLapLength, 0.3);
+
+  if (L <= 0 || W <= 0) {
+    return createEmptyMeshResult(input, meshPrices);
+  }
+
+  // Calculate mesh reinforcement
+  const meshResult = calculateMeshReinforcement(
+    L,
+    W,
+    meshGrade,
+    sheetWidth,
+    sheetLength,
+    lapLength,
+    settings.meshWastagePercent
+  );
+
+  const meshPricePerSqm = meshPrices[meshGrade] || 0;
+  const meshTotalPrice = Math.round(meshResult.totalWeight * meshPricePerSqm);
+
+  return {
+    id,
+    name,
+    element,
+    mainBarSize: meshGrade,
+    totalBars: meshResult.totalSheets,
+    totalLengthM: 0,
+    totalWeightKg: meshResult.totalWeight,
+    pricePerKg: meshPricePerSqm,
+    totalPrice: meshTotalPrice,
+    bindingWireWeightKg: 0, // No binding wire for mesh
+    bindingWirePrice: 0,
+    breakdown: {},
+    number: input.number,
+    rate: meshPricePerSqm,
+    category,
+    weightBreakdownKg: {},
+    barSchedule: generateMeshBarSchedule(meshResult, meshGrade),
+    efficiency: {
+      materialUtilization: 95, // Mesh typically has high utilization
+      standardBarUtilization: 0,
+      wastePercentage: settings.meshWastagePercent,
+      cuttingEfficiency: 100 - settings.meshWastagePercent,
+      complianceScore: 100,
+    },
+    compliance: {
+      isValid: true,
+      warnings: [],
+      errors: [],
+      score: 100,
+    },
+    wasteOptimization: {
+      actualWastePercentage: settings.meshWastagePercent,
+      optimizedWastePercentage: settings.meshWastagePercent,
+      cuttingPatterns: [],
+      savedMaterialKg: 0,
+    },
+    reinforcementType: "mesh",
+    meshResult,
+    meshPricePerSqm,
+    meshTotalPrice,
+    footingType: input.footingType,
+  };
+}
+
 export function calculateRebar(
   input: CalcInput,
   settings: RebarQSSettings,
   {
     rebarPrices,
     bindingWirePrice,
+    meshPrices,
   }: {
     rebarPrices: Record<RebarSize, number>;
     bindingWirePrice: number;
+    meshPrices: Record<string, number>;
   }
 ): CalcResult {
+  const { reinforcementType = "individual_bars", meshGrade = "A142" } = input;
+
+  // If it's mesh reinforcement, calculate mesh instead of individual bars
+  if (
+    reinforcementType === "mesh" &&
+    (input.element === "slab" || input.element === "foundation")
+  ) {
+    return calculateMeshRebar(input, settings, { meshPrices });
+  }
+
+  // Original individual bar calculation code
   const {
     id,
     name,
@@ -650,20 +1071,25 @@ export function calculateRebar(
     tieSize = "Y8",
     category = "superstructure",
     number = "1",
+    footingType,
   } = input;
+
   const L = safeParseFloat(length, 0);
   const W = safeParseFloat(width, 0);
   const D = safeParseFloat(depth, 0);
   const H = safeParseFloat(columnHeight || length, 0);
   const count = safeParseInt(number, 1);
   const layers = safeParseInt(slabLayers, 1);
+
   if (L <= 0 || W <= 0 || D <= 0 || (element === "column" && H <= 0)) {
     return createEmptyResult(input, rebarPrices, bindingWirePrice);
   }
+
   const mainSpacing = mmToM(safeParseFloat(mainBarSpacing, 200));
   const distSpacing = mmToM(safeParseFloat(distributionBarSpacing, 200));
   const stirrupSpacingM = mmToM(safeParseFloat(stirrupSpacing, 200));
   const tieSpacingM = mmToM(safeParseFloat(tieSpacing, 250));
+
   const devLengthMain = calculateDevelopmentLength(
     settings.developmentLengthFactor,
     mainBarSize
@@ -675,6 +1101,7 @@ export function calculateRebar(
   const hookLengthStirrup = calculateHookLength(stirrupSize);
   const hookLengthTie = calculateHookLength(tieSize);
   const lapLength = calculateLapLength(settings.lapLengthFactor, mainBarSize);
+
   const cover =
     element === "slab"
       ? settings.slabCover
@@ -683,6 +1110,7 @@ export function calculateRebar(
       : element === "column"
       ? settings.columnCover
       : settings.foundationCover;
+
   let mainBarsLength = 0;
   let distributionBarsLength = 0;
   let stirrupsLength = 0;
@@ -695,6 +1123,7 @@ export function calculateRebar(
   let requiredSteelAreaMm2 = 0;
   let providedSteelAreaMm2 = 0;
   let reinforcementRatio = 0;
+
   if ((element === "slab" || element === "foundation") && L > 0 && W > 0) {
     const mainBarsCountRaw = Math.ceil(L / Math.max(mainSpacing, 0.001)) + 1;
     const distBarsCountRaw = Math.ceil(W / Math.max(distSpacing, 0.001)) + 1;
@@ -711,13 +1140,14 @@ export function calculateRebar(
     totalBars =
       (mainBarsCountResult + distributionBarsCountResult) * layers * count;
   }
+
   if (element === "beam" && L > 0 && W > 0 && D > 0) {
     const crossSection = W * D;
     let mainCalc;
     const userMainCount = safeParseInt(mainBarsCount, 0);
     if (userMainCount > 0) {
       mainBarsCountResult = userMainCount;
-      const area = mainBarsCountResult * REBAR_PROPERTIES[mainBarSize].areaMm2;
+      const area = mainBarsCountResult * REBAR_PROPERTIES[mainBarSize]?.areaMm2;
       mainCalc = {
         barCount: mainBarsCountResult,
         requiredArea: 0,
@@ -740,7 +1170,7 @@ export function calculateRebar(
       distributionBarsCountResult = userDistCount;
       const area =
         distributionBarsCountResult *
-        REBAR_PROPERTIES[distributionBarSize].areaMm2;
+        REBAR_PROPERTIES[distributionBarSize]?.areaMm2;
       distCalc = {
         barCount: distributionBarsCountResult,
         requiredArea: 0,
@@ -795,13 +1225,14 @@ export function calculateRebar(
     stirrupsLength = stirrupsCount * stirrupLength * count;
     totalBars += stirrupsCount * count;
   }
+
   if (element === "column" && H > 0 && W > 0 && D > 0) {
     const crossSection = W * D;
     let mainCalc;
     const userMainCount = safeParseInt(mainBarsCount, 0);
     if (userMainCount > 0) {
       mainBarsCountResult = userMainCount;
-      const area = mainBarsCountResult * REBAR_PROPERTIES[mainBarSize].areaMm2;
+      const area = mainBarsCountResult * REBAR_PROPERTIES[mainBarSize]?.areaMm2;
       mainCalc = {
         barCount: mainBarsCountResult,
         requiredArea: 0,
@@ -845,6 +1276,24 @@ export function calculateRebar(
     tiesLength = tiesCount * tieLength * count;
     totalBars += tiesCount * count;
   }
+
+  if (element === "strip_footing" && L > 0 && W > 0 && D > 0) {
+    const stripFootingCalc = calculateStripFootingReinforcement(
+      input,
+      settings,
+      cover
+    );
+
+    mainBarsLength = stripFootingCalc.mainBarsLength;
+    distributionBarsLength = stripFootingCalc.distributionBarsLength;
+    mainBarsCountResult = stripFootingCalc.mainBarsCount;
+    distributionBarsCountResult = stripFootingCalc.distributionBarsCount;
+    totalBars = (mainBarsCountResult + distributionBarsCountResult) * count;
+    requiredSteelAreaMm2 = stripFootingCalc.requiredSteelAreaMm2;
+    providedSteelAreaMm2 = stripFootingCalc.providedSteelAreaMm2;
+    reinforcementRatio = stripFootingCalc.reinforcementRatio;
+  }
+
   const getWeight = (length: number, size: RebarSize) =>
     length * (REBAR_PROPERTIES[size]?.weightKgPerM || 0.888);
   const mainBarsWeight = getWeight(mainBarsLength, mainBarSize);
@@ -856,6 +1305,7 @@ export function calculateRebar(
   const tiesWeight = getWeight(tiesLength, tieSize);
   const totalWeightKgRaw =
     mainBarsWeight + distributionBarsWeight + stirrupsWeight + tiesWeight;
+
   const requiredLengths: number[] = [];
   if (mainBarsLength > 0)
     requiredLengths.push(mainBarsLength / (mainBarsCountResult || 1));
@@ -866,6 +1316,7 @@ export function calculateRebar(
   if (stirrupsLength > 0)
     requiredLengths.push(stirrupsLength / (stirrupsCount || 1));
   if (tiesLength > 0) requiredLengths.push(tiesLength / (tiesCount || 1));
+
   const wasteCalculation = calculateActualWaste(
     requiredLengths,
     settings.standardBarLength,
@@ -885,6 +1336,7 @@ export function calculateRebar(
   );
   const pricePerKg = rebarPrices[input.mainBarSize] || 0;
   const totalPrice = Math.round(totalWeightKg * pricePerKg);
+
   const barSchedule = generateBarSchedule(
     input.element,
     {
@@ -906,8 +1358,10 @@ export function calculateRebar(
     input.mainBarSize,
     input.distributionBarSize || input.mainBarSize,
     input.stirrupSize || "Y8",
-    input.tieSize || "Y8"
+    input.tieSize || "Y8",
+    input.footingType
   );
+
   const compliance = validateCodeCompliance(
     input,
     settings,
@@ -929,6 +1383,7 @@ export function calculateRebar(
       100) *
       totalWeightKgRaw
   );
+
   return {
     id: input.id,
     name: input.name,
@@ -961,15 +1416,21 @@ export function calculateRebar(
       ties: Math.round(tiesWeight),
     },
     requiredSteelAreaMm2:
-      input.element === "beam" || input.element === "column"
+      input.element === "beam" ||
+      input.element === "column" ||
+      input.element === "strip_footing"
         ? requiredSteelAreaMm2
         : undefined,
     providedSteelAreaMm2:
-      input.element === "beam" || input.element === "column"
+      input.element === "beam" ||
+      input.element === "column" ||
+      input.element === "strip_footing"
         ? providedSteelAreaMm2
         : undefined,
     reinforcementRatio:
-      input.element === "beam" || input.element === "column"
+      input.element === "beam" ||
+      input.element === "column" ||
+      input.element === "strip_footing"
         ? reinforcementRatio
         : undefined,
     barSchedule,
@@ -981,8 +1442,11 @@ export function calculateRebar(
       cuttingPatterns: wasteCalculation.patterns,
       savedMaterialKg: Math.max(0, savedMaterialKg),
     },
+    reinforcementType: "individual_bars",
+    footingType: input.footingType,
   };
 }
+
 export const defaultRebarQSSettings: RebarQSSettings = {
   wastagePercent: 5,
   bindingWirePercent: 0.8,
@@ -996,10 +1460,13 @@ export const defaultRebarQSSettings: RebarQSSettings = {
   beamMainReinforcementRatio: 0.01,
   beamDistributionReinforcementRatio: 0.005,
   columnReinforcementRatio: 0.02,
+  stripFootingMainReinforcementRatio: 0.0015,
+  stripFootingDistributionReinforcementRatio: 0.0012,
   minSlabBars: 1,
   minBeamMainBars: 2,
   minBeamDistributionBars: 2,
   minColumnBars: 4,
+  minStripFootingBars: 4,
   complianceLimits: {
     minSlabReinforcement: 0.0024,
     maxSlabReinforcement: 0.04,
@@ -1007,6 +1474,8 @@ export const defaultRebarQSSettings: RebarQSSettings = {
     maxBeamReinforcement: 0.04,
     minColumnReinforcement: 0.008,
     maxColumnReinforcement: 0.06,
+    minStripFootingReinforcement: 0.0012,
+    maxStripFootingReinforcement: 0.04,
     minBarSpacing: 25,
     maxBarSpacing: 300,
     minSlabCover: 20,
@@ -1017,13 +1486,19 @@ export const defaultRebarQSSettings: RebarQSSettings = {
   },
   optimizeCutting: true,
   allowMultipleStandardLengths: true,
+  // Mesh settings
+  meshWastagePercent: 5,
+  standardMeshLap: 0.3,
 };
+
 export const useRebarPrices = (region: string) => {
   const { user, profile } = useAuth() ?? {};
   const { multipliers } = useMaterialPrices() ?? { multipliers: [] };
   const [priceMap, setPriceMap] = useState<PriceMap>({} as PriceMap);
   const [bindingWirePrice, setBindingWirePrice] = useState<number>(0);
+  const [meshPrices, setMeshPrices] = useState<Record<string, number>>({});
   const [materials, setMaterials] = useState<Material[]>([]);
+
   const fetchMaterials = useCallback(async () => {
     if (!profile?.id) return;
     const { data: baseMaterials, error: baseError } = await supabase
@@ -1053,25 +1528,46 @@ export const useRebarPrices = (region: string) => {
       }) || [];
     setMaterials(merged);
   }, [profile, multipliers]);
+
   useEffect(() => {
     if (user && profile !== null) {
       fetchMaterials();
     }
   }, [user, profile, fetchMaterials]);
+
   useEffect(() => {
     if (!profile?.id) return;
     const fetchAndProcessPrices = async () => {
       try {
         let prices: PriceMap = {} as PriceMap;
+        let meshPriceMap: Record<string, number> = {};
+
         setBindingWirePrice(
           materials.find((m) => m.name?.toLowerCase() === "binding wire")
             ?.price || 0
         );
+
+        // Fetch mesh prices
+        const { data: meshBase } = await supabase
+          .from("material_base_prices")
+          .select("type")
+          .eq("name", "BRC Mesh")
+          .single();
+
+        if (meshBase?.type) {
+          meshBase.type.forEach((item: any) => {
+            if (item.grade && MESH_PROPERTIES[item.grade]) {
+              meshPriceMap[item.grade] = item.price_kes_per_sqm || 0;
+            }
+          });
+        }
+
         const { data: base } = await supabase
           .from("material_base_prices")
           .select("type")
           .eq("name", "Rebar")
           .single();
+
         if (base?.type) {
           base.type.forEach((item: any) => {
             if (item.size && REBAR_PROPERTIES[item.size as RebarSize]) {
@@ -1079,6 +1575,7 @@ export const useRebarPrices = (region: string) => {
             }
           });
         }
+
         if (user) {
           const { data: userOverride } = await supabase
             .from("user_material_prices")
@@ -1086,34 +1583,47 @@ export const useRebarPrices = (region: string) => {
             .eq("user_id", user.id)
             .eq("region", region)
             .maybeSingle();
+
           if (userOverride?.type) {
             userOverride.type.forEach((item: any) => {
               if (item.size && REBAR_PROPERTIES[item.size as RebarSize]) {
                 prices[item.size as RebarSize] = item.price_kes_per_kg || 0;
               }
+              if (item.grade && MESH_PROPERTIES[item.grade]) {
+                meshPriceMap[item.grade] = item.price_kes_per_sqm || 0;
+              }
             });
           }
         }
+
         const { data: regionMult } = await supabase
           .from("regional_multipliers")
           .select("multiplier")
           .eq("region", region)
           .maybeSingle();
+
         if (regionMult?.multiplier) {
           Object.keys(prices).forEach((key) => {
             prices[key as RebarSize] =
               prices[key as RebarSize] * regionMult.multiplier;
           });
+          Object.keys(meshPriceMap).forEach((key) => {
+            meshPriceMap[key] = meshPriceMap[key] * regionMult.multiplier;
+          });
         }
+
         setPriceMap(prices);
+        setMeshPrices(meshPriceMap);
       } catch (err) {
         console.error("Error fetching rebar prices:", err);
       }
     };
     fetchAndProcessPrices();
   }, [user, profile, multipliers, materials, region]);
-  return { rebarPrices: priceMap, bindingWirePrice };
+
+  return { rebarPrices: priceMap, bindingWirePrice, meshPrices };
 };
+
 export function useRebarCalculator(
   rows: CalcInput[],
   settings: RebarQSSettings,
@@ -1122,56 +1632,56 @@ export function useRebarCalculator(
   const [results, setResults] = useState<CalcResult[]>([]);
   const [totals, setTotals] = useState<any>({});
   const prices = useRebarPrices(region);
+
   useEffect(() => {
     const calculatedResults = rows.map((row) =>
       calculateRebar(row, settings, prices)
     );
     setResults(calculatedResults);
   }, [rows, settings, prices]);
+
   useEffect(() => {
     const newTotals = results.reduce(
       (acc, r) => {
-        acc.totalWeightKg += r.totalWeightKg;
-        acc.totalLengthM += r.totalLengthM;
-        acc.totalBars += r.totalBars;
-        acc.totalPrice += r.totalPrice;
-        acc.bindingWireWeightKg += r.bindingWireWeightKg;
-        acc.bindingWirePrice += r.bindingWirePrice;
-        acc.breakdown = {
-          mainBarsLength:
-            (acc.breakdown?.mainBarsLength || 0) +
-            (r.breakdown.mainBarsLength || 0),
-          distributionBarsLength:
-            (acc.breakdown?.distributionBarsLength || 0) +
-            (r.breakdown.distributionBarsLength || 0),
-          stirrupsLength:
-            (acc.breakdown?.stirrupsLength || 0) +
-            (r.breakdown.stirrupsLength || 0),
-          tiesLength:
-            (acc.breakdown?.tiesLength || 0) + (r.breakdown.tiesLength || 0),
-        };
-        acc.weightBreakdown = {
-          mainBars:
-            (acc.weightBreakdown?.mainBars || 0) +
-            (r.weightBreakdownKg.mainBars || 0),
-          distributionBars:
-            (acc.weightBreakdown?.distributionBars || 0) +
-            (r.weightBreakdownKg.distributionBars || 0),
-          stirrups:
-            (acc.weightBreakdown?.stirrups || 0) +
-            (r.weightBreakdownKg.stirrups || 0),
-          ties:
-            (acc.weightBreakdown?.ties || 0) + (r.weightBreakdownKg.ties || 0),
-        };
+        if (r.reinforcementType === "mesh") {
+          // Mesh totals
+          acc.totalWeightKg += r.totalWeightKg;
+          acc.totalPrice += r.meshTotalPrice || 0;
+          acc.totalSheets += r.totalBars;
+          acc.meshArea += r.meshResult?.netArea || 0;
+        } else {
+          // Individual bar totals
+          acc.totalWeightKg += r.totalWeightKg;
+          acc.totalLengthM += r.totalLengthM;
+          acc.totalBars += r.totalBars;
+          acc.totalPrice += r.totalPrice;
+          acc.bindingWireWeightKg += r.bindingWireWeightKg;
+          acc.bindingWirePrice += r.bindingWirePrice;
+
+          // Breakdown calculations
+          acc.breakdown.mainBarsLength += r.breakdown.mainBarsLength || 0;
+          acc.breakdown.distributionBarsLength +=
+            r.breakdown.distributionBarsLength || 0;
+          acc.breakdown.stirrupsLength += r.breakdown.stirrupsLength || 0;
+          acc.breakdown.tiesLength += r.breakdown.tiesLength || 0;
+
+          acc.weightBreakdown.mainBars += r.weightBreakdownKg.mainBars || 0;
+          acc.weightBreakdown.distributionBars +=
+            r.weightBreakdownKg.distributionBars || 0;
+          acc.weightBreakdown.stirrups += r.weightBreakdownKg.stirrups || 0;
+          acc.weightBreakdown.ties += r.weightBreakdownKg.ties || 0;
+        }
         return acc;
       },
       {
         totalWeightKg: 0,
         totalLengthM: 0,
         totalBars: 0,
+        totalSheets: 0,
         totalPrice: 0,
         bindingWireWeightKg: 0,
         bindingWirePrice: 0,
+        meshArea: 0,
         breakdown: {
           mainBarsLength: 0,
           distributionBarsLength: 0,
@@ -1188,8 +1698,10 @@ export function useRebarCalculator(
     );
     setTotals(newTotals);
   }, [results, prices]);
+
   return { results, totals };
 }
+
 export function useRebarCalculatorRow(
   input: CalcInput,
   settings: RebarQSSettings,
@@ -1201,15 +1713,18 @@ export function useRebarCalculatorRow(
     [input, settings, prices]
   );
 }
+
 export type RebarRow = CalcInput & {
   id: string;
 };
+
 export interface RebarProjectSnapshot {
   version: 1;
   createdAt: string;
   rows: RebarRow[];
   settings: RebarQSSettings;
 }
+
 export function createRebarSnapshot(
   rows: RebarRow[],
   settings: RebarQSSettings
@@ -1221,6 +1736,7 @@ export function createRebarSnapshot(
     settings,
   };
 }
+
 export function parseRebarSnapshot(json: string): {
   rows: RebarRow[];
   settings: RebarQSSettings;
@@ -1234,8 +1750,10 @@ export function parseRebarSnapshot(json: string): {
     settings: parsed.settings || defaultRebarQSSettings,
   };
 }
+
 export {
   REBAR_PROPERTIES as rebarProperties,
+  MESH_PROPERTIES as meshProperties,
   calculateDevelopmentLength,
   calculateLapLength,
   calculateHookLength,

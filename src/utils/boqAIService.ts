@@ -22,6 +22,7 @@ const GEMINI_API_KEY = getEnv("VITE_GEMINI_API_KEY");
 export const generateBOQWithAI = async (
   quoteData: any
 ): Promise<BOQSection[]> => {
+  console.log(quoteData);
   try {
     // Try AI generation first
     const aiBOQ = await callGeminiAPI(quoteData);
@@ -181,8 +182,12 @@ SECTIONS TO CONSIDER (only if data exists):
 2. Superstructure Works
 3. Internal Finishes
 4. Doors, Windows and Ironmongery
-5. Services Installations
-6. External Works
+5. Finishes
+6. Roofing Works
+7. Electrical Installations
+8. Plumbing and Drainage Installations
+9. Services Installations
+10. External Works
 
 Return ONLY the JSON array.`;
 };
@@ -199,11 +204,20 @@ const cleanQuoteData = (quoteData: any): any => {
     "concrete_rows",
     "rebar_rows",
     "services",
+    "finishes",
+    "plumbing_systems",
+    "electrical_systems",
+    "roof_structure",
+    "custom_specs",
+    "subcontractors",
     "equipment",
+    "material_prices",
     "masonry_materials",
     "concrete_materials",
     "rebar_materials",
-    "transport_costs",
+    "earthworks",
+    "materials_cost",
+    "external_works",
     "equipment_costs",
     "additional_services_cost",
     "permit_cost",

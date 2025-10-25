@@ -27,7 +27,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <div className="min-h-screen  scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 transition-colors duration-300">
+          <div className="min-h-screen  scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400">
             <Navbar />
             <Routes>
               <Route path="/" element={<Index />} />

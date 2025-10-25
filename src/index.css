@@ -8,7 +8,7 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
+    --card: 10 0% 90%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
@@ -118,13 +118,13 @@
   }
 
   .dark {
-    --background: 210 5% 10%;
+    --background: 210 20% 10%;
     --foreground: 220 25% 95%;
 
     --card: 210 10% 16%;
     --card-foreground: 210 20% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 10% 25%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 217.2 91.2% 59.8%;
@@ -237,7 +237,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-[Outfit];
+    @apply bg-background  transition-colors duration-300 text-foreground font-[Outfit];
   }
 }
 

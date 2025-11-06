@@ -303,7 +303,7 @@ function RoomSection({
 }: RoomSectionProps) {
   return (
     <Card className="border rounded-lg overflow-hidden">
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b">
+      <div className="p-4 bg-gray-50 dark:bg-gray-800/20 border-b">
         <div className="flex items-center justify-between">
           <Input
             type="text"
@@ -501,7 +501,7 @@ function RoomSection({
         </div>
 
         {roomBreakdown && (
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="p-4 bg-gray-50 dark:bg-gray-800/40 rounded-lg">
             <h4 className="font-semibold text-lg mb-3">Room Breakdown</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
@@ -568,7 +568,7 @@ function DoorWindowItem({
 }: DoorWindowItemProps) {
   const field = type === "door" ? "doors" : "windows";
   return (
-    <div className="p-3 border rounded-lg bg-gray-50 dark:bg-slate-800 space-y-3">
+    <div className="p-3 border rounded-lg bg-gray-50 dark:glass space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
         <Select
           value={item.sizeType}

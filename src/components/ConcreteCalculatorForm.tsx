@@ -2077,7 +2077,7 @@ export default function ConcreteCalculatorForm({
                   </div>
                 )}
 
-                {result.gravelVolume && result.gravelVolume > 0 && (
+                {result.gravelVolume > 0 && (
                   <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md">
                     <h4 className="font-semibold mb-2">Gravel Backfill:</h4>
                     <p>
@@ -2089,20 +2089,19 @@ export default function ConcreteCalculatorForm({
                 )}
 
                 {result.element === "foundation" && (
-                  <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-800/40 rounded-md">
                     <h4 className="font-semibold mb-2">Foundation Workings:</h4>
 
-                    {result.steppedFoundationVolume &&
-                      result.steppedFoundationVolume > 0 && (
-                        <div className="mt-2">
-                          <h4 className="font-semibold">
-                            Stepped Foundation Volume:{" "}
-                            {result.steppedFoundationVolume.toFixed(2)} m³
-                          </h4>
-                        </div>
-                      )}
+                    {result.steppedFoundationVolume > 0 && (
+                      <div className="mt-2">
+                        <h4 className="font-semibold">
+                          Stepped Foundation Volume:{" "}
+                          {result.steppedFoundationVolume.toFixed(2)} m³
+                        </h4>
+                      </div>
+                    )}
 
-                    {result.bedVolume && result.bedVolume > 0 && (
+                    {result.bedVolume > 0 && (
                       <div className="mt-2">
                         <h4 className="font-semibold">
                           Concrete Bed Workings:
@@ -2122,7 +2121,7 @@ export default function ConcreteCalculatorForm({
                       </div>
                     )}
 
-                    {result.aggregateVolume && result.aggregateVolume > 0 && (
+                    {result.aggregateVolume > 0 && (
                       <div className="mt-2">
                         <h4 className="font-semibold">
                           Aggregate Bed Workings:
@@ -2144,7 +2143,7 @@ export default function ConcreteCalculatorForm({
                       </div>
                     )}
 
-                    {result.grossTotalBlocks && result.grossTotalBlocks > 0 && (
+                    {result.grossTotalBlocks > 0 && (
                       <div className="mt-2">
                         <h4 className="font-semibold">
                           Masonry Wall Workings:
@@ -2224,7 +2223,7 @@ export default function ConcreteCalculatorForm({
                     </p>
                   )}
 
-                  <div className="ml-4 mt-1 p-2 bg-blue-50 dark:bg-primary/20 rounded text-xs">
+                  <div className="ml-4 mt-1 p-2 bg-card dark:bg-primary/20 rounded-lg text-xs">
                     <p>
                       <b>Water Breakdown:</b>
                     </p>
@@ -2237,7 +2236,7 @@ export default function ConcreteCalculatorForm({
                     </p>
                   </div>
 
-                  {result.grossTotalBlocks && result.grossTotalBlocks > 0 && (
+                  {result.grossTotalBlocks > 0 && (
                     <>
                       <p>
                         <b>{row.masonryBlockType || "Blocks"}:</b>{" "}
@@ -2281,7 +2280,7 @@ export default function ConcreteCalculatorForm({
                     </>
                   )}
 
-                  {result.gravelVolume && result.gravelVolume > 0 && (
+                  {result.gravelVolume > 0 && (
                     <p>
                       <b>Gravel:</b> {result.gravelVolume.toFixed(2)} m³ —{" "}
                       <b>
@@ -2291,7 +2290,7 @@ export default function ConcreteCalculatorForm({
                     </p>
                   )}
 
-                  <div className="ml-4 mt-1 p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                  <div className="ml-4 mt-1 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-xs">
                     <p>
                       <b>Cost Breakdown:</b>
                     </p>

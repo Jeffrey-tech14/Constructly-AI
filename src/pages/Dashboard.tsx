@@ -301,7 +301,7 @@ const Dashboard = () => {
                       dashboardData.recentQuotes.map((quote) => (
                         <div
                           key={quote.id}
-                          className="flex items-center justify-between p-4 dark:bg-gray-900 border border-gray-300 dark:border-gray-600/40 rounded-lg hover:shadow-lg transition-shadow"
+                          className="flex items-center justify-between p-4 glass border border-gray-300 dark:border-gray-600/40 rounded-lg hover:shadow-lg transition-shadow"
                         >
                           <div className="flex-1">
                             <div className="flex items-center justify-between">

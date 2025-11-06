@@ -22,7 +22,6 @@ const GEMINI_API_KEY = getEnv("VITE_GEMINI_API_KEY");
 export const generateBOQWithAI = async (
   quoteData: any
 ): Promise<BOQSection[]> => {
-  console.log(quoteData);
   try {
     // Try AI generation first
     const aiBOQ = await callGeminiAPI(quoteData);
@@ -215,6 +214,7 @@ const cleanQuoteData = (quoteData: any): any => {
     "masonry_materials",
     "concrete_materials",
     "rebar_materials",
+    "qsSettings",
     "earthworks",
     "materials_cost",
     "external_works",
@@ -400,7 +400,6 @@ export const generateMockBOQ = async (
     const localBOQ = generateProfessionalBOQ(quoteData);
 
     if (localBOQ && localBOQ.length > 0) {
-      console.log("Enhanced mock BOQ generated successfully");
       return localBOQ;
     }
 

@@ -214,7 +214,6 @@ function getFinishRate(finish: FinishElement, prices: any[]): number {
   const category = prices.find(
     (p: any) => p.name.toLowerCase() === categoryKey
   );
-  console.log("Matched Category:", category, categoryKey);
   if (!category) return 0;
 
   // Find material in that category

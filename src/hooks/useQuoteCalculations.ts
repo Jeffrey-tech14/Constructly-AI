@@ -440,7 +440,7 @@ export const useQuoteCalculations = () => {
 
       // Calculate material profits based on profit mode
       const materialProfits =
-        percentageSettings.profitMode === "percent"
+        qsSettings?.financialModes?.profit === "percentage"
           ? materials_cost * (percentageSettings.profit / 100)
           : 0; // If profit is fixed, material profits are handled separately
 
@@ -465,7 +465,7 @@ export const useQuoteCalculations = () => {
             sub.total = total;
 
             // Calculate subcontractor profit based on profit mode
-            if (percentageSettings.profitMode === "percent") {
+            if (qsSettings?.financialModes?.profit === "percentage") {
               profitSub += total * (percentageSettings.profit / 100);
             }
 
@@ -487,16 +487,13 @@ export const useQuoteCalculations = () => {
       }, 0);
 
       // Handle permit cost based on mode (if stored in qsSettings)
-      const permitCostMode =
-        qsSettings?.financialModes?.permit_cost || "percentage";
+      const permitCostMode = qsSettings?.financialModes?.permit_cost;
       const permitCost =
         permitCostMode === "percentage"
           ? permit_cost || 0
           : qsSettings?.permit_cost_fixed || 0;
-
-      // Calculate labor cost based on mode
       const laborCost =
-        percentageSettings.labourMode === "percent"
+        qsSettings?.financialModes?.labour === "percentage"
           ? Math.round(materials_cost * (percentageSettings.labour / 100))
           : qsSettings?.labour_fixed || 0;
 
@@ -512,7 +509,7 @@ export const useQuoteCalculations = () => {
 
       // Calculate overhead based on mode
       const overheadAmount =
-        percentageSettings.overheadMode === "percent"
+        qsSettings?.financialModes?.overhead === "percentage"
           ? Math.round(
               subtotalBeforeExtras * (percentageSettings.overhead / 100)
             )
@@ -520,7 +517,7 @@ export const useQuoteCalculations = () => {
 
       // Calculate contingency based on mode
       const contingencyAmount =
-        percentageSettings.contingencyMode === "percent"
+        qsSettings?.financialModes?.contingency === "percentage"
           ? Math.round(
               subtotalBeforeExtras * (percentageSettings.contingency / 100)
             )
@@ -528,7 +525,7 @@ export const useQuoteCalculations = () => {
 
       // Calculate profit based on mode
       const profitAmount =
-        percentageSettings.profitMode === "percent"
+        qsSettings?.financialModes?.profit === "percentage"
           ? Math.round(subcontractorProfit + materialProfits)
           : qsSettings?.profit_fixed || 0;
 

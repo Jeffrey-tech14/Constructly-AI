@@ -76,7 +76,6 @@ const Profile = () => {
       const url = URL.createObjectURL(data);
       setAvatarUrl(url);
     } catch (error) {
-      console.log("Error downloading image: ", error);
       if (path) {
         setAvatarUrl(path);
       }

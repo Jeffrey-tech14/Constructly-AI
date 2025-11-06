@@ -70,7 +70,6 @@ Ensure the response is pure JSON without any markdown formatting or additional t
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    console.log(response);
 
     // Clean the response to extract only JSON
     const jsonMatch = text.match(/\{[\s\S]*\}/);

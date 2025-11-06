@@ -389,9 +389,7 @@ const VideoModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen && videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().catch((error) => {
-        console.log("Autoplay was prevented:", error);
-      });
+      videoRef.current.play().catch((error) => {});
     }
   }, [isOpen]);
   if (!isOpen) return null;
@@ -1829,9 +1827,7 @@ const Index = () => {
                   className="rounded-xl"
                   onLoadedMetadata={(e) => {
                     e.currentTarget.currentTime = 0;
-                    e.currentTarget.play().catch((error) => {
-                      console.log("Autoplay was prevented:", error);
-                    });
+                    e.currentTarget.play().catch((error) => {});
                   }}
                 >
                   <source src="/video.mp4" type="video/mp4" />

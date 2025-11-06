@@ -349,17 +349,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   }, [quote]);
 
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [finishes, setFinishes] = useState<FinishElement[]>();
+  const [plumbingSystems, setPlumbingSystems] = useState<PlumbingSystem[]>([]);
+  const [roofStructure, setRoofStructure] = useState<RoofStructure[]>([]);
+  const [electricalSystems, setElectricalSystems] = useState<
+    ElectricalSystem[]
+  >([]);
+  const [finishes, setFinishes] = useState<FinishElement[]>([]);
 
-  const [electricalSystems, setElectricalSystems] =
-    useState<ElectricalSystem[]>();
-  const [plumbingSystems, setPlumbingSystems] = useState<PlumbingSystem[]>();
-  const [roofStructure, setRoofStructure] = useState<RoofStructure[]>();
   useEffect(() => {
-    setPlumbingSystems(quoteData.plumbing_systems);
-    setRoofStructure(quoteData.roof_structures);
-    setElectricalSystems(quoteData.electrical_systems);
-    setFinishes(quoteData.finishes);
+    setPlumbingSystems(quoteData?.plumbing_systems || []);
+    setRoofStructure(quoteData?.roof_structures || []);
+    setElectricalSystems(quoteData?.electrical_systems || []);
+    setFinishes(quoteData?.finishes || []);
   }, [
     quoteData.plumbing_systems,
     quoteData.roof_structures,
@@ -1555,10 +1556,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       (eq) => eq.equipment_type_id === equipment.id
                     );
                     return (
-                      <Card
-                        key={equipment.id}
-                        className="p-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                      >
+                      <Card key={equipment.id} className="p-6">
                         <div className="items-center justify-between">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="flex items-center space-x-2">
@@ -1778,7 +1776,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       !equipmentRates.some((e) => e.id === eq.equipment_type_id)
                   )
                   .map((eq) => {
-                    console.log(eq.usage_unit);
                     const totalCost =
                       (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
                     return (
@@ -3262,7 +3259,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             exit="exit"
             transition={{ duration: 0.2 }}
           >
-            <Card className="mb-8">
+            <Card className="mb-8 -p-5">
               <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
                 <CardTitle className="flex justify-between items-center gap-3 text-gray-900 dark:text-white">
                   <div className="flex gap-3  items-center">
@@ -3280,7 +3277,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">{renderStepContent()}</CardContent>
+              <CardContent className="sm:p-6 p-1 pt-6">
+                {renderStepContent()}
+              </CardContent>
             </Card>
           </motion.div>
         </AnimatePresence>

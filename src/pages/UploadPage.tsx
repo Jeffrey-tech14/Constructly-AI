@@ -327,7 +327,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(
-      "https://constructly-backend.onrender.com/api/plan/upload",
+      "https://df34d60f6ff1.ngrok-free.app/api/plan/upload",
       {
         method: "POST",
         body: formData,

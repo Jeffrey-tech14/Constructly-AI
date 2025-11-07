@@ -220,7 +220,7 @@ export default function useElectricalCalculator(
     const wastageSetting = quote?.qsSettings?.wastageElectricals;
 
     if (typeof wastageSetting === "number") {
-      return wastageSetting;
+      return wastageSetting / 100;
     }
 
     if (typeof wastageSetting === "string") {

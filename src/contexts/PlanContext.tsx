@@ -43,6 +43,23 @@ export interface Window {
   };
   count: number;
 }
+export interface EquipmentSection {
+  equipmentData: {
+    standardEquipment: EquipmentItem[];
+    customEquipment: EquipmentItem[];
+    usageUnits: string[];
+    categories: string[];
+  };
+}
+
+export interface EquipmentItem {
+  id?: string;
+  name: string;
+  description?: string;
+  usage_unit?: string;
+  rate_per_unit?: number;
+  category?: string;
+}
 export interface ExtractedPlan {
   projectInfo?: {
     projectType: string;
@@ -94,6 +111,8 @@ export interface ExtractedPlan {
     volume: string;
     material: string;
   }>;
+
+  equipment?: EquipmentSection;
 
   concreteStructures?: Array<{
     id: string;

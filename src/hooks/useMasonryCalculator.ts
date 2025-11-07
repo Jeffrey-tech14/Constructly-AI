@@ -1164,7 +1164,7 @@ export default function useMasonryCalculator({
 
     const parts = ratio.split(":").map((part) => parseFloat(part.trim()));
     if (parts.length !== 2 || parts.some(isNaN) || parts.some((p) => p <= 0)) {
-      return { cement: 1, sand: 4 }; // Default fallback
+      return { cement: 1, sand: 6 }; // Default fallback
     }
     return { cement: parts[0], sand: parts[1] };
   }, []);
@@ -1328,7 +1328,7 @@ export default function useMasonryCalculator({
       const blockAreaWithJoint = getBlockAreaWithJoint(room);
       const netBlocks = getBlockCount(room);
       // Use the mortar ratio from quote settings
-      const mortarRatio = quote?.mortar_ratio || "1:4";
+      const mortarRatio = quote?.mortarRatio || "1:4";
       const netMortarVolume = netWallArea * MORTAR_PER_SQM;
       const mortarMaterials = calculateMortarMaterials(
         netMortarVolume,
@@ -1343,7 +1343,7 @@ export default function useMasonryCalculator({
       const netPlasterVolume = netPlasterArea * PLASTER_THICKNESS;
       // For plaster - you might want a separate ratio or use the same
       const plasterRatio =
-        currentQsSettings.plaster_ratio || quote.mortar_ratio || "1:4";
+        currentQsSettings.plaster_ratio || quote.mortarRatio || "1:4";
       const plasterMaterials = calculateMortarMaterials(
         netPlasterVolume,
         plasterRatio

@@ -120,6 +120,30 @@ Analyze this construction document and extract ALL available information about:
 - LIGHTING_WATTAGE = [3, 5, 7, 9, 12, 15, 18, 20, 24, 30, 36, 40, 50, 60];
 - commonOutletRatings = [6, 10, 13, 16, 20, 25, 32, 40, 45, 63];
 
+**Reinforcement:** 
+- ElementTypes =
+  | "slab"
+  | "beam"
+  | "column"
+  | "foundation"
+  | "strip-footing"
+  | "tank";
+- RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
+- ReinforcementType = "individual_bars" | "mesh";
+- FootingType = "isolated" | "strip" | "combined";
+- TankType =
+  | "septic"
+  | "underground"
+  | "overhead"
+  | "water"
+  | "circular";
+- TankWallType = "walls" | "base" | "cover" | "all";
+- Be deifinate between the reinforcement types, eg either mesh or individual_bars
+- If you find both reinforecement types, create two individual entries for each with the correct 
+
+**Equipment:**
+- Standard equipment types and their respective id = Bulldozer:15846932-db16-4a28-a477-2e4b2e1e42d5, Concrete Mixer:3203526d-fa51-4878-911b-477b2b909db5, Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b, Water Pump:598ca378-6eb3-451f-89ea-f45aa6ecece8, Crane: d4665c7d-6ace-474d-8282-e888b53e7b48, Compactoreb80f645-6450-4026-b007-064b5f15a72a, Excavator:ef8d17ca-581d-4703-b200-17395bbe1c51
+
 **Roofing:**
 - Roof types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
 - Roof materials: "concrete-tiles", "clay-tiles", "metal-sheets", "box-profile", "thatch", "slate", "asphalt-shingles", "green-roof", "membrane"
@@ -127,9 +151,115 @@ Analyze this construction document and extract ALL available information about:
 - Underlayment: "felt-30", "felt-40", "synthetic", "rubberized", "breathable"
 - Insulation: "glass-wool", "rock-wool", "eps", "xps", "polyurethane", "reflective-foil"
 - Accessories: Use exact types (e.g., gutterType: "PVC", "Galvanized Steel", etc.)
+- TIMBER_GRADES = [
+  { value: "standard", label: "Standard Grade" },
+  { value: "structural", label: "Structural Grade" },
+  { value: "premium", label: "Premium Grade" },
+];
+
+- TIMBER_TREATMENTS = [
+  { value: "untreated", label: "Untreated" },
+  { value: "pressure-treated", label: "Pressure Treated" },
+  { value: "fire-retardant", label: "Fire Retardant" },
+];
+
+- TIMBER_TYPES = [
+  { value: "rafter", label: "Rafter" },
+  { value: "wall-plate", label: "Wall Plate" },
+  { value: "ridge-board", label: "Ridge Board" },
+  { value: "purlin", label: "Purlin" },
+  { value: "battens", label: "Battens" },
+  { value: "truss", label: "Truss" },
+  { value: "joist", label: "Joist" },
+];
+
+- UNDERLAYMENT_TYPES = [
+  { value: "felt-30", label: "30# Felt Underlayment" },
+  { value: "felt-40", label: "40# Felt Underlayment" },
+  { value: "synthetic", label: "Synthetic Underlayment" },
+  { value: "rubberized", label: "Rubberized Asphalt" },
+  { value: "breathable", label: "Breathable Membrane" },
+];
+
+- INSULATION_TYPES = [
+  { value: "glass-wool", label: "Glass Wool Batts" },
+  { value: "rock-wool", label: "Rock Wool" },
+  { value: "eps", label: "Expanded Polystyrene" },
+  { value: "xps", label: "Extruded Polystyrene" },
+  { value: "polyurethane", label: "Polyurethane Foam" },
+  { value: "reflective-foil", label: "Reflective Foil" },
+];
+
+- GUTTER_TYPES = [
+  { value: "PVC", label: "PVC Gutter" },
+  { value: "Galvanized Steel", label: "Galvanized Steel Gutter" },
+  { value: "Aluminum", label: "Aluminum Gutter" },
+  { value: "Copper", label: "Copper Gutter" },
+];
+
+- DOWNPIPE_TYPES = [
+  { value: "PVC", label: "PVC Downpipe" },
+  { value: "Galvanized Steel", label: "Galvanized Steel Downpipe" },
+  { value: "Aluminum", label: "Aluminum Downpipe" },
+  { value: "Copper", label: "Copper Downpipe" },
+];
+
+- FLASHING_TYPES = [
+  { value: "PVC", label: "PVC Flashing" },
+  { value: "Galvanized Steel", label: "Galvanized Steel Flashing" },
+  { value: "Aluminum", label: "Aluminum Flashing" },
+  { value: "Copper", label: "Copper Flashing" },
+];
+
+- FASCIA_TYPES = [
+  { value: "PVC", label: "PVC Fascia" },
+  { value: "Painted Wood", label: "Painted Wood Fascia" },
+  { value: "Aluminum", label: "Aluminum Fascia" },
+  { value: "Composite", label: "Composite Fascia" },
+];
+
+- SOFFIT_TYPES = [
+  { value: "PVC", label: "PVC Soffit" },
+  { value: "Aluminum", label: "Aluminum Soffit" },
+  { value: "Composite", label: "Composite Soffit" },
+  { value: "Metal", label: "Metal Soffit" },
+];
+
+- ROOF_TYPES: { value: RoofType; label: string }[] = [
+  { value: "flat", label: "Flat Roof" },
+  { value: "pitched", label: "Pitched Roof" },
+  { value: "gable", label: "Gable Roof" },
+  { value: "hip", label: "Hip Roof" },
+  { value: "mansard", label: "Mansard Roof" },
+  { value: "butterfly", label: "Butterfly Roof" },
+  { value: "skillion", label: "Skillion Roof" },
+];
+
+- ROOF_MATERIALS: { value: RoofMaterial; label: string }[] = [
+  { value: "concrete-tiles", label: "Concrete Tiles" },
+  { value: "clay-tiles", label: "Clay Tiles" },
+  { value: "metal-sheets", label: "Metal Sheets" },
+  { value: "box-profile", label: "Box Profile" },
+  { value: "thatch", label: "Thatch" },
+  { value: "slate", label: "Slate" },
+  { value: "asphalt-shingles", label: "Asphalt Shingles" },
+  { value: "green-roof", label: "Green Roof" },
+  { value: "membrane", label: "Membrane" },
+];
+
+- TIMBER_SIZES: { value: TimberSize; label: string }[] = [
+  { value: "50x25", label: "50mm x 25mm" },
+  { value: "50x50", label: "50mm x 50mm" },
+  { value: "75x50", label: "75mm x 50mm" },
+  { value: "100x50", label: "100mm x 50mm" },
+  { value: "100x75", label: "100mm x 75mm" },
+  { value: "150x50", label: "150mm x 50mm" },
+  { value: "200x50", label: "200mm x 50mm" },
+];
+
 
 **Finishes:**
-- Categories: "flooring", "ceiling", "wall-finishes", "painting", "joinery"
+- Categories: "flooring", "ceiling", "wall-finishes", "paint", "joinery"
 - Only use these specified categories: skip glass, blocks, anyting to do with masonry or glass etc that are not in this list
 - Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
 - COMMON_MATERIALS = {
@@ -162,10 +292,33 @@ Analyze this construction document and extract ALL available information about:
 };
 
 **Concrete & Structure:**
-- Element types: "slab", "beam", "column", "foundation", "strip-footing", "raft-foundation", etc.
+- Element types:  "slab"
+  | "beam"
+  | "column"
+  | "foundation"
+  | "septic-tank"
+  | "underground-tank"
+  | "staircase"
+  | "ring-beam"
+  | "strip-footing"
+  | "raft-foundation"
+  | "pile-cap"
+  | "water-tank"
+  | "ramp"
+  | "retaining-wall"
+  | "culvert"
+  | "swimming-pool"
+  | "paving"
+  | "kerb"
+  | "drainage-channel"
+  | "manhole"
+  | "inspection-chamber"
+  | "soak-pit"
+  | "soakaway", etc.
 - Categories: "substructure", "superstructure"
 - Rebar sizes follow standard notation (e.g., "Y10", "Y12")
 - Mixes to follow ratios eg 1:2:4, 1:2:3
+- Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
 
 ### 📐 DIMENSION EXTRACTION:
 - Extract room dimensions (length × width) in meters
@@ -369,19 +522,85 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       transverseBars?: string;
       topReinforcement?: string;
       bottomReinforcement?: string;
-    }
-  ],
-  "masonry": [
+    },
     {
-      "id": string,
-      "type": "block" | "brick",
-      "blockType": string,
-      "length": string,
-      "height": string,
-      "thickness": string,
-      "area": string
-    }
+      "id": "unique-id-6",
+      "element": "tank",
+      "name": "Septic Tank ST1",
+      "length": "3.0",
+      "width": "2.0",
+      "depth": "1.8",
+      "columnHeight": "",
+      "mainBarSpacing": "",
+      "distributionBarSpacing": "",
+      "mainBarsCount": "",
+      "distributionBarsCount": "",
+      "slabLayers": "",
+      "mainBarSize": "Y12",
+      "distributionBarSize": "Y10",
+      "stirrupSize": "",
+      "tieSize": "",
+      "stirrupSpacing": "",
+      "tieSpacing": "",
+      "category": "substructure",
+      "number": "1",
+      "reinforcementType": "individual_bars",
+      "meshGrade": "",
+      "meshSheetWidth": "",
+      "meshSheetLength": "",
+      "meshLapLength": "",
+      "footingType": "",
+      "longitudinalBars": "",
+      "transverseBars": "",
+      "topReinforcement": "",
+      "bottomReinforcement": "",
+      "tankType": "septic",
+      "tankShape": "rectangular",
+      "wallThickness": "0.2",
+      "baseThickness": "0.2",
+      "coverThickness": "0.15",
+      "includeCover": true,
+      "wallVerticalBarSize": "Y12",
+      "wallHorizontalBarSize": "Y10",
+      "wallVerticalSpacing": "150",
+      "wallHorizontalSpacing": "200",
+      "baseMainBarSize": "Y12",
+      "baseDistributionBarSize": "Y10",
+      "baseMainSpacing": "150",
+      "baseDistributionSpacing": "200",
+      "coverMainBarSize": "Y10",
+      "coverDistributionBarSize": "Y8",
+      "coverMainSpacing": "200",
+      "coverDistributionSpacing": "250"
+    },
   ],
+  "equipment":{
+    "equipmentData": {
+      "standardEquipment": [
+        {
+          "id": "equip_001",
+          "name": "Excavator",
+          "description": "Heavy-duty excavator for digging and earthmoving",
+          "usage_unit": "day",
+          "rate_per_unit": 1,
+          "usage_quantity": 1 // number of days, weeks, hours etc to be used,
+          "category": "earthmoving"
+        },
+      ],
+      "customEquipment": [
+        {
+          "equipment_type_id": "custom_001",
+          "name": "Specialized Drilling Rig",
+          "desc": "Custom drilling equipment for foundation work",
+          "usage_quantity": 1,
+          "usage_unit": "week",
+          "rate_per_unit": 1,
+          "usage_quantity": 1 // number of days, weeks, hours etc to be used,
+          "total_cost": 1
+        },
+      ],
+    }
+  }
   "roofing": [
     {
       "id": string,
@@ -397,7 +616,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         "type": string,
         "material": RoofMaterial,
         "underlayment"?: UnderlaymentType,
-        "insulation"?: { "type": InsulationType, "thickness": number }
+        "insulation"?: { "type": InsulationType, "thickness": number // m }
       },
       "timbers": [
         {
@@ -423,6 +642,8 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         "fasciaType": FasciaType,
         "soffit": number,
         "soffitType": SoffitType
+        "RidgeCaps": number // m,
+        valleyTraps: number // m
       },
     }
   ],
@@ -551,6 +772,8 @@ IMPORTANT:
 - For bedrooms, distinguish between "Master Bedroom" and regular "Bedroom"
 - For bathrooms, identify if they are "En-suite" or shared
 - Pay special attention to dimension lines and labels
+- Estimate resonably the equipment that would be used and days to be used
+- Use the provided equipment types and ids, if your findings dont exist on the provided list, add them on your own
 - Convert all measurements to meters (mm ÷ 1000)
 - Use the specific types provided
 - Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not chnage the speling or characters

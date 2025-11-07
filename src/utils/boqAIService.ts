@@ -80,6 +80,8 @@ const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
 
     // Handle different possible response structures
     const responseText = extractResponseText(data);
+    console.log(quoteData);
+    console.log(responseText);
 
     if (!responseText) {
       throw new Error("No text content found in Gemini response");
@@ -142,7 +144,7 @@ const createAIPrompt = (quoteData: any): string => {
   return `ACT AS AN EXPERT QUANTITY SURVEYOR. Generate a professional Bill of Quantities in JSON format.
 
 PROJECT DATA:
-${JSON.stringify(cleanedData, null, 2)}
+${JSON.stringify(quoteData, null, 2)}
 
 STRICT REQUIREMENTS:
 - Use ONLY the data provided - NO estimation or mock data
@@ -188,7 +190,7 @@ SECTIONS TO CONSIDER (only if data exists):
 9. Services Installations
 10. External Works
 
-Return ONLY the JSON array.`;
+Return ONLY the JSON array in the correct format.`;
 };
 
 const cleanQuoteData = (quoteData: any): any => {
@@ -215,7 +217,7 @@ const cleanQuoteData = (quoteData: any): any => {
     "concrete_materials",
     "rebar_materials",
     "qsSettings",
-    "earthworks",
+    "earthwork",
     "materials_cost",
     "external_works",
     "equipment_costs",

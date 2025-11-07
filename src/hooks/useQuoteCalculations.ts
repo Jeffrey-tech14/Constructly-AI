@@ -116,7 +116,6 @@ export interface QuoteCalculation {
   custom_specs: string;
   qsSettings: any;
   external_works: any[];
-  earthworks: any[];
   floors: number;
   status: string;
   concrete_rows: Array<{
@@ -185,6 +184,7 @@ export interface QuoteCalculation {
   concrete_materials: any[];
   rebar_calculations: any[];
   preliminaries: any[];
+  earthwork: any[];
   total_wall_area: number;
   total_concrete_volume: number;
   total_formwork_area: number;

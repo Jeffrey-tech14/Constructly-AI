@@ -131,6 +131,7 @@ import {
   FinishElement,
 } from "@/hooks/useUniversalFinishesCalculator";
 import QSSettings from "./QSSettings";
+import EarthworksForm, { EarthworkItem } from "./EarthWorksForm";
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
@@ -302,7 +303,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     plaster_thickness: 0.012,
     include_wastage: true,
     external_works: [],
-    earthworks: [],
     equipment: [],
     services: [],
     percentages: [],
@@ -330,6 +330,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     total_plaster_volume: 0,
     boqData: [],
     preliminaries: [],
+    earthwork: [],
     labor_percentages: 0,
     overhead_percentages: 0,
     profit_percentages: 0,
@@ -350,6 +351,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
   const [materials, setMaterials] = useState<Material[]>([]);
   const [plumbingSystems, setPlumbingSystems] = useState<PlumbingSystem[]>([]);
+  const [earthwork, setEarthWorks] = useState<EarthworkItem[]>([]);
   const [roofStructure, setRoofStructure] = useState<RoofStructure[]>([]);
   const [electricalSystems, setElectricalSystems] = useState<
     ElectricalSystem[]
@@ -361,11 +363,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     setRoofStructure(quoteData?.roof_structures || []);
     setElectricalSystems(quoteData?.electrical_systems || []);
     setFinishes(quoteData?.finishes || []);
+    setEarthWorks(quoteData?.earthwork || []);
   }, [
     quoteData.plumbing_systems,
     quoteData.roof_structures,
     quoteData.electrical_systems,
     quoteData.finishes,
+    quoteData.earthwork,
   ]);
   useEffect(() => {
     if (quoteData.region) {
@@ -547,6 +551,21 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             })
           ) || prev.concrete_rows,
 
+        equipment:
+          extractedPlan.equipment?.equipmentData?.standardEquipment?.map(
+            (item: any, index: number) => ({
+              id: item.id || `equipment-${index}`,
+              name: item.name || "Unnamed Equipment",
+              description: item.description || "",
+              usage_unit: item.usage_unit || "day",
+              rate_per_unit: item.rate_per_unit ?? 0,
+              category: item.category || "other",
+              total_cost: 0,
+              equipment_type_id: item.id,
+              usage_quantity: 0,
+            })
+          ) || prev.equipment,
+
         // Reinforcement
         rebar_rows:
           extractedPlan.reinforcement?.map((rebar: any, index: number) => ({
@@ -570,18 +589,46 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             tieSpacing: rebar.tieSpacing || "250",
             category: rebar.category || "superstructure",
             number: rebar.number || "1",
+
             // Reinforcement type and mesh fields
             reinforcementType: rebar.reinforcementType || "individual_bars",
             meshGrade: rebar.meshGrade || "A142",
             meshSheetWidth: rebar.meshSheetWidth || "2.4",
             meshSheetLength: rebar.meshSheetLength || "4.8",
             meshLapLength: rebar.meshLapLength || "0.3",
-            // Strip footing specific fields
+
+            // Footing-specific fields
             footingType: rebar.footingType || "strip",
             longitudinalBars: rebar.longitudinalBars || "",
             transverseBars: rebar.transverseBars || "",
             topReinforcement: rebar.topReinforcement || "",
             bottomReinforcement: rebar.bottomReinforcement || "",
+
+            // Tank-specific fields
+            tankType: rebar.tankType || "septic",
+            tankShape: rebar.tankShape || "rectangular",
+            wallThickness: rebar.wallThickness || "0.2",
+            baseThickness: rebar.baseThickness || "0.15",
+            coverThickness: rebar.coverThickness || "0.125",
+            includeCover: rebar.includeCover ?? true,
+
+            // Wall reinforcement
+            wallVerticalBarSize: rebar.wallVerticalBarSize || "Y10",
+            wallHorizontalBarSize: rebar.wallHorizontalBarSize || "Y10",
+            wallVerticalSpacing: rebar.wallVerticalSpacing || "150",
+            wallHorizontalSpacing: rebar.wallHorizontalSpacing || "150",
+
+            // Base reinforcement
+            baseMainBarSize: rebar.baseMainBarSize || "Y10",
+            baseDistributionBarSize: rebar.baseDistributionBarSize || "Y10",
+            baseMainSpacing: rebar.baseMainSpacing || "150",
+            baseDistributionSpacing: rebar.baseDistributionSpacing || "150",
+
+            // Cover reinforcement
+            coverMainBarSize: rebar.coverMainBarSize || "Y10",
+            coverDistributionBarSize: rebar.coverDistributionBarSize || "Y10",
+            coverMainSpacing: rebar.coverMainSpacing || "150",
+            coverDistributionSpacing: rebar.coverDistributionSpacing || "150",
           })) || prev.rebar_rows,
 
         // Masonry
@@ -609,13 +656,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             width: parseFloat(roof.width) || 0,
             eavesOverhang: 0.5,
             ridgeLength: roof.ridgeLength,
-            covering: {
-              type: roof.material || "concrete-tiles",
-              material: roof.material || "concrete-tiles",
-              thickness: roof.thickness,
-              underlayment: roof.underlayment || "felt-30",
-              insulation: roof.insulation,
-            },
+            covering: roof.covering,
             grade: "structural",
             treatment: "pressure-treated",
             timbers: DEFAULT_TIMBERS.map((timber) => ({
@@ -625,21 +666,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   ? parseFloat(roof.span) / 2 || 4.5
                   : timber.length,
             })),
-            accessories: {
-              gutters: parseFloat(roof.perimeter) || 0,
-              gutterType: "PVC" as GutterType,
-              downpipes: Math.ceil((parseFloat(roof.perimeter) || 0) / 10),
-              downpipeType: "PVC" as DownpipeType,
-              flashings: parseFloat(roof.flashingLength) || 0,
-              flashingType: "PVC" as FlashingType,
-              fascia: parseFloat(roof.perimeter) || 0,
-              fasciaType: "PVC" as FasciaType,
-              soffit: parseFloat(roof.perimeter) || 0,
-              soffitType: "PVC" as SoffitType,
-              ridgeCaps: parseFloat(roof.ridgeLength) || 0,
-              valleyTrays: parseFloat(roof.valleyLength) || 0,
-            },
-            wastagePercentage: 10,
+            accessories: roof.accessories,
           })) || prev.roof_structures,
 
         // Plumbing Systems
@@ -651,10 +678,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             pipes:
               system.pipes?.map((pipe: any, pipeIndex: number) => ({
                 id: pipe.id || `pipe-${index}-${pipeIndex}`,
-                material:
-                  (pipe.material
-                    ?.toLowerCase()
-                    .replace(" ", "-") as PipeMaterial) || "PVC-u",
+                material: pipe.material || "PVC-u",
                 diameter: parseFloat(pipe.diameter) || 25,
                 length: parseFloat(pipe.length) || 0,
                 quantity: 1,
@@ -665,10 +689,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             fixtures:
               system.fixtures?.map((fixture: any, fixtureIndex: number) => ({
                 id: fixture.id || `fixture-${index}-${fixtureIndex}`,
-                type:
-                  (fixture.type
-                    ?.toLowerCase()
-                    .replace(" ", "-") as FixtureType) || "water-closet",
+                type: fixture.type?.toLowerCase() || "water-closet",
                 count: fixture.count || 1,
                 location: fixture.location || "Unknown",
                 quality: "standard" as const,
@@ -706,10 +727,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             outlets:
               system.outlets?.map((outlet: any, outletIndex: number) => ({
                 id: outlet.id || `outlet-${index}-${outletIndex}`,
-                type:
-                  (outlet.type
-                    ?.toLowerCase()
-                    .replace(" ", "-") as OutletType) || "power-socket",
+                type: outlet.type || "power-socket",
                 count: outlet.count || 1,
                 location: outlet.location || "Unknown",
                 circuit: outlet.circuit || "Circuit 1",
@@ -720,10 +738,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             lighting:
               system.lighting?.map((light: any, lightIndex: number) => ({
                 id: light.id || `light-${index}-${lightIndex}`,
-                type:
-                  (light.type
-                    ?.toLowerCase()
-                    .replace("-", "") as LightingType) || "led-downlight",
+                type: light.type || "led-downlight",
                 count: light.count || 1,
                 location: light.location || "Unknown",
                 circuit: light.circuit || "Lighting Circuit",
@@ -760,7 +775,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             height: parseFloat(finish.height) || 0,
             unit: "m²" as const,
             quantity: parseFloat(finish.area) || 1,
-            location: finish.room || "Unknown",
+            location: finish.location || "Unknown",
             specifications: finish.specifications || {},
           })) || prev.finishes,
 
@@ -777,7 +792,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           })) || prev.external_works,
 
         // Earthworks
-        earthworks:
+        earthwork:
           extractedPlan.earthworks?.map((earthwork: any, index: number) => ({
             id: earthwork.id || `earthwork-${index}`,
             type: earthwork.type,
@@ -786,7 +801,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             depth: parseFloat(earthwork.depth) || 0,
             volume: parseFloat(earthwork.volume) || 0,
             material: earthwork.material,
-          })) || prev.earthworks,
+          })) || prev.earthwork,
       }));
     }
     console.log("Extracted Plan Changed:");
@@ -959,7 +974,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         percentages: quoteData.percentages,
         boqData: boqData,
         external_works: quoteData.external_works,
-        earthworks: quoteData.earthworks,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
@@ -968,6 +982,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         plumbing_systems: plumbingSystems,
         finishes: finishes,
         roof_structures: roofStructure,
+        earthwork: earthwork,
         services: quoteData.services,
         distance_km: parseFloat(quoteData.distance_km.toString()) || 0,
         contract_type: quoteData.contract_type,
@@ -1108,6 +1123,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plumbing_systems: plumbingSystems,
           finishes: finishes,
           roof_structures: roofStructure,
+          earthwork: earthwork,
           additional_services_cost: Math.round(
             calculation.selected_services_cost
           ),
@@ -1449,6 +1465,15 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return (
           <div className="space-y-6">
             <div>
+              <EarthworksForm
+                earthworks={earthwork}
+                excavationRates={materials}
+                setEarthworks={setEarthWorks}
+                setQuoteData={setQuoteData}
+                quote={quoteData}
+              />
+            </div>
+            <div className="mt-6">
               <ConcreteCalculatorForm
                 quote={quoteData}
                 setQuote={setQuoteData}
@@ -3366,7 +3391,6 @@ export function Stepper({
         <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
 
-      {/* Scrollable steps */}
       <div
         ref={scrollContainerRef}
         className="flex overflow-x-auto no-scrollbar scroll-smooth gap-2 px-8 py-2"

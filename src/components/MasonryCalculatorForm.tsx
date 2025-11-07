@@ -126,7 +126,7 @@ export default function MasonryCalculatorForm({
   };
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+      <div className="p-4 m-2 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
         <h3 className="font-semibold text-lg text-primary dark:text-blue-100">
           Total Cost: Ksh {results.grossTotalCost?.toLocaleString() || 0}
         </h3>
@@ -167,7 +167,7 @@ export default function MasonryCalculatorForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 m-2">
         <div>
           <Label htmlFor="mortar-ratio">Mortar Ratio (Cement:Sand)</Label>
           <Input

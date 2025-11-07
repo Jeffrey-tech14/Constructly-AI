@@ -183,7 +183,7 @@ export default function usePlumbingCalculator(
     const wastageSetting = quote?.qsSettings?.wastagePlumbing;
 
     if (typeof wastageSetting === "number") {
-      return wastageSetting;
+      return wastageSetting / 100;
     }
 
     if (typeof wastageSetting === "string") {

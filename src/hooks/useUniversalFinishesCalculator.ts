@@ -83,7 +83,7 @@ export default function useUniversalFinishesCalculator(
     const wastageSetting = quote?.qsSettings?.wastageFinishes;
 
     if (typeof wastageSetting === "number") {
-      return wastageSetting;
+      return wastageSetting / 100;
     }
 
     if (typeof wastageSetting === "string") {

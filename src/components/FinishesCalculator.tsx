@@ -84,7 +84,15 @@ const COMMON_MATERIALS = {
     "Laminated Glass",
     "Double Glazing",
   ],
-  joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate", "Steel"],
+  joinery: [
+    "Solid Wood",
+    "Plywood",
+    "MDF",
+    "Melamine",
+    "Laminate",
+    "Steel",
+    "Aluminum",
+  ],
 };
 
 export default function FinishesCalculator({
@@ -145,7 +153,6 @@ export default function FinishesCalculator({
     setEditingId(newFinish.id);
     setEditForm(newFinish);
   };
-  console.log(finishes);
 
   useEffect(() => {
     setQuoteData((prev: any) => ({

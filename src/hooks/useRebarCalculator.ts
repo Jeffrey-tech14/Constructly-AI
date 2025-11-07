@@ -10,10 +10,136 @@ export type ElementTypes =
   | "beam"
   | "column"
   | "foundation"
-  | "strip_footing";
+  | "strip-footing"
+  | "tank";
 export type RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
 export type ReinforcementType = "individual_bars" | "mesh";
 export type FootingType = "isolated" | "strip" | "combined";
+export type TankType =
+  | "septic"
+  | "underground"
+  | "overhead"
+  | "water"
+  | "circular";
+export type TankWallType = "walls" | "base" | "cover" | "all";
+
+export interface TankReinforcement {
+  walls: {
+    verticalBars: RebarSize;
+    horizontalBars: RebarSize;
+    verticalSpacing: number;
+    horizontalSpacing: number;
+  };
+  base: {
+    mainBars: RebarSize;
+    distributionBars: RebarSize;
+    mainSpacing: number;
+    distributionSpacing: number;
+  };
+  cover?: {
+    mainBars: RebarSize;
+    distributionBars: RebarSize;
+    mainSpacing: number;
+    distributionSpacing: number;
+  };
+}
+
+export const DEFAULT_TANK_REINFORCEMENT: Record<TankType, TankReinforcement> = {
+  septic: {
+    walls: {
+      verticalBars: "Y12",
+      horizontalBars: "Y10",
+      verticalSpacing: 150,
+      horizontalSpacing: 200,
+    },
+    base: {
+      mainBars: "Y12",
+      distributionBars: "Y10",
+      mainSpacing: 150,
+      distributionSpacing: 200,
+    },
+    cover: {
+      mainBars: "Y10",
+      distributionBars: "Y8",
+      mainSpacing: 200,
+      distributionSpacing: 250,
+    },
+  },
+  underground: {
+    walls: {
+      verticalBars: "Y16",
+      horizontalBars: "Y12",
+      verticalSpacing: 150,
+      horizontalSpacing: 150,
+    },
+    base: {
+      mainBars: "Y16",
+      distributionBars: "Y12",
+      mainSpacing: 150,
+      distributionSpacing: 150,
+    },
+    cover: {
+      mainBars: "Y12",
+      distributionBars: "Y10",
+      mainSpacing: 200,
+      distributionSpacing: 200,
+    },
+  },
+  overhead: {
+    walls: {
+      verticalBars: "Y12",
+      horizontalBars: "Y10",
+      verticalSpacing: 150,
+      horizontalSpacing: 200,
+    },
+    base: {
+      mainBars: "Y12",
+      distributionBars: "Y10",
+      mainSpacing: 150,
+      distributionSpacing: 200,
+    },
+    cover: {
+      mainBars: "Y10",
+      distributionBars: "Y8",
+      mainSpacing: 200,
+      distributionSpacing: 250,
+    },
+  },
+  water: {
+    walls: {
+      verticalBars: "Y12",
+      horizontalBars: "Y10",
+      verticalSpacing: 150,
+      horizontalSpacing: 200,
+    },
+    base: {
+      mainBars: "Y12",
+      distributionBars: "Y10",
+      mainSpacing: 150,
+      distributionSpacing: 200,
+    },
+  },
+  circular: {
+    walls: {
+      verticalBars: "Y12",
+      horizontalBars: "Y10",
+      verticalSpacing: 150,
+      horizontalSpacing: 200,
+    },
+    base: {
+      mainBars: "Y12",
+      distributionBars: "Y10",
+      mainSpacing: 150,
+      distributionSpacing: 200,
+    },
+    cover: {
+      mainBars: "Y10",
+      distributionBars: "Y8",
+      mainSpacing: 200,
+      distributionSpacing: 250,
+    },
+  },
+};
 
 export const REBAR_PROPERTIES: Record<
   RebarSize,
@@ -130,6 +256,13 @@ export interface CodeComplianceLimits {
   minColumnCover: number;
   minFoundationCover: number;
   maxCrackControlSpacing: number;
+  minTankWallReinforcement: number;
+  maxTankWallReinforcement: number;
+  minTankBaseReinforcement: number;
+  maxTankBaseReinforcement: number;
+  minTankCoverReinforcement: number;
+  maxTankCoverReinforcement: number;
+  minTankCover: number;
 }
 
 export interface BarScheduleItem {
@@ -199,6 +332,12 @@ export interface RebarQSSettings {
   // Mesh settings
   meshWastagePercent: number;
   standardMeshLap: number;
+  tankWallReinforcementRatio: number;
+  tankBaseReinforcementRatio: number;
+  tankCoverReinforcementRatio: number;
+  minTankWallBars: number;
+  minTankBaseBars: number;
+  minTankCoverBars: number;
 }
 
 export interface CalcInput {
@@ -222,21 +361,39 @@ export interface CalcInput {
   tieSpacing?: string;
   category: Category;
   number: string;
-  // New fields for mesh reinforcement
   reinforcementType: ReinforcementType;
   meshGrade?: string;
   meshSheetWidth?: string;
   meshSheetLength?: string;
   meshLapLength?: string;
-  // Strip footing specific fields
   footingType?: FootingType;
   longitudinalBars?: string;
   transverseBars?: string;
   topReinforcement?: string;
   bottomReinforcement?: string;
-}
 
+  // Tank specific fields
+  tankType?: TankType;
+  tankShape?: "rectangular" | "circular";
+  wallThickness?: string;
+  baseThickness?: string;
+  coverThickness?: string;
+  includeCover?: boolean;
+  wallVerticalBarSize?: RebarSize;
+  wallHorizontalBarSize?: RebarSize;
+  wallVerticalSpacing?: string;
+  wallHorizontalSpacing?: string;
+  baseMainBarSize?: RebarSize;
+  baseDistributionBarSize?: RebarSize;
+  baseMainSpacing?: string;
+  baseDistributionSpacing?: string;
+  coverMainBarSize?: RebarSize;
+  coverDistributionBarSize?: RebarSize;
+  coverMainSpacing?: string;
+  coverDistributionSpacing?: string;
+}
 export interface CalcBreakdown {
+  // Existing fields
   mainBarsLength?: number;
   distributionBarsLength?: number;
   stirrupsLength?: number;
@@ -245,13 +402,37 @@ export interface CalcBreakdown {
   distributionBarsCount?: number;
   stirrupsCount?: number;
   tiesCount?: number;
+
+  // Tank specific fields
+  wallVerticalBarsLength?: number;
+  wallHorizontalBarsLength?: number;
+  baseMainBarsLength?: number;
+  baseDistributionBarsLength?: number;
+  coverMainBarsLength?: number;
+  coverDistributionBarsLength?: number;
+  wallVerticalBarsCount?: number;
+  wallHorizontalBarsCount?: number;
+  baseMainBarsCount?: number;
+  baseDistributionBarsCount?: number;
+  coverMainBarsCount?: number;
+  coverDistributionBarsCount?: number;
+  weightBreakdownKg?: any;
 }
 
 export interface WeightBreakdownKg {
+  // Existing fields
   mainBars?: number;
   distributionBars?: number;
   stirrups?: number;
   ties?: number;
+
+  // Tank specific fields
+  wallVerticalBars?: number;
+  wallHorizontalBars?: number;
+  baseMainBars?: number;
+  baseDistributionBars?: number;
+  coverMainBars?: number;
+  coverDistributionBars?: number;
 }
 
 type PriceMap = Record<RebarSize, number>;
@@ -429,14 +610,133 @@ function generateBarSchedule(
   distributionBarSize: RebarSize,
   stirrupSize: RebarSize,
   tieSize: RebarSize,
-  footingType?: FootingType
+  footingType?: FootingType,
+  tankType?: TankType,
+  input?: CalcInput
 ): BarScheduleItem[] {
   const schedule: BarScheduleItem[] = [];
   let markCounter = 1;
   const createMark = (type: string) =>
     `${element.charAt(0).toUpperCase()}${type}${markCounter++}`;
 
-  if (footingType) {
+  if (element === "tank") {
+    // Tank Wall Vertical Bars
+    if (
+      breakdown.wallVerticalBarsCount &&
+      breakdown.wallVerticalBarsCount > 0
+    ) {
+      const wallVerticalBarSize = input?.wallVerticalBarSize || mainBarSize;
+      schedule.push({
+        barMark: createMark("WV"),
+        diameter: REBAR_PROPERTIES[wallVerticalBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.wallVerticalBarsLength || 0) /
+          (breakdown.wallVerticalBarsCount || 1),
+        numberRequired: breakdown.wallVerticalBarsCount,
+        totalLength: breakdown.wallVerticalBarsLength || 0,
+        weight: weightBreakdown.wallVerticalBars || 0,
+        bendingInstructions: "Wall vertical bars - straight, full height",
+      });
+    }
+
+    // Tank Wall Horizontal Bars
+    if (
+      breakdown.wallHorizontalBarsCount &&
+      breakdown.wallHorizontalBarsCount > 0
+    ) {
+      const wallHorizontalBarSize =
+        input?.wallHorizontalBarSize || distributionBarSize;
+      schedule.push({
+        barMark: createMark("WH"),
+        diameter: REBAR_PROPERTIES[wallHorizontalBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.wallHorizontalBarsLength || 0) /
+          (breakdown.wallHorizontalBarsCount || 1),
+        numberRequired: breakdown.wallHorizontalBarsCount,
+        totalLength: breakdown.wallHorizontalBarsLength || 0,
+        weight: weightBreakdown.wallHorizontalBars || 0,
+        bendingInstructions:
+          "Wall horizontal bars - straight, around perimeter",
+      });
+    }
+
+    // Tank Base Main Bars
+    if (breakdown.baseMainBarsCount && breakdown.baseMainBarsCount > 0) {
+      const baseMainBarSize = input?.baseMainBarSize || mainBarSize;
+      schedule.push({
+        barMark: createMark("BM"),
+        diameter: REBAR_PROPERTIES[baseMainBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.baseMainBarsLength || 0) /
+          (breakdown.baseMainBarsCount || 1),
+        numberRequired: breakdown.baseMainBarsCount,
+        totalLength: breakdown.baseMainBarsLength || 0,
+        weight: weightBreakdown.baseMainBars || 0,
+        bendingInstructions: "Base main bars - straight, full length",
+      });
+    }
+
+    // Tank Base Distribution Bars
+    if (
+      breakdown.baseDistributionBarsCount &&
+      breakdown.baseDistributionBarsCount > 0
+    ) {
+      const baseDistributionBarSize =
+        input?.baseDistributionBarSize || distributionBarSize;
+      schedule.push({
+        barMark: createMark("BD"),
+        diameter: REBAR_PROPERTIES[baseDistributionBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.baseDistributionBarsLength || 0) /
+          (breakdown.baseDistributionBarsCount || 1),
+        numberRequired: breakdown.baseDistributionBarsCount,
+        totalLength: breakdown.baseDistributionBarsLength || 0,
+        weight: weightBreakdown.baseDistributionBars || 0,
+        bendingInstructions: "Base distribution bars - straight, full width",
+      });
+    }
+
+    // Tank Cover Main Bars (if included)
+    if (breakdown.coverMainBarsCount && breakdown.coverMainBarsCount > 0) {
+      const coverMainBarSize = input?.coverMainBarSize || "Y10";
+      schedule.push({
+        barMark: createMark("CM"),
+        diameter: REBAR_PROPERTIES[coverMainBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.coverMainBarsLength || 0) /
+          (breakdown.coverMainBarsCount || 1),
+        numberRequired: breakdown.coverMainBarsCount,
+        totalLength: breakdown.coverMainBarsLength || 0,
+        weight: weightBreakdown.coverMainBars || 0,
+        bendingInstructions: "Cover main bars - straight, full length",
+      });
+    }
+
+    // Tank Cover Distribution Bars (if included)
+    if (
+      breakdown.coverDistributionBarsCount &&
+      breakdown.coverDistributionBarsCount > 0
+    ) {
+      const coverDistributionBarSize = input?.coverDistributionBarSize || "Y8";
+      schedule.push({
+        barMark: createMark("CD"),
+        diameter: REBAR_PROPERTIES[coverDistributionBarSize]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.coverDistributionBarsLength || 0) /
+          (breakdown.coverDistributionBarsCount || 1),
+        numberRequired: breakdown.coverDistributionBarsCount,
+        totalLength: breakdown.coverDistributionBarsLength || 0,
+        weight: weightBreakdown.coverDistributionBars || 0,
+        bendingInstructions: "Cover distribution bars - straight, full width",
+      });
+    }
+  } else if (footingType) {
     // Strip footing bar schedule
     if (breakdown.mainBarsCount && breakdown.mainBarsCount > 0) {
       schedule.push({
@@ -444,13 +744,14 @@ function generateBarSchedule(
         diameter: REBAR_PROPERTIES[mainBarSize]?.diameterMm,
         shape: "Straight",
         cuttingLength:
-          (breakdown?.mainBarsLength || 0) / (breakdown?.mainBarsCount || 1),
-        numberRequired: breakdown?.mainBarsCount,
-        totalLength: breakdown?.mainBarsLength || 0,
-        weight: weightBreakdown?.mainBars || 0,
+          (breakdown.mainBarsLength || 0) / (breakdown.mainBarsCount || 1),
+        numberRequired: breakdown.mainBarsCount,
+        totalLength: breakdown.mainBarsLength || 0,
+        weight: weightBreakdown.mainBars || 0,
         bendingInstructions: "Longitudinal bars - straight",
       });
     }
+
     if (
       breakdown.distributionBarsCount &&
       breakdown.distributionBarsCount > 0
@@ -460,29 +761,37 @@ function generateBarSchedule(
         diameter: REBAR_PROPERTIES[distributionBarSize]?.diameterMm,
         shape: "Straight",
         cuttingLength:
-          (breakdown?.distributionBarsLength || 0) /
-          (breakdown?.distributionBarsCount || 1),
-        numberRequired: breakdown?.distributionBarsCount,
-        totalLength: breakdown?.distributionBarsLength || 0,
-        weight: weightBreakdown?.distributionBars || 0,
+          (breakdown.distributionBarsLength || 0) /
+          (breakdown.distributionBarsCount || 1),
+        numberRequired: breakdown.distributionBarsCount,
+        totalLength: breakdown.distributionBarsLength || 0,
+        weight: weightBreakdown.distributionBars || 0,
         bendingInstructions: "Transverse bars - straight",
       });
     }
   } else {
-    // Original bar schedule for other elements
+    // Original bar schedule for other elements (slab, beam, column, foundation)
+
+    // Main Bars
     if (breakdown.mainBarsCount && breakdown.mainBarsCount > 0) {
       schedule.push({
         barMark: createMark("MB"),
         diameter: REBAR_PROPERTIES[mainBarSize]?.diameterMm,
         shape: "Straight",
         cuttingLength:
-          (breakdown?.mainBarsLength || 0) / (breakdown?.mainBarsCount || 1),
-        numberRequired: breakdown?.mainBarsCount,
-        totalLength: breakdown?.mainBarsLength || 0,
-        weight: weightBreakdown?.mainBars || 0,
-        bendingInstructions: "Straight bar - no bending required",
+          (breakdown.mainBarsLength || 0) / (breakdown.mainBarsCount || 1),
+        numberRequired: breakdown.mainBarsCount,
+        totalLength: breakdown.mainBarsLength || 0,
+        weight: weightBreakdown.mainBars || 0,
+        bendingInstructions: getBendingInstructions(
+          element,
+          "main",
+          mainBarSize
+        ),
       });
     }
+
+    // Distribution Bars
     if (
       breakdown.distributionBarsCount &&
       breakdown.distributionBarsCount > 0
@@ -492,44 +801,331 @@ function generateBarSchedule(
         diameter: REBAR_PROPERTIES[distributionBarSize]?.diameterMm,
         shape: "Straight",
         cuttingLength:
-          (breakdown?.distributionBarsLength || 0) /
-          (breakdown?.distributionBarsCount || 1),
-        numberRequired: breakdown?.distributionBarsCount,
-        totalLength: breakdown?.distributionBarsLength || 0,
-        weight: weightBreakdown?.distributionBars || 0,
-        bendingInstructions: "Straight bar - no bending required",
+          (breakdown.distributionBarsLength || 0) /
+          (breakdown.distributionBarsCount || 1),
+        numberRequired: breakdown.distributionBarsCount,
+        totalLength: breakdown.distributionBarsLength || 0,
+        weight: weightBreakdown.distributionBars || 0,
+        bendingInstructions: getBendingInstructions(
+          element,
+          "distribution",
+          distributionBarSize
+        ),
       });
     }
+
+    // Stirrups (for beams)
     if (breakdown.stirrupsCount && breakdown.stirrupsCount > 0) {
+      const stirrupShape = element === "beam" ? "U-shaped" : "Rectangular";
       schedule.push({
         barMark: createMark("ST"),
         diameter: REBAR_PROPERTIES[stirrupSize]?.diameterMm,
-        shape: "U-shaped",
+        shape: stirrupShape,
         cuttingLength:
-          (breakdown?.stirrupsLength || 0) / (breakdown?.stirrupsCount || 1),
-        numberRequired: breakdown?.stirrupsCount,
-        totalLength: breakdown?.stirrupsLength || 0,
-        weight: weightBreakdown?.stirrups || 0,
-        bendingInstructions: "Bend to U-shape with 135\u00B0 hooks at ends",
-        bendingDiagram: "U-shape with dimensions",
+          (breakdown.stirrupsLength || 0) / (breakdown.stirrupsCount || 1),
+        numberRequired: breakdown.stirrupsCount,
+        totalLength: breakdown.stirrupsLength || 0,
+        weight: weightBreakdown.stirrups || 0,
+        bendingInstructions: getBendingInstructions(
+          element,
+          "stirrup",
+          stirrupSize
+        ),
+        bendingDiagram: getBendingDiagram(element, "stirrup"),
       });
     }
+
+    // Ties (for columns)
     if (breakdown.tiesCount && breakdown.tiesCount > 0) {
       schedule.push({
         barMark: createMark("TI"),
         diameter: REBAR_PROPERTIES[tieSize]?.diameterMm,
         shape: "Rectangular",
-        cuttingLength:
-          (breakdown?.tiesLength || 0) / (breakdown?.tiesCount || 1),
-        numberRequired: breakdown?.tiesCount,
-        totalLength: breakdown?.tiesLength || 0,
-        weight: weightBreakdown?.ties || 0,
-        bendingInstructions: "Bend to rectangular shape with 135\u00B0 hooks",
-        bendingDiagram: "Rectangle with dimensions",
+        cuttingLength: (breakdown.tiesLength || 0) / (breakdown.tiesCount || 1),
+        numberRequired: breakdown.tiesCount,
+        totalLength: breakdown.tiesLength || 0,
+        weight: weightBreakdown.ties || 0,
+        bendingInstructions: getBendingInstructions(element, "tie", tieSize),
+        bendingDiagram: getBendingDiagram(element, "tie"),
       });
     }
   }
+
   return schedule;
+}
+
+// Helper function for bending instructions
+function getBendingInstructions(
+  element: ElementTypes,
+  barType: "main" | "distribution" | "stirrup" | "tie",
+  barSize: RebarSize
+): string {
+  const diameter = REBAR_PROPERTIES[barSize]?.diameterMm || 12;
+
+  switch (element) {
+    case "slab":
+    case "foundation":
+      if (barType === "main" || barType === "distribution") {
+        return "Straight bar - no bending required";
+      }
+      break;
+
+    case "beam":
+      if (barType === "main") {
+        return "Straight bar with end hooks if required by development length";
+      }
+      if (barType === "stirrup") {
+        return `Bend to U-shape with 135° hooks at ends, minimum bend radius ${
+          diameter * 4
+        }mm`;
+      }
+      break;
+
+    case "column":
+      if (barType === "main") {
+        return "Straight bar - no bending required for vertical reinforcement";
+      }
+      if (barType === "tie") {
+        return `Bend to rectangular shape with 135° hooks, minimum bend radius ${
+          diameter * 4
+        }mm`;
+      }
+      break;
+
+    case "strip-footing":
+      if (barType === "main" || barType === "distribution") {
+        return "Straight bar - no bending required";
+      }
+      break;
+  }
+
+  return "Straight bar - no bending required";
+}
+
+// Helper function for bending diagrams
+function getBendingDiagram(
+  element: ElementTypes,
+  barType: "stirrup" | "tie"
+): string {
+  switch (element) {
+    case "beam":
+      if (barType === "stirrup") {
+        return "U-shape with dimensions: width = (beam width - 2×cover), height = (beam depth - 2×cover)";
+      }
+      break;
+
+    case "column":
+      if (barType === "tie") {
+        return "Rectangle with dimensions: width = (column width - 2×cover), depth = (column depth - 2×cover)";
+      }
+      break;
+  }
+
+  return "";
+}
+
+function calculateTankReinforcement(
+  input: CalcInput,
+  settings: RebarQSSettings,
+  cover: number
+): {
+  walls: {
+    verticalBarsLength: number;
+    horizontalBarsLength: number;
+    verticalBarsCount: number;
+    horizontalBarsCount: number;
+  };
+  base: {
+    mainBarsLength: number;
+    distributionBarsLength: number;
+    mainBarsCount: number;
+    distributionBarsCount: number;
+  };
+  cover?: {
+    mainBarsLength: number;
+    distributionBarsLength: number;
+    mainBarsCount: number;
+    distributionBarsCount: number;
+  };
+  totalBars: number;
+} {
+  const L = safeParseFloat(input.length, 0);
+  const W = safeParseFloat(input.width, 0);
+  const H = safeParseFloat(input.depth, 0); // Tank height
+  const wallThickness = safeParseFloat(input.wallThickness, 0.2);
+  const baseThickness = safeParseFloat(input.baseThickness, 0.2);
+  const coverThickness = safeParseFloat(input.coverThickness, 0.15);
+  const count = safeParseInt(input.number, 1);
+  const includeCover = input.includeCover !== false;
+
+  // Get reinforcement settings or use defaults
+  const tankType = input.tankType || "septic";
+  const defaultReinforcement = DEFAULT_TANK_REINFORCEMENT[tankType];
+
+  const wallVerticalBarSize =
+    input.wallVerticalBarSize || defaultReinforcement.walls.verticalBars;
+  const wallHorizontalBarSize =
+    input.wallHorizontalBarSize || defaultReinforcement.walls.horizontalBars;
+  const wallVerticalSpacing = mmToM(
+    safeParseFloat(
+      input.wallVerticalSpacing,
+      defaultReinforcement.walls.verticalSpacing
+    )
+  );
+  const wallHorizontalSpacing = mmToM(
+    safeParseFloat(
+      input.wallHorizontalSpacing,
+      defaultReinforcement.walls.horizontalSpacing
+    )
+  );
+
+  const baseMainBarSize =
+    input.baseMainBarSize || defaultReinforcement.base.mainBars;
+  const baseDistributionBarSize =
+    input.baseDistributionBarSize || defaultReinforcement.base.distributionBars;
+  const baseMainSpacing = mmToM(
+    safeParseFloat(input.baseMainSpacing, defaultReinforcement.base.mainSpacing)
+  );
+  const baseDistributionSpacing = mmToM(
+    safeParseFloat(
+      input.baseDistributionSpacing,
+      defaultReinforcement.base.distributionSpacing
+    )
+  );
+
+  const coverMainBarSize =
+    input.coverMainBarSize || defaultReinforcement.cover?.mainBars || "Y10";
+  const coverDistributionBarSize =
+    input.coverDistributionBarSize ||
+    defaultReinforcement.cover?.distributionBars ||
+    "Y8";
+  const coverMainSpacing = mmToM(
+    safeParseFloat(
+      input.coverMainSpacing,
+      defaultReinforcement.cover?.mainSpacing || 200
+    )
+  );
+  const coverDistributionSpacing = mmToM(
+    safeParseFloat(
+      input.coverDistributionSpacing,
+      defaultReinforcement.cover?.distributionSpacing || 250
+    )
+  );
+
+  // Development lengths
+  const devLengthWallVert = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    wallVerticalBarSize
+  );
+  const devLengthWallHoriz = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    wallHorizontalBarSize
+  );
+  const devLengthBaseMain = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    baseMainBarSize
+  );
+  const devLengthBaseDist = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    baseDistributionBarSize
+  );
+  const devLengthCoverMain = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    coverMainBarSize
+  );
+  const devLengthCoverDist = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    coverDistributionBarSize
+  );
+
+  // WALL REINFORCEMENT
+  const wallHeight = H - baseThickness; // Effective wall height
+  const wallLength1 = L; // Long walls
+  const wallLength2 = W; // Short walls
+
+  // Vertical bars in walls
+  const verticalBarsLongWalls =
+    Math.ceil(wallLength1 / Math.max(wallVerticalSpacing, 0.001)) + 1;
+  const verticalBarsShortWalls =
+    Math.ceil(wallLength2 / Math.max(wallVerticalSpacing, 0.001)) + 1;
+  const verticalBarsCount =
+    2 * (verticalBarsLongWalls + verticalBarsShortWalls);
+  const verticalBarLength = wallHeight + devLengthWallVert;
+  const verticalBarsLength = verticalBarsCount * verticalBarLength * count;
+
+  // Horizontal bars in walls
+  const horizontalBarsPerWall =
+    Math.ceil(wallHeight / Math.max(wallHorizontalSpacing, 0.001)) + 1;
+  const horizontalBarsLongWalls = horizontalBarsPerWall * 2; // Two long walls
+  const horizontalBarsShortWalls = horizontalBarsPerWall * 2; // Two short walls
+  const horizontalBarLengthLong = wallLength1 + 2 * devLengthWallHoriz;
+  const horizontalBarLengthShort = wallLength2 + 2 * devLengthWallHoriz;
+  const horizontalBarsLength =
+    (horizontalBarsLongWalls * horizontalBarLengthLong +
+      horizontalBarsShortWalls * horizontalBarLengthShort) *
+    count;
+  const horizontalBarsCount =
+    horizontalBarsLongWalls + horizontalBarsShortWalls;
+
+  // BASE REINFORCEMENT
+  const baseMainBarsCount = Math.ceil(W / Math.max(baseMainSpacing, 0.001)) + 1;
+  const baseDistributionBarsCount =
+    Math.ceil(L / Math.max(baseDistributionSpacing, 0.001)) + 1;
+  const baseMainBarLength = L + 2 * devLengthBaseMain;
+  const baseDistributionBarLength = W + 2 * devLengthBaseDist;
+  const baseMainBarsLength = baseMainBarsCount * baseMainBarLength * count;
+  const baseDistributionBarsLength =
+    baseDistributionBarsCount * baseDistributionBarLength * count;
+
+  // COVER REINFORCEMENT (if included)
+  let coverMainBarsLength = 0;
+  let coverDistributionBarsLength = 0;
+  let coverMainBarsCount = 0;
+  let coverDistributionBarsCount = 0;
+
+  if (includeCover) {
+    coverMainBarsCount = Math.ceil(W / Math.max(coverMainSpacing, 0.001)) + 1;
+    coverDistributionBarsCount =
+      Math.ceil(L / Math.max(coverDistributionSpacing, 0.001)) + 1;
+    const coverMainBarLength = L + 2 * devLengthCoverMain;
+    const coverDistributionBarLength = W + 2 * devLengthCoverDist;
+    coverMainBarsLength = coverMainBarsCount * coverMainBarLength * count;
+    coverDistributionBarsLength =
+      coverDistributionBarsCount * coverDistributionBarLength * count;
+  }
+
+  const totalBars =
+    (verticalBarsCount +
+      horizontalBarsCount +
+      baseMainBarsCount +
+      baseDistributionBarsCount +
+      coverMainBarsCount +
+      coverDistributionBarsCount) *
+    count;
+
+  return {
+    walls: {
+      verticalBarsLength,
+      horizontalBarsLength,
+      verticalBarsCount,
+      horizontalBarsCount,
+    },
+    base: {
+      mainBarsLength: baseMainBarsLength,
+      distributionBarsLength: baseDistributionBarsLength,
+      mainBarsCount: baseMainBarsCount,
+      distributionBarsCount: baseDistributionBarsCount,
+    },
+    cover: includeCover
+      ? {
+          mainBarsLength: coverMainBarsLength,
+          distributionBarsLength: coverDistributionBarsLength,
+          mainBarsCount: coverMainBarsCount,
+          distributionBarsCount: coverDistributionBarsCount,
+        }
+      : undefined,
+    totalBars,
+  };
 }
 
 function validateCodeCompliance(
@@ -567,7 +1163,7 @@ function validateCodeCompliance(
         minRatio = limits.minColumnReinforcement;
         maxRatio = limits.maxColumnReinforcement;
         break;
-      case "strip_footing":
+      case "strip-footing":
         minRatio = limits.minStripFootingReinforcement;
         maxRatio = limits.maxStripFootingReinforcement;
         break;
@@ -717,7 +1313,7 @@ function calculateOptimizedBars(
 }
 
 function calculateBarCountsByRatio(
-  element: "beam" | "column" | "strip_footing",
+  element: "beam" | "column" | "strip-footing",
   crossSectionM2: number,
   barSize: RebarSize,
   ratio: number,
@@ -1115,6 +1711,13 @@ export function calculateRebar(
   let distributionBarsLength = 0;
   let stirrupsLength = 0;
   let tiesLength = 0;
+  let tankReinforcement: any = null;
+  let wallsVerticalWeight = 0;
+  let wallsHorizontalWeight = 0;
+  let baseMainWeight = 0;
+  let baseDistributionWeight = 0;
+  let coverMainWeight = 0;
+  let coverDistributionWeight = 0;
   let totalBars = 0;
   let mainBarsCountResult = 0;
   let distributionBarsCountResult = 0;
@@ -1123,6 +1726,16 @@ export function calculateRebar(
   let requiredSteelAreaMm2 = 0;
   let providedSteelAreaMm2 = 0;
   let reinforcementRatio = 0;
+  let totalWeightKgRaw = 0;
+  let weightBreakdownKg: WeightBreakdownKg = {
+    mainBars: 0,
+    distributionBars: 0,
+    stirrups: 0,
+    ties: 0,
+  };
+
+  const getWeight = (length: number, size: RebarSize) =>
+    length * (REBAR_PROPERTIES[size]?.weightKgPerM || 0.888);
 
   if ((element === "slab" || element === "foundation") && L > 0 && W > 0) {
     const mainBarsCountRaw = Math.ceil(L / Math.max(mainSpacing, 0.001)) + 1;
@@ -1141,6 +1754,103 @@ export function calculateRebar(
       (mainBarsCountResult + distributionBarsCountResult) * layers * count;
   }
 
+  if (element === "tank" && L > 0 && W > 0 && D > 0) {
+    const tankReinforcement = calculateTankReinforcement(
+      input,
+      settings,
+      cover
+    );
+
+    // Use appropriate bar sizes for different parts
+    const wallVerticalBarSize = input.wallVerticalBarSize || "Y12";
+    const wallHorizontalBarSize = input.wallHorizontalBarSize || "Y10";
+    const baseMainBarSize = input.baseMainBarSize || "Y12";
+    const baseDistributionBarSize = input.baseDistributionBarSize || "Y10";
+    const coverMainBarSize = input.coverMainBarSize || "Y10";
+    const coverDistributionBarSize = input.coverDistributionBarSize || "Y8";
+
+    // Calculate weights for different components
+    const wallsVerticalWeight = getWeight(
+      tankReinforcement.walls.verticalBarsLength,
+      wallVerticalBarSize
+    );
+    const wallsHorizontalWeight = getWeight(
+      tankReinforcement.walls.horizontalBarsLength,
+      wallHorizontalBarSize
+    );
+    const baseMainWeight = getWeight(
+      tankReinforcement.base.mainBarsLength,
+      baseMainBarSize
+    );
+    const baseDistributionWeight = getWeight(
+      tankReinforcement.base.distributionBarsLength,
+      baseDistributionBarSize
+    );
+    let coverMainWeight = 0;
+    let coverDistributionWeight = 0;
+
+    if (tankReinforcement.cover) {
+      coverMainWeight = getWeight(
+        tankReinforcement.cover.mainBarsLength,
+        coverMainBarSize
+      );
+      coverDistributionWeight = getWeight(
+        tankReinforcement.cover.distributionBarsLength,
+        coverDistributionBarSize
+      );
+    }
+
+    // Calculate total weight for tank
+    totalWeightKgRaw =
+      wallsVerticalWeight +
+      wallsHorizontalWeight +
+      baseMainWeight +
+      baseDistributionWeight +
+      coverMainWeight +
+      coverDistributionWeight;
+
+    // Set main bars length and counts for bar schedule
+    mainBarsLength =
+      tankReinforcement.walls.verticalBarsLength +
+      tankReinforcement.base.mainBarsLength +
+      (tankReinforcement.cover?.mainBarsLength || 0);
+
+    distributionBarsLength =
+      tankReinforcement.walls.horizontalBarsLength +
+      tankReinforcement.base.distributionBarsLength +
+      (tankReinforcement.cover?.distributionBarsLength || 0);
+
+    mainBarsCountResult =
+      tankReinforcement.walls.verticalBarsCount +
+      tankReinforcement.base.mainBarsCount +
+      (tankReinforcement.cover?.mainBarsCount || 0);
+
+    distributionBarsCountResult =
+      tankReinforcement.walls.horizontalBarsCount +
+      tankReinforcement.base.distributionBarsCount +
+      (tankReinforcement.cover?.distributionBarsCount || 0);
+
+    totalBars = tankReinforcement.totalBars;
+
+    // Update weight breakdown
+    weightBreakdownKg = {
+      mainBars: Math.round(
+        wallsVerticalWeight + baseMainWeight + coverMainWeight
+      ),
+      distributionBars: Math.round(
+        wallsHorizontalWeight + baseDistributionWeight + coverDistributionWeight
+      ),
+      stirrups: 0,
+      ties: 0,
+      // Tank specific weight breakdown
+      wallVerticalBars: Math.round(wallsVerticalWeight),
+      wallHorizontalBars: Math.round(wallsHorizontalWeight),
+      baseMainBars: Math.round(baseMainWeight),
+      baseDistributionBars: Math.round(baseDistributionWeight),
+      coverMainBars: Math.round(coverMainWeight),
+      coverDistributionBars: Math.round(coverDistributionWeight),
+    };
+  }
   if (element === "beam" && L > 0 && W > 0 && D > 0) {
     const crossSection = W * D;
     let mainCalc;
@@ -1277,7 +1987,7 @@ export function calculateRebar(
     totalBars += tiesCount * count;
   }
 
-  if (element === "strip_footing" && L > 0 && W > 0 && D > 0) {
+  if (element === "strip-footing" && L > 0 && W > 0 && D > 0) {
     const stripFootingCalc = calculateStripFootingReinforcement(
       input,
       settings,
@@ -1294,8 +2004,6 @@ export function calculateRebar(
     reinforcementRatio = stripFootingCalc.reinforcementRatio;
   }
 
-  const getWeight = (length: number, size: RebarSize) =>
-    length * (REBAR_PROPERTIES[size]?.weightKgPerM || 0.888);
   const mainBarsWeight = getWeight(mainBarsLength, mainBarSize);
   const distributionBarsWeight = getWeight(
     distributionBarsLength,
@@ -1303,7 +2011,7 @@ export function calculateRebar(
   );
   const stirrupsWeight = getWeight(stirrupsLength, stirrupSize);
   const tiesWeight = getWeight(tiesLength, tieSize);
-  const totalWeightKgRaw =
+  totalWeightKgRaw =
     mainBarsWeight + distributionBarsWeight + stirrupsWeight + tiesWeight;
 
   const requiredLengths: number[] = [];
@@ -1317,16 +2025,40 @@ export function calculateRebar(
     requiredLengths.push(stirrupsLength / (stirrupsCount || 1));
   if (tiesLength > 0) requiredLengths.push(tiesLength / (tiesCount || 1));
 
+  // Add tank-specific lengths if it's a tank
+  if (input.element === "tank") {
+    const wallVerticalBarSize = input.wallVerticalBarSize || "Y12";
+    const wallVerticalLength =
+      wallsVerticalWeight /
+      (REBAR_PROPERTIES[wallVerticalBarSize]?.weightKgPerM || 1);
+    if (wallVerticalLength > 0)
+      requiredLengths.push(wallVerticalLength / (mainBarsCountResult || 1));
+
+    const wallHorizontalBarSize = input.wallHorizontalBarSize || "Y10";
+    const wallHorizontalLength =
+      wallsHorizontalWeight /
+      (REBAR_PROPERTIES[wallHorizontalBarSize]?.weightKgPerM || 1);
+    if (wallHorizontalLength > 0)
+      requiredLengths.push(
+        wallHorizontalLength / (distributionBarsCountResult || 1)
+      );
+  }
+
   const wasteCalculation = calculateActualWaste(
     requiredLengths,
     settings.standardBarLength,
     settings
   );
-  const totalWeightKg = Math.round(
-    withWaste(totalWeightKgRaw, wasteCalculation.optimizedWastePercentage)
-  );
   const totalLengthM = Math.round(
     mainBarsLength + distributionBarsLength + stirrupsLength + tiesLength
+  );
+  const finalTotalWeightKgRaw =
+    input.element === "tank"
+      ? totalWeightKgRaw
+      : mainBarsWeight + distributionBarsWeight + stirrupsWeight + tiesWeight;
+
+  const totalWeightKg = Math.round(
+    withWaste(finalTotalWeightKgRaw, wasteCalculation.optimizedWastePercentage)
   );
   const bindingWireWeightKg = Math.ceil(
     totalWeightKg * (settings.bindingWirePercent / 100)
@@ -1336,10 +2068,11 @@ export function calculateRebar(
   );
   const pricePerKg = rebarPrices[input.mainBarSize] || 0;
   const totalPrice = Math.round(totalWeightKg * pricePerKg);
-
+  // In calculateRebar function, replace the existing generateBarSchedule call with:
   const barSchedule = generateBarSchedule(
     input.element,
     {
+      // Existing breakdown fields
       mainBarsLength: Math.round(mainBarsLength),
       distributionBarsLength: Math.round(distributionBarsLength),
       stirrupsLength: Math.round(stirrupsLength),
@@ -1348,18 +2081,113 @@ export function calculateRebar(
       distributionBarsCount: distributionBarsCountResult,
       stirrupsCount,
       tiesCount,
+
+      // Tank specific breakdown fields (if element is tank)
+      ...(input.element === "tank" && {
+        wallVerticalBarsLength: Math.round(
+          wallsVerticalWeight /
+            (REBAR_PROPERTIES[input.wallVerticalBarSize || "Y12"]
+              ?.weightKgPerM || 1)
+        ),
+        wallHorizontalBarsLength: Math.round(
+          wallsHorizontalWeight /
+            (REBAR_PROPERTIES[input.wallHorizontalBarSize || "Y10"]
+              ?.weightKgPerM || 1)
+        ),
+        baseMainBarsLength: Math.round(
+          baseMainWeight /
+            (REBAR_PROPERTIES[input.baseMainBarSize || "Y12"]?.weightKgPerM ||
+              1)
+        ),
+        baseDistributionBarsLength: Math.round(
+          baseDistributionWeight /
+            (REBAR_PROPERTIES[input.baseDistributionBarSize || "Y10"]
+              ?.weightKgPerM || 1)
+        ),
+        coverMainBarsLength:
+          coverMainWeight > 0
+            ? Math.round(
+                coverMainWeight /
+                  (REBAR_PROPERTIES[input.coverMainBarSize || "Y10"]
+                    ?.weightKgPerM || 1)
+              )
+            : 0,
+        coverDistributionBarsLength:
+          coverDistributionWeight > 0
+            ? Math.round(
+                coverDistributionWeight /
+                  (REBAR_PROPERTIES[input.coverDistributionBarSize || "Y8"]
+                    ?.weightKgPerM || 1)
+              )
+            : 0,
+        wallVerticalBarsCount: Math.ceil(
+          wallsVerticalWeight /
+            (REBAR_PROPERTIES[input.wallVerticalBarSize || "Y12"]
+              ?.weightKgPerM || 1) /
+            (L > 0 ? L : 1)
+        ),
+        wallHorizontalBarsCount: Math.ceil(
+          wallsHorizontalWeight /
+            (REBAR_PROPERTIES[input.wallHorizontalBarSize || "Y10"]
+              ?.weightKgPerM || 1) /
+            (W > 0 ? W : 1)
+        ),
+        baseMainBarsCount: Math.ceil(
+          baseMainWeight /
+            (REBAR_PROPERTIES[input.baseMainBarSize || "Y12"]?.weightKgPerM ||
+              1) /
+            (L > 0 ? L : 1)
+        ),
+        baseDistributionBarsCount: Math.ceil(
+          baseDistributionWeight /
+            (REBAR_PROPERTIES[input.baseDistributionBarSize || "Y10"]
+              ?.weightKgPerM || 1) /
+            (W > 0 ? W : 1)
+        ),
+        coverMainBarsCount:
+          coverMainWeight > 0
+            ? Math.ceil(
+                coverMainWeight /
+                  (REBAR_PROPERTIES[input.coverMainBarSize || "Y10"]
+                    ?.weightKgPerM || 1) /
+                  (L > 0 ? L : 1)
+              )
+            : 0,
+        coverDistributionBarsCount:
+          coverDistributionWeight > 0
+            ? Math.ceil(
+                coverDistributionWeight /
+                  (REBAR_PROPERTIES[input.coverDistributionBarSize || "Y8"]
+                    ?.weightKgPerM || 1) /
+                  (W > 0 ? W : 1)
+              )
+            : 0,
+      }),
     },
     {
+      // Existing weight breakdown
       mainBars: Math.round(mainBarsWeight),
       distributionBars: Math.round(distributionBarsWeight),
       stirrups: Math.round(stirrupsWeight),
       ties: Math.round(tiesWeight),
+
+      // Tank specific weight breakdown (if element is tank)
+      ...(input.element === "tank" && {
+        wallVerticalBars: Math.round(wallsVerticalWeight),
+        wallHorizontalBars: Math.round(wallsHorizontalWeight),
+        baseMainBars: Math.round(baseMainWeight),
+        baseDistributionBars: Math.round(baseDistributionWeight),
+        coverMainBars: Math.round(coverMainWeight),
+        coverDistributionBars: Math.round(coverDistributionWeight),
+      }),
     },
     input.mainBarSize,
     input.distributionBarSize || input.mainBarSize,
     input.stirrupSize || "Y8",
     input.tieSize || "Y8",
-    input.footingType
+    input.footingType,
+    input.tankType,
+    input
   );
 
   const compliance = validateCodeCompliance(
@@ -1408,29 +2236,68 @@ export function calculateRebar(
       distributionBarsCount: distributionBarsCountResult,
       stirrupsCount,
       tiesCount,
+      ...(input.element === "tank" && {
+        wallVerticalBarsLength: Math.round(
+          wallsVerticalWeight /
+            (REBAR_PROPERTIES[input.wallVerticalBarSize || "Y12"]
+              ?.weightKgPerM || 1)
+        ),
+        wallHorizontalBarsLength: Math.round(
+          wallsHorizontalWeight /
+            (REBAR_PROPERTIES[input.wallHorizontalBarSize || "Y10"]
+              ?.weightKgPerM || 1)
+        ),
+        baseMainBarsLength: Math.round(
+          baseMainWeight /
+            (REBAR_PROPERTIES[input.baseMainBarSize || "Y12"]?.weightKgPerM ||
+              1)
+        ),
+        baseDistributionBarsLength: Math.round(
+          baseDistributionWeight /
+            (REBAR_PROPERTIES[input.baseDistributionBarSize || "Y10"]
+              ?.weightKgPerM || 1)
+        ),
+        coverMainBarsLength: Math.round(
+          coverMainWeight /
+            (REBAR_PROPERTIES[input.coverMainBarSize || "Y10"]?.weightKgPerM ||
+              1)
+        ),
+        coverDistributionBarsLength: Math.round(
+          coverDistributionWeight /
+            (REBAR_PROPERTIES[input.coverDistributionBarSize || "Y8"]
+              ?.weightKgPerM || 1)
+        ),
+      }),
+      weightBreakdownKg,
     },
     weightBreakdownKg: {
       mainBars: Math.round(mainBarsWeight),
       distributionBars: Math.round(distributionBarsWeight),
       stirrups: Math.round(stirrupsWeight),
       ties: Math.round(tiesWeight),
+      wallVerticalBars: Math.ceil(weightBreakdownKg.wallVerticalBars),
+      wallHorizontalBars: Math.ceil(weightBreakdownKg.wallHorizontalBars),
+      baseMainBars: Math.ceil(weightBreakdownKg.baseMainBars),
+      baseDistributionBars: Math.ceil(weightBreakdownKg.baseDistributionBars),
+      coverMainBars: Math.ceil(weightBreakdownKg.coverMainBars),
+      coverDistributionBars: Math.ceil(weightBreakdownKg.coverDistributionBars),
     },
     requiredSteelAreaMm2:
       input.element === "beam" ||
       input.element === "column" ||
-      input.element === "strip_footing"
+      input.element === "strip-footing"
         ? requiredSteelAreaMm2
         : undefined,
     providedSteelAreaMm2:
       input.element === "beam" ||
       input.element === "column" ||
-      input.element === "strip_footing"
+      input.element === "strip-footing"
         ? providedSteelAreaMm2
         : undefined,
     reinforcementRatio:
       input.element === "beam" ||
       input.element === "column" ||
-      input.element === "strip_footing"
+      input.element === "strip-footing"
         ? reinforcementRatio
         : undefined,
     barSchedule,
@@ -1467,6 +2334,12 @@ export const defaultRebarQSSettings: RebarQSSettings = {
   minBeamDistributionBars: 2,
   minColumnBars: 4,
   minStripFootingBars: 4,
+  tankWallReinforcementRatio: 0.0025,
+  tankBaseReinforcementRatio: 0.0018,
+  tankCoverReinforcementRatio: 0.0012,
+  minTankWallBars: 4,
+  minTankBaseBars: 4,
+  minTankCoverBars: 4,
   complianceLimits: {
     minSlabReinforcement: 0.0024,
     maxSlabReinforcement: 0.04,
@@ -1483,6 +2356,13 @@ export const defaultRebarQSSettings: RebarQSSettings = {
     minColumnCover: 25,
     minFoundationCover: 40,
     maxCrackControlSpacing: 300,
+    minTankWallReinforcement: 0.002,
+    maxTankWallReinforcement: 0.04,
+    minTankBaseReinforcement: 0.0015,
+    maxTankBaseReinforcement: 0.04,
+    minTankCoverReinforcement: 0.001,
+    maxTankCoverReinforcement: 0.04,
+    minTankCover: 20,
   },
   optimizeCutting: true,
   allowMultipleStandardLengths: true,

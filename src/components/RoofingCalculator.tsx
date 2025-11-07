@@ -131,6 +131,7 @@ const SOFFIT_TYPES = [
   { value: "PVC", label: "PVC Soffit" },
   { value: "Aluminum", label: "Aluminum Soffit" },
   { value: "Composite", label: "Composite Soffit" },
+  { value: "Metal", label: "Metal Soffit" },
 ];
 
 export const DEFAULT_TIMBERS: RoofStructure["timbers"] = [
@@ -1010,14 +1011,14 @@ export default function RoofingCalculator({
 
                     <div>
                       <Label htmlFor="edit-insulation-thickness">
-                        Insulation Thickness (mm)
+                        Insulation Thickness (m)
                       </Label>
                       <Input
                         id="edit-insulation-thickness"
                         type="number"
                         min="0"
                         step="10"
-                        value={editForm.covering.insulation?.thickness || 50}
+                        value={editForm.covering.insulation?.thickness || 5}
                         onChange={(e) =>
                           handleInsulationChange(
                             "thickness",
@@ -1318,11 +1319,6 @@ export default function RoofingCalculator({
                       </TableCell>
                       <TableCell className="text-right">
                         {formatArea(calc.coveringArea)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-col text-xs">
-                          <span>{calc.wastage.totalWastageItems} items</span>
-                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(calc.materialCost)}

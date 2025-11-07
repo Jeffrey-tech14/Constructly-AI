@@ -228,7 +228,7 @@ export default function useRoofingCalculator(
     const wastageSetting = quote?.qsSettings?.wastageRoofing;
 
     if (typeof wastageSetting === "number") {
-      return wastageSetting;
+      return wastageSetting / 100;
     }
 
     if (typeof wastageSetting === "string") {
@@ -537,7 +537,6 @@ export default function useRoofingCalculator(
 
       // Calculate insulation cost
       let insulationMaterialCost = 0;
-      let insulationLaborCost = 0;
       if (roof.covering.insulation) {
         const insulationPrice = getMaterialPrice(
           "insulation",
@@ -546,8 +545,7 @@ export default function useRoofingCalculator(
         insulationMaterialCost =
           roof.area *
           insulationPrice *
-          (roof.covering.insulation.thickness / 50);
-        insulationLaborCost = roof.area * 400; // KES per m²
+          ((roof.covering.insulation.thickness * 1000) / 50);
       }
 
       // Calculate accessory costs with wastage

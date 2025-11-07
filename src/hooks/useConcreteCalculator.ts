@@ -59,6 +59,7 @@ export interface SepticTankDetails {
   wallThickness: string;
   baseThickness: string;
   coverType: "slab" | "precast" | "none";
+  depth: string;
   includesBaffles: boolean;
   includesManhole: boolean;
   manholeSize?: string;
@@ -136,8 +137,8 @@ export interface ConcreteRow {
   };
 
   staircaseDetails?: {
-    riserHeight?: string;
-    treadWidth?: string;
+    riserHeight?: number;
+    treadWidth?: number;
     numberOfSteps?: number;
   };
 
@@ -381,8 +382,8 @@ function calculateSepticTankQuantities(details: SepticTankDetails): {
   const capacity = parseFloat(details.capacity) || 0;
   const wallThickness = parseFloat(details.wallThickness) || 0.2;
   const baseThickness = parseFloat(details.baseThickness) || 0.25;
+  const depth = parseFloat(details.depth) || 1.5;
 
-  const depth = 1.5;
   const width = Math.cbrt(capacity / (2 * depth));
   const length = 2 * width;
 
@@ -516,7 +517,8 @@ function calculateSurfaceArea(
   len: number,
   wid: number,
   hei: number,
-  num: number
+  num: number,
+  staircaseDetails?
 ): number {
   switch (element) {
     case "slab":
@@ -538,10 +540,10 @@ function calculateSurfaceArea(
     case "swimming-pool":
       return 2 * (len + wid) * hei * num + len * wid * num;
     case "staircase":
-      const treadArea = 0.3 * len;
-      const riserArea = 0.15 * wid;
-      const steps = 10;
-      return (treadArea + riserArea) * steps * 2 * num;
+      const treadWidth = staircaseDetails?.treadWidth || 0.3;
+      const riserHeight = staircaseDetails?.riserHeight || 0.15;
+      const steps = staircaseDetails?.numberOfSteps || 10;
+      return (treadWidth + riserHeight) * wid * steps * num;
     case "ramp":
       return len * wid * num;
     case "retaining-wall":
@@ -740,8 +742,8 @@ export function calculateConcrete(
       break;
 
     case "staircase":
-      const riserHeight = parseFloat(staircaseDetails?.riserHeight) || 0.15;
-      const treadWidth = parseFloat(staircaseDetails?.treadWidth) || 0.3;
+      const riserHeight = staircaseDetails?.riserHeight || 0.15;
+      const treadWidth = staircaseDetails?.treadWidth || 0.3;
       const numberOfSteps =
         staircaseDetails?.numberOfSteps || Math.ceil(hei / riserHeight);
 

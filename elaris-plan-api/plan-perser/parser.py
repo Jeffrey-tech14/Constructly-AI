@@ -117,6 +117,8 @@ Analyze this construction document and extract ALL available information about:
 - Lighting types: "led-downlight", "fluorescent", "halogen", "emergency-light", "floodlight", "street-light", "decorative"
 - Installation methods: "surface", "concealed", "underground", "trunking"
 - Amperes: "6, 10, 13, 16, 20, 25, 32, 40, 45, 63"
+- LIGHTING_WATTAGE = [3, 5, 7, 9, 12, 15, 18, 20, 24, 30, 36, 40, 50, 60];
+- commonOutletRatings = [6, 10, 13, 16, 20, 25, 32, 40, 45, 63];
 
 **Roofing:**
 - Roof types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
@@ -127,14 +129,43 @@ Analyze this construction document and extract ALL available information about:
 - Accessories: Use exact types (e.g., gutterType: "PVC", "Galvanized Steel", etc.)
 
 **Finishes:**
-- Categories: "flooring", "ceiling", "wall-finishes", "painting", "glazing", "joinery"
-- Only use these specified categories: skip glass, blocks etc that are not in this list
+- Categories: "flooring", "ceiling", "wall-finishes", "painting", "joinery"
+- Only use these specified categories: skip glass, blocks, anyting to do with masonry or glass etc that are not in this list
 - Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
+- COMMON_MATERIALS = {
+  flooring: [
+    "Ceramic Tiles",
+    "Porcelain Tiles",
+    "Hardwood",
+    "Laminate",
+    "Vinyl",
+    "Carpet",
+    "Polished Concrete",
+    "Terrazzo",
+  ],
+  ceiling: [
+    "Gypsum Board",
+    "PVC",
+    "Acoustic Tiles",
+    "Exposed Concrete",
+    "Suspended Grid",
+    "Wood Panels",
+  ],
+  "wall-finishes": [
+    "Wallpaper",
+    "Stone Cladding",
+    "Tile Cladding",
+    "Wood Paneling",
+  ],
+  paint: ["Emulsion", "Enamel", "Weatherproof", "Textured", "Metallic"],
+  joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"],
+};
 
 **Concrete & Structure:**
 - Element types: "slab", "beam", "column", "foundation", "strip-footing", "raft-foundation", etc.
 - Categories: "substructure", "superstructure"
 - Rebar sizes follow standard notation (e.g., "Y10", "Y12")
+- Mixes to follow ratios eg 1:2:4, 1:2:3
 
 ### 📐 DIMENSION EXTRACTION:
 - Extract room dimensions (length × width) in meters
@@ -151,6 +182,17 @@ Analyze this construction document and extract ALL available information about:
 - Note door swings and window opening directions if visible
 - Count the number of doors and windows in each room
 
+- standardDoorSizes = [
+  "0.9 \u00D7 2.1 m",
+  "1.0 \u00D7 2.1 m",
+  "1.2 \u00D7 2.4 m",
+];
+- standardWindowSizes = [
+  "1.2 \u00D7 1.2 m",
+  "1.5 \u00D7 1.2 m",
+  "2.0 \u00D7 1.5 m",
+];
+
 ### 🏗️ CONSTRUCTION DETAILS:
 - Note wall thicknesses if specified
 - Identify floor levels (single story, multi-story)
@@ -162,7 +204,7 @@ Analyze this construction document and extract ALL available information about:
 # - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 
 # - Identify the specified **FOUNDATION TYPE** (e.g., Strip Footing, Raft). 
 # - Identify the material used for the foundation wall/plinth level, specifically the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone). 
-# - Extract the **MASONRY WALL THICKNESS** (e.g., 0.200m). 
+# - Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m). 
 # - Extract the approximate **MASONRY WALL HEIGHT** from the top of the footing to the slab level (e.g., 1.0m).
 
 ### 📤 OUTPUT REQUIREMENTS:
@@ -513,6 +555,7 @@ IMPORTANT:
 - Use the specific types provided
 - Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not chnage the speling or characters
 - Be precise with room identification and dimensions
+- Do not leave any null items. If empty use resonable estimates based on the plan and what would be expected
 """
 
     result = call_gemini(file_path, GEMINI_PROMPT)

@@ -431,6 +431,7 @@ export default function ConcreteCalculatorForm({
           includesBaffles: true,
           includesManhole: true,
           manholeSize: "0.6",
+          depth: "1.5",
         });
       }
       if (row.element === "underground-tank" && !row.undergroundTankDetails) {
@@ -483,7 +484,7 @@ export default function ConcreteCalculatorForm({
               onChange={(e) =>
                 updateRow(row.id, "staircaseDetails", {
                   ...row.staircaseDetails,
-                  riserHeight: e.target.value,
+                  riserHeight: parseFloat(e.target.value) || 0,
                 })
               }
               placeholder="Riser Height (m)"
@@ -495,7 +496,7 @@ export default function ConcreteCalculatorForm({
               onChange={(e) =>
                 updateRow(row.id, "staircaseDetails", {
                   ...row.staircaseDetails,
-                  treadWidth: e.target.value,
+                  treadWidth: parseFloat(e.target.value) || 0,
                 })
               }
               placeholder="Tread Width (m)"

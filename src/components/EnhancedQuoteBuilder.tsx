@@ -287,7 +287,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     title: "",
     location: "",
     id: uuidv4(),
-    qsSettings: [],
+    qsSettings: [] as MasonryQSSettings[],
     boq_data: [],
     foundationDetails: [],
     subcontractors: [],
@@ -458,6 +458,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         ...prev,
         floors: extractedPlan.floors || prev.floors,
         house_type: extractedPlan.houseType || prev.house_type,
+        project_type: extractedPlan.projectInfo.projectType,
         total_wall_area:
           extractedPlan.masonry?.reduce(
             (sum: number, item: any) => sum + (parseFloat(item.area) || 0),
@@ -1040,6 +1041,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           materials_cost: Math.round(calculation.materials_cost),
           rebar_rows: quoteData.rebar_rows,
           boq_data: boqData,
+          qsSettings: calculation.qsSettings,
           rebar_calculations: quoteData.rebar_calculations,
           labor_cost: Math.round(calculation.labor_cost),
           electrical_systems: quoteData.electrical_systems,
@@ -1102,6 +1104,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           concrete_rows: quoteData.concrete_rows,
           rebar_rows: quoteData.rebar_rows,
           labor_cost: Math.round(calculation.labor_cost),
+          qsSettings: calculation.qsSettings,
           electrical_systems: electricalSystems,
           plumbing_systems: plumbingSystems,
           finishes: finishes,

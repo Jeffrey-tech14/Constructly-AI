@@ -109,15 +109,12 @@ export default function QSSettings({
     ...quoteData.qsSettings, // Spread existing settings to override defaults
   }));
 
-  const onSettingsChange = useCallback(
-    (newSettings: MasonryQSSettings) => {
-      setQuoteData((prev) => ({
-        ...prev,
-        qsSettings: newSettings,
-      }));
-    },
-    [setQuoteData]
-  );
+  const onSettingsChange = useCallback((newSettings: MasonryQSSettings) => {
+    setQuoteData((prev) => ({
+      ...prev,
+      qsSettings: newSettings,
+    }));
+  }, []);
 
   const handleChange = (key: keyof MasonryQSSettings, value: any) => {
     const updated = { ...localSettings, [key]: value };

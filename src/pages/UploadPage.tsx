@@ -386,41 +386,11 @@ const UploadPlan = () => {
 
     const file = e.target.files[0];
     const fileExt = file.name.split(".").pop()?.toLowerCase();
-    const validExtensions = [
-      "jpg",
-      "jpeg",
-      "png",
-      "pdf",
-      "dwg",
-      "dxf",
-      "rvt",
-      "ifc",
-      "pln",
-      "zip",
-      "csv",
-      "xlsx",
-      "txt",
-      "webp",
-    ];
+    const validExtensions = ["jpg", "jpeg", "png", "pdf", "webp"];
     const validTypes = [
       "image/jpeg",
       "image/png",
       "application/pdf",
-      "application/acad",
-      "application/x-acad",
-      "image/vnd.dwg",
-      "image/vnd.dxf",
-      "application/dxf",
-      "application/dwg",
-      "application/vnd.autodesk.revit",
-      "model/vnd.ifc",
-      "application/octet-stream",
-      "application/x-twinmotion",
-      "application/zip",
-      "application/x-zip-compressed",
-      "text/plain",
-      "text/csv",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "image/webp",
     ];
 
@@ -429,8 +399,7 @@ const UploadPlan = () => {
 
     if (!isValidType) {
       setError({
-        message:
-          "Please upload a supported file format (JPEG, PNG, PDF, DWG, DXF, RVT, IFC, ZIP, CSV, XLSX, TXT, WEBP)",
+        message: "Please upload a supported file format (JPEG, PNG, PDF, WEBP)",
         type: "upload",
         retryable: true,
       });
@@ -1343,8 +1312,7 @@ const UploadPlan = () => {
                       Drag & drop your plan or click to upload
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                      Supported formats: JPEG, PNG, PDF, DWG, DXF, RVT, IFC,
-                      ZIP, CSV, XLSX, WEBP (Max 10MB)
+                      Supported formats: JPEG, PNG, PDF, WEBP (Max 10MB)
                     </p>
 
                     <Input
@@ -1357,7 +1325,7 @@ const UploadPlan = () => {
 
                     <Label
                       htmlFor="fileUpload"
-                      className="cursor-pointer inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all"
+                      className="cursor-pointer inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg transition-all"
                     >
                       📁 Select File
                     </Label>

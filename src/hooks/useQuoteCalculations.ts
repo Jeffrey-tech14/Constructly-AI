@@ -24,6 +24,7 @@ import {
   FinishElement,
 } from "./useUniversalFinishesCalculator";
 import { RoofStructure } from "./useRoofingCalculator";
+import { MasonryQSSettings } from "./useMasonryCalculator";
 
 export interface Material {
   id: string;
@@ -224,6 +225,7 @@ export interface CalculationResult {
   subcontractors: Subcontractors[];
   percentages: Percentage[];
   materialPrices: Material[];
+  qsSettings: MasonryQSSettings[];
   labor: Array<{
     type: string;
     percentage: number;
@@ -514,6 +516,7 @@ export const useQuoteCalculations = () => {
               subtotalBeforeExtras * (percentageSettings.overhead / 100)
             )
           : qsSettings?.overhead_fixed || 0;
+      console.log(qsSettings);
 
       // Calculate contingency based on mode
       const contingencyAmount =
@@ -551,6 +554,7 @@ export const useQuoteCalculations = () => {
         materials_cost: materials_cost,
         preliminariesCost: preliminariesCost,
         subcontractors: updatedSubcontractors,
+        qsSettings: qsSettings,
         percentages: [percentageSettings],
         materialPrices: materials,
         labor: [

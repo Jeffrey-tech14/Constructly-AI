@@ -155,6 +155,7 @@ STRICT REQUIREMENTS:
 - Skip all preliminaries class data from the json provided
 - Make sure to use the correct units as they are in the data proided
 - Do not include services, transport costs or other prject costs
+- Do not include wastage percentages 
 - If equipment is linked to a trade (e.g. “Mixer for concrete works”) → add it. Only skip general equipment (e.g. “Site generator”)
 - If items ARE NOT similar even by one attribute, do not merge them, keep them separate
 

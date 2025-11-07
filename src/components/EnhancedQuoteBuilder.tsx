@@ -458,7 +458,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         ...prev,
         floors: extractedPlan.floors || prev.floors,
         house_type: extractedPlan.houseType || prev.house_type,
-        project_type: extractedPlan.projectInfo.projectType,
         total_wall_area:
           extractedPlan.masonry?.reduce(
             (sum: number, item: any) => sum + (parseFloat(item.area) || 0),

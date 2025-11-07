@@ -12,7 +12,6 @@ export type FinishCategory =
 export interface FinishElement {
   id: string;
   category: FinishCategory;
-  type: string;
   material: string;
   area: number;
   length?: number;

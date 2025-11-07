@@ -84,7 +84,7 @@ const COMMON_MATERIALS = {
     "Laminated Glass",
     "Double Glazing",
   ],
-  joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"],
+  joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate", "Steel"],
 };
 
 export default function FinishesCalculator({
@@ -132,7 +132,6 @@ export default function FinishesCalculator({
     const newFinish: FinishElement = {
       id: `finish-${Date.now()}`,
       category: "flooring",
-      type: "flooring",
       material: "Ceramic Tiles",
       area: 0,
       unit: "m²",
@@ -146,6 +145,7 @@ export default function FinishesCalculator({
     setEditingId(newFinish.id);
     setEditForm(newFinish);
   };
+  console.log(finishes);
 
   useEffect(() => {
     setQuoteData((prev: any) => ({

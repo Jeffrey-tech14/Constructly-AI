@@ -751,8 +751,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         finishes:
           extractedPlan.finishes?.map((finish: any, index: number) => ({
             id: finish.id || `finish-${index}`,
-            category: (finish.type as FinishCategory) || "flooring",
-            type: finish.material || "Ceramic Tiles",
+            category: (finish.category as FinishCategory) || "flooring",
+            type: finish.type || "Ceramic Tiles",
             material: finish.material || "Ceramic Tiles",
             area: parseFloat(finish.area) || 0,
             length: parseFloat(finish.length) || 0,

@@ -190,7 +190,7 @@ export default function useElectricalCalculator(
   electricalSystems: ElectricalSystem[],
   materialPrices: any[],
   quote: any,
-  customRates?: Partial<ElectricalRates>
+  setQuoteData: (data: any) => void
 ) {
   const [calculations, setCalculations] = useState<ElectricalCalculation[]>([]);
   const [totals, setTotals] = useState<ElectricalTotals>({
@@ -717,6 +717,14 @@ export default function useElectricalCalculator(
   useEffect(() => {
     if (electricalSystems?.length > 0) calculateAll();
   }, [electricalSystems, calculateAll]);
+  const combined = { ...totals, calculations };
+
+  useEffect(() => {
+    setQuoteData((prev: any) => ({
+      ...prev,
+      electrical_calculations: combined,
+    }));
+  }, [combined]);
 
   return {
     calculations,

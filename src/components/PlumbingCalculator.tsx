@@ -108,7 +108,8 @@ export default function PlumbingCalculator({
   const { calculations, totals, calculateAll } = usePlumbingCalculator(
     plumbingSystems,
     materialPrices,
-    quote
+    quote,
+    setQuoteData
   );
 
   const qsSettings = quote.qsSettings as MasonryQSSettings;

@@ -45,6 +45,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { Room } from "@/hooks/useMasonryCalculator";
 
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
@@ -54,69 +55,6 @@ const RISA_DARK_TEXT = "#2D3748";
 const RISA_LIGHT_GRAY = "#F5F7FA";
 const RISA_MEDIUM_GRAY = "#E2E8F0";
 
-// --- Interfaces ---
-export interface Door {
-  sizeType: string;
-  standardSize: string;
-  custom: {
-    height: string;
-    width: string;
-    price?: string;
-  };
-  type: string;
-  frame: {
-    type: string;
-    sizeType: string; // "standard" | "custom"
-    standardSize: string;
-
-    custom: {
-      height: string;
-      width: string;
-      price?: string;
-    };
-  };
-  count: number;
-}
-export interface Window {
-  sizeType: string;
-  standardSize: string;
-  custom: {
-    height: string;
-    width: string;
-    price?: string;
-  };
-  glass: string;
-  frame: {
-    type: string;
-    sizeType: string; // "standard" | "custom"
-    standardSize: string;
-
-    custom: {
-      height: string;
-      width: string;
-      price?: string;
-    };
-  };
-  count: number;
-}
-export interface Room {
-  roomType: string;
-  room_name: string;
-  width: string;
-  thickness: string;
-  blockType: string;
-  length: string;
-  height: string;
-  customBlock: {
-    length: string;
-    height: string;
-    thickness: string;
-    price: string;
-  };
-  plaster: string;
-  doors: Door[];
-  windows: Window[];
-}
 export interface ParsedPlan {
   rooms: Room[];
   floors: number;
@@ -190,9 +128,19 @@ const UploadPlan = () => {
   const location = useLocation();
   const { quoteData } = location.state || {};
   const { uploadPlan, deletePlan } = usePlanUpload();
-  const { setExtractedPlan } = usePlan();
   const { toast } = useToast();
   const MAX_RETRIES = 3;
+
+  const { extractedPlan, deduplicateWalls, setExtractedPlan } = usePlan();
+
+  // Manually trigger deduplication if needed
+  const handleDeduplicateWalls = () => {
+    if (extractedPlan) {
+      const updatedPlan = deduplicateWalls(extractedPlan);
+      setEditablePlan(updatedPlan);
+      // updatedPlan now has deduplicated walls
+    }
+  };
 
   useEffect(() => {
     if (quoteData?.plan_file_url) {
@@ -200,6 +148,10 @@ const UploadPlan = () => {
       setPreviewUrl(quoteData.plan_file_url);
     }
   }, [quoteData]);
+
+  useEffect(() => {
+    handleDeduplicateWalls();
+  }, [extractedPlan]);
 
   async function downloadFile(publicUrl: string, file_name: string) {
     try {
@@ -327,7 +279,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(
-      "https://42abdb076f5d.ngrok-free.app/api/plan/upload",
+      "https://constructly-backend.onrender.com/api/plan/upload",
       {
         method: "POST",
         body: formData,
@@ -631,7 +583,7 @@ const UploadPlan = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-8"
           >
-            <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+            <Card className="">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   {[
@@ -760,7 +712,7 @@ const UploadPlan = () => {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <Card className="border border-red-200 dark:border-red-800 shadow-sm bg-white dark:bg-gray-800 rounded-xl">
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4 mb-4">
                   <div
@@ -834,7 +786,7 @@ const UploadPlan = () => {
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 gap-8">
+        <Card className="grid grid-cols-1 gap-8">
           {/* Main Content */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -842,7 +794,7 @@ const UploadPlan = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-2 space-y-8"
           >
-            <Card className="shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:shadow-3xl">
+            <div>
               <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-800 text-white py-6">
                 <CardTitle className="sm:text-xl font-bold">
                   Upload Your Floor Plan
@@ -1162,6 +1114,7 @@ const UploadPlan = () => {
                                                               width: "",
                                                               price: "",
                                                             },
+
                                                             type: "Panel",
                                                             frame: {
                                                               type: "Wood",
@@ -1367,9 +1320,9 @@ const UploadPlan = () => {
                   ) : null}
                 </div>
               </CardContent>
-            </Card>
+            </div>
           </motion.div>
-        </div>
+        </Card>
       </div>
 
       {/* Preview Modal */}

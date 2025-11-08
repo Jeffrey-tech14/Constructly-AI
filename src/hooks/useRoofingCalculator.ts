@@ -191,7 +191,8 @@ export interface RoofingTotals {
 export default function useRoofingCalculator(
   roofStructures: RoofStructure[],
   materialPrices: any,
-  quote: any
+  quote: any,
+  setQuoteData
 ) {
   const [calculations, setCalculations] = useState<RoofingCalculation[]>([]);
   const [totals, setTotals] = useState<RoofingTotals>({
@@ -894,6 +895,14 @@ export default function useRoofingCalculator(
       });
     }
   }, [roofStructures, materialPrices, calculateAll, getWastagePercentage]);
+  const combined = { ...totals, calculations };
+
+  useEffect(() => {
+    setQuoteData((prev: any) => ({
+      ...prev,
+      roofing_calculations: combined,
+    }));
+  }, [combined]);
 
   return {
     calculations,

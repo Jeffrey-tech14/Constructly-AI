@@ -88,9 +88,21 @@ export interface Room {
   grossSand?: number;
   netWater?: number;
   grossWater?: number;
+  generatedWalls?: Wall[]; // Temporary walls before deduplication
+  wallRefs?: string[];
   totalCost?: number;
 }
-
+export interface Wall {
+  id: string;
+  start: [number, number];
+  end: [number, number];
+  thickness: string;
+  height: string;
+  blockType: string;
+  connectedRooms: string[];
+  material?: string;
+  area?: string;
+}
 // Add the new interfaces for professional elements
 export interface Lintel {
   length: number;
@@ -287,6 +299,77 @@ interface CalculationTotals {
   netWasteRemovalCost: number;
   grossWasteRemovalCost: number;
   professionalElementsTotalCost: number;
+}
+
+export function deduplicateWallsFunction(rooms: Room[]): {
+  rooms: Room[];
+  walls: Wall[];
+} {
+  const wallMap = new Map<string, Wall>();
+
+  const normalizeWall = (wall: Wall) => {
+    const [x1, y1] = wall.start;
+    const [x2, y2] = wall.end;
+    return x1 < x2 || (x1 === x2 && y1 < y2)
+      ? {
+          ...wall,
+          start: [x1, y1] as [number, number],
+          end: [x2, y2] as [number, number],
+        }
+      : {
+          ...wall,
+          start: [x2, y2] as [number, number],
+          end: [x1, y1] as [number, number],
+        };
+  };
+
+  const wallKey = (wall: Wall) => {
+    const normalized = normalizeWall(wall);
+    return `${normalized.start[0]},${normalized.start[1]}_${normalized.end[0]},${normalized.end[1]}`;
+  };
+
+  // Process all rooms' generated walls
+  rooms.forEach((room) => {
+    if (room.generatedWalls) {
+      room.generatedWalls.forEach((wall: Wall) => {
+        const key = wallKey(wall);
+        if (!wallMap.has(key)) {
+          // Create new shared wall
+          const normalizedWall = normalizeWall(wall);
+          wallMap.set(key, {
+            ...normalizedWall,
+            id: key,
+            connectedRooms: [room.room_name || `room_${rooms.indexOf(room)}`],
+          });
+        } else {
+          // Add this room to existing wall's connected rooms
+          const existingWall = wallMap.get(key)!;
+          const roomId = room.room_name || `room_${rooms.indexOf(room)}`;
+          if (!existingWall.connectedRooms.includes(roomId)) {
+            existingWall.connectedRooms.push(roomId);
+          }
+        }
+      });
+    }
+  });
+
+  const uniqueWalls = Array.from(wallMap.values());
+
+  // Update rooms with wall references
+  const updatedRooms = rooms.map((room) => {
+    if (room.generatedWalls) {
+      const wallRefs = room.generatedWalls.map((wall) => wallKey(wall));
+      // Remove temporary generatedWalls and keep only references
+      const { generatedWalls, ...roomWithoutWalls } = room;
+      return {
+        ...roomWithoutWalls,
+        wallRefs,
+      };
+    }
+    return room;
+  });
+
+  return { rooms: updatedRooms, walls: uniqueWalls };
 }
 
 export default function useMasonryCalculator({
@@ -1336,11 +1419,16 @@ export default function useMasonryCalculator({
       );
 
       const netMortarCementKg = mortarMaterials.cementKg;
+      const grossMortarCementKg =
+        netMortarCementKg * (1 + currentQsSettings.wastageMasonry / 100);
       const netMortarSandM3 = mortarMaterials.sandM3;
+      const grossMortarSandM3 =
+        netMortarSandM3 * (1 + currentQsSettings.wastageMasonry / 100);
       let netPlasterArea = 0;
       if (room.plaster === "One Side") netPlasterArea = netWallArea;
       else if (room.plaster === "Both Sides") netPlasterArea = netWallArea * 2;
       const netPlasterVolume = netPlasterArea * PLASTER_THICKNESS;
+
       // For plaster - you might want a separate ratio or use the same
       const plasterRatio =
         currentQsSettings.plaster_ratio || quote.mortarRatio || "1:4";
@@ -1350,7 +1438,11 @@ export default function useMasonryCalculator({
       );
 
       const netPlasterCementKg = plasterMaterials.cementKg;
+      const grossPlasterCementKg =
+        netPlasterCementKg * (1 + currentQsSettings.wastageMasonry / 100);
       const netPlasterSandM3 = plasterMaterials.sandM3;
+      const grossPlasterSandM3 =
+        netPlasterSandM3 * (1 + currentQsSettings.wastageMasonry / 100);
       const mortarWater = calculateWaterRequirements(
         netMortarCementKg,
         netMortarSandM3,
@@ -1379,14 +1471,14 @@ export default function useMasonryCalculator({
 
         const doorPrice = door.custom?.price
           ? Number(door.custom.price)
-          : doorLeafPrice[door.standardSize];
+          : doorLeafPrice[door.standardSize] || 0;
 
         const frameLeafPrice =
           getMaterialPrice("Door Frames", door.frame?.type) || "Wood";
 
         const framePrice = door.frame?.custom?.price
           ? Number(door.frame?.custom?.price)
-          : frameLeafPrice[door.standardSize];
+          : frameLeafPrice[door.standardSize] || 0;
 
         door.price = doorPrice;
         door.frame.price = framePrice;
@@ -1404,14 +1496,14 @@ export default function useMasonryCalculator({
 
         const windowPrice = window.custom?.price
           ? Number(window.custom.price)
-          : windowLeafPrice[window.standardSize];
+          : windowLeafPrice[window.standardSize] || 0;
 
         const frameLeafPrice =
           getMaterialPrice("window Frames", window.frame?.type) || "Wood";
 
         const framePrice = window.frame?.custom?.price
           ? Number(window.frame?.custom?.price)
-          : frameLeafPrice[window.standardSize];
+          : frameLeafPrice[window.standardSize] || 0;
 
         window.price = windowPrice;
         window.frame.price = framePrice;
@@ -1514,11 +1606,11 @@ export default function useMasonryCalculator({
 
       const grossBlocksCost = grossBlocks * blockPrice;
       const grossMortarCost =
-        (netMortarCementKg / CEMENT_BAG_KG) * cementPrice +
-        netMortarSandM3 * sandPrice;
+        (grossMortarCementKg / CEMENT_BAG_KG) * cementPrice +
+        grossMortarSandM3 * sandPrice;
       const grossPlasterCost =
-        (netPlasterCementKg / CEMENT_BAG_KG) * cementPrice +
-        netPlasterSandM3 * sandPrice;
+        (grossPlasterCementKg / CEMENT_BAG_KG) * cementPrice +
+        grossPlasterSandM3 * sandPrice;
       const grossWaterCost = currentQsSettings.clientProvidesWater
         ? 0
         : (grossWater / 1000) * waterPrice;

@@ -211,7 +211,7 @@ export default function RoofingCalculator({
   quote,
 }: RoofingCalculatorProps) {
   const { calculations, totals, calculateAll, wastagePercentage } =
-    useRoofingCalculator(roofStructures, materialPrices, quote);
+    useRoofingCalculator(roofStructures, materialPrices, quote, setQuoteData);
 
   const qsSettings = quote?.qsSettings as MasonryQSSettings;
   const onSettingsChange = useCallback(

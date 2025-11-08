@@ -60,7 +60,8 @@ export interface FinishesTotals {
 export default function useUniversalFinishesCalculator(
   finishes: FinishElement[],
   materialPrices: any[],
-  quote: any
+  quote: any,
+  setQuoteData
 ) {
   const [calculations, setCalculations] = useState<FinishCalculation[]>([]);
   const [totals, setTotals] = useState<FinishesTotals>({
@@ -195,6 +196,15 @@ export default function useUniversalFinishesCalculator(
       calculateAll();
     }
   }, [finishes, calculateAll]);
+
+  const combined = { ...totals, calculations };
+
+  useEffect(() => {
+    setQuoteData((prev: any) => ({
+      ...prev,
+      finishes_calculations: combined,
+    }));
+  }, [combined]);
 
   return {
     calculations,

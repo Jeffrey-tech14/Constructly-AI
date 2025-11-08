@@ -139,7 +139,8 @@ export default function ElectricalCalculator({
   const { calculations, totals, calculateAll } = useElectricalCalculator(
     electricalSystems,
     materialPrices,
-    quote
+    quote,
+    setQuoteData
   );
   const qsSettings = quote.qsSettings as MasonryQSSettings;
   const onSettingsChange = useCallback(

@@ -75,6 +75,7 @@ const COMMON_MATERIALS = {
     "Stone Cladding",
     "Tile Cladding",
     "Wood Paneling",
+    "Smooth Stucco",
   ],
   paint: ["Emulsion", "Enamel", "Weatherproof", "Textured", "Metallic"],
   glazing: [
@@ -104,7 +105,12 @@ export default function FinishesCalculator({
   quote,
 }: FinishesCalculatorProps) {
   const { calculations, totals, calculateAll, wastagePercentage } =
-    useUniversalFinishesCalculator(finishes, materialPrices, quote);
+    useUniversalFinishesCalculator(
+      finishes,
+      materialPrices,
+      quote,
+      setQuoteData
+    );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<FinishCategory | "all">(

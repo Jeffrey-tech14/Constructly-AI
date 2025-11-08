@@ -11,6 +11,7 @@ export type ElementTypes =
   | "column"
   | "foundation"
   | "strip-footing"
+  | "retaining-wall"
   | "tank";
 export type RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
 export type ReinforcementType = "individual_bars" | "mesh";
@@ -141,6 +142,36 @@ export const DEFAULT_TANK_REINFORCEMENT: Record<TankType, TankReinforcement> = {
   },
 };
 
+export type RetainingWallType = "cantilever" | "gravity" | "counterfort";
+export type WallSection = "stem" | "base" | "heel" | "toe";
+
+export interface RetainingWallReinforcement {
+  stem: {
+    verticalBars: RebarSize;
+    horizontalBars: RebarSize;
+    verticalSpacing: number;
+    horizontalSpacing: number;
+  };
+  base: {
+    mainBars: RebarSize;
+    distributionBars: RebarSize;
+    mainSpacing: number;
+    distributionSpacing: number;
+  };
+  heel?: {
+    mainBars: RebarSize;
+    distributionBars: RebarSize;
+    mainSpacing: number;
+    distributionSpacing: number;
+  };
+  toe?: {
+    mainBars: RebarSize;
+    distributionBars: RebarSize;
+    mainSpacing: number;
+    distributionSpacing: number;
+  };
+}
+
 export const REBAR_PROPERTIES: Record<
   RebarSize,
   {
@@ -263,6 +294,14 @@ export interface CodeComplianceLimits {
   minTankCoverReinforcement: number;
   maxTankCoverReinforcement: number;
   minTankCover: number;
+  minRetainingWallStemReinforcement: number;
+  maxRetainingWallStemReinforcement: number;
+  minRetainingWallBaseReinforcement: number;
+  maxRetainingWallBaseReinforcement: number;
+  minRetainingWallHeelReinforcement: number;
+  maxRetainingWallHeelReinforcement: number;
+  minRetainingWallToeReinforcement: number;
+  maxRetainingWallToeReinforcement: number;
 }
 
 export interface BarScheduleItem {
@@ -338,6 +377,15 @@ export interface RebarQSSettings {
   minTankWallBars: number;
   minTankBaseBars: number;
   minTankCoverBars: number;
+
+  retainingWallStemReinforcementRatio: number;
+  retainingWallBaseReinforcementRatio: number;
+  retainingWallHeelReinforcementRatio: number;
+  retainingWallToeReinforcementRatio: number;
+  minRetainingWallStemBars: number;
+  minRetainingWallBaseBars: number;
+  minRetainingWallHeelBars: number;
+  minRetainingWallToeBars: number;
 }
 
 export interface CalcInput {
@@ -391,6 +439,15 @@ export interface CalcInput {
   coverDistributionBarSize?: RebarSize;
   coverMainSpacing?: string;
   coverDistributionSpacing?: string;
+
+  // Retaining wall specific fields
+  retainingWallType?: RetainingWallType;
+  heelLength?: string;
+  toeLength?: string;
+  stemVerticalBarSize?: RebarSize;
+  stemHorizontalBarSize?: RebarSize;
+  stemVerticalSpacing?: string;
+  stemHorizontalSpacing?: string;
 }
 export interface CalcBreakdown {
   // Existing fields
@@ -416,6 +473,18 @@ export interface CalcBreakdown {
   baseDistributionBarsCount?: number;
   coverMainBarsCount?: number;
   coverDistributionBarsCount?: number;
+  stemVerticalBarsLength?: number;
+  stemHorizontalBarsLength?: number;
+  heelMainBarsLength?: number;
+  heelDistributionBarsLength?: number;
+  toeMainBarsLength?: number;
+  toeDistributionBarsLength?: number;
+  stemVerticalBarsCount?: number;
+  stemHorizontalBarsCount?: number;
+  heelMainBarsCount?: number;
+  heelDistributionBarsCount?: number;
+  toeMainBarsCount?: number;
+  toeDistributionBarsCount?: number;
   weightBreakdownKg?: any;
 }
 
@@ -433,8 +502,15 @@ export interface WeightBreakdownKg {
   baseDistributionBars?: number;
   coverMainBars?: number;
   coverDistributionBars?: number;
-}
 
+  // Retaining wall specific fields
+  stemVerticalBars?: number;
+  stemHorizontalBars?: number;
+  heelMainBars?: number;
+  heelDistributionBars?: number;
+  toeMainBars?: number;
+  toeDistributionBars?: number;
+}
 type PriceMap = Record<RebarSize, number>;
 
 export interface CalcResult {
@@ -618,6 +694,164 @@ function generateBarSchedule(
   let markCounter = 1;
   const createMark = (type: string) =>
     `${element.charAt(0).toUpperCase()}${type}${markCounter++}`;
+  // In the generateBarSchedule function, replace the retaining wall section with this complete version:
+  if (element === "retaining-wall") {
+    // Stem vertical bars
+    if (
+      breakdown.stemVerticalBarsCount &&
+      breakdown.stemVerticalBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("SV"),
+        diameter:
+          REBAR_PROPERTIES[input.stemVerticalBarSize || "Y12"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.stemVerticalBarsLength || 0) /
+          (breakdown.stemVerticalBarsCount || 1),
+        numberRequired: breakdown.stemVerticalBarsCount,
+        totalLength: breakdown.stemVerticalBarsLength || 0,
+        weight: weightBreakdown.stemVerticalBars || 0,
+        bendingInstructions:
+          "Stem vertical bars - straight, full height with development length",
+      });
+    }
+
+    // Stem horizontal bars
+    if (
+      breakdown.stemHorizontalBarsCount &&
+      breakdown.stemHorizontalBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("SH"),
+        diameter:
+          REBAR_PROPERTIES[input.stemHorizontalBarSize || "Y10"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.stemHorizontalBarsLength || 0) /
+          (breakdown.stemHorizontalBarsCount || 1),
+        numberRequired: breakdown.stemHorizontalBarsCount,
+        totalLength: breakdown.stemHorizontalBarsLength || 0,
+        weight: weightBreakdown.stemHorizontalBars || 0,
+        bendingInstructions:
+          "Stem horizontal bars - straight, along wall length with development length",
+      });
+    }
+
+    // Base main bars
+    if (breakdown.baseMainBarsCount && breakdown.baseMainBarsCount > 0) {
+      schedule.push({
+        barMark: createMark("BM"),
+        diameter: REBAR_PROPERTIES[input.baseMainBarSize || "Y12"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.baseMainBarsLength || 0) /
+          (breakdown.baseMainBarsCount || 1),
+        numberRequired: breakdown.baseMainBarsCount,
+        totalLength: breakdown.baseMainBarsLength || 0,
+        weight: weightBreakdown.baseMainBars || 0,
+        bendingInstructions:
+          "Base main bars - straight, full length with development length",
+      });
+    }
+
+    // Base distribution bars
+    if (
+      breakdown.baseDistributionBarsCount &&
+      breakdown.baseDistributionBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("BD"),
+        diameter:
+          REBAR_PROPERTIES[input.baseDistributionBarSize || "Y10"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.baseDistributionBarsLength || 0) /
+          (breakdown.baseDistributionBarsCount || 1),
+        numberRequired: breakdown.baseDistributionBarsCount,
+        totalLength: breakdown.baseDistributionBarsLength || 0,
+        weight: weightBreakdown.baseDistributionBars || 0,
+        bendingInstructions:
+          "Base distribution bars - straight, full width with development length",
+      });
+    }
+
+    // Heel main bars (if heel exists)
+    if (breakdown.heelMainBarsCount && breakdown.heelMainBarsCount > 0) {
+      schedule.push({
+        barMark: createMark("HM"),
+        diameter: REBAR_PROPERTIES[input.baseMainBarSize || "Y12"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.heelMainBarsLength || 0) /
+          (breakdown.heelMainBarsCount || 1),
+        numberRequired: breakdown.heelMainBarsCount,
+        totalLength: breakdown.heelMainBarsLength || 0,
+        weight: weightBreakdown.heelMainBars || 0,
+        bendingInstructions:
+          "Heel main bars - straight, full length with development length",
+      });
+    }
+
+    // Heel distribution bars (if heel exists)
+    if (
+      breakdown.heelDistributionBarsCount &&
+      breakdown.heelDistributionBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("HD"),
+        diameter:
+          REBAR_PROPERTIES[input.baseDistributionBarSize || "Y10"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.heelDistributionBarsLength || 0) /
+          (breakdown.heelDistributionBarsCount || 1),
+        numberRequired: breakdown.heelDistributionBarsCount,
+        totalLength: breakdown.heelDistributionBarsLength || 0,
+        weight: weightBreakdown.heelDistributionBars || 0,
+        bendingInstructions:
+          "Heel distribution bars - straight, full width with development length",
+      });
+    }
+
+    // Toe main bars (if toe exists)
+    if (breakdown.toeMainBarsCount && breakdown.toeMainBarsCount > 0) {
+      schedule.push({
+        barMark: createMark("TM"),
+        diameter: REBAR_PROPERTIES[input.baseMainBarSize || "Y12"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.toeMainBarsLength || 0) /
+          (breakdown.toeMainBarsCount || 1),
+        numberRequired: breakdown.toeMainBarsCount,
+        totalLength: breakdown.toeMainBarsLength || 0,
+        weight: weightBreakdown.toeMainBars || 0,
+        bendingInstructions:
+          "Toe main bars - straight, full length with development length",
+      });
+    }
+
+    // Toe distribution bars (if toe exists)
+    if (
+      breakdown.toeDistributionBarsCount &&
+      breakdown.toeDistributionBarsCount > 0
+    ) {
+      schedule.push({
+        barMark: createMark("TD"),
+        diameter:
+          REBAR_PROPERTIES[input.baseDistributionBarSize || "Y10"]?.diameterMm,
+        shape: "Straight",
+        cuttingLength:
+          (breakdown.toeDistributionBarsLength || 0) /
+          (breakdown.toeDistributionBarsCount || 1),
+        numberRequired: breakdown.toeDistributionBarsCount,
+        totalLength: breakdown.toeDistributionBarsLength || 0,
+        weight: weightBreakdown.toeDistributionBars || 0,
+        bendingInstructions:
+          "Toe distribution bars - straight, full width with development length",
+      });
+    }
+  }
 
   if (element === "tank") {
     // Tank Wall Vertical Bars
@@ -924,6 +1158,243 @@ function getBendingDiagram(
   return "";
 }
 
+function calculateRetainingWallReinforcement(
+  input: CalcInput,
+  settings: RebarQSSettings,
+  cover: number
+): {
+  stem: {
+    verticalBarsLength: number;
+    horizontalBarsLength: number;
+    verticalBarsCount: number;
+    horizontalBarsCount: number;
+  };
+  base: {
+    mainBarsLength: number;
+    distributionBarsLength: number;
+    mainBarsCount: number;
+    distributionBarsCount: number;
+  };
+  heel?: {
+    mainBarsLength: number;
+    distributionBarsLength: number;
+    mainBarsCount: number;
+    distributionBarsCount: number;
+  };
+  toe?: {
+    mainBarsLength: number;
+    distributionBarsLength: number;
+    mainBarsCount: number;
+    distributionBarsCount: number;
+  };
+  totalBars: number;
+  weightBreakdown: {
+    stemVertical: number;
+    stemHorizontal: number;
+    baseMain: number;
+    baseDistribution: number;
+    heelMain: number;
+    heelDistribution: number;
+    toeMain: number;
+    toeDistribution: number;
+  };
+} {
+  const L = safeParseFloat(input.length, 0); // Wall length
+  const H = safeParseFloat(input.depth, 0); // Wall height
+  const baseWidth = safeParseFloat(input.width, 0); // Base width - FIXED: using input.width
+  const stemThickness = safeParseFloat(input.wallThickness, 0.3); // Stem thickness
+  const baseThickness = safeParseFloat(input.baseThickness, 0.4); // Base thickness
+  const heelLength = safeParseFloat(input.heelLength, 0.5); // Heel length
+  const toeLength = safeParseFloat(input.toeLength, 0.5); // Toe length
+  const count = safeParseInt(input.number, 1);
+  const wallType = input.retainingWallType || "cantilever";
+
+  // Reinforcement settings
+  const stemVerticalBarSize = input.stemVerticalBarSize || "Y12";
+  const stemHorizontalBarSize = input.stemHorizontalBarSize || "Y10";
+  const stemVerticalSpacing = mmToM(
+    safeParseFloat(input.stemVerticalSpacing, 150)
+  );
+  const stemHorizontalSpacing = mmToM(
+    safeParseFloat(input.stemHorizontalSpacing, 200)
+  );
+
+  const baseMainBarSize = input.baseMainBarSize || "Y12";
+  const baseDistributionBarSize = input.baseDistributionBarSize || "Y10";
+  const baseMainSpacing = mmToM(safeParseFloat(input.baseMainSpacing, 150));
+  const baseDistributionSpacing = mmToM(
+    safeParseFloat(input.baseDistributionSpacing, 200)
+  );
+
+  // Development lengths
+  const devLengthStemVert = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    stemVerticalBarSize
+  );
+  const devLengthStemHoriz = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    stemHorizontalBarSize
+  );
+  const devLengthBaseMain = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    baseMainBarSize
+  );
+  const devLengthBaseDist = calculateDevelopmentLength(
+    settings.developmentLengthFactor,
+    baseDistributionBarSize
+  );
+
+  // STEM REINFORCEMENT
+  const stemHeight = H - baseThickness;
+
+  // Vertical bars in stem (main reinforcement)
+  const verticalBarsCount = Math.max(
+    settings.minRetainingWallStemBars,
+    Math.ceil(L / Math.max(stemVerticalSpacing, 0.001)) + 1
+  );
+  const verticalBarLength = stemHeight + devLengthStemVert;
+  const verticalBarsLength = verticalBarsCount * verticalBarLength * count;
+
+  // Horizontal bars in stem (distribution/temperature reinforcement)
+  const horizontalBarsCount = Math.max(
+    2,
+    Math.ceil(stemHeight / Math.max(stemHorizontalSpacing, 0.001)) + 1
+  );
+  const horizontalBarLength = L + 2 * devLengthStemHoriz;
+  const horizontalBarsLength =
+    horizontalBarsCount * horizontalBarLength * count;
+
+  // BASE REINFORCEMENT
+  const baseMainBarsCount = Math.max(
+    settings.minRetainingWallBaseBars,
+    Math.ceil(baseWidth / Math.max(baseMainSpacing, 0.001)) + 1
+  );
+  const baseDistributionBarsCount = Math.max(
+    settings.minRetainingWallBaseBars,
+    Math.ceil(L / Math.max(baseDistributionSpacing, 0.001)) + 1
+  );
+
+  const baseMainBarLength = L + 2 * devLengthBaseMain;
+  const baseDistributionBarLength = baseWidth + 2 * devLengthBaseDist;
+
+  const baseMainBarsLength = baseMainBarsCount * baseMainBarLength * count;
+  const baseDistributionBarsLength =
+    baseDistributionBarsCount * baseDistributionBarLength * count;
+
+  // HEEL AND TOE REINFORCEMENT (for cantilever walls)
+  let heelMainBarsLength = 0;
+  let heelDistributionBarsLength = 0;
+  let heelMainBarsCount = 0;
+  let heelDistributionBarsCount = 0;
+
+  let toeMainBarsLength = 0;
+  let toeDistributionBarsLength = 0;
+  let toeMainBarsCount = 0;
+  let toeDistributionBarsCount = 0;
+
+  if (wallType === "cantilever" && heelLength > 0) {
+    // Heel reinforcement (similar to base but for heel section)
+    heelMainBarsCount = Math.max(
+      settings.minRetainingWallHeelBars,
+      Math.ceil(heelLength / Math.max(baseMainSpacing, 0.001)) + 1
+    );
+    heelDistributionBarsCount = Math.max(
+      settings.minRetainingWallHeelBars,
+      Math.ceil(L / Math.max(baseDistributionSpacing, 0.001)) + 1
+    );
+
+    heelMainBarsLength = heelMainBarsCount * baseMainBarLength * count;
+    heelDistributionBarsLength =
+      heelDistributionBarsCount * baseDistributionBarLength * count;
+  }
+
+  if (wallType === "cantilever" && toeLength > 0) {
+    // Toe reinforcement
+    toeMainBarsCount = Math.max(
+      settings.minRetainingWallToeBars,
+      Math.ceil(toeLength / Math.max(baseMainSpacing, 0.001)) + 1
+    );
+    toeDistributionBarsCount = Math.max(
+      settings.minRetainingWallToeBars,
+      Math.ceil(L / Math.max(baseDistributionSpacing, 0.001)) + 1
+    );
+
+    toeMainBarsLength = toeMainBarsCount * baseMainBarLength * count;
+    toeDistributionBarsLength =
+      toeDistributionBarsCount * baseDistributionBarLength * count;
+  }
+
+  const totalBars =
+    (verticalBarsCount +
+      horizontalBarsCount +
+      baseMainBarsCount +
+      baseDistributionBarsCount +
+      heelMainBarsCount +
+      heelDistributionBarsCount +
+      toeMainBarsCount +
+      toeDistributionBarsCount) *
+    count;
+
+  // Calculate weights using correct bar sizes
+  const getWeight = (length: number, size: RebarSize) =>
+    length * (REBAR_PROPERTIES[size]?.weightKgPerM || 0.888);
+
+  const weightBreakdown = {
+    stemVertical: getWeight(verticalBarsLength, stemVerticalBarSize),
+    stemHorizontal: getWeight(horizontalBarsLength, stemHorizontalBarSize),
+    baseMain: getWeight(baseMainBarsLength, baseMainBarSize),
+    baseDistribution: getWeight(
+      baseDistributionBarsLength,
+      baseDistributionBarSize
+    ),
+    heelMain: getWeight(heelMainBarsLength, baseMainBarSize),
+    heelDistribution: getWeight(
+      heelDistributionBarsLength,
+      baseDistributionBarSize
+    ),
+    toeMain: getWeight(toeMainBarsLength, baseMainBarSize),
+    toeDistribution: getWeight(
+      toeDistributionBarsLength,
+      baseDistributionBarSize
+    ),
+  };
+
+  return {
+    stem: {
+      verticalBarsLength,
+      horizontalBarsLength,
+      verticalBarsCount,
+      horizontalBarsCount,
+    },
+    base: {
+      mainBarsLength: baseMainBarsLength,
+      distributionBarsLength: baseDistributionBarsLength,
+      mainBarsCount: baseMainBarsCount,
+      distributionBarsCount: baseDistributionBarsCount,
+    },
+    heel:
+      heelLength > 0
+        ? {
+            mainBarsLength: heelMainBarsLength,
+            distributionBarsLength: heelDistributionBarsLength,
+            mainBarsCount: heelMainBarsCount,
+            distributionBarsCount: heelDistributionBarsCount,
+          }
+        : undefined,
+    toe:
+      toeLength > 0
+        ? {
+            mainBarsLength: toeMainBarsLength,
+            distributionBarsLength: toeDistributionBarsLength,
+            mainBarsCount: toeMainBarsCount,
+            distributionBarsCount: toeDistributionBarsCount,
+          }
+        : undefined,
+    totalBars,
+    weightBreakdown,
+  };
+}
+
 function calculateTankReinforcement(
   input: CalcInput,
   settings: RebarQSSettings,
@@ -948,17 +1419,30 @@ function calculateTankReinforcement(
     distributionBarsCount: number;
   };
   totalBars: number;
+  weightBreakdown: {
+    wallsVertical: number;
+    wallsHorizontal: number;
+    baseMain: number;
+    baseDistribution: number;
+    coverMain: number;
+    coverDistribution: number;
+  };
 } {
   const L = safeParseFloat(input.length, 0);
   const W = safeParseFloat(input.width, 0);
-  const H = safeParseFloat(input.depth, 0); // Tank height
+  const H = safeParseFloat(input.depth, 0);
   const wallThickness = safeParseFloat(input.wallThickness, 0.2);
   const baseThickness = safeParseFloat(input.baseThickness, 0.2);
   const coverThickness = safeParseFloat(input.coverThickness, 0.15);
   const count = safeParseInt(input.number, 1);
   const includeCover = input.includeCover !== false;
+  const tankShape = input.tankShape || "rectangular";
+  let verticalBarsLength,
+    horizontalBarsLength,
+    verticalBarsCount,
+    horizontalBarsCount = 0;
 
-  // Get reinforcement settings or use defaults
+  // Get reinforcement settings
   const tankType = input.tankType || "septic";
   const defaultReinforcement = DEFAULT_TANK_REINFORCEMENT[tankType];
 
@@ -969,27 +1453,31 @@ function calculateTankReinforcement(
   const wallVerticalSpacing = mmToM(
     safeParseFloat(
       input.wallVerticalSpacing,
-      defaultReinforcement.walls.verticalSpacing
+      defaultReinforcement?.walls?.verticalSpacing
     )
   );
   const wallHorizontalSpacing = mmToM(
     safeParseFloat(
       input.wallHorizontalSpacing,
-      defaultReinforcement.walls.horizontalSpacing
+      defaultReinforcement?.walls?.horizontalSpacing
     )
   );
 
   const baseMainBarSize =
-    input.baseMainBarSize || defaultReinforcement.base.mainBars;
+    input.baseMainBarSize || defaultReinforcement?.base?.mainBars;
   const baseDistributionBarSize =
-    input.baseDistributionBarSize || defaultReinforcement.base.distributionBars;
+    input.baseDistributionBarSize ||
+    defaultReinforcement?.base?.distributionBars;
   const baseMainSpacing = mmToM(
-    safeParseFloat(input.baseMainSpacing, defaultReinforcement.base.mainSpacing)
+    safeParseFloat(
+      input.baseMainSpacing,
+      defaultReinforcement?.base?.mainSpacing
+    )
   );
   const baseDistributionSpacing = mmToM(
     safeParseFloat(
       input.baseDistributionSpacing,
-      defaultReinforcement.base.distributionSpacing
+      defaultReinforcement.base?.distributionSpacing
     )
   );
 
@@ -1012,7 +1500,7 @@ function calculateTankReinforcement(
     )
   );
 
-  // Development lengths
+  // Development lengths for each bar size
   const devLengthWallVert = calculateDevelopmentLength(
     settings.developmentLengthFactor,
     wallVerticalBarSize
@@ -1038,34 +1526,61 @@ function calculateTankReinforcement(
     coverDistributionBarSize
   );
 
-  // WALL REINFORCEMENT
-  const wallHeight = H - baseThickness; // Effective wall height
-  const wallLength1 = L; // Long walls
-  const wallLength2 = W; // Short walls
+  // WALL REINFORCEMENT - Rectangular tank
+  let wallVerticalBarsLength = 0;
+  let wallHorizontalBarsLength = 0;
+  let wallVerticalBarsCount = 0;
+  let wallHorizontalBarsCount = 0;
 
-  // Vertical bars in walls
-  const verticalBarsLongWalls =
-    Math.ceil(wallLength1 / Math.max(wallVerticalSpacing, 0.001)) + 1;
-  const verticalBarsShortWalls =
-    Math.ceil(wallLength2 / Math.max(wallVerticalSpacing, 0.001)) + 1;
-  const verticalBarsCount =
-    2 * (verticalBarsLongWalls + verticalBarsShortWalls);
-  const verticalBarLength = wallHeight + devLengthWallVert;
-  const verticalBarsLength = verticalBarsCount * verticalBarLength * count;
+  if (tankShape === "rectangular") {
+    const wallHeight = H - baseThickness;
+    const wallLength1 = L - 2 * wallThickness; // Internal dimensions for reinforcement
+    const wallLength2 = W - 2 * wallThickness;
 
-  // Horizontal bars in walls
-  const horizontalBarsPerWall =
-    Math.ceil(wallHeight / Math.max(wallHorizontalSpacing, 0.001)) + 1;
-  const horizontalBarsLongWalls = horizontalBarsPerWall * 2; // Two long walls
-  const horizontalBarsShortWalls = horizontalBarsPerWall * 2; // Two short walls
-  const horizontalBarLengthLong = wallLength1 + 2 * devLengthWallHoriz;
-  const horizontalBarLengthShort = wallLength2 + 2 * devLengthWallHoriz;
-  const horizontalBarsLength =
-    (horizontalBarsLongWalls * horizontalBarLengthLong +
-      horizontalBarsShortWalls * horizontalBarLengthShort) *
-    count;
-  const horizontalBarsCount =
-    horizontalBarsLongWalls + horizontalBarsShortWalls;
+    // Vertical bars in walls (both long and short walls)
+    const verticalBarsLongWalls =
+      Math.ceil(wallLength1 / Math.max(wallVerticalSpacing, 0.001)) + 1;
+    const verticalBarsShortWalls =
+      Math.ceil(wallLength2 / Math.max(wallVerticalSpacing, 0.001)) + 1;
+    wallVerticalBarsCount =
+      2 * (verticalBarsLongWalls + verticalBarsShortWalls);
+    const verticalBarLength = wallHeight + 2 * devLengthWallVert; // Development at top and bottom
+    wallVerticalBarsLength = wallVerticalBarsCount * verticalBarLength * count;
+
+    // Horizontal bars in walls
+    const horizontalBarsPerWall =
+      Math.ceil(wallHeight / Math.max(wallHorizontalSpacing, 0.001)) + 1;
+    const horizontalBarsLongWalls = horizontalBarsPerWall * 2;
+    const horizontalBarsShortWalls = horizontalBarsPerWall * 2;
+    wallHorizontalBarsCount =
+      horizontalBarsLongWalls + horizontalBarsShortWalls;
+
+    const horizontalBarLengthLong = wallLength1 + 2 * devLengthWallHoriz;
+    const horizontalBarLengthShort = wallLength2 + 2 * devLengthWallHoriz;
+    wallHorizontalBarsLength =
+      (horizontalBarsLongWalls * horizontalBarLengthLong +
+        horizontalBarsShortWalls * horizontalBarLengthShort) *
+      count;
+  } else {
+    // Circular tank calculation
+    const circumference = Math.PI * L; // Using length as diameter
+    const wallHeight = H - baseThickness;
+
+    // Vertical bars (evenly spaced around circumference)
+    wallVerticalBarsCount = Math.ceil(
+      circumference / Math.max(wallVerticalSpacing, 0.001)
+    );
+    const verticalBarLength = wallHeight + 2 * devLengthWallVert;
+    wallVerticalBarsLength = wallVerticalBarsCount * verticalBarLength * count;
+
+    // Horizontal bars (hoops)
+    const horizontalBarsCount =
+      Math.ceil(wallHeight / Math.max(wallHorizontalSpacing, 0.001)) + 1;
+    wallHorizontalBarsCount = horizontalBarsCount;
+    const horizontalBarLength = circumference + 2 * devLengthWallHoriz; // Lap length
+    wallHorizontalBarsLength =
+      horizontalBarsCount * horizontalBarLength * count;
+  }
 
   // BASE REINFORCEMENT
   const baseMainBarsCount = Math.ceil(W / Math.max(baseMainSpacing, 0.001)) + 1;
@@ -1077,7 +1592,7 @@ function calculateTankReinforcement(
   const baseDistributionBarsLength =
     baseDistributionBarsCount * baseDistributionBarLength * count;
 
-  // COVER REINFORCEMENT (if included)
+  // COVER REINFORCEMENT
   let coverMainBarsLength = 0;
   let coverDistributionBarsLength = 0;
   let coverMainBarsCount = 0;
@@ -1095,20 +1610,40 @@ function calculateTankReinforcement(
   }
 
   const totalBars =
-    (verticalBarsCount +
-      horizontalBarsCount +
+    (wallVerticalBarsCount +
+      wallHorizontalBarsCount +
       baseMainBarsCount +
       baseDistributionBarsCount +
       coverMainBarsCount +
       coverDistributionBarsCount) *
     count;
 
+  // Calculate weights using correct bar sizes
+  const getWeight = (length: number, size: RebarSize) =>
+    length * (REBAR_PROPERTIES[size]?.weightKgPerM || 0.888);
+
+  const weightBreakdown = {
+    wallsVertical: getWeight(wallVerticalBarsLength, wallVerticalBarSize),
+    wallsHorizontal: getWeight(wallHorizontalBarsLength, wallHorizontalBarSize),
+    baseMain: getWeight(baseMainBarsLength, baseMainBarSize),
+    baseDistribution: getWeight(
+      baseDistributionBarsLength,
+      baseDistributionBarSize
+    ),
+    coverMain: includeCover
+      ? getWeight(coverMainBarsLength, coverMainBarSize)
+      : 0,
+    coverDistribution: includeCover
+      ? getWeight(coverDistributionBarsLength, coverDistributionBarSize)
+      : 0,
+  };
+
   return {
     walls: {
-      verticalBarsLength,
-      horizontalBarsLength,
-      verticalBarsCount,
-      horizontalBarsCount,
+      verticalBarsLength: wallVerticalBarsLength,
+      horizontalBarsLength: wallHorizontalBarsLength,
+      verticalBarsCount: wallVerticalBarsCount,
+      horizontalBarsCount: wallHorizontalBarsCount,
     },
     base: {
       mainBarsLength: baseMainBarsLength,
@@ -1125,6 +1660,7 @@ function calculateTankReinforcement(
         }
       : undefined,
     totalBars,
+    weightBreakdown,
   };
 }
 
@@ -1636,6 +2172,7 @@ export function calculateRebar(
   }
 ): CalcResult {
   const { reinforcementType = "individual_bars", meshGrade = "A142" } = input;
+  let retainingWallReinforcement;
 
   // If it's mesh reinforcement, calculate mesh instead of individual bars
   if (
@@ -1754,6 +2291,82 @@ export function calculateRebar(
       (mainBarsCountResult + distributionBarsCountResult) * layers * count;
   }
 
+  if (element === "retaining-wall" && L > 0 && H > 0 && W > 0) {
+    retainingWallReinforcement = calculateRetainingWallReinforcement(
+      input,
+      settings,
+      cover
+    );
+
+    // Use the pre-calculated weight breakdown
+    const {
+      stemVertical,
+      stemHorizontal,
+      baseMain,
+      baseDistribution,
+      heelMain,
+      heelDistribution,
+      toeMain,
+      toeDistribution,
+    } = retainingWallReinforcement.weightBreakdown;
+
+    totalWeightKgRaw =
+      stemVertical +
+      stemHorizontal +
+      baseMain +
+      baseDistribution +
+      heelMain +
+      heelDistribution +
+      toeMain +
+      toeDistribution;
+
+    // Set lengths and counts from the retaining wall reinforcement calculation
+    mainBarsLength =
+      retainingWallReinforcement.stem.verticalBarsLength +
+      retainingWallReinforcement.base.mainBarsLength +
+      (retainingWallReinforcement.heel?.mainBarsLength || 0) +
+      (retainingWallReinforcement.toe?.mainBarsLength || 0);
+
+    distributionBarsLength =
+      retainingWallReinforcement.stem.horizontalBarsLength +
+      retainingWallReinforcement.base.distributionBarsLength +
+      (retainingWallReinforcement.heel?.distributionBarsLength || 0) +
+      (retainingWallReinforcement.toe?.distributionBarsLength || 0);
+
+    mainBarsCountResult =
+      retainingWallReinforcement.stem.verticalBarsCount +
+      retainingWallReinforcement.base.mainBarsCount +
+      (retainingWallReinforcement.heel?.mainBarsCount || 0) +
+      (retainingWallReinforcement.toe?.mainBarsCount || 0);
+
+    distributionBarsCountResult =
+      retainingWallReinforcement.stem.horizontalBarsCount +
+      retainingWallReinforcement.base.distributionBarsCount +
+      (retainingWallReinforcement.heel?.distributionBarsCount || 0) +
+      (retainingWallReinforcement.toe?.distributionBarsCount || 0);
+
+    totalBars = retainingWallReinforcement.totalBars;
+
+    // Update weight breakdown with correct values
+    weightBreakdownKg = {
+      mainBars: Math.round(stemVertical + baseMain + heelMain + toeMain),
+      distributionBars: Math.round(
+        stemHorizontal + baseDistribution + heelDistribution + toeDistribution
+      ),
+      stirrups: 0,
+      ties: 0,
+      // Retaining wall specific weight breakdown
+      stemVerticalBars: Math.round(stemVertical),
+      stemHorizontalBars: Math.round(stemHorizontal),
+      baseMainBars: Math.round(baseMain),
+      baseDistributionBars: Math.round(baseDistribution),
+      heelMainBars: Math.round(heelMain),
+      heelDistributionBars: Math.round(heelDistribution),
+      toeMainBars: Math.round(toeMain),
+      toeDistributionBars: Math.round(toeDistribution),
+    };
+  }
+
   if (element === "tank" && L > 0 && W > 0 && D > 0) {
     const tankReinforcement = calculateTankReinforcement(
       input,
@@ -1761,55 +2374,25 @@ export function calculateRebar(
       cover
     );
 
-    // Use appropriate bar sizes for different parts
-    const wallVerticalBarSize = input.wallVerticalBarSize || "Y12";
-    const wallHorizontalBarSize = input.wallHorizontalBarSize || "Y10";
-    const baseMainBarSize = input.baseMainBarSize || "Y12";
-    const baseDistributionBarSize = input.baseDistributionBarSize || "Y10";
-    const coverMainBarSize = input.coverMainBarSize || "Y10";
-    const coverDistributionBarSize = input.coverDistributionBarSize || "Y8";
+    // Use the pre-calculated weight breakdown
+    const {
+      wallsVertical,
+      wallsHorizontal,
+      baseMain,
+      baseDistribution,
+      coverMain,
+      coverDistribution,
+    } = tankReinforcement.weightBreakdown;
 
-    // Calculate weights for different components
-    const wallsVerticalWeight = getWeight(
-      tankReinforcement.walls.verticalBarsLength,
-      wallVerticalBarSize
-    );
-    const wallsHorizontalWeight = getWeight(
-      tankReinforcement.walls.horizontalBarsLength,
-      wallHorizontalBarSize
-    );
-    const baseMainWeight = getWeight(
-      tankReinforcement.base.mainBarsLength,
-      baseMainBarSize
-    );
-    const baseDistributionWeight = getWeight(
-      tankReinforcement.base.distributionBarsLength,
-      baseDistributionBarSize
-    );
-    let coverMainWeight = 0;
-    let coverDistributionWeight = 0;
-
-    if (tankReinforcement.cover) {
-      coverMainWeight = getWeight(
-        tankReinforcement.cover.mainBarsLength,
-        coverMainBarSize
-      );
-      coverDistributionWeight = getWeight(
-        tankReinforcement.cover.distributionBarsLength,
-        coverDistributionBarSize
-      );
-    }
-
-    // Calculate total weight for tank
     totalWeightKgRaw =
-      wallsVerticalWeight +
-      wallsHorizontalWeight +
-      baseMainWeight +
-      baseDistributionWeight +
-      coverMainWeight +
-      coverDistributionWeight;
+      wallsVertical +
+      wallsHorizontal +
+      baseMain +
+      baseDistribution +
+      coverMain +
+      coverDistribution;
 
-    // Set main bars length and counts for bar schedule
+    // Set lengths and counts from the tank reinforcement calculation
     mainBarsLength =
       tankReinforcement.walls.verticalBarsLength +
       tankReinforcement.base.mainBarsLength +
@@ -1832,25 +2415,24 @@ export function calculateRebar(
 
     totalBars = tankReinforcement.totalBars;
 
-    // Update weight breakdown
+    // Update weight breakdown with correct values
     weightBreakdownKg = {
-      mainBars: Math.round(
-        wallsVerticalWeight + baseMainWeight + coverMainWeight
-      ),
+      mainBars: Math.round(wallsVertical + baseMain + coverMain),
       distributionBars: Math.round(
-        wallsHorizontalWeight + baseDistributionWeight + coverDistributionWeight
+        wallsHorizontal + baseDistribution + coverDistribution
       ),
       stirrups: 0,
       ties: 0,
       // Tank specific weight breakdown
-      wallVerticalBars: Math.round(wallsVerticalWeight),
-      wallHorizontalBars: Math.round(wallsHorizontalWeight),
-      baseMainBars: Math.round(baseMainWeight),
-      baseDistributionBars: Math.round(baseDistributionWeight),
-      coverMainBars: Math.round(coverMainWeight),
-      coverDistributionBars: Math.round(coverDistributionWeight),
+      wallVerticalBars: Math.round(wallsVertical),
+      wallHorizontalBars: Math.round(wallsHorizontal),
+      baseMainBars: Math.round(baseMain),
+      baseDistributionBars: Math.round(baseDistribution),
+      coverMainBars: Math.round(coverMain),
+      coverDistributionBars: Math.round(coverDistribution),
     };
   }
+
   if (element === "beam" && L > 0 && W > 0 && D > 0) {
     const crossSection = W * D;
     let mainCalc;
@@ -2011,8 +2593,6 @@ export function calculateRebar(
   );
   const stirrupsWeight = getWeight(stirrupsLength, stirrupSize);
   const tiesWeight = getWeight(tiesLength, tieSize);
-  totalWeightKgRaw =
-    mainBarsWeight + distributionBarsWeight + stirrupsWeight + tiesWeight;
 
   const requiredLengths: number[] = [];
   if (mainBarsLength > 0)
@@ -2058,7 +2638,7 @@ export function calculateRebar(
       : mainBarsWeight + distributionBarsWeight + stirrupsWeight + tiesWeight;
 
   const totalWeightKg = Math.round(
-    withWaste(finalTotalWeightKgRaw, wasteCalculation.optimizedWastePercentage)
+    withWaste(finalTotalWeightKgRaw, settings.wastagePercent)
   );
   const bindingWireWeightKg = Math.ceil(
     totalWeightKg * (settings.bindingWirePercent / 100)
@@ -2235,6 +2815,42 @@ export function calculateRebar(
       mainBarsCount: mainBarsCountResult,
       distributionBarsCount: distributionBarsCountResult,
       stirrupsCount,
+      stemVerticalBarsLength: Math.round(
+        retainingWallReinforcement?.stem.verticalBarsLength
+      ),
+      stemHorizontalBarsLength: Math.round(
+        retainingWallReinforcement?.stem.horizontalBarsLength
+      ),
+      baseMainBarsLength: Math.round(
+        retainingWallReinforcement?.base.mainBarsLength
+      ),
+      baseDistributionBarsLength: Math.round(
+        retainingWallReinforcement?.base.distributionBarsLength
+      ),
+      heelMainBarsLength: Math.round(
+        retainingWallReinforcement?.heel?.mainBarsLength || 0
+      ),
+      heelDistributionBarsLength: Math.round(
+        retainingWallReinforcement?.heel?.distributionBarsLength || 0
+      ),
+      toeMainBarsLength: Math.round(
+        retainingWallReinforcement?.toe?.mainBarsLength || 0
+      ),
+      toeDistributionBarsLength: Math.round(
+        retainingWallReinforcement?.toe?.distributionBarsLength || 0
+      ),
+      stemVerticalBarsCount: retainingWallReinforcement?.stem.verticalBarsCount,
+      stemHorizontalBarsCount:
+        retainingWallReinforcement?.stem.horizontalBarsCount,
+      baseMainBarsCount: retainingWallReinforcement?.base.mainBarsCount,
+      baseDistributionBarsCount:
+        retainingWallReinforcement?.base.distributionBarsCount,
+      heelMainBarsCount: retainingWallReinforcement?.heel?.mainBarsCount || 0,
+      heelDistributionBarsCount:
+        retainingWallReinforcement?.heel?.distributionBarsCount || 0,
+      toeMainBarsCount: retainingWallReinforcement?.toe?.mainBarsCount || 0,
+      toeDistributionBarsCount:
+        retainingWallReinforcement?.toe?.distributionBarsCount || 0,
       tiesCount,
       ...(input.element === "tank" && {
         wallVerticalBarsLength: Math.round(
@@ -2340,7 +2956,23 @@ export const defaultRebarQSSettings: RebarQSSettings = {
   minTankWallBars: 4,
   minTankBaseBars: 4,
   minTankCoverBars: 4,
+  retainingWallStemReinforcementRatio: 0.0025,
+  retainingWallBaseReinforcementRatio: 0.0018,
+  retainingWallHeelReinforcementRatio: 0.002,
+  retainingWallToeReinforcementRatio: 0.002,
+  minRetainingWallStemBars: 4,
+  minRetainingWallBaseBars: 4,
+  minRetainingWallHeelBars: 4,
+  minRetainingWallToeBars: 4,
   complianceLimits: {
+    minRetainingWallStemReinforcement: 0.002,
+    maxRetainingWallStemReinforcement: 0.04,
+    minRetainingWallBaseReinforcement: 0.0015,
+    maxRetainingWallBaseReinforcement: 0.04,
+    minRetainingWallHeelReinforcement: 0.0018,
+    maxRetainingWallHeelReinforcement: 0.04,
+    minRetainingWallToeReinforcement: 0.0018,
+    maxRetainingWallToeReinforcement: 0.04,
     minSlabReinforcement: 0.0024,
     maxSlabReinforcement: 0.04,
     minBeamReinforcement: 0.0013,

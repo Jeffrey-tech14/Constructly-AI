@@ -302,7 +302,7 @@ function RoomSection({
   roomBreakdown,
 }: RoomSectionProps) {
   return (
-    <Card className="border rounded-lg overflow-hidden">
+    <Card className="border  overflow-hidden">
       <div className="p-4 bg-gray-50 dark:bg-gray-800/20 border-b">
         <div className="flex items-center justify-between">
           <Input
@@ -319,7 +319,7 @@ function RoomSection({
         </div>
       </div>
 
-      <div className="p-4 space-y-4 rounded-lg">
+      <div className="p-4 space-y-4 ">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <Label>Length (m)</Label>

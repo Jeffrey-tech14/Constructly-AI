@@ -1,48 +1,11 @@
+import {
+  Door,
+  Window,
+  Room,
+  Wall,
+  deduplicateWallsFunction,
+} from "@/hooks/useMasonryCalculator";
 import React, { createContext, useContext, useState } from "react";
-export interface Door {
-  sizeType: string;
-  standardSize: string;
-  custom: {
-    height: string;
-    width: string;
-    price?: string;
-  };
-  type: string;
-  frame: {
-    type: string;
-    sizeType: string; // "standard" | "custom"
-    standardSize: string;
-
-    custom: {
-      height: string;
-      width: string;
-      price?: string;
-    };
-  };
-  count: number;
-}
-export interface Window {
-  sizeType: string;
-  standardSize: string;
-  custom: {
-    height: string;
-    width: string;
-    price?: string;
-  };
-  glass: string;
-  frame: {
-    type: string;
-    sizeType: string; // "standard" | "custom"
-    standardSize: string;
-
-    custom: {
-      height: string;
-      width: string;
-      price?: string;
-    };
-  };
-  count: number;
-}
 export interface EquipmentSection {
   equipmentData: {
     standardEquipment: EquipmentItem[];
@@ -85,8 +48,21 @@ export interface ExtractedPlan {
     plaster: string;
     doors: Door[];
     windows: Window[];
+    generatedWalls?: Wall[]; // Temporary walls before deduplication
+    wallRefs?: string[];
   }[];
 
+  walls?: Array<{
+    id: string;
+    start: [number, number];
+    end: [number, number];
+    thickness: string;
+    height: string;
+    blockType: string;
+    connectedRooms: string[]; // e.g. ["room1", "room2"]
+    material?: string;
+    area?: string;
+  }>;
   floors: number;
 
   foundationDetails?: {
@@ -307,22 +283,130 @@ export interface ExtractedPlan {
   file_name?: string;
   uploaded_at?: string;
   houseType?: string;
+  projectType?: string;
+  projectName?: string;
+  projectLocation?: string;
 }
 interface PlanContextType {
   extractedPlan: ExtractedPlan | null;
   setExtractedPlan: (plan: ExtractedPlan) => void;
+  deduplicateWalls: (plan: ExtractedPlan) => ExtractedPlan;
 }
+
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
-export const PlanProvider: React.FC<{
-  children: React.ReactNode;
-}> = ({ children }) => {
+
+export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [extractedPlan, setExtractedPlan] = useState<ExtractedPlan | null>(
     null
   );
+
+  const deduplicateWalls = (plan: ExtractedPlan): ExtractedPlan => {
+    if (!plan.rooms || plan.rooms.length === 0) return plan;
+
+    // Generate walls for each room if they don't exist
+    const roomsWithGeneratedWalls = plan.rooms.map((room) => {
+      if (!room.generatedWalls) {
+        // Generate walls based on room dimensions
+        room.generatedWalls = generateWallsFromRoom(room);
+      }
+      return room;
+    });
+
+    const { rooms, walls } = deduplicateWallsFunction(roomsWithGeneratedWalls);
+
+    return {
+      ...plan,
+      rooms,
+      masonry: walls.map((wall) => ({
+        id: wall.id,
+        type: "wall",
+        blockType: wall.blockType,
+        length: Math.sqrt(
+          Math.pow(wall.end[0] - wall.start[0], 2) +
+            Math.pow(wall.end[1] - wall.start[1], 2)
+        ).toFixed(2),
+        height: wall.height,
+        thickness: wall.thickness,
+        area: wall.area || calculateWallArea(wall).toFixed(2),
+      })),
+    };
+  };
+
+  // Helper function to generate walls from room dimensions
+  const generateWallsFromRoom = (room: Room): Wall[] => {
+    const length = parseFloat(room.length) || 0;
+    const width = parseFloat(room.width) || 0;
+    const height = parseFloat(room.height) || 0;
+
+    const walls: Wall[] = [
+      {
+        id: `wall_${room.room_name}_1`,
+        start: [0, 0],
+        end: [length, 0],
+        thickness: room.thickness,
+        height: room.height,
+        blockType: room.blockType,
+        connectedRooms: [room.room_name],
+        area: (length * height).toFixed(2),
+      },
+      {
+        id: `wall_${room.room_name}_2`,
+        start: [length, 0],
+        end: [length, width],
+        thickness: room.thickness,
+        height: room.height,
+        blockType: room.blockType,
+        connectedRooms: [room.room_name],
+        area: (width * height).toFixed(2),
+      },
+      {
+        id: `wall_${room.room_name}_3`,
+        start: [length, width],
+        end: [0, width],
+        thickness: room.thickness,
+        height: room.height,
+        blockType: room.blockType,
+        connectedRooms: [room.room_name],
+        area: (length * height).toFixed(2),
+      },
+      {
+        id: `wall_${room.room_name}_4`,
+        start: [0, width],
+        end: [0, 0],
+        thickness: room.thickness,
+        height: room.height,
+        blockType: room.blockType,
+        connectedRooms: [room.room_name],
+        area: (width * height).toFixed(2),
+      },
+    ];
+
+    return walls;
+  };
+
+  const calculateWallArea = (wall: Wall): number => {
+    const length = Math.sqrt(
+      Math.pow(wall.end[0] - wall.start[0], 2) +
+        Math.pow(wall.end[1] - wall.start[1], 2)
+    );
+    const height = parseFloat(wall.height) || 0;
+    return length * height;
+  };
+
+  const contextValue: PlanContextType = {
+    extractedPlan,
+    setExtractedPlan: (plan: ExtractedPlan) => {
+      // Auto-deduplicate walls when setting a new plan
+      const planWithDeduplicatedWalls = deduplicateWalls(plan);
+      setExtractedPlan(planWithDeduplicatedWalls);
+    },
+    deduplicateWalls,
+  };
+
   return (
-    <PlanContext.Provider value={{ extractedPlan, setExtractedPlan }}>
-      {children}
-    </PlanContext.Provider>
+    <PlanContext.Provider value={contextValue}>{children}</PlanContext.Provider>
   );
 };
 export const usePlan = () => {

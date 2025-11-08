@@ -19,6 +19,7 @@ import {
   STANDARD_MESH_SHEETS,
   FootingType,
   TankType,
+  RetainingWallType,
 } from "@/hooks/useRebarCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,7 +77,7 @@ const makeDefaultRow = (): RebarRow => ({
   distributionBarSize: "Y12",
   stirrupSize: "Y8",
   tieSize: "Y8",
-  category: "substructure", // Default to substructure for tanks
+  category: "substructure",
   number: "1",
   // Mesh defaults
   reinforcementType: "individual_bars",
@@ -109,6 +110,14 @@ const makeDefaultRow = (): RebarRow => ({
   coverDistributionBarSize: "Y8",
   coverMainSpacing: "200",
   coverDistributionSpacing: "250",
+  // Retaining wall specific defaults
+  retainingWallType: "cantilever",
+  heelLength: "0.5",
+  toeLength: "0.5",
+  stemVerticalBarSize: "Y12",
+  stemHorizontalBarSize: "Y10",
+  stemVerticalSpacing: "150",
+  stemHorizontalSpacing: "200",
 });
 
 function validateRow(row: RebarRow): string[] {
@@ -191,6 +200,26 @@ function validateRow(row: RebarRow): string[] {
         if (!isPosInt(row.coverDistributionSpacing))
           errs.push("Cover distribution spacing must be positive (mm)");
       }
+    }
+    // In validateRow function, add retaining wall validation:
+    if (row.element === "retaining-wall") {
+      if (!row.depth || parseFloat(row.depth) <= 0)
+        errs.push("Wall height must be > 0");
+      if (!row.width || parseFloat(row.width) <= 0)
+        errs.push("Base width must be > 0");
+      if (!row.wallThickness || parseFloat(row.wallThickness) <= 0)
+        errs.push("Stem thickness must be > 0");
+      if (!row.baseThickness || parseFloat(row.baseThickness) <= 0)
+        errs.push("Base thickness must be > 0");
+
+      if (!isPosInt(row.stemVerticalSpacing))
+        errs.push("Stem vertical spacing must be positive (mm)");
+      if (!isPosInt(row.stemHorizontalSpacing))
+        errs.push("Stem horizontal spacing must be positive (mm)");
+      if (!isPosInt(row.baseMainSpacing))
+        errs.push("Base main spacing must be positive (mm)");
+      if (!isPosInt(row.baseDistributionSpacing))
+        errs.push("Base distribution spacing must be positive (mm)");
     }
   } else {
     // Mesh validation - only allow for slabs and foundations
@@ -399,6 +428,7 @@ export default function RebarCalculatorForm({
       foundation: "bg-orange-100 text-orange-800 border-orange-200",
       "strip-footing": "bg-red-100 text-red-800 border-red-200",
       tank: "bg-cyan-100 text-cyan-800 border-cyan-200",
+      "retaining-wall": "bg-amber-100 text-amber-800 border-amber-200",
     };
     return colors[element];
   };
@@ -889,6 +919,9 @@ export default function RebarCalculatorForm({
                           Strip Footing
                         </SelectItem>
                         <SelectItem value="tank">Tank</SelectItem>
+                        <SelectItem value="retaining-wall">
+                          Retaining Wall
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1286,76 +1319,6 @@ export default function RebarCalculatorForm({
                           </div>
                         </div>
 
-                        {/* Tank Dimensions */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Length (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0.1"
-                              step="0.1"
-                              value={row.length}
-                              onChange={(e) =>
-                                updateRow(row.id, "length", e.target.value)
-                              }
-                              placeholder="e.g., 3.0"
-                              className="border-blue-300"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Width (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0.1"
-                              step="0.1"
-                              value={row.width}
-                              onChange={(e) =>
-                                updateRow(row.id, "width", e.target.value)
-                              }
-                              placeholder="e.g., 2.0"
-                              className="border-blue-300"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Height (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0.1"
-                              step="0.1"
-                              value={row.depth}
-                              onChange={(e) =>
-                                updateRow(row.id, "depth", e.target.value)
-                              }
-                              placeholder="e.g., 1.8"
-                              className="border-blue-300"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Quantity
-                            </Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              value={row.number}
-                              onChange={(e) =>
-                                updateRow(row.id, "number", e.target.value)
-                              }
-                              placeholder="1"
-                              className="border-blue-300"
-                            />
-                          </div>
-                        </div>
-
                         {/* Tank Thickness Settings */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-teal-50 dark:bg-teal-900 rounded-lg">
                           <div className="space-y-2">
@@ -1719,6 +1682,270 @@ export default function RebarCalculatorForm({
                       </div>
                     )}
 
+                    {row.element === "retaining-wall" && (
+                      <div className="space-y-4">
+                        {/* Wall Type */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-orange-50 dark:bg-orange-900 rounded-lg">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
+                              Wall Type
+                            </Label>
+                            <Select
+                              value={row.retainingWallType}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "retainingWallType",
+                                  v as RetainingWallType
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-orange-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cantilever">
+                                  Cantilever
+                                </SelectItem>
+                                <SelectItem value="gravity">Gravity</SelectItem>
+                                <SelectItem value="counterfort">
+                                  Counterfort
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
+                              Heel Length (m)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={row.heelLength}
+                              onChange={(e) =>
+                                updateRow(row.id, "heelLength", e.target.value)
+                              }
+                              className="border-orange-300"
+                              placeholder="0.5"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
+                              Toe Length (m)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              value={row.toeLength}
+                              onChange={(e) =>
+                                updateRow(row.id, "toeLength", e.target.value)
+                              }
+                              className="border-orange-300"
+                              placeholder="0.5"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Stem Reinforcement */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                              Stem Vertical Bars
+                            </Label>
+                            <Select
+                              value={row.stemVerticalBarSize}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "stemVerticalBarSize",
+                                  v as RebarSize
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-blue-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {sizeOptions.map((size) => (
+                                  <SelectItem key={size} value={size}>
+                                    {size}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                              Stem Horizontal Bars
+                            </Label>
+                            <Select
+                              value={row.stemHorizontalBarSize}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "stemHorizontalBarSize",
+                                  v as RebarSize
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-blue-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {sizeOptions.map((size) => (
+                                  <SelectItem key={size} value={size}>
+                                    {size}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                              Vertical Spacing (mm)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="50"
+                              value={row.stemVerticalSpacing}
+                              onChange={(e) =>
+                                updateRow(
+                                  row.id,
+                                  "stemVerticalSpacing",
+                                  e.target.value
+                                )
+                              }
+                              className="border-blue-300"
+                              placeholder="150"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                              Horizontal Spacing (mm)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="50"
+                              value={row.stemHorizontalSpacing}
+                              onChange={(e) =>
+                                updateRow(
+                                  row.id,
+                                  "stemHorizontalSpacing",
+                                  e.target.value
+                                )
+                              }
+                              className="border-blue-300"
+                              placeholder="200"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Base Reinforcement */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-green-50 dark:bg-green-900 rounded-lg">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                              Base Main Bars
+                            </Label>
+                            <Select
+                              value={row.baseMainBarSize}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "baseMainBarSize",
+                                  v as RebarSize
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-green-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {sizeOptions.map((size) => (
+                                  <SelectItem key={size} value={size}>
+                                    {size}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                              Base Distribution Bars
+                            </Label>
+                            <Select
+                              value={row.baseDistributionBarSize}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "baseDistributionBarSize",
+                                  v as RebarSize
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-green-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {sizeOptions.map((size) => (
+                                  <SelectItem key={size} value={size}>
+                                    {size}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                              Main Spacing (mm)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="50"
+                              value={row.baseMainSpacing}
+                              onChange={(e) =>
+                                updateRow(
+                                  row.id,
+                                  "baseMainSpacing",
+                                  e.target.value
+                                )
+                              }
+                              className="border-green-300"
+                              placeholder="150"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                              Distribution Spacing (mm)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="50"
+                              value={row.baseDistributionSpacing}
+                              onChange={(e) =>
+                                updateRow(
+                                  row.id,
+                                  "baseDistributionSpacing",
+                                  e.target.value
+                                )
+                              }
+                              className="border-green-300"
+                              placeholder="200"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {row.element === "beam" && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
                         <div className="space-y-2">
@@ -1947,27 +2174,32 @@ export default function RebarCalculatorForm({
                                 </div>
                               )}
                               {result.weightBreakdownKg.distributionBars !==
-                                undefined && (
-                                <div>
-                                  Distribution:{" "}
-                                  {result.weightBreakdownKg.distributionBars.toFixed(
-                                    1
-                                  )}
-                                </div>
-                              )}
+                                undefined ||
+                                (0 && (
+                                  <div>
+                                    Distribution:{" "}
+                                    {result.weightBreakdownKg.distributionBars.toFixed(
+                                      1
+                                    )}
+                                  </div>
+                                ))}
                               {result.weightBreakdownKg.stirrups !==
-                                undefined && (
-                                <div>
-                                  Stirrups:{" "}
-                                  {result.weightBreakdownKg.stirrups.toFixed(1)}
-                                </div>
-                              )}
-                              {result.weightBreakdownKg.ties !== undefined && (
-                                <div>
-                                  Ties:{" "}
-                                  {result.weightBreakdownKg.ties.toFixed(1)}
-                                </div>
-                              )}
+                                undefined ||
+                                (0 && (
+                                  <div>
+                                    Stirrups:{" "}
+                                    {result.weightBreakdownKg.stirrups.toFixed(
+                                      1
+                                    )}
+                                  </div>
+                                ))}
+                              {result.weightBreakdownKg.ties !== undefined ||
+                                (0 && (
+                                  <div>
+                                    Ties:{" "}
+                                    {result.weightBreakdownKg.ties.toFixed(1)}
+                                  </div>
+                                ))}
                               <div>
                                 Binding Wire:{" "}
                                 {result.bindingWireWeightKg.toFixed(1)}
@@ -2004,8 +2236,7 @@ export default function RebarCalculatorForm({
                             Tank Reinforcement Breakdown:
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                            {result.weightBreakdownKg.wallVerticalBars !==
-                              undefined && (
+                            {result.weightBreakdownKg.wallVerticalBars > 0 && (
                               <div>
                                 Wall Vertical:{" "}
                                 {result.weightBreakdownKg.wallVerticalBars.toFixed(
@@ -2014,8 +2245,8 @@ export default function RebarCalculatorForm({
                                 kg
                               </div>
                             )}
-                            {result.weightBreakdownKg.wallHorizontalBars !==
-                              undefined && (
+                            {result.weightBreakdownKg.wallHorizontalBars >
+                              0 && (
                               <div>
                                 Wall Horizontal:{" "}
                                 {result.weightBreakdownKg.wallHorizontalBars.toFixed(
@@ -2024,8 +2255,7 @@ export default function RebarCalculatorForm({
                                 kg
                               </div>
                             )}
-                            {result.weightBreakdownKg.baseMainBars !==
-                              undefined && (
+                            {result.weightBreakdownKg.baseMainBars > 0 && (
                               <div>
                                 Base Main:{" "}
                                 {result.weightBreakdownKg.baseMainBars.toFixed(
@@ -2034,8 +2264,8 @@ export default function RebarCalculatorForm({
                                 kg
                               </div>
                             )}
-                            {result.weightBreakdownKg.baseDistributionBars !==
-                              undefined && (
+                            {result.weightBreakdownKg.baseDistributionBars >
+                              0 && (
                               <div>
                                 Base Distribution:{" "}
                                 {result.weightBreakdownKg.baseDistributionBars.toFixed(
@@ -2044,8 +2274,7 @@ export default function RebarCalculatorForm({
                                 kg
                               </div>
                             )}
-                            {result.weightBreakdownKg.coverMainBars !==
-                              undefined && (
+                            {result.weightBreakdownKg.coverMainBars > 0 && (
                               <div>
                                 Cover Main:{" "}
                                 {result.weightBreakdownKg.coverMainBars.toFixed(
@@ -2054,11 +2283,96 @@ export default function RebarCalculatorForm({
                                 kg
                               </div>
                             )}
-                            {result.weightBreakdownKg.coverDistributionBars !==
-                              undefined && (
+                            {result.weightBreakdownKg.coverDistributionBars >
+                              0 && (
                               <div>
                                 Cover Distribution:{" "}
                                 {result.weightBreakdownKg.coverDistributionBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {result && result.element === "retaining-wall" && (
+                        <div className="mt-3 pt-3 border-t border-amber-200">
+                          <div className="text-xs text-amber-700 dark:text-amber-50 font-medium mb-2">
+                            Retaining Wall Reinforcement Breakdown:
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                            {result.weightBreakdownKg.stemVerticalBars > 0 && (
+                              <div>
+                                Stem Vertical:{" "}
+                                {result.weightBreakdownKg.stemVerticalBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.stemHorizontalBars >
+                              0 && (
+                              <div>
+                                Stem Horizontal:{" "}
+                                {result.weightBreakdownKg.stemHorizontalBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.baseMainBars > 0 && (
+                              <div>
+                                Base Main:{" "}
+                                {result.weightBreakdownKg.baseMainBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.baseDistributionBars >
+                              0 && (
+                              <div>
+                                Base Distribution:{" "}
+                                {result.weightBreakdownKg.baseDistributionBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.heelMainBars > 0 && (
+                              <div>
+                                Heel Main:{" "}
+                                {result.weightBreakdownKg.heelMainBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.heelDistributionBars >
+                              0 && (
+                              <div>
+                                Heel Distribution:{" "}
+                                {result.weightBreakdownKg.heelDistributionBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.toeMainBars > 0 && (
+                              <div>
+                                Toe Main:{" "}
+                                {result.weightBreakdownKg.toeMainBars.toFixed(
+                                  1
+                                )}{" "}
+                                kg
+                              </div>
+                            )}
+                            {result.weightBreakdownKg.toeDistributionBars >
+                              0 && (
+                              <div>
+                                Toe Distribution:{" "}
+                                {result.weightBreakdownKg.toeDistributionBars.toFixed(
                                   1
                                 )}{" "}
                                 kg

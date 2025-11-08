@@ -80,8 +80,6 @@ const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
 
     // Handle different possible response structures
     const responseText = extractResponseText(data);
-    console.log(quoteData);
-    console.log(responseText);
 
     if (!responseText) {
       throw new Error("No text content found in Gemini response");
@@ -154,8 +152,9 @@ STRICT REQUIREMENTS:
 - Follow Kenyan construction standards
 - Skip all preliminaries class data from the json provided
 - Make sure to use the correct units as they are in the data proided
-- Do not include services, transport costs or other prject costs
+- Do not include services, transport costs or other project costs
 - Do not include wastage percentages 
+- Use the prices in the material_prices column to get the rates for items where not included
 - If equipment is linked to a trade (e.g. “Mixer for concrete works”) → add it. Only skip general equipment (e.g. “Site generator”)
 - If items ARE NOT similar even by one attribute, do not merge them, keep them separate
 

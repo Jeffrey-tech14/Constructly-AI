@@ -394,7 +394,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         "sizeType": "standard/custom", 
         "standardSize": "1.2 × 1.2 m",
         "custom": {"height": "1.2", "width": "1.2", "price": ""},
-        "glass": "Clear",
+        "type": "Clear",
         "frame: {
             type: "Steel",
             sizeType: "standard", // "standard" | "custom"
@@ -422,7 +422,10 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     "projectType": "residential" | "commercial" | "industrial" | "institutional",
     "floors": number,
     "totalArea": number,
+    "houseType": string,
     "description": string
+    "projectName": string,
+    "projectLocation": string,
   
   "earthworks": [ {
       "id": "excavation-01",
@@ -522,6 +525,13 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       transverseBars?: string;
       topReinforcement?: string;
       bottomReinforcement?: string;
+      retainingWallType?: RetainingWallType;
+      heelLength?: string;
+      toeLength?: string;
+      stemVerticalBarSize?: RebarSize;
+      stemHorizontalBarSize?: RebarSize;
+      stemVerticalSpacing?: string;
+      stemHorizontalSpacing?: string;
     },
     {
       "id": "unique-id-6",
@@ -582,7 +592,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
           "name": "Excavator",
           "description": "Heavy-duty excavator for digging and earthmoving",
           "usage_unit": "day",
-          "rate_per_unit": 1,
           "usage_quantity": 1 // number of days, weeks, hours etc to be used,
           "category": "earthmoving"
         },
@@ -592,11 +601,8 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
           "equipment_type_id": "custom_001",
           "name": "Specialized Drilling Rig",
           "desc": "Custom drilling equipment for foundation work",
-          "usage_quantity": 1,
           "usage_unit": "week",
-          "rate_per_unit": 1,
           "usage_quantity": 1 // number of days, weeks, hours etc to be used,
-          "total_cost": 1
         },
       ],
     }

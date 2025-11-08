@@ -39,7 +39,7 @@ export interface EquipmentItem {
   name: string;
   total_cost: number;
   equipment_type_id: string;
-  rate_per_unit: number;
+  rate_per_unit?: number;
   usage_quantity: number;
   usage_unit: string;
 }
@@ -170,6 +170,10 @@ export interface QuoteCalculation {
   plumbing_systems: PlumbingSystem[];
   finishes: FinishElement[];
   roof_structures: RoofStructure[];
+  electrical_calculations: any[];
+  plumbing_calculations: any[];
+  finishes_calculations: any[];
+  roofing_calculations: any[];
   include_wastage: boolean;
   equipment: EquipmentItem[];
   services: AdditionalService[];
@@ -516,7 +520,6 @@ export const useQuoteCalculations = () => {
               subtotalBeforeExtras * (percentageSettings.overhead / 100)
             )
           : qsSettings?.overhead_fixed || 0;
-      console.log(qsSettings);
 
       // Calculate contingency based on mode
       const contingencyAmount =

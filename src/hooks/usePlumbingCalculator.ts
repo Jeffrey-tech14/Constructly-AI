@@ -154,7 +154,7 @@ export default function usePlumbingCalculator(
   plumbingSystems: PlumbingSystem[],
   materialPrices: any[],
   quote: any,
-  customRates?: Partial<PlumbingRates>
+  setQuoteData
 ) {
   const [calculations, setCalculations] = useState<PlumbingCalculation[]>([]);
   const [totals, setTotals] = useState<PlumbingTotals>({
@@ -197,7 +197,8 @@ export default function usePlumbingCalculator(
   // Apply wastage to quantity and round up
   const applyWastageToQuantity = useCallback(
     (quantity: number, wastagePercentage: number): number => {
-      const adjustedQuantity = quantity * (1 + wastagePercentage);
+      console.log(quantity);
+      const adjustedQuantity = Math.ceil(quantity * (1 + wastagePercentage));
       return Math.ceil(adjustedQuantity);
     },
     []
@@ -528,6 +529,15 @@ export default function usePlumbingCalculator(
 
     setTotals(newTotals);
   }, [plumbingSystems, calculatePlumbingSystem, getWastagePercentage]);
+
+  const combined = { ...totals, calculations };
+
+  useEffect(() => {
+    setQuoteData((prev: any) => ({
+      ...prev,
+      plumbing_calculations: combined,
+    }));
+  }, [combined]);
 
   useEffect(() => {
     if (plumbingSystems?.length > 0) calculateAll();

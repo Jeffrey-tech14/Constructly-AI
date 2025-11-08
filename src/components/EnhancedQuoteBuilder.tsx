@@ -223,8 +223,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { value: "Machakos", label: "Machakos" },
   ];
   const projects = [
-    { value: "construction", label: "Construction" },
-    { value: "renovation", label: "Renovation" },
+    { value: "residential", label: "Residential" },
+    { value: "commercial", label: "Commercial" },
+    { value: "industrial", label: "Industrial" },
+    { value: "institutional", label: "Institutional" },
   ];
   const [currentStep, setCurrentStep] = useState(1);
   const [calculation, setCalculation] = useState<CalculationResult | null>(
@@ -319,6 +321,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     masonry_materials: [],
     concrete_materials: [],
     rebar_calculations: [],
+    electrical_calculations: [],
+    plumbing_calculations: [],
+    finishes_calculations: [],
+    roofing_calculations: [],
     total_wall_area: 0,
     total_concrete_volume: 0,
     electrical_systems: [],
@@ -462,22 +468,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         ...prev,
         floors: extractedPlan.floors || prev.floors,
         house_type: extractedPlan.houseType || prev.house_type,
-        total_wall_area:
-          extractedPlan.masonry?.reduce(
-            (sum: number, item: any) => sum + (parseFloat(item.area) || 0),
-            0
-          ) || prev.total_wall_area,
-        total_concrete_volume:
-          extractedPlan.concreteStructures?.reduce(
-            (sum: number, item: any) =>
-              sum +
-              (parseFloat(item.volume) ||
-                parseFloat(item.length) *
-                  parseFloat(item.width) *
-                  parseFloat(item.height) ||
-                0),
-            0
-          ) || prev.total_concrete_volume,
+        project_type: extractedPlan.projectType || "",
+        location: extractedPlan.projectLocation || "",
+        title: extractedPlan.projectName || "",
 
         // Rooms mapping
         rooms:
@@ -558,7 +551,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               name: item.name || "Unnamed Equipment",
               description: item.description || "",
               usage_unit: item.usage_unit || "day",
-              rate_per_unit: item.rate_per_unit ?? 0,
               category: item.category || "other",
               total_cost: 0,
               equipment_type_id: item.id,
@@ -629,6 +621,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             coverDistributionBarSize: rebar.coverDistributionBarSize || "Y10",
             coverMainSpacing: rebar.coverMainSpacing || "150",
             coverDistributionSpacing: rebar.coverDistributionSpacing || "150",
+
+            retainingWallType: rebar.retainingWallType || "Y10",
+            heelLength: rebar.heelLength || "Y10",
+            toeLength: rebar.toeLength || "Y10",
+            stemVerticalBarSize: rebar.stemVerticalBarSize || "Y10",
+            stemHorizontalBarSize: rebar.stemVerticalBarSize || "Y10",
+            stemVerticalSpacing: rebar.stemVerticalSpacing || "Y10",
+            stemHorizontalSpacing: rebar.stemHorizontalSpacing || "Y10",
           })) || prev.rebar_rows,
 
         // Masonry
@@ -885,7 +885,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       ...prev,
       material_prices: materials,
     }));
-  }, []);
+  }, [materials]);
 
   const updatePercentageField = (
     field: keyof Percentage,
@@ -1002,6 +1002,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         equipment_costs: quoteData.equipment_costs,
         transport_costs: transportCost,
         additional_services_cost: quoteData.additional_services_cost,
+        electrical_calculations: quoteData.electrical_calculations,
+        roofing_calculations: quoteData.roofing_calculations,
+        plumbing_calculations: quoteData.plumbing_calculations,
+        finishes_calculations: quoteData.finishes_calculations,
         show_profit_to_client: quoteData.show_profit_to_client,
         house_type: quoteData.house_type,
         preliminaries: preliminaries,
@@ -1062,6 +1066,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plumbing_systems: quoteData.plumbing_systems,
           finishes: quoteData.finishes,
           roof_structures: quoteData.roof_structures,
+          electrical_calculations: quoteData.electrical_calculations,
+          roofing_calculations: quoteData.roofing_calculations,
+          plumbing_calculations: quoteData.plumbing_calculations,
+          finishes_calculations: quoteData.finishes_calculations,
           additional_services_cost: Math.round(
             calculation.selected_services_cost
           ),
@@ -1113,6 +1121,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           transport_costs: calculation.transport_cost,
           boq_data: boqData,
           preliminaries: preliminaries,
+          electrical_calculations: quoteData.electrical_calculations,
+          roofing_calculations: quoteData.roofing_calculations,
+          plumbing_calculations: quoteData.plumbing_calculations,
+          finishes_calculations: quoteData.finishes_calculations,
           distance_km: calculation.distance_km,
           materials_cost: Math.round(calculation.materials_cost),
           concrete_rows: quoteData.concrete_rows,

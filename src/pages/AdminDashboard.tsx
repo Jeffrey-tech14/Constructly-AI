@@ -62,6 +62,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserProfile {
   id: string;
@@ -73,6 +74,7 @@ interface UserProfile {
   total_revenue: number;
   created_at: string;
   is_admin: boolean;
+  avatar_url: string;
 }
 
 interface DashboardStats {
@@ -181,7 +183,6 @@ const AdminDashboard = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "profiles" },
         (payload) => {
-          console.log("Realtime profiles update:", payload);
           fetchDashboardData();
         }
       )
@@ -193,7 +194,6 @@ const AdminDashboard = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "quotes" },
         (payload) => {
-          console.log("Realtime quotes update:", payload);
           fetchDashboardData();
         }
       )
@@ -205,7 +205,6 @@ const AdminDashboard = () => {
         "postgres_changes",
         { event: "*", schema: "public", table: "tiers" },
         (payload) => {
-          console.log("Realtime tiers update:", payload);
           fetchDashboardData();
         }
       )
@@ -231,7 +230,7 @@ const AdminDashboard = () => {
         prev.map((u) => (u.id === userId ? { ...u, tier: newTier } : u))
       );
       triggerRefresh();
-      window.location.reload();
+      fetchDashboardData();
       toast({
         title: "Success",
         description: "User tier updated successfully",
@@ -258,7 +257,7 @@ const AdminDashboard = () => {
         prev.map((u) => (u.id === userId ? { ...u, is_admin: !isAdmin } : u))
       );
       triggerRefresh();
-      window.location.reload();
+      fetchDashboardData();
       toast({
         title: "Success",
         description: `User ${!isAdmin ? "promoted to" : "removed from"} admin`,
@@ -543,9 +542,18 @@ const AdminDashboard = () => {
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                           {/* User Info Section */}
                           <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
-                            <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white/10 bg-primary/10">
+                            {/* <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white/10 bg-primary/10">
                               <Users className="w-4 h-4 md:w-5 md:h-5 text-primary dark:text-white" />
-                            </div>
+                            </div> */}
+
+                            <Avatar className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9  items-center">
+                              <AvatarImage
+                                src={user?.avatar_url || undefined}
+                              />
+                              <AvatarFallback className="text-2xl">
+                                <Users className="w-4 h-4 md:w-5 md:h-5 text-primary dark:text-white"></Users>
+                              </AvatarFallback>
+                            </Avatar>
 
                             <div className="min-w-0 space-y-1">
                               <div className="flex flex-wrap items-center gap-2">

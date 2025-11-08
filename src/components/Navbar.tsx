@@ -121,7 +121,7 @@ const Navbar = () => {
   };
   return (
     <>
-      <nav className="fixed sticky top-0 z-50 glass border-b border-primary/20 dark:border-slate-700/50 shadow-sm">
+      <nav className="fixed sticky top-0 z-50 glass border-b shadow-sm">
         <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-1">

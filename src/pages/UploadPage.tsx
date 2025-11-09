@@ -359,7 +359,7 @@ const UploadPlan = () => {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > 20 * 1024 * 1024) {
       setError({
         message: "File size must be less than 10MB",
         type: "upload",

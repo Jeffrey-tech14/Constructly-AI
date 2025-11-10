@@ -38,6 +38,10 @@ import {
   Building,
   Ruler,
   Target,
+  Link,
+  Share2,
+  Network,
+  ArrowRightLeft,
 } from "lucide-react";
 import { ExtractedPlan, usePlan } from "@/contexts/PlanContext";
 import { usePlanUpload } from "@/hooks/usePlanUpload";
@@ -62,6 +66,26 @@ export interface ParsedPlan {
   uploaded_at?: string;
   file_name?: string;
   note?: string;
+  // NEW: Added connectivity data
+  connectivity?: {
+    sharedWalls: Array<{
+      id: string;
+      room1Id: string;
+      room2Id: string;
+      wall1Id: string;
+      wall2Id: string;
+      sharedLength: number;
+      sharedArea: number;
+      openings: string[];
+    }>;
+    roomPositions: { [roomId: string]: { x: number; y: number } };
+    totalSharedArea: number;
+    efficiency: {
+      spaceUtilization: number;
+      wallEfficiency: number;
+      connectivityScore: number;
+    };
+  };
 }
 
 const PreviewModal = ({
@@ -122,6 +146,7 @@ const UploadPlan = () => {
   } | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [analysisTimeLeft, setAnalysisTimeLeft] = useState<number | null>(null);
+  const [showConnectivityPanel, setShowConnectivityPanel] = useState(true);
 
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -131,16 +156,7 @@ const UploadPlan = () => {
   const { toast } = useToast();
   const MAX_RETRIES = 3;
 
-  const { extractedPlan, deduplicateWalls, setExtractedPlan } = usePlan();
-
-  // Manually trigger deduplication if needed
-  const handleDeduplicateWalls = () => {
-    if (extractedPlan) {
-      const updatedPlan = deduplicateWalls(extractedPlan);
-      setEditablePlan(updatedPlan);
-      // updatedPlan now has deduplicated walls
-    }
-  };
+  const { extractedPlan, setExtractedPlan } = usePlan();
 
   useEffect(() => {
     if (quoteData?.plan_file_url) {
@@ -148,10 +164,6 @@ const UploadPlan = () => {
       setPreviewUrl(quoteData.plan_file_url);
     }
   }, [quoteData]);
-
-  useEffect(() => {
-    handleDeduplicateWalls();
-  }, [extractedPlan]);
 
   async function downloadFile(publicUrl: string, file_name: string) {
     try {
@@ -230,6 +242,7 @@ const UploadPlan = () => {
     setEditablePlan(null);
     setError(null);
     setRetryCount(0);
+    setShowConnectivityPanel(false);
   };
 
   const handleRetry = async () => {
@@ -361,7 +374,7 @@ const UploadPlan = () => {
 
     if (file.size > 20 * 1024 * 1024) {
       setError({
-        message: "File size must be less than 10MB",
+        message: "File size must be less than 20MB",
         type: "upload",
         retryable: true,
       });
@@ -378,12 +391,49 @@ const UploadPlan = () => {
       setCurrentStep("uploading");
       setCurrentStep("analyzing");
       const data = await analyzePlan(file, setError, setCurrentStep);
-      setEditablePlan({
+
+      // NEW: Process connectivity data if available
+      const processedPlan: ExtractedPlan = {
         ...data,
         file_url: fileUrl,
         file_name: file.name,
         uploaded_at: new Date().toISOString(),
-      });
+        // Add wall connectivity to rooms if available
+        rooms: data.rooms.map((room, index) => ({
+          ...room,
+          wallConnectivity: data.connectivity
+            ? {
+                roomId: `room_${index}`,
+                position: data.connectivity.roomPositions[`room_${index}`] || {
+                  x: 0,
+                  y: 0,
+                },
+                connectedRooms: data.connectivity.sharedWalls
+                  .filter(
+                    (wall) =>
+                      wall.room1Id === `room_${index}` ||
+                      wall.room2Id === `room_${index}`
+                  )
+                  .map((wall) =>
+                    wall.room1Id === `room_${index}`
+                      ? wall.room2Id
+                      : wall.room1Id
+                  ),
+                sharedArea: data.connectivity.sharedWalls
+                  .filter(
+                    (wall) =>
+                      wall.room1Id === `room_${index}` ||
+                      wall.room2Id === `room_${index}`
+                  )
+                  .reduce((sum, wall) => sum + wall.sharedArea, 0),
+                externalWallArea: 0, // Will be calculated based on wall types
+              }
+            : undefined,
+        })),
+        connectivity: data.connectivity,
+      };
+
+      setEditablePlan(processedPlan);
       setConfidence(Math.min(80 + Math.random() * 20, 100));
       setCurrentStep("complete");
       setRetryCount(0);
@@ -445,7 +495,7 @@ const UploadPlan = () => {
 
       toast({
         title: "Plan Saved",
-        description: `${finalPlan.rooms.length} rooms across ${finalPlan.floors} floor(s).`,
+        description: `${finalPlan.rooms.length} rooms across ${finalPlan.floors} floor(s) with wall connectivity analysis.`,
       });
 
       navigate("/quotes/new", { state: { quote: quoteData } });
@@ -488,6 +538,133 @@ const UploadPlan = () => {
       default:
         return "text-red-500 dark:text-red-200";
     }
+  };
+
+  // NEW: Get shared walls for a specific room
+  const getSharedWallsForRoom = (roomId: string) => {
+    if (!editablePlan?.connectivity?.sharedWalls) return [];
+    return editablePlan.connectivity.sharedWalls.filter(
+      (wall) => wall.room1Id === roomId || wall.room2Id === roomId
+    );
+  };
+
+  // NEW: Get room connections
+  const getRoomConnections = (roomId: string) => {
+    const room = editablePlan?.rooms.find(
+      (r) => r.wallConnectivity?.roomId === roomId
+    );
+    return room?.wallConnectivity?.connectedRooms || [];
+  };
+
+  // NEW: Render connectivity panel
+  const renderConnectivityPanel = () => {
+    if (!editablePlan?.connectivity) return null;
+
+    const efficiency = editablePlan.connectivity.efficiency;
+
+    return (
+      <Card className="border-l-4 border-l-blue-500">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center text-lg">
+            <Network className="w-5 h-5 mr-2 text-blue-500" />
+            Wall Connectivity Analysis
+          </CardTitle>
+          <CardDescription>
+            AI-detected room connections and shared walls
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Efficiency Metrics */}
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {Math.round(efficiency.spaceUtilization * 100)}%
+              </div>
+              <div className="text-xs text-gray-500">Space Utilization</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round(efficiency.wallEfficiency * 100)}%
+              </div>
+              <div className="text-xs text-gray-500">Wall Efficiency</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {Math.round(efficiency.connectivityScore * 100)}%
+              </div>
+              <div className="text-xs text-gray-500">Connectivity</div>
+            </div>
+          </div>
+
+          {/* Shared Walls List */}
+          <div className="pb-3">
+            <h4 className="font-semibold mb-2 flex items-center">
+              <Link className="w-4 h-4 mr-2" />
+              Shared Walls ({editablePlan.connectivity.sharedWalls.length})
+            </h4>
+            <div className="space-y-2  overflow-y-auto">
+              {editablePlan.connectivity.sharedWalls.map((wall, index) => {
+                const room1 = editablePlan.rooms.find(
+                  (r) => r.wallConnectivity?.roomId === wall.room1Id
+                );
+                const room2 = editablePlan.rooms.find(
+                  (r) => r.wallConnectivity?.roomId === wall.room2Id
+                );
+
+                return (
+                  <div
+                    key={wall.id}
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
+                  >
+                    <div className="flex items-center">
+                      <ArrowRightLeft className="w-3 h-3 mr-2 text-blue-500" />
+                      {room1?.room_name || wall.room1Id} ↔{" "}
+                      {room2?.room_name || wall.room2Id}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {wall.sharedLength.toFixed(1)}m (
+                      {wall.sharedArea.toFixed(1)}m²)
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Room Connections */}
+          <div className="mt-5">
+            <h4 className="font-semibold mb-2">Room Connections</h4>
+            <div className="space-y-2">
+              {editablePlan.rooms.map((room, index) => {
+                const connections = getRoomConnections(`room_${index}`);
+                if (connections.length === 0) return null;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm"
+                  >
+                    <div className="font-medium w-32 truncate">
+                      {room.room_name || `Room ${index + 1}`}:
+                    </div>
+                    <div className="flex-1 text-gray-600 dark:text-gray-300">
+                      {connections
+                        .map((connId) => {
+                          const connectedRoom = editablePlan.rooms.find(
+                            (r) => r.wallConnectivity?.roomId === connId
+                          );
+                          return connectedRoom?.room_name || connId;
+                        })
+                        .join(", ")}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   if (!user) navigate("/auth");
@@ -786,7 +963,7 @@ const UploadPlan = () => {
           </motion.div>
         )}
 
-        <Card className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {/* Main Content */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -794,8 +971,8 @@ const UploadPlan = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-2 space-y-8"
           >
-            <div>
-              <CardHeader className="text-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-800 text-white py-6">
+            <Card className="text-center">
+              <CardHeader className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-800 rounded-t-3xl text-white">
                 <CardTitle className="sm:text-xl font-bold">
                   Upload Your Floor Plan
                 </CardTitle>
@@ -861,13 +1038,16 @@ const UploadPlan = () => {
 
                     {currentStep === "complete" && editablePlan && (
                       <div className="scrollbar-hide">
-                        <h3 className="sm:text-xl font-bold mb-6 text-slate-800 dark:text-slate-100 flex items-center">
-                          <span className="bg-blue-100 dark:bg-primary p-2 rounded-full mr-3">
-                            <FileText className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-300" />
-                          </span>
-                          Edit Extracted Plan
-                        </h3>
-                        <div className="space-y-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                            <span className="bg-blue-100 dark:bg-primary p-2 rounded-full mr-3">
+                              <FileText className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-300" />
+                            </span>
+                            Edit Extracted Plan
+                          </h3>
+                        </div>
+
+                        <div className="space-y-6 mt-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                               <Label className="">Floors</Label>
@@ -907,11 +1087,24 @@ const UploadPlan = () => {
                           {editablePlan.rooms.map((room, i) => (
                             <Card
                               key={i}
-                              className="p-6 rounded-xl border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
+                              className="p-6  border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
                             >
-                              <h4 className="sm:text-xl font-bold mb-4 text-blue-600 dark:text-blue-400">
-                                Room {i + 1}: {room.room_name || "Unnamed"}
-                              </h4>
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="sm:text-xl font-bold text-blue-600 dark:text-blue-400">
+                                  Room {i + 1}: {room.room_name || "Unnamed"}
+                                </h4>
+                                {room.wallConnectivity && (
+                                  <Badge
+                                    variant="outline"
+                                    className="flex items-center"
+                                  >
+                                    <Link className="w-3 h-3 mr-1" />
+                                    {room.wallConnectivity.connectedRooms
+                                      ?.length || 0}{" "}
+                                    connections
+                                  </Badge>
+                                )}
+                              </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <Input
                                   placeholder="Room Name"
@@ -1118,6 +1311,8 @@ const UploadPlan = () => {
                                                             type: "Panel",
                                                             frame: {
                                                               type: "Wood",
+                                                              height: "2.7",
+                                                              width: "1.2",
                                                               sizeType:
                                                                 "standard", // "standard" | "custom"
                                                               standardSize:
@@ -1176,9 +1371,11 @@ const UploadPlan = () => {
                                                               width: "",
                                                               price: "",
                                                             },
-                                                            glass: "Clear",
+                                                            type: "Clear",
                                                             frame: {
                                                               type: "Wood",
+                                                              height: "2.7",
+                                                              width: "1.2",
                                                               sizeType:
                                                                 "standard", // "standard" | "custom"
                                                               standardSize:
@@ -1320,9 +1517,21 @@ const UploadPlan = () => {
                   ) : null}
                 </div>
               </CardContent>
-            </div>
+            </Card>
           </motion.div>
-        </Card>
+
+          {/* NEW: Connectivity Panel Sidebar */}
+          {showConnectivityPanel && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="lg:col-span-1"
+            >
+              {renderConnectivityPanel()}
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {/* Preview Modal */}

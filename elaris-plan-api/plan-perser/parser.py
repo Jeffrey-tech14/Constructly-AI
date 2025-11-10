@@ -100,6 +100,7 @@ Analyze this construction document and extract ALL available information about:
 - Identify ALL rooms/spaces (living rooms, bedrooms, kitchens, bathrooms, etc.)
 - Look for room labels, dimensions, and layout information
 - Note any specific room names or numbers
+- Identify shared walls between rooms and map them according to the json structure filling in all required data based on the plan
 - Pay special attention to room boundaries and labels within floor plans
 - Identify if rooms are marked as "Master Bedroom", "Bedroom 1", "Bedroom 2", etc.
 - Identify en-suite bathrooms vs shared bathrooms
@@ -292,7 +293,9 @@ Analyze this construction document and extract ALL available information about:
 };
 
 **Concrete & Structure:**
-- Element types:  "slab"
+- Category = "substructure" | "superstructure";
+- ElementType =
+  | "slab"
   | "beam"
   | "column"
   | "foundation"
@@ -314,8 +317,76 @@ Analyze this construction document and extract ALL available information about:
   | "manhole"
   | "inspection-chamber"
   | "soak-pit"
-  | "soakaway", etc.
-- Categories: "substructure", "superstructure"
+  | "soakaway";
+
+- FoundationStep {
+  id: string;
+  length: string;
+  width: string;
+  depth: string;
+  offset: string;
+}
+
+- ConnectionDetails {
+  lapLength?: number;
+  developmentLength?: number;
+  hookType?: "standard" | "seismic" | "special";
+  spliceType?: "lap" | "mechanical" | "welded";
+}
+
+- WaterproofingDetails {
+  includesDPC: boolean;
+  dpcWidth?: string;
+  dpcMaterial?: string;
+  includesPolythene: boolean;
+  polytheneGauge?: string;
+  includesWaterproofing: boolean;
+  waterproofingType?: "bituminous" | "crystalline" | "membrane";
+}
+
+- SepticTankDetails {
+  capacity: string;
+  numberOfChambers: number;
+  wallThickness: string;
+  baseThickness: string;
+  coverType: "slab" | "precast" | "none";
+  depth: string;
+  includesBaffles: boolean;
+  includesManhole: boolean;
+  manholeSize?: string;
+}
+
+- UndergroundTankDetails {
+  capacity: string;
+  wallThickness: string;
+  baseThickness: string;
+  coverType: "slab" | "precast" | "none";
+  includesManhole: boolean;
+  manholeSize?: string;
+  waterProofingRequired: boolean;
+}
+
+- SoakPitDetails {
+  diameter: string;
+  depth: string;
+  wallThickness: string;
+  baseThickness: string;
+  liningType: "brick" | "concrete" | "precast";
+  includesGravel: boolean;
+  gravelDepth?: string;
+  includesGeotextile: boolean;
+}
+
+- SoakawayDetails {
+  length: string;
+  width: string;
+  depth: string;
+  wallThickness: string;
+  baseThickness: string;
+  includesGravel: boolean;
+  gravelDepth?: string;
+  includesPerforatedPipes: boolean;
+}
 - Rebar sizes follow standard notation (e.g., "Y10", "Y12")
 - Mixes to follow ratios eg 1:2:4, 1:2:3
 - Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
@@ -364,48 +435,374 @@ Analyze this construction document and extract ALL available information about:
 Return ONLY valid JSON with this structure. Use reasonable estimates if exact dimensions aren't visible.
 
 {
-  "rooms": [
+ "rooms": [
     {
-      "roomType": "Room Type",
-      "room_name": "Room Name", 
-      "length": "dimension_in_meters",
-      "width": "dimension_in_meters",
+      "roomType": "Living Room",
+      "room_name": "Main Living",
+      "length": "5.0",
+      "width": "4.0",
       "height": "2.7",
       "thickness": "0.2",
       "blockType": "Standard Block",
       "plaster": "Both Sides",
-      "customBlock": {"length": "", "height": "", "thickness": "", "price": ""},
-      "doors": [{
-        "sizeType": "standard/custom",
-        "standardSize": "0.9 × 2.1 m",
-        "custom": {"height": "2.1", "width": "0.9", "price": ""},
-        "type": "Panel",
-        "frame: {
-            type: "Wood",
-            sizeType: "standard", // "standard" | "custom"
-            standardSize: 0.9 x 2.1 m;
-            custom: {
-                "height": "1.2", "width": "1.2", "price": ""
-            };
-        }",
-        "count": 1
-      }],
-      "windows": [{
-        "sizeType": "standard/custom", 
-        "standardSize": "1.2 × 1.2 m",
-        "custom": {"height": "1.2", "width": "1.2", "price": ""},
-        "type": "Clear",
-        "frame: {
-            type: "Steel",
-            sizeType: "standard", // "standard" | "custom"
-            standardSize: 1.2 x 1.2 m;
-            custom: {
-                "height": "1.2", "width": "1.2", "price": ""
-            };
-        }",
-        "count": 1
-      }]
+      "customBlock": {
+        "length": "",
+        "height": "",
+        "thickness": "",
+        "price": ""
+      },
+      "doors": [
+        {
+          "sizeType": "standard",
+          "standardSize": "0.9 × 2.1 m",
+          "custom": {
+            "height": "2.1",
+            "width": "0.9",
+            "price": ""
+          },
+          "type": "Panel",
+          "frame": {
+            "type": "Wood",
+            "sizeType": "standard",
+            "standardSize": "0.9 × 2.1 m",
+            "height": "2.1",
+            "width": "0.9",
+            "custom": {
+              "height": "1.2",
+              "width": "1.2",
+              "price": ""
+            }
+          },
+          "count": 1
+        }
+      ],
+      "windows": [
+        {
+          "sizeType": "standard",
+          "standardSize": "1.2 × 1.2 m",
+          "custom": {
+            "height": "1.2",
+            "width": "1.2",
+            "price": ""
+          },
+          "type": "Clear",
+          "frame": {
+            "type": "Steel",
+            "sizeType": "standard",
+            "standardSize": "1.2 × 1.2 m",
+            "height": "1.2",
+            "width": "1.2",
+            "custom": {
+              "height": "1.2",
+              "width": "1.2",
+              "price": ""
+            }
+          },
+          "count": 1
+        }
+      ],
+      "wallConnectivity": {
+        "roomId": "room_1",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "walls": {
+          "north": {
+            "id": "wall_living_north",
+            "type": "shared",
+            "sharedWith": "room_2",
+            "sharedLength": 5.0,
+            "sharedArea": 13.5,
+            "openings": [
+              {
+                "id": "door_1",
+                "type": "door",
+                "connectsTo": "room_2",
+                "size": {
+                  "width": 0.9,
+                  "height": 2.1
+                },
+                "position": {
+                  "fromStart": 2.0,
+                  "fromFloor": 0.0
+                },
+                "area": 1.89
+              }
+            ],
+            "length": 5.0,
+            "height": 2.7,
+            "netArea": 11.61,
+            "grossArea": 13.5
+          },
+          "south": {
+            "id": "wall_living_south",
+            "type": "external",
+            "openings": [
+              {
+                "id": "window_1",
+                "type": "window",
+                "size": {
+                  "width": 1.2,
+                  "height": 1.2
+                },
+                "position": {
+                  "fromStart": 1.5,
+                  "fromFloor": 1.0
+                },
+                "area": 1.44
+              }
+            ],
+            "length": 5.0,
+            "height": 2.7,
+            "netArea": 12.06,
+            "grossArea": 13.5
+          },
+          "east": {
+            "id": "wall_living_east",
+            "type": "shared",
+            "sharedWith": "room_3",
+            "sharedLength": 4.0,
+            "sharedArea": 10.8,
+            "openings": [],
+            "length": 4.0,
+            "height": 2.7,
+            "netArea": 10.8,
+            "grossArea": 10.8
+          },
+          "west": {
+            "id": "wall_living_west",
+            "type": "external",
+            "openings": [],
+            "length": 4.0,
+            "height": 2.7,
+            "netArea": 10.8,
+            "grossArea": 10.8
+          }
+        },
+        "connectedRooms": ["room_2", "room_3"],
+        "sharedArea": 24.3,
+        "externalWallArea": 24.3
+      }
+    },
+    {
+      "roomType": "Bedroom",
+      "room_name": "Master Bedroom",
+      "length": "4.0",
+      "width": "3.5",
+      "height": "2.7",
+      "thickness": "0.2",
+      "blockType": "Standard Block",
+      "plaster": "Both Sides",
+      "customBlock": {
+        "length": "",
+        "height": "",
+        "thickness": "",
+        "price": ""
+      },
+      "doors": [
+        {
+          "sizeType": "standard",
+          "standardSize": "0.9 × 2.1 m",
+          "custom": {
+            "height": "2.1",
+            "width": "0.9",
+            "price": ""
+          },
+          "type": "Panel",
+          "frame": {
+            "type": "Wood",
+            "sizeType": "standard",
+            "standardSize": "0.9 × 2.1 m",
+            "height": "2.1",
+            "width": "0.9",
+            "custom": {
+              "height": "1.2",
+              "width": "1.2",
+              "price": ""
+            }
+          },
+          "count": 1
+        }
+      ],
+      "windows": [
+        {
+          "sizeType": "standard",
+          "standardSize": "1.2 × 1.2 m",
+          "custom": {
+            "height": "1.2",
+            "width": "1.2",
+            "price": ""
+          },
+          "type": "Clear",
+          "frame": {
+            "type": "Steel",
+            "sizeType": "standard",
+            "standardSize": "1.2 × 1.2 m",
+            "height": "1.2",
+            "width": "1.2",
+            "custom": {
+              "height": "1.2",
+              "width": "1.2",
+              "price": ""
+            }
+          },
+          "count": 1
+        }
+      ],
+      "wallConnectivity": {
+        "roomId": "room_2",
+        "position": {
+          "x": 0,
+          "y": 4
+        },
+        "walls": {
+          "south": {
+            "id": "wall_bedroom_south",
+            "type": "shared",
+            "sharedWith": "room_1",
+            "sharedLength": 4.0,
+            "sharedArea": 10.8,
+            "openings": [
+              {
+                "id": "door_1",
+                "type": "door",
+                "connectsTo": "room_1",
+                "size": {
+                  "width": 0.9,
+                  "height": 2.1
+                },
+                "position": {
+                  "fromStart": 1.5,
+                  "fromFloor": 0.0
+                },
+                "area": 1.89
+              }
+            ],
+            "length": 4.0,
+            "height": 2.7,
+            "netArea": 8.91,
+            "grossArea": 10.8
+          },
+          "north": {
+            "id": "wall_bedroom_north",
+            "type": "external",
+            "openings": [
+              {
+                "id": "window_2",
+                "type": "window",
+                "size": {
+                  "width": 1.2,
+                  "height": 1.2
+                },
+                "position": {
+                  "fromStart": 1.0,
+                  "fromFloor": 1.0
+                },
+                "area": 1.44
+              }
+            ],
+            "length": 4.0,
+            "height": 2.7,
+            "netArea": 9.36,
+            "grossArea": 10.8
+          },
+          "east": {
+            "id": "wall_bedroom_east",
+            "type": "external",
+            "openings": [],
+            "length": 3.5,
+            "height": 2.7,
+            "netArea": 9.45,
+            "grossArea": 9.45
+          },
+          "west": {
+            "id": "wall_bedroom_west",
+            "type": "external",
+            "openings": [],
+            "length": 3.5,
+            "height": 2.7,
+            "netArea": 9.45,
+            "grossArea": 9.45
+          }
+        },
+        "connectedRooms": ["room_1"],
+        "sharedArea": 10.8,
+        "externalWallArea": 40.5
+      }
     }
+  ],
+  "walls": [
+    {
+      "id": "wall_living_north",
+      "start": [0, 4],
+      "end": [5, 4],
+      "thickness": "0.2",
+      "height": "2.7",
+      "blockType": "Standard Block",
+      "connectedRooms": ["room_1", "room_2"],
+      "area": "13.5",
+      "isShared": true,
+      "sharedWith": ["room_2"]
+    },
+    {
+      "id": "wall_living_east",
+      "start": [5, 0],
+      "end": [5, 4],
+      "thickness": "0.2",
+      "height": "2.7",
+      "blockType": "Standard Block",
+      "connectedRooms": ["room_1", "room_3"],
+      "area": "10.8",
+      "isShared": true,
+      "sharedWith": ["room_3"]
+    }
+  ],
+  "floors": 1,
+  "connectivity": {
+    "sharedWalls": [
+      {
+        "id": "shared_living_bedroom",
+        "room1Id": "room_1",
+        "room2Id": "room_2",
+        "wall1Id": "wall_living_north",
+        "wall2Id": "wall_bedroom_south",
+        "sharedLength": 5.0,
+        "sharedArea": 13.5,
+        "openings": ["door_1"]
+      },
+      {
+        "id": "shared_living_kitchen",
+        "room1Id": "room_1",
+        "room2Id": "room_3",
+        "wall1Id": "wall_living_east",
+        "wall2Id": "wall_kitchen_west",
+        "sharedLength": 4.0,
+        "sharedArea": 10.8,
+        "openings": []
+      }
+    ],
+    "roomPositions": {
+      "room_1": {
+        "x": 0,
+        "y": 0
+      },
+      "room_2": {
+        "x": 0,
+        "y": 4
+      },
+      "room_3": {
+        "x": 5,
+        "y": 0
+      }
+    },
+    "totalSharedArea": 24.3,
+    "efficiency": {
+      "spaceUtilization": 0.85,
+      "wallEfficiency": 0.78,
+      "connectivityScore": 0.92
+    }
+  },
   ],
   "floors": 1
   "foundationDetails": { 
@@ -418,14 +815,14 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     "height": "1.0" // Depth or height of the foundation
     "length": "5.0" // Length of the foundation
     "width"" "6.0" //Width of the foundation
-    } 
-    "projectType": "residential" | "commercial" | "industrial" | "institutional",
-    "floors": number,
-    "totalArea": number,
-    "houseType": string,
-    "description": string
-    "projectName": string,
-    "projectLocation": string,
+  } 
+  "projectType": "residential" | "commercial" | "industrial" | "institutional",
+  "floors": number,
+  "totalArea": number,
+  "houseType": string,
+  "description": string
+  "projectName": string,
+  "projectLocation": string,
   
   "earthworks": [ {
       "id": "excavation-01",
@@ -439,58 +836,60 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
   ],
   "concreteStructures": [
     {
-      "id": "uuid-001",
-      "name": "Ground Floor Slab",
-      "element": "slab",
-      "length": "12.5",
-      "width": "10.0",
-      "height": "0.15",
-      "mix": "C25",
-      "category": "superstructure",
-      "number": "1",
-      "foundationType": "raft-foundation",
-      "reinforcement": {
-        "mainBarSize": "Y12",
-        "mainBarSpacing": "200",
-        "distributionBarSize": "Y10",
-        "distributionBarSpacing": "200"
-      }
-    },
-    {
-      "id": "uuid-002",
-      "name": "Strip Footing",
-      "element": "strip-footing",
-      "length": "20.0",
-      "width": "0.6",
-      "height": "0.3",
-      "mix": "C20",
-      "category": "substructure",
-      "number": "2",
-      "foundationType": "strip",
-      "reinforcement": {
-        "mainBarSize": "Y16",
-        "mainBarSpacing": "150",
-        "distributionBarSize": "Y12",
-        "distributionBarSpacing": "200"
-      }
-    },
-    {
-      "id": "uuid-003",
-      "name": "Septic Tank Base",
-      "element": "septic-tank",
-      "length": "3.0",
-      "width": "2.0",
-      "height": "0.25",
-      "mix": "C25",
-      "category": "substructure",
-      "number": "3",
-      "foundationType": "raft-foundation",
-      "reinforcement": {
-        "mainBarSize": "Y10",
-        "mainBarSpacing": "150",
-        "distributionBarSize": "Y10",
-        "distributionBarSpacing": "150"
-      }
+      id:string;
+      name: string;
+      element: ElementType;
+      length: string;
+      width: string;
+      height: string;
+      mix: string;
+      formwork?: string;
+      category: Category;
+      number: string;
+      hasConcreteBed?: boolean;
+      bedDepth?: string;
+      hasAggregateBed?: boolean;
+      aggregateDepth?: string;
+      hasMasonryWall?: boolean;
+      masonryBlockType?: string;
+      masonryBlockDimensions?: string;
+      masonryWallThickness?: string;
+      masonryWallHeight?: string;
+      masonryWallPerimeter?: number;
+      foundationType?: string;
+      clientProvidesWater?: boolean;
+      cementWaterRatio?: string;
+
+      isSteppedFoundation?: boolean;
+      foundationSteps?: FoundationStep[];
+      totalFoundationDepth?: string;
+
+      waterproofing?: WaterproofingDetails;
+
+      reinforcement?: {
+        mainBarSize?: RebarSize;
+        mainBarSpacing?: string;
+        distributionBarSize?: RebarSize;
+        distributionBarSpacing?: string;
+        connectionDetails?: ConnectionDetails;
+      };
+
+      staircaseDetails?: {
+        riserHeight?: number;
+        treadWidth?: number;
+        numberOfSteps?: number;
+      };
+
+      tankDetails?: {
+        capacity?: string;
+        wallThickness?: string;
+        coverType?: string;
+      };
+
+      septicTankDetails?: SepticTankDetails;
+      undergroundTankDetails?: UndergroundTankDetails;
+      soakPitDetails?: SoakPitDetails;
+      soakawayDetails?: SoakawayDetails;
     }
   ],
   "reinforcement":[

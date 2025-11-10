@@ -471,6 +471,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         project_type: extractedPlan.projectType || "",
         location: extractedPlan.projectLocation || "",
         title: extractedPlan.projectName || "",
+        plan_file_url: extractedPlan.file_url || "",
 
         // Rooms mapping
         rooms:
@@ -506,6 +507,104 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             sandCost: 0,
             stoneVolume: 0,
             totalCost: 0,
+
+            // NEW: Wall connectivity details
+            wallConnectivity: room.wallConnectivity || {
+              roomId: `room_${extractedPlan.rooms?.indexOf(room)}`,
+              position: room.wallConnectivity?.position || { x: 0, y: 0 },
+              walls: room.wallConnectivity?.walls || {
+                north: room.wallConnectivity?.walls?.north || {
+                  id: `wall_${room.room_name}_north`,
+                  type: "external",
+                  openings: [],
+                  length: parseFloat(room.width) || 0,
+                  height: parseFloat(room.height) || 2.7,
+                  netArea: 0,
+                  grossArea: 0,
+                },
+                south: room.wallConnectivity?.walls?.south || {
+                  id: `wall_${room.room_name}_south`,
+                  type: "external",
+                  openings: [],
+                  length: parseFloat(room.width) || 0,
+                  height: parseFloat(room.height) || 2.7,
+                  netArea: 0,
+                  grossArea: 0,
+                },
+                east: room.wallConnectivity?.walls?.east || {
+                  id: `wall_${room.room_name}_east`,
+                  type: "external",
+                  openings: [],
+                  length: parseFloat(room.length) || 0,
+                  height: parseFloat(room.height) || 2.7,
+                  netArea: 0,
+                  grossArea: 0,
+                },
+                west: room.wallConnectivity?.walls?.west || {
+                  id: `wall_${room.room_name}_west`,
+                  type: "external",
+                  openings: [],
+                  length: parseFloat(room.length) || 0,
+                  height: parseFloat(room.height) || 2.7,
+                  netArea: 0,
+                  grossArea: 0,
+                },
+              },
+              connectedRooms: room.wallConnectivity?.connectedRooms || [],
+              sharedArea: room.wallConnectivity?.sharedArea || 0,
+              externalWallArea: room.wallConnectivity?.externalWallArea || 0,
+            },
+
+            // NEW: Connectivity metrics for calculations
+            connectivityMetrics: {
+              sharedWalls: room.wallConnectivity?.connectedRooms?.length || 0,
+              sharedArea: room.wallConnectivity?.sharedArea || 0,
+              externalWalls: Object.values(
+                room.wallConnectivity?.walls || {}
+              ).filter((wall: any) => wall.type === "external").length,
+              internalWalls: Object.values(
+                room.wallConnectivity?.walls || {}
+              ).filter((wall: any) => wall.type === "internal").length,
+              connectedDoors:
+                room.doors?.filter(
+                  (door: any) =>
+                    door.connectsTo || door.wallConnectivity?.connectsTo
+                ).length || 0,
+              wallOpenings: {
+                doors: room.doors?.length || 0,
+                windows: room.windows?.length || 0,
+                totalArea:
+                  (room.doors || []).reduce((sum: number, door: any) => {
+                    const area =
+                      door.sizeType === "standard"
+                        ? parseFloat(door.standardSize?.split("×")[0] || "0") *
+                          parseFloat(door.standardSize?.split("×")[1] || "0")
+                        : parseFloat(door.custom?.width || "0") *
+                          parseFloat(door.custom?.height || "0");
+                    return sum + area * (door.count || 1);
+                  }, 0) +
+                  (room.windows || []).reduce((sum: number, window: any) => {
+                    const area =
+                      window.sizeType === "standard"
+                        ? parseFloat(
+                            window.standardSize?.split("×")[0] || "0"
+                          ) *
+                          parseFloat(window.standardSize?.split("×")[1] || "0")
+                        : parseFloat(window.custom?.width || "0") *
+                          parseFloat(window.custom?.height || "0");
+                    return sum + area * (window.count || 1);
+                  }, 0),
+              },
+            },
+
+            // NEW: Material adjustments for shared walls
+            materialAdjustments: {
+              sharedWallDeduction: room.wallConnectivity?.sharedArea || 0,
+              adjustedWallArea: 0, // Will be calculated
+              adjustedBlocks: 0, // Will be calculated
+              adjustedMortar: 0, // Will be calculated
+              efficiencyBonus: room.wallConnectivity?.sharedArea ? 0.95 : 1.0, // 5% efficiency for shared walls
+            },
           })) || prev.rooms,
 
         // Concrete structures
@@ -554,7 +653,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               category: item.category || "other",
               total_cost: 0,
               equipment_type_id: item.id,
-              usage_quantity: 0,
+              rate_per_unit:
+                equipmentRates.find((eq) => eq.id === item.id)?.rate_per_unit ||
+                0,
+              usage_quantity: item.usage_quantity || 1,
             })
           ) || prev.equipment,
 

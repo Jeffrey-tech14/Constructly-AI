@@ -197,7 +197,6 @@ export default function usePlumbingCalculator(
   // Apply wastage to quantity and round up
   const applyWastageToQuantity = useCallback(
     (quantity: number, wastagePercentage: number): number => {
-      console.log(quantity);
       const adjustedQuantity = Math.ceil(quantity * (1 + wastagePercentage));
       return Math.ceil(adjustedQuantity);
     },

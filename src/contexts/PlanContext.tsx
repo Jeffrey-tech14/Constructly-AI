@@ -1,11 +1,6 @@
-import {
-  Door,
-  Window,
-  Room,
-  Wall,
-  deduplicateWallsFunction,
-} from "@/hooks/useMasonryCalculator";
+import { Door, Window } from "@/hooks/useMasonryCalculator";
 import React, { createContext, useContext, useState } from "react";
+
 export interface EquipmentSection {
   equipmentData: {
     standardEquipment: EquipmentItem[];
@@ -23,6 +18,7 @@ export interface EquipmentItem {
   rate_per_unit?: number;
   category?: string;
 }
+
 export interface ExtractedPlan {
   projectInfo?: {
     projectType: string;
@@ -48,8 +44,24 @@ export interface ExtractedPlan {
     plaster: string;
     doors: Door[];
     windows: Window[];
-    generatedWalls?: Wall[]; // Temporary walls before deduplication
-    wallRefs?: string[];
+    // NEW: Wall connectivity data for each room
+    wallConnectivity?: {
+      roomId: string;
+      position?: {
+        x: number;
+        y: number;
+        rotation?: number;
+      };
+      walls?: {
+        north?: WallConnectivity;
+        south?: WallConnectivity;
+        east?: WallConnectivity;
+        west?: WallConnectivity;
+      };
+      connectedRooms?: string[];
+      sharedArea?: number;
+      externalWallArea?: number;
+    };
   }[];
 
   walls?: Array<{
@@ -59,10 +71,14 @@ export interface ExtractedPlan {
     thickness: string;
     height: string;
     blockType: string;
-    connectedRooms: string[]; // e.g. ["room1", "room2"]
+    connectedRooms: string[];
     material?: string;
     area?: string;
+    // NEW: Enhanced wall properties
+    isShared?: boolean;
+    sharedWith?: string[];
   }>;
+
   floors: number;
 
   foundationDetails?: {
@@ -77,7 +93,19 @@ export interface ExtractedPlan {
     height: string;
   };
 
-  // New structural elements
+  // NEW: Plan-wide connectivity data
+  connectivity?: {
+    sharedWalls: SharedWall[];
+    roomPositions: { [roomId: string]: { x: number; y: number } };
+    totalSharedArea: number;
+    efficiency: {
+      spaceUtilization: number;
+      wallEfficiency: number;
+      connectivityScore: number;
+    };
+  };
+
+  // Existing structural elements
   earthworks?: Array<{
     id: string;
     type: string;
@@ -287,10 +315,56 @@ export interface ExtractedPlan {
   projectName?: string;
   projectLocation?: string;
 }
+
+// NEW: Wall connectivity interfaces
+export interface WallConnectivity {
+  id: string;
+  type: "external" | "shared" | "internal";
+  sharedWith?: string;
+  sharedLength?: number;
+  sharedArea?: number;
+  openings: WallOpening[];
+  startPoint?: [number, number];
+  endPoint?: [number, number];
+  length: number;
+  height: number;
+  netArea: number;
+  grossArea: number;
+}
+
+export interface WallOpening {
+  id: string;
+  type: "door" | "window";
+  connectsTo?: string;
+  size?: { width: number; height: number };
+  position?: { fromStart: number; fromFloor: number };
+  area: number;
+}
+
+export interface SharedWall {
+  id: string;
+  room1Id: string;
+  room2Id: string;
+  wall1Id: string;
+  wall2Id: string;
+  sharedLength: number;
+  sharedArea: number;
+  openings: string[];
+}
+
 interface PlanContextType {
   extractedPlan: ExtractedPlan | null;
   setExtractedPlan: (plan: ExtractedPlan) => void;
-  deduplicateWalls: (plan: ExtractedPlan) => ExtractedPlan;
+  // NEW: Helper methods for wall connectivity
+  getSharedWallsForRoom: (roomId: string) => SharedWall[];
+  getRoomConnections: (roomId: string) => string[];
+  calculateMaterialSavings: () => {
+    sharedArea: number;
+    blockSavings: number;
+    mortarSavings: number;
+    costSavings: number;
+  };
+  getRoomWallConnectivity: (roomId: string) => any | null;
 }
 
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
@@ -302,113 +376,75 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({
     null
   );
 
-  const deduplicateWalls = (plan: ExtractedPlan): ExtractedPlan => {
-    if (!plan.rooms || plan.rooms.length === 0) return plan;
+  // NEW: Helper function to get shared walls for a specific room
+  const getSharedWallsForRoom = (roomId: string): SharedWall[] => {
+    if (!extractedPlan?.connectivity?.sharedWalls) return [];
 
-    // Generate walls for each room if they don't exist
-    const roomsWithGeneratedWalls = plan.rooms.map((room) => {
-      if (!room.generatedWalls) {
-        // Generate walls based on room dimensions
-        room.generatedWalls = generateWallsFromRoom(room);
-      }
-      return room;
-    });
+    return extractedPlan.connectivity.sharedWalls.filter(
+      (wall) => wall.room1Id === roomId || wall.room2Id === roomId
+    );
+  };
 
-    const { rooms, walls } = deduplicateWallsFunction(roomsWithGeneratedWalls);
+  // NEW: Helper function to get room connections
+  const getRoomConnections = (roomId: string): string[] => {
+    const room = extractedPlan?.rooms.find(
+      (r) => r.wallConnectivity?.roomId === roomId
+    );
+    return room?.wallConnectivity?.connectedRooms || [];
+  };
+
+  // NEW: Calculate material savings from shared walls
+  const calculateMaterialSavings = () => {
+    const sharedWalls = extractedPlan?.connectivity?.sharedWalls || [];
+    const totalSharedArea = sharedWalls.reduce(
+      (sum, wall) => sum + wall.sharedArea,
+      0
+    );
+
+    // Calculate material savings (you can adjust these formulas based on your rates)
+    const blockSavings = totalSharedArea / 0.08; // Assuming 0.08 m² per block
+    const mortarSavings = totalSharedArea * 0.017; // MORTAR_PER_SQM
+    const costSavings = blockSavings * 50 + mortarSavings * 5000; // Example rates
 
     return {
-      ...plan,
-      rooms,
-      masonry: walls.map((wall) => ({
-        id: wall.id,
-        type: "wall",
-        blockType: wall.blockType,
-        length: Math.sqrt(
-          Math.pow(wall.end[0] - wall.start[0], 2) +
-            Math.pow(wall.end[1] - wall.start[1], 2)
-        ).toFixed(2),
-        height: wall.height,
-        thickness: wall.thickness,
-        area: wall.area || calculateWallArea(wall).toFixed(2),
-      })),
+      sharedArea: totalSharedArea,
+      blockSavings,
+      mortarSavings,
+      costSavings,
     };
   };
 
-  // Helper function to generate walls from room dimensions
-  const generateWallsFromRoom = (room: Room): Wall[] => {
-    const length = parseFloat(room.length) || 0;
-    const width = parseFloat(room.width) || 0;
-    const height = parseFloat(room.height) || 0;
-
-    const walls: Wall[] = [
-      {
-        id: `wall_${room.room_name}_1`,
-        start: [0, 0],
-        end: [length, 0],
-        thickness: room.thickness,
-        height: room.height,
-        blockType: room.blockType,
-        connectedRooms: [room.room_name],
-        area: (length * height).toFixed(2),
-      },
-      {
-        id: `wall_${room.room_name}_2`,
-        start: [length, 0],
-        end: [length, width],
-        thickness: room.thickness,
-        height: room.height,
-        blockType: room.blockType,
-        connectedRooms: [room.room_name],
-        area: (width * height).toFixed(2),
-      },
-      {
-        id: `wall_${room.room_name}_3`,
-        start: [length, width],
-        end: [0, width],
-        thickness: room.thickness,
-        height: room.height,
-        blockType: room.blockType,
-        connectedRooms: [room.room_name],
-        area: (length * height).toFixed(2),
-      },
-      {
-        id: `wall_${room.room_name}_4`,
-        start: [0, width],
-        end: [0, 0],
-        thickness: room.thickness,
-        height: room.height,
-        blockType: room.blockType,
-        connectedRooms: [room.room_name],
-        area: (width * height).toFixed(2),
-      },
-    ];
-
-    return walls;
-  };
-
-  const calculateWallArea = (wall: Wall): number => {
-    const length = Math.sqrt(
-      Math.pow(wall.end[0] - wall.start[0], 2) +
-        Math.pow(wall.end[1] - wall.start[1], 2)
+  // NEW: Get wall connectivity data for a specific room
+  const getRoomWallConnectivity = (roomId: string) => {
+    return (
+      extractedPlan?.rooms.find(
+        (room) => room.wallConnectivity?.roomId === roomId
+      )?.wallConnectivity || null
     );
-    const height = parseFloat(wall.height) || 0;
-    return length * height;
   };
 
   const contextValue: PlanContextType = {
     extractedPlan,
     setExtractedPlan: (plan: ExtractedPlan) => {
-      // Auto-deduplicate walls when setting a new plan
-      const planWithDeduplicatedWalls = deduplicateWalls(plan);
-      setExtractedPlan(planWithDeduplicatedWalls);
+      // The plan now comes with pre-calculated wall connectivity from AI
+      console.log(
+        "Setting extracted plan with connectivity data:",
+        plan.connectivity
+      );
+      setExtractedPlan(plan);
     },
-    deduplicateWalls,
+    // NEW: Expose helper methods
+    getSharedWallsForRoom,
+    getRoomConnections,
+    calculateMaterialSavings,
+    getRoomWallConnectivity,
   };
 
   return (
     <PlanContext.Provider value={contextValue}>{children}</PlanContext.Provider>
   );
 };
+
 export const usePlan = () => {
   const context = useContext(PlanContext);
   if (!context) throw new Error("usePlan must be used within a PlanProvider");

@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

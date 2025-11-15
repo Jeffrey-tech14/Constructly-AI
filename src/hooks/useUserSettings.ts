@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -196,8 +199,8 @@ export const useUserSettings = () => {
   const updateEquipmentRate = async (
     equipmentTypeId: string,
     rate: number,
-    quantity: number,
-    unit: string
+    quantity?: number,
+    unit?: string
   ) => {
     if (!user) return { error: "User not authenticated" };
     try {

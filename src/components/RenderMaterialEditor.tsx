@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {

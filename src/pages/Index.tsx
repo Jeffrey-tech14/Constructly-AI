@@ -146,6 +146,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenuContent } from "@radix-ui/react-dropdown-menu";
 
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
@@ -768,7 +773,7 @@ const FaqSection = () => {
         </motion.div>
 
         <motion.div
-          className="mt-10 md:mt-12 p-6 md:p-8 text-center text-white"
+          className="mt-10 z-10 fixed md:mt-12 p-6 md:p-8 text-center text-white"
           style={{ backgroundColor: RISA_BLUE }}
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -790,7 +795,7 @@ const FaqSection = () => {
               whileTap={{ scale: 0.95 }}
             >
               <PhoneCall className="w-4 h-4" />
-              Call Support: 949 951 5815
+              Call Support:
             </motion.a>
             <motion.a
               href="mailto:support@jtechai.com"
@@ -1234,6 +1239,7 @@ const Index = () => {
   const [scrolled, setScrolled] = useState(false);
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [tiersLoading, setTiersLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [tiersError, setTiersError] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false); // State for dark mode
 
@@ -1346,13 +1352,13 @@ const Index = () => {
     <div
       className="min-h-screen text-gray-900 transition-colors duration-300 dark:text-gray-100"
       style={{
-        fontSize: "14px",
+        fontSize: "19px",
       }}
     >
       {/* Global Styles (Mimicking RISA) */}
       <style>
         {`
-          html { font-size: 14px; }
+          html { font-size: 17px; }
           .video-container {
             position: relative;
             padding-bottom: 56.25%;
@@ -1373,55 +1379,6 @@ const Index = () => {
         `}
       </style>
 
-      {/* Top Sub-Nav (Like RISA) */}
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white py-1.5 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end space-x-6 md:space-x-8">
-          <div className="relative group">
-            <motion.button
-              className="flex items-center lowercase text-gray-700 hover:text-blue-600 transition text-xs dark:text-gray-300 dark:hover:text-blue-400"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              style={{ color: RISA_BLUE }}
-            >
-              <Mail className="mr-1 h-3.5 w-3.5" />
-              contact us
-              <ChevronDown className="ml-1 h-3.5 w-3.5" />
-            </motion.button>
-            <div
-              className="absolute right-0 mt-1 bg-white shadow-lg rounded-md py-2 min-w-40 hidden group-hover:block z-50 dark:bg-gray-800"
-              style={{ border: `1px solid ${RISA_BLUE}` }}
-            >
-              <a
-                href="mailto:support@jtechai.com"
-                className="flex items-center px-4 py-2 hover:bg-gray-100 text-gray-700 text-xs dark:hover:bg-gray-700 dark:text-gray-300"
-                style={{ color: RISA_DARK_TEXT }}
-              >
-                <Mail className="mr-2 h-4 w-4" /> support
-              </a>
-              <a
-                href="mailto:sales@jtechai.com"
-                className="flex items-center px-4 py-2 hover:bg-gray-100 text-gray-700 text-xs dark:hover:bg-gray-700 dark:text-gray-300"
-                style={{ color: RISA_DARK_TEXT }}
-              >
-                <Mail className="mr-2 h-4 w-4" /> sales/general
-              </a>
-            </div>
-          </div>
-          <a
-            href="tel:9499515815"
-            className="flex items-center hover:text-blue-600 text-gray-700 text-xs dark:text-gray-300 dark:hover:text-blue-400"
-            style={{ color: RISA_BLUE }}
-          >
-            <PhoneCall className="mr-1 h-3.5 w-3.5" /> 949 951 5815
-          </a>
-        </div>
-      </motion.div>
-
       {/* Main Navigation */}
       <motion.nav
         initial={{ y: -20, opacity: 0 }}
@@ -1431,6 +1388,54 @@ const Index = () => {
           scrolled ? "py-2" : "py-3 md:py-4"
         }`}
       >
+        {/* Top Sub-Nav (Like RISA) */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white py-1.5 text-sm dark:bg-gray-800"
+        >
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-end space-x-6 md:space-x-8">
+            <div className="relative group">
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <motion.button
+                    className="flex items-center hover:text-blue-600 transition text-xs dark:hover:text-blue-400"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{ color: RISA_BLUE }}
+                    onClick={() => setIsOpen(!isOpen)}
+                  >
+                    <Mail className="mr-1 h-3.5 w-3.5" />
+                    Contact us
+                    <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                  </motion.button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48 mt-2 shadow-lg border border-gray-200 glass rounded-md overflow-hidden">
+                  <a
+                    href="mailto:ubmjeffer@gmail.com"
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 text-xs dark:hover:bg-gray-700"
+                  >
+                    <Mail className="mr-2 h-4 w-4" /> Support
+                  </a>
+                  <a
+                    href="ubmjeffer@gmail.com"
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 text-xs dark:hover:bg-gray-700"
+                  >
+                    <Mail className="mr-2 h-4 w-4" /> Sales/general
+                  </a>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <a
+              href="tel:+254 741 639 982"
+              className="flex items-center hover:text-blue-600 text-xs dark:hover:text-blue-400"
+              style={{ color: RISA_BLUE }}
+            >
+              <PhoneCall className="mr-1 h-3.5 w-3.5" /> +254 741 639 982
+            </a>
+          </div>
+        </motion.div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <motion.div
@@ -2071,18 +2076,18 @@ const Index = () => {
                     <Mail className="w-4 h-4" />
                     <a
                       className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                      href="mailto:support@jtechai.com"
+                      href="mailto:ubmjeffer@gmail.com"
                     >
-                      support@jtechai.com
+                      ubmjeffer@gmail.com
                     </a>
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <PhoneCall className="w-4 h-4" />
                     <a
                       className="hover:underline text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-                      href="tel:9499515815"
+                      href="tel:+254 741 639 982"
                     >
-                      949 951 5815
+                      +254 741 639 982
                     </a>
                   </li>
                   <li>

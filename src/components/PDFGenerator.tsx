@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import React, { useMemo } from "react";
 import {
   Document,
@@ -572,6 +575,7 @@ interface Percentage {
   overhead: number;
   profit: number;
   contingency: number;
+  permit: number;
 }
 interface CalculationSummary {
   materials_cost: number;
@@ -1734,6 +1738,18 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(labour)}
+                  </Text>
+                </View>
+              )}
+
+              {calculationSummary.permit_cost > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Permit(
+                    {calculationSummary.percentages?.[0]?.permit || 0}%):
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(permits)}
                   </Text>
                 </View>
               )}

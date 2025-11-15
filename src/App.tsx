@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,12 +16,10 @@ import Profile from "./pages/Profile";
 import QuoteBuilder from "./pages/QuoteBuilder";
 import ViewAllQuotes from "./pages/ViewAllQuotes";
 import AdminDashboard from "./pages/AdminDashboard";
-import PaymentPage from "./pages/PaymentPage";
 import Variables from "./pages/Variables";
 import NotFound from "./pages/NotFound";
 import UploadPlan from "./pages/UploadPage";
 import Auth from "./pages/Auth";
-import PaymentAction from "./components/PaymentDialog";
 const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -32,14 +33,6 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/payments/action"
-                element={
-                  <ProtectedRoute>
-                    <PaymentAction />
-                  </ProtectedRoute>
-                }
-              />
               <Route
                 path="/dashboard"
                 element={
@@ -61,14 +54,6 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/payment"
-                element={
-                  <ProtectedRoute>
-                    <PaymentPage />
                   </ProtectedRoute>
                 }
               />

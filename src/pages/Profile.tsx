@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -171,9 +174,6 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
     }
-  };
-  const handleUpgrade = () => {
-    navigate("/payment");
   };
   const handleAvatarUpload = async (url: string) => {
     try {
@@ -535,13 +535,6 @@ const Profile = () => {
                       <p className="text-sm text-red-500">No features found</p>
                     )}
                   </div>
-
-                  <Button className="w-full text-white" onClick={handleUpgrade}>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    {profile.tier === "Professional"
-                      ? "Manage Subscription"
-                      : "Upgrade Plan"}
-                  </Button>
                 </div>
               </CardContent>
             </Card>

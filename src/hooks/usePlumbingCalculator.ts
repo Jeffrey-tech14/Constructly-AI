@@ -1,4 +1,6 @@
-// hooks/usePlumbingCalculator.ts
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { useState, useCallback, useEffect } from "react";
 
 export type PlumbingSystemType =

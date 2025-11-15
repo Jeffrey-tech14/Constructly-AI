@@ -1,4 +1,6 @@
-// utils/enhancedBoqMappers.ts
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { BOQSection, BOQItem } from "@/types/boq";
 
 export const generateProfessionalBOQ = (quoteData: any): BOQSection[] => {

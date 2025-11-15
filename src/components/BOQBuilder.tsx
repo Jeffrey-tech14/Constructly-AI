@@ -1,4 +1,6 @@
-// components/BOQBuilder.tsx
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,7 +33,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { BOQItem, BOQSection } from "@/types/boq";
-import { generateBOQWithAI, generateMockBOQ } from "@/utils/boqAIService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BOQBuilderProps {
   quoteData: any;
@@ -50,6 +52,16 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
   >("none");
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Safe array access helper
+  const getSafeArray = (data: any): BOQSection[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (data.boqSections && Array.isArray(data.boqSections))
+      return data.boqSections;
+    if (data.boq_data && Array.isArray(data.boq_data)) return data.boq_data;
+    return [];
+  };
+
   // Initialize BOQ from existing quoteData or generate new only if empty
   useEffect(() => {
     const initializeBOQ = async () => {
@@ -61,9 +73,10 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       }
 
       // Check if quoteData already has BOQ sections
-      if (quoteData.boqSections && quoteData.boqSections.length > 0) {
-        setBoqSections(quoteData.boq_data);
-        onBOQUpdate(quoteData.boq_data);
+      const existingSections = getSafeArray(quoteData);
+      if (existingSections.length > 0) {
+        setBoqSections(existingSections);
+        onBOQUpdate(existingSections);
         setGenerationMethod("existing");
         return;
       }
@@ -74,17 +87,34 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
         setLastError(null);
 
         try {
-          const boq = await generateBOQWithAI(quoteData);
+          const { data: boq } = await supabase.functions.invoke(
+            "generate-boq-ai",
+            {
+              body: quoteData,
+            }
+          );
 
-          if (boq && boq.length > 0) {
-            setBoqSections(boq);
-            onBOQUpdate(boq);
+          const newSections = JSON.parse(boq);
+          if (newSections.length > 0) {
+            setBoqSections(newSections);
+            onBOQUpdate(newSections);
             setGenerationMethod("ai");
           } else {
             throw new Error("No BOQ data generated");
           }
         } catch (error) {
           console.error("AI BOQ generation failed:", error);
+          setLastError("AI generation failed, using fallback data");
+          // Set fallback empty sections
+          const fallbackSections: BOQSection[] = [
+            {
+              title: "Default Section",
+              items: [],
+            },
+          ];
+          setBoqSections(fallbackSections);
+          onBOQUpdate(fallbackSections);
+          setGenerationMethod("local");
         } finally {
           setIsGenerating(false);
         }
@@ -92,17 +122,27 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     };
 
     initializeBOQ();
-  }, [quoteData]); // Remove onBOQUpdate from dependencies to prevent regeneration
+  }, [quoteData]);
 
   const regenerateWithAI = async () => {
     setIsGenerating(true);
     setLastError(null);
 
     try {
-      const newBOQ = await generateBOQWithAI(quoteData);
-      if (newBOQ && newBOQ.length > 0) {
-        setBoqSections(newBOQ);
-        onBOQUpdate(newBOQ);
+      const { data: newBOQ, error } = await supabase.functions.invoke(
+        "generate-boq-ai",
+        {
+          body: quoteData,
+        }
+      );
+      if (error) {
+        throw error;
+      }
+
+      const newSections = JSON.parse(newBOQ);
+      if (newBOQ) {
+        setBoqSections(newSections);
+        onBOQUpdate(newSections);
         setGenerationMethod("ai");
         setLastError(null);
       } else {
@@ -113,19 +153,6 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       setLastError(
         error instanceof Error ? error.message : "Regeneration failed"
       );
-
-      // Fallback to mock generation
-      try {
-        const mockBOQ = await generateMockBOQ(quoteData);
-        if (mockBOQ && mockBOQ.length > 0) {
-          setBoqSections(mockBOQ);
-          onBOQUpdate(mockBOQ);
-          setGenerationMethod("mock");
-          setLastError("Using simplified BOQ - AI service unavailable");
-        }
-      } catch (mockError) {
-        console.error("Mock regeneration also failed:", mockError);
-      }
     } finally {
       setIsGenerating(false);
     }
@@ -239,21 +266,21 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     }, 0);
   };
 
+  // Safe rendering - ensure boqSections is always an array
+  const safeSections = Array.isArray(boqSections) ? boqSections : [];
+
   if (isGenerating) {
     return (
       <div className="flex flex-col justify-center items-center p-8 space-y-4">
         <RefreshCw className="w-8 h-8 animate-spin text-primary" />
         <div className="text-center">
           <div className="font-semibold">Generating Professional BOQ</div>
-          <div className="text-sm text-muted-foreground">
-            Using {generationMethod === "none" ? "AI" : generationMethod}...
-          </div>
         </div>
       </div>
     );
   }
 
-  if (boqSections.length === 0 && !isGenerating) {
+  if (safeSections.length === 0 && !isGenerating) {
     return (
       <div className="flex flex-col justify-center items-center p-8 space-y-4">
         <Brain className="w-12 h-12 text-muted-foreground" />
@@ -317,8 +344,8 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
         </div>
       </div>
 
-      {/* BOQ Sections Rendering */}
-      {boqSections.map((section, sectionIndex) => (
+      {/* BOQ Sections Rendering - Using safeSections */}
+      {safeSections.map((section, sectionIndex) => (
         <Card key={sectionIndex}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <Input
@@ -330,7 +357,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
               variant="ghost"
               size="sm"
               onClick={() => removeSection(sectionIndex)}
-              disabled={boqSections.length <= 1}
+              disabled={safeSections.length <= 1}
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -349,7 +376,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {section.items.map((item, itemIndex) => (
+                {section.items?.map((item, itemIndex) => (
                   <TableRow
                     key={itemIndex}
                     className={`
@@ -502,7 +529,10 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                     Section Total:
                   </TableCell>
                   <TableCell className="font-bold">
-                    KSh {calculateSectionTotal(section.items).toLocaleString()}
+                    KSh{" "}
+                    {calculateSectionTotal(
+                      section.items || []
+                    ).toLocaleString()}
                   </TableCell>
                   <TableCell></TableCell>
                 </TableRow>

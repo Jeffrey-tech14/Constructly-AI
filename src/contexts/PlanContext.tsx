@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { Door, Window } from "@/hooks/useMasonryCalculator";
 import React, { createContext, useContext, useState } from "react";
 

@@ -1,3 +1,6 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +25,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { generatePreliminariesWithGemini } from "@/utils/preliminariesAIService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PrelimItem {
   itemNo: string;
@@ -90,7 +93,12 @@ const PreliminariesBuilder = ({
     setLastError(null);
 
     try {
-      const aiSections = await generatePreliminariesWithGemini(quoteData);
+      const { data: aiSections } = await supabase.functions.invoke(
+        "generate-preliminaries",
+        {
+          body: { quoteData },
+        }
+      );
 
       // Merge AI sections with existing user sections
       const mergedSections = mergeSectionsWithAI(sections, aiSections);
@@ -111,7 +119,7 @@ const PreliminariesBuilder = ({
     // For each existing section, keep user items and replace AI items
     const mergedSections = existingSections.map((section) => {
       const userItems = section.items.filter((item) => item.source === "user");
-      const aiSection = aiSections.find(
+      const aiSection = aiSections?.find(
         (aiSec) => aiSec.title === section.title
       );
 
@@ -125,7 +133,7 @@ const PreliminariesBuilder = ({
     });
 
     // Add any new AI sections that don't exist in current sections
-    aiSections.forEach((aiSection) => {
+    aiSections?.forEach((aiSection) => {
       if (!mergedSections.find((sec) => sec.title === aiSection.title)) {
         mergedSections.push(aiSection);
       }

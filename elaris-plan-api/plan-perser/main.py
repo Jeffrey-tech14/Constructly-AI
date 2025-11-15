@@ -1,3 +1,5 @@
+# © 2025 Jeff. All rights reserved.
+# Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import uuid
 import subprocess

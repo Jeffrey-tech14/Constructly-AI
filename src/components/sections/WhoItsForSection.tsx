@@ -81,13 +81,11 @@ export default function JTechAISection() {
     return (
         <div 
           id="who-its-for"
-          // ✅ UPDATED: Root background matched to Footer (#F0F7FA)
           className="font-sans text-[#333333] bg-[#F0F7FA] antialiased"
         >
             
             {/* BASICS TO MASTERY */}
             <section 
-                // ✅ UPDATED: Background matched to Footer
                 className="bg-[#F0F7FA] py-24 border-b border-[#E1EBF2]"
             >
                 <div className="max-w-[1240px] mx-auto px-6">
@@ -96,11 +94,18 @@ export default function JTechAISection() {
                             <div className="bg-[#0a1e42] relative w-full aspect-[4/3] flex items-end justify-center overflow-hidden shadow-lg">
                                 <div className="absolute inset-0 bg-gradient-to-tr from-[#000] to-transparent opacity-20" />
                                 <div className="absolute top-0 right-0 w-[80%] h-full bg-[#112d5c] -skew-x-12 translate-x-10" />
-                                <img 
-                                    src="https://wpmedia.roomsketcher.com/content/uploads/2022/01/05101816/RoomSketcher-Custom-2D-Floor-Plan-Branding.jpg" 
-                                    alt="Instructor" 
-                                    className="relative z-10 h-[90%] object-cover object-top"
-                                />
+                                
+                                {/* ✅ FIXED: Changed img to video tag for correct playback */}
+                                <video 
+                                    className="relative z-10 h-[90%] w-full object-cover object-top"
+                                    autoPlay 
+                                    loop 
+                                    muted 
+                                    playsInline
+                                >
+                                    <source src="/Demo1.mp4" type="video/mp4" />
+                                </video>
+
                                 <div className="absolute top-[20%] left-[15%] right-[15%] bottom-[20%] border-l-4 border-r-4 border-[#00d084] rounded-lg z-20 pointer-events-none opacity-80"></div>
                                 <div className="absolute top-[20%] left-[15%] w-8 h-4 border-t-4 border-[#00d084] rounded-tl-lg z-20"></div>
                                 <div className="absolute top-[20%] right-[15%] w-8 h-4 border-t-4 border-[#00d084] rounded-tr-lg z-20"></div>
@@ -125,7 +130,6 @@ export default function JTechAISection() {
 
             {/* CARD GRID */}
             <section 
-                // ✅ UPDATED: Background matched to Footer
                 className="bg-[#F0F7FA] py-24"
             >
                 <div className="max-w-[1240px] mx-auto px-6">

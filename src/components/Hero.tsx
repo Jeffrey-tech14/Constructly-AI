@@ -29,31 +29,41 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
       {/* Reduced max height and added max-width constraint */}
       <section className="relative w-full min-h-[60vh] lg:min-h-[800px] overflow-hidden flex items-center pt-16 lg:pt-0">
         
-        {/* FULL, CLEAR BACKGROUND IMAGE — no opacity */}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
+        {/* ====================================================================================
+             UPDATED BACKGROUND SECTION (Matching Pricing Page Logic but with NAVY Theme)
+           ==================================================================================== */}
+        <div className="absolute inset-0 z-0 w-full h-full">
+            {/* 1. The Image */}
+            <img 
+              src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+              alt="Background"
+              className="w-full h-full object-cover"
+            />
 
-        {/* SOFT-FADE DARK PANEL — hidden on mobile, reduced width on desktop */}
-        <div 
-          className="absolute top-0 left-0 w-full lg:w-[55%] h-full z-10 hidden sm:block"
-          style={{
-            background: `linear-gradient(to right, 
-              ${THEME.NAVY_BG} 0%, 
-              ${THEME.NAVY_BG} 55%, 
-              rgba(0, 11, 41, 0.7) 70%, 
-              rgba(0, 11, 41, 0.4) 80%, 
-              transparent 100%)`
-          }}
-        />
-        
-        {/* Mobile: Solid background for text readability */}
-        <div className="absolute top-0 left-0 w-full h-full z-10 sm:hidden bg-[#000B29]/90" />
+            {/* 2. Gradient Overlay: Left (Solid Navy) -> Right (Transparent) */}
+            {/* This creates the smooth fade effect where the text sits */}
+            <div 
+              className="absolute inset-0 z-10"
+              style={{
+                background: `linear-gradient(to right, 
+                  ${THEME.NAVY_BG} 0%, 
+                  ${THEME.NAVY_BG} 50%, 
+                  rgba(0, 11, 41, 0.8) 65%, 
+                  transparent 100%)`
+              }}
+            />
+
+            {/* 3. Vertical Gradient: Fades top/bottom edges slightly for polish */}
+            <div 
+              className="absolute inset-0 z-10 pointer-events-none"
+              style={{
+                 background: `linear-gradient(to bottom, ${THEME.NAVY_BG} 0%, transparent 20%, transparent 80%, ${THEME.NAVY_BG} 100%)`
+              }}
+            />
+            
+            {/* 4. Mobile Only: Darker overlay to ensure text is readable on small screens */}
+            <div className="absolute inset-0 bg-[#000B29]/60 sm:hidden z-10" />
+        </div>
 
         {/* Content - Reduced max width and adjusted padding */}
         <div className="relative z-20 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center h-full">

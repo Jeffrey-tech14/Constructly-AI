@@ -59,27 +59,33 @@ const MonitorGraphic = () => (
   </div>
 );
 
+// ✅ UPDATED: Community Container with IMAGE
 const CommunityGraphic = () => (
   <div className="w-full h-full bg-[#001021] relative flex flex-col items-center justify-center overflow-hidden">
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] bg-[#005F9E] blur-[80px] opacity-25" />
     
+    {/* ✅ CHANGED FROM VIDEO TO IMG TAG so the JPG works */}
+    <img 
+      className="absolute inset-0 w-full h-full object-cover opacity-90"
+      src="https://wpmedia.roomsketcher.com/content/uploads/2022/01/05101816/RoomSketcher-Custom-2D-Floor-Plan-Branding.jpg" 
+      alt="Community Background"
+    />
+
+    {/* Dark gradient overlay to ensure text/buttons are readable over the image */}
+    <div className="absolute inset-0 bg-gradient-to-t from-[#001021]/90 via-[#001021]/40 to-transparent pointer-events-none" />
+
     {/* Pill Button */}
     <div className="relative z-10 mb-8 scale-90">
-      <div className="px-6 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl flex items-center gap-2">
-        <span className="text-white font-inter font-bold text-lg">
-          J-Tech <span className="text-[#005F9E]">Community</span>
+      <div className="px-6 py-2 rounded-full border border-white/10 bg-white/10 backdrop-blur-md shadow-2xl flex items-center gap-2">
+        <span className="text-white font-inter font-bold text-lg drop-shadow-md">
+          J-Tech <span className="text-[#4dabf7]">Community</span>
         </span>
-      </div>
-      {/* Hand Cursor */}
-      <div className="absolute -bottom-8 -right-6 text-white drop-shadow-lg">
-         <svg width="40" height="40" viewBox="0 0 24 24" fill="white"><path d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zM16.03 12.35L17.5 12c-.17-1.93-1.84-3.5-3.89-3.5C12.28 8.5 11.28 8.9 10.5 9.57V7.5C10.5 6.67 9.83 6 9 6s-1.5.67-1.5 1.5v8l4.37 8.16c.39.73 1.25 1.09 2.06.87l5.95-1.59c.77-.21 1.34-.87 1.43-1.66l.6-5.41c.07-.63-.25-1.22-.82-1.46-.37-.16-.76-.18-1.06-.06z"/></svg>
       </div>
     </div>
 
     {/* Small Icons */}
-    <div className="flex gap-6 text-white/50 relative z-10">
+    <div className="flex gap-6 text-white/70 relative z-10 drop-shadow-md">
       <MessageSquare className="w-5 h-5" />
-      <Users className="w-6 h-6 text-white/80 -mt-1" />
+      <Users className="w-6 h-6 text-white -mt-1" />
       <GraduationCap className="w-5 h-5" />
     </div>
   </div>
@@ -91,22 +97,18 @@ export default function FeaturesSection() {
   return (
     <>
       <GlobalStyles />
-      {/* ✅ KEY FIX IS HERE:
-         1. id="features" -> Allows navbar to find this section.
-         2. scroll-mt-32 -> Adds margin-top when scrolling so the fixed navbar doesn't cover the content.
-      */}
       <section 
         id="features"
         className="w-full py-20 bg-white font-inter text-[#1a1a1a] overflow-hidden scroll-mt-32"
       >
         <div className="max-w-[1100px] mx-auto px-6">
-          
+           
           {/* SECTION 1: COMMUNITY (Dark Box Left, Text Right) */}
           <div className="flex flex-col md:flex-row items-center gap-12 mb-32">
             
-            {/* Visual Box */}
+            {/* Visual Box - NOW CONTAINS IMAGE */}
             <motion.div 
-              className="w-full md:w-1/2 h-[320px] rounded-xl overflow-hidden shadow-lg"
+              className="w-full md:w-1/2 h-[320px] rounded-xl overflow-hidden shadow-lg border border-gray-100"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -158,7 +160,7 @@ export default function FeaturesSection() {
                 transition={{ duration: 0.5 }}
               >
                 <div className="p-8 h-full flex flex-col justify-between relative z-20">
-                  {/* Text Container: Max width 60% to leave room for graphic */}
+                  {/* Text Container */}
                   <div className="max-w-[60%]">
                     <h3 className="text-xl font-bold text-[#001021] mb-3">
                       Global Takeoff Tool
@@ -173,7 +175,7 @@ export default function FeaturesSection() {
                   </button>
                 </div>
                 
-                {/* Graphic: Pinned Bottom Right, contained inside card */}
+                {/* Graphic */}
                 <div className="absolute bottom-6 right-6 transform group-hover:scale-105 transition-transform duration-500 z-10">
                    <GlobeGraphic />
                 </div>
@@ -204,7 +206,7 @@ export default function FeaturesSection() {
                   </button>
                 </div>
 
-                {/* Graphic: Pinned Bottom Right */}
+                {/* Graphic */}
                 <div className="absolute bottom-8 right-6 transform group-hover:-translate-x-1 transition-transform duration-500 z-10">
                    <MonitorGraphic />
                 </div>

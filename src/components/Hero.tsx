@@ -26,11 +26,11 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
     >
       <NavbarSection scrollTo={scrollTo} setDemoOpen={setDemoOpen} />
 
-      {/* Reduced max height and added max-width constraint */}
-      <section className="relative w-full min-h-[60vh] lg:min-h-[800px] overflow-hidden flex items-center pt-16 lg:pt-0">
+      {/* Reduced height from min-h-[800px] to min-h-[600px] */}
+      <section className="relative w-full min-h-[50vh] lg:min-h-[600px] overflow-hidden flex items-center pt-16 lg:pt-0">
         
         {/* ====================================================================================
-             UPDATED BACKGROUND SECTION (Matching Pricing Page Logic but with NAVY Theme)
+             UPDATED BACKGROUND SECTION - Clearer background
            ==================================================================================== */}
         <div className="absolute inset-0 z-0 w-full h-full">
             {/* 1. The Image */}
@@ -52,16 +52,8 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
                   transparent 100%)`
               }}
             />
-
-            {/* 3. Vertical Gradient: Fades top/bottom edges slightly for polish */}
-            <div 
-              className="absolute inset-0 z-10 pointer-events-none"
-              style={{
-                 background: `linear-gradient(to bottom, ${THEME.NAVY_BG} 0%, transparent 20%, transparent 80%, ${THEME.NAVY_BG} 100%)`
-              }}
-            />
             
-            {/* 4. Mobile Only: Darker overlay to ensure text is readable on small screens */}
+            {/* 3. Mobile Only: Darker overlay to ensure text is readable on small screens */}
             <div className="absolute inset-0 bg-[#000B29]/60 sm:hidden z-10" />
         </div>
 
@@ -82,13 +74,8 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
                       <span className="block font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl uppercase tracking-tighter text-white mb-0.5">
                           GENERATE ACCURATE QUOTES
                       </span>
-                      <span 
-                        className="block font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl uppercase tracking-tighter"
-                        style={{
-                            WebkitTextStroke: `${THEME.TEXT_STROKE_WIDTH} ${THEME.TEXT_STROKE_COLOR}`,
-                            color: "transparent" 
-                        }}
-                      >
+                      {/* Changed: "IN MINUTES" now has same style/color as above */}
+                      <span className="block font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl uppercase tracking-tighter text-white">
                           IN MINUTES.
                       </span>
                     </h1>

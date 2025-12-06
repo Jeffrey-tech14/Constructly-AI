@@ -2,14 +2,14 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Target,       // General Contractors
-  FileText,     // Quantity Surveyors
-  HardHat,      // Subcontractors
-  Home,         // Home Builders
-  ChevronRight,
-  Brain,        // AI Estimators
-  BarChart3,    // Construction Managers
-  ArrowRight
+    Target,       // General Contractors
+    FileText,     // Quantity Surveyors
+    HardHat,      // Subcontractors
+    Home,         // Home Builders
+    ChevronRight,
+    Brain,        // AI Estimators
+    BarChart3,    // Construction Managers
+    ArrowRight
 } from "lucide-react";
 
 export default function JTechAISection() {
@@ -19,7 +19,7 @@ export default function JTechAISection() {
         {
             icon: <Target className="text-white h-7 w-7" />,
             title: "General Contractors",
-            description: "Manage multiple bids and projects efficiently. Verify subcontractor estimates and generate quick budget checks for owners.",
+            description: "Manage bids and verify estimates in one place—no spreadsheets, no guesswork.",
             cta: "FOR GCs",
             gradient: "from-[#1e40af] to-[#3b82f6]",
             shadow: "shadow-blue-500/30",
@@ -29,7 +29,7 @@ export default function JTechAISection() {
         {
             icon: <FileText className="text-white h-7 w-7" />,
             title: "Quantity Surveyors",
-            description: "Automate the repetitive parts of your takeoff process. Focus your expertise on complex analysis and value engineering.",
+            description: "Automate takeoffs. Focus on high-value analysis—not manual counts.",
             cta: "FOR QS",
             gradient: "from-[#7e22ce] to-[#d946ef]",
             shadow: "shadow-purple-500/30",
@@ -39,7 +39,7 @@ export default function JTechAISection() {
         {
             icon: <HardHat className="text-white h-7 w-7" />,
             title: "Subcontractors",
-            description: "Turn around competitive bids faster. Reduce late nights spent measuring plans and increase your bid-hit ratio.",
+            description: "Bid faster, win more. Cut takeoff time by 70%.",
             cta: "FOR TRADES",
             gradient: "from-[#0284c7] to-[#38bdf8]",
             shadow: "shadow-sky-500/30",
@@ -49,7 +49,7 @@ export default function JTechAISection() {
         {
             icon: <Brain className="text-white h-7 w-7" />,
             title: "AI Estimators",
-            description: "Enhance accuracy and reduce human error. Use AI as a second set of eyes to verify measurements and calculations.",
+            description: "Catch costly errors before they happen. AI double-checks every number.",
             cta: "FOR ESTIMATORS",
             gradient: "from-[#475569] to-[#94a3b8]",
             shadow: "shadow-slate-500/30",
@@ -59,7 +59,7 @@ export default function JTechAISection() {
         {
             icon: <BarChart3 className="text-white h-7 w-7" />,
             title: "Construction Managers",
-            description: "Keep projects on budget with real-time cost monitoring. Validate change orders against original plan data instantly.",
+            description: "Track costs in real time. Approve change orders with confidence.",
             cta: "FOR MANAGERS",
             gradient: "from-[#0d9488] to-[#2dd4bf]",
             shadow: "shadow-teal-500/30",
@@ -69,7 +69,7 @@ export default function JTechAISection() {
         {
             icon: <Home className="text-white h-7 w-7" />,
             title: "Home Builders",
-            description: "Create detailed material lists for residential projects. Show clients professional, transparent cost breakdowns.",
+            description: "Turn plans into precise material lists—and trustworthy client quotes.",
             cta: "FOR BUILDERS",
             gradient: "from-[#ea580c] to-[#fb923c]",
             shadow: "shadow-orange-500/30",
@@ -79,13 +79,13 @@ export default function JTechAISection() {
     ];
 
     return (
-        <div 
-          id="who-its-for"
-          className="font-sans text-[#333333] bg-[#F0F7FA] antialiased"
+        <div
+            id="who-its-for"
+            className="font-sans text-[#333333] bg-[#F0F7FA] antialiased"
         >
-            
+
             {/* BASICS TO MASTERY */}
-            <section 
+            <section
                 className="bg-[#F0F7FA] py-24 border-b border-[#E1EBF2]"
             >
                 <div className="max-w-[1240px] mx-auto px-6">
@@ -94,13 +94,12 @@ export default function JTechAISection() {
                             <div className="bg-[#0a1e42] relative w-full aspect-[4/3] flex items-end justify-center overflow-hidden shadow-lg">
                                 <div className="absolute inset-0 bg-gradient-to-tr from-[#000] to-transparent opacity-20" />
                                 <div className="absolute top-0 right-0 w-[80%] h-full bg-[#112d5c] -skew-x-12 translate-x-10" />
-                                
-                                {/* ✅ FIXED: Changed img to video tag for correct playback */}
-                                <video 
+
+                                <video
                                     className="relative z-10 h-[90%] w-full object-cover object-top"
-                                    autoPlay 
-                                    loop 
-                                    muted 
+                                    autoPlay
+                                    loop
+                                    muted
                                     playsInline
                                 >
                                     <source src="/Demo1.mp4" type="video/mp4" />
@@ -117,11 +116,11 @@ export default function JTechAISection() {
                             <h2 className="text-[30px] font-bold text-[#333] mb-6">
                                 From Basics to Mastery
                             </h2>
-                            <p className="text-[15px] text-[#555] leading-relaxed mb-6">
-                                Progress from the basics to advanced AI techniques with our comprehensive learning resources.
+                            <p className="text-[15px] text-[#555] leading-relaxed mb-4">
+                                Learn AI estimation your way—start simple, scale fast.
                             </p>
                             <p className="text-[15px] text-[#555] leading-relaxed">
-                                Whether you're just starting out with AI estimation or aiming to master complex automation concepts, our structured approach ensures continuous growth and expertise.
+                                Guided resources grow with you, from first bid to full automation.
                             </p>
                         </div>
                     </div>
@@ -129,16 +128,16 @@ export default function JTechAISection() {
             </section>
 
             {/* CARD GRID */}
-            <section 
+            <section
                 className="bg-[#F0F7FA] py-24"
             >
                 <div className="max-w-[1240px] mx-auto px-6">
                     <div className="mb-12">
                         <h2 className="text-[30px] font-bold text-[#333] mb-4">
-                            Designed For Professionals
+                            Built for Your Role
                         </h2>
                         <p className="text-[15px] text-[#666] max-w-2xl leading-relaxed">
-                            Discover essential AI workflows tailored to your specific role to help you master the basics and get started quickly.
+                            AI workflows tailored to what you do—so you ship estimates, not spreadsheets.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -149,12 +148,12 @@ export default function JTechAISection() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
                                 viewport={{ once: true }}
-                                className="bg-white p-0 flex flex-col items-start h-full border border-gray-200 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow" 
+                                className="bg-white p-0 flex flex-col items-start h-full border border-gray-200 relative overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                             >
                                 <div className="flex w-full px-6 pt-6 pb-2 items-center relative">
-                                    <div 
+                                    <div
                                         className="absolute top-0 left-0 w-12 h-12 flex items-center justify-center"
-                                        style={{ backgroundColor: pro.borderColor }} 
+                                        style={{ backgroundColor: pro.borderColor }}
                                     >
                                         {pro.icon}
                                     </div>
@@ -167,15 +166,15 @@ export default function JTechAISection() {
                                 </p>
                                 {pro.imageUrl && (
                                     <div className="w-full mb-0 mt-2 px-6">
-                                        <img 
-                                            src={pro.imageUrl} 
-                                            alt={`Illustration for ${pro.title}`} 
-                                            className="w-full h-36 object-cover object-center border border-gray-200" 
+                                        <img
+                                            src={pro.imageUrl}
+                                            alt={`Illustration for ${pro.title}`}
+                                            className="w-full h-36 object-cover object-center border border-gray-200"
                                         />
                                     </div>
                                 )}
                                 <div className="w-full p-4 mt-4 bg-gray-50 border-t border-gray-200 flex items-center justify-start">
-                                    <button 
+                                    <button
                                         onClick={() => navigate("/auth?mode=signup")}
                                         className="text-[12px] font-bold uppercase tracking-[1.2px] transition-colors text-left text-[#1a73e8] hover:text-[#005bb5]"
                                     >
@@ -188,29 +187,37 @@ export default function JTechAISection() {
                 </div>
             </section>
 
-            {/* SUPPORT SECTION */}
-            <section className="bg-[#001226] py-24 text-white">
+            {/* SUPPORT SECTION - UPDATED LAYOUT */}
+            <section className="bg-[#001226] py-16 text-white">
                 <div className="max-w-[1240px] mx-auto px-6">
-                    <div className="flex flex-col lg:flex-row gap-16">
-                        <div className="lg:w-[45%]">
+                    {/* Added lg:flex-row-reverse to swap sides, and items-center for vertical centering */}
+                    <div className="flex flex-col lg:flex-row-reverse gap-10 lg:gap-16 items-center">
+                        
+                        {/* Text container - now on the right on large screens */}
+                        <div className="lg:w-1/2 flex flex-col justify-center">
                             <h2 className="text-[30px] font-bold mb-6">
-                                Gain More From J-Tech AI Support
+                                Support That Works
                             </h2>
                             <p className="text-[15px] text-gray-300 leading-relaxed mb-6">
-                                Unlock the full potential of your J-Tech AI experience by leveraging our comprehensive support services.
+                                Hit a snag? Our team helps you solve real problems—fast.
                             </p>
                             <p className="text-[15px] text-gray-300 leading-relaxed mb-10">
-                                Whether you're navigating complex AI estimations or exploring the advanced features of our platform, our support resources are designed to assist you every step of the way.
+                                Onboarding, estimation, automation—we’ve got your back.
                             </p>
-                            <button className="border border-white text-white hover:bg-white hover:text-[#001226] text-[11px] font-extrabold uppercase tracking-[1.5px] px-8 py-3.5 rounded-[3px] transition-all">
-                                Get Support
-                            </button>
+                            <div>
+                                <button className="border border-white text-white hover:bg-white hover:text-[#001226] text-[11px] font-extrabold uppercase tracking-[1.5px] px-8 py-3.5 rounded-[3px] transition-all">
+                                    Get Support
+                                </button>
+                            </div>
                         </div>
-                        <div className="lg:w-[55%] relative">
-                            <img 
-                                src="https://www.ituonline.com/wp-content/uploads/2024/01/IT-Technical-Support-Skills.jpg" 
-                                alt="Support" 
-                                className="w-full h-auto object-cover shadow-2xl"
+
+                        {/* Image container - now on the left on large screens */}
+                        <div className="lg:w-1/2 relative">
+                            <img
+                                src="https://www.ituonline.com/wp-content/uploads/2024/01/IT-Technical-Support-Skills.jpg"
+                                alt="Support"
+                                // Removed shadow-2xl for a flatter look like the reference
+                                className="w-full h-auto object-cover"
                             />
                         </div>
                     </div>

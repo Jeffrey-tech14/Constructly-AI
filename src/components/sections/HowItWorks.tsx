@@ -1,221 +1,146 @@
 // src/components/sections/HowItWorks.tsx
 import React from "react";
 import { motion } from "framer-motion";
-import {
-    UploadCloud,
-    BarChart3,
-    Calculator,
-    FileText,
-    ArrowRight,
-} from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 
 // --- GLOBAL STYLES ---
 const GlobalStyles = () => (
     <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         .font-inter { font-family: 'Inter', sans-serif; }
     `}</style>
 );
 
-// --- TYPESCRIPT INTERFACE for Type Safety ---
+// --- TYPESCRIPT INTERFACE ---
 interface Step {
     id: string;
-    icon: React.ReactNode;
+    iconUrl: string;
     title: string;
     desc: string;
-    baseColor: string;
-    topColor: string;
 }
 
 export default function HowItWorks() {
     const steps: Step[] = [
         {
             id: "01",
-            icon: <UploadCloud className="h-8 w-8 text-white" />,
-            title: "UPLOAD PLANS",
-            desc: "Upload your construction plans in various formats including DWG, PDF, and image files to automatically begin the extraction process.",
-            baseColor: "#57d3b0",
-            topColor: "#32c091",
+            // FIXED: Upload Icon (Cloud with Arrow)
+            iconUrl: "https://img.icons8.com/color/96/upload--v1.png",
+            title: "Upload Plans",
+            desc: "Drag & drop PDF, DWG, or image files to initialize the extraction engine.",
         },
         {
             id: "02",
-            icon: <BarChart3 className="h-8 w-8 text-white" />,
-            title: "AI ANALYSIS",
-            desc: "Our advanced AI algorithms analyze materials, dimensions, and structural requirements with 99.9% precision.",
-            baseColor: "#38a2e7",
-            topColor: "#007bff",
+            // Analysis Icon (Charts/Data)
+            iconUrl: "https://img.icons8.com/color/96/bullish.png",
+            title: "AI Analysis",
+            desc: "Algorithms scan geometry and text to identify materials and dimensions.",
         },
         {
             id: "03",
-            icon: <Calculator className="h-8 w-8 text-white" />,
-            title: "AUTOMATED CALCULATIONS",
-            desc: "Get precise quantity takeoffs and engineering cost estimates with detailed breakdowns generated instantly in the cloud.",
-            baseColor: "#1a73e8",
-            topColor: "#0f5ac9",
+            // Calculator Icon
+            iconUrl: "https://img.icons8.com/color/96/calculator--v1.png",
+            title: "Auto-Calc",
+            desc: "System computes exact quantities and applies current unit rates.",
         },
         {
             id: "04",
-            icon: <FileText className="h-8 w-8 text-white" />,
-            title: "GENERATE QUOTES",
-            desc: "Create professional, branded quotes ready to send to clients immediately. Export to PDF, Excel, or integrate via API.",
-            baseColor: "#0c43a3",
-            topColor: "#07327a",
+            // FIXED: Export Icon (PDF File)
+            iconUrl: "https://img.icons8.com/color/96/export-pdf.png",
+            title: "Export Quote",
+            desc: "Generate a branded, client-ready PDF or export raw data to Excel.",
         }
     ];
-
-    // FIXED: renamed from itemVariants to variants (common pattern) + ensured no underline error
-    const variants = {
-        hidden: { opacity: 0, y: 50 },
-        visible: (i: number) => ({
-            opacity: 1,
-            y: 0,
-            transition: {
-                delay: i * 0.15 + 0.3,
-                duration: 0.6,
-                ease: "easeOut",
-            },
-        }),
-    };
 
     return (
         <>
         <GlobalStyles />
         <section 
             id="how-it-works" 
-            className="bg-[#F0F7FA] font-inter text-[#1a1a1a] py-24 overflow-hidden"
+            className="bg-white font-inter text-[#1a1a1a] py-24 overflow-hidden border-b border-gray-100"
         >
-            <div className="max-w-[1240px] mx-auto px-6">
+            <div className="max-w-5xl mx-auto px-6">
                 
                 {/* --- SECTION HEADING --- */}
                 <div className="mb-20 text-center">
-                    <h2 className="text-4xl font-extrabold text-[#001021] mb-4">
-                        J-Tech AI Workflow: Automated Estimation
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-50 border border-blue-100 text-[#005F9E] text-[10px] font-bold uppercase tracking-widest mb-4">
+                        <ArrowRight className="w-3 h-3" />
+                        <span>Process Workflow</span>
+                    </div>
+
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-[#001021] mb-6 tracking-tight">
+                        Automated Estimation Pipeline
                     </h2>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        Effortlessly transform your construction plans into precise cost estimates and client-ready quotes with our intelligent 4-step process.
+                    <p className="text-sm text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                        Transform raw construction plans into precise, client-ready quotes in four automated stages.
                     </p>
                 </div>
 
-                {/* --- WORKFLOW GRID & SVG LINES --- */}
-                <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-0 gap-y-24 md:gap-y-40">
+                {/* --- PROCESS GRID --- */}
+                <div className="relative">
+                    
+                    {/* Connecting Line (Desktop) */}
+                    <div className="hidden md:block absolute top-12 left-0 w-full h-px bg-gray-200 z-0"></div>
 
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 hidden lg:block" viewBox="0 0 1240 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-                        {steps.map((step, i) => {
-                            if (i < steps.length - 1) {
-                                const isEven = i % 2 === 0;
-                                const x1 = 155 + i * 310;
-                                const y1 = isEven ? 200 : 380;
-                                const x2 = 155 + (i + 1) * 310;
-                                const y2 = isEven ? 380 : 200;
-
-                                return (
-                                    <motion.path
-                                        key={`line-${i}`}
-                                        d={`M ${x1} ${y1} C ${x1 + 100} ${y1}, ${x2 - 100} ${y2}, ${x2} ${y2}`}
-                                        stroke={`url(#lineGradient${i})`}
-                                        strokeWidth="4"
-                                        strokeLinecap="round"
-                                        fill="none"
-                                        initial={{ pathLength: 0, opacity: 0 }}
-                                        whileInView={{
-                                            pathLength: 1,
-                                            opacity: 1,
-                                            transition: {
-                                                delay: i * 0.15 + 0.8,
-                                                duration: 0.9,
-                                                ease: "easeInOut",
-                                            },
-                                        }}
-                                        viewport={{ once: true, amount: 0.5 }}
-                                    />
-                                );
-                            }
-                            return null;
-                        })}
-
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-6 relative z-10">
                         {steps.map((step, i) => (
-                            <defs key={`def-${i}`}>
-                                <linearGradient id={`lineGradient${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor={step.baseColor} />
-                                    <stop offset="100%" stopColor={steps[i + 1]?.baseColor || step.baseColor} />
-                                </linearGradient>
-                            </defs>
+                            <motion.div
+                                key={step.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.15, duration: 0.5 }}
+                                className="group relative flex flex-col items-center text-center md:items-start md:text-left"
+                            >
+                                {/* ICON CONTAINER */}
+                                <div className="relative mb-6">
+                                    <div className="w-24 h-24 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center group-hover:border-[#005F9E] group-hover:shadow-md transition-all duration-300 relative z-10">
+                                        
+                                        {/* ICON IMAGE */}
+                                        <div className="w-14 h-14 relative flex items-center justify-center">
+                                            <img 
+                                                src={step.iconUrl} 
+                                                alt={step.title}
+                                                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                                            />
+                                        </div>
+                                        
+                                        {/* Step Number Badge */}
+                                        <div className="absolute -top-3 -right-3 bg-[#001021] text-white text-[10px] font-bold px-2 py-1 rounded-[2px] shadow-sm z-20">
+                                            STEP {step.id}
+                                        </div>
+                                    </div>
+
+                                    {/* Arrow Connector (Mobile Only) */}
+                                    {i < steps.length - 1 && (
+                                        <div className="md:hidden absolute -bottom-10 left-1/2 -translate-x-1/2 text-gray-300">
+                                            <ChevronRight className="w-6 h-6 rotate-90" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* TEXT CONTENT */}
+                                <div className="px-2 md:px-0">
+                                    <h3 className="text-lg font-bold text-[#001021] mb-2 group-hover:text-[#005F9E] transition-colors">
+                                        {step.title}
+                                    </h3>
+                                    <p className="text-xs text-gray-500 leading-relaxed font-medium">
+                                        {step.desc}
+                                    </p>
+                                </div>
+
+                                {/* PROGRESS INDICATOR (Desktop Line Active State) */}
+                                <motion.div 
+                                    className="hidden md:block absolute top-12 left-24 w-[calc(100%+1.5rem)] h-[2px] bg-[#005F9E] origin-left z-0"
+                                    initial={{ scaleX: 0 }}
+                                    whileInView={{ scaleX: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.15 + 0.5, duration: 0.5 }}
+                                    style={{ display: i === steps.length - 1 ? 'none' : 'block' }}
+                                />
+                            </motion.div>
                         ))}
-                    </svg>
-
-                    {steps.map((step, i) => (
-                        <motion.div
-                            key={i}
-                            custom={i}
-                            variants={variants}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, amount: 0.7 }}
-                            className={`flex flex-col items-center justify-start text-center relative z-20 ${
-                                i % 4 === 1 || i % 4 === 3 ? "lg:mt-36" : "lg:mt-0" 
-                            }`}
-                        >
-
-                            <div className="mb-4 md:mb-8 max-w-[240px] text-center px-4 md:px-0 lg:hidden">
-                                <h3 className="text-sm font-bold text-[#001021] uppercase tracking-wide mb-1">
-                                    {step.title}
-                                </h3>
-                                <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                                    {step.desc}
-                                </p>
-                            </div>
-
-                            {i % 2 !== 0 && (
-                                <div className="hidden lg:block mb-8 max-w-[200px] text-center px-4 md:px-0">
-                                    <h3 className="text-sm font-bold text-[#001021] uppercase tracking-wide mb-1">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                                        {step.desc}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="relative w-24 h-24 flex items-center justify-center">
-                                <div
-                                    className="absolute w-24 h-24 rounded-full flex items-center justify-center border-4 border-white shadow-xl"
-                                    style={{
-                                        background: `linear-gradient(to bottom, ${step.topColor}, ${step.baseColor})`,
-                                        filter: `drop-shadow(0px 6px 10px ${step.baseColor}50)`
-                                    }}
-                                >
-                                    {step.icon}
-                                </div>
-
-                                <span
-                                    className="absolute w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white z-30"
-                                    style={{
-                                        backgroundColor: step.baseColor,
-                                        top: "calc(50% - 12px)",
-                                        left: "calc(50% - 60px)",
-                                        boxShadow: `0 2px 4px ${step.baseColor}70`
-                                    }}
-                                >
-                                    {step.id}
-                                </span>
-                            </div>
-
-                            {i % 2 === 0 && (
-                                <div className="hidden lg:block mt-8 max-w-[200px] text-center px-4 md:px-0">
-                                    <h3 className="text-sm font-bold text-[#001021] uppercase tracking-wide mb-1">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-xs text-gray-600 leading-relaxed font-medium">
-                                        {step.desc}
-                                    </p>
-                                </div>
-                            )}
-
-                        </motion.div>
-                    ))}
+                    </div>
                 </div>
-
-                {/* CTA REMOVED */}
 
             </div>
         </section>

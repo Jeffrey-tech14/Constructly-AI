@@ -27,22 +27,22 @@ const GlobalStyles = () => (
 
 // --- THEME COLORS ---
 const THEME = {
-  headerBackground: "#001021", // Dark Navy
-  brandBlue: "#005F9E",        // Engineering Blue
-  bgLight: "#F5F7FA",          // Light Grey
+  headerBackground: "#001021",
+  brandBlue: "#005F9E",
+  bgLight: "#F5F7FA",
   textDark: "#1a1a1a",
 };
 
 // --- MOCK DATA ---
 const faqCategories = [
   { name: "General", checked: true },
-  { name: "Account & Signup", checked: false },
-  { name: "Plan Upload", checked: false },
+  { name: "Account", checked: false },
+  { name: "Upload", checked: false },
   { name: "AI Takeoff", checked: false },
-  { name: "Cost Estimation", checked: false },
-  { name: "Pricing & Plans", checked: false },
-  { name: "For Quantity Surveyors", checked: false },
-  { name: "File Formats", checked: false },
+  { name: "Estimation", checked: false },
+  { name: "Pricing", checked: false },
+  { name: "QS", checked: false },
+  { name: "Files", checked: false },
   { name: "Security", checked: false },
   { name: "Billing", checked: false },
 ];
@@ -51,41 +51,40 @@ const mockFaqResults = [
   {
     id: "JT001",
     icon: Target,
-    tags: ["AI Takeoff", "Accuracy"],
-    title: "How accurate is J-Tech AI’s quantity takeoff?",
-    question: "What level of precision can I expect from automated measurements?",
-    answer: "J-Tech AI delivers **99.9% measurement accuracy** on clear, scaled plans (PDF, DWG, or high-res images). Our AI cross-validates dimensions using structural logic and industry standards. For complex projects, users can review and adjust any item before finalizing.",
-    historyText: "How does J-Tech AI verify its results?",
-    historyAnswer: "J-Tech AI uses a dual-validation system: 1) geometric consistency checks, and 2) material logic rules (e.g., 'concrete slabs must span between beams'). You always retain final control."
+    tags: ["AI", "Accuracy"],
+    title: "How accurate is J-Tech AI?",
+    question: "Precision level of automated measurements?",
+    answer: "**99.9% accuracy** on clear, scaled plans. AI cross-validates with structural logic. Review & adjust before finalizing.",
+    historyText: "How does J-Tech verify results?",
+    historyAnswer: "Dual-validation: geometric checks + material logic rules. You retain final control."
   },
   {
     id: "JT002",
     icon: FileCode,
-    tags: ["Plan Upload", "File Formats"],
-    title: "What file types does J-Tech AI support?",
-    question: "Can I upload scanned PDFs or hand-drawn plans?",
-    answer: "Yes! J-Tech AI supports **PDF, DWG, DXF, JPG, PNG**, and even scanned or hand-drawn plans. For best results, ensure your plans include a scale reference (e.g., a dimension line or known room size). Our AI will auto-detect scale where possible.",
-    historyText: "Tips for best upload results",
-    historyAnswer: "Ensure plans are high contrast and not rotated. J-Tech AI includes a built-in rotation and crop tool to help you prepare your files before analysis."
+    tags: ["Upload", "Files"],
+    title: "Supported file types?",
+    question: "Scanned PDFs or hand-drawn plans?",
+    answer: "**PDF, DWG, DXF, JPG, PNG**, including scanned/hand-drawn. Include scale reference for best results.",
+    historyText: "Upload tips",
+    historyAnswer: "High contrast, properly oriented. Built-in rotation & crop tools available."
   },
   {
     id: "JT003",
     icon: ShieldCheck,
     tags: ["Security", "Data"],
-    title: "Is my project data secure?",
-    question: "Where is my data stored and who has access?",
-    answer: "Your data is encrypted using AES-256 standards and stored on secure AWS servers. We strictly adhere to GDPR compliance. Only you and authorized team members within your organization can access your project files.",
-    historyText: "Do you train AI on my private plans?",
-    historyAnswer: "We do not use your proprietary project data to train our public models without your explicit consent. Your intellectual property remains yours."
+    title: "Is my data secure?",
+    question: "Storage & access controls?",
+    answer: "**AES-256 encryption** on AWS. GDPR compliant. Only you & authorized team members.",
+    historyText: "AI training on my plans?",
+    historyAnswer: "Never without explicit consent. Your IP remains yours."
   },
 ];
 
 // --- COMPONENTS ---
 
-// 1. The "Video Card" visual for the hero section
 const VideoCardMockup = ({ opacity = 1, scale = 1, offset = 0 }) => (
   <div 
-    className="absolute top-1/2 -translate-y-1/2 w-[280px] h-[160px] rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm overflow-hidden flex flex-col justify-between shadow-2xl"
+    className="absolute top-1/2 -translate-y-1/2 w-[240px] h-[140px] rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm overflow-hidden flex flex-col justify-between shadow-xl"
     style={{ 
       right: `${offset}px`, 
       opacity: opacity, 
@@ -93,24 +92,20 @@ const VideoCardMockup = ({ opacity = 1, scale = 1, offset = 0 }) => (
       zIndex: Math.floor(opacity * 10)
     }}
   >
-    {/* Glass Reflection */}
     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent"></div>
     
-    {/* Play Button */}
     <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-12 h-12 rounded-full border-2 border-white/50 flex items-center justify-center bg-black/20 backdrop-blur-md">
-        <Play className="w-5 h-5 text-white fill-current ml-1" />
+      <div className="w-10 h-10 rounded-full border-2 border-white/50 flex items-center justify-center bg-black/20 backdrop-blur-md">
+        <Play className="w-4 h-4 text-white fill-current ml-0.5" />
       </div>
     </div>
 
-    {/* Footer / Progress Bar */}
-    <div className="mt-auto p-3">
+    <div className="mt-auto p-2.5">
        <div className="flex justify-between items-center mb-1 px-1">
          <div className="h-1 w-1 bg-red-500 rounded-full"></div>
          <div className="h-1 w-1 bg-white/30 rounded-full"></div>
        </div>
-       {/* Red Progress Line */}
-       <div className="w-full h-[2px] bg-white/20 rounded-full overflow-hidden">
+       <div className="w-full h-[1.5px] bg-white/20 rounded-full overflow-hidden">
           <div className="h-full bg-red-600 w-[70%]"></div>
        </div>
     </div>
@@ -118,23 +113,23 @@ const VideoCardMockup = ({ opacity = 1, scale = 1, offset = 0 }) => (
 );
 
 const CategorySidebar = () => (
-  <aside className="w-full max-w-[280px] hidden md:block flex-shrink-0">
+  <aside className="w-full max-w-[220px] hidden md:block flex-shrink-0">
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6 sticky top-24">
-      <div className="p-4 bg-[#F5F7FA] border-b border-gray-200 flex justify-between items-center">
-        <span className="text-sm font-bold text-[#001021] uppercase tracking-wider">
+      <div className="p-3.5 bg-[#F5F7FA] border-b border-gray-200 flex justify-between items-center">
+        <span className="text-xs font-bold text-[#001021] uppercase tracking-wider">
           Categories
         </span>
-        <ChevronUp className="w-4 h-4 text-gray-500" />
+        <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
       </div>
-      <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
+      <div className="p-3.5 space-y-2.5 max-h-[500px] overflow-y-auto custom-scrollbar">
         {faqCategories.map((category, index) => (
           <label key={index} className="flex items-center text-sm text-gray-600 hover:text-[#005F9E] cursor-pointer transition-colors group">
             <input
               type="checkbox"
-              className="h-4 w-4 text-[#005F9E] border-gray-300 rounded focus:ring-[#005F9E] mr-3 cursor-pointer"
+              className="h-3.5 w-3.5 text-[#005F9E] border-gray-300 rounded focus:ring-[#005F9E] mr-2.5 cursor-pointer"
               defaultChecked={category.checked}
             />
-            <span className="group-hover:translate-x-1 transition-transform duration-200">
+            <span className="group-hover:translate-x-0.5 transition-transform duration-200 text-sm">
               {category.name}
             </span>
           </label>
@@ -151,47 +146,47 @@ const FaqItem = ({ faq, index }) => {
 
   return (
     <motion.div
-      className="flex flex-col md:flex-row gap-6 mb-8"
+      className="flex flex-col md:flex-row gap-5 mb-6"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <div className="hidden md:flex flex-col items-center pt-2 w-12 flex-shrink-0">
-         <div className="w-12 h-12 rounded-full bg-[#F5F7FA] flex items-center justify-center border border-gray-200 text-[#005F9E] shadow-sm">
-            <IconComponent className="w-6 h-6" />
+      <div className="hidden md:flex flex-col items-center pt-1.5 w-10 flex-shrink-0">
+         <div className="w-10 h-10 rounded-full bg-[#F5F7FA] flex items-center justify-center border border-gray-200 text-[#005F9E] shadow-sm">
+            <IconComponent className="w-5 h-5" />
          </div>
-         <div className="h-full w-px bg-gray-200 mt-4 border-l border-dashed border-gray-300"></div>
+         <div className="h-full w-px bg-gray-200 mt-3 border-l border-dashed border-gray-300"></div>
       </div>
 
-      <div className="flex-grow bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-        <div className="p-6 md:p-8">
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="text-gray-400 text-[10px] font-mono border border-gray-100 px-2 py-0.5 rounded">
+      <div className="flex-grow bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-shadow overflow-hidden">
+        <div className="p-5 md:p-6">
+          <div className="flex flex-wrap items-center gap-1.5 mb-3">
+            <span className="text-gray-400 text-[9px] font-mono border border-gray-100 px-1.5 py-0.5 rounded">
               {faq.id}
             </span>
             {faq.tags.map((tag) => (
-              <span key={tag} className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#005F9E]">
+              <span key={tag} className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-[#005F9E]">
                 {tag}
               </span>
             ))}
           </div>
 
-          <h3 className="text-xl font-bold text-[#001021] mb-6">
+          <h3 className="text-lg font-bold text-[#001021] mb-4">
             {faq.title}
           </h3>
 
-          <div className="border border-gray-200 rounded-lg overflow-hidden mb-3">
+          <div className="border border-gray-200 rounded-lg overflow-hidden mb-2">
             <div 
               onClick={() => setIsOpenMain(!isOpenMain)}
-              className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${isOpenMain ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
+              className={`flex items-center justify-between p-3.5 cursor-pointer transition-colors ${isOpenMain ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <span className={`font-semibold text-sm ${isOpenMain ? 'text-[#005F9E]' : 'text-gray-700'}`}>
                   {faq.question}
                 </span>
               </div>
-              {isOpenMain ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+              {isOpenMain ? <ChevronUp className="w-3.5 h-3.5 text-gray-500" /> : <ChevronDown className="w-3.5 h-3.5 text-gray-500" />}
             </div>
             <AnimatePresence>
               {isOpenMain && (
@@ -201,7 +196,7 @@ const FaqItem = ({ faq, index }) => {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 pt-0 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 leading-relaxed">
+                  <div className="p-3.5 pt-0 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 leading-relaxed">
                      <p dangerouslySetInnerHTML={{ __html: faq.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                   </div>
                 </motion.div>
@@ -213,14 +208,14 @@ const FaqItem = ({ faq, index }) => {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div 
                 onClick={() => setIsOpenSub(!isOpenSub)}
-                className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${isOpenSub ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
+                className={`flex items-center justify-between p-3.5 cursor-pointer transition-colors ${isOpenSub ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
               >
-                 <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-2">
                     <span className={`font-semibold text-sm ${isOpenSub ? 'text-[#005F9E]' : 'text-gray-700'}`}>
                       {faq.historyText}
                     </span>
                  </div>
-                 {isOpenSub ? <Minus className="w-4 h-4 text-gray-400" /> : <Plus className="w-4 h-4 text-gray-400" />}
+                 {isOpenSub ? <Minus className="w-3.5 h-3.5 text-gray-400" /> : <Plus className="w-3.5 h-3.5 text-gray-400" />}
               </div>
               <AnimatePresence>
                 {isOpenSub && (
@@ -230,7 +225,7 @@ const FaqItem = ({ faq, index }) => {
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="p-4 pt-0 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 leading-relaxed">
+                    <div className="p-3.5 pt-0 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 leading-relaxed">
                       <p dangerouslySetInnerHTML={{ __html: faq.historyAnswer?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                     </div>
                   </motion.div>
@@ -251,23 +246,19 @@ const FaqSection = () => {
       <GlobalStyles />
       <div id="faq" className="w-full font-inter bg-white min-h-screen">
         
-        {/* ========================================
-            HERO SECTION (Replicating the Reference Image)
-           ======================================== */}
+        {/* HERO SECTION */}
         <div
-          className="w-full relative overflow-hidden h-[450px]"
+          className="w-full relative overflow-hidden h-[400px]"
           style={{ backgroundColor: THEME.headerBackground }}
         >
-          {/* Subtle Background Glow/Gradient */}
           <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-blue-900/20 to-transparent pointer-events-none"></div>
 
-          <div className="max-w-[1340px] mx-auto px-6 h-full flex items-center relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-12 items-center">
+          <div className="max-w-[1200px] mx-auto px-5 h-full flex items-center relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-10 items-center">
               
-              {/* LEFT COLUMN: Text & Search */}
-              <div className="w-full max-w-xl">
+              <div className="w-full max-w-md">
                 <motion.h1
-                  className="text-4xl lg:text-5xl font-extrabold text-white mb-6"
+                  className="text-3xl lg:text-4xl font-extrabold text-white mb-4"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
@@ -275,31 +266,28 @@ const FaqSection = () => {
                   J-Tech AI FAQs
                 </motion.h1>
 
-                <p className="text-gray-300 text-base leading-relaxed mb-8 pr-8">
-                  Training is not necessarily structured differently than face-to-face seminars. Here, communication between the AI assistant and you as a participant takes place instantly. All you need is a reliable internet connection.
+                <p className="text-gray-300 text-sm leading-relaxed mb-6 pr-6">
+                  Instant communication between AI assistant & participants. Reliable internet required.
                 </p>
 
-                {/* EXACT STYLE SEARCH BAR */}
-                <div className="flex bg-white rounded-sm overflow-hidden h-14 w-full max-w-lg shadow-xl">
-                  <div className="flex-1 flex items-center px-4">
+                <div className="flex bg-white rounded-sm overflow-hidden h-12 w-full max-w-md shadow-lg">
+                  <div className="flex-1 flex items-center px-3.5">
                     <input
                       type="text"
-                      placeholder="Search in J-Tech AI FAQs"
-                      className="w-full text-base text-gray-700 placeholder-gray-400 focus:outline-none bg-transparent font-medium"
+                      placeholder="Search FAQs"
+                      className="w-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none bg-transparent font-medium"
                     />
                   </div>
                   <button
-                    className="h-full px-8 font-bold text-white text-sm uppercase tracking-wide transition-colors hover:bg-opacity-90"
-                    style={{ backgroundColor: THEME.headerBackground }} // Dark Navy Button
+                    className="h-full px-6 font-bold text-white text-xs uppercase tracking-wide transition-colors hover:bg-opacity-90"
+                    style={{ backgroundColor: THEME.headerBackground }}
                   >
                     Search
                   </button>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: VIDEO REPLACEMENT */}
-              <div className="hidden lg:block relative h-64 w-full rounded-lg overflow-hidden shadow-2xl">
-                {/* VIDEO ELEMENT */}
+              <div className="hidden lg:block relative h-56 w-full rounded-lg overflow-hidden shadow-xl">
                 <video
                   autoPlay
                   loop
@@ -308,10 +296,7 @@ const FaqSection = () => {
                   className="w-full h-full object-cover rounded-lg"
                 >
                   <source src="/demo.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
                 </video>
-                
-                {/* Optional Overlay to match the dark theme slightly if needed */}
                 <div className="absolute inset-0 bg-blue-900/10 mix-blend-overlay pointer-events-none rounded-lg"></div>
               </div>
 
@@ -319,19 +304,18 @@ const FaqSection = () => {
           </div>
         </div>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="max-w-[1250px] mx-auto flex py-16 px-6 gap-8 bg-white">
+        {/* MAIN CONTENT */}
+        <main className="max-w-[1100px] mx-auto flex py-12 px-5 gap-6 bg-white">
           <CategorySidebar />
           <div className="w-full md:flex-1"> 
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-600 mb-8 pb-4 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-600 mb-6 pb-3 border-b border-gray-100">
               <span className="font-semibold text-[#001021]">
-                Showing <span className="text-[#005F9E]">3</span> of 142 Results
+                Showing <span className="text-[#005F9E]">3</span> of 142
               </span>
-              <div className="flex items-center gap-4 mt-4 sm:mt-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500">Sort by:</span>
-                  <select className="bg-transparent font-semibold text-[#001021] focus:outline-none cursor-pointer">
+              <div className="flex items-center gap-3 mt-3 sm:mt-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-500">Sort:</span>
+                  <select className="bg-transparent font-semibold text-[#001021] focus:outline-none cursor-pointer text-sm">
                     <option>Relevance</option>
                     <option>Latest</option>
                     <option>Most Viewed</option>
@@ -339,16 +323,14 @@ const FaqSection = () => {
                 </div>
               </div>
             </div>
-            {/* Results List */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               {mockFaqResults.map((faq, index) => (
                 <FaqItem key={faq.id} faq={faq} index={index} />
               ))}
             </div>
-            {/* Load More */}
-            <div className="mt-12 text-center">
-               <button className="px-6 py-3 border border-gray-200 text-[#001021] font-bold text-xs uppercase tracking-widest rounded hover:border-[#001021] transition-colors">
-                  Load More Questions
+            <div className="mt-10 text-center">
+               <button className="px-5 py-2.5 border border-gray-200 text-[#001021] font-bold text-xs uppercase tracking-widest rounded hover:border-[#001021] transition-colors">
+                  Load More
                </button>
             </div>
           </div>

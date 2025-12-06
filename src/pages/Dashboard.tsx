@@ -1,3 +1,5 @@
+// src/pages/Dashboard.tsx
+
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
@@ -7,10 +9,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,20 +19,15 @@ import {
   FileText,
   Eye,
   BarChart,
-  Settings,
   Calendar as CalendarIcon,
   TrendingUp,
-  Users,
-  Star,
   Clock,
   CheckCircle,
-  Workflow,
-  PersonStanding,
-  PersonStandingIcon,
   LayoutDashboard,
   Zap,
   ChevronRight,
   Loader2,
+  Briefcase
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuotes } from "@/hooks/useQuotes";
@@ -40,26 +35,22 @@ import { useClientReviews } from "@/hooks/useClientReviews";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import Calculator from "@/components/Calculator";
 import Reports from "@/components/Reports";
-import CalendarComponent from "@/components/Calendar";
 import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Calendar from "@/components/Calendar";
 
-// 🔵 RISA Color Palette — aligned with JTechAISection
+// 🔵 RISA Design Tokens
 const RISA_BLUE = "#015B97";
-const RISA_DARK_BG = "#001226";
-const RISA_LIGHT_BG = "#F0F7FA"; // matches JTechAISection background
+const RISA_BG = "#F0F7FA";
+const RISA_TEXT_MAIN = "#333333";
+const RISA_TEXT_MUTED = "#666666";
 const RISA_BORDER = "#E1EBF2";
-const RISA_TEXT_DARK = "#333333";
-const RISA_TEXT_LIGHT = "#FFFFFF";
-const RISA_TEXT_GRAY = "#666666";
 
 const Dashboard = () => {
   const { profile, user } = useAuth();
   const { toast } = useToast();
   const { quotes, loading: quotesLoading } = useQuotes();
-  const { reviews, averageRating, totalReviews } = useClientReviews();
   const { events } = useCalendarEvents();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
@@ -78,9 +69,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchAndSet = async () => {
-      if (!hasLoadedOnce.current) {
-        // Logic unchanged
-      }
       await fetchDashboardData();
       if (!hasLoadedOnce.current) {
         hasLoadedOnce.current = true;
@@ -164,15 +152,16 @@ const Dashboard = () => {
   };
 
   const getStatusColor = (status: string) => {
-    const base = "text-xs px-2 py-1 rounded-full font-medium";
+    // Sleeker badges matching the JTech aesthetic
+    const base = "text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-[3px]";
     switch (status) {
-      case "draft": return `${base} bg-gray-100 text-gray-800`;
-      case "planning": return `${base} bg-purple-100 text-purple-800`;
-      case "started": return `${base} bg-blue-100 text-blue-800`;
-      case "in_progress": return `${base} bg-amber-100 text-amber-800`;
-      case "completed": return `${base} bg-green-100 text-green-800`;
-      case "on_hold": return `${base} bg-red-100 text-red-800`;
-      default: return `${base} bg-gray-100 text-gray-800`;
+      case "draft": return `${base} bg-gray-100 text-gray-600 border border-gray-200`;
+      case "planning": return `${base} bg-purple-50 text-purple-700 border border-purple-100`;
+      case "started": return `${base} bg-blue-50 text-blue-700 border border-blue-100`;
+      case "in_progress": return `${base} bg-amber-50 text-amber-700 border border-amber-100`;
+      case "completed": return `${base} bg-emerald-50 text-emerald-700 border border-emerald-100`;
+      case "on_hold": return `${base} bg-red-50 text-red-700 border border-red-100`;
+      default: return `${base} bg-gray-50 text-gray-600`;
     }
   };
 
@@ -189,227 +178,246 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F7FA]">
+    <div className="min-h-screen bg-[#F0F7FA] font-sans text-[#333]">
       <div className="max-w-[1240px] mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        
+        {/* Header Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12"
+        >
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h1 className="text-[24px] lg:text-[30px] font-bold text-[#333333] flex items-center gap-3">
-                <LayoutDashboard className="w-6 h-6 text-[#015B97]" />
-                Welcome back, {profile?.name}!
+              <div className="flex items-center gap-2 mb-2">
+                <span className="bg-blue-100 text-[#015B97] text-[10px] font-extrabold uppercase tracking-[1.2px] px-2 py-1 rounded">
+                   Dashboard
+                </span>
+              </div>
+              <h1 className="text-[32px] font-bold text-[#1a1a1a] tracking-tight">
+                Welcome back, {profile?.name}
               </h1>
-              <p className="text-[15px] text-[#666666] mt-2">
-                Here's what's happening with your construction business today.
+              <p className="text-[15px] text-[#666] mt-1 max-w-xl">
+                Track your projects, manage quotes, and schedule events from your command center.
               </p>
             </div>
+            
             <Button
               onClick={() => setShowCalculator(true)}
-              className="bg-[#015B97] hover:bg-[#014a7a] text-white text-[14px] font-bold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              className="bg-[#015B97] hover:bg-[#004a80] text-white text-[12px] font-extrabold uppercase tracking-[1.2px] px-6 py-5 rounded-[3px] shadow-lg shadow-blue-900/10 transition-all hover:translate-y-[-1px]"
             >
-              ⚡ Quick Calculator
+              <Zap className="w-4 h-4 mr-2" /> Quick Estimate
             </Button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {/* Stats Grid - Aligned with JTech Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {[
             {
-              title: "Total Quotes Value",
+              title: "Total Quote Value",
               value: `KSh ${formatCurrency(dashboardData.totalQuotesValue).toLocaleString()}`,
-              subtitle: `${dashboardData.allQuotes.length} quotes generated`,
-              icon: <DollarSign className="w-4 h-4 text-[#666666]" />,
+              subtitle: "Across all active bids",
+              icon: <DollarSign className="w-5 h-5 text-white" />,
+              bg: "bg-[#015B97]", // Brand Blue
+              border: "border-[#015B97]"
             },
             {
               title: "Active Projects",
               value: dashboardData.activeProjects.toString(),
               subtitle: `${dashboardData.pendingQuotes} pending approval`,
-              icon: <FileText className="w-4 h-4 text-[#666666]" />,
+              icon: <Briefcase className="w-5 h-5 text-white" />,
+              bg: "bg-[#0d9488]", // Teal (Construction Manager color)
+              border: "border-[#0d9488]"
             },
             {
-              title: "Completed Projects",
+              title: "Completed Jobs",
               value: dashboardData.completedProjects.toString(),
-              subtitle: "Projects finished",
-              icon: <CheckCircle className="w-4 h-4 text-[#666666]" />,
+              subtitle: "Successfully delivered",
+              icon: <CheckCircle className="w-5 h-5 text-white" />,
+              bg: "bg-[#7e22ce]", // Purple (QS color)
+              border: "border-[#7e22ce]"
             },
           ].map((stat, i) => (
-            <div
+            <motion.div
               key={i}
-              className="bg-white p-6 rounded-xl border border-[#E1EBF2] shadow-sm hover:shadow-md transition-shadow"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white p-6 rounded-[4px] border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group"
             >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[14px] font-medium text-[#666666]">{stat.title}</h3>
-                {stat.icon}
-              </div>
-              <p className="text-[20px] lg:text-[24px] font-bold text-[#333333]">{stat.value}</p>
-              <p className="text-[13px] text-[#888888] mt-1">{stat.subtitle}</p>
-            </div>
+                <div className="flex justify-between items-start mb-4">
+                    <div className={`p-3 rounded-[4px] shadow-md ${stat.bg}`}>
+                        {stat.icon}
+                    </div>
+                </div>
+                <div>
+                    <h3 className="text-[12px] font-bold text-[#888] uppercase tracking-[1px] mb-1">{stat.title}</h3>
+                    <p className="text-[28px] font-bold text-[#1a1a1a] mb-1">{stat.value}</p>
+                    <p className="text-[13px] text-[#666]">{stat.subtitle}</p>
+                </div>
+                {/* Decorative border bottom */}
+                <div className={`absolute bottom-0 left-0 h-1 w-full ${stat.bg} opacity-0 group-hover:opacity-100 transition-opacity`} />
+            </motion.div>
           ))}
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-          <TabsList className={`grid w-full mb-8 ${
-            profile.tier === "Free" ? "grid-cols-1" : 
-            profile.tier === "Professional" ? "grid-cols-3" : "grid-cols-2"
-          }`}>
-            <TabsTrigger
-              value="overview"
-              className="data-[state=active]:bg-[#015B97] data-[state=active]:text-white text-[#333333] py-2.5 text-[15px] font-medium rounded-lg"
-            >
-              <BarChart className="w-4 h-4 mr-2" /> Overview
-            </TabsTrigger>
-            {profile.tier === "Professional" && (
-              <TabsTrigger
-                value="reports"
-                className="data-[state=active]:bg-[#015B97] data-[state=active]:text-white text-[#333333] py-2.5 text-[15px] font-medium rounded-lg"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" /> Reports
-              </TabsTrigger>
-            )}
-            {profile.tier !== "Free" && (
-              <TabsTrigger
-                value="calendar"
-                className="data-[state=active]:bg-[#015B97] data-[state=active]:text-white text-[#333333] py-2.5 text-[15px] font-medium rounded-lg"
-              >
-                <CalendarIcon className="w-4 h-4 mr-2" /> Calendar
-              </TabsTrigger>
-            )}
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start bg-transparent p-0 border-b border-[#E1EBF2] rounded-none mb-8 h-auto space-x-6">
+            {[
+                { id: "overview", label: "Overview", icon: BarChart },
+                ...(profile.tier === "Professional" ? [{ id: "reports", label: "Reports", icon: TrendingUp }] : []),
+                ...(profile.tier !== "Free" ? [{ id: "calendar", label: "Calendar", icon: CalendarIcon }] : [])
+            ].map((tab) => (
+                <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="rounded-none border-b-2 border-transparent px-2 py-3 text-[14px] font-bold text-[#666] data-[state=active]:border-[#015B97] data-[state=active]:text-[#015B97] data-[state=active]:bg-transparent hover:text-[#015B97] transition-colors"
+                >
+                    <tab.icon className="w-4 h-4 mr-2" /> {tab.label}
+                </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Recent Quotes */}
-              <div className="lg:col-span-2">
-                <Card className="border border-[#E1EBF2] shadow-sm rounded-xl overflow-hidden">
-                  <CardHeader className="pb-4 border-b border-[#E1EBF2]">
-                    <CardTitle className="text-[18px] font-bold text-[#333333] flex items-center gap-2">
-                      <FileText className="w-5 h-5" /> Recent Quotes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5">
+          <TabsContent value="overview" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              {/* Recent Quotes Section */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-[20px] font-bold text-[#1a1a1a]">Recent Activity</h2>
+                    <Button variant="ghost" onClick={() => navigate("/quotes/all")} className="text-[#015B97] text-xs font-bold uppercase tracking-wider hover:bg-blue-50">
+                        View All
+                    </Button>
+                </div>
+                
+                <Card className="border border-gray-200 shadow-sm rounded-[4px] overflow-hidden bg-white">
+                  <CardContent className="p-0">
                     {dashboardData.recentQuotes.length > 0 ? (
-                      <div className="space-y-4">
+                      <div className="divide-y divide-gray-100">
                         {dashboardData.recentQuotes.map((quote) => (
                           <div
                             key={quote.id}
-                            className="flex items-center justify-between p-4 border border-[#E1EBF2] rounded-lg hover:shadow-sm transition-shadow"
+                            className="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors group cursor-pointer"
+                            onClick={() => navigate(`/quotes/${quote.id}`)} // Assuming detail view
                           >
-                            <div className="flex-1">
-                              <h3 className="font-bold text-[15px] text-[#333333]">{quote.title}</h3>
-                              <p className="text-[13px] text-[#666666] mt-1">
-                                {quote.client_name} • {quote.location}
-                              </p>
-                              <p className="text-[14px] font-bold text-[#333333] mt-1">
-                                KSh {formatCurrency(quote.total_amount).toLocaleString()}
-                              </p>
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-[#015B97] group-hover:bg-[#015B97] group-hover:text-white transition-colors">
+                                    <FileText className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-[15px] text-[#333] group-hover:text-[#015B97] transition-colors">{quote.title}</h3>
+                                    <p className="text-[13px] text-[#666]">
+                                        {quote.client_name} • <span className="text-gray-400">{format(new Date(quote.updated_at), "MMM d")}</span>
+                                    </p>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {profile.tier !== "Free" && (
-                                <span className={getStatusColor(quote.status)}>
-                                  {quote.status.replace("_", " ").charAt(0).toUpperCase() +
-                                    quote.status.replace("_", " ").slice(1)}
+                            
+                            <div className="flex items-center gap-4">
+                                <span className="hidden md:block text-[14px] font-bold text-[#333]">
+                                    KSh {formatCurrency(quote.total_amount).toLocaleString()}
                                 </span>
-                              )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-[#E1EBF2] text-[#015B97] hover:bg-[#015B97] hover:text-white text-[13px] font-medium"
-                                onClick={() => navigate("/quotes/all")}
-                              >
-                                <Eye className="w-3.5 h-3.5 mr-1" /> View
-                              </Button>
+                                {profile.tier !== "Free" && (
+                                    <span className={getStatusColor(quote.status)}>
+                                    {quote.status.replace("_", " ")}
+                                    </span>
+                                )}
+                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#015B97]" />
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-10">
-                        <FileText className="w-10 h-10 text-[#888888] mx-auto mb-3" />
-                        <h3 className="font-bold text-[16px] text-[#333333] mb-1">No quotes yet</h3>
-                        <p className="text-[14px] text-[#666666]">Create your first quote to get started!</p>
+                      <div className="text-center py-16">
+                        <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FileText className="w-8 h-8 text-gray-300" />
+                        </div>
+                        <h3 className="font-bold text-[16px] text-[#333] mb-1">No quotes yet</h3>
+                        <p className="text-[14px] text-[#666] mb-4">Start your first estimate today.</p>
+                        <Button onClick={() => navigate("/quotes/new")} variant="outline" className="border-[#015B97] text-[#015B97] hover:bg-[#015B97] hover:text-white">
+                            Create Quote
+                        </Button>
                       </div>
                     )}
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Right Column */}
-              <div className="space-y-6">
+              {/* Right Sidebar */}
+              <div className="space-y-8">
+                
+                {/* Quick Actions */}
+                <div className="bg-[#001226] text-white p-6 rounded-[4px] shadow-lg">
+                    <h3 className="text-[18px] font-bold mb-4 flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-yellow-400" /> Quick Actions
+                    </h3>
+                    <div className="space-y-3">
+                        <button
+                            onClick={() => navigate("/quotes/new")}
+                            className="w-full flex items-center justify-between p-3 rounded bg-white/10 hover:bg-white/20 border border-white/10 transition-all group"
+                        >
+                            <span className="text-[14px] font-medium">New Quote</span>
+                            <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+                        </button>
+                        <button
+                            onClick={() => setShowCalculator(true)}
+                            className="w-full flex items-center justify-between p-3 rounded bg-white/10 hover:bg-white/20 border border-white/10 transition-all group"
+                        >
+                            <span className="text-[14px] font-medium">Material Calculator</span>
+                            <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+                        </button>
+                    </div>
+                </div>
+
                 {/* Upcoming Events */}
                 {profile.tier !== "Free" && (
-                  <Card className="border border-[#E1EBF2] shadow-sm rounded-xl">
-                    <CardHeader className="pb-4 border-b border-[#E1EBF2]">
-                      <CardTitle className="text-[18px] font-bold text-[#333333] flex items-center gap-2">
-                        <Clock className="w-5 h-5" /> Upcoming Events
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-5">
-                      {dashboardData.upcomingEvents.length > 0 ? (
-                        <div className="space-y-3">
-                          {dashboardData.upcomingEvents.map((event) => (
-                            <div key={event.id} className="pb-3 border-b border-[#E1EBF2] last:border-0 last:pb-0">
-                              <div className="font-bold text-[14px] text-[#333333]">{event.title}</div>
-                              <div className="text-[13px] text-[#666666]">
-                                {format(new Date(event.event_date), "MMM d, yyyy")}
-                                {event.event_time && ` at ${event.event_time}`}
+                  <div>
+                    <h3 className="text-[14px] font-bold uppercase tracking-wider text-[#666] mb-4">Upcoming Schedule</h3>
+                    <Card className="border border-gray-200 shadow-sm rounded-[4px]">
+                      <CardContent className="p-0">
+                        {dashboardData.upcomingEvents.length > 0 ? (
+                          <div className="divide-y divide-gray-100">
+                            {dashboardData.upcomingEvents.map((event) => (
+                              <div key={event.id} className="p-4 flex gap-3 hover:bg-gray-50 transition-colors">
+                                <div className="flex-shrink-0 w-12 text-center bg-blue-50 rounded p-1">
+                                    <div className="text-[10px] font-bold text-[#015B97] uppercase">
+                                        {format(new Date(event.event_date), "MMM")}
+                                    </div>
+                                    <div className="text-[16px] font-bold text-[#333]">
+                                        {format(new Date(event.event_date), "d")}
+                                    </div>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-[14px] text-[#333]">{event.title}</div>
+                                  <div className="text-[12px] text-[#666] flex items-center gap-1 mt-1">
+                                    <Clock className="w-3 h-3" />
+                                    {event.event_time ? event.event_time : "All Day"}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-[14px] text-[#666666]">No upcoming events</p>
-                      )}
-                    </CardContent>
-                  </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-6 text-center text-[#666] text-sm">
+                            No upcoming events scheduled.
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
-
-                {/* Quick Actions */}
-                <Card className="border border-[#E1EBF2] shadow-sm rounded-xl">
-                  <CardHeader className="pb-4 border-b border-[#E1EBF2]">
-                    <CardTitle className="text-[18px] font-bold text-[#333333] flex items-center gap-2">
-                      <Zap className="w-5 h-5" /> Quick Actions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-5 space-y-3">
-                    <button
-                      onClick={() => navigate("/quotes/new")}
-                      className="w-full flex items-center justify-between p-4 rounded-lg border border-[#E1EBF2] hover:border-[#015B97] transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#f0f7fa]">
-                          <FileText className="w-4 h-4 text-[#015B97]" />
-                        </div>
-                        <span className="font-bold text-[15px] text-[#333333]">New Quote</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-[#888888]" />
-                    </button>
-                    <button
-                      onClick={() => setShowCalculator(true)}
-                      className="w-full flex items-center justify-between p-4 rounded-lg border border-[#E1EBF2] hover:border-[#015B97] transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#f0f7fa]">
-                          <DollarSign className="w-4 h-4 text-[#015B97]" />
-                        </div>
-                        <span className="font-bold text-[15px] text-[#333333]">Cost Calculator</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-[#888888]" />
-                    </button>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </TabsContent>
 
           {profile.tier !== "Free" && (
-            <TabsContent value="reports">
+            <TabsContent value="reports" className="animate-in fade-in zoom-in-95 duration-300">
               <Reports />
             </TabsContent>
           )}
           {profile.tier !== "Free" && (
-            <TabsContent value="calendar">
+            <TabsContent value="calendar" className="animate-in fade-in zoom-in-95 duration-300">
               <Calendar />
             </TabsContent>
           )}

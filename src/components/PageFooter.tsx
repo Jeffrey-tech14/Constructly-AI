@@ -18,6 +18,10 @@ const GlobalStyles = () => (
   `}</style>
 );
 
+// --- LOGO COLORS ---
+const LOGO_NAVY = "#001226";
+const LOGO_LIGHT_BLUE = "#0077B6";
+
 const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
   
   const links = [
@@ -28,12 +32,34 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
     { label: "Support & FAQs", id: "faq" },
   ];
 
+  // --- JTECH AI LOGO COMPONENT ---
+  const JTechAILogo = () => (
+    <svg width="145" height="40" viewBox="0 0 135 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-6">
+      {/* Icon Parts (Navy) */}
+      <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={LOGO_NAVY}/>
+      <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={LOGO_NAVY}/>
+      <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={LOGO_NAVY}/>
+      <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={LOGO_NAVY}/>
+      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={LOGO_NAVY}/>
+      <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={LOGO_NAVY}/>
+      <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={LOGO_NAVY}/>
+      
+      {/* Icon Accents (Light Blue) */}
+      <circle cx="22.5" cy="13.5" r="2.25" fill={LOGO_LIGHT_BLUE}/>
+      <circle cx="22.5" cy="22.5" r="2.25" fill={LOGO_LIGHT_BLUE}/>
+      <path d="M22.5 15.75V20.25" stroke={LOGO_LIGHT_BLUE} strokeWidth="1.5"/>
+      
+      {/* Text Labels */}
+      <text x="45" y="24" fontFamily="Inter, sans-serif" fontWeight="bold" fontSize="22" fill={LOGO_NAVY}>JTech</text>
+      <text x="108" y="24" fontFamily="Inter, sans-serif" fontWeight="bold" fontSize="22" fill={LOGO_LIGHT_BLUE}>AI</text>
+    </svg>
+  );
+
   return (
     <>
       <GlobalStyles />
       <footer 
         id="contact" 
-        // ✅ BACKGROUND MATCHED: Light Blue from your image
         className="bg-[#F0F7FA] border-t border-[#E1EBF2] pt-20 pb-10 font-inter text-[#1a1a1a]"
       >
         <div className="max-w-[1250px] mx-auto px-6 lg:px-8">
@@ -42,15 +68,10 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
             
             {/* COLUMN 1: BRANDING & LOGO */}
             <div className="flex flex-col items-start">
-              <div className="flex items-center gap-3 mb-6">
-                {/* BOLD 'J' LOGO */}
-                <div className="w-10 h-10 bg-[#005F9E] rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                   <span className="text-white font-extrabold text-2xl tracking-tighter">J</span>
-                </div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#001021]">
-                  JTech <span className="text-[#005F9E]">AI</span>
-                </h2>
-              </div>
+              
+              {/* REPLACED LOGO SECTION */}
+              <JTechAILogo />
+              
               <p className="text-gray-600 text-sm leading-relaxed mb-8 max-w-xs font-medium">
                 Next-generation construction estimation powered by artificial intelligence. Built for precision, speed, and reliability.
               </p>

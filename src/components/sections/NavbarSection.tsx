@@ -34,6 +34,8 @@ const THEME = {
   PRIMARY: "#005F9E", // Trimble-inspired blue
   ACCENT: "#5BB539", // Your CTA green
   TEXT_DARK: "#001226", // Your global dark text
+  LOGO_DARK: "#002855", // Dark blue from the logo
+  LOGO_LIGHT: "#0077B6", // Light blue from the logo
 };
 
 interface NavbarProps {
@@ -57,6 +59,24 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
     scrollTo(id);
     setMenuOpen(false);
   };
+
+  // Generated JTech AI Logo SVG
+  const JTechAILogo = () => (
+    <svg width="135" height="36" viewBox="0 0 135 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={THEME.LOGO_DARK}/>
+      <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={THEME.LOGO_DARK}/>
+      <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={THEME.LOGO_DARK}/>
+      <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={THEME.LOGO_DARK}/>
+      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK}/>
+      <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={THEME.LOGO_DARK}/>
+      <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={THEME.LOGO_DARK}/>
+      <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT}/>
+      <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT}/>
+      <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5"/>
+      <text x="45" y="24" fontFamily="Inter" fontWeight="bold" fontSize="22" fill={THEME.LOGO_DARK}>JTech</text>
+      <text x="108" y="24" fontFamily="Inter" fontWeight="bold" fontSize="22" fill={THEME.LOGO_LIGHT}>AI</text>
+    </svg>
+  );
 
   return (
     <>
@@ -106,23 +126,12 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="flex items-center justify-between">
               
-              {/* LOGO AREA */}
+              {/* LOGO AREA - UPDATED WITH GENERATED SVG */}
               <div
                 className="flex items-center gap-2.5 cursor-pointer pr-8"
                 onClick={() => navigate("/")}
               >
-                <div 
-                  className="flex items-center justify-center w-9 h-9 rounded text-white font-extrabold text-lg shadow-sm"
-                  style={{ backgroundColor: THEME.TEXT_DARK }}
-                >
-                  J
-                </div>
-                <span 
-                  className="text-xl font-extrabold tracking-tight hidden sm:block"
-                  style={{ color: THEME.TEXT_DARK }}
-                >
-                  JTech <span style={{ color: THEME.PRIMARY }}>AI</span>
-                </span>
+                <JTechAILogo />
               </div>
 
               {/* DESKTOP NAVIGATION */}

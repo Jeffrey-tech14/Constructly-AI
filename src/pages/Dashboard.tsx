@@ -33,21 +33,6 @@ import {
   Zap,
   ChevronRight,
   Loader2,
-  Sparkles,
-  Target,
-  Building,
-  LineChart,
-  Globe,
-  Cpu,
-  Server,
-  Activity,
-  TrendingDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  Users2,
-  CalendarDays,
-  FolderKanban,
-  Bolt
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuotes } from "@/hooks/useQuotes";
@@ -61,21 +46,19 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "@/components/Calendar";
 
-// UPDATED: Sleek dark theme colors matching other pages
-const THEME = {
-  DARK_BG: "#0A0A0A",
-  CARD_BG: "#1A1A1A",
-  ACCENT_PRIMARY: "#3B82F6", // Blue accent
-  ACCENT_SECONDARY: "#8B5CF6", // Purple accent
-  TEXT_LIGHT: "#E5E5E5",
-  TEXT_MUTED: "#A3A3A3",
-  BORDER_COLOR: "#2A2A2A",
-  SUCCESS: "#10B981",
-  WARNING: "#F59E0B",
-  DANGER: "#EF4444",
-  GRADIENT: "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)",
-  GLASS_BG: "rgba(26, 26, 26, 0.7)"
-};
+// --- GLOBAL STYLES (Inter Font) ---
+const GlobalStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    .font-inter { font-family: 'Inter', sans-serif; }
+  `}</style>
+);
+
+// RISA Color Palette (Adjusted for consistency with public pages)
+const PRIMARY_TEXT = "#001021";
+const ACCENT_BLUE = "#005F9E"; // slightly brighter than #015B97 for better contrast
+const LIGHT_GRAY_BG = "#F5F7FA";
+const BORDER_COLOR = "#E5E7EB";
 
 const Dashboard = () => {
   const { profile, user } = useAuth();
@@ -97,15 +80,14 @@ const Dashboard = () => {
     allQuotes: [],
   });
   const hasLoadedOnce = useRef(false);
-
+  
   useEffect(() => {
     const fetchAndSet = async () => {
       if (!hasLoadedOnce.current) {
-        quotesLoading == true;
+        // (Logic remains — no change)
       }
       await fetchDashboardData();
       if (!hasLoadedOnce.current) {
-        quotesLoading == false;
         hasLoadedOnce.current = true;
       }
     };
@@ -129,7 +111,6 @@ const Dashboard = () => {
         .select("*")
         .eq("user_id", profile.id);
       if (quotesError) throw quotesError;
-      
       const { data: events, error: eventsError } = await supabase
         .from("calendar_events")
         .select("*")
@@ -166,7 +147,6 @@ const Dashboard = () => {
         (a, b) =>
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
       );
-
       setDashboardData({
         totalQuotesValue,
         completedProjects,
@@ -187,18 +167,16 @@ const Dashboard = () => {
   };
 
   const getStatusColor = (status: string) => {
-    const colors = {
-      draft: "bg-gray-900/30 text-gray-400 border-gray-700",
-      planning: "bg-purple-900/30 text-purple-400 border-purple-800",
-      started: "bg-blue-900/30 text-blue-400 border-blue-800",
-      in_progress: "bg-amber-900/30 text-amber-400 border-amber-800",
-      completed: "bg-green-900/30 text-green-400 border-green-800",
-      on_hold: "bg-red-900/30 text-red-400 border-red-800",
+    const baseClasses = "text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full";
+    const colors: Record<string, string> = {
+      draft: `bg-gray-100 text-gray-700 ${baseClasses}`,
+      planning: `bg-purple-100 text-purple-800 ${baseClasses}`,
+      started: `bg-blue-100 text-blue-800 ${baseClasses}`,
+      in_progress: `bg-amber-100 text-amber-800 ${baseClasses}`,
+      completed: `bg-green-100 text-green-800 ${baseClasses}`,
+      on_hold: `bg-red-100 text-red-800 ${baseClasses}`,
     };
-    return (
-      colors[status as keyof typeof colors] ||
-      "bg-gray-900/30 text-gray-400 border-gray-700"
-    );
+    return colors[status] || `bg-gray-100 text-gray-700 ${baseClasses}`;
   };
 
   if (!user) {
@@ -207,230 +185,152 @@ const Dashboard = () => {
 
   if (quotesLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 mx-auto border-4 border-blue-500/20 border-t-blue-500 rounded-full"
-          />
-          <Loader2 className="w-12 h-12 mx-auto text-blue-400 absolute inset-0 m-auto animate-spin" />
-          <p className="mt-4 text-gray-400">Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <GlobalStyles />
+        <Loader2 className="animate-spin h-8 w-8 text-[#005F9E]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Animated background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-950"></div>
-      
-      {/* Grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                           linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
-        }}
-      ></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
-        >
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-blue-500/30 mb-4"
-              >
-                <LayoutDashboard className="w-8 h-8 text-blue-400" />
-              </motion.div>
-              
-              <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3">
-                Welcome back, <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">{profile?.name}</span>!
-              </h1>
-              <p className="text-gray-400 text-lg">
-                Here's what's happening with your construction business today.
-              </p>
-            </div>
-            
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+    <>
+      <GlobalStyles />
+      <div className="min-h-screen bg-white font-inter text-[#1a1a1a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
+          {/* --- Header --- */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-extrabold text-[#001021] flex items-center gap-3">
+                  <LayoutDashboard className="w-6 h-6 text-[#005F9E]" />
+                  Welcome back, {profile?.name}!
+                </h1>
+                <p className="text-sm text-gray-600 mt-2 max-w-2xl">
+                  Here's what's happening with your construction business today.
+                </p>
+              </div>
               <Button
                 onClick={() => setShowCalculator(true)}
-                className="px-6 py-5 rounded-xl shadow-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold transition-all"
+                className="px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-md bg-[#005F9E] hover:bg-[#004a7a] text-white shadow-sm hover:shadow-md transition-all duration-300"
               >
-                <Bolt className="w-5 h-5 mr-2" />
-                Quick Calculator
+                ⚡ Quick Calculator
               </Button>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <Card className="bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800 hover:border-blue-500/50 transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">
+          {/* --- Stats Cards --- */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-xs font-bold text-gray-700 uppercase tracking-widest">
                   Total Quotes Value
                 </CardTitle>
-                <div className="p-2 rounded-lg bg-blue-900/20">
-                  <DollarSign className="h-4 w-4 text-blue-400" />
-                </div>
+                <DollarSign className="h-4 w-4 text-gray-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl lg:text-3xl font-bold text-white mb-2">
-                  KSh {formatCurrency(dashboardData.totalQuotesValue).toLocaleString()}
+                <div className="text-2xl font-extrabold text-[#001021]">
+                  KSh {formatCurrency(dashboardData.totalQuotesValue)}
                 </div>
-                <div className="flex items-center text-sm">
-                  <ArrowUpRight className="w-4 h-4 text-green-400 mr-1" />
-                  <span className="text-gray-400">
-                    {dashboardData.allQuotes.length} quotes generated
-                  </span>
-                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {dashboardData.allQuotes.length} quotes generated
+                </p>
               </CardContent>
             </Card>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Card className="bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800 hover:border-purple-500/50 transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">
+            <Card className="rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-xs font-bold text-gray-700 uppercase tracking-widest">
                   Active Projects
                 </CardTitle>
-                <div className="p-2 rounded-lg bg-purple-900/20">
-                  <Activity className="h-4 w-4 text-purple-400" />
-                </div>
+                <FileText className="h-4 w-4 text-gray-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                <div className="text-2xl font-extrabold text-[#001021]">
                   {dashboardData.activeProjects}
                 </div>
-                <div className="flex items-center text-sm">
-                  <FolderKanban className="w-4 h-4 text-purple-400 mr-1" />
-                  <span className="text-gray-400">
-                    {dashboardData.pendingQuotes} pending approval
-                  </span>
-                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {dashboardData.pendingQuotes} pending approval
+                </p>
               </CardContent>
             </Card>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <Card className="bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800 hover:border-green-500/50 transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">
+            <Card className="rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-xs font-bold text-gray-700 uppercase tracking-widest">
                   Completed Projects
                 </CardTitle>
-                <div className="p-2 rounded-lg bg-green-900/20">
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                </div>
+                <CheckCircle className="h-4 w-4 text-gray-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                <div className="text-2xl font-extrabold text-[#001021]">
                   {dashboardData.completedProjects}
                 </div>
-                <div className="flex items-center text-sm">
-                  <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
-                  <span className="text-gray-400">Projects finished</span>
-                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Projects finished
+                </p>
               </CardContent>
             </Card>
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Tabs Navigation */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="animate-fade-in"
-        >
-          <TabsList className="grid w-full mb-8 bg-gray-900/50 p-1 rounded-xl border border-gray-800">
-            <TabsTrigger 
-              value="overview" 
-              className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/20 data-[state=active]:to-purple-600/20 data-[state=active]:border data-[state=active]:border-blue-500/30 data-[state=active]:text-white"
-            >
-              <BarChart className="w-4 h-4 mr-2" />
-              Overview
-            </TabsTrigger>
-            {profile.tier === "Professional" && (
-              <TabsTrigger 
-                value="reports" 
-                className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/20 data-[state=active]:to-purple-600/20 data-[state=active]:border data-[state=active]:border-blue-500/30 data-[state=active]:text-white"
+          {/* --- Tabs --- */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+            <TabsList className={`grid w-full mb-6 ${
+              profile.tier === "Free" ? "grid-cols-1" : profile.tier === "Professional" ? "grid-cols-3" : "grid-cols-3"
+            }`}>
+              <TabsTrigger
+                value="overview"
+                className="text-[11px] font-bold uppercase tracking-widest data-[state=active]:bg-[#005F9E] data-[state=active]:text-white rounded-md"
               >
-                <LineChart className="w-4 h-4 mr-2" />
-                Reports
+                <BarChart className="w-4 h-4 mr-2" />
+                Overview
               </TabsTrigger>
-            )}
-            {profile.tier !== "Free" && (
-              <TabsTrigger 
-                value="calendar" 
-                className="flex items-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/20 data-[state=active]:to-purple-600/20 data-[state=active]:border data-[state=active]:border-blue-500/30 data-[state=active]:text-white"
-              >
-                <CalendarDays className="w-4 h-4 mr-2" />
-                Calendar
-              </TabsTrigger>
-            )}
-          </TabsList>
+              {profile.tier === "Professional" && (
+                <TabsTrigger
+                  value="reports"
+                  className="text-[11px] font-bold uppercase tracking-widest data-[state=active]:bg-[#005F9E] data-[state=active]:text-white rounded-md"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Reports
+                </TabsTrigger>
+              )}
+              {profile.tier !== "Free" && (
+                <TabsTrigger
+                  value="calendar"
+                  className="text-[11px] font-bold uppercase tracking-widest data-[state=active]:bg-[#005F9E] data-[state=active]:text-white rounded-md"
+                >
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  Calendar
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6 animate-fade-in">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Recent Quotes Card */}
-              <Card className="lg:col-span-2 bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800">
-                <CardHeader className="border-b border-gray-800">
-                  <CardTitle className="flex items-center text-white">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center mr-3">
-                      <FileText className="w-5 h-5 text-blue-400" />
-                    </div>
-                    Recent Quotes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {dashboardData.recentQuotes.length > 0 ? (
-                      dashboardData.recentQuotes.map((quote) => (
-                        <motion.div
-                          key={quote.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          whileHover={{ x: 5 }}
-                          className="flex items-center justify-between p-4 bg-gray-900/30 border border-gray-800 rounded-xl hover:border-blue-500/50 transition-all"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-medium text-white">{quote.title}</h3>
-                              <span className="text-lg font-bold text-blue-400">
-                                KSh {formatCurrency(quote.total_amount).toLocaleString()}
-                              </span>
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2 rounded-lg border border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-bold text-[#001021] flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Recent Quotes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {dashboardData.recentQuotes.length > 0 ? (
+                        dashboardData.recentQuotes.map((quote) => (
+                          <div
+                            key={quote.id}
+                            className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:border-[#005F9E] transition-colors"
+                          >
+                            <div className="flex-1">
+                              <h3 className="font-bold text-[#001021]">{quote.title}</h3>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {quote.client_name} • {quote.location}
+                              </p>
+                              <p className="text-sm font-bold mt-1 text-[#001021]">
+                                KSh {formatCurrency(quote.total_amount)}
+                              </p>
                             </div>
-                            <p className="text-sm text-gray-400 mb-2">
-                              {quote.client_name} • {quote.location}
-                            </p>
                             <div className="flex items-center gap-2">
                               {profile.tier !== "Free" && (
                                 <Badge className={getStatusColor(quote.status)}>
@@ -438,193 +338,119 @@ const Dashboard = () => {
                                     quote.status.slice(1).replace("_", " ")}
                                 </Badge>
                               )}
-                              <span className="text-xs text-gray-500">
-                                {format(new Date(quote.updated_at), "MMM d, yyyy")}
-                              </span>
+                              <Button
+                                onClick={() => navigate("/quotes/all")}
+                                variant="outline"
+                                size="sm"
+                                className="text-[10px] font-bold uppercase tracking-widest border-[#005F9E] text-[#005F9E] hover:bg-[#005F9E] hover:text-white"
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                View
+                              </Button>
                             </div>
                           </div>
-                          <Button
-                            className="ml-4 bg-gradient-to-r from-blue-500/20 to-blue-600/20 hover:from-blue-600/30 hover:to-blue-700/30 text-blue-400 border border-blue-500/30"
-                            onClick={() => navigate("/quotes/all")}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                        </motion.div>
-                      ))
-                    ) : (
-                      <div className="text-center py-12">
-                        <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="font-medium text-lg text-white mb-2">
-                          No quotes yet
-                        </h3>
-                        <p className="text-gray-400">
-                          Create your first quote to get started!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Upcoming Events Card */}
-                {profile.tier !== "Free" && (
-                  <Card className="bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800">
-                    <CardHeader className="border-b border-gray-800">
-                      <CardTitle className="flex items-center text-white">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-600/20 border border-green-500/30 flex items-center justify-center mr-3">
-                          <Clock className="w-5 h-5 text-green-400" />
-                        </div>
-                        Upcoming Events
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      {dashboardData.upcomingEvents.length > 0 ? (
-                        <div className="space-y-4">
-                          {dashboardData.upcomingEvents.map((event) => (
-                            <motion.div
-                              key={event.id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="p-3 bg-gray-900/30 rounded-lg border border-gray-800 hover:border-green-500/50 transition-all"
-                            >
-                              <div className="font-medium text-sm text-white mb-1">
-                                {event.title}
-                              </div>
-                              <div className="text-xs text-gray-400 flex items-center">
-                                <CalendarDays className="w-3 h-3 mr-1" />
-                                {format(new Date(event.event_date), "MMM d, yyyy")}
-                                {event.event_time && ` • ${event.event_time}`}
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
+                        ))
                       ) : (
-                        <div className="text-center py-6">
-                          <CalendarDays className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-sm text-gray-400">No upcoming events</p>
+                        <div className="text-center py-8">
+                          <FileText className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+                          <h3 className="font-bold text-gray-700">No quotes yet</h3>
+                          <p className="text-gray-500 text-sm">Create your first quote to get started!</p>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Quick Actions Card */}
-                <Card className="bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800">
-                  <CardHeader className="border-b border-gray-800">
-                    <CardTitle className="flex items-center text-white">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/30 flex items-center justify-center mr-3">
-                        <Zap className="w-5 h-5 text-amber-400" />
-                      </div>
-                      Quick Actions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate("/quotes/new")}
-                      className="w-full text-left p-4 rounded-xl border border-gray-800 hover:border-blue-500/50 transition-all duration-300 bg-gray-900/30 flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 flex items-center justify-center group-hover:border-blue-400">
-                          <FileText className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-white block">New Quote</span>
-                          <span className="text-xs text-gray-400">Create a new project estimate</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-400 transition-colors" />
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setShowCalculator(true)}
-                      className="w-full text-left p-4 rounded-xl border border-gray-800 hover:border-purple-500/50 transition-all duration-300 bg-gray-900/30 flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30 flex items-center justify-center group-hover:border-purple-400">
-                          <DollarSign className="w-5 h-5 text-purple-400" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-white block">Cost Calculator</span>
-                          <span className="text-xs text-gray-400">Quick material calculations</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-purple-400 transition-colors" />
-                    </motion.button>
+                    </div>
                   </CardContent>
                 </Card>
 
-                {/* Performance Indicator */}
-                {profile.tier === "Professional" && (
-                  <Card className="bg-gradient-to-b from-gray-900/50 to-black/50 backdrop-blur-sm border border-gray-800">
-                    <CardHeader>
-                      <CardTitle className="text-white">Performance</CardTitle>
-                      <CardDescription className="text-gray-400">
-                        Last 30 days
-                      </CardDescription>
+                <div className="space-y-6">
+                  {profile.tier !== "Free" && (
+                    <Card className="rounded-lg border border-gray-200 shadow-sm">
+                      <CardHeader>
+                        <CardTitle className="text-sm font-bold text-[#001021] flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Upcoming Events
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {dashboardData.upcomingEvents.length > 0 ? (
+                          <div className="space-y-3">
+                            {dashboardData.upcomingEvents.map((event) => (
+                              <div key={event.id} className="pb-3 last:pb-0 border-b border-gray-100 last:border-0">
+                                <div className="font-bold text-[#001021] text-sm">{event.title}</div>
+                                <div className="text-xs text-gray-500">
+                                  {format(new Date(event.event_date), "MMM d, yyyy")}
+                                  {event.event_time && ` at ${event.event_time}`}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No upcoming events</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Quick Actions */}
+                  <Card className="rounded-lg border border-gray-200 shadow-sm">
+                    <CardHeader className="pb-4 border-b border-gray-100">
+                      <CardTitle className="text-sm font-bold text-[#001021] flex items-center gap-2">
+                        <Zap className="w-4 h-4" />
+                        Quick Actions
+                      </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-400">Quote Completion</span>
-                          <span className="text-green-400 flex items-center">
-                            <ArrowUpRight className="w-4 h-4 mr-1" />
-                            85%
-                          </span>
+                    <CardContent className="p-4 space-y-3">
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate("/quotes/new")}
+                        className="w-full text-left p-3 rounded-md border border-gray-200 hover:border-[#005F9E] transition-colors bg-white flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-md bg-blue-50">
+                            <FileText className="w-4 h-4 text-[#005F9E]" />
+                          </div>
+                          <span className="font-bold text-[#001021] text-sm">New Quote</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-400">Client Satisfaction</span>
-                          <span className="text-green-400 flex items-center">
-                            <ArrowUpRight className="w-4 h-4 mr-1" />
-                            92%
-                          </span>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </motion.button>
+
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setShowCalculator(true)}
+                        className="w-full text-left p-3 rounded-md border border-gray-200 hover:border-[#005F9E] transition-colors bg-white flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-1.5 rounded-md bg-green-50">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                          </div>
+                          <span className="font-bold text-[#001021] text-sm">Cost Calculator</span>
                         </div>
-                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: "85%" }}
-                            transition={{ duration: 1, delay: 0.2 }}
-                            className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-                          />
-                        </div>
-                      </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </motion.button>
                     </CardContent>
                   </Card>
-                )}
+                </div>
               </div>
-            </div>
-          </TabsContent>
-
-          {/* Reports Tab */}
-          {profile.tier !== "Free" && (
-            <TabsContent value="reports">
-              <Reports />
             </TabsContent>
-          )}
 
-          {/* Calendar Tab */}
-          {profile.tier !== "Free" && (
-            <TabsContent value="calendar">
-              <Calendar />
-            </TabsContent>
-          )}
-        </Tabs>
+            {profile.tier !== "Free" && (
+              <TabsContent value="reports">
+                <Reports />
+              </TabsContent>
+            )}
+            {profile.tier !== "Free" && (
+              <TabsContent value="calendar">
+                <Calendar />
+              </TabsContent>
+            )}
+          </Tabs>
 
-        {/* Calculator Modal */}
-        <Calculator
-          isOpen={showCalculator}
-          onClose={() => setShowCalculator(false)}
-        />
+          <Calculator
+            isOpen={showCalculator}
+            onClose={() => setShowCalculator(false)}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

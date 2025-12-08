@@ -33,6 +33,7 @@ const BACKGROUND_IMAGE_URL = 'https://img.freepik.com/free-photo/construction-si
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [mode, setMode] = useState(searchParams.get("mode") || "signin");
   const [formData, setFormData] = useState({
@@ -44,9 +45,9 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [authStage, setAuthStage] = useState<"idle" | "verifying" | "redirecting">("idle");
-  const { user } = useAuth(); // Assuming useAuth is used for login logic
+  const { user, signInWithGoogle } = useAuth(); // Updated to include signInWithGoogle
 
-  // --- LOGIC FUNCTIONS (UNTAMPERED) ---
+  // --- UPDATED LOGIC FUNCTIONS FROM SECOND FILE ---
 
   const executeRedirect = () => {
     const redirectUrl = searchParams.get("redirect");
@@ -59,14 +60,15 @@ const Auth = () => {
 
   const handleAuthAction = async () => {
     setAuthStage("verifying");
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); 
+      await signInWithGoogle(); // Changed from simulated promise to actual Google sign-in
       setAuthStage("redirecting");
       setTimeout(() => {
         executeRedirect();
       }, 2500);
     } catch (err) {
-      console.warn("Auth action failed:", err);
+      console.warn("Google sign-in failed:", err);
       setAuthStage("idle");
     }
   };
@@ -78,7 +80,13 @@ const Auth = () => {
     }));
   };
 
-  // --- UI RENDERING ---
+  useEffect(() => {
+    if (user && authStage === 'idle') {
+      // Optionally auto-redirect if already logged in
+    }
+  }, [user]);
+
+  // --- UI RENDERING (FROM FIRST FILE) ---
 
   return (
     // Main container handles the full background image
@@ -320,7 +328,7 @@ const Auth = () => {
                 </motion.div>
               )}
 
-              {/* VERIFYING STATE (LOGIC KEPT) */}
+              {/* VERIFYING STATE (UPDATED LOGIC) */}
               {authStage === "verifying" && (
                 <motion.div
                   key="verifying"

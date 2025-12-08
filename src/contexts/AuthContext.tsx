@@ -182,7 +182,7 @@ export const AuthProvider: React.FC<{
     };
   }, [user?.id]);
 
-  // ✅ UPDATED: signIn now triggers Google
+  // ✅ Google-only: signIn triggers Google OAuth
   const signIn = async (email: string, password: string) => {
     return signInWithGoogle();
   };
@@ -193,7 +193,7 @@ export const AuthProvider: React.FC<{
     }
   };
 
-  // ✅ UPDATED: signUp now triggers Google
+  // ✅ Google-only: signUp triggers Google OAuth
   const signUp = async (email: string, password: string, name?: string) => {
     return signInWithGoogle();
   };

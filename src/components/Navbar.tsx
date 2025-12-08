@@ -17,7 +17,6 @@ import Calculator from "@/components/Calculator";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Wrench,
   User,
   LogOut,
   Moon,
@@ -25,20 +24,11 @@ import {
   Shield,
   Crown,
   Calculator as CalculatorIcon,
-  Plus,
   BarChart,
   Settings,
   Eye,
   Menu,
   X,
-  Star,
-  ThumbsUp,
-  Shell,
-  Building,
-  Building2,
-  DoorOpen,
-  DraftingCompass,
-  Target,
   ChevronDown,
   Settings2,
   AlertCircle,
@@ -58,6 +48,34 @@ import {
 } from "./ui/alert-dialog";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
+
+// --- THEME CONFIGURATION (MATCHING LANDING PAGE) ---
+const THEME = {
+  PRIMARY: "#005F9E", // Trimble-inspired blue
+  ACCENT: "#5BB539", // CTA green
+  TEXT_DARK: "#001226", // Global dark text
+  LOGO_DARK: "#002855", // Dark blue from the logo
+  LOGO_LIGHT: "#0077B6", // Light blue from the logo
+};
+
+// --- JTech AI Logo SVG (MATCHING LANDING PAGE) ---
+const JTechAILogo = () => (
+  <svg width="135" height="36" viewBox="0 0 135 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={THEME.LOGO_DARK} />
+    <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={THEME.LOGO_DARK} />
+    <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={THEME.LOGO_DARK} />
+    <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={THEME.LOGO_DARK} />
+    <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK} />
+    <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={THEME.LOGO_DARK} />
+    <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={THEME.LOGO_DARK} />
+    <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT} />
+    <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT} />
+    <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5" />
+    <text x="45" y="24" fontFamily="Inter" fontWeight="bold" fontSize="22" fill={THEME.LOGO_DARK}>JTech</text>
+    <text x="108" y="24" fontFamily="Inter" fontWeight="bold" fontSize="22" fill={THEME.LOGO_LIGHT}>AI</text>
+  </svg>
+);
+
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -79,7 +97,7 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart },
-    { path: "/quotes/new", label: "New Quote", icon: Building2 },
+    { path: "/quotes/new", label: "New Quote", icon: Building }, // Used Building icon for better match
     { path: "/quotes/all", label: "All Quotes", icon: Eye },
     { path: "/variables", label: "Variables", icon: Settings },
   ];
@@ -124,21 +142,21 @@ const Navbar = () => {
   };
   return (
     <>
-      <nav className="fixed sticky top-0 z-50 glass border-b shadow-sm">
-        <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Changed to use standard white background to match landing page, removed 'glass' */}
+      <nav className="fixed sticky top-0 w-full z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-1">
-              <div className="p-2 bg-transparent rounded-lg group-hover:scale-102 transition-transform">
-                <Target className="w-5 h-5 text-primary dark:text-white" />
-              </div>
-              <span className="text-lg md:sm:text-xl max-md:hidden text-lg font-bold text-primary dark:text-white">
-                JTech AI
-              </span>
+            {/* LOGO AREA - Replaced text/Target icon with JTechAILogo SVG */}
+            <div 
+              className="flex items-center gap-2.5 cursor-pointer pr-8"
+              onClick={() => navigate("/dashboard")}
+            >
+              <JTechAILogo />
             </div>
 
             {user && (
               <div className="hidden md:flex ml-auto items-center space-x-1">
-                {navItems.map((item, index) => {
+                {navItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <motion.div
@@ -153,11 +171,13 @@ const Navbar = () => {
                     >
                       <Button
                         onClick={() => navigate(item.path)}
+                        // Use THEME.PRIMARY for active state color
+                        style={isActive(item.path) ? { backgroundColor: THEME.PRIMARY } : {}}
                         variant={isActive(item.path) ? "default" : "ghost"}
-                        className={`relative font-medium transition-colors duration-500 ${
+                        className={`relative font-medium transition-colors duration-200 ${
                           isActive(item.path)
-                            ? " text-white shadow-lg"
-                            : " dark:text-gray-300"
+                            ? " text-white shadow-lg hover:bg-opacity-90 dark:hover:bg-opacity-90"
+                            : " text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                         } px-4`}
                       >
                         <Icon className="w-4 h-4" />
@@ -171,7 +191,7 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   onClick={() => setIsCalculatorOpen(true)}
-                  className="card-hover"
+                  className="card-hover dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <CalculatorIcon className="w-4 h-4" />
                 </Button>
@@ -199,7 +219,7 @@ const Navbar = () => {
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="card-hover"
+                className="card-hover dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 {theme === "dark" ? (
                   <Sun className="w-4 h-4" />
@@ -213,7 +233,7 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="md:hidden"
+                    className="md:hidden dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   >
                     {isMobileMenuOpen ? (
@@ -226,7 +246,7 @@ const Navbar = () => {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <motion.div>
-                        <Button variant="ghost" className=" rounded-xl">
+                        <Button variant="ghost" className=" rounded-xl dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
                           <Avatar className="w-6 h-6 items-center">
                             <AvatarImage
                               src={profile?.avatar_url || undefined}
@@ -235,10 +255,10 @@ const Navbar = () => {
                               <User className="w-4 h-4"></User>
                             </AvatarFallback>
                           </Avatar>
-                          <span className="max-w-32 truncate">
+                          <span className="max-w-32 truncate max-md:hidden">
                             {profile?.name || user.email}
                           </span>
-                          <ChevronDown className="w-3 h-3 ml-1 opacity-60" />
+                          <ChevronDown className="w-3 h-3 ml-1 opacity-60 max-md:hidden" />
                         </Button>
                       </motion.div>
                     </DropdownMenuTrigger>
@@ -260,15 +280,18 @@ const Navbar = () => {
 
                       <DropdownMenuItem
                         onClick={() => navigate("/profile")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:text-white dark:text-gray-300 dark:hover:text-white transition-colors  duration-200"
+                        style={{'--hover-bg-color': THEME.PRIMARY}} // Using style prop for Tailwind JIT, or use a custom class
+                        // Fallback class for hover (as style prop overrides class on some variants)
+                        // className="... hover:bg-[#005F9E]" -> would require modifying the class list, sticking to style for consistency
                       >
-                        <div className="rounded-lg bg-blue-100 dark:bg-primary/30 items-center">
+                        <div className="rounded-lg items-center" style={{ backgroundColor: THEME.PRIMARY, opacity: 0.1 }}>
                           <Avatar className="w-8 h-8 items-center justify-center text-center">
                             <AvatarImage
                               src={profile?.avatar_url || undefined}
                             />
                             <AvatarFallback className="items-center justify-center text-center">
-                              <User className="w-4 h-4 justify-center text-center text-blue-600 dark:text-blue-400"></User>
+                              <User className="w-4 h-4 justify-center text-center" style={{ color: THEME.PRIMARY }}></User>
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -283,10 +306,11 @@ const Navbar = () => {
                       {profile?.is_admin && (
                         <DropdownMenuItem
                           onClick={() => navigate("/admin")}
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:text-white dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
+                          // style={{'--hover-bg-color': THEME.PRIMARY}}
                         >
-                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-primary/30">
-                            <Settings2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          <div className="p-2 rounded-lg" style={{ backgroundColor: THEME.PRIMARY, opacity: 0.1 }}>
+                            <Settings2 className="w-4 h-4" style={{ color: THEME.PRIMARY }} />
                           </div>
                           <div>
                             <p className="font-medium">Admin Dashboard</p>
@@ -350,6 +374,7 @@ const Navbar = () => {
                   className="text-white"
                   asChild
                   onClick={() => navigate("/auth")}
+                  style={{ backgroundColor: THEME.PRIMARY }} // Use primary color for sign-in button
                 >
                   Sign In
                 </Button>
@@ -357,18 +382,21 @@ const Navbar = () => {
             </div>
           </div>
 
+          {/* Mobile Menu */}
           {user && isMobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border animate-slide-down">
+            <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800 animate-slide-down">
               <div className="flex flex-col space-y-2">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Button
                       key={item.path}
+                      // Use THEME.PRIMARY for active state color
+                      style={isActive(item.path) ? { backgroundColor: THEME.PRIMARY } : {}}
                       variant={isActive(item.path) ? "default" : "ghost"}
                       className={`justify-start ${
-                        isActive(item.path) ? "bg-primary text-white" : ""
-                      }`}
+                        isActive(item.path) ? "text-white" : "text-gray-700 dark:text-gray-300"
+                      } hover:bg-gray-100 dark:hover:bg-gray-800`}
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         navigate(item.path);
@@ -385,7 +413,7 @@ const Navbar = () => {
                     setIsCalculatorOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="justify-start"
+                  className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <CalculatorIcon className="w-4 h-4 mr-2" />
                   Calculator
@@ -394,6 +422,8 @@ const Navbar = () => {
             </div>
           )}
         </div>
+        
+        {/* Subscription Alert (Unchanged) */}
         {user &&
           profile?.subscription_status !== "active" &&
           showSubAlert &&

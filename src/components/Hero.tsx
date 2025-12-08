@@ -41,6 +41,7 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
             />
 
             {/* 2. Gradient Overlay: Left (Solid Navy) -> Right (Transparent) */}
+            {/* This creates the smooth fade effect where the text sits */}
             <div 
               className="absolute inset-0 z-10"
               style={{
@@ -52,7 +53,7 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
               }}
             />
             
-            {/* 3. Mobile Only: Darker overlay for readability */}
+            {/* 3. Mobile Only: Darker overlay to ensure text is readable on small screens */}
             <div className="absolute inset-0 bg-[#000B29]/60 sm:hidden z-10" />
         </div>
 
@@ -73,6 +74,7 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
                       <span className="block font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl uppercase tracking-tighter text-white mb-0.5">
                           GENERATE ACCURATE QUOTES
                       </span>
+                      {/* Changed: "IN MINUTES" now has same style/color as above */}
                       <span className="block font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl uppercase tracking-tighter text-white">
                           IN MINUTES.
                       </span>
@@ -97,11 +99,10 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
                         Watch Demo <PlayCircle className="w-2.5 h-2.5" />
                     </motion.button>
 
-                    {/* ✅ UPDATED: Now goes directly to /dashboard — no login required */}
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate("/dashboard")}
+                        onClick={() => navigate("/auth?mode=signup")}
                         className="bg-white text-[#000B29] text-[9px] sm:text-[10px] font-bold uppercase px-3 py-1.5 rounded-[2px] shadow transition-all tracking-wider hover:bg-gray-100 flex items-center justify-center gap-1.5"
                     >
                         <PlayCircle className="w-2.5 h-2.5 text-[#0696D7]" /> Get Started

@@ -31,25 +31,17 @@ import {
   Check,
   CheckCircle,
   Loader2,
-  Phone,
-  Building,
-  MapPin,
-  Mail,
-  Users,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
 import { motion } from "framer-motion";
 
-// RISA Color Palette (from Index.tsx) - Using CSS variables for better theming integration
+// RISA Color Palette (from Index.tsx)
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
 const RISA_WHITE = "#ffffff";
 const RISA_DARK_TEXT = "#2D3748";
 const RISA_LIGHT_GRAY = "#F5F7FA";
-
-// Component is already structured to use existing logic hooks and functions.
-// Only the JSX structure and Tailwind classes are modified for a better UI.
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -65,9 +57,6 @@ const Profile = () => {
     location: profile?.location || "",
     avatar_url: profile?.avatar_url || "",
   });
-
-  // --- Logic Functions (Maintained) ---
-
   useEffect(() => {
     if (profile?.avatar_url) {
       downloadImage(profile.avatar_url);
@@ -75,7 +64,6 @@ const Profile = () => {
       setAvatarUrl(null);
     }
   }, [profile]);
-
   async function downloadImage(path: string) {
     try {
       if (path.startsWith("http")) {
@@ -96,7 +84,6 @@ const Profile = () => {
       }
     }
   }
-
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
@@ -106,7 +93,6 @@ const Profile = () => {
     }
     return value.toString();
   };
-
   const [tierLimits, setTierLimits] = useState<{
     [key: string]: {
       price: number;
@@ -114,20 +100,17 @@ const Profile = () => {
       features: string[];
     };
   }>({});
-
   const [stats, setStats] = useState({
     total_projects: 0,
     completed_projects: 0,
     total_revenue: 0,
     completionRate: 0,
   });
-
   useEffect(() => {
     if (profile?.id) {
       fetchDashboardStats(profile.id).then(setStats);
     }
   }, [user, location.key]);
-
   const fetchDashboardStats = async (userId: string) => {
     const { data, error } = await supabase
       .from("quotes")
@@ -159,7 +142,6 @@ const Profile = () => {
       completionRate,
     };
   };
-
   useEffect(() => {
     const fetchTiers = async () => {
       const { data, error } = await supabase.from("tiers").select("*");
@@ -182,11 +164,9 @@ const Profile = () => {
     };
     fetchTiers();
   }, [location.key, user]);
-
   const tierData = profile?.tier
     ? tierLimits[profile.tier as keyof typeof tierLimits]
     : null;
-
   const handleSave = async () => {
     try {
       await updateProfile(formData);
@@ -195,7 +175,6 @@ const Profile = () => {
       console.error("Error updating profile:", error);
     }
   };
-
   const handleAvatarUpload = async (url: string) => {
     try {
       await updateProfile({ ...formData, avatar_url: url });
@@ -204,11 +183,9 @@ const Profile = () => {
       console.error("Error updating avatar:", error);
     }
   };
-
   if (!user) {
     navigate("/auth");
   }
-
   const getTierImage = (tier: string) => {
     switch (tier) {
       case "Free":
@@ -221,77 +198,82 @@ const Profile = () => {
         return <span className="text-sm font-medium">{tier}</span>;
     }
   };
-
-  // Removed getTierBadge as a separate function, integrating logic directly for more modern badge styles
-
+  const getTierBadge = (tier: string) => {
+    switch (tier) {
+      case "Free":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            {" "}
+            Free
+          </Badge>
+        );
+      case "Intermediate":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            Intermediate
+          </Badge>
+        );
+      case "Professional":
+        return (
+          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
+            Professional
+          </Badge>
+        );
+      default:
+        return <Badge>{tier}</Badge>;
+    }
+  };
   const quotaUsagePercentage =
     profile?.quotes_used && profile?.tier && tierLimits[profile.tier]
       ? (profile.quotes_used / tierLimits[profile.tier].limit) * 100
       : 0;
-
   const projectCompletionRate =
     stats.total_projects > 0
       ? (stats.completed_projects / stats.total_projects) * 100
       : 0;
-
-  // --- Loading State UI (Updated) ---
   if (!profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center p-8 bg-card shadow-xl rounded-lg">
-          <Loader2 className="animate-spin h-10 w-10 text-primary mb-4 mx-auto" />
-          <h2 className="text-2xl font-extrabold text-card-foreground">
+        <div className="text-center">
+          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
             Loading Profile...
           </h2>
-          <p className="text-muted-foreground mt-2">
-            Fetching your account details.
+          <p className="text-gray-600 dark:text-gray-400">
+            Please wait while we load your profile.
           </p>
         </div>
       </div>
     );
   }
-
-  // --- Main Profile UI (Updated) ---
   return (
-    <div className="min-h-screen bg-background pb-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {/* Header Section */}
-        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-4 border-border/70">
-          <div className="flex flex-col">
-            <h1 className="text-3xl sm:text-4xl flex items-center font-extrabold text-foreground">
-              <LucidePersonStanding className="w-8 h-8 mr-3 text-primary" />
-              My Profile
+    <div className="min-h-screen  animate-fade-in smooth-transition">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8 flex items-center justify-between items-start">
+          <div className="items-center">
+            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+              <LucidePersonStanding className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
+              Profile
             </h1>
-            <p className="text-sm sm:text-md text-muted-foreground mt-1">
-              Manage your personal information, statistics, and subscription plan.
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
+              Manage your account and subscription
             </p>
           </div>
-          <div className="mt-4 sm:mt-0 flex space-x-3">
-            <Button
-              variant="outline"
-              className="group"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-0.5 transition-transform" />
-              Back
-            </Button>
-            <Button
-              className="transition-colors duration-200"
-              onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-            >
-              {isEditing ? (
-                <Save className="w-4 h-4 mr-2" />
-              ) : (
-                <Edit className="w-4 h-4 mr-2" />
-              )}
-              {isEditing ? "Save Changes" : "Edit Profile"}
-            </Button>
-          </div>
+          <Button
+            className="text-white"
+            onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+          >
+            {isEditing ? (
+              <Save className="w-4 h-4 mr-2 text-white" />
+            ) : (
+              <Edit className="w-4 h-4 mr-2 text-white" />
+            )}
+            {isEditing ? "Save" : "Edit Profile"}
+          </Button>
         </div>
 
-        {/* Avatar Upload Modal */}
         {showAvatarUpload && (
-          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <ProfilePictureUpload
               currentAvatarUrl={avatarUrl || undefined}
               onUploadComplete={handleAvatarUpload}
@@ -300,61 +282,44 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column (Personal Info & Stats) */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Personal Information Card */}
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader className="bg-muted/30 rounded-t-lg">
-                <CardTitle className="flex items-center text-lg font-semibold text-primary">
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center">
                   <User className="w-5 h-5 mr-2" />
                   Personal Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 pt-6">
-                {/* Avatar Section */}
+              <CardContent className="space-y-6">
                 <div className="flex flex-col items-center">
-                  <div className="relative group">
-                    <Avatar className="h-32 w-32 border-4 border-primary/50 shadow-md">
-                      <AvatarImage
-                        src={avatarUrl || undefined}
-                        alt={`${profile.name}'s avatar`}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-primary/20 text-primary text-3xl font-semibold">
-                        {profile.name
-                          ? profile.name.charAt(0).toUpperCase()
-                          : "?"}
+                  <div className="relative">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src={avatarUrl || undefined} />
+                      <AvatarFallback className="text-2xl">
+                        <User className="w-10 h-10 text-blue-600 dark:text-blue-400"></User>
                       </AvatarFallback>
                     </Avatar>
-                    <button
-                      type="button"
-                      title="Change Profile Picture"
-                      className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full cursor-pointer"
+                    <Button
+                      size="icon"
+                      className="absolute bottom-0 right-0 rounded-full h-8 w-8 text-white"
                       onClick={() => setShowAvatarUpload(true)}
                     >
-                      <Camera className="h-6 w-6" />
-                    </button>
+                      <Camera className="h-4 w-4" />
+                    </Button>
                   </div>
                   <Button
-                    variant="link"
+                    variant="ghost"
                     onClick={() => setShowAvatarUpload(true)}
-                    className="mt-2 text-sm text-primary hover:text-primary/80 p-0 h-auto"
+                    className="mt-2 border text-primary dark:text-white hover:text-primary hover:bg-primary/20"
                   >
-                    <ImageUpIcon className="w-4 h-4 mr-1" />
-                    Update Profile Picture
+                    Update company logo
                   </Button>
                 </div>
 
-                {/* Profile Form Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium">
-                      <User className="w-4 h-4 inline mr-1 text-muted-foreground" />
-                      Full Name
-                    </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
                       value={isEditing ? formData.name : profile.name}
@@ -365,29 +330,19 @@ const Profile = () => {
                         }))
                       }
                       disabled={!isEditing}
-                      className="h-10 text-base"
                     />
                   </div>
-                  {/* Email */}
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">
-                      <Mail className="w-4 h-4 inline mr-1 text-muted-foreground" />
-                      Email Address
-                    </Label>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={profile.email}
                       disabled
-                      className="h-10 text-base bg-muted/50"
                     />
                   </div>
-                  {/* Phone */}
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">
-                      <Phone className="w-4 h-4 inline mr-1 text-muted-foreground" />
-                      Phone
-                    </Label>
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
                     <Input
                       id="phone"
                       value={isEditing ? formData.phone : profile.phone || ""}
@@ -399,15 +354,10 @@ const Profile = () => {
                       }
                       disabled={!isEditing}
                       placeholder="Enter your phone number"
-                      className="h-10 text-base"
                     />
                   </div>
-                  {/* Company */}
-                  <div className="space-y-2">
-                    <Label htmlFor="company" className="text-sm font-medium">
-                      <Building className="w-4 h-4 inline mr-1 text-muted-foreground" />
-                      Company
-                    </Label>
+                  <div>
+                    <Label htmlFor="company">Company</Label>
                     <Input
                       id="company"
                       value={
@@ -421,109 +371,86 @@ const Profile = () => {
                       }
                       disabled={!isEditing}
                       placeholder="Enter your company name"
-                      className="h-10 text-base"
                     />
                   </div>
-                  {/* Location (Full Width) */}
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="location" className="text-sm font-medium">
-                      <MapPin className="w-4 h-4 inline mr-1 text-muted-foreground" />
-                      Location
-                    </Label>
-                    <Input
-                      id="location"
-                      value={
-                        isEditing ? formData.location : profile.location || ""
-                      }
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          location: e.target.value,
-                        }))
-                      }
-                      disabled={!isEditing}
-                      placeholder="Enter your location (City, Country)"
-                      className="h-10 text-base"
-                    />
-                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={
+                      isEditing ? formData.location : profile.location || ""
+                    }
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        location: e.target.value,
+                      }))
+                    }
+                    disabled={!isEditing}
+                    placeholder="Enter your location"
+                  />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Statistics Card (Only for non-Free users with projects) */}
             {profile.tier !== "Free" && stats.total_projects > 0 && (
-              <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <CardHeader className="bg-muted/30 rounded-t-lg">
-                  <CardTitle className="flex items-center text-lg font-semibold text-primary">
+              <Card className="">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
                     <TrendingUp className="w-5 h-5 mr-2" />
-                    Business Statistics
+                    Statistics
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  {/* Stat Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                    {/* Total Projects */}
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="text-center p-3 rounded-lg bg-card border border-border/70"
-                    >
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="text-center">
+                      <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
                         {stats.total_projects}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Total Projects
                       </p>
-                    </motion.div>
-                    {/* Completed Projects */}
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="text-center p-3 rounded-lg bg-card border border-border/70"
-                    >
-                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
                         {stats.completed_projects}
                       </p>
-                      <p className="text-sm text-muted-foreground">Completed</p>
-                    </motion.div>
-                    {/* Success Rate */}
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="text-center p-3 rounded-lg bg-card border border-border/70"
-                    >
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        {Math.round(projectCompletionRate)}%
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Completed
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl md:text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {Math.round(stats.completionRate)}%
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Success Rate
                       </p>
-                    </motion.div>
-                    {/* Total Revenue */}
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="text-center p-3 rounded-lg bg-card border border-border/70"
-                    >
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                         KSh {formatCurrency(stats.total_revenue)}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         Total Revenue
                       </p>
-                    </motion.div>
+                    </div>
                   </div>
 
-                  {/* Completion Rate Progress */}
                   <div>
-                    <div className="flex justify-between text-sm mb-2 text-foreground font-medium">
+                    <div className="flex justify-between text-sm mb-2 text-gray-700 dark:text-gray-300">
                       <span>Project Completion Rate</span>
                       <span>{Math.round(projectCompletionRate)}%</span>
                     </div>
 
-                    <div className="h-3 rounded-full overflow-hidden bg-muted/70">
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ease-out ${
+                        className={`h-full rounded-full transition-all duration-500 ${
                           projectCompletionRate >= 75
                             ? "bg-green-500"
                             : projectCompletionRate >= 50
-                            ? "bg-yellow-500"
+                            ? "bg-blue-500"
                             : "bg-red-500"
                         }`}
                         style={{ width: `${projectCompletionRate}%` }}
@@ -535,164 +462,120 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Right Column (Plan & Account Info) */}
-          <div className="space-y-8">
-            {/* Current Plan Card */}
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader className="p-0 border-b">
-                <div
-                  className={`flex flex-col items-center p-6 rounded-t-lg ${
-                    profile.tier === "Free"
-                      ? "bg-green-100 dark:bg-green-900/40"
-                      : profile.tier === "Intermediate"
-                      ? "bg-blue-100 dark:bg-blue-900/40"
-                      : "bg-purple-100 dark:bg-purple-900/40"
-                  }`}
-                >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white dark:bg-card shadow-lg text-3xl font-bold text-primary mb-3">
-                    {getTierImage(profile.tier)}
-                  </div>
-                  <CardTitle className="flex flex-col items-center space-y-1">
-                    <span className="text-xl font-extrabold text-foreground">
-                      {profile.tier} Plan
-                    </span>
-                    <Badge
-                      className={`text-xs font-semibold ${
+          <div className="space-y-6">
+            <Card className="">
+              <CardHeader>
+                <CardTitle className="flex flex-col items-center justify-between">
+                  <span className="text-lg font-semibold">Current Plan</span>
+
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-full ${
                         profile.tier === "Free"
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-green-100 text-green-700"
                           : profile.tier === "Intermediate"
-                          ? "bg-blue-500 hover:bg-blue-600"
-                          : "bg-purple-500 hover:bg-purple-600"
-                      } text-white`}
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-purple-100 text-purple-700"
+                      }`}
                     >
-                      Current Subscription
-                    </Badge>
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="text-center">
-                  <p className="text-3xl font-extrabold text-primary">
-                    {profile.tier === "Free"
-                      ? "Free"
-                      : `KSh ${tierData?.price?.toLocaleString() || "0"}`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {profile.tier !== "Free" ? "per month" : "Always Free"}
-                  </p>
-                </div>
-
-                {/* Quota Usage */}
-                {profile.tier !== "Professional" && (
-                  <div className="space-y-2 border-t pt-4 border-border/70">
-                    <div className="flex justify-between text-sm font-medium text-foreground">
-                      <span>Quotes Used</span>
-                      <span>
-                        <span
-                          className={`${
-                            quotaUsagePercentage >= 75
-                              ? "text-red-500"
-                              : "text-primary"
-                          } font-semibold`}
-                        >
-                          {profile?.quotes_used ?? 0}
-                        </span>
-                        /
-                        {tierLimits[profile?.tier]?.limit ?? 0}
-                      </span>
+                      {getTierImage(profile.tier)}
                     </div>
-                    <Progress
-                      value={quotaUsagePercentage}
-                      className="h-2.5"
-                      indicatorClassName={
-                        quotaUsagePercentage >= 75
-                          ? "bg-red-500"
-                          : quotaUsagePercentage >= 50
-                          ? "bg-yellow-500"
-                          : "bg-green-500"
-                      }
-                    />
-                    {quotaUsagePercentage >= 75 && (
-                      <p className="text-sm text-red-500 font-medium">
-                        Running low on quotes! Consider upgrading.
-                      </p>
-                    )}
                   </div>
-                )}
+                  {profile.tier}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <p className="sm:text-2xl text-xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                      {profile.tier === "Free"
+                        ? "Free"
+                        : `KSh ${tierData?.price?.toLocaleString() || "0"}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">per month</p>
+                  </div>
 
-                {/* Features List */}
-                <div className="space-y-3">
-                  <h4 className="font-bold text-base border-b pb-2 text-primary flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-2" /> Plan Features:
-                  </h4>
-                  <ul className="space-y-2">
-                    {tierData?.features?.length > 0
-                      ? tierData.features.map((feature, idx) => (
-                          <li key={idx} className="flex text-sm items-start">
-                            <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span className="text-foreground">{feature}</span>
-                          </li>
-                        ))
-                      : (
-                        <p className="text-sm text-muted-foreground">
-                          No specific features listed for this tier.
+                  {profile.tier !== "Professional" && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Quotes Used</span>
+                        <span>
+                          {profile?.quotes_used ?? 0}/
+                          {tierLimits[profile?.tier]?.limit ?? 0}
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            quotaUsagePercentage >= 75
+                              ? "bg-red-500"
+                              : quotaUsagePercentage >= 50
+                              ? "bg-blue-500"
+                              : "bg-green-500"
+                          }`}
+                          style={{ width: `${quotaUsagePercentage}%` }}
+                        ></div>
+                      </div>
+                      {quotaUsagePercentage >= 75 && (
+                        <p className="text-sm text-red-600">
+                          Running low on quotes!
                         </p>
                       )}
-                  </ul>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-md">Features:</h4>
+                    {tierData?.features?.map((feature, idx) => (
+                      <li key={idx} className="flex text-sm items-center">
+                        <CheckCircle className="w-4 h-4 dark:text-green-500 text-green-700 mr-2" />
+                        {feature}
+                      </li>
+                    )) || (
+                      <p className="text-sm text-red-500">No features found</p>
+                    )}
+                  </div>
                 </div>
-                <Button asChild className="w-full">
-                  <Link to="/pricing">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    {profile.tier === "Professional"
-                      ? "Manage Subscription"
-                      : "Upgrade Your Plan"}
-                  </Link>
-                </Button>
               </CardContent>
             </Card>
 
-            {/* Account Info Card */}
-            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader className="bg-muted/30 rounded-t-lg">
-                <CardTitle className="flex items-center text-lg font-semibold text-primary">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />
-                  Account Details
+                  Account Info
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 pt-6 text-sm">
-                {/* Member Since */}
-                <div className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                  <span className="text-muted-foreground flex items-center">
-                    <Users className="w-4 h-4 mr-2" /> Member since:
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Member since:
                   </span>
-                  <span className="text-foreground font-medium">
+                  <span className="text-gray-900 dark:text-white">
                     {new Date(profile.created_at).toLocaleDateString()}
                   </span>
                 </div>
-                {/* Last Updated */}
-                <div className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                  <span className="text-muted-foreground flex items-center">
-                    <Settings className="w-4 h-4 mr-2" /> Last updated:
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Last updated:
                   </span>
-                  <span className="text-foreground font-medium">
+                  <span className="text-gray-900 dark:text-white">
                     {new Date(profile.updated_at).toLocaleDateString()}
                   </span>
                 </div>
-                {/* Account Type */}
-                <div className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                  <span className="text-muted-foreground flex items-center">
-                    <Crown className="w-4 h-4 mr-2" /> Account type:
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Account type:
                   </span>
-                  <span className="text-foreground font-medium">
+                  <span className="text-gray-900 dark:text-white">
                     {profile.is_admin ? "Administrator" : "User"}
                   </span>
                 </div>
-                {/* Total Quotes Used */}
-                <div className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                  <span className="text-muted-foreground flex items-center">
-                    <DraftingCompass className="w-4 h-4 mr-2" /> Lifetime Quotes:
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Quotes used:
                   </span>
-                  <span className="text-foreground font-medium">
+                  <span className="text-gray-900 dark:text-white">
                     {profile.quotes_used}
                   </span>
                 </div>

@@ -1,112 +1,159 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  DraftingCompass,
-  ArrowLeft,
   Loader2,
-  Target,
   EyeOff,
   Eye,
+  CheckCircle,
+  Rocket,
+  Twitter,
+  Facebook,
+  Youtube,
+  Instagram,
+  LogIn,
+  UserPlus,
+  AlertCircle,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { toast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-// RISA Color Palette
-const RISA_BLUE = "#015B97";
-const RISA_LIGHT_BLUE = "#3288e6";
-const RISA_WHITE = "#ffffff";
-const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
-const KCA_GOLD = "#D4AF37";
-const KCA_GOLD_DARK = "#B8860B";
-const ICON_COLORS = [
-  RISA_BLUE,
-  RISA_LIGHT_BLUE,
-  RISA_BLUE,
-  RISA_LIGHT_BLUE,
-  RISA_BLUE,
-  RISA_LIGHT_BLUE,
-];
+// --- THEME DEFINITIONS ---
+const THEME = {
+  NAVY_BG: "#000B29",
+  HERO_BTN_GREEN: "#5BB539",
+  HERO_ACCENT_BLUE: "#38bdf8",
+  TEXT_LIGHT: "#F0F0F0",
+  LEFT_PANEL_TEXT: "#FDBA74",
+};
+
+// Background Image URL
+const BACKGROUND_IMAGE_URL = 'https://img.freepik.com/free-photo/construction-site-sunset_23-2152006125.jpg?semt=ais_hybrid&w=740&q=80';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState(searchParams.get("mode") || "signin");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [mode, setMode] = useState<"signin" | "signup">(searchParams.get("mode") as "signin" | "signup" || "signin");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
     name: "",
   });
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const { user, profile, signIn, signUp, signInWithGoogle } = useAuth();
+  const [authStage, setAuthStage] = useState<"idle" | "verifying" | "redirecting">("idle");
+  const { 
+    user, 
+    signInWithGoogle 
+  } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Execute redirect after successful authentication
+  const executeRedirect = () => {
+    const redirectUrl = searchParams.get("redirect");
+    if (redirectUrl && redirectUrl.startsWith("/")) {
+      navigate(redirectUrl);
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
+  // Handle "Create Account" button click (triggers Google sign-in)
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
+    
+    // Basic validation for signup
+    if (!formData.name) {
+      setError("Please enter your name");
+      return;
+    }
+    
+    if (!formData.email) {
+      setError("Please enter your email address");
+      return;
+    }
+    
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    
+    if (!formData.password) {
+      setError("Please enter a password");
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    // All validation passed, now trigger Google sign-in
+    await handleGoogleAuth();
+  };
+
+  // Handle "Sign In" button click (triggers Google sign-in)
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    
+    // Basic validation for signin
+    if (!formData.email) {
+      setError("Please enter your email address");
+      return;
+    }
+    
+    if (!formData.password) {
+      setError("Please enter your password");
+      return;
+    }
+
+    // All validation passed, now trigger Google sign-in
+    await handleGoogleAuth();
+  };
+
+  // Common Google authentication handler
+  const handleGoogleAuth = async () => {
     setLoading(true);
-
+    setAuthStage("verifying");
+    
     try {
-      if (mode === "signup") {
-        if (formData.password !== formData.confirmPassword) {
-          throw new Error("Passwords do not match");
-        }
-        if (formData.password.length < 6) {
-          throw new Error("Password must be at least 6 characters");
-        }
-
-        await signUp(formData.email, formData.password, formData.name);
-        setSuccess(
-          "Account created successfully! Please check your email to verify your account."
-        );
-      }
-
-      if (mode === "signin") {
-        await signIn(formData.email, formData.password);
-      }
-    } catch (err: any) {
-      let friendlyMessage = "Something went wrong. Please try again.";
-      const msg = err.message.toLowerCase();
-
-      if (msg.includes("passwords do not match")) {
-        friendlyMessage = "Your passwords do not match.";
-      } else if (msg.includes("at least 6 characters")) {
-        friendlyMessage = "Password must be at least 6 characters long.";
-      } else if (
-        msg.includes("invalid login") ||
-        msg.includes("invalid credentials")
-      ) {
-        friendlyMessage = "Invalid email or password. Please try again.";
-      } else if (msg.includes("user not found")) {
-        friendlyMessage = "No account found with that email.";
-      } else if (msg.includes("email already in use")) {
-        friendlyMessage = "This email is already registered. Try signing in.";
-      } else if (msg.includes("network")) {
-        friendlyMessage =
-          "Network error. Please check your internet connection.";
-      }
-
-      toast({
-        title: "Authentication Error",
-        description: friendlyMessage,
-        variant: "destructive",
+      // Use the form data to personalize the experience if needed
+      console.log("Authenticating with form data:", {
+        name: formData.name,
+        email: formData.email,
+        mode: mode
       });
-
-      setError(friendlyMessage);
-    } finally {
+      
+      // Actually sign in with Google
+      await signInWithGoogle();
+      
+      setAuthStage("redirecting");
+      setTimeout(() => {
+        executeRedirect();
+      }, 2500);
+    } catch (err: any) {
+      console.error("Authentication failed:", err);
+      setError(err.message || `Failed to ${mode === "signin" ? "sign in" : "create account"}. Please try again.`);
+      setAuthStage("idle");
       setLoading(false);
     }
   };
@@ -116,371 +163,474 @@ const Auth = () => {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+    setError("");
   };
 
-  if (user) {
-    navigate("/dashboard");
-  }
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (user && authStage === 'idle') {
+      const redirectUrl = searchParams.get("redirect");
+      if (redirectUrl && redirectUrl.startsWith("/")) {
+        navigate(redirectUrl);
+      } else {
+        navigate("/dashboard");
+      }
+    }
+  }, [user, authStage, navigate, searchParams]);
+
+  // Update mode when URL changes
+  useEffect(() => {
+    const urlMode = searchParams.get("mode");
+    if (urlMode === "signin" || urlMode === "signup") {
+      setMode(urlMode);
+      setError("");
+      // Reset form data when switching modes
+      if (mode !== urlMode) {
+        setFormData({ email: "", password: "", confirmPassword: "", name: "" });
+      }
+    }
+  }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 duration-300 transition-colors">
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
+    <div 
+      className="min-h-screen flex relative overflow-hidden bg-cover bg-center" 
+      style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }} 
+    >
+      {/* GLOBAL OVERLAY */}
+      <div className="absolute inset-0" style={{ backgroundColor: THEME.NAVY_BG + 'D0' }}></div>
+      
+      {/* LEFT PANEL CONTENT */}
+      <div className="hidden lg:block absolute inset-y-0 left-0 w-1/2 p-16 z-10">
+        <motion.div 
+          className="relative text-white w-full max-w-lg lg:max-w-md"
+          style={{ top: '30%', left: '15%' }} 
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-6xl lg:text-7xl font-extrabold mb-4 leading-none text-white">
+            {mode === "signin" ? "Welcome Back" : "Join Our Community"}
+          </h1>
+          <p className="text-sm lg:text-base mb-8 max-w-xs" style={{ color: THEME.LEFT_PANEL_TEXT }}>
+            {mode === "signin" 
+              ? "Securely access your account with Google authentication. Your data is protected with enterprise-grade security."
+              : "Create your account instantly with Google. We'll use your information to personalize your experience."
+            }
+          </p>
+          <div className="flex items-center gap-3 mt-8 p-4 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+            <Shield className="w-6 h-6 text-green-400" />
+            <div>
+              <p className="text-sm font-medium text-white">Secure Google Authentication</p>
+              <p className="text-xs opacity-80" style={{ color: THEME.LEFT_PANEL_TEXT }}>Industry-standard security</p>
+            </div>
+          </div>
+          <div className="flex space-x-4 mt-6">
+            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Facebook className="w-5 h-5" /></motion.a>
+            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Twitter className="w-5 h-5" /></motion.a>
+            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Youtube className="w-5 h-5" /></motion.a>
+            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Instagram className="w-5 h-5" /></motion.a>
+          </div>
+        </motion.div>
       </div>
 
-      <motion.div
-        className="w-full max-w-md"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        {/* Header */}
-        <div className="text-center mb-8">
-          {/* Animated Back Button */}
-          <motion.button
-            onClick={() => navigate("/")}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.2,
-              type: "spring",
-              stiffness: 300,
-              damping: 20,
-            }}
-            whileHover={{ scale: 1.08, y: -3 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center text-sm font-medium mb-6 transition-colors group"
-            style={{ color: RISA_BLUE }}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:translate-x-[-2px] transition-transform" />
-            <span className="relative overflow-hidden">
-              <span className="block">Back to Home</span>
-            </span>
-          </motion.button>
-
-          <div className="flex items-center justify-center mb-4 group">
-            <motion.div
-              whileHover={{ rotate: 15, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      {/* RIGHT PANEL/CENTERED FORM CONTAINER */}
+      <div className="absolute inset-0 w-full flex items-center justify-center lg:justify-end lg:pr-[15%] p-4 z-20">
+        {/* SUCCESS OVERLAY */}
+        <AnimatePresence>
+          {authStage === "redirecting" && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
             >
-              <Target className="sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" />
+              <motion.div 
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ type: "spring", damping: 15 }}
+                className="text-center max-w-md mx-4 bg-white/90 dark:bg-gray-900/90 p-8 rounded-xl shadow-2xl"
+              >
+                <div className="relative mb-8">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.1, type: "spring" }}
+                    className="w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-2xl"
+                    style={{ backgroundColor: THEME.HERO_BTN_GREEN }}
+                  >
+                    <svg className="w-12 h-12" viewBox="0 0 24 24">
+                      <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                  </motion.div>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                  Authentication Successful!
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 text-lg mb-8">
+                  You've been securely authenticated with Google. Redirecting...
+                </p>
+                <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 2.5, ease: "easeInOut" }}
+                    className="h-full"
+                    style={{ backgroundColor: THEME.HERO_BTN_GREEN }}
+                  />
+                  <motion.div
+                    animate={{ x: ["0%", "100%"] }}
+                    transition={{ duration: 2.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5 }}
+                    className="absolute -top-6 left-0"
+                  >
+                    <Rocket className="w-6 h-6" style={{ color: THEME.HERO_ACCENT_BLUE }} />
+                  </motion.div>
+                </div>
+              </motion.div>
             </motion.div>
-            <motion.span
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="sm:text-2xl text-lg font-bold ml-3 text-blue-600 dark:text-blue-400"
-            >
-              JTech AI
-            </motion.span>
-          </div>
+          )}
+        </AnimatePresence>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="sm:text-3xl text-2xl font-bold mb-2 text-gray-900 dark:text-white"
-          >
-            {mode === "signin" ? "Welcome Back" : "Get Started"}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-gray-600 mt-2 text-base dark:text-gray-300"
-          >
-            {mode === "signin"
-              ? "Sign in to your construction management account"
-              : "Create your account and start building quotes"}
-          </motion.p>
-        </div>
-
-        {/* Auth Form Card */}
+        {/* MAIN FORM BLOCK */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
+          className="w-full max-w-xs lg:max-w-sm relative p-4 lg:p-0"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ 
+            opacity: authStage === 'idle' || authStage === 'verifying' ? 1 : 0, 
+            scale: authStage === 'idle' || authStage === 'verifying' ? 1 : 0.95
+          }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-            <CardHeader className="pb-2 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-              <CardTitle className="text-center text-xl font-semibold text-gray-900 dark:text-white">
-                {mode === "signin" ? "Sign In" : "Create Account"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {error && (
-                <Alert className="mb-4 border-red-200 bg-red-50 dark:bg-red-900/30 dark:border-red-800 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <AlertDescription className="text-red-700 dark:text-red-300">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-              {success && (
-                <Alert className="mb-4 border-green-200 bg-green-50 dark:bg-green-900/30 dark:border-green-800 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <AlertDescription className="text-green-700 dark:text-green-300">
-                    {success}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {mode === "signup" && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.7 }}
-                  >
-                    <Label
-                      htmlFor="name"
-                      className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
-                    >
-                      Full Name
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="John Doe"
-                        className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300"
-                        style={{ borderColor: RISA_BLUE }}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  <Label
-                    htmlFor="email"
-                    className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
-                  >
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="you@example.com"
-                      className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300"
-                      style={{ borderColor: RISA_BLUE }}
-                    />
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.9 }}
-                >
-                  <Label
-                    htmlFor="password"
-                    className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
-                  >
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="••••••••"
-                      className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 pr-12"
-                      style={{ borderColor: RISA_BLUE }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                </motion.div>
-
-                {mode === "signup" && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1.0 }}
-                  >
-                    <Label
-                      htmlFor="confirmPassword"
-                      className="text-sm font-medium text-gray-900 dark:text-white block mb-2"
-                    >
-                      Confirm Password
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        required
-                        placeholder="••••••••"
-                        className="w-full bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 px-4 py-3 text-sm rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 pr-12"
-                        style={{ borderColor: RISA_BLUE }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-                        tabIndex={-1}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-5 h-5" />
-                        ) : (
-                          <Eye className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  className="w-full text-sm font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-white relative overflow-hidden"
-                  disabled={loading}
-                  style={{
-                    backgroundColor: RISA_BLUE,
-                    padding: "0.5rem 2rem",
-                    borderRadius: "50px",
-                    border: "none",
-                  }}
-                >
-                  {loading && (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin inline" />
-                  )}
-                  {mode === "signin" ? "Sign In" : "Create Account"}
-                </motion.button>
-              </form>
-
-              <div className="my-6 relative text-center">
-                <span className="absolute left-0 top-1/2 w-full border-t border-gray-200 dark:border-gray-700"></span>
-                <span className="relative bg-white px-4 py-1 text-sm text-gray-500 dark:bg-gray-800 dark:text-gray-400 rounded-full">
-                  OR
+          {/* TITLE AND MODE SWITCHER */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-extrabold text-white mb-2">
+              {mode === "signin" ? "Sign In" : "Create Account"}
+            </h1>
+            <p className="text-sm opacity-80 mb-6" style={{ color: THEME.TEXT_LIGHT }}>
+              {mode === "signin" 
+                ? "Don't have an account? " 
+                : "Already have an account? "}
+              <button
+                onClick={() => {
+                  setMode(mode === "signin" ? "signup" : "signin");
+                  setError("");
+                  setFormData({ email: "", password: "", confirmPassword: "", name: "" });
+                }}
+                className="font-semibold hover:underline"
+                style={{ color: THEME.HERO_BTN_GREEN }}
+              >
+                {mode === "signin" ? "Create one now" : "Sign in instead"}
+              </button>
+            </p>
+            
+            {/* Google Authentication Notice */}
+            <div className="mt-4 mb-6 p-3 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span className="text-sm" style={{ color: THEME.TEXT_LIGHT }}>
+                  {mode === "signin" 
+                    ? "Sign in securely with Google" 
+                    : "Create account securely with Google"
+                  }
                 </span>
               </div>
+            </div>
+          </div>
 
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={signInWithGoogle}
-                className="w-full text-sm font-semibold py-3 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3"
-                disabled={loading}
-                style={{
-                  backgroundColor: RISA_WHITE,
-                  color: RISA_BLUE,
-                  padding: "0.5rem 2rem",
-                  borderRadius: "50px",
-                  border: `1px solid ${RISA_BLUE}`,
-                }}
-              >
-                <img
-                  src="https://www.svgrepo.com/show/355037/google.svg"
-                  alt="Google"
-                  className="w-5 h-5"
-                />
-                Continue with Google
-              </motion.button>
+          {/* ERROR MESSAGE */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-sm flex items-start gap-3"
+              style={{ 
+                backgroundColor: "rgba(220, 38, 38, 0.1)",
+                borderLeft: `4px solid #DC2626`
+              }}
+            >
+              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "#DC2626" }} />
+              <p className="text-sm" style={{ color: "#FECACA" }}>{error}</p>
+            </motion.div>
+          )}
 
-              <div className="mt-6 text-center">
-                <p className="text-gray-600 text-sm dark:text-gray-300">
-                  {mode === "signin"
-                    ? "Don't have an account? "
-                    : "Already have an account? "}
-                  <motion.button
-                    whileHover={{ scale: 1.05, color: RISA_LIGHT_BLUE }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() =>
-                      setMode(mode === "signin" ? "signup" : "signin")
-                    }
-                    className="text-sm font-medium transition-colors"
-                    style={{
-                      color: RISA_BLUE,
-                      backgroundColor: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                    disabled={loading}
+          {/* AUTH FORM FIELDS */}
+          <div className="p-0 space-y-6">
+            <AnimatePresence mode="wait">
+              {authStage === "idle" && (
+                <motion.div
+                  key="auth-form"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
+                  <form onSubmit={mode === "signin" ? handleSignIn : handleCreateAccount}>
+                    <div className="space-y-6">
+                      {/* Name field (only for sign up) */}
+                      {mode === "signup" && (
+                        <div>
+                          <Label htmlFor="name" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                            Full Name
+                          </Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            type="text"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            placeholder="Enter your full name"
+                            className="auth-input w-full"
+                            required
+                          />
+                          <p className="text-xs mt-1 opacity-70" style={{ color: THEME.TEXT_LIGHT }}>
+                            We'll use this to personalize your experience
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Email field */}
+                      <div>
+                        <Label htmlFor="email" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                          Email Address
+                        </Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          placeholder="Enter your email"
+                          className="auth-input w-full"
+                          required
+                        />
+                        <p className="text-xs mt-1 opacity-70" style={{ color: THEME.TEXT_LIGHT }}>
+                          Used for account verification and communication
+                        </p>
+                      </div>
+
+                      {/* Password field */}
+                      <div>
+                        <Label htmlFor="password" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                          Password
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            placeholder="Enter your password"
+                            className="auth-input w-full pr-12"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                            style={{ color: THEME.TEXT_LIGHT }}
+                          >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                        <p className="text-xs mt-1 opacity-70" style={{ color: THEME.TEXT_LIGHT }}>
+                          Must be at least 6 characters
+                        </p>
+                      </div>
+
+                      {/* Confirm Password field (only for sign up) */}
+                      {mode === "signup" && (
+                        <div>
+                          <Label htmlFor="confirmPassword" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                            Confirm Password
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              type={showConfirmPassword ? "text" : "password"}
+                              value={formData.confirmPassword}
+                              onChange={handleInputChange}
+                              placeholder="Confirm your password"
+                              className="auth-input w-full pr-12"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword((prev) => !prev)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                              style={{ color: THEME.TEXT_LIGHT }}
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Remember Me (only for sign in) */}
+                      {mode === "signin" && (
+                        <div className="flex items-center">
+                          <input 
+                            type="checkbox" 
+                            id="rememberMe" 
+                            className="w-4 h-4 rounded border-white/50 focus:ring-white focus:ring-offset-0 focus:ring-offset-transparent" 
+                            style={{ 
+                              backgroundColor: THEME.HERO_BTN_GREEN, 
+                              borderColor: THEME.HERO_BTN_GREEN 
+                            }} 
+                          />
+                          <label htmlFor="rememberMe" className="ml-2 block text-sm opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                            Keep me signed in
+                          </label>
+                        </div>
+                      )}
+
+                      {/* Submit Button - This triggers Google authentication */}
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="submit"
+                        className="w-full font-semibold py-3.5 px-6 rounded-sm shadow-md transition-all duration-300 relative overflow-hidden group flex items-center justify-center gap-3"
+                        style={{
+                          background: THEME.HERO_BTN_GREEN, 
+                          borderRadius: "4px"
+                        }}
+                        disabled={loading || authStage === "verifying"}
+                      >
+                        {/* Hidden Google icon that appears on hover */}
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0 }}
+                          whileHover={{ opacity: 1, scale: 1 }}
+                          className="absolute left-4"
+                        >
+                          <svg className="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                          </svg>
+                        </motion.div>
+                        
+                        {loading || authStage === "verifying" ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>Authenticating...</span>
+                          </>
+                        ) : mode === "signin" ? (
+                          <>
+                            <LogIn className="w-5 h-5" />
+                            <span>Sign In Securely</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-5 h-5" />
+                            <span>Create Account Securely</span>
+                          </>
+                        )}
+                      </motion.button>
+
+                      {/* Privacy Notice */}
+                      <p className="text-xs text-center opacity-70 pt-2" style={{ color: THEME.TEXT_LIGHT }}>
+                        By clicking "{mode === "signin" ? "Sign In Securely" : "Create Account Securely"}", you'll authenticate with Google
+                      </p>
+                    </div>
+                  </form>
+
+                  {/* Terms and Privacy */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                    className="text-center pt-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}
                   >
-                    {mode === "signin" ? "Sign up" : "Sign in"}
-                  </motion.button>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
+                    <p className="text-xs opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                      Your privacy is important. We use Google OAuth for secure authentication.<br/>
+                      <a href="#" className="hover:underline mr-2" style={{ color: THEME.TEXT_LIGHT }}>Terms</a>
+                      <span style={{ color: THEME.TEXT_LIGHT }}>•</span>
+                      <a href="#" className="hover:underline mx-2" style={{ color: THEME.TEXT_LIGHT }}>Privacy</a>
+                      <span style={{ color: THEME.TEXT_LIGHT }}>•</span>
+                      <a href="#" className="hover:underline ml-2" style={{ color: THEME.TEXT_LIGHT }}>Security</a>
+                    </p>
+                  </motion.div>
+                </motion.div>
+              )}
 
-      {/* Global Styles */}
+              {/* VERIFYING STATE */}
+              {authStage === "verifying" && (
+                <motion.div
+                  key="verifying"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  className="flex flex-col items-center justify-center text-center py-12 rounded-lg"
+                  style={{ backgroundColor: THEME.NAVY_BG + '40' }}
+                >
+                  <div className="mb-6 relative">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                      className="mb-2"
+                    >
+                      <Loader2 className="w-16 h-16 text-white" />
+                    </motion.div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-8 h-8" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2 text-white">
+                    {mode === "signin" ? "Signing in with Google..." : "Creating account with Google..."}
+                  </h2>
+                  <p className="text-gray-200">You'll be redirected to Google for secure authentication</p>
+                  <div className="mt-6 w-48 h-1 bg-gray-700 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="h-full"
+                      style={{ backgroundColor: THEME.HERO_BTN_GREEN }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </div>
+
       <style>{`
         .auth-input {
-          border-radius: 50px;
-          border: 1px solid ${RISA_MEDIUM_GRAY};
-          padding: 0.75rem 1rem;
-          transition: all 0.3s ease;
+          border-radius: 4px; 
+          padding: 0.85rem 1rem;
+          font-size: 1rem;
+          background-color: white;
+          color: #333;
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 0px 0px 0 rgba(0, 0, 0, 0.0), 0 0px 1px 0 rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
         }
         .auth-input:focus {
-          border-color: ${RISA_BLUE};
-          box-shadow: 0 0 0 2px rgba(1, 91, 151, 0.2);
+          border-color: ${THEME.HERO_BTN_GREEN} !important;
+          box-shadow: 0 0 0 2px ${THEME.HERO_BTN_GREEN}40;
           outline: none;
         }
-        .auth-card {
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          border: none;
+        .auth-input:hover {
+          border-color: ${THEME.HERO_BTN_GREEN};
         }
-        .risa-btn-primary {
-          background-color: ${RISA_BLUE};
-          color: ${RISA_WHITE};
-          padding: 0.5rem 2rem;
-          border-radius: 50px;
-          border: none;
-          font-weight: bold;
-          transition: all 0.3s ease;
-        }
-        .risa-btn-primary:hover {
-          background-color: ${RISA_WHITE};
-          color: ${RISA_BLUE};
-          border: 1px solid ${RISA_BLUE};
-        }
-        .risa-btn-outline {
-          background-color: ${RISA_WHITE};
-          color: ${RISA_BLUE};
-          padding: 0.5rem 2rem;
-          border-radius: 50px;
-          border: 1px solid ${RISA_BLUE};
-          font-weight: bold;
-          transition: all 0.3s ease;
-        }
-        .risa-btn-outline:hover {
-          background-color: ${RISA_BLUE};
-          color: ${RISA_WHITE};
-          border: 1px solid ${RISA_BLUE};
+        .auth-input::placeholder {
+          color: #9CA3AF;
         }
       `}</style>
     </div>

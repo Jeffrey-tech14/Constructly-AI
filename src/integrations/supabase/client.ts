@@ -6,12 +6,12 @@ import type { Database } from "./types";
 
 // Universal environment getter — works on Vercel, Next.js, Vite, Node
 const getEnv = (key: string) => {
-  // 1. Node & Vercel serverless
+  // 1. Node & Vercel
   if (typeof process !== "undefined" && process.env?.[key]) {
     return process.env[key];
   }
 
-  // 2. Vite / client
+  // 2. Vite / Browser
   if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
     return import.meta.env[key];
   }
@@ -19,15 +19,16 @@ const getEnv = (key: string) => {
   return undefined;
 };
 
-// Auto-detect correct env style based on platform
+// Auto-detect correct env keys
 const supabaseUrl =
   getEnv("NEXT_PUBLIC_SUPABASE_URL") ||
   getEnv("VITE_SUPABASE_URL") ||
-  getEnv("SUPABASE_URL"); // Vercel auto inject
+  getEnv("SUPABASE_URL");
+
 const supabaseAnonKey =
   getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
   getEnv("VITE_SUPABASE_ANON_KEY") ||
-  getEnv("SUPABASE_ANON_KEY"); // Vercel auto inject
+  getEnv("SUPABASE_ANON_KEY");
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
@@ -35,13 +36,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// IMPORTANT: NO PKCE!
+// Do NOT set flowType unless your app is ONLY OAuth in a native runtime.
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: typeof window !== "undefined" ? window.localStorage : undefined,
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    flowType: "pkce",
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+    // flowType removed to restore normal browser behavior
   },
   db: {
     schema: "public",

@@ -19,7 +19,6 @@ const getEnv = (key: string) => {
   return undefined;
 };
 
-// Auto-detect correct env keys
 const supabaseUrl =
   getEnv("NEXT_PUBLIC_SUPABASE_URL") ||
   getEnv("VITE_SUPABASE_URL") ||
@@ -36,16 +35,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// IMPORTANT: NO PKCE!
-// Do NOT set flowType unless your app is ONLY OAuth in a native runtime.
+// No-op storage for non-browser environments (e.g., SSR)
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: typeof window !== "undefined" ? window.localStorage : undefined,
-    // flowType removed to restore normal browser behavior
+    storage: typeof window !== "undefined" ? window.localStorage : noopStorage,
   },
   db: {
     schema: "public",

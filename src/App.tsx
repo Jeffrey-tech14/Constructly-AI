@@ -20,7 +20,10 @@ import Variables from "./pages/Variables";
 import NotFound from "./pages/NotFound";
 import UploadPlan from "./pages/UploadPage";
 import Auth from "./pages/Auth";
+import UpdatePassword from "./pages/auth/update-password"; // ✅ NEW IMPORT
+
 const queryClient = new QueryClient();
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -28,11 +31,13 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <div className="min-h-screen  scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400">
+          <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400">
             <Navbar />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              {/* ✅ NEW ROUTE: Password reset callback */}
+              <Route path="/auth/update-password" element={<UpdatePassword />} />
               <Route
                 path="/dashboard"
                 element={
@@ -97,4 +102,5 @@ const App = () => (
     </ThemeProvider>
   </QueryClientProvider>
 );
+
 export default App;

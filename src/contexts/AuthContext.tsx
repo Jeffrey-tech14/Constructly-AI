@@ -41,6 +41,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>; // ✅ ADDED
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
@@ -54,9 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const prevUserId = useRef<string | null>(null);
 
-  //---------------------------------------
-  // Fetch Profile
-  //---------------------------------------
   const fetchProfile = async (userId: string) => {
     if (!userId) {
       setProfile(null);
@@ -82,9 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  //---------------------------------------
-  // Initial Auth State + Redirect Handling
-  //---------------------------------------
   useEffect(() => {
     let active = true;
 
@@ -100,7 +95,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthReady(true);
       setLoading(false);
 
-      // Listen for login changes
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -108,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (session?.user) {
           setUser(session.user);
-
           if (session.user.id !== prevUserId.current) {
             prevUserId.current = session.user.id;
             await fetchProfile(session.user.id);
@@ -129,9 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  //---------------------------------------
-  // Realtime profile updates
-  //---------------------------------------
   useEffect(() => {
     if (!user?.id) return;
 
@@ -154,40 +144,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user?.id]);
 
-  //---------------------------------------
-  // Sign In
-  //---------------------------------------
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
-    if (error) throw error;
-
     return { error };
   };
 
-  //---------------------------------------
-  // Sign Up
-  //---------------------------------------
   const signUp = async (email: string, password: string, name?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { name: name || email.split("@")[0] },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-
-    if (error) throw error;
     return { error };
   };
 
-  //---------------------------------------
-  // Google OAuth
-  //---------------------------------------
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -195,23 +171,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
-
-    if (error) throw error;
     return { error };
   };
 
-  //---------------------------------------
-  // Sign Out
-  //---------------------------------------
+  // ✅ ADDED: resetPassword method
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/update-password`,
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
   };
 
-  //---------------------------------------
-  // Update Profile
-  //---------------------------------------
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) throw new Error("Not logged in");
 
@@ -221,13 +197,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq("id", user.id);
 
     if (error) throw error;
-
     await fetchProfile(user.id);
   };
 
-  //---------------------------------------
-  // Context Value
-  //---------------------------------------
   const value = useMemo(
     () => ({
       user,
@@ -238,7 +210,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signOut,
       signInWithGoogle,
-      refreshProfile: async () => user?.id && fetchProfile(user.id),
+      resetPassword, // ✅ Included in context
+      refreshProfile: async () => {
+        if (user?.id) await fetchProfile(user.id);
+      },
       updateProfile,
     }),
     [user, profile, loading, authReady]
@@ -247,12 +222,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 };
 
-// Utility
 export const refreshApp = () => window?.location?.reload();

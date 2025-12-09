@@ -50,20 +50,46 @@ const Profile = () => {
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const location = useLocation();
+
+  // Early return if no user — must RETURN to stop execution
+  if (!user) {
+    navigate("/auth", { replace: true });
+    return null;
+  }
+
+  // Show loader while profile is loading
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="animate-spin rounded-full h-8 w-8" />
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+            Loading Profile...
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Please wait while we load your profile.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const [formData, setFormData] = useState({
-    name: profile?.name || "",
-    phone: profile?.phone || "",
-    company: profile?.company || "",
-    location: profile?.location || "",
-    avatar_url: profile?.avatar_url || "",
+    name: profile.name || "",
+    phone: profile.phone || "",
+    company: profile.company || "",
+    location: profile.location || "",
+    avatar_url: profile.avatar_url || "",
   });
+
   useEffect(() => {
-    if (profile?.avatar_url) {
+    if (profile.avatar_url) {
       downloadImage(profile.avatar_url);
     } else {
       setAvatarUrl(null);
     }
-  }, [profile]);
+  }, [profile.avatar_url]);
+
   async function downloadImage(path: string) {
     try {
       if (path.startsWith("http")) {
@@ -84,6 +110,7 @@ const Profile = () => {
       }
     }
   }
+
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
@@ -93,6 +120,7 @@ const Profile = () => {
     }
     return value.toString();
   };
+
   const [tierLimits, setTierLimits] = useState<{
     [key: string]: {
       price: number;
@@ -100,17 +128,20 @@ const Profile = () => {
       features: string[];
     };
   }>({});
+
   const [stats, setStats] = useState({
     total_projects: 0,
     completed_projects: 0,
     total_revenue: 0,
     completionRate: 0,
   });
+
   useEffect(() => {
-    if (profile?.id) {
+    if (profile.id) {
       fetchDashboardStats(profile.id).then(setStats);
     }
-  }, [user, location.key]);
+  }, [profile.id, location.key]);
+
   const fetchDashboardStats = async (userId: string) => {
     const { data, error } = await supabase
       .from("quotes")
@@ -142,6 +173,7 @@ const Profile = () => {
       completionRate,
     };
   };
+
   useEffect(() => {
     const fetchTiers = async () => {
       const { data, error } = await supabase.from("tiers").select("*");
@@ -157,16 +189,13 @@ const Profile = () => {
         };
         return acc;
       }, {});
-      setTierLimits({
-        ...tierLimits,
-        ...limits,
-      });
+      setTierLimits(limits);
     };
     fetchTiers();
-  }, [location.key, user]);
-  const tierData = profile?.tier
-    ? tierLimits[profile.tier as keyof typeof tierLimits]
-    : null;
+  }, [location.key]);
+
+  const tierData = tierLimits[profile.tier as keyof typeof tierLimits] || null;
+
   const handleSave = async () => {
     try {
       await updateProfile(formData);
@@ -175,6 +204,7 @@ const Profile = () => {
       console.error("Error updating profile:", error);
     }
   };
+
   const handleAvatarUpload = async (url: string) => {
     try {
       await updateProfile({ ...formData, avatar_url: url });
@@ -183,9 +213,7 @@ const Profile = () => {
       console.error("Error updating avatar:", error);
     }
   };
-  if (!user) {
-    navigate("/auth");
-  }
+
   const getTierImage = (tier: string) => {
     switch (tier) {
       case "Free":
@@ -198,12 +226,12 @@ const Profile = () => {
         return <span className="text-sm font-medium">{tier}</span>;
     }
   };
+
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "Free":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            {" "}
             Free
           </Badge>
         );
@@ -215,7 +243,7 @@ const Profile = () => {
         );
       case "Professional":
         return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
+          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
             Professional
           </Badge>
         );
@@ -223,31 +251,18 @@ const Profile = () => {
         return <Badge>{tier}</Badge>;
     }
   };
-  const quotaUsagePercentage =
-    profile?.quotes_used && profile?.tier && tierLimits[profile.tier]
-      ? (profile.quotes_used / tierLimits[profile.tier].limit) * 100
-      : 0;
+
+  const quotaUsagePercentage = tierData
+    ? (profile.quotes_used / tierData.limit) * 100
+    : 0;
+
   const projectCompletionRate =
     stats.total_projects > 0
       ? (stats.completed_projects / stats.total_projects) * 100
       : 0;
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-            Loading Profile...
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Please wait while we load your profile.
-          </p>
-        </div>
-      </div>
-    );
-  }
+
   return (
-    <div className="min-h-screen  animate-fade-in smooth-transition">
+    <div className="min-h-screen animate-fade-in smooth-transition">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between items-start">
           <div className="items-center">
@@ -255,7 +270,7 @@ const Profile = () => {
               <LucidePersonStanding className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
               Profile
             </h1>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
               Manage your account and subscription
             </p>
           </div>
@@ -297,7 +312,7 @@ const Profile = () => {
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={avatarUrl || undefined} />
                       <AvatarFallback className="text-2xl">
-                        <User className="w-10 h-10 text-blue-600 dark:text-blue-400"></User>
+                        <User className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                       </AvatarFallback>
                     </Avatar>
                     <Button
@@ -395,7 +410,7 @@ const Profile = () => {
             </Card>
 
             {profile.tier !== "Free" && stats.total_projects > 0 && (
-              <Card className="">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <TrendingUp className="w-5 h-5 mr-2" />
@@ -463,12 +478,11 @@ const Profile = () => {
           </div>
 
           <div className="space-y-6">
-            <Card className="">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex flex-col items-center justify-between">
+                <CardTitle className="flex flex-col items-center">
                   <span className="text-lg font-semibold">Current Plan</span>
-
-                  <div className="flex items-center space-x-3 mb-4">
+                  <div className="flex items-center space-x-3 my-2">
                     <div
                       className={`flex h-12 w-12 items-center justify-center rounded-full ${
                         profile.tier === "Free"
@@ -487,7 +501,7 @@ const Profile = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <p className="sm:text-2xl text-xl sm:text-2xl text-lg font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                    <p className="sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                       {profile.tier === "Free"
                         ? "Free"
                         : `KSh ${tierData?.price?.toLocaleString() || "0"}`}
@@ -495,13 +509,12 @@ const Profile = () => {
                     <p className="text-sm text-muted-foreground">per month</p>
                   </div>
 
-                  {profile.tier !== "Professional" && (
+                  {profile.tier !== "Professional" && tierData && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Quotes Used</span>
                         <span>
-                          {profile?.quotes_used ?? 0}/
-                          {tierLimits[profile?.tier]?.limit ?? 0}
+                          {profile.quotes_used ?? 0}/{tierData.limit}
                         </span>
                       </div>
                       <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
@@ -526,13 +539,17 @@ const Profile = () => {
 
                   <div className="space-y-2">
                     <h4 className="font-semibold text-md">Features:</h4>
-                    {tierData?.features?.map((feature, idx) => (
-                      <li key={idx} className="flex text-sm items-center">
-                        <CheckCircle className="w-4 h-4 dark:text-green-500 text-green-700 mr-2" />
-                        {feature}
-                      </li>
-                    )) || (
-                      <p className="text-sm text-red-500">No features found</p>
+                    {tierData && Array.isArray(tierData.features) && tierData.features.length > 0 ? (
+                      <ul className="space-y-1">
+                        {tierData.features.map((feature, idx) => (
+                          <li key={idx} className="flex text-sm items-center">
+                            <CheckCircle className="w-4 h-4 dark:text-green-500 text-green-700 mr-2 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No features available</p>
                     )}
                   </div>
                 </div>

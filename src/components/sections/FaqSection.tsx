@@ -1,24 +1,24 @@
 // src/components/sections/FaqSection.tsx
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Search, 
-  Plus, 
-  Minus, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Plus,
+  Minus,
   Target,
   FileCode,
   ShieldCheck,
   HelpCircle,
-  Play
+  Play,
 } from "lucide-react";
 
 // --- GLOBAL STYLES ---
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    .font-inter { font-family: 'Inter', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+    .font-outfit { font-family: 'Outfit', sans-serif; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
@@ -54,9 +54,11 @@ const mockFaqResults = [
     tags: ["AI", "Accuracy"],
     title: "How accurate is J-Tech AI?",
     question: "Precision level of automated measurements?",
-    answer: "**99.9% accuracy** on clear, scaled plans. AI cross-validates with structural logic. Review & adjust before finalizing.",
+    answer:
+      "**99.9% accuracy** on clear, scaled plans. AI cross-validates with structural logic. Review & adjust before finalizing.",
     historyText: "How does J-Tech verify results?",
-    historyAnswer: "Dual-validation: geometric checks + material logic rules. You retain final control."
+    historyAnswer:
+      "Dual-validation: geometric checks + material logic rules. You retain final control.",
   },
   {
     id: "JT002",
@@ -64,9 +66,11 @@ const mockFaqResults = [
     tags: ["Upload", "Files"],
     title: "Supported file types?",
     question: "Scanned PDFs or hand-drawn plans?",
-    answer: "**PDF, DWG, DXF, JPG, PNG**, including scanned/hand-drawn. Include scale reference for best results.",
+    answer:
+      "**PDF, DWG, DXF, JPG, PNG**, including scanned/hand-drawn. Include scale reference for best results.",
     historyText: "Upload tips",
-    historyAnswer: "High contrast, properly oriented. Built-in rotation & crop tools available."
+    historyAnswer:
+      "High contrast, properly oriented. Built-in rotation & crop tools available.",
   },
   {
     id: "JT003",
@@ -74,26 +78,27 @@ const mockFaqResults = [
     tags: ["Security", "Data"],
     title: "Is my data secure?",
     question: "Storage & access controls?",
-    answer: "**AES-256 encryption** on AWS. GDPR compliant. Only you & authorized team members.",
+    answer:
+      "**AES-256 encryption** on AWS. GDPR compliant. Only you & authorized team members.",
     historyText: "AI training on my plans?",
-    historyAnswer: "Never without explicit consent. Your IP remains yours."
+    historyAnswer: "Never without explicit consent. Your IP remains yours.",
   },
 ];
 
 // --- COMPONENTS ---
 
 const VideoCardMockup = ({ opacity = 1, scale = 1, offset = 0 }) => (
-  <div 
+  <div
     className="absolute top-1/2 -translate-y-1/2 w-[240px] h-[140px] rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm overflow-hidden flex flex-col justify-between shadow-xl"
-    style={{ 
-      right: `${offset}px`, 
-      opacity: opacity, 
+    style={{
+      right: `${offset}px`,
+      opacity: opacity,
       transform: `translateY(-50%) scale(${scale})`,
-      zIndex: Math.floor(opacity * 10)
+      zIndex: Math.floor(opacity * 10),
     }}
   >
     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent"></div>
-    
+
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="w-10 h-10 rounded-full border-2 border-white/50 flex items-center justify-center bg-black/20 backdrop-blur-md">
         <Play className="w-4 h-4 text-white fill-current ml-0.5" />
@@ -101,13 +106,13 @@ const VideoCardMockup = ({ opacity = 1, scale = 1, offset = 0 }) => (
     </div>
 
     <div className="mt-auto p-2.5">
-       <div className="flex justify-between items-center mb-1 px-1">
-         <div className="h-1 w-1 bg-red-500 rounded-full"></div>
-         <div className="h-1 w-1 bg-white/30 rounded-full"></div>
-       </div>
-       <div className="w-full h-[1.5px] bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-red-600 w-[70%]"></div>
-       </div>
+      <div className="flex justify-between items-center mb-1 px-1">
+        <div className="h-1 w-1 bg-red-500 rounded-full"></div>
+        <div className="h-1 w-1 bg-white/30 rounded-full"></div>
+      </div>
+      <div className="w-full h-[1.5px] bg-white/20 rounded-full overflow-hidden">
+        <div className="h-full bg-red-600 w-[70%]"></div>
+      </div>
     </div>
   </div>
 );
@@ -123,7 +128,10 @@ const CategorySidebar = () => (
       </div>
       <div className="p-3.5 space-y-2.5 max-h-[500px] overflow-y-auto custom-scrollbar">
         {faqCategories.map((category, index) => (
-          <label key={index} className="flex items-center text-sm text-gray-600 hover:text-[#005F9E] cursor-pointer transition-colors group">
+          <label
+            key={index}
+            className="flex items-center text-sm text-gray-600 hover:text-[#005F9E] cursor-pointer transition-colors group"
+          >
             <input
               type="checkbox"
               className="h-3.5 w-3.5 text-[#005F9E] border-gray-300 rounded focus:ring-[#005F9E] mr-2.5 cursor-pointer"
@@ -140,7 +148,7 @@ const CategorySidebar = () => (
 );
 
 const FaqItem = ({ faq, index }) => {
-  const [isOpenMain, setIsOpenMain] = useState(index === 0); 
+  const [isOpenMain, setIsOpenMain] = useState(index === 0);
   const [isOpenSub, setIsOpenSub] = useState(false);
   const IconComponent = faq.icon || HelpCircle;
 
@@ -153,10 +161,10 @@ const FaqItem = ({ faq, index }) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       <div className="hidden md:flex flex-col items-center pt-1.5 w-10 flex-shrink-0">
-         <div className="w-10 h-10 rounded-full bg-[#F5F7FA] flex items-center justify-center border border-gray-200 text-[#005F9E] shadow-sm">
-            <IconComponent className="w-5 h-5" />
-         </div>
-         <div className="h-full w-px bg-gray-200 mt-3 border-l border-dashed border-gray-300"></div>
+        <div className="w-10 h-10 rounded-full bg-[#F5F7FA] flex items-center justify-center border border-gray-200 text-[#005F9E] shadow-sm">
+          <IconComponent className="w-5 h-5" />
+        </div>
+        <div className="h-full w-px bg-gray-200 mt-3 border-l border-dashed border-gray-300"></div>
       </div>
 
       <div className="flex-grow bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-shadow overflow-hidden">
@@ -166,27 +174,38 @@ const FaqItem = ({ faq, index }) => {
               {faq.id}
             </span>
             {faq.tags.map((tag) => (
-              <span key={tag} className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-[#005F9E]">
+              <span
+                key={tag}
+                className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-[#005F9E]"
+              >
                 {tag}
               </span>
             ))}
           </div>
 
-          <h3 className="text-lg font-bold text-[#001021] mb-4">
-            {faq.title}
-          </h3>
+          <h3 className="text-lg font-bold text-[#001021] mb-4">{faq.title}</h3>
 
           <div className="border border-gray-200 rounded-lg overflow-hidden mb-2">
-            <div 
+            <div
               onClick={() => setIsOpenMain(!isOpenMain)}
-              className={`flex items-center justify-between p-3.5 cursor-pointer transition-colors ${isOpenMain ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
+              className={`flex items-center justify-between p-3.5 cursor-pointer transition-colors ${
+                isOpenMain ? "bg-gray-50" : "bg-white hover:bg-gray-50"
+              }`}
             >
               <div className="flex items-center gap-2">
-                <span className={`font-semibold text-sm ${isOpenMain ? 'text-[#005F9E]' : 'text-gray-700'}`}>
+                <span
+                  className={`font-semibold text-sm ${
+                    isOpenMain ? "text-[#005F9E]" : "text-gray-700"
+                  }`}
+                >
                   {faq.question}
                 </span>
               </div>
-              {isOpenMain ? <ChevronUp className="w-3.5 h-3.5 text-gray-500" /> : <ChevronDown className="w-3.5 h-3.5 text-gray-500" />}
+              {isOpenMain ? (
+                <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+              )}
             </div>
             <AnimatePresence>
               {isOpenMain && (
@@ -197,25 +216,42 @@ const FaqItem = ({ faq, index }) => {
                   className="overflow-hidden"
                 >
                   <div className="p-3.5 pt-0 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 leading-relaxed">
-                     <p dangerouslySetInnerHTML={{ __html: faq.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: faq.answer.replace(
+                          /\*\*(.*?)\*\*/g,
+                          "<strong>$1</strong>"
+                        ),
+                      }}
+                    />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-          
+
           {faq.historyText && (
             <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <div 
+              <div
                 onClick={() => setIsOpenSub(!isOpenSub)}
-                className={`flex items-center justify-between p-3.5 cursor-pointer transition-colors ${isOpenSub ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
+                className={`flex items-center justify-between p-3.5 cursor-pointer transition-colors ${
+                  isOpenSub ? "bg-gray-50" : "bg-white hover:bg-gray-50"
+                }`}
               >
-                 <div className="flex items-center gap-2">
-                    <span className={`font-semibold text-sm ${isOpenSub ? 'text-[#005F9E]' : 'text-gray-700'}`}>
-                      {faq.historyText}
-                    </span>
-                 </div>
-                 {isOpenSub ? <Minus className="w-3.5 h-3.5 text-gray-400" /> : <Plus className="w-3.5 h-3.5 text-gray-400" />}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`font-semibold text-sm ${
+                      isOpenSub ? "text-[#005F9E]" : "text-gray-700"
+                    }`}
+                  >
+                    {faq.historyText}
+                  </span>
+                </div>
+                {isOpenSub ? (
+                  <Minus className="w-3.5 h-3.5 text-gray-400" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5 text-gray-400" />
+                )}
               </div>
               <AnimatePresence>
                 {isOpenSub && (
@@ -226,7 +262,14 @@ const FaqItem = ({ faq, index }) => {
                     className="overflow-hidden"
                   >
                     <div className="p-3.5 pt-0 bg-gray-50 border-t border-gray-200 text-sm text-gray-600 leading-relaxed">
-                      <p dangerouslySetInnerHTML={{ __html: faq.historyAnswer?.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                      <p
+                        dangerouslySetInnerHTML={{
+                          __html: faq.historyAnswer?.replace(
+                            /\*\*(.*?)\*\*/g,
+                            "<strong>$1</strong>"
+                          ),
+                        }}
+                      />
                     </div>
                   </motion.div>
                 )}
@@ -244,8 +287,7 @@ const FaqSection = () => {
   return (
     <>
       <GlobalStyles />
-      <div id="faq" className="w-full font-inter bg-white min-h-screen">
-        
+      <div id="faq" className="w-full font-outfit bg-white min-h-screen">
         {/* HERO SECTION */}
         <div
           className="w-full relative overflow-hidden h-[400px]"
@@ -255,7 +297,6 @@ const FaqSection = () => {
 
           <div className="max-w-[1200px] mx-auto px-5 h-full flex items-center relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-10 items-center">
-              
               <div className="w-full max-w-md">
                 <motion.h1
                   className="text-3xl lg:text-4xl font-extrabold text-white mb-4"
@@ -267,7 +308,8 @@ const FaqSection = () => {
                 </motion.h1>
 
                 <p className="text-gray-300 text-sm leading-relaxed mb-6 pr-6">
-                  Instant communication between AI assistant & participants. Reliable internet required.
+                  Instant communication between AI assistant & participants.
+                  Reliable internet required.
                 </p>
 
                 <div className="flex bg-white rounded-sm overflow-hidden h-12 w-full max-w-md shadow-lg">
@@ -299,7 +341,6 @@ const FaqSection = () => {
                 </video>
                 <div className="absolute inset-0 bg-blue-900/10 mix-blend-overlay pointer-events-none rounded-lg"></div>
               </div>
-
             </div>
           </div>
         </div>
@@ -307,7 +348,7 @@ const FaqSection = () => {
         {/* MAIN CONTENT */}
         <main className="max-w-[1100px] mx-auto flex py-12 px-5 gap-6 bg-white">
           <CategorySidebar />
-          <div className="w-full md:flex-1"> 
+          <div className="w-full md:flex-1">
             <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-600 mb-6 pb-3 border-b border-gray-100">
               <span className="font-semibold text-[#001021]">
                 Showing <span className="text-[#005F9E]">3</span> of 142
@@ -329,9 +370,9 @@ const FaqSection = () => {
               ))}
             </div>
             <div className="mt-10 text-center">
-               <button className="px-5 py-2.5 border border-gray-200 text-[#001021] font-bold text-xs uppercase tracking-widest rounded hover:border-[#001021] transition-colors">
-                  Load More
-               </button>
+              <button className="px-5 py-2.5 border border-gray-200 text-[#001021] font-bold text-xs uppercase tracking-widest rounded hover:border-[#001021] transition-colors">
+                Load More
+              </button>
             </div>
           </div>
         </main>

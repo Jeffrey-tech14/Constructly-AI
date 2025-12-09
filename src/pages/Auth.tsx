@@ -17,10 +17,11 @@ import {
   Instagram,
   LogIn,
   UserPlus,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 // --- THEME DEFINITIONS BASED ON USER'S HERO COMPONENT ---
 const THEME = {
@@ -31,14 +32,17 @@ const THEME = {
   LEFT_PANEL_TEXT: "#FDBA74",
 };
 
-const BACKGROUND_IMAGE_URL = 'https://img.freepik.com/free-photo/construction-site-sunset_23-2152006125.jpg?semt=ais_hybrid&w=740&q=80'; // ✅ Removed trailing spaces
+const BACKGROUND_IMAGE_URL =
+  "https://img.freepik.com/free-photo/construction-site-sunset_23-2152006125.jpg?semt=ais_hybrid&w=740&q=80"; // ✅ Removed trailing spaces
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [mode, setMode] = useState<"signin" | "signup">(searchParams.get("mode") as "signin" | "signup" || "signin");
+  const [mode, setMode] = useState<"signin" | "signup">(
+    (searchParams.get("mode") as "signin" | "signup") || "signin"
+  );
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -50,15 +54,11 @@ const Auth = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [authStage, setAuthStage] = useState<"idle" | "verifying" | "redirecting">("idle");
-  
-  const { 
-    user, 
-    signIn,
-    signUp,
-    signInWithGoogle,
-    resetPassword 
-  } = useAuth();
+  const [authStage, setAuthStage] = useState<
+    "idle" | "verifying" | "redirecting"
+  >("idle");
+
+  const { user, signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
 
   const executeRedirect = () => {
     const redirectUrl = searchParams.get("redirect");
@@ -102,7 +102,9 @@ const Auth = () => {
     setLoading(false);
 
     if (error) {
-      setError(error.message || "Failed to sign in. Please check your credentials.");
+      setError(
+        error.message || "Failed to sign in. Please check your credentials."
+      );
       return;
     }
 
@@ -132,7 +134,11 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const { error } = await signUp(formData.email, formData.password, formData.name);
+    const { error } = await signUp(
+      formData.email,
+      formData.password,
+      formData.name
+    );
     setLoading(false);
 
     if (error) {
@@ -172,7 +178,7 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    if (user && authStage === 'idle') {
+    if (user && authStage === "idle") {
       executeRedirect();
     }
   }, [user, authStage, navigate, searchParams]);
@@ -187,16 +193,19 @@ const Auth = () => {
   }, [searchParams]);
 
   return (
-    <div 
-      className="min-h-screen flex relative overflow-hidden bg-cover bg-center" 
-      style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }} 
+    <div
+      className="min-h-screen flex relative overflow-hidden bg-cover bg-center"
+      style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}
     >
-      <div className="absolute inset-0" style={{ backgroundColor: THEME.NAVY_BG + 'D0' }}></div>
-      
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: THEME.NAVY_BG + "D0" }}
+      ></div>
+
       <div className="hidden lg:block absolute inset-y-0 left-0 w-1/2 p-16 z-10">
-        <motion.div 
+        <motion.div
           className="relative text-white w-full max-w-lg lg:max-w-md"
-          style={{ top: '30%', left: '15%' }} 
+          style={{ top: "30%", left: "15%" }}
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
@@ -204,17 +213,43 @@ const Auth = () => {
           <h1 className="text-6xl lg:text-7xl font-extrabold mb-4 leading-none text-white">
             {mode === "signin" ? "Welcome Back" : "Join Us"}
           </h1>
-          <p className="text-sm lg:text-base mb-8 max-w-xs" style={{ color: THEME.LEFT_PANEL_TEXT }}>
-            {mode === "signin" 
+          <p
+            className="text-sm lg:text-base mb-8 max-w-xs"
+            style={{ color: THEME.LEFT_PANEL_TEXT }}
+          >
+            {mode === "signin"
               ? "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
-              : "Join our community of professionals and streamline your quoting process with our powerful tools."
-            }
+              : "Join our community of professionals and streamline your quoting process with our powerful tools."}
           </p>
           <div className="flex space-x-4 mt-6">
-            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Facebook className="w-5 h-5" /></motion.a>
-            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Twitter className="w-5 h-5" /></motion.a>
-            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Youtube className="w-5 h-5" /></motion.a>
-            <motion.a href="#" whileHover={{ scale: 1.1 }} className="text-white opacity-90 hover:opacity-100 transition-opacity"><Instagram className="w-5 h-5" /></motion.a>
+            <motion.a
+              href="#"
+              whileHover={{ scale: 1.1 }}
+              className="text-white opacity-90 hover:opacity-100 transition-opacity"
+            >
+              <Facebook className="w-5 h-5" />
+            </motion.a>
+            <motion.a
+              href="#"
+              whileHover={{ scale: 1.1 }}
+              className="text-white opacity-90 hover:opacity-100 transition-opacity"
+            >
+              <Twitter className="w-5 h-5" />
+            </motion.a>
+            <motion.a
+              href="#"
+              whileHover={{ scale: 1.1 }}
+              className="text-white opacity-90 hover:opacity-100 transition-opacity"
+            >
+              <Youtube className="w-5 h-5" />
+            </motion.a>
+            <motion.a
+              href="#"
+              whileHover={{ scale: 1.1 }}
+              className="text-white opacity-90 hover:opacity-100 transition-opacity"
+            >
+              <Instagram className="w-5 h-5" />
+            </motion.a>
           </div>
         </motion.div>
       </div>
@@ -222,13 +257,13 @@ const Auth = () => {
       <div className="absolute inset-0 w-full flex items-center justify-center lg:justify-end lg:pr-[15%] p-4 z-20">
         <AnimatePresence>
           {authStage === "redirecting" && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
             >
-              <motion.div 
+              <motion.div
                 initial={{ scale: 0.8, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ type: "spring", damping: 15 }}
@@ -261,10 +296,18 @@ const Auth = () => {
                   />
                   <motion.div
                     animate={{ x: ["0%", "100%"] }}
-                    transition={{ duration: 2.5, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.5 }}
+                    transition={{
+                      duration: 2.5,
+                      ease: "easeInOut",
+                      repeat: Infinity,
+                      repeatDelay: 0.5,
+                    }}
                     className="absolute -top-6 left-0"
                   >
-                    <Rocket className="w-6 h-6" style={{ color: THEME.HERO_ACCENT_BLUE }} />
+                    <Rocket
+                      className="w-6 h-6"
+                      style={{ color: THEME.HERO_ACCENT_BLUE }}
+                    />
                   </motion.div>
                 </div>
               </motion.div>
@@ -275,9 +318,9 @@ const Auth = () => {
         <motion.div
           className="w-full max-w-xs lg:max-w-sm relative p-4 lg:p-0"
           initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ 
-            opacity: authStage === 'idle' || authStage === 'verifying' ? 1 : 0, 
-            scale: authStage === 'idle' || authStage === 'verifying' ? 1 : 0.95
+          animate={{
+            opacity: authStage === "idle" || authStage === "verifying" ? 1 : 0,
+            scale: authStage === "idle" || authStage === "verifying" ? 1 : 0.95,
           }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
@@ -285,9 +328,12 @@ const Auth = () => {
             <h1 className="text-4xl font-extrabold text-white mb-2">
               {mode === "signin" ? "Sign In" : "Sign Up"}
             </h1>
-            <p className="text-sm opacity-80 mb-6" style={{ color: THEME.TEXT_LIGHT }}>
-              {mode === "signin" 
-                ? "Don't have an account? " 
+            <p
+              className="text-sm opacity-80 mb-6"
+              style={{ color: THEME.TEXT_LIGHT }}
+            >
+              {mode === "signin"
+                ? "Don't have an account? "
                 : "Already have an account? "}
               {/* ✅ FIX: Added type="button" to prevent form submission */}
               <button
@@ -295,7 +341,12 @@ const Auth = () => {
                 onClick={() => {
                   setMode(mode === "signin" ? "signup" : "signin");
                   setError("");
-                  setFormData({ email: "", password: "", confirmPassword: "", name: "" });
+                  setFormData({
+                    email: "",
+                    password: "",
+                    confirmPassword: "",
+                    name: "",
+                  });
                 }}
                 className="font-semibold hover:underline"
                 style={{ color: THEME.HERO_BTN_GREEN }}
@@ -306,36 +357,51 @@ const Auth = () => {
           </div>
 
           {/* ✅ FIX: Disabled during non-idle states */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleGoogleSignIn}
-            className="w-full mb-6 py-3 px-6 rounded-sm shadow-md transition-all duration-300 relative overflow-hidden group flex items-center justify-center gap-3"
-            style={{
-              background: "white",
-              color: "#4285F4",
-              borderRadius: "4px",
-              border: "1px solid #e5e7eb"
-            }}
-            disabled={authStage !== "idle"} // ✅ Unified disable logic
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            <span className="font-semibold">
-              Continue with Google
-            </span>
-          </motion.button>
+          <Button className="w-full bg-white mb-6">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleGoogleSignIn}
+              className="w-full text-primary hover:text-white h-full rounded-sm shadow-md transition-all duration-300 relative overflow-hidden group flex items-center justify-center gap-3"
+              disabled={authStage !== "idle"} // ✅ Unified disable logic
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              <span className="font-semibold">Continue with Google</span>
+            </motion.button>
+          </Button>
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" style={{ borderColor: "rgba(255,255,255,0.2)" }}></div>
+              <div
+                className="w-full border-t"
+                style={{ borderColor: "rgba(255,255,255,0.2)" }}
+              ></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2" style={{ backgroundColor: THEME.NAVY_BG + 'D0', color: THEME.TEXT_LIGHT }}>
+              <span
+                className="px-2"
+                style={{
+                  backgroundColor: THEME.NAVY_BG + "D0",
+                  color: THEME.TEXT_LIGHT,
+                }}
+              >
                 Or continue with email
               </span>
             </div>
@@ -346,13 +412,18 @@ const Auth = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-6 p-4 rounded-sm flex items-start gap-3"
-              style={{ 
+              style={{
                 backgroundColor: "rgba(220, 38, 38, 0.1)",
-                borderLeft: `4px solid #DC2626`
+                borderLeft: `4px solid #DC2626`,
               }}
             >
-              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: "#DC2626" }} />
-              <p className="text-sm" style={{ color: "#FECACA" }}>{error}</p>
+              <AlertCircle
+                className="w-5 h-5 mt-0.5 flex-shrink-0"
+                style={{ color: "#DC2626" }}
+              />
+              <p className="text-sm" style={{ color: "#FECACA" }}>
+                {error}
+              </p>
             </motion.div>
           )}
 
@@ -367,11 +438,19 @@ const Auth = () => {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <form onSubmit={mode === "signin" ? handleEmailSignIn : handleEmailSignUp}>
+                  <form
+                    onSubmit={
+                      mode === "signin" ? handleEmailSignIn : handleEmailSignUp
+                    }
+                  >
                     <div className="space-y-6">
                       {mode === "signup" && (
                         <div>
-                          <Label htmlFor="name" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                          <Label
+                            htmlFor="name"
+                            className="text-sm font-medium block mb-2 opacity-80"
+                            style={{ color: THEME.TEXT_LIGHT }}
+                          >
                             Full Name
                           </Label>
                           <Input
@@ -381,14 +460,18 @@ const Auth = () => {
                             value={formData.name}
                             onChange={handleInputChange}
                             placeholder="Enter your full name"
-                            className="auth-input w-full"
+                            className="w-full"
                             required
                           />
                         </div>
                       )}
 
                       <div>
-                        <Label htmlFor="email" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                        <Label
+                          htmlFor="email"
+                          className="text-sm font-medium block mb-2 opacity-80"
+                          style={{ color: THEME.TEXT_LIGHT }}
+                        >
                           Email Address
                         </Label>
                         <Input
@@ -398,13 +481,17 @@ const Auth = () => {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="Enter your email"
-                          className="auth-input w-full"
+                          className="w-full"
                           required
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="password" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                        <Label
+                          htmlFor="password"
+                          className="text-sm font-medium block mb-2 opacity-80"
+                          style={{ color: THEME.TEXT_LIGHT }}
+                        >
                           Password
                         </Label>
                         <div className="relative">
@@ -415,7 +502,7 @@ const Auth = () => {
                             value={formData.password}
                             onChange={handleInputChange}
                             placeholder="Enter your password"
-                            className="auth-input w-full pr-12"
+                            className="w-full pr-12"
                             required
                           />
                           <button
@@ -424,14 +511,22 @@ const Auth = () => {
                             className="absolute right-3 top-1/2 transform -translate-y-1/2"
                             style={{ color: THEME.TEXT_LIGHT }}
                           >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
                           </button>
                         </div>
                       </div>
 
                       {mode === "signup" && (
                         <div>
-                          <Label htmlFor="confirmPassword" className="text-sm font-medium block mb-2 opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                          <Label
+                            htmlFor="confirmPassword"
+                            className="text-sm font-medium block mb-2 opacity-80"
+                            style={{ color: THEME.TEXT_LIGHT }}
+                          >
                             Confirm Password
                           </Label>
                           <div className="relative">
@@ -442,16 +537,22 @@ const Auth = () => {
                               value={formData.confirmPassword}
                               onChange={handleInputChange}
                               placeholder="Confirm your password"
-                              className="auth-input w-full pr-12"
+                              className="w-full pr-12"
                               required
                             />
                             <button
                               type="button"
-                              onClick={() => setShowConfirmPassword((prev) => !prev)}
+                              onClick={() =>
+                                setShowConfirmPassword((prev) => !prev)
+                              }
                               className="absolute right-3 top-1/2 transform -translate-y-1/2"
                               style={{ color: THEME.TEXT_LIGHT }}
                             >
-                              {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              {showConfirmPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -460,16 +561,20 @@ const Auth = () => {
                       {mode === "signin" && (
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <input 
-                              type="checkbox" 
-                              id="rememberMe" 
-                              className="w-4 h-4 rounded border-white/50 focus:ring-white focus:ring-offset-0 focus:ring-offset-transparent" 
-                              style={{ 
-                                backgroundColor: THEME.HERO_BTN_GREEN, 
-                                borderColor: THEME.HERO_BTN_GREEN 
-                              }} 
+                            <input
+                              type="checkbox"
+                              id="rememberMe"
+                              className="w-4 h-4 rounded border-white/50 focus:ring-white focus:ring-offset-0 focus:ring-offset-transparent"
+                              style={{
+                                backgroundColor: THEME.HERO_BTN_GREEN,
+                                borderColor: THEME.HERO_BTN_GREEN,
+                              }}
                             />
-                            <label htmlFor="rememberMe" className="ml-2 block text-sm opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
+                            <label
+                              htmlFor="rememberMe"
+                              className="ml-2 block text-sm opacity-80"
+                              style={{ color: THEME.TEXT_LIGHT }}
+                            >
                               Remember Me
                             </label>
                           </div>
@@ -485,31 +590,29 @@ const Auth = () => {
                       )}
 
                       {/* ✅ FIX: Unified disabled state */}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="submit"
-                        className="w-full font-semibold py-3.5 px-6 rounded-sm shadow-md transition-all duration-300 relative overflow-hidden group flex items-center justify-center gap-2"
-                        style={{
-                          background: THEME.HERO_BTN_GREEN, 
-                          borderRadius: "4px"
-                        }}
-                        disabled={authStage !== "idle"}
-                      >
-                        {authStage !== "idle" ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : mode === "signin" ? (
-                          <>
-                            <LogIn className="w-5 h-5" />
-                            <span>Sign In</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="w-5 h-5" />
-                            <span>Create Account</span>
-                          </>
-                        )}
-                      </motion.button>
+                      <Button className="w-full bg-green-700">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="submit"
+                          className="w-full font-semibold py-3.5 px-6 rounded-sm shadow-md transition-all duration-300 relative overflow-hidden group flex items-center justify-center gap-2"
+                          disabled={authStage !== "idle"}
+                        >
+                          {authStage !== "idle" ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : mode === "signin" ? (
+                            <>
+                              <LogIn className="w-5 h-5" />
+                              <span>Sign In</span>
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="w-5 h-5" />
+                              <span>Create Account</span>
+                            </>
+                          )}
+                        </motion.button>
+                      </Button>
                     </div>
                   </form>
 
@@ -519,12 +622,30 @@ const Auth = () => {
                     transition={{ delay: 0.7 }}
                     className="text-center pt-4"
                   >
-                    <p className="text-xs opacity-80" style={{ color: THEME.TEXT_LIGHT }}>
-                      By clicking '{mode === "signin" ? "Sign In" : "Create Account"}' you agree to our<br/>
+                    <p
+                      className="text-xs opacity-80"
+                      style={{ color: THEME.TEXT_LIGHT }}
+                    >
+                      By clicking '
+                      {mode === "signin" ? "Sign In" : "Create Account"}' you
+                      agree to our
+                      <br />
                       <span className="font-normal">
-                        <a href="#" className="hover:underline mr-2" style={{ color: THEME.TEXT_LIGHT }}>Terms of Service</a>
+                        <a
+                          href="#"
+                          className="hover:underline mr-2"
+                          style={{ color: THEME.TEXT_LIGHT }}
+                        >
+                          Terms of Service
+                        </a>
                         <span style={{ color: THEME.TEXT_LIGHT }}>|</span>
-                        <a href="#" className="hover:underline ml-2" style={{ color: THEME.TEXT_LIGHT }}>Privacy Policy</a>
+                        <a
+                          href="#"
+                          className="hover:underline ml-2"
+                          style={{ color: THEME.TEXT_LIGHT }}
+                        >
+                          Privacy Policy
+                        </a>
                       </span>
                     </p>
                   </motion.div>
@@ -538,17 +659,25 @@ const Auth = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.1 }}
                   className="flex flex-col items-center justify-center text-center py-12 rounded-lg"
-                  style={{ backgroundColor: THEME.NAVY_BG + '40' }}
+                  style={{ backgroundColor: THEME.NAVY_BG + "40" }}
                 >
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
                     className="mb-6"
                   >
                     <Loader2 className="w-16 h-16 text-white" />
                   </motion.div>
-                  <h2 className="text-xl font-semibold mb-2 text-white">Authenticating...</h2>
-                  <p className="text-gray-200">Please wait while we verify your credentials</p>
+                  <h2 className="text-xl font-semibold mb-2 text-white">
+                    Authenticating...
+                  </h2>
+                  <p className="text-gray-200">
+                    Please wait while we verify your credentials
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,7 +1,7 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +56,7 @@ const ViewAllQuotes = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMountedRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
@@ -63,6 +64,12 @@ const ViewAllQuotes = () => {
     useState<any>(null);
   const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
   const [quotesRefreshKey, setQuotesRefreshKey] = useState(0);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "draft":
@@ -82,28 +89,38 @@ const ViewAllQuotes = () => {
     }
   };
   useEffect(() => {
-    if (user && profile !== null) {
+    if (user && profile !== null && isMountedRef.current) {
       fetchQuotes();
     }
-  }, [fetchQuotes, user, profile, location.key, quotesRefreshKey]);
+  }, [fetchQuotes, user, profile, quotesRefreshKey]);
+
   const [filteredQuotes, setFilteredQuotes] = useState<any[]>([]);
+
   useEffect(() => {
+    if (!isMountedRef.current) return;
     const result = quotes
       .filter((quote) => {
-        const belongsToUser = quote.user_id === profile?.id;
+        const belongsToUser = quote?.user_id === profile?.id;
         const matchesSearch =
-          quote.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          quote.client_name.toLowerCase().includes(searchTerm.toLowerCase());
+          (quote?.title || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (quote?.client_name || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
         const matchesStatus =
-          statusFilter === "all" || quote.status === statusFilter;
+          statusFilter === "all" || quote?.status === statusFilter;
         return belongsToUser && matchesSearch && matchesStatus;
       })
       .sort(
         (a, b) =>
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          new Date(b?.updated_at || 0).getTime() -
+          new Date(a?.updated_at || 0).getTime()
       );
-    setFilteredQuotes(result);
-  }, [quotes, profile, searchTerm, statusFilter]);
+    if (isMountedRef.current) {
+      setFilteredQuotes(result);
+    }
+  }, [quotes, profile?.id, searchTerm, statusFilter]);
   const handleDeleteQuote = async (quoteId: string, quoteTitle: string) => {
     setDeletingQuote(quoteId);
     try {

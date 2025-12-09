@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
 
-const BRAND_BLUE = "#005EB8"; 
+const BRAND_BLUE = "#005EB8";
 
 export default function TestimonialsSection() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -12,32 +12,36 @@ export default function TestimonialsSection() {
   const testimonials = [
     {
       id: 1,
-      quote: "Over the years, I’ve been impressed by JTech’s willingness to make software improvements based on user feedback. It truly feels like a partnership.",
+      quote:
+        "Over the years, I’ve been impressed by JTech’s willingness to make software improvements based on user feedback. It truly feels like a partnership.",
       name: "Amy Baker",
       title: "Spec Writing Consultant & Architect",
-      company: "ab ARCHITECT"
+      company: "ab ARCHITECT",
     },
     {
       id: 2,
-      quote: "The bidder client was particularly popular with our vendors due to its completeness check and the seamless integration of the GAEB standard.",
+      quote:
+        "The bidder client was particularly popular with our vendors due to its completeness check and the seamless integration of the GAEB standard.",
       name: "Lars Ohse",
       title: "Head of Procurement",
-      company: "LEIPZIG-HALLE AIRPORT"
+      company: "LEIPZIG-HALLE AIRPORT",
     },
     {
       id: 3,
-      quote: "JTech AI reduced our estimation time by 70% and improved accuracy by 40%. The AI-powered insights have transformed how we approach project budgeting.",
+      quote:
+        "JTech AI reduced our estimation time by 70% and improved accuracy by 40%. The AI-powered insights have transformed how we approach project budgeting.",
       name: "Michael Johnson",
       title: "Senior Estimator",
-      company: "JTech AI Ltd"
+      company: "JTech AI Ltd",
     },
     {
       id: 4,
-      quote: "We're now able to bid on more projects with confidence. The platform's ability to learn from past data has been a game changer for our margins.",
+      quote:
+        "We're now able to bid on more projects with confidence. The platform's ability to learn from past data has been a game changer for our margins.",
       name: "Sarah Williams",
       title: "Project Director",
-      company: "UrbanBuild Group"
-    }
+      company: "UrbanBuild Group",
+    },
   ];
 
   const totalPages = Math.ceil(testimonials.length / 2);
@@ -59,12 +63,8 @@ export default function TestimonialsSection() {
 
   return (
     // ✅ FIXED: Added id="testimonials" and scroll-mt-28 so the navbar link works
-    <section 
-      id="testimonials" 
-      className="py-24 bg-[#eef5f9] font-sans scroll-mt-28"
-    >
+    <section id="testimonials" className="py-24 bg-[#eef5f9] scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
@@ -75,7 +75,6 @@ export default function TestimonialsSection() {
 
         {/* Slider Container */}
         <div className="relative max-w-6xl mx-auto">
-          
           {/* Navigation Arrows (Outside the card) */}
           <button
             onClick={prevSlide}
@@ -105,23 +104,27 @@ export default function TestimonialsSection() {
                 className="grid grid-cols-1 md:grid-cols-2 w-full"
               >
                 {currentPair.map((item, index) => (
-                  <div 
+                  <div
                     key={item.id}
                     className={`
                       flex flex-col p-10 md:p-14
-                      ${index === 0 ? 'md:border-r border-gray-200' : ''} 
-                      ${index === 0 ? 'border-b md:border-b-0 border-gray-100' : ''}
+                      ${index === 0 ? "md:border-r border-gray-200" : ""} 
+                      ${
+                        index === 0
+                          ? "border-b md:border-b-0 border-gray-100"
+                          : ""
+                      }
                     `}
                   >
                     {/* Large Quote Icon */}
                     <div className="mb-6">
-                      <Quote 
-                        className="w-10 h-10 fill-current transform scale-x-[-1]" 
-                        style={{ color: BRAND_BLUE }} 
+                      <Quote
+                        className="w-10 h-10 fill-current transform scale-x-[-1]"
+                        style={{ color: BRAND_BLUE }}
                         strokeWidth={0}
                       />
                     </div>
-                    
+
                     {/* Quote Text */}
                     <p className="text-gray-800 text-[15px] leading-relaxed mb-8 font-normal">
                       {item.quote}
@@ -135,21 +138,28 @@ export default function TestimonialsSection() {
                       <p className="text-sm text-gray-500 font-light mb-4">
                         {item.title}
                       </p>
-                      
+
                       {/* Company Logo Simulation */}
                       <div className="mt-4 pt-2">
                         <div className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                           <span className="sr-only">Logo for</span>
-                           {item.company.includes("AIRPORT") ? (
-                             <div className="flex items-center gap-2 text-blue-900">
-                               <div className="w-6 h-6 bg-blue-900 rounded-sm"></div> {/* Fake Icon */}
-                               <span>{item.company}</span>
-                             </div>
-                           ) : (
-                             <div className="text-gray-800 font-bold text-lg leading-none" style={{ fontFamily: 'serif' }}>
-                               {item.company.split(' ')[0]} <span className="font-sans text-xs font-normal text-gray-400 block">{item.company.split(' ').slice(1).join(' ')}</span>
-                             </div>
-                           )}
+                          <span className="sr-only">Logo for</span>
+                          {item.company.includes("AIRPORT") ? (
+                            <div className="flex items-center gap-2 text-blue-900">
+                              <div className="w-6 h-6 bg-blue-900 rounded-sm"></div>{" "}
+                              {/* Fake Icon */}
+                              <span>{item.company}</span>
+                            </div>
+                          ) : (
+                            <div
+                              className="text-gray-800 font-bold text-lg leading-none"
+                              style={{ fontFamily: "serif" }}
+                            >
+                              {item.company.split(" ")[0]}{" "}
+                              <span className="font-sans text-xs font-normal text-gray-400 block">
+                                {item.company.split(" ").slice(1).join(" ")}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -167,15 +177,16 @@ export default function TestimonialsSection() {
                 onClick={() => setActiveIndex(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  idx === activeIndex 
-                    ? "w-8" 
+                  idx === activeIndex
+                    ? "w-8"
                     : "w-2 bg-gray-300 hover:bg-gray-400"
                 }`}
-                style={{ backgroundColor: idx === activeIndex ? BRAND_BLUE : undefined }}
+                style={{
+                  backgroundColor: idx === activeIndex ? BRAND_BLUE : undefined,
+                }}
               />
             ))}
           </div>
-
         </div>
       </div>
     </section>

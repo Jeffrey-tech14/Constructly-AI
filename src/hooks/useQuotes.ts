@@ -88,6 +88,13 @@ export const useQuotes = () => {
   const { user, profile } = useAuth();
   const location = useLocation();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   const refreshSessionIfNeeded = async () => {
     const { data, error } = await supabase.auth.getSession();
     if (!data.session) {
@@ -135,18 +142,20 @@ export const useQuotes = () => {
           contract_type:
             (item.contract_type as Quote["contract_type"]) || "full_contract",
         }));
-        if (JSON.stringify(quotesData) !== JSON.stringify(quotes)) {
+        if (isMountedRef.current) {
           setQuotes(quotesData);
         }
       } catch (err) {
         console.error("\u274C Unexpected error fetching quotes:", err);
-        setQuotes([]);
+        if (isMountedRef.current) {
+          setQuotes([]);
+        }
       } finally {
-        if (!silent) setLoading(false);
-        if (isInitialLoad) setIsInitialLoad(false);
+        if (!silent && isMountedRef.current) setLoading(false);
+        if (isInitialLoad && isMountedRef.current) setIsInitialLoad(false);
       }
     },
-    [user, profile?.is_admin, quotes, isInitialLoad, location.key]
+    [user, profile?.is_admin, location.key]
   );
   const createQuote = async (
     quoteData: Omit<Quote, "id" | "user_id" | "created_at" | "updated_at">
@@ -192,10 +201,10 @@ export const useQuotes = () => {
     return true;
   };
   useEffect(() => {
-    if (user && profile !== null) {
+    if (user && profile !== null && isMountedRef.current) {
       fetchQuotes();
     }
-  }, [fetchQuotes, user, profile, quotes, location.key]);
+  }, [fetchQuotes, user, profile]);
   return {
     quotes,
     loading: isInitialLoad ? loading : false,

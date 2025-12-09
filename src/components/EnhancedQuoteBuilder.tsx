@@ -135,13 +135,6 @@ import {
 } from "@/hooks/useUniversalFinishesCalculator";
 import QSSettings from "./QSSettings";
 import EarthworksForm, { EarthworkItem } from "./EarthWorksForm";
-// RISA Color Palette
-const RISA_BLUE = "#015B97";
-const RISA_LIGHT_BLUE = "#3288e6";
-const RISA_WHITE = "#ffffff";
-const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
 
 interface Room {
   room_name: string;
@@ -202,6 +195,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const { roomTypes } = useUserSettings();
   const { profile, user } = useAuth();
   const [direction, setDirection] = useState<"left" | "right">("right");
+
+  // RISA Color Palette
+  const RISA_BLUE = "#015B97";
+  const RISA_LIGHT_BLUE = "#3288e6";
+  const RISA_WHITE = "#ffffff";
+  const RISA_DARK_TEXT = "#2D3748";
+  const RISA_LIGHT_GRAY = "#F5F7FA";
+  const RISA_MEDIUM_GRAY = "#E2E8F0";
   const variants = {
     enter: (direction: "left" | "right") => ({
       x: direction === "right" ? 300 : -300,
@@ -403,6 +404,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     fetchMaterials();
   }, [user, location.key]);
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const fetchTransportRates = useCallback(async () => {
     const { data: baseRates, error: baseError } = await supabase
@@ -438,7 +447,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         source: userRate ? "user" : base ? "base" : "default",
       };
     });
-    setTransportRates(merged);
+    if (isMountedRef.current) {
+      setTransportRates(merged);
+    }
   }, [user, location.key]);
 
   const transportCost = (() => {
@@ -986,10 +997,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
   useEffect(() => {
     // ✅ On first load — try loading saved data
-    setQuoteData((prev) => ({
-      ...prev,
-      material_prices: materials,
-    }));
+    if (isMountedRef.current) {
+      setQuoteData((prev) => ({
+        ...prev,
+        material_prices: materials,
+      }));
+    }
   }, [materials]);
 
   const updatePercentageField = (
@@ -3393,7 +3406,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <Progress value={(currentStep / 13) * 100} className="w-full" />
         </div>
 
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={currentStep}
             custom={direction}
@@ -3401,7 +3414,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
           >
             <Card className="mb-8 -p-5">
               <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
@@ -3477,14 +3491,27 @@ export function Stepper({
 
   // Center current step when it changes
   useEffect(() => {
-    const activeStep = document.getElementById(`step-${currentStep}`);
-    if (activeStep && scrollContainerRef.current) {
-      activeStep.scrollIntoView({
-        behavior: "smooth",
-        inline: "center",
-        block: "nearest",
-      });
-    }
+    const timer = setTimeout(() => {
+      try {
+        const activeStep = document.getElementById(`step-${currentStep}`);
+        if (
+          activeStep &&
+          scrollContainerRef.current &&
+          scrollContainerRef.current.contains(activeStep)
+        ) {
+          activeStep.scrollIntoView({
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest",
+          });
+        }
+      } catch (error) {
+        // Silently handle errors during scroll - element may have been removed
+        console.debug("Scroll error (expected during unmount):", error);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [currentStep]);
 
   const scroll = (direction: "left" | "right") => {

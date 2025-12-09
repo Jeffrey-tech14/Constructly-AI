@@ -35,34 +35,20 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuotes } from "@/hooks/useQuotes";
-import { useClientReviews } from "@/hooks/useClientReviews";
-import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import Calculator from "@/components/Calculator";
 import Reports from "@/components/Reports";
-import CalendarComponent from "@/components/Calendar";
 import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "@/components/Calendar";
 
-const RISA_BLUE = "#015B97";
-const RISA_LIGHT_BLUE = "#3288e6";
-const RISA_WHITE = "#ffffff";
-const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
-
 const Dashboard = () => {
   const { profile, user } = useAuth();
   const { toast } = useToast();
-  const { loading: quotesLoading } = useQuotes();
-  const { reviews, averageRating, totalReviews } = useClientReviews();
-  const { events } = useCalendarEvents();
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [showCalculator, setShowCalculator] = useState(false);
-  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     totalQuotesValue: 0,
     completedProjects: 0,
@@ -75,21 +61,6 @@ const Dashboard = () => {
 
   const [localDashboardLoading, setLocalDashboardLoading] = useState(true);
   const hasLoadedOnce = useRef(false);
-
-  // Early return if no user — prevent execution
-  if (!user) {
-    navigate("/auth", { replace: true });
-    return null;
-  }
-
-  // Show loader while profile is not available
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin rounded-full h-8 w-8" />
-      </div>
-    );
-  }
 
   const formatCurrency = (value) => {
     if (value >= 1000000) {
@@ -196,6 +167,21 @@ const Dashboard = () => {
     );
   };
 
+  // Early return if no user — prevent execution (after all hooks)
+  if (!user) {
+    navigate("/auth", { replace: true });
+    return null;
+  }
+
+  // Show loader while profile is not available
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin rounded-full h-8 w-8" />
+      </div>
+    );
+  }
+
   // Now safe to use profile — it's guaranteed non-null
   if (localDashboardLoading) {
     return (
@@ -228,9 +214,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div
-          className={`grid grid-cols-1 md:grid-cols-3 gap-6`}
-        >
+        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6`}>
           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -240,10 +224,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="sm:text-2xl text-lg font-bold">
-                KSh{" "}
-                {formatCurrency(
-                  dashboardData.totalQuotesValue
-                )}
+                KSh {formatCurrency(dashboardData.totalQuotesValue)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {dashboardData.allQuotes.length} quotes generated
@@ -291,8 +272,11 @@ const Dashboard = () => {
         >
           <TabsList
             className={`grid w-full ${
-              profile.tier === "Professional" ? "grid-cols-3" : 
-              profile.tier === "Free" ? "grid-cols-1" : "grid-cols-2"
+              profile.tier === "Professional"
+                ? "grid-cols-3"
+                : profile.tier === "Free"
+                ? "grid-cols-1"
+                : "grid-cols-2"
             } mb-6`}
           >
             <TabsTrigger value="overview" className="flex items-center">
@@ -338,10 +322,7 @@ const Dashboard = () => {
                               {quote.client_name} • {quote.location}
                             </p>
                             <p className="text-sm font-medium mt-1">
-                              KSh{" "}
-                              {formatCurrency(
-                                quote.total_amount
-                              )}
+                              KSh {formatCurrency(quote.total_amount)}
                             </p>
                           </div>
                           <div className="flex">

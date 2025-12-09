@@ -38,26 +38,38 @@ interface AuthContextType {
   authReady: boolean;
   refreshProfile: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
+  signUp: (
+    email: string,
+    password: string,
+    name?: string
+  ) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>; // ✅ ADDED
+  resetPassword: (email: string) => Promise<{ error: any }>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
 
-  const prevUserId = useRef<string | null>(null);
+  // Track mounted state
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const fetchProfile = async (userId: string) => {
-    if (!userId) {
-      setProfile(null);
+    if (!userId || !isMounted.current) {
       return;
     }
 
@@ -70,79 +82,108 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Profile fetch error:", error);
-        setProfile(null);
-      } else {
+        if (isMounted.current) {
+          setProfile(null);
+        }
+      } else if (isMounted.current) {
         setProfile(data);
       }
     } catch (err) {
       console.error("Profile fetch failed:", err);
-      setProfile(null);
+      if (isMounted.current) {
+        setProfile(null);
+      }
     }
   };
 
   useEffect(() => {
-    let active = true;
+    isMounted.current = true;
+    let authSubscription: { data: { subscription: any } } | null = null;
+    let profileChannel: any = null;
 
     const init = async () => {
-      const { data } = await supabase.auth.getSession();
+      try {
+        const { data } = await supabase.auth.getSession();
 
-      if (active && data?.session) {
-        setUser(data.session.user);
-        prevUserId.current = data.session.user.id;
-        await fetchProfile(data.session.user.id);
-      }
-
-      setAuthReady(true);
-      setLoading(false);
-
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (!active) return;
-
-        if (session?.user) {
-          setUser(session.user);
-          if (session.user.id !== prevUserId.current) {
-            prevUserId.current = session.user.id;
-            await fetchProfile(session.user.id);
-          }
-        } else {
-          setUser(null);
-          setProfile(null);
-          prevUserId.current = null;
+        if (isMounted.current && data?.session) {
+          setUser(data.session.user);
+          await fetchProfile(data.session.user.id);
         }
-      });
 
-      return () => subscription.unsubscribe();
+        if (isMounted.current) {
+          setAuthReady(true);
+          setLoading(false);
+        }
+
+        // Subscribe to auth changes
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+          if (!isMounted.current) return;
+
+          if (session?.user) {
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+
+            // Subscribe to profile changes for this user
+            if (profileChannel) {
+              supabase.removeChannel(profileChannel);
+            }
+
+            profileChannel = supabase
+              .channel(`profiles-${session.user.id}`)
+              .on(
+                "postgres_changes",
+                {
+                  event: "*",
+                  schema: "public",
+                  table: "profiles",
+                  filter: `id=eq.${session.user.id}`,
+                },
+                () => {
+                  if (isMounted.current) {
+                    fetchProfile(session.user.id);
+                  }
+                }
+              )
+              .subscribe();
+          } else {
+            setUser(null);
+            if (isMounted.current) {
+              setProfile(null);
+            }
+            if (profileChannel) {
+              supabase.removeChannel(profileChannel);
+              profileChannel = null;
+            }
+          }
+        });
+
+        authSubscription = { data: { subscription } };
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        if (isMounted.current) {
+          setLoading(false);
+          setAuthReady(true);
+        }
+      }
     };
 
     init();
+
     return () => {
-      active = false;
+      isMounted.current = false;
+
+      // Cleanup subscriptions
+      if (authSubscription?.data?.subscription) {
+        supabase.removeChannel(authSubscription.data.subscription);
+      }
+
+      if (profileChannel) {
+        supabase.removeChannel(profileChannel);
+      }
     };
   }, []);
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel(`profiles-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${user.id}`,
-        },
-        () => fetchProfile(user.id)
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -158,7 +199,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password,
       options: {
         data: { name: name || email.split("@")[0] },
-        // emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     return { error };
@@ -174,7 +214,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  // ✅ ADDED: resetPassword method
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/update-password`,
@@ -183,9 +222,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    // Prevent state updates after sign out
+    isMounted.current = false;
     await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
+
+    // Reset mounted state
+    setTimeout(() => {
+      isMounted.current = true;
+    }, 100);
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
@@ -197,7 +241,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq("id", user.id);
 
     if (error) throw error;
-    await fetchProfile(user.id);
+
+    if (isMounted.current) {
+      await fetchProfile(user.id);
+    }
   };
 
   const value = useMemo(
@@ -210,9 +257,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signOut,
       signInWithGoogle,
-      resetPassword, // ✅ Included in context
+      resetPassword,
       refreshProfile: async () => {
-        if (user?.id) await fetchProfile(user.id);
+        if (user?.id && isMounted.current) {
+          await fetchProfile(user.id);
+        }
       },
       updateProfile,
     }),

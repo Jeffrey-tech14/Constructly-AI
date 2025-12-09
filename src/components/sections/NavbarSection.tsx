@@ -1,22 +1,16 @@
 // src/components/sections/NavbarSection.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Menu,
-  User,
-  Search,
-  Globe,
-  Phone,
-  ArrowRight
-} from "lucide-react";
+import { Menu, User, Search, Globe, Phone, ArrowRight } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
+import { Button } from "../ui/button";
 
 // --- 1. GLOBAL STYLES (Professional Font) ---
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    .font-inter { font-family: 'Inter', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+    .font-outfit { font-family: 'Outfit', sans-serif; }
   `}</style>
 );
 
@@ -62,37 +56,79 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
 
   // Generated JTech AI Logo SVG
   const JTechAILogo = () => (
-    <svg width="135" height="36" viewBox="0 0 135 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={THEME.LOGO_DARK}/>
-      <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={THEME.LOGO_DARK}/>
-      <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={THEME.LOGO_DARK}/>
-      <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={THEME.LOGO_DARK}/>
-      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK}/>
-      <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={THEME.LOGO_DARK}/>
-      <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={THEME.LOGO_DARK}/>
-      <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT}/>
-      <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT}/>
-      <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5"/>
-      <text x="45" y="24" fontFamily="Inter" fontWeight="bold" fontSize="22" fill={THEME.LOGO_DARK}>JTech</text>
-      <text x="108" y="24" fontFamily="Inter" fontWeight="bold" fontSize="22" fill={THEME.LOGO_LIGHT}>AI</text>
+    <svg
+      width="135"
+      height="36"
+      viewBox="0 0 135 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK} />
+      <path
+        d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT} />
+      <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT} />
+      <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5" />
+      <text
+        x="45"
+        y="24"
+        fontFamily="Outfit"
+        fontWeight="bold"
+        fontSize="22"
+        fill={THEME.LOGO_DARK}
+      >
+        JTech
+      </text>
+      <text
+        x="108"
+        y="24"
+        fontFamily="Outfit"
+        fontWeight="bold"
+        fontSize="22"
+        fill={THEME.LOGO_LIGHT}
+      >
+        AI
+      </text>
     </svg>
   );
 
   return (
     <>
       <GlobalStyles />
-      
+
       {/* WRAPPER: Fixed positioning */}
-      <div className={`fixed top-0 w-full z-50 font-inter transition-all duration-300 ${
+      <div
+        className={`fixed top-0 w-full z-50 font-outfit transition-all duration-300 ${
           scrolled ? "shadow-md" : ""
-        }`}>
-        
+        }`}
+      >
         {/* =========================================
             1. TOP UTILITY BAR (Dlubal Style)
         ========================================= */}
         <div className="bg-[#001021] text-white text-[11px] font-medium py-2 px-4 sm:px-6 lg:px-8 hidden md:block">
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
-            
             {/* Left: Contact / Info */}
             <div className="flex items-center gap-6 opacity-90">
               <span className="flex items-center gap-2 hover:text-[#005F9E] cursor-pointer transition-colors">
@@ -107,8 +143,10 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
 
             {/* Right: Login / Support */}
             <div className="flex items-center gap-6">
-              <button className="hover:text-[#005F9E] transition-colors">Support</button>
-              <button 
+              <button className="hover:text-[#005F9E] transition-colors">
+                Support
+              </button>
+              <button
                 onClick={() => navigate("/auth")}
                 className="flex items-center gap-2 hover:text-[#005F9E] transition-colors font-semibold"
               >
@@ -125,7 +163,6 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
         <nav className="bg-white border-b border-gray-200 h-[72px] flex items-center">
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="flex items-center justify-between">
-              
               {/* LOGO AREA - UPDATED WITH GENERATED SVG */}
               <div
                 className="flex items-center gap-2.5 cursor-pointer pr-8"
@@ -143,8 +180,8 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                     className="group relative px-4 py-6 text-sm font-bold text-[#001021] hover:text-[#005F9E] transition-colors"
                   >
                     {item}
-                    <span 
-                      className="absolute bottom-0 left-0 w-full h-[3px] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left ease-out" 
+                    <span
+                      className="absolute bottom-0 left-0 w-full h-[3px] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left ease-out"
                       style={{ backgroundColor: THEME.PRIMARY }}
                     />
                   </button>
@@ -153,23 +190,23 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
 
               {/* UTILITY ACTIONS */}
               <div className="flex items-center gap-3 pl-4">
-                
                 {/* Search */}
                 <button className="p-2.5 text-gray-500 hover:text-[#005F9E] hover:bg-gray-50 rounded-full transition-all">
                   <Search className="w-5 h-5" />
                 </button>
 
                 {/* ✅ CTA Button (Desktop) - NOW GOES TO /dashboard */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate("/dashboard")}
-                  className="hidden sm:flex text-white text-[13px] font-bold px-6 py-2.5 rounded shadow-sm transition-colors items-center gap-2"
-                  style={{ backgroundColor: THEME.ACCENT }}
-                >
-                  Get Started
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </motion.button>
+                <Button className="bg-green-700">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate("/dashboard")}
+                    className="hidden sm:flex text-white text-[13px] font-bold  transition-colors items-center gap-2"
+                  >
+                    Get Started
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </motion.button>
+                </Button>
 
                 {/* MOBILE MENU TRIGGER */}
                 <div className="lg:hidden ml-1">
@@ -179,11 +216,16 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                         <Menu className="h-6 w-6" />
                       </button>
                     </SheetTrigger>
-                    
-                    <SheetContent side="right" className="bg-white w-[300px] p-0 font-inter border-l border-gray-200">
-                      
+
+                    <SheetContent
+                      side="right"
+                      className="bg-white w-[300px] p-0 font-outfit border-l border-gray-200"
+                    >
                       {/* Mobile Header */}
-                      <div className="text-white p-6" style={{ backgroundColor: THEME.TEXT_DARK }}>
+                      <div
+                        className="text-white p-6"
+                        style={{ backgroundColor: THEME.TEXT_DARK }}
+                      >
                         <span className="text-lg font-bold">Menu</span>
                       </div>
 
@@ -208,7 +250,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                           >
                             <User className="h-4 w-4" /> Log in
                           </button>
-                          
+
                           {/* ✅ CTA Button (Mobile) - NOW GOES TO /dashboard */}
                           <button
                             onClick={() => {
@@ -225,13 +267,12 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                     </SheetContent>
                   </Sheet>
                 </div>
-
               </div>
             </div>
           </div>
         </nav>
       </div>
-      
+
       {/* Spacer */}
       <div className="h-[72px] md:h-[108px]" />
     </>

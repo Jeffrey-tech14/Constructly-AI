@@ -12,7 +12,6 @@ import React, {
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Preferences } from "@capacitor/preferences";
-
 interface Profile {
   id: string;
   name: string;
@@ -32,7 +31,6 @@ interface Profile {
   avatar_url?: string;
   subscription_status?: string;
 }
-
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
@@ -42,19 +40,23 @@ interface AuthContextType {
   signIn: (
     email: string,
     password: string
-  ) => Promise<{ error: any }>;
+  ) => Promise<{
+    error: any;
+  }>;
   signUp: (
     email: string,
     password: string,
     name?: string
-  ) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  ) => Promise<{
+    error: any;
+  }>;
+  signInWithGoogle: () => Promise<{
+    error: any;
+  }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
@@ -63,7 +65,6 @@ export const AuthProvider: React.FC<{
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const prevUserId = useRef<string | null>(null);
-
   const fetchProfile = async (userId: string) => {
     if (!userId) {
       setProfile(null);
@@ -72,7 +73,9 @@ export const AuthProvider: React.FC<{
     }
     setLoading(true);
     try {
-      const timeoutPromise = new Promise<{ error: Error }>((_, reject) =>
+      const timeoutPromise = new Promise<{
+        error: Error;
+      }>((_, reject) =>
         setTimeout(() => reject(new Error("Profile fetch timeout")), 8000)
       );
       const query = supabase
@@ -106,7 +109,6 @@ export const AuthProvider: React.FC<{
       setLoading(false);
     }
   };
-
   useEffect(() => {
     let isMounted = true;
     const initAuth = async () => {
@@ -158,7 +160,6 @@ export const AuthProvider: React.FC<{
       isMounted = false;
     };
   }, []);
-
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -181,23 +182,42 @@ export const AuthProvider: React.FC<{
       supabase.removeChannel(channel);
     };
   }, [user?.id]);
-
-  // ✅ UPDATED: signIn now triggers Google
   const signIn = async (email: string, password: string) => {
-    return signInWithGoogle();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (data.session) {
+      await Preferences.set({
+        key: "supabase_session",
+        value: JSON.stringify(data.session),
+      });
+    }
+    if (error) {
+      throw error;
+    }
+    return { error };
   };
-
   const refreshProfile = async () => {
     if (user?.id) {
       await fetchProfile(user.id);
     }
   };
-
-  // ✅ UPDATED: signUp now triggers Google
   const signUp = async (email: string, password: string, name?: string) => {
-    return signInWithGoogle();
+    const redirectUrl = `${window.location.origin}/`;
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: { name: name || email.split("@")[0] },
+      },
+    });
+    if (error) {
+      throw error;
+    }
+    return { error };
   };
-
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -208,11 +228,9 @@ export const AuthProvider: React.FC<{
     }
     return { error };
   };
-
   const signOut = async () => {
     await supabase.auth.signOut();
   };
-
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) throw new Error("No user logged in");
     const { error } = await supabase
@@ -222,7 +240,6 @@ export const AuthProvider: React.FC<{
     if (error) throw error;
     await fetchProfile(user.id);
   };
-
   const value = useMemo(
     () => ({
       user,
@@ -238,16 +255,13 @@ export const AuthProvider: React.FC<{
     }),
     [user, profile, loading, authReady]
   );
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
-
 export const refreshApp = () => {
   if (window && window.location) {
     console.log("Refreshing app like a browser...");

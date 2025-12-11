@@ -1,0 +1,372 @@
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Plus,
+  Minus,
+  Target,
+  FileCode,
+  ShieldCheck,
+  HelpCircle,
+  Play,
+  Database,
+  Filter
+} from "lucide-react";
+
+// --- GLOBAL STYLES ---
+const GlobalStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    .font-technical { font-family: 'Outfit', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #002d5c; border-radius: 0px; }
+  `}</style>
+);
+
+// --- THEME COLORS (Engineering Palette) ---
+const THEME = {
+  headerBackground: "#001021",
+  brandBlue: "#002d5c", // Navy
+  accentGreen: "#5BB539",
+  bgLight: "#F5F7FA",
+  textDark: "#1a1a1a",
+};
+
+// --- MOCK DATA ---
+const faqCategories = [
+  { name: "General System", checked: true },
+  { name: "User Accounts", checked: false },
+  { name: "Data Ingestion", checked: false },
+  { name: "Neural Analysis", checked: false },
+  { name: "Cost Estimation", checked: false },
+  { name: "Licensing Models", checked: false },
+  { name: "QS Modules", checked: false },
+  { name: "File Compatibility", checked: false },
+  { name: "Data Sovereignty", checked: false },
+  { name: "Invoicing", checked: false },
+];
+
+const mockFaqResults = [
+  {
+    id: "KB-001",
+    icon: Target,
+    tags: ["Algorithm", "Tolerance"],
+    title: "Dimensional Accuracy Specifications",
+    question: "What is the certified precision tolerance of automated takeoff?",
+    answer:
+      "**99.9% Geometric Fidelity** on vector-based PDFs. The neural engine cross-references scale ratios against standard structural logic. Manual override is available for final audit.",
+    historyText: "Validation Protocols",
+    historyAnswer:
+      "We utilize a dual-layer verification system: geometric OCR checks combined with material density logic rules.",
+  },
+  {
+    id: "KB-002",
+    icon: FileCode,
+    tags: ["Import", "Formats"],
+    title: "Supported Engineering Formats",
+    question: "Does the system parse raster scans or hand-drafted schematics?",
+    answer:
+      "**PDF, DWG, DXF, TIFF**, including legacy raster scans. For non-vector files, optical character recognition (OCR) is automatically engaged.",
+    historyText: "Optimization for Scans",
+    historyAnswer:
+      "Ensure minimum 300 DPI for raster inputs. The integrated pre-processor includes rotation and contrast enhancement tools.",
+  },
+  {
+    id: "KB-003",
+    icon: ShieldCheck,
+    tags: ["Compliance", "ISO-27001"],
+    title: "Data Sovereignty & Security",
+    question: "Where is project data physically stored?",
+    answer:
+      "**AES-256 Encrypted Sharding** across Tier-4 AWS data centers. Full GDPR & SOC2 compliance ensures data is never used for external model training without enterprise consent.",
+    historyText: "IP Protection Policy",
+    historyAnswer: "Your intellectual property remains siloed. We do not aggregate your schematic data for public model training.",
+  },
+];
+
+// --- COMPONENTS ---
+
+const CategorySidebar = () => (
+  <aside className="w-full max-w-[220px] hidden md:block flex-shrink-0">
+    {/* Removed rounded-lg for sharp technical look */}
+    <div className="bg-white border border-[#d1d5db] shadow-sm mb-6 sticky top-24">
+      <div className="p-4 bg-[#f8f9fa] border-b border-[#d1d5db] flex justify-between items-center">
+        <span className="text-[10px] font-bold text-[#002d5c] uppercase tracking-widest flex items-center gap-2">
+          <Database className="w-3 h-3" /> Filters
+        </span>
+        <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+      </div>
+      <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
+        {faqCategories.map((category, index) => (
+          <label
+            key={index}
+            className="flex items-center text-[13px] font-medium text-gray-600 hover:text-[#002d5c] cursor-pointer transition-colors group"
+          >
+            <input
+              type="checkbox"
+              className="h-3.5 w-3.5 text-[#002d5c] border-gray-300 rounded-none focus:ring-[#002d5c] mr-3 cursor-pointer"
+              defaultChecked={category.checked}
+            />
+            <span className="group-hover:translate-x-1 transition-transform duration-200">
+              {category.name}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  </aside>
+);
+
+const FaqItem = ({ faq, index }) => {
+  const [isOpenMain, setIsOpenMain] = useState(index === 0);
+  const [isOpenSub, setIsOpenSub] = useState(false);
+  const IconComponent = faq.icon || HelpCircle;
+
+  return (
+    <motion.div
+      className="flex flex-col md:flex-row gap-6 mb-6"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+    >
+      {/* Icon Column */}
+      <div className="hidden md:flex flex-col items-center pt-2 w-10 flex-shrink-0">
+        <div className="w-10 h-10 bg-white flex items-center justify-center border border-[#d1d5db] text-[#002d5c] shadow-sm">
+          <IconComponent className="w-5 h-5" />
+        </div>
+        <div className="h-full w-px bg-[#e5e7eb] mt-4 border-l border-dashed border-gray-300"></div>
+      </div>
+
+      {/* Content Card (Sharp Corners) */}
+      <div className="flex-grow bg-white border border-[#d1d5db] shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+        <div className="p-6 md:p-8">
+          
+          {/* Metadata Row */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <span className="text-[#002d5c] text-[10px] font-bold font-mono border border-[#002d5c]/20 bg-[#002d5c]/5 px-2 py-0.5 uppercase tracking-wider">
+              {faq.id}
+            </span>
+            {faq.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gray-500 border border-gray-200"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          <h3 className="text-lg font-bold text-[#001021] mb-6 uppercase tracking-tight">{faq.title}</h3>
+
+          {/* Question Block */}
+          <div className="border border-[#e5e7eb] mb-3">
+            <div
+              onClick={() => setIsOpenMain(!isOpenMain)}
+              className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
+                isOpenMain ? "bg-[#f8f9fa]" : "bg-white hover:bg-[#f8f9fa]"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`font-bold text-sm ${isOpenMain ? "text-[#002d5c]" : "text-gray-700"}`}>
+                  {faq.question}
+                </span>
+              </div>
+              {isOpenMain ? (
+                <ChevronUp className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              )}
+            </div>
+            <AnimatePresence>
+              {isOpenMain && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 pt-0 bg-[#f8f9fa] border-t border-[#e5e7eb] text-sm text-gray-600 leading-relaxed font-medium">
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: faq.answer.replace(
+                          /\*\*(.*?)\*\*/g,
+                          "<strong class='text-[#002d5c]'>$1</strong>"
+                        ),
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Sub-Question Block */}
+          {faq.historyText && (
+            <div className="border border-[#e5e7eb]">
+              <div
+                onClick={() => setIsOpenSub(!isOpenSub)}
+                className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
+                  isOpenSub ? "bg-[#f8f9fa]" : "bg-white hover:bg-[#f8f9fa]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`font-bold text-sm ${isOpenSub ? "text-[#002d5c]" : "text-gray-500"}`}>
+                    {faq.historyText}
+                  </span>
+                </div>
+                {isOpenSub ? (
+                  <Minus className="w-3.5 h-3.5 text-gray-400" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5 text-gray-400" />
+                )}
+              </div>
+              <AnimatePresence>
+                {isOpenSub && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 pt-0 bg-[#f8f9fa] border-t border-[#e5e7eb] text-sm text-gray-600 leading-relaxed">
+                      <p
+                        dangerouslySetInnerHTML={{
+                          __html: faq.historyAnswer?.replace(
+                            /\*\*(.*?)\*\*/g,
+                            "<strong>$1</strong>"
+                          ),
+                        }}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+        {/* Bottom Accent Line */}
+        <div className="h-[2px] bg-[#002d5c] w-0 group-hover:w-full transition-all duration-500 ease-out" />
+      </div>
+    </motion.div>
+  );
+};
+
+// --- MAIN PAGE COMPONENT ---
+const FaqSection = () => {
+  return (
+    <>
+      <GlobalStyles />
+      <div id="faq" className="w-full font-technical bg-white min-h-screen">
+        {/* HERO SECTION */}
+        <div
+          className="w-full relative overflow-hidden h-[400px] border-b border-[#002d5c]"
+          style={{ backgroundColor: THEME.headerBackground }}
+        >
+          {/* Engineering Grid Overlay */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none" 
+               style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
+          />
+
+          <div className="max-w-[1200px] mx-auto px-5 h-full flex items-center relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-16 items-center">
+              <div className="w-full max-w-lg">
+                <div className="flex items-center gap-3 mb-6">
+                    <span className="text-[#5BB539] font-mono text-[10px] font-bold uppercase tracking-[3px]">Support Database</span>
+                    <div className="h-[1px] w-12 bg-[#5BB539]/50" />
+                </div>
+                
+                <motion.h1
+                  className="text-4xl lg:text-5xl leading-[1.1] text-white mb-6 tracking-tight"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="font-light block">Technical</span>
+                  <span className="font-extrabold block mt-1">Documentation</span>
+                </motion.h1>
+
+                <p className="text-gray-400 text-sm leading-relaxed mb-8 font-medium max-w-sm">
+                  Search our engineering knowledge base for system protocols, file standards, and calculation logic.
+                </p>
+
+                <div className="flex bg-white h-12 w-full shadow-2xl border border-white/10">
+                  <div className="flex-1 flex items-center px-4">
+                    <input
+                      type="text"
+                      placeholder="Search Protocol ID or Keyword..."
+                      className="w-full text-xs font-bold text-[#001021] placeholder-gray-400 focus:outline-none bg-transparent uppercase tracking-wide"
+                    />
+                  </div>
+                  <button
+                    className="h-full px-8 font-black text-white text-[10px] uppercase tracking-[2px] transition-colors hover:bg-[#004182]"
+                    style={{ backgroundColor: THEME.brandBlue }}
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+
+              {/* Technical Video Container */}
+              <div className="hidden lg:block relative h-64 w-full border border-white/20 bg-black/50 backdrop-blur-sm p-2">
+                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/50" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/50" />
+                
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover opacity-80"
+                >
+                  <source src="/demo.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT */}
+        <main className="max-w-[1200px] mx-auto flex py-16 px-5 gap-10 bg-white">
+          <CategorySidebar />
+          <div className="w-full md:flex-1">
+            
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 mb-8 pb-4 border-b border-[#e5e7eb]">
+              <span className="font-bold text-[#001021] uppercase tracking-wider">
+                Displaying <span className="text-[#002d5c]">3</span> Entries
+              </span>
+              <div className="flex items-center gap-4 mt-3 sm:mt-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold uppercase tracking-wider text-gray-400">Sort By:</span>
+                  <select className="bg-transparent font-bold text-[#002d5c] focus:outline-none cursor-pointer uppercase tracking-wide">
+                    <option>Relevance</option>
+                    <option>Date Added</option>
+                    <option>ID</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {mockFaqResults.map((faq, index) => (
+                <FaqItem key={faq.id} faq={faq} index={index} />
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <button className="px-8 py-4 border border-[#d1d5db] text-[#002d5c] font-black text-[10px] uppercase tracking-[2px] hover:bg-[#002d5c] hover:text-white transition-all">
+                Load Full Archive
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </>
+  );
+};
+
+export default FaqSection;

@@ -33,11 +33,6 @@ import {
   Zap,
   ChevronRight,
   Loader2,
-  Cpu,
-  Activity,
-  Layers,
-  Archive,
-  AlertCircle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Calculator from "@/components/Calculator";
@@ -47,44 +42,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "@/components/Calendar";
 
-// --- THEME CONSTANTS (Aligned with your system) ---
+// --- GLOBAL STYLES: Outfit Font ---
+const GlobalStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    .font-technical { font-family: 'Outfit', sans-serif; }
+  `}</style>
+);
+
+// --- THEME CONSTANTS ---
 const THEME = {
   NAVY: "#002d5c",
   ACCENT: "#5BB539",
   TEXT_MAIN: "#1a1a1a",
-  TEXT_LIGHT: "#f0f0f0",
-  BG_DARK: "#000B29",
-  BG_LIGHT: "#ffffff",
+  TEXT_LIGHT: "#666666",
+  BG_LIGHT: "#fcfcfc",
   BORDER: "#d1d5db",
-  CARD_BG_LIGHT: "#ffffff",
-  CARD_BG_DARK: "rgba(255, 255, 255, 0.03)",
 };
-
-// --- GLOBAL STYLES (Use Outfit + engineering clarity) ---
-const GlobalStyles = () => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-    .font-technical { font-family: 'Outfit', sans-serif; letter-spacing: -0.01em; }
-    .dashboard-card-light {
-      background: ${THEME.CARD_BG_LIGHT};
-      border: 1px solid ${THEME.BORDER};
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    }
-    .dashboard-card-dark {
-      background: ${THEME.CARD_BG_DARK};
-      border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(6px);
-    }
-    .dashboard-card-dark:hover {
-      border-color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.05);
-    }
-    .tab-trigger-active {
-      background: ${THEME.ACCENT} !important;
-      color: white !important;
-    }
-  `}</style>
-);
 
 const Dashboard = () => {
   const { profile, user } = useAuth();
@@ -198,337 +172,316 @@ const Dashboard = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      draft: "bg-slate-700 text-slate-300 border-slate-600",
-      planning: "bg-purple-900/40 text-purple-300 border-purple-700",
-      started: "bg-blue-900/40 text-blue-300 border-blue-700",
-      in_progress: "bg-amber-900/40 text-amber-300 border-amber-700",
-      completed: "bg-green-900/40 text-green-300 border-green-700",
-      on_hold: "bg-red-900/40 text-red-300 border-red-700",
+      draft: "bg-gray-100 text-gray-800 hover:bg-gray-300",
+      planning: "bg-purple-100 text-purple-800 hover:bg-purple-300",
+      started: "bg-blue-100 text-blue-800 hover:bg-blue-300",
+      in_progress: "bg-amber-100 text-amber-800 hover:bg-amber-300",
+      completed: "bg-green-100 text-green-800 hover:bg-green-300",
+      on_hold: "bg-red-100 text-red-800 hover:bg-red-300",
     };
     return (
       colors[status as keyof typeof colors] ||
-      "bg-slate-700 text-slate-300 border-slate-600"
+      "bg-gray-100 hover:bg-gray-100 text-gray-800"
     );
   };
 
-  // Early return if no user — prevent execution
   if (!user) {
     navigate("/auth", { replace: true });
     return null;
   }
 
-  if (!profile || localDashboardLoading) {
+  if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#000B29]">
-        <Loader2 className="animate-spin rounded-full h-8 w-8 text-[#5BB539]" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0f172a]">
+        <Loader2 className="animate-spin h-8 w-8 text-[#002d5c] dark:text-white" />
       </div>
     );
   }
 
-  // Determine card style based on light/dark preference (you can later tie to system)
-  const isDark = true; // For now, assume dark — adjust if you add theme toggle
-  const cardClass = isDark ? "dashboard-card-dark" : "dashboard-card-light";
-  const textColor = isDark ? "text-slate-300" : "text-slate-700";
-  const headerTextColor = isDark ? "text-white" : "text-[#002d5c]";
-  const subTextColor = isDark ? "text-slate-400" : "text-slate-500";
-  const bgClass = isDark ? "bg-[#000B29]" : "bg-white";
+  if (localDashboardLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0f172a]">
+        <Loader2 className="animate-spin h-8 w-8 text-[#002d5c] dark:text-white" />
+      </div>
+    );
+  }
 
   return (
-    <div className={`min-h-screen font-technical ${textColor} relative`} style={{ backgroundColor: isDark ? THEME.BG_DARK : THEME.BG_LIGHT }}>
+    <>
       <GlobalStyles />
-      
-      {/* Subtle Background Grid (Dark Mode Only) */}
-      {isDark && (
-        <div className="absolute inset-0 opacity-5 pointer-events-none" 
-             style={{ 
-               backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)',
-               backgroundSize: '30px 30px'
-             }}>
-        </div>
-      )}
-
-      <div className="max-w-[1200px] mx-auto px-6 py-8 relative z-10">
-        
-        {/* Header Area */}
-        <div className="mb-10">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200/20 pb-6">
-            <div>
-              <div className="flex items-center gap-4 mb-3">
-                <div className="p-2.5 bg-[#5BB539]/10 rounded-md border border-[#5BB539]/20">
-                  <LayoutDashboard className="w-5 h-5 text-[#5BB539]" />
+      <div className="min-h-screen font-technical bg-white text-[#1a1a1a] dark:bg-[#0f172a] dark:text-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <div className="flex items-center text-2xl font-extrabold tracking-tight">
+                  <LayoutDashboard className="w-7 h-7 mr-2 text-[#002d5c] dark:text-white" />
+                  <span className="bg-gradient-to-r from-[#002d5c] to-[#001a35] bg-clip-text text-transparent dark:from-white dark:to-gray-300">
+                    Welcome back, {profile.name}!
+                  </span>
                 </div>
-                <h1 className="text-2xl font-light tracking-tight">
-                  Welcome back, <span className="font-bold text-[#002d5c] dark:text-white">{profile.name}</span>
-                </h1>
+                <p className="mt-2 text-gray-600 dark:text-gray-300 text-base font-medium">
+                  Here's what's happening with your construction business today.
+                </p>
               </div>
-              <p className={`text-sm font-mono flex items-center gap-2 ${subTextColor}`}>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                SYSTEM STATUS: ONLINE
-              </p>
+              <Button
+                onClick={() => setShowCalculator(true)}
+                className="px-5 py-3 text-sm font-bold uppercase tracking-wider bg-[#002d5c] text-white hover:bg-[#001a35] shadow-lg transition-all duration-300 rounded-lg"
+              >
+                ⚡ Quick Calculator
+              </Button>
             </div>
-            
-            <Button
-              onClick={() => setShowCalculator(true)}
-              className="mt-4 sm:mt-0 bg-[#5BB539] hover:bg-[#4a9a2f] text-white text-[11px] font-black uppercase tracking-[1.5px] px-6 py-3 rounded-sm shadow-md hover:shadow-lg border border-[#5BB539] transition-all"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              Launch Calculator
-            </Button>
           </div>
-        </div>
 
-        {/* Top Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Card className={`${cardClass} rounded-md shadow-none`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-slate-200/10">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Total Estimation Value
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-[#5BB539]" />
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-[#002d5c] dark:text-white mb-1">
-                KSh {formatCurrency(dashboardData.totalQuotesValue)}
-              </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                {dashboardData.allQuotes.length} Total Projects
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className={`${cardClass} rounded-md shadow-none`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-slate-200/10">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Active Projects
-              </CardTitle>
-              <Activity className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-[#002d5c] dark:text-white mb-1">
-                {dashboardData.activeProjects}
-              </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                {dashboardData.pendingQuotes} Pending
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className={`${cardClass} rounded-md shadow-none`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-slate-200/10">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                Completed
-              </CardTitle>
-              <Archive className="h-4 w-4 text-purple-500" />
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-[#002d5c] dark:text-white mb-1">
-                {dashboardData.completedProjects}
-              </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">Projects Archived</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs Section */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList
-            className={`grid w-full rounded-md ${bgClass} border border-slate-200/20 p-1 mb-8 ${
-              profile.tier === "Professional"
-                ? "grid-cols-3"
-                : profile.tier === "Free"
-                ? "grid-cols-1"
-                : "grid-cols-2"
-            }`}
-          >
-            <TabsTrigger 
-              value="overview" 
-              className="rounded-sm text-[11px] font-black uppercase tracking-wide data-[state=active]:tab-trigger-active"
-            >
-              <BarChart className="w-3 h-3 mr-2" />
-              Overview
-            </TabsTrigger>
-            {profile.tier === "Professional" && (
-              <TabsTrigger 
-                value="reports" 
-                className="rounded-sm text-[11px] font-black uppercase tracking-wide data-[state=active]:tab-trigger-active"
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[
+              {
+                title: "Total Quotes Value",
+                value: `KSh ${formatCurrency(dashboardData.totalQuotesValue)}`,
+                subtitle: `${dashboardData.allQuotes.length} quotes generated`,
+                icon: <DollarSign className="w-4 h-4 text-gray-500 dark:text-gray-400" />,
+              },
+              {
+                title: "Active Projects",
+                value: dashboardData.activeProjects.toString(),
+                subtitle: `${dashboardData.pendingQuotes} pending approval`,
+                icon: <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />,
+              },
+              {
+                title: "Completed Projects",
+                value: dashboardData.completedProjects.toString(),
+                subtitle: "Projects finished",
+                icon: <CheckCircle className="w-4 h-4 text-gray-500 dark:text-gray-400" />,
+              },
+            ].map((stat, idx) => (
+              <Card
+                key={idx}
+                className="border border-[#d1d5db] dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
-                <TrendingUp className="w-3 h-3 mr-2" />
-                Reports
-              </TabsTrigger>
-            )}
-            {profile.tier !== "Free" && (
-              <TabsTrigger 
-                value="calendar" 
-                className="rounded-sm text-[11px] font-black uppercase tracking-wide data-[state=active]:tab-trigger-active"
-              >
-                <CalendarIcon className="w-3 h-3 mr-2" />
-                Calendar
-              </TabsTrigger>
-            )}
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Recent Quotes Panel */}
-              <Card className={`${cardClass} lg:col-span-2 rounded-md`}>
-                <CardHeader className="border-b border-slate-200/10 pb-4">
-                  <CardTitle className="flex items-center text-[13px] font-bold uppercase tracking-wide text-[#002d5c] dark:text-white">
-                    <FileText className="w-4 h-4 mr-2 text-[#5BB539]" />
-                    Recent Quotes
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {stat.title}
                   </CardTitle>
+                  {stat.icon}
                 </CardHeader>
-                <CardContent className="pt-5">
-                  <div className="space-y-4">
-                    {dashboardData.recentQuotes.length > 0 ? (
-                      dashboardData.recentQuotes.map((quote) => (
-                        <div
-                          key={quote.id}
-                          className={`flex items-center justify-between p-4 rounded-md border ${isDark ? 'border-white/10 bg-white/5 hover:border-white/20' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'} transition-all group`}
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <h3 className="font-bold text-[#002d5c] dark:text-white text-[14px]">{quote.title}</h3>
-                              <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 border rounded-sm border-slate-300/20 dark:border-slate-600">
-                                ID: {quote.id.slice(0,4)}
-                              </span>
-                            </div>
-                            <p className="text-[12px] text-slate-500 font-mono mb-1.5">
-                              {quote.client_name} • {quote.location}
-                            </p>
-                            <p className="text-[14px] font-bold text-[#5BB539]">
-                              KSh {formatCurrency(quote.total_amount)}
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            {profile.tier !== "Free" && (
-                              <Badge className={`rounded-sm text-[9px] font-black uppercase tracking-wide border ${getStatusColor(quote.status)}`}>
-                                {quote.status.replace("_", " ")}
-                              </Badge>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 rounded-sm hover:bg-[#5BB539]/10 text-slate-500 hover:text-[#5BB539]"
-                              onClick={() => navigate("/quotes/all")}
-                            >
-                              <ChevronRight className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className={`text-center py-10 rounded-md border-dashed ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
-                        <FileText className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                        <h3 className="font-bold text-[#002d5c] dark:text-white text-[14px] mb-1">No Data Available</h3>
-                        <p className="text-[12px] text-slate-500">Initialize a new quote to populate this feed.</p>
-                      </div>
-                    )}
+                <CardContent>
+                  <div className="text-2xl font-extrabold text-[#002d5c] dark:text-white">
+                    {stat.value}
                   </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {stat.subtitle}
+                  </p>
                 </CardContent>
               </Card>
+            ))}
+          </div>
 
-              {/* Sidebar: Events & Actions */}
-              <div className="space-y-6">
-                
-                {profile.tier !== "Free" && (
-                  <Card className={`${cardClass} rounded-md`}>
-                    <CardHeader className="border-b border-slate-200/10 pb-4">
-                      <CardTitle className="flex items-center text-[13px] font-bold uppercase tracking-wide text-[#002d5c] dark:text-white">
-                        <Clock className="w-4 h-4 mr-2 text-blue-500" />
-                        Schedule
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      {dashboardData.upcomingEvents.length > 0 ? (
-                        <div className="space-y-3">
-                          {dashboardData.upcomingEvents.map((event) => (
-                            <div
-                              key={event.id}
-                              className={`p-3 rounded-r-md ${isDark ? 'bg-white/5 border-l-2 border-blue-500' : 'bg-blue-50 border-l-2 border-blue-500'}`}
-                            >
-                              <div className="font-bold text-[12px] text-[#002d5c] dark:text-white mb-1">
-                                {event.title}
-                              </div>
-                              <div className="text-[11px] text-slate-500 font-mono">
-                                {format(new Date(event.event_date), "MMM d, yyyy")}
-                                {event.event_time && ` @ ${event.event_time}`}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-[12px] text-slate-500 text-center py-4">No scheduled events found.</p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+            <TabsList
+              className={`grid w-full mb-6 ${
+                profile.tier === "Professional"
+                  ? "grid-cols-3"
+                  : profile.tier === "Free"
+                  ? "grid-cols-1"
+                  : "grid-cols-2"
+              }`}
+            >
+              <TabsTrigger
+                value="overview"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-[#002d5c] data-[state=active]:text-white rounded-md"
+              >
+                <BarChart className="w-4 h-4" />
+                Overview
+              </TabsTrigger>
+              {profile.tier === "Professional" && (
+                <TabsTrigger
+                  value="reports"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-[#002d5c] data-[state=active]:text-white rounded-md"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Reports
+                </TabsTrigger>
+              )}
+              {profile.tier !== "Free" && (
+                <TabsTrigger
+                  value="calendar"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-[#002d5c] data-[state=active]:text-white rounded-md"
+                >
+                  <CalendarIcon className="w-4 h-4" />
+                  Calendar
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-                {/* Quick Actions Panel */}
-                <Card className={`${cardClass} rounded-md`}>
-                  <CardHeader className="border-b border-slate-200/10 pb-4">
-                    <CardTitle className="flex items-center text-[13px] font-bold uppercase tracking-wide text-[#002d5c] dark:text-white">
-                      <Cpu className="w-4 h-4 mr-2 text-purple-500" />
-                      Operations
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Recent Quotes */}
+                <Card className="lg:col-span-2 border border-[#d1d5db] dark:border-gray-700 rounded-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                      <FileText className="w-5 h-5" />
+                      Recent Quotes
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-3">
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate("/quotes/new")}
-                      className={`w-full text-left p-3 rounded-md flex items-center justify-between group ${isDark ? 'border border-white/10 hover:border-[#5BB539] hover:bg-[#5BB539]/10' : 'border border-slate-200 hover:border-[#5BB539] hover:bg-[#5BB539]/10'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-sm ${isDark ? 'bg-white/10 group-hover:bg-[#5BB539] group-hover:text-white' : 'bg-slate-100 group-hover:bg-[#5BB539] group-hover:text-white'} transition-colors`}>
-                          <Layers className="w-4 h-4" />
+                  <CardContent>
+                    <div className="space-y-4">
+                      {dashboardData.recentQuotes.length > 0 ? (
+                        dashboardData.recentQuotes.map((quote) => (
+                          <div
+                            key={quote.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-[#e5e7eb] dark:border-gray-600 rounded-lg hover:shadow transition-shadow"
+                          >
+                            <div className="flex-1 mb-3 sm:mb-0">
+                              <h3 className="font-semibold text-gray-900 dark:text-white">
+                                {quote.title}
+                              </h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {quote.client_name} • {quote.location}
+                              </p>
+                              <p className="text-sm font-bold text-gray-900 dark:text-white mt-1">
+                                KSh {formatCurrency(quote.total_amount)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {profile.tier !== "Free" && (
+                                <Badge className={`${getStatusColor(quote.status)} text-xs font-medium`}>
+                                  {quote.status.charAt(0).toUpperCase() +
+                                    quote.status.slice(1).replace("_", " ")}
+                                </Badge>
+                              )}
+                              <Button
+                                onClick={() => navigate("/quotes/all")}
+                                variant="outline"
+                                size="sm"
+                                className="border-[#002d5c] text-[#002d5c] hover:bg-[#002d5c] hover:text-white dark:border-[#5BB539] dark:text-[#5BB539] dark:hover:bg-[#5BB539] dark:hover:text-white"
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                View
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <h3 className="font-semibold text-gray-700 dark:text-gray-300 text-lg mb-2">
+                            No quotes yet
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400">
+                            Create your first quote to get started!
+                          </p>
                         </div>
-                        <span className={`font-black text-[11px] uppercase tracking-wide ${isDark ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-white'}`}>
-                          Create New Quote
-                        </span>
-                      </div>
-                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#5BB539]" />
-                    </motion.button>
-
-                    <motion.button
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setShowCalculator(true)}
-                      className={`w-full text-left p-3 rounded-md flex items-center justify-between group ${isDark ? 'border border-white/10 hover:border-[#5BB539] hover:bg-[#5BB539]/10' : 'border border-slate-200 hover:border-[#5BB539] hover:bg-[#5BB539]/10'}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-sm ${isDark ? 'bg-white/10 group-hover:bg-[#5BB539] group-hover:text-white' : 'bg-slate-100 group-hover:bg-[#5BB539] group-hover:text-white'} transition-colors`}>
-                          <DollarSign className="w-4 h-4" />
-                        </div>
-                        <span className={`font-black text-[11px] uppercase tracking-wide ${isDark ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-white'}`}>
-                          Quick Cost Calc
-                        </span>
-                      </div>
-                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#5BB539]" />
-                    </motion.button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
-          </TabsContent>
 
-          {profile.tier === "Professional" && (
-            <TabsContent value="reports">
-              <Reports />
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Upcoming Events (Non-Free) */}
+                  {profile.tier !== "Free" && (
+                    <Card className="border border-[#d1d5db] dark:border-gray-700 rounded-lg">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-gray-800 dark:text-white">
+                          <Clock className="w-5 h-5" />
+                          Upcoming Events
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {dashboardData.upcomingEvents.length > 0 ? (
+                          <div className="space-y-3">
+                            {dashboardData.upcomingEvents.map((event) => (
+                              <div
+                                key={event.id}
+                                className="p-3 border-t border-[#e5e7eb] dark:border-gray-600"
+                              >
+                                <div className="font-medium text-gray-900 dark:text-white text-sm">
+                                  {event.title}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {format(new Date(event.event_date), "MMM d, yyyy")}
+                                  {event.event_time && ` at ${event.event_time}`}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No upcoming events
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Quick Actions */}
+                  <Card className="border border-[#d1d5db] dark:border-gray-700 rounded-lg">
+                    <CardHeader className="pb-4 border-b border-[#d1d5db] dark:border-gray-700">
+                      <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-base font-semibold">
+                        <Zap className="w-5 h-5" />
+                        Quick Actions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate("/quotes/new")}
+                        className="w-full text-left p-3 rounded-lg border border-[#d1d5db] dark:border-gray-600 hover:border-[#002d5c] dark:hover:border-[#5BB539] transition-colors bg-white dark:bg-[#1e293b] flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-full bg-[#002d5c]/10 dark:bg-[#5BB539]/10">
+                            <FileText className="w-4 h-4 text-[#002d5c] dark:text-[#5BB539]" />
+                          </div>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            New Quote
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </motion.button>
+
+                      <motion.button
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setShowCalculator(true)}
+                        className="w-full text-left p-3 rounded-lg border border-[#d1d5db] dark:border-gray-600 hover:border-[#002d5c] dark:hover:border-[#5BB539] transition-colors bg-white dark:bg-[#1e293b] flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-full bg-[#5BB539]/10">
+                            <DollarSign className="w-4 h-4 text-[#5BB539]" />
+                          </div>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            Cost Calculator
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </motion.button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </TabsContent>
-          )}
-          {profile.tier !== "Free" && (
-            <TabsContent value="calendar">
-              <Calendar />
-            </TabsContent>
-          )}
-        </Tabs>
+
+            {profile.tier === "Professional" && (
+              <TabsContent value="reports">
+                <Reports />
+              </TabsContent>
+            )}
+            {profile.tier !== "Free" && (
+              <TabsContent value="calendar">
+                <Calendar />
+              </TabsContent>
+            )}
+          </Tabs>
+        </div>
 
         <Calculator
           isOpen={showCalculator}
           onClose={() => setShowCalculator(false)}
         />
       </div>
-    </div>
+    </>
   );
 };
 

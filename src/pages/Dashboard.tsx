@@ -47,28 +47,41 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "@/components/Calendar";
 
-// --- THEME CONSTANTS ---
+// --- THEME CONSTANTS (Aligned with your system) ---
 const THEME = {
-  NAVY_BG: "#000B29",
-  HERO_BTN_GREEN: "#86bc25", // Action Green
-  HERO_ACCENT_BLUE: "#00356B", // Deep Blue
-  TEXT_LIGHT: "#F0F0F0",
-  BORDER_COLOR: "rgba(255,255,255,0.15)",
-  FONT_FAMILY: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  NAVY: "#002d5c",
+  ACCENT: "#5BB539",
+  TEXT_MAIN: "#1a1a1a",
+  TEXT_LIGHT: "#f0f0f0",
+  BG_DARK: "#000B29",
+  BG_LIGHT: "#ffffff",
+  BORDER: "#d1d5db",
+  CARD_BG_LIGHT: "#ffffff",
+  CARD_BG_DARK: "rgba(255, 255, 255, 0.03)",
 };
 
-// --- GLOBAL STYLES ---
+// --- GLOBAL STYLES (Use Outfit + engineering clarity) ---
 const GlobalStyles = () => (
   <style>{`
-    .font-engineering { font-family: ${THEME.FONT_FAMILY}; }
-    .data-card { 
-        background: rgba(255,255,255,0.03); 
-        border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(5px);
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    .font-technical { font-family: 'Outfit', sans-serif; letter-spacing: -0.01em; }
+    .dashboard-card-light {
+      background: ${THEME.CARD_BG_LIGHT};
+      border: 1px solid ${THEME.BORDER};
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
-    .data-card:hover {
-        border-color: rgba(255,255,255,0.2);
-        background: rgba(255,255,255,0.05);
+    .dashboard-card-dark {
+      background: ${THEME.CARD_BG_DARK};
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(6px);
+    }
+    .dashboard-card-dark:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+    }
+    .tab-trigger-active {
+      background: ${THEME.ACCENT} !important;
+      color: white !important;
     }
   `}</style>
 );
@@ -198,62 +211,65 @@ const Dashboard = () => {
     );
   };
 
-  // Early return if no user — prevent execution (after all hooks)
+  // Early return if no user — prevent execution
   if (!user) {
     navigate("/auth", { replace: true });
     return null;
   }
 
-  // Show loader while profile is not available
-  if (!profile) {
+  if (!profile || localDashboardLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#000B29]">
-        <Loader2 className="animate-spin rounded-full h-8 w-8 text-[#86bc25]" />
+        <Loader2 className="animate-spin rounded-full h-8 w-8 text-[#5BB539]" />
       </div>
     );
   }
 
-  // Now safe to use profile — it's guaranteed non-null
-  if (localDashboardLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#000B29]">
-        <Loader2 className="animate-spin rounded-full h-8 w-8 text-[#86bc25]" />
-      </div>
-    );
-  }
+  // Determine card style based on light/dark preference (you can later tie to system)
+  const isDark = true; // For now, assume dark — adjust if you add theme toggle
+  const cardClass = isDark ? "dashboard-card-dark" : "dashboard-card-light";
+  const textColor = isDark ? "text-slate-300" : "text-slate-700";
+  const headerTextColor = isDark ? "text-white" : "text-[#002d5c]";
+  const subTextColor = isDark ? "text-slate-400" : "text-slate-500";
+  const bgClass = isDark ? "bg-[#000B29]" : "bg-white";
 
   return (
-    <div className="min-h-screen font-engineering text-slate-300 relative" style={{ backgroundColor: THEME.NAVY_BG }}>
+    <div className={`min-h-screen font-technical ${textColor} relative`} style={{ backgroundColor: isDark ? THEME.BG_DARK : THEME.BG_LIGHT }}>
       <GlobalStyles />
       
-      {/* Background Grid */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
-      </div>
+      {/* Subtle Background Grid (Dark Mode Only) */}
+      {isDark && (
+        <div className="absolute inset-0 opacity-5 pointer-events-none" 
+             style={{ 
+               backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)',
+               backgroundSize: '30px 30px'
+             }}>
+        </div>
+      )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-6 py-8 relative z-10">
         
         {/* Header Area */}
-        <div className="mb-8 animate-fade-in">
-          <div className="sm:flex flex-1 justify-between items-end border-b border-white/10 pb-6">
+        <div className="mb-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200/20 pb-6">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                 <div className="p-2 bg-[#86bc25]/10 rounded-sm border border-[#86bc25]/20">
-                    <LayoutDashboard className="w-5 h-5 text-[#86bc25]" />
-                 </div>
-                 <h1 className="text-2xl font-light text-white uppercase tracking-tight">
-                    Welcome back, <span className="font-bold">{profile.name}</span>
-                 </h1>
+              <div className="flex items-center gap-4 mb-3">
+                <div className="p-2.5 bg-[#5BB539]/10 rounded-md border border-[#5BB539]/20">
+                  <LayoutDashboard className="w-5 h-5 text-[#5BB539]" />
+                </div>
+                <h1 className="text-2xl font-light tracking-tight">
+                  Welcome back, <span className="font-bold text-[#002d5c] dark:text-white">{profile.name}</span>
+                </h1>
               </div>
-              <p className="text-sm text-slate-400 font-mono flex items-center gap-2">
-                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                 SYSTEM STATUS: ONLINE
+              <p className={`text-sm font-mono flex items-center gap-2 ${subTextColor}`}>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                SYSTEM STATUS: ONLINE
               </p>
             </div>
             
             <Button
               onClick={() => setShowCalculator(true)}
-              className="mt-4 sm:mt-0 bg-[#86bc25] hover:bg-[#75a620] text-white text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-sm shadow-lg hover:shadow-[#86bc25]/20 border border-[#86bc25] transition-all"
+              className="mt-4 sm:mt-0 bg-[#5BB539] hover:bg-[#4a9a2f] text-white text-[11px] font-black uppercase tracking-[1.5px] px-6 py-3 rounded-sm shadow-md hover:shadow-lg border border-[#5BB539] transition-all"
             >
               <Zap className="w-4 h-4 mr-2" />
               Launch Calculator
@@ -262,50 +278,50 @@ const Dashboard = () => {
         </div>
 
         {/* Top Stats Row */}
-        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 mb-8`}>
-          <Card className="data-card rounded-sm shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/5">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <Card className={`${cardClass} rounded-md shadow-none`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-slate-200/10">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                 Total Estimation Value
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-[#86bc25]" />
+              <DollarSign className="h-4 w-4 text-[#5BB539]" />
             </CardHeader>
             <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-white mb-1">
+              <div className="text-2xl font-mono font-bold text-[#002d5c] dark:text-white mb-1">
                 KSh {formatCurrency(dashboardData.totalQuotesValue)}
               </div>
               <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                {dashboardData.allQuotes.length} Total Projects Generated
+                {dashboardData.allQuotes.length} Total Projects
               </p>
             </CardContent>
           </Card>
 
-          <Card className="data-card rounded-sm shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/5">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <Card className={`${cardClass} rounded-md shadow-none`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-slate-200/10">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                 Active Projects
               </CardTitle>
-              <Activity className="h-4 w-4 text-blue-400" />
+              <Activity className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-white mb-1">
+              <div className="text-2xl font-mono font-bold text-[#002d5c] dark:text-white mb-1">
                 {dashboardData.activeProjects}
               </div>
               <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                {dashboardData.pendingQuotes} Pending Approval
+                {dashboardData.pendingQuotes} Pending
               </p>
             </CardContent>
           </Card>
 
-          <Card className="data-card rounded-sm shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/5">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <Card className={`${cardClass} rounded-md shadow-none`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-slate-200/10">
+              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                 Completed
               </CardTitle>
-              <Archive className="h-4 w-4 text-purple-400" />
+              <Archive className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-white mb-1">
+              <div className="text-2xl font-mono font-bold text-[#002d5c] dark:text-white mb-1">
                 {dashboardData.completedProjects}
               </div>
               <p className="text-[10px] text-slate-500 uppercase tracking-wide">Projects Archived</p>
@@ -314,13 +330,9 @@ const Dashboard = () => {
         </div>
 
         {/* Tabs Section */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="animate-fade-in"
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList
-            className={`grid w-full rounded-sm bg-[#000B29] border border-white/10 p-1 mb-6 ${
+            className={`grid w-full rounded-md ${bgClass} border border-slate-200/20 p-1 mb-8 ${
               profile.tier === "Professional"
                 ? "grid-cols-3"
                 : profile.tier === "Free"
@@ -329,8 +341,8 @@ const Dashboard = () => {
             }`}
           >
             <TabsTrigger 
-                value="overview" 
-                className="rounded-sm text-xs font-bold uppercase tracking-wider data-[state=active]:bg-[#86bc25] data-[state=active]:text-white"
+              value="overview" 
+              className="rounded-sm text-[11px] font-black uppercase tracking-wide data-[state=active]:tab-trigger-active"
             >
               <BarChart className="w-3 h-3 mr-2" />
               Overview
@@ -338,7 +350,7 @@ const Dashboard = () => {
             {profile.tier === "Professional" && (
               <TabsTrigger 
                 value="reports" 
-                className="rounded-sm text-xs font-bold uppercase tracking-wider data-[state=active]:bg-[#86bc25] data-[state=active]:text-white"
+                className="rounded-sm text-[11px] font-black uppercase tracking-wide data-[state=active]:tab-trigger-active"
               >
                 <TrendingUp className="w-3 h-3 mr-2" />
                 Reports
@@ -347,7 +359,7 @@ const Dashboard = () => {
             {profile.tier !== "Free" && (
               <TabsTrigger 
                 value="calendar" 
-                className="rounded-sm text-xs font-bold uppercase tracking-wider data-[state=active]:bg-[#86bc25] data-[state=active]:text-white"
+                className="rounded-sm text-[11px] font-black uppercase tracking-wide data-[state=active]:tab-trigger-active"
               >
                 <CalendarIcon className="w-3 h-3 mr-2" />
                 Calendar
@@ -355,48 +367,50 @@ const Dashboard = () => {
             )}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Recent Quotes Panel */}
-              <Card className="lg:col-span-2 bg-[#000B29] border border-white/10 rounded-sm">
-                <CardHeader className="border-b border-white/10 pb-4">
-                  <CardTitle className="flex items-center text-sm font-bold uppercase tracking-widest text-white">
-                    <FileText className="w-4 h-4 mr-2 text-[#86bc25]" />
+              <Card className={`${cardClass} lg:col-span-2 rounded-md`}>
+                <CardHeader className="border-b border-slate-200/10 pb-4">
+                  <CardTitle className="flex items-center text-[13px] font-bold uppercase tracking-wide text-[#002d5c] dark:text-white">
+                    <FileText className="w-4 h-4 mr-2 text-[#5BB539]" />
                     Recent Quotes
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
+                <CardContent className="pt-5">
+                  <div className="space-y-4">
                     {dashboardData.recentQuotes.length > 0 ? (
                       dashboardData.recentQuotes.map((quote) => (
                         <div
                           key={quote.id}
-                          className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-sm hover:border-white/20 transition-all group"
+                          className={`flex items-center justify-between p-4 rounded-md border ${isDark ? 'border-white/10 bg-white/5 hover:border-white/20' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'} transition-all group`}
                         >
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-bold text-white text-sm">{quote.title}</h3>
-                              <span className="text-[10px] text-slate-500 font-mono px-1.5 py-0.5 border border-white/10 rounded-sm">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <h3 className="font-bold text-[#002d5c] dark:text-white text-[14px]">{quote.title}</h3>
+                              <span className="text-[9px] font-mono text-slate-500 px-1.5 py-0.5 border rounded-sm border-slate-300/20 dark:border-slate-600">
                                 ID: {quote.id.slice(0,4)}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-400 font-mono mb-1">
+                            <p className="text-[12px] text-slate-500 font-mono mb-1.5">
                               {quote.client_name} • {quote.location}
                             </p>
-                            <p className="text-sm font-bold text-[#86bc25]">
+                            <p className="text-[14px] font-bold text-[#5BB539]">
                               KSh {formatCurrency(quote.total_amount)}
                             </p>
                           </div>
                           
                           <div className="flex items-center gap-3">
                             {profile.tier !== "Free" && (
-                              <Badge className={`rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(quote.status)}`}>
+                              <Badge className={`rounded-sm text-[9px] font-black uppercase tracking-wide border ${getStatusColor(quote.status)}`}>
                                 {quote.status.replace("_", " ")}
                               </Badge>
                             )}
                             <Button
-                              className="bg-transparent border border-white/20 text-white hover:bg-white hover:text-[#000B29] h-8 w-8 p-0 rounded-sm"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 rounded-sm hover:bg-[#5BB539]/10 text-slate-500 hover:text-[#5BB539]"
                               onClick={() => navigate("/quotes/all")}
                             >
                               <ChevronRight className="w-4 h-4" />
@@ -405,10 +419,10 @@ const Dashboard = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-12 border border-dashed border-white/10 rounded-sm">
-                        <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                        <h3 className="font-bold text-white text-sm mb-1">No Data Available</h3>
-                        <p className="text-xs text-slate-500">Initialize a new quote to populate this feed.</p>
+                      <div className={`text-center py-10 rounded-md border-dashed ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                        <FileText className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+                        <h3 className="font-bold text-[#002d5c] dark:text-white text-[14px] mb-1">No Data Available</h3>
+                        <p className="text-[12px] text-slate-500">Initialize a new quote to populate this feed.</p>
                       </div>
                     )}
                   </div>
@@ -419,25 +433,25 @@ const Dashboard = () => {
               <div className="space-y-6">
                 
                 {profile.tier !== "Free" && (
-                  <Card className="bg-[#000B29] border border-white/10 rounded-sm">
-                    <CardHeader className="border-b border-white/10 pb-4">
-                      <CardTitle className="flex items-center text-sm font-bold uppercase tracking-widest text-white">
-                        <Clock className="w-4 h-4 mr-2 text-blue-400" />
+                  <Card className={`${cardClass} rounded-md`}>
+                    <CardHeader className="border-b border-slate-200/10 pb-4">
+                      <CardTitle className="flex items-center text-[13px] font-bold uppercase tracking-wide text-[#002d5c] dark:text-white">
+                        <Clock className="w-4 h-4 mr-2 text-blue-500" />
                         Schedule
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
                       {dashboardData.upcomingEvents.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {dashboardData.upcomingEvents.map((event) => (
                             <div
                               key={event.id}
-                              className="p-3 bg-white/5 border-l-2 border-blue-500 rounded-r-sm"
+                              className={`p-3 rounded-r-md ${isDark ? 'bg-white/5 border-l-2 border-blue-500' : 'bg-blue-50 border-l-2 border-blue-500'}`}
                             >
-                              <div className="font-bold text-xs text-white mb-1">
+                              <div className="font-bold text-[12px] text-[#002d5c] dark:text-white mb-1">
                                 {event.title}
                               </div>
-                              <div className="text-[10px] text-slate-400 font-mono">
+                              <div className="text-[11px] text-slate-500 font-mono">
                                 {format(new Date(event.event_date), "MMM d, yyyy")}
                                 {event.event_time && ` @ ${event.event_time}`}
                               </div>
@@ -445,51 +459,51 @@ const Dashboard = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-500 text-center py-4">No scheduled events found.</p>
+                        <p className="text-[12px] text-slate-500 text-center py-4">No scheduled events found.</p>
                       )}
                     </CardContent>
                   </Card>
                 )}
 
                 {/* Quick Actions Panel */}
-                <Card className="bg-[#000B29] border border-white/10 rounded-sm">
-                  <CardHeader className="border-b border-white/10 pb-4">
-                    <CardTitle className="flex items-center text-sm font-bold uppercase tracking-widest text-white">
-                      <Cpu className="w-4 h-4 mr-2 text-purple-400" />
+                <Card className={`${cardClass} rounded-md`}>
+                  <CardHeader className="border-b border-slate-200/10 pb-4">
+                    <CardTitle className="flex items-center text-[13px] font-bold uppercase tracking-wide text-[#002d5c] dark:text-white">
+                      <Cpu className="w-4 h-4 mr-2 text-purple-500" />
                       Operations
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-2">
+                  <CardContent className="p-4 space-y-3">
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => navigate("/quotes/new")}
-                      className="w-full text-left p-3 rounded-sm border border-white/10 hover:border-[#86bc25] hover:bg-[#86bc25]/10 transition-all flex items-center justify-between group"
+                      className={`w-full text-left p-3 rounded-md flex items-center justify-between group ${isDark ? 'border border-white/10 hover:border-[#5BB539] hover:bg-[#5BB539]/10' : 'border border-slate-200 hover:border-[#5BB539] hover:bg-[#5BB539]/10'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-sm bg-white/10 group-hover:bg-[#86bc25] group-hover:text-white transition-colors">
+                        <div className={`p-1.5 rounded-sm ${isDark ? 'bg-white/10 group-hover:bg-[#5BB539] group-hover:text-white' : 'bg-slate-100 group-hover:bg-[#5BB539] group-hover:text-white'} transition-colors`}>
                           <Layers className="w-4 h-4" />
                         </div>
-                        <span className="font-bold text-xs uppercase tracking-wider text-slate-300 group-hover:text-white">
+                        <span className={`font-black text-[11px] uppercase tracking-wide ${isDark ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-white'}`}>
                           Create New Quote
                         </span>
                       </div>
-                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#86bc25]" />
+                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#5BB539]" />
                     </motion.button>
 
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowCalculator(true)}
-                      className="w-full text-left p-3 rounded-sm border border-white/10 hover:border-[#86bc25] hover:bg-[#86bc25]/10 transition-all flex items-center justify-between group"
+                      className={`w-full text-left p-3 rounded-md flex items-center justify-between group ${isDark ? 'border border-white/10 hover:border-[#5BB539] hover:bg-[#5BB539]/10' : 'border border-slate-200 hover:border-[#5BB539] hover:bg-[#5BB539]/10'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-sm bg-white/10 group-hover:bg-[#86bc25] group-hover:text-white transition-colors">
+                        <div className={`p-1.5 rounded-sm ${isDark ? 'bg-white/10 group-hover:bg-[#5BB539] group-hover:text-white' : 'bg-slate-100 group-hover:bg-[#5BB539] group-hover:text-white'} transition-colors`}>
                           <DollarSign className="w-4 h-4" />
                         </div>
-                        <span className="font-bold text-xs uppercase tracking-wider text-slate-300 group-hover:text-white">
+                        <span className={`font-black text-[11px] uppercase tracking-wide ${isDark ? 'text-slate-300 group-hover:text-white' : 'text-slate-700 group-hover:text-white'}`}>
                           Quick Cost Calc
                         </span>
                       </div>
-                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#86bc25]" />
+                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#5BB539]" />
                     </motion.button>
                   </CardContent>
                 </Card>

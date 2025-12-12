@@ -35,7 +35,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
       icon: <Target className="h-5 w-5" strokeWidth={1.8} />,
       title: "General Contractors",
       description: "Comprehensive bid verification using AI-extracted quantities. Centralize takeoff data to quickly confirm subcontractor proposals and material lists.",
-      imageUrl: "https://contractortrainingcenter.com/cdn/shop/articles/general_contractors_making_plans_for_new_project_smaller_520x500_db69fb37-61b4-4727-827a-b631920e58ba.jpg?v=1736785491",
+      imageUrl: "https://info.plbco.com/hubfs/Stock%20images/Architects%20at%20a%20construction%20site%20looking%20at%20blueprints.jpeg",
     },
     {
       id: "QS-02",

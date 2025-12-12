@@ -106,12 +106,12 @@ const Index = () => {
         setDemoOpen={setDemoOpen}
       />
 
-      {/* Page Sections */}
+      {/* ✅ FIXED: Removed navigate={navigate} — PageSections doesn't use it */}
       <PageSections
         tiers={tiers}
         tiersLoading={tiersLoading}
         tiersError={tiersError}
-        navigate={navigate}
+        scrollTo={scrollTo}
       />
 
       {/* Footer */}

@@ -12,30 +12,42 @@ interface PageSectionsProps {
   tiers?: any[];
   tiersLoading?: boolean;
   tiersError?: string | null;
-  // ✅ Removed 'navigate' – each section handles routing internally if needed
+  scrollTo: (id: string) => void; // ✅ Required for scroll functionality
 }
 
 export const PageSections = ({ 
   tiers, 
   tiersLoading, 
-  tiersError 
+  tiersError,
+  scrollTo // ✅ Destructured
 }: PageSectionsProps) => {
   return (
     <>
-      <WhoItsForSection />
+      {/* ✅ Pass scrollTo to WhoItsForSection so its buttons work */}
+      <WhoItsForSection scrollTo={scrollTo} />
+      
+      {/* HowItWorks is a scroll target (id="how-it-works"), no prop needed */}
       <HowItWorks />
-      <FeaturesSection />
+      
+      {/* ✅ Pass scrollTo to FeaturesSection for its buttons */}
+      <FeaturesSection scrollTo={scrollTo} />
+      
       <PricingSection
         tiers={tiers}
         tiersLoading={tiersLoading}
         tiersError={tiersError}
-        // ⚠️ If PricingSection still uses 'navigate' as a prop, 
-        //    refactor it to use 'useNavigate()' internally as well.
       />
+      
       <PaymentOptionsSection />
       <TestimonialsSection />
+      
+      {/* FaqSection should have id="faq" — assumed correct */}
       <FaqSection />
-      <CTABanner /> {/* ✅ No props needed */}
+      
+      {/* ✅ Pass scrollTo to CTABanner so button scrolls to #contact */}
+      <CTABanner scrollTo={scrollTo} />
     </>
   );
 };
+
+export default PageSections;

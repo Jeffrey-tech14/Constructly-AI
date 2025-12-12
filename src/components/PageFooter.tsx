@@ -1,3 +1,4 @@
+// src/components/PageFooter.tsx
 import { motion } from "framer-motion";
 import {
   Phone,
@@ -7,13 +8,11 @@ import {
   Linkedin,
   Twitter,
   Facebook,
-  Globe,
   ShieldCheck,
   FileText,
   Server
 } from "lucide-react";
 
-// --- GLOBAL STYLES ---
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
@@ -21,7 +20,6 @@ const GlobalStyles = () => (
   `}</style>
 );
 
-// --- ENGINEERING THEME ---
 const THEME = {
   NAVY: "#002d5c",
   LIGHT_BLUE: "#0077B6",
@@ -30,14 +28,11 @@ const THEME = {
   BORDER: "#d1d5db"
 };
 
-// --- SOCIAL BRAND COLORS ---
-const SOCIAL_COLORS = {
-  linkedin: "#0A66C2",
-  twitter: "#000000",   // X (formerly Twitter) uses black
-  facebook: "#1877F2"
-};
+interface PageFooterProps {
+  scrollTo: (section: string) => void;
+}
 
-const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
+const PageFooter = ({ scrollTo }: PageFooterProps) => {
   const links = [
     { label: "Features & Capabilities", id: "features" },
     { label: "Commercial Licensing", id: "pricing" },
@@ -78,7 +73,6 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
         className="bg-[#fcfcfc] border-t border-[#d1d5db] pt-24 pb-12 font-technical text-[#1a1a1a]"
       >
         <div className="max-w-[1440px] mx-auto px-6 lg:px-8">
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-20 border-b border-[#e5e7eb] pb-16">
             
             {/* COLUMN 1: CORPORATE IDENTITY */}
@@ -88,11 +82,9 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
                 Next-generation construction estimation powered by neural network analysis. 
                 ISO 27001 Certified Engineering Software.
               </p>
-              
-              {/* ✅ SOCIAL ICONS WITH ORIGINAL BRAND COLORS */}
               <div className="flex gap-2">
                 <a
-                  href="https://linkedin.com/company/jtechai" // ← replace with real URL
+                  href="https://linkedin.com/company/jtechai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-[#0A66C2] hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 rounded-none"
@@ -101,7 +93,7 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
                   <Linkedin className="w-4 h-4" />
                 </a>
                 <a
-                  href="https://x.com/jtechai" // ← replace with real URL
+                  href="https://x.com/jtechai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-black hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 rounded-none"
@@ -110,7 +102,7 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
                   <Twitter className="w-4 h-4" />
                 </a>
                 <a
-                  href="https://facebook.com/jtechai" // ← replace with real URL
+                  href="https://facebook.com/jtechai"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-[#1877F2] hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 rounded-none"
@@ -220,4 +212,4 @@ const Footer = ({ scrollTo }: { scrollTo: (section: string) => void }) => {
   );
 };
 
-export default Footer;
+export default PageFooter;

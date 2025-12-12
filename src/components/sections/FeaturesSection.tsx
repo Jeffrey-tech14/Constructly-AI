@@ -1,7 +1,7 @@
+// src/components/sections/FeaturesSection.tsx
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MessageSquare, Users, GraduationCap, ArrowRight, ChevronRight, Globe, Database } from "lucide-react";
+import { ArrowRight, ChevronRight, Globe, Database } from "lucide-react";
 
 // --- 1. GLOBAL STYLES ---
 const GlobalStyles = () => (
@@ -20,8 +20,7 @@ const THEME = {
   BORDER: "#d1d5db"
 };
 
-// --- 2. TECHNICAL GRAPHICS (Preserved & Polished) ---
-
+// --- GRAPHICS (unchanged) ---
 const GlobeGraphic = () => (
   <div className="relative w-32 h-32 md:w-40 md:h-40">
     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#002d5c] to-[#001a35] shadow-xl"></div>
@@ -44,7 +43,7 @@ const GlobeGraphic = () => (
     </svg>
     <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-[#5BB539] rounded-full animate-pulse"></div>
     <div className="absolute top-1/2 -left-2 bg-white text-[8px] font-bold text-[#002d5c] px-2 py-0.5 border border-gray-200 uppercase tracking-wider shadow-sm">
-      Zone: RV
+      Phase: AI Scan
     </div>
   </div>
 );
@@ -74,30 +73,40 @@ const CommunityGraphic = () => (
     <img
       className="absolute inset-0 w-full h-full object-cover opacity-80"
       src="https://wpmedia.roomsketcher.com/content/uploads/2022/01/05101816/RoomSketcher-Custom-2D-Floor-Plan-Branding.jpg"
-      alt="Community Background"
+      alt="Estimation Workflow"
     />
     <div className="absolute inset-0 bg-gradient-to-t from-[#001021]/95 via-[#001021]/50 to-transparent pointer-events-none" />
     
     <div className="relative z-10 mb-8 scale-90">
       <div className="px-6 py-2 border border-white/20 bg-white/10 backdrop-blur-md shadow-2xl flex items-center gap-2">
         <span className="text-white font-technical font-bold text-lg drop-shadow-md uppercase tracking-wide">
-          J-Tech <span className="text-[#5BB539]">Community</span>
+          J-Tech <span className="text-[#5BB539]">Estimator</span>
         </span>
       </div>
     </div>
 
     <div className="flex gap-6 text-white/70 relative z-10 drop-shadow-md">
-      <MessageSquare className="w-5 h-5" />
-      <Users className="w-6 h-6 text-white -mt-1" />
-      <GraduationCap className="w-5 h-5" />
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m4.242 0l-.707.707m4.242 0l-.707-.707M12 19v-1" /></svg>
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     </div>
   </div>
 );
 
-// --- 3. MAIN COMPONENT ---
+// --- PROP INTERFACE ---
+interface FeaturesSectionProps {
+  scrollTo: (sectionId: string) => void;
+}
 
-export default function FeaturesSection() {
-  const navigate = useNavigate();
+// --- MAIN COMPONENT ---
+export default function FeaturesSection({ scrollTo }: FeaturesSectionProps) {
+  const goToHowItWorks = () => {
+    scrollTo("how-it-works");
+  };
+
+  const goToContact = () => {
+    scrollTo("contact");
+  };
 
   return (
     <>
@@ -109,11 +118,10 @@ export default function FeaturesSection() {
         <div className="max-w-[1200px] mx-auto px-6">
           
           {/* =========================================
-              SECTION 1: COMMUNITY (Split Layout)
+              SECTION 1: WORKFLOW OVERVIEW
           ========================================= */}
           <div className="flex flex-col md:flex-row items-center gap-16 mb-32 border-b border-[#e5e7eb] pb-24">
             
-            {/* Visual Box - Image Container */}
             <motion.div
               className="w-full md:w-1/2 h-[340px] overflow-hidden shadow-2xl border border-[#d1d5db]"
               initial={{ opacity: 0, x: -30 }}
@@ -124,7 +132,6 @@ export default function FeaturesSection() {
               <CommunityGraphic />
             </motion.div>
 
-            {/* Text Content */}
             <motion.div
               className="w-full md:w-1/2"
               initial={{ opacity: 0, x: 30 }}
@@ -133,37 +140,35 @@ export default function FeaturesSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <div className="flex items-center gap-3 mb-6">
-                 <span className="bg-[#002d5c] text-white text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest">User Network</span>
-                 <span className="text-gray-400 text-[10px] font-bold uppercase tracking-[2px]">Collaboration Hub</span>
+                 <span className="bg-[#002d5c] text-white text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest">Estimation Pipeline</span>
+                 <span className="text-gray-400 text-[10px] font-bold uppercase tracking-[2px]">4-Step Automation</span>
               </div>
 
               <h2 className="text-4xl leading-[1.1] text-[#001021] mb-6 tracking-tight">
-                <span className="font-light block">Get Support Through the</span>
-                <span className="font-extrabold text-[#002d5c] block mt-1">J-Tech Community</span>
+                <span className="font-light block">Get Quotes in Minutes,</span>
+                <span className="font-extrabold text-[#002d5c] block mt-1">Not Hours</span>
               </h2>
               
               <p className="text-gray-500 text-[15px] leading-relaxed mb-10 max-w-md font-medium">
-                The J-Tech Community connects you with support engineers, fellow
-                students, and experienced users — all ready to help you tackle
-                technical challenges.
+                Skip manual takeoffs and error-prone spreadsheets. Upload your plans,
+                and let our AI-powered engine extract quantities, apply rates, and generate
+                professional estimates — automatically.
               </p>
               
-              {/* FUNCTIONAL BUTTON */}
               <button 
-                onClick={() => navigate('/community')}
+                onClick={goToHowItWorks}
                 className="bg-[#002d5c] text-white px-8 py-4 text-[11px] font-black uppercase tracking-[2px] hover:bg-[#001a35] transition-all shadow-lg flex items-center gap-2 group"
               >
-                Join the Community <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                Access Workflow Details <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </button>
             </motion.div>
           </div>
 
           {/* =========================================
-              SECTION 2: TOOLS GRID (Sharp Cards)
+              SECTION 2: CORE CAPABILITIES
           ========================================= */}
           <div className="w-full">
             
-            {/* Header */}
             <motion.div
               className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4"
               initial={{ opacity: 0, y: 10 }}
@@ -172,20 +177,20 @@ export default function FeaturesSection() {
             >
               <div>
                  <h2 className="text-3xl font-light text-[#1a1a1a] mb-1">
-                    Online <span className="font-extrabold text-[#002d5c]">Engineering Suite</span>
+                    Intelligent <span className="font-extrabold text-[#002d5c]">Estimation Engine</span>
                  </h2>
                  <p className="text-sm text-gray-500 font-medium">
-                    Cloud-based tools to streamline your estimation workflow.
+                    End-to-end automation from file upload to client-ready quote.
                  </p>
               </div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden md:block">
-                 System Modules v4.2
+                 Based on Your Workflow
               </div>
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               
-              {/* CARD 1: GLOBAL TAKEOFF */}
+              {/* CARD 1: AI ANALYSIS */}
               <motion.div
                 className="bg-white border border-[#d1d5db] border-t-4 border-t-[#002d5c] relative overflow-hidden min-h-[300px] group shadow-sm hover:shadow-xl transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
@@ -197,23 +202,22 @@ export default function FeaturesSection() {
                   <div className="max-w-[65%]">
                     <div className="flex items-center gap-2 mb-4 text-gray-400">
                        <Globe className="w-3 h-3" />
-                       <span className="text-[9px] font-mono block tracking-widest uppercase">TOOL // ID-01</span>
+                       <span className="text-[9px] font-mono block tracking-widest uppercase">PHASE // 02</span>
                     </div>
                     <h3 className="text-xl font-bold text-[#002d5c] mb-4 uppercase tracking-tight">
-                      Global Takeoff Tool
+                      AI-Powered Plan Analysis
                     </h3>
                     <p className="text-gray-500 text-[13px] leading-relaxed mb-8 font-medium">
-                      Easily determine material quantities and regional pricing.
-                      Our interactive zone maps deliver precise data in seconds.
+                      Our engine scans uploaded PDFs, DWGs, or images to identify walls,
+                      openings, and annotations — then extracts measurable quantities with precision.
                     </p>
                   </div>
 
-                  {/* FUNCTIONAL BUTTON */}
                   <button 
-                    onClick={() => navigate('/tools/takeoff')}
+                    onClick={goToHowItWorks}
                     className="w-fit bg-[#002d5c] text-white px-6 py-3 text-[10px] font-black uppercase tracking-[2px] hover:bg-[#001a35] transition-all flex items-center gap-2 shadow-md"
                   >
-                    Discover Tool <ArrowRight className="w-3 h-3" />
+                    Learn More <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
 
@@ -222,7 +226,7 @@ export default function FeaturesSection() {
                 </div>
               </motion.div>
 
-              {/* CARD 2: MATERIAL DATABASE */}
+              {/* CARD 2: AUTO-CALC & EXPORT */}
               <motion.div
                 className="bg-white border border-[#d1d5db] border-t-4 border-t-[#5BB539] relative overflow-hidden min-h-[300px] group shadow-sm hover:shadow-xl transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
@@ -234,23 +238,22 @@ export default function FeaturesSection() {
                   <div className="max-w-[65%]">
                     <div className="flex items-center gap-2 mb-4 text-gray-400">
                        <Database className="w-3 h-3" />
-                       <span className="text-[9px] font-mono block tracking-widest uppercase">DATA // ID-02</span>
+                       <span className="text-[9px] font-mono block tracking-widest uppercase">PHASE // 03-04</span>
                     </div>
                     <h3 className="text-xl font-bold text-[#002d5c] mb-4 uppercase tracking-tight">
-                      Material Database
+                      Auto-Calc & Export
                     </h3>
                     <p className="text-gray-500 text-[13px] leading-relaxed mb-8 font-medium">
-                      Access online tables to easily find cross-section
-                      properties for steel and timber sections.
+                      Automatically computes material volumes, applies current unit rates,
+                      and generates branded PDF quotes or Excel exports — ready for client delivery.
                     </p>
                   </div>
 
-                  {/* FUNCTIONAL BUTTON */}
                   <button 
-                    onClick={() => navigate('/tools/database')}
+                    onClick={goToContact}
                     className="w-fit bg-[#002d5c] text-white px-6 py-3 text-[10px] font-black uppercase tracking-[2px] hover:bg-[#001a35] transition-all flex items-center gap-2 shadow-md"
                   >
-                    Get Material Info <ArrowRight className="w-3 h-3" />
+                    Contact Technical Support <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
 

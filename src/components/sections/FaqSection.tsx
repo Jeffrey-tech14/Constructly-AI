@@ -35,63 +35,60 @@ const THEME = {
   textDark: "#1a1a1a",
 };
 
-// --- MOCK DATA ---
+// --- UPDATED CATEGORIES (aligned with real features) ---
 const faqCategories = [
-  { name: "General System", checked: true },
-  { name: "User Accounts", checked: false },
-  { name: "Data Ingestion", checked: false },
-  { name: "Neural Analysis", checked: false },
-  { name: "Cost Estimation", checked: false },
-  { name: "Licensing Models", checked: false },
-  { name: "QS Modules", checked: false },
-  { name: "File Compatibility", checked: false },
-  { name: "Data Sovereignty", checked: false },
-  { name: "Invoicing", checked: false },
+  { name: "Getting Started", checked: true },
+  { name: "File Upload", checked: false },
+  { name: "AI Takeoff", checked: false },
+  { name: "Cost Calculation", checked: false },
+  { name: "Export & Quotes", checked: false },
+  { name: "Account & Billing", checked: false },
+  { name: "Troubleshooting", checked: false },
 ];
 
+// --- REALISTIC FAQ CONTENT (no overpromising) ---
 const mockFaqResults = [
   {
     id: "KB-001",
     icon: Target,
-    tags: ["Algorithm", "Tolerance"],
-    title: "Dimensional Accuracy Specifications",
-    question: "What is the certified precision tolerance of automated takeoff?",
+    tags: ["Accuracy", "Takeoff"],
+    title: "How accurate is the quantity extraction?",
+    question: "What level of accuracy can I expect from automated takeoffs?",
     answer:
-      "**99.9% Geometric Fidelity** on vector-based PDFs. The neural engine cross-references scale ratios against standard structural logic. Manual override is available for final audit.",
-    historyText: "Validation Protocols",
+      "**High accuracy on clear, scaled plans.** The system detects walls, doors, windows, and annotations in PDF/DWG files. For best results, ensure plans include a scale reference. Manual review is recommended for final quotes.",
+    historyText: "Improving Results",
     historyAnswer:
-      "We utilize a dual-layer verification system: geometric OCR checks combined with material density logic rules.",
+      "Upload vector-based PDFs or clean DWG files. Avoid low-resolution scans or hand-drawn sketches without clear dimensions.",
   },
   {
     id: "KB-002",
     icon: FileCode,
-    tags: ["Import", "Formats"],
-    title: "Supported Engineering Formats",
-    question: "Does the system parse raster scans or hand-drafted schematics?",
+    tags: ["Upload", "Formats"],
+    title: "What file types are supported?",
+    question: "Can I upload scanned drawings or images?",
     answer:
-      "**PDF, DWG, DXF, TIFF**, including legacy raster scans. For non-vector files, optical character recognition (OCR) is automatically engaged.",
-    historyText: "Optimization for Scans",
+      "**Yes: PDF, DWG, DXF, and image files (JPG, PNG, TIFF).** For scanned plans, a minimum of 300 DPI is recommended. The system uses AI to interpret geometry and text, but results may vary with poor-quality inputs.",
+    historyText: "Optimizing Scans",
     historyAnswer:
-      "Ensure minimum 300 DPI for raster inputs. The integrated pre-processor includes rotation and contrast enhancement tools.",
+      "Use the built-in preview tool to check alignment and clarity before processing. Rotated or skewed images may reduce accuracy.",
   },
   {
     id: "KB-003",
     icon: ShieldCheck,
-    tags: ["Compliance", "ISO-27001"],
-    title: "Data Sovereignty & Security",
-    question: "Where is project data physically stored?",
+    tags: ["Security", "Privacy"],
+    title: "Is my data secure?",
+    question: "What happens to my uploaded files?",
     answer:
-      "**AES-256 Encrypted Sharding** across Tier-4 AWS data centers. Full GDPR & SOC2 compliance ensures data is never used for external model training without enterprise consent.",
-    historyText: "IP Protection Policy",
-    historyAnswer: "Your intellectual property remains siloed. We do not aggregate your schematic data for public model training.",
+      "**Your files are processed securely and deleted after export** unless you choose to save the project. We do not use your plans to train public AI models. All data is encrypted in transit and at rest.",
+    historyText: "Data Retention",
+    historyAnswer: "Saved projects remain in your account until manually deleted. You retain full ownership of your files and estimates.",
   },
 ];
 
-// --- COMPONENTS ---
+// --- COMPONENTS (UNCHANGED STRUCTURE) ---
 
 const CategorySidebar = () => (
   <aside className="w-full max-w-[220px] hidden md:block flex-shrink-0">
-    {/* Removed rounded-lg for sharp technical look */}
     <div className="bg-white border border-[#d1d5db] shadow-sm mb-6 sticky top-24">
       <div className="p-4 bg-[#f8f9fa] border-b border-[#d1d5db] flex justify-between items-center">
         <span className="text-[10px] font-bold text-[#002d5c] uppercase tracking-widest flex items-center gap-2">
@@ -133,7 +130,6 @@ const FaqItem = ({ faq, index }) => {
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      {/* Icon Column */}
       <div className="hidden md:flex flex-col items-center pt-2 w-10 flex-shrink-0">
         <div className="w-10 h-10 bg-white flex items-center justify-center border border-[#d1d5db] text-[#002d5c] shadow-sm">
           <IconComponent className="w-5 h-5" />
@@ -141,11 +137,9 @@ const FaqItem = ({ faq, index }) => {
         <div className="h-full w-px bg-[#e5e7eb] mt-4 border-l border-dashed border-gray-300"></div>
       </div>
 
-      {/* Content Card (Sharp Corners) */}
       <div className="flex-grow bg-white border border-[#d1d5db] shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
         <div className="p-6 md:p-8">
           
-          {/* Metadata Row */}
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className="text-[#002d5c] text-[10px] font-bold font-mono border border-[#002d5c]/20 bg-[#002d5c]/5 px-2 py-0.5 uppercase tracking-wider">
               {faq.id}
@@ -162,7 +156,6 @@ const FaqItem = ({ faq, index }) => {
 
           <h3 className="text-lg font-bold text-[#001021] mb-6 uppercase tracking-tight">{faq.title}</h3>
 
-          {/* Question Block */}
           <div className="border border-[#e5e7eb] mb-3">
             <div
               onClick={() => setIsOpenMain(!isOpenMain)}
@@ -204,7 +197,6 @@ const FaqItem = ({ faq, index }) => {
             </AnimatePresence>
           </div>
 
-          {/* Sub-Question Block */}
           {faq.historyText && (
             <div className="border border-[#e5e7eb]">
               <div
@@ -248,14 +240,13 @@ const FaqItem = ({ faq, index }) => {
             </div>
           )}
         </div>
-        {/* Bottom Accent Line */}
         <div className="h-[2px] bg-[#002d5c] w-0 group-hover:w-full transition-all duration-500 ease-out" />
       </div>
     </motion.div>
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
+// --- MAIN PAGE COMPONENT (unchanged structure) ---
 const FaqSection = () => {
   return (
     <>
@@ -266,7 +257,6 @@ const FaqSection = () => {
           className="w-full relative overflow-hidden h-[400px] border-b border-[#002d5c]"
           style={{ backgroundColor: THEME.headerBackground }}
         >
-          {/* Engineering Grid Overlay */}
           <div className="absolute inset-0 opacity-20 pointer-events-none" 
                style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
           />
@@ -275,7 +265,7 @@ const FaqSection = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-16 items-center">
               <div className="w-full max-w-lg">
                 <div className="flex items-center gap-3 mb-6">
-                    <span className="text-[#5BB539] font-mono text-[10px] font-bold uppercase tracking-[3px]">Support Database</span>
+                    <span className="text-[#5BB539] font-mono text-[10px] font-bold uppercase tracking-[3px]">Support Center</span>
                     <div className="h-[1px] w-12 bg-[#5BB539]/50" />
                 </div>
                 
@@ -285,19 +275,19 @@ const FaqSection = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <span className="font-light block">Technical</span>
-                  <span className="font-extrabold block mt-1">Documentation</span>
+                  <span className="font-light block">Estimation</span>
+                  <span className="font-extrabold block mt-1">Support Hub</span>
                 </motion.h1>
 
                 <p className="text-gray-400 text-sm leading-relaxed mb-8 font-medium max-w-sm">
-                  Search our engineering knowledge base for system protocols, file standards, and calculation logic.
+                  Find answers about file uploads, AI takeoff, cost calculation, and exporting quotes.
                 </p>
 
                 <div className="flex bg-white h-12 w-full shadow-2xl border border-white/10">
                   <div className="flex-1 flex items-center px-4">
                     <input
                       type="text"
-                      placeholder="Search Protocol ID or Keyword..."
+                      placeholder="Search by topic or keyword..."
                       className="w-full text-xs font-bold text-[#001021] placeholder-gray-400 focus:outline-none bg-transparent uppercase tracking-wide"
                     />
                   </div>
@@ -310,7 +300,7 @@ const FaqSection = () => {
                 </div>
               </div>
 
-              {/* Technical Video Container */}
+              {/* Technical Video Container (unchanged) */}
               <div className="hidden lg:block relative h-64 w-full border border-white/20 bg-black/50 backdrop-blur-sm p-2">
                 <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/50" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/50" />
@@ -334,7 +324,6 @@ const FaqSection = () => {
           <CategorySidebar />
           <div className="w-full md:flex-1">
             
-            {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 mb-8 pb-4 border-b border-[#e5e7eb]">
               <span className="font-bold text-[#001021] uppercase tracking-wider">
                 Displaying <span className="text-[#002d5c]">3</span> Entries
@@ -359,7 +348,7 @@ const FaqSection = () => {
 
             <div className="mt-12 text-center">
               <button className="px-8 py-4 border border-[#d1d5db] text-[#002d5c] font-black text-[10px] uppercase tracking-[2px] hover:bg-[#002d5c] hover:text-white transition-all">
-                Load Full Archive
+                View All FAQs
               </button>
             </div>
           </div>

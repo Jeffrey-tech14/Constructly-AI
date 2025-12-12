@@ -1,12 +1,13 @@
 // src/components/sections/CTABanner.tsx
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // 👈 add this
 
-export default function CTABanner() {
-  const navigate = useNavigate(); // 👈 hook inside the component
+interface CTABannerProps {
+  scrollTo: (id: string) => void;
+}
 
+export default function CTABanner({ scrollTo }: CTABannerProps) {
   const handleButtonClick = () => {
-    navigate("/submit-project"); // ✅ or your desired path
+    scrollTo("testimonials"); // ✅ Changed from "contact" to "testimonials"
   };
 
   return (
@@ -26,11 +27,10 @@ export default function CTABanner() {
             Showcase your projects created using our solutions and gain increased visibility on our website, social networks, and in industry journals, along with a discount on our software.
           </p>
 
-          {/* Attach onClick handler */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleButtonClick} // 👈 add this
+            onClick={handleButtonClick}
             className="border border-white text-white px-8 py-4 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-white hover:text-[#101D42] transition-colors duration-300"
           >
             Share Your Project and Benefit

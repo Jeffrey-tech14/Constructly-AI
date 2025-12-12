@@ -33,11 +33,6 @@ import {
   Zap,
   ChevronRight,
   Loader2,
-  Cpu,
-  Activity,
-  Layers,
-  Archive,
-  AlertCircle
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Calculator from "@/components/Calculator";
@@ -46,32 +41,6 @@ import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "@/components/Calendar";
-
-// --- THEME CONSTANTS ---
-const THEME = {
-  NAVY_BG: "#000B29",
-  HERO_BTN_GREEN: "#86bc25", // Action Green
-  HERO_ACCENT_BLUE: "#00356B", // Deep Blue
-  TEXT_LIGHT: "#F0F0F0",
-  BORDER_COLOR: "rgba(255,255,255,0.15)",
-  FONT_FAMILY: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-};
-
-// --- GLOBAL STYLES ---
-const GlobalStyles = () => (
-  <style>{`
-    .font-engineering { font-family: ${THEME.FONT_FAMILY}; }
-    .data-card { 
-        background: rgba(255,255,255,0.03); 
-        border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(5px);
-    }
-    .data-card:hover {
-        border-color: rgba(255,255,255,0.2);
-        background: rgba(255,255,255,0.05);
-    }
-  `}</style>
-);
 
 const Dashboard = () => {
   const { profile, user } = useAuth();
@@ -185,16 +154,16 @@ const Dashboard = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      draft: "bg-slate-700 text-slate-300 border-slate-600",
-      planning: "bg-purple-900/40 text-purple-300 border-purple-700",
-      started: "bg-blue-900/40 text-blue-300 border-blue-700",
-      in_progress: "bg-amber-900/40 text-amber-300 border-amber-700",
-      completed: "bg-green-900/40 text-green-300 border-green-700",
-      on_hold: "bg-red-900/40 text-red-300 border-red-700",
+      draft: "bg-gray-100 text-gray-800 hover:bg-gray-300",
+      planning: "bg-purple-100 text-purple-800 hover:bg-purple-300",
+      started: "bg-blue-100 text-blue-800 hover:bg-blue-300",
+      in_progress: "bg-amber-100 text-amber-800 hover:bg-amber-300",
+      completed: "bg-green-100 text-green-800 hover:bg-green-300",
+      on_hold: "bg-red-100 text-red-800 hover:bg-red-300",
     };
     return (
       colors[status as keyof typeof colors] ||
-      "bg-slate-700 text-slate-300 border-slate-600"
+      "bg-gray-100 hover:bg-gray-100 text-gray-800"
     );
   };
 
@@ -207,8 +176,8 @@ const Dashboard = () => {
   // Show loader while profile is not available
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#000B29]">
-        <Loader2 className="animate-spin rounded-full h-8 w-8 text-[#86bc25]" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin rounded-full h-8 w-8" />
       </div>
     );
   }
@@ -216,280 +185,260 @@ const Dashboard = () => {
   // Now safe to use profile — it's guaranteed non-null
   if (localDashboardLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#000B29]">
-        <Loader2 className="animate-spin rounded-full h-8 w-8 text-[#86bc25]" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin rounded-full h-8 w-8" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen font-engineering text-slate-300 relative" style={{ backgroundColor: THEME.NAVY_BG }}>
-      <GlobalStyles />
-      
-      {/* Background Grid */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        
-        {/* Header Area */}
-        <div className="mb-8 animate-fade-in">
-          <div className="sm:flex flex-1 justify-between items-end border-b border-white/10 pb-6">
+    <div className="min-h-screen inset-0 scrollbar-hide">
+      <div className="max-w-7xl scrollbar-hide mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4 animate-fade-in">
+          <div className="sm:flex flex-1 justify-between items-center">
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                 <div className="p-2 bg-[#86bc25]/10 rounded-sm border border-[#86bc25]/20">
-                    <LayoutDashboard className="w-5 h-5 text-[#86bc25]" />
-                 </div>
-                 <h1 className="text-2xl font-light text-white uppercase tracking-tight">
-                    Welcome back, <span className="font-bold">{profile.name}</span>
-                 </h1>
+              <div className="sm:text-2xl items-center text-xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+                <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
+                Welcome back, {profile.name}!
               </div>
-              <p className="text-sm text-slate-400 font-mono flex items-center gap-2">
-                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                 SYSTEM STATUS: ONLINE
+              <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
+                Here's what's happening with your construction business today.
               </p>
             </div>
-            
             <Button
               onClick={() => setShowCalculator(true)}
-              className="mt-4 sm:mt-0 bg-[#86bc25] hover:bg-[#75a620] text-white text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-sm shadow-lg hover:shadow-[#86bc25]/20 border border-[#86bc25] transition-all"
+              className="text-sm px-5 py-4 rounded-xl sm:mt-0 mt-4 shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
             >
-              <Zap className="w-4 h-4 mr-2" />
-              Launch Calculator
+              ⚡Quick Calculator
             </Button>
           </div>
         </div>
 
-        {/* Top Stats Row */}
-        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 mb-8`}>
-          <Card className="data-card rounded-sm shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/5">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Total Estimation Value
+        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6`}>
+          <Card className="card-hover">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Quotes Value
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-[#86bc25]" />
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-white mb-1">
+            <CardContent>
+              <div className="sm:text-2xl text-lg font-bold">
                 KSh {formatCurrency(dashboardData.totalQuotesValue)}
               </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                {dashboardData.allQuotes.length} Total Projects Generated
+              <p className="text-xs text-muted-foreground">
+                {dashboardData.allQuotes.length} quotes generated
               </p>
             </CardContent>
           </Card>
 
-          <Card className="data-card rounded-sm shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/5">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          <Card className="card-hover">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
                 Active Projects
               </CardTitle>
-              <Activity className="h-4 w-4 text-blue-400" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-white mb-1">
+            <CardContent>
+              <div className="sm:text-2xl text-lg font-bold">
                 {dashboardData.activeProjects}
               </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                {dashboardData.pendingQuotes} Pending Approval
+              <p className="text-xs text-muted-foreground">
+                {dashboardData.pendingQuotes} pending approval
               </p>
             </CardContent>
           </Card>
 
-          <Card className="data-card rounded-sm shadow-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/5">
-              <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                Completed
+          <Card className="card-hover">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Completed Projects
               </CardTitle>
-              <Archive className="h-4 w-4 text-purple-400" />
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-mono font-bold text-white mb-1">
+            <CardContent>
+              <div className="sm:text-2xl text-lg font-bold">
                 {dashboardData.completedProjects}
               </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide">Projects Archived</p>
+              <p className="text-xs text-muted-foreground">Projects finished</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tabs Section */}
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="animate-fade-in"
+          className="animate-fade-in mt-5"
         >
           <TabsList
-            className={`grid w-full rounded-sm bg-[#000B29] border border-white/10 p-1 mb-6 ${
+            className={`grid w-full ${
               profile.tier === "Professional"
                 ? "grid-cols-3"
                 : profile.tier === "Free"
                 ? "grid-cols-1"
                 : "grid-cols-2"
-            }`}
+            } mb-6`}
           >
-            <TabsTrigger 
-                value="overview" 
-                className="rounded-sm text-xs font-bold uppercase tracking-wider data-[state=active]:bg-[#86bc25] data-[state=active]:text-white"
-            >
-              <BarChart className="w-3 h-3 mr-2" />
+            <TabsTrigger value="overview" className="flex items-center">
+              <BarChart className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
             {profile.tier === "Professional" && (
-              <TabsTrigger 
-                value="reports" 
-                className="rounded-sm text-xs font-bold uppercase tracking-wider data-[state=active]:bg-[#86bc25] data-[state=active]:text-white"
-              >
-                <TrendingUp className="w-3 h-3 mr-2" />
+              <TabsTrigger value="reports" className="flex items-center">
+                <TrendingUp className="w-4 h-4 mr-2" />
                 Reports
               </TabsTrigger>
             )}
             {profile.tier !== "Free" && (
-              <TabsTrigger 
-                value="calendar" 
-                className="rounded-sm text-xs font-bold uppercase tracking-wider data-[state=active]:bg-[#86bc25] data-[state=active]:text-white"
-              >
-                <CalendarIcon className="w-3 h-3 mr-2" />
+              <TabsTrigger value="calendar" className="flex items-center">
+                <CalendarIcon className="w-4 h-4 mr-2" />
                 Calendar
               </TabsTrigger>
             )}
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
+          <TabsContent value="overview" className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Recent Quotes Panel */}
-              <Card className="lg:col-span-2 bg-[#000B29] border border-white/10 rounded-sm">
-                <CardHeader className="border-b border-white/10 pb-4">
-                  <CardTitle className="flex items-center text-sm font-bold uppercase tracking-widest text-white">
-                    <FileText className="w-4 h-4 mr-2 text-[#86bc25]" />
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="w-5 h-5 mr-2" />
                     Recent Quotes
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
+                <CardContent>
+                  <div className="space-y-4">
                     {dashboardData.recentQuotes.length > 0 ? (
                       dashboardData.recentQuotes.map((quote) => (
                         <div
                           key={quote.id}
-                          className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-sm hover:border-white/20 transition-all group"
+                          className="flex items-center justify-between p-4 glass border border-gray-300 dark:border-gray-600/40 rounded-lg hover:shadow-lg transition-shadow"
                         >
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-bold text-white text-sm">{quote.title}</h3>
-                              <span className="text-[10px] text-slate-500 font-mono px-1.5 py-0.5 border border-white/10 rounded-sm">
-                                ID: {quote.id.slice(0,4)}
-                              </span>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium">{quote.title}</h3>
                             </div>
-                            <p className="text-xs text-slate-400 font-mono mb-1">
+                            <p className="text-sm text-muted-foreground mt-1">
                               {quote.client_name} • {quote.location}
                             </p>
-                            <p className="text-sm font-bold text-[#86bc25]">
+                            <p className="text-sm font-medium mt-1">
                               KSh {formatCurrency(quote.total_amount)}
                             </p>
                           </div>
-                          
-                          <div className="flex items-center gap-3">
+                          <div className="flex">
                             {profile.tier !== "Free" && (
-                              <Badge className={`rounded-sm text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(quote.status)}`}>
-                                {quote.status.replace("_", " ")}
+                              <Badge className={getStatusColor(quote.status)}>
+                                {quote.status.charAt(0).toUpperCase() +
+                                  quote.status.slice(1).replace("_", " ")}
                               </Badge>
                             )}
                             <Button
-                              className="bg-transparent border border-white/20 text-white hover:bg-white hover:text-[#000B29] h-8 w-8 p-0 rounded-sm"
+                              className="ml-3 bg-primary hover:bg-primary/90 hover:text-white text-white hover:dark:bg-primary/60 dark:bg-primary/20"
                               onClick={() => navigate("/quotes/all")}
+                              variant="outline"
+                              size="sm"
                             >
-                              <ChevronRight className="w-4 h-4" />
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
                             </Button>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-12 border border-dashed border-white/10 rounded-sm">
-                        <FileText className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                        <h3 className="font-bold text-white text-sm mb-1">No Data Available</h3>
-                        <p className="text-xs text-slate-500">Initialize a new quote to populate this feed.</p>
+                      <div className="text-center py-8">
+                        <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="font-medium text-lg mb-2">
+                          No quotes yet
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Create your first quote to get started!
+                        </p>
                       </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Sidebar: Events & Actions */}
-              <div className="space-y-6">
-                
+              <div>
                 {profile.tier !== "Free" && (
-                  <Card className="bg-[#000B29] border border-white/10 rounded-sm">
-                    <CardHeader className="border-b border-white/10 pb-4">
-                      <CardTitle className="flex items-center text-sm font-bold uppercase tracking-widest text-white">
-                        <Clock className="w-4 h-4 mr-2 text-blue-400" />
-                        Schedule
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      {dashboardData.upcomingEvents.length > 0 ? (
-                        <div className="space-y-2">
-                          {dashboardData.upcomingEvents.map((event) => (
-                            <div
-                              key={event.id}
-                              className="p-3 bg-white/5 border-l-2 border-blue-500 rounded-r-sm"
-                            >
-                              <div className="font-bold text-xs text-white mb-1">
-                                {event.title}
+                  <div className="space-y-6 mb-5">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Clock className="w-5 h-5 mr-2" />
+                          Upcoming Events
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {dashboardData.upcomingEvents.length > 0 ? (
+                          <div className="space-y-3">
+                            {dashboardData.upcomingEvents.map((event) => (
+                              <div
+                                key={event.id}
+                                className="p-3 border-t dark:border-white/20 rounded"
+                              >
+                                <div className="font-medium text-sm">
+                                  {event.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {format(
+                                    new Date(event.event_date),
+                                    "MMM d, yyyy"
+                                  )}
+                                  {event.event_time &&
+                                    ` at ${event.event_time}`}
+                                </div>
                               </div>
-                              <div className="text-[10px] text-slate-400 font-mono">
-                                {format(new Date(event.event_date), "MMM d, yyyy")}
-                                {event.event_time && ` @ ${event.event_time}`}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-slate-500 text-center py-4">No scheduled events found.</p>
-                      )}
-                    </CardContent>
-                  </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No upcoming events
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
-
-                {/* Quick Actions Panel */}
-                <Card className="bg-[#000B29] border border-white/10 rounded-sm">
-                  <CardHeader className="border-b border-white/10 pb-4">
-                    <CardTitle className="flex items-center text-sm font-bold uppercase tracking-widest text-white">
-                      <Cpu className="w-4 h-4 mr-2 text-purple-400" />
-                      Operations
+                {/* Quick Actions */}
+                <Card>
+                  <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
+                      <Zap className="w-5 h-5" />
+                      Quick Actions
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 space-y-2">
+                  <CardContent className="p-6 space-y-3">
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => navigate("/quotes/new")}
-                      className="w-full text-left p-3 rounded-sm border border-white/10 hover:border-[#86bc25] hover:bg-[#86bc25]/10 transition-all flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-sm bg-white/10 group-hover:bg-[#86bc25] group-hover:text-white transition-colors">
-                          <Layers className="w-4 h-4" />
+                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
+                          <FileText className="w-4 h-4" />
                         </div>
-                        <span className="font-bold text-xs uppercase tracking-wider text-slate-300 group-hover:text-white">
-                          Create New Quote
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          New Quote
                         </span>
                       </div>
-                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#86bc25]" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
                     </motion.button>
 
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowCalculator(true)}
-                      className="w-full text-left p-3 rounded-sm border border-white/10 hover:border-[#86bc25] hover:bg-[#86bc25]/10 transition-all flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-sm bg-white/10 group-hover:bg-[#86bc25] group-hover:text-white transition-colors">
+                        <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
                           <DollarSign className="w-4 h-4" />
                         </div>
-                        <span className="font-bold text-xs uppercase tracking-wider text-slate-300 group-hover:text-white">
-                          Quick Cost Calc
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          Cost Calculator
                         </span>
                       </div>
-                      <ChevronRight className="w-3 h-3 text-slate-500 group-hover:text-[#86bc25]" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
                     </motion.button>
                   </CardContent>
                 </Card>

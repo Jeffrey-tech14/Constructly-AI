@@ -33,7 +33,7 @@ def call_gemini(file_path: str, prompt: str) -> Optional[Dict[str, Any]]:
         genai.configure(api_key=GEMINI_API_KEY)
         
         # Use the most stable model
-        model_name = "gemini-2.5-flash"
+        model_name = "gemini-2.5-flash-lite"
         print(f"🔄 Using model: {model_name}", file=sys.stderr)
         model = genai.GenerativeModel(model_name)
         

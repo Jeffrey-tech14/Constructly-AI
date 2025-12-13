@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, User, Search, Globe, Phone, ArrowRight, ChevronRight } from "lucide-react";
+import {
+  Menu,
+  User,
+  Search,
+  Globe,
+  Phone,
+  ArrowRight,
+  ChevronRight,
+} from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
 import { Button } from "../ui/button";
@@ -65,18 +73,54 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
       xmlns="http://www.w3.org/2000/svg"
       className="transition-all duration-200"
     >
-      <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={THEME.LOGO_DARK} />
-      <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={THEME.LOGO_DARK} />
-      <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={THEME.LOGO_DARK} />
-      <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={THEME.LOGO_DARK} />
+      <path
+        d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
+        fill={THEME.LOGO_DARK}
+      />
       <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK} />
-      <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={THEME.LOGO_DARK} />
-      <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={THEME.LOGO_DARK} />
+      <path
+        d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
+        fill={THEME.LOGO_DARK}
+      />
+      <path
+        d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
+        fill={THEME.LOGO_DARK}
+      />
       <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT} />
       <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT} />
       <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5" />
-      <text x="45" y="24" fontFamily="Outfit" fontWeight="800" fontSize="22" fill={THEME.LOGO_DARK}>JTech</text>
-      <text x="108" y="24" fontFamily="Outfit" fontWeight="800" fontSize="22" fill={THEME.LOGO_LIGHT}>AI</text>
+      <text
+        x="45"
+        y="24"
+        fontFamily="Outfit"
+        fontWeight="800"
+        fontSize="22"
+        fill={THEME.LOGO_DARK}
+      >
+        JTech
+      </text>
+      <text
+        x="108"
+        y="24"
+        fontFamily="Outfit"
+        fontWeight="800"
+        fontSize="22"
+        fill={THEME.LOGO_LIGHT}
+      >
+        AI
+      </text>
     </svg>
   );
 
@@ -85,8 +129,11 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
       <GlobalStyles />
 
       {/* Fixed Navbar Wrapper */}
-      <div className={`fixed top-0 w-full z-50 font-technical transition-all duration-300 ${scrolled ? "shadow-md" : ""}`}>
-        
+      <div
+        className={`fixed top-0 w-full z-50 font-technical transition-all duration-300 ${
+          scrolled ? "shadow-md" : ""
+        }`}
+      >
         {/* ✅ UTILITY STRIP – Technical Grey Bar */}
         <div className="bg-[#f8f9fa] border-b border-[#e1e1e1] text-[#4b5563] text-[10px] font-bold py-1.5 px-4 sm:px-6 hidden md:block tracking-widest uppercase">
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
@@ -118,13 +165,12 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
         </div>
 
         {/* ✅ MAIN NAV – Command Bar Style */}
-        <nav 
+        <nav
           className="bg-white border-b border-[#d1d5db] flex items-center relative z-20"
           style={{ height: "72px" }}
         >
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 w-full">
             <div className="flex items-center justify-between">
-
               {/* Logo Area (Bordered) */}
               <div
                 className="flex items-center cursor-pointer pr-8 border-r-0 lg:border-r border-transparent lg:border-[#f0f0f0] h-[40px]"
@@ -143,18 +189,15 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                   >
                     {item}
                     {/* Active Line Indicator */}
-                    <span 
-                      className="absolute bottom-0 left-0 w-full h-[3px] bg-[#5BB539] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left ease-out" 
-                    />
+                    <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[#5BB539] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left ease-out" />
                   </button>
                 ))}
               </div>
 
               {/* Actions – Rectangular Buttons */}
               <div className="flex items-center gap-0 pl-4">
-                
                 {/* Search (Boxed) */}
-                <button className="hidden lg:flex p-3 text-gray-500 hover:text-[#002d5c] hover:bg-[#f8f9fa] border-l border-[#f0f0f0] transition-all rounded-none">
+                <button className="hidden lg:flex p-3 text-gray-500 hover:text-[#002d5c] hover:bg-[#f8f9fa] border-l border-[#f0f0f0] transition-all ">
                   <Search className="w-4 h-4" />
                 </button>
 
@@ -182,7 +225,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                 <div className="lg:hidden ml-3">
                   <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                     <SheetTrigger asChild>
-                      <button className="p-2 text-[#001021] border border-[#d1d5db] hover:bg-gray-50 transition-colors rounded-none">
+                      <button className="p-2 text-[#001021] border border-[#d1d5db] hover:bg-gray-50 transition-colors ">
                         <Menu className="h-5 w-5" />
                       </button>
                     </SheetTrigger>
@@ -196,7 +239,9 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                         className="text-white p-6 flex items-center justify-between"
                         style={{ backgroundColor: THEME.NAVY }}
                       >
-                        <span className="text-[12px] font-bold uppercase tracking-widest">Navigation</span>
+                        <span className="text-[12px] font-bold uppercase tracking-widest">
+                          Navigation
+                        </span>
                         <div className="w-2 h-2 bg-[#5BB539] rounded-full animate-pulse" />
                       </div>
 
@@ -214,14 +259,17 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo, setDemoOpen }) => {
                         <div className="p-6 mt-4 flex flex-col gap-4">
                           <button
                             onClick={() => navigate("/auth")}
-                            className="flex items-center justify-center gap-2 w-full py-4 border border-[#002d5c] text-[#002d5c] text-[11px] font-black uppercase tracking-widest hover:bg-[#002d5c] hover:text-white transition-all rounded-none"
+                            className="flex items-center justify-center gap-2 w-full py-4 border border-[#002d5c] text-[#002d5c] text-[11px] font-black uppercase tracking-widest hover:bg-[#002d5c] hover:text-white transition-all "
                           >
                             <User className="h-3.5 w-3.5" /> Client Portal
                           </button>
 
                           {/* ✅ Also updated mobile CTA for consistency */}
                           <motion.button
-                            whileHover={{ backgroundColor: "#4a942e", scale: 1.02 }}
+                            whileHover={{
+                              backgroundColor: "#4a942e",
+                              scale: 1.02,
+                            }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => {
                               navigate("/dashboard");

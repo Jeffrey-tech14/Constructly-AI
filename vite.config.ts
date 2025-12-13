@@ -2,20 +2,18 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 export default defineConfig(({ mode }) => ({
-    server: {
-        host: "::",
-        port: 8080,
+  server: {
+    host: "::",
+    port: 8080,
+  },
+  plugins: [react()],
+  build: {
+    minify: "esbuild",
+  },
+  base: "/", // ← IMPORTANT
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
-    plugins: [
-        react(),
-    ].filter(Boolean),
-    build: {
-        minify: "esbuild"
-    },
-    base: "./",
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./src"),
-        },
-    },
+  },
 }));

@@ -259,6 +259,7 @@ export default function ConcreteCalculatorForm({
         return {
           ...material,
           price,
+          region: userRegion,
           source: userRate ? "user" : material.price != null ? "base" : "none",
         };
       }) || [];

@@ -933,7 +933,7 @@ export function calculateConcrete(
           m.name?.toLowerCase().includes("dpc") ||
           m.name?.toLowerCase().includes("damp")
       );
-      dpcCost = dpcArea * (dpcMaterial?.price || 50);
+      dpcCost = dpcArea * (dpcMaterial?.price || 0);
     }
 
     if (waterproofing.includesPolythene) {
@@ -943,7 +943,7 @@ export function calculateConcrete(
           m.name?.toLowerCase().includes("polythene") ||
           m.name?.toLowerCase().includes("dpm")
       );
-      polytheneCost = polytheneArea * (polytheneMaterial?.price || 30);
+      polytheneCost = polytheneArea * (polytheneMaterial?.price || 0);
     }
 
     if (waterproofing.includesWaterproofing) {
@@ -953,8 +953,9 @@ export function calculateConcrete(
           m.name?.toLowerCase().includes("waterproof") ||
           m.name?.toLowerCase().includes("bituminous")
       );
+      console.log("waterproofingMaterial", waterproofingMaterial);
       waterproofingCost =
-        waterproofingArea * (waterproofingMaterial?.price || 80);
+        waterproofingArea * (waterproofingMaterial?.price || 0);
     }
   }
 
@@ -969,10 +970,7 @@ export function calculateConcrete(
 
   const cement = materials.find((m) => m.name?.toLowerCase() === "cement");
   const sand = materials.find((m) => m.name?.toLowerCase() === "sand");
-  const stone = materials.find(
-    (m) =>
-      m.name?.toLowerCase() === "ballast" || m.name?.toLowerCase() === "stone"
-  );
+  const stone = materials.find((m) => m.name?.toLowerCase() === "ballast");
   const water = materials.find((m) => m.name?.toLowerCase() === "water");
   const formworkMat = materials.find(
     (m) => m.name?.toLowerCase() === "formwork"
@@ -993,18 +991,7 @@ export function calculateConcrete(
   const mortarSandCost = (grossMortarSandM3 || 0) * (sand?.price || 0);
 
   const totalConcreteCost =
-    cementCost +
-    sandCost +
-    stoneCost +
-    waterCost +
-    formworkCost +
-    aggregateCost +
-    mortarCementCost +
-    mortarSandCost +
-    dpcCost +
-    polytheneCost +
-    waterproofingCost +
-    gravelCost;
+    cementCost * 1.54 + sandCost * 1.54 + waterCost * 1.54 + stoneCost * 1.54;
 
   const unitRate =
     totalConcreteVolume > 0 ? totalConcreteCost / totalConcreteVolume : 0;
@@ -1048,7 +1035,16 @@ export function calculateConcrete(
     waterCuringL: waterCalc.waterCuringL,
     waterOtherL: waterCalc.waterOtherL,
     waterAggregateAdjustmentL: waterCalc.waterAggregateAdjustmentL,
-    materialCost: totalConcreteCost,
+    materialCost:
+      totalConcreteCost +
+      formworkCost +
+      aggregateCost +
+      mortarCementCost +
+      polytheneCost +
+      dpcCost +
+      waterproofingCost +
+      gravelCost +
+      mortarSandCost,
     totalConcreteCost,
     unitRate,
 
@@ -1083,62 +1079,25 @@ export function computeConcreteRatePerM3(
   height: number,
   number: number = 1
 ): number {
-  const { cementPrice, sandPrice, stonePrice, waterPrice } = prices;
-
-  let volume = 0;
-  let surfaceArea = 0;
-
-  switch (element) {
-    case "slab":
-    case "raft-foundation":
-    case "paving":
-    case "ramp":
-      volume = length * width * height * number;
-      surfaceArea = length * width * number;
-      break;
-    case "beam":
-    case "ring-beam":
-    case "kerb":
-      volume = length * width * height * number;
-      surfaceArea = (2 * (length * height) + length * width) * number;
-      break;
-    case "column":
-      volume = length * width * height * number;
-      surfaceArea = 2 * (length + width) * height * number;
-      break;
-    case "foundation":
-    case "strip-footing":
-    case "pile-cap":
-      volume = length * width * height * number;
-      surfaceArea = length * width * number;
-      break;
-    case "staircase":
-      const stepVolume = (0.3 * 0.15 * width) / 2;
-      const steps = Math.ceil(height / 0.15);
-      volume = stepVolume * steps * number;
-      surfaceArea = (0.3 + 0.15) * width * steps * number;
-      break;
-    case "retaining-wall":
-      volume = length * width * height * number;
-      surfaceArea = length * height * number * 2;
-      break;
-    case "soak-pit":
-      const radius = length / 2;
-      volume = Math.PI * radius * radius * height * number;
-      surfaceArea =
-        (2 * Math.PI * radius * height + Math.PI * radius * radius) * number;
-      break;
-    case "soakaway":
-      volume = length * width * height * number;
-      surfaceArea =
-        2 * (length + width) * height * number + length * width * number;
-      break;
-    default:
-      volume = length * width * height * number;
-      surfaceArea = length * width * number;
-  }
-
+  // Use the same calculations as calculateConcrete
+  const volume = length * width * height * number;
   const materials = calculateConcreteMaterials(volume, mix, settings);
+
+  // Apply wastage with Math.ceil() to match calculateConcrete
+  const grossCementBags = Math.ceil(
+    materials.cementBags * (1 + settings.wastageConcrete / 100)
+  );
+  const grossSandM3 = materials.sandM3 * (1 + settings.wastageConcrete / 100);
+  const grossStoneM3 = materials.stoneM3 * (1 + settings.wastageConcrete / 100);
+
+  // Calculate water
+  const surfaceArea = calculateSurfaceArea(
+    element,
+    length,
+    width,
+    height,
+    number
+  );
   const waterCalc = calculateWaterRequirements(
     materials.cementMass,
     cementWaterRatio,
@@ -1149,23 +1108,20 @@ export function computeConcreteRatePerM3(
     volume
   );
 
-  const grossCementBags =
-    materials.cementBags * (1 + settings.wastageConcrete / 100);
-  const grossSandM3 = materials.sandM3 * (1 + settings.wastageConcrete / 100);
-  const grossStoneM3 = materials.stoneM3 * (1 + settings.wastageConcrete / 100);
   const grossWaterRequiredL =
     waterCalc.totalWaterL * (1 + settings.wastageWater / 100);
 
-  const effectiveWaterPrice = settings.clientProvidesWater ? 0 : waterPrice;
-  const cementCost = grossCementBags * cementPrice;
-  const sandCost = grossSandM3 * sandPrice;
-  const stoneCost = grossStoneM3 * stonePrice;
+  // Calculate costs (NO formwork, DPC, etc. - just concrete materials)
+  const effectiveWaterPrice = settings.clientProvidesWater
+    ? 0
+    : grossWaterRequiredL;
+  const cementCost = grossCementBags * prices.cementPrice;
+  const sandCost = grossSandM3 * prices.sandPrice;
+  const stoneCost = grossStoneM3 * prices.stonePrice;
   const waterCost = (grossWaterRequiredL / 1000) * effectiveWaterPrice;
 
   const totalCost = cementCost + sandCost + stoneCost + waterCost;
-  const ratePerM3 = volume > 0 ? totalCost / volume : 0;
-
-  return ratePerM3;
+  return volume > 0 ? totalCost / volume : 0;
 }
 
 export function useConcreteCalculator(

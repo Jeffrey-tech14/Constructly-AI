@@ -1,6 +1,3 @@
-// © 2025 Jeff. All rights reserved.
-// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
-
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -40,7 +37,7 @@ import {
   Zap,
   Building,
   Ruler,
-  Target,
+  Pickaxe,
   Link,
   Share2,
   Network,
@@ -569,7 +566,7 @@ const UploadPlan = () => {
       <Card className="border-l-4 border-l-blue-500">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center text-lg">
-            <Network className="w-5 h-5 mr-2 text-blue-500" />
+            <Network className="w-5 h-5 mr-2 text-green-500" />
             Wall Connectivity Analysis
           </CardTitle>
           <CardDescription>
@@ -580,7 +577,7 @@ const UploadPlan = () => {
           {/* Efficiency Metrics */}
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-primary">
                 {Math.round(efficiency.spaceUtilization * 100)}%
               </div>
               <div className="text-xs text-gray-500">Space Utilization</div>
@@ -620,7 +617,7 @@ const UploadPlan = () => {
                     className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
                   >
                     <div className="flex items-center">
-                      <ArrowRightLeft className="w-3 h-3 mr-2 text-blue-500" />
+                      <ArrowRightLeft className="w-3 h-3 mr-2 text-green-500" />
                       {room1?.room_name || wall.room1Id} ↔{" "}
                       {room2?.room_name || wall.room2Id}
                     </div>
@@ -720,7 +717,7 @@ const UploadPlan = () => {
               {getTierBadge(profile.tier)}
             </div>
             <Button
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg"
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg"
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -743,11 +740,11 @@ const UploadPlan = () => {
           className="flex items-center justify-between mb-10"
         >
           <div className="text-center">
-            <div className="flex items-center sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
-              <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
+            <div className="flex items-center sm:text-2xl text-xl font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white dark:from-white dark:via-white dark:to-white  bg-clip-text text-transparent">
+              <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-blue-700 dark:text-white dark:text-white" />
               Upload & Analyze Plan
             </div>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
+            <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text mt-2">
               AI-powered extraction of rooms, dimensions, doors, and windows —
               instantly generate accurate construction estimates.
             </p>
@@ -792,7 +789,7 @@ const UploadPlan = () => {
                             isDone
                               ? "bg-green-500 text-white shadow-lg"
                               : isActive
-                              ? "bg-blue-600 text-white shadow-lg animate-pulse"
+                              ? "bg-primary text-white shadow-lg animate-pulse"
                               : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
                           }`}
                         >
@@ -805,7 +802,7 @@ const UploadPlan = () => {
                         <span
                           className={`text-sm font-medium ${
                             isActive || isDone
-                              ? "text-blue-600 dark:text-blue-400"
+                              ? "text-primary dark:text-blue-400"
                               : "text-gray-500 dark:text-gray-400"
                           }`}
                         >
@@ -866,7 +863,7 @@ const UploadPlan = () => {
                         AI is analyzing your plan...
                       </span>
                       {analysisTimeLeft !== null && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        <span className="text-xs text-primary dark:text-blue-400 font-medium">
                           Est. time: {analysisTimeLeft}s
                         </span>
                       )}
@@ -941,7 +938,8 @@ const UploadPlan = () => {
                     >
                       <Button
                         onClick={handleRetry}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        variant="destructive"
+                        className="w-full"
                         disabled={retryCount >= MAX_RETRIES}
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
@@ -975,7 +973,7 @@ const UploadPlan = () => {
             className="lg:col-span-2 space-y-8"
           >
             <Card className="text-center">
-              <CardHeader className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-800 rounded-t-3xl text-white">
+              <CardHeader className="glass rounded-t-3xl">
                 <CardTitle className="sm:text-xl font-bold">
                   Upload Your Floor Plan
                 </CardTitle>
@@ -987,7 +985,7 @@ const UploadPlan = () => {
                     currentStep === "uploading")) ? (
                   <div className="space-y-6 scrollbar-hide">
                     <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                      <FileText className="sm:w-7 sm:h-7 text-blue-500" />
+                      <FileText className="sm:w-7 sm:h-7 text-green-500" />
                       <p className="sm:text-lg font-semibold">
                         {selectedFile?.name ||
                           fileUrl.split("/").pop() ||
@@ -1007,7 +1005,7 @@ const UploadPlan = () => {
                       <Card className="border border-slate-200 dark:border-slate-600 overflow-hidden">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg flex items-center">
-                            <Eye className="w-5 h-5 mr-2 text-blue-500" />
+                            <Eye className="w-5 h-5 mr-2 text-green-500" />
                             Plan Preview
                           </CardTitle>
                         </CardHeader>
@@ -1030,7 +1028,7 @@ const UploadPlan = () => {
                     {(currentStep === "analyzing" ||
                       currentStep === "uploading") && (
                       <div className="text-center py-8">
-                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-blue-500 mb-4" />
+                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-500 mb-4" />
                         <p className="text-slate-600 dark:text-slate-300">
                           {currentStep === "uploading"
                             ? "Uploading..."
@@ -1044,7 +1042,7 @@ const UploadPlan = () => {
                         <div className="flex items-center justify-between mb-6">
                           <h3 className="sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
                             <span className="bg-blue-100 dark:bg-primary p-2 rounded-full mr-3">
-                              <FileText className="sm:w-5 sm:h-5 text-blue-600 dark:text-blue-300" />
+                              <FileText className="sm:w-5 sm:h-5 text-primary dark:text-blue-300" />
                             </span>
                             Edit Extracted Plan
                           </h3>
@@ -1093,7 +1091,7 @@ const UploadPlan = () => {
                               className="p-6  border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
                             >
                               <div className="flex items-center justify-between mb-4">
-                                <h4 className="sm:text-xl font-bold text-blue-600 dark:text-blue-400">
+                                <h4 className="sm:text-xl font-bold text-primary dark:text-blue-400">
                                   Room {i + 1}: {room.room_name || "Unnamed"}
                                 </h4>
                                 {room.wallConnectivity && (
@@ -1341,7 +1339,7 @@ const UploadPlan = () => {
                                 </div>
                                 <div>
                                   <Label className="flex mb-1 items-center ">
-                                    <LucideAppWindow className="w-5 h-5 mr-2 text-blue-500" />
+                                    <LucideAppWindow className="w-5 h-5 mr-2 text-green-500" />
                                     Windows Count
                                   </Label>
                                   <Input
@@ -1412,7 +1410,7 @@ const UploadPlan = () => {
                 ) : fileUrl ? (
                   <div className="space-y-6">
                     <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                      <LucideFileText className="w-10 h-10 text-blue-500" />
+                      <LucideFileText className="w-10 h-10 text-green-500" />
                       <p className="text-xl font-semibold truncate flex-1">
                         {fileUrl.split("/").pop() || "Uploaded Plan"}
                       </p>
@@ -1478,7 +1476,7 @@ const UploadPlan = () => {
 
                     <Label
                       htmlFor="fileUpload"
-                      className="cursor-pointer inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg transition-all"
+                      className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
                     >
                       📁 Select File
                     </Label>
@@ -1502,7 +1500,7 @@ const UploadPlan = () => {
                         currentStep === "uploading" ||
                         currentStep === "analyzing"
                       }
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold  h-14 rounded-xl shadow-lg transition-all"
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 rounded-xl shadow-lg transition-all"
                     >
                       {currentStep === "uploading" ||
                       currentStep === "analyzing" ? (

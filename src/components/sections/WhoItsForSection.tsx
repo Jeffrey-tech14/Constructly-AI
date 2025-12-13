@@ -34,27 +34,36 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
       id: "GC-01",
       icon: <Target className="h-5 w-5" strokeWidth={1.8} />,
       title: "General Contractors",
-      description: "Comprehensive bid verification using AI-extracted quantities. Centralize takeoff data to quickly confirm subcontractor proposals and material lists.",
-      imageUrl: "https://info.plbco.com/hubfs/Stock%20images/Architects%20at%20a%20construction%20site%20looking%20at%20blueprints.jpeg",
+      description:
+        "Comprehensive bid verification using AI-extracted quantities. Centralize takeoff data to quickly confirm subcontractor proposals and material lists.",
+      imageUrl:
+        "https://info.plbco.com/hubfs/Stock%20images/Architects%20at%20a%20construction%20site%20looking%20at%20blueprints.jpeg",
     },
     {
       id: "QS-02",
       icon: <FileText className="h-5 w-5" strokeWidth={1.8} />,
       title: "Quantity Surveyors",
-      description: "Automated takeoff and elemental quantity calculation from plan files (PDF/DWG). Transition from manual measurement to immediate, AI-driven data analysis.",
-      imageUrl: "https://www.shutterstock.com/image-photo/black-engineer-wearing-safety-jacket-600nw-2195109333.jpg",
+      description:
+        "Automated takeoff and elemental quantity calculation from plan files (PDF/DWG). Transition from manual measurement to immediate, AI-driven data analysis.",
+      imageUrl:
+        "https://www.shutterstock.com/image-photo/black-engineer-wearing-safety-jacket-600nw-2195109333.jpg",
     },
     {
       id: "SC-03",
       icon: <HardHat className="h-5 w-5" strokeWidth={1.8} />,
       title: "Subcontractors",
-      description: "Optimized trade-specific quantity takeoff. Drastically reduce the time spent extracting dimensions and materials to generate faster, competitive quotes.",
-      imageUrl: "https://media.istockphoto.com/id/1249847960/photo/female-african-american-construction-worker.jpg?s=612x612&w=0&k=20&c=aURtbARF23o9JAbPo8g1_aYoC7sPMQQ5_1PASo0Qjbw=",
+      description:
+        "Optimized trade-specific quantity takeoff. Drastically reduce the time spent extracting dimensions and materials to generate faster, competitive quotes.",
+      imageUrl:
+        "https://media.istockphoto.com/id/1249847960/photo/female-african-american-construction-worker.jpg?s=612x612&w=0&k=20&c=aURtbARF23o9JAbPo8g1_aYoC7sPMQQ5_1PASo0Qjbw=",
     },
   ];
 
   return (
-    <div id="who-its-for" className="bg-white font-sans antialiased text-[#1a1a1a]">
+    <div
+      id="who-its-for"
+      className="bg-white font-sans antialiased text-[#1a1a1a]"
+    >
       {/* SECTION 1: TECHNICAL HERO / KNOWLEDGE BASE */}
       <section className="border-b border-[#d1d5db] bg-white">
         <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-stretch">
@@ -68,18 +77,21 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
               </span>
             </div>
             <h1 className="text-3xl lg:text-4xl font-light text-[#002d5c] mb-6 leading-[1.15] tracking-tight">
-              Automated <span className="font-bold">Quantity Takeoff</span> <br />
-              & Costing Pipeline
+              Automated <span className="font-bold">Quantity Takeoff</span>{" "}
+              <br />& Costing Pipeline
             </h1>
             <p className="text-[13px] text-[#4b5563] leading-relaxed mb-8 max-w-md font-medium">
-              Our system transforms construction plans (PDF, DWG) into precise quantities and cost data in four automated, highly efficient phases.
+              Our system transforms construction plans (PDF, DWG) into precise
+              quantities and cost data in four automated, highly efficient
+              phases.
             </p>
             <div>
               <button
                 onClick={goToWorkflowDetails}
-                className="w-fit flex items-center gap-2 bg-[#002d5c] text-white px-6 py-3 text-[10px] font-black uppercase tracking-[1.5px] hover:bg-[#004182] transition-colors rounded-none border border-[#002d5c]"
+                className="w-fit flex items-center gap-2 bg-[#002d5c] text-white px-6 py-3 text-[10px] font-black uppercase tracking-[1.5px] hover:bg-[#004182] transition-colors  border border-[#002d5c]"
               >
-                Access Workflow Details <ChevronRight className="w-3 h-3" strokeWidth={2} />
+                Access Workflow Details{" "}
+                <ChevronRight className="w-3 h-3" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -93,18 +105,25 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
             >
               <div className="h-8 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-3 select-none">
                 <div className="flex gap-1">
-                  <div className="w-3 h-3 rounded-none bg-[#ff5f57] border border-[#e0443e]" />
-                  <div className="w-3 h-3 rounded-none bg-[#febc2e] border border-[#d89e24]" />
-                  <div className="w-3 h-3 rounded-none bg-[#28c840] border border-[#1aab29]" />
+                  <div className="w-3 h-3  bg-[#ff5f57] border border-[#e0443e]" />
+                  <div className="w-3 h-3  bg-[#febc2e] border border-[#d89e24]" />
+                  <div className="w-3 h-3  bg-[#28c840] border border-[#1aab29]" />
                 </div>
                 <div className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5" strokeWidth={1.8} /> AI-Takeoff_Client.exe
+                  <Activity className="w-3.5 h-3.5" strokeWidth={1.8} />{" "}
+                  AI-Takeoff_Client.exe
                 </div>
                 <div className="w-6" />
               </div>
 
               <div className="relative aspect-video bg-black">
-                <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                <video
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                >
                   <source src="/Demo1.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
@@ -122,7 +141,9 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                     AI ANALYSIS
                   </div>
                   <div className="w-[1px] h-2.5 bg-white/20" />
-                  <div className="text-[9px] font-mono text-white/70 tracking-wider">Plan: A-01-Foundation</div>
+                  <div className="text-[9px] font-mono text-white/70 tracking-wider">
+                    Plan: A-01-Foundation
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -148,7 +169,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4 }}
-                className="flex flex-col bg-white border border-[#d1d5db] rounded-none overflow-hidden shadow-none hover:border-[#9ca3af] transition-colors"
+                className="flex flex-col bg-white border border-[#d1d5db]  overflow-hidden shadow-none hover:border-[#9ca3af] transition-colors"
               >
                 <div className="h-[160px] overflow-hidden">
                   <img
@@ -163,7 +184,9 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                   </div>
                   <div className="flex items-center gap-2 mb-2.5 text-[#002d5c]">
                     {pro.icon}
-                    <h3 className="text-[15px] font-bold uppercase tracking-tight">{pro.title}</h3>
+                    <h3 className="text-[15px] font-bold uppercase tracking-tight">
+                      {pro.title}
+                    </h3>
                   </div>
                   <p className="text-[12px] text-[#4b5563] leading-relaxed mb-4">
                     {pro.description}
@@ -173,7 +196,10 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                     className="group flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#002d5c] border-b border-[#002d5c]/0 hover:border-[#002d5c] pb-0.5 transition-colors"
                   >
                     Start Automated Takeoff{" "}
-                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" strokeWidth={2} />
+                    <ChevronRight
+                      className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
+                      strokeWidth={2}
+                    />
                   </button>
                 </div>
               </motion.div>
@@ -197,7 +223,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
             </div>
           </div>
 
-          <div className="bg-white border border-[#d1d5db] rounded-none overflow-hidden">
+          <div className="bg-white border border-[#d1d5db]  overflow-hidden">
             <table className="w-full text-left text-[12px] border-collapse">
               <thead>
                 <tr className="bg-[#002d5c] text-white">
@@ -214,17 +240,43 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
               </thead>
               <tbody className="divide-y divide-[#d1d5db]">
                 {[
-                  { feature: "Geometric Takeoff Accuracy", s: "95% Typical", p: "99.8% Verified" },
-                  { feature: "Processing Speed (per A1 Sheet)", s: "45 Seconds", p: "Sub 5-Seconds" },
-                  { feature: "Supported File Types", s: "PDF, JPG, PNG", p: "PDF, DWG, DXF, Raster" },
-                  { feature: "Multi-User Sync", s: "Available", p: "Real-time Collaborative" },
-                  { feature: "Custom Rate/Material Libraries", s: "Limited (CSV Import)", p: "Unlimited (SQL/CSV)" },
+                  {
+                    feature: "Geometric Takeoff Accuracy",
+                    s: "95% Typical",
+                    p: "99.8% Verified",
+                  },
+                  {
+                    feature: "Processing Speed (per A1 Sheet)",
+                    s: "45 Seconds",
+                    p: "Sub 5-Seconds",
+                  },
+                  {
+                    feature: "Supported File Types",
+                    s: "PDF, JPG, PNG",
+                    p: "PDF, DWG, DXF, Raster",
+                  },
+                  {
+                    feature: "Multi-User Sync",
+                    s: "Available",
+                    p: "Real-time Collaborative",
+                  },
+                  {
+                    feature: "Custom Rate/Material Libraries",
+                    s: "Limited (CSV Import)",
+                    p: "Unlimited (SQL/CSV)",
+                  },
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-[#f9fafb] transition-colors">
                     <td className="p-3.5 font-medium text-[#002d5c] flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" strokeWidth={2} /> {row.feature}
+                      <CheckCircle2
+                        className="w-4 h-4 text-green-600"
+                        strokeWidth={2}
+                      />{" "}
+                      {row.feature}
                     </td>
-                    <td className="p-3.5 text-gray-700 border-l border-[#d1d5db]">{row.s}</td>
+                    <td className="p-3.5 text-gray-700 border-l border-[#d1d5db]">
+                      {row.s}
+                    </td>
                     <td className="p-3.5 font-semibold text-[#002d5c] bg-[#002d5c]/5 border-l border-[#d1d5db]">
                       {row.p}
                     </td>
@@ -247,12 +299,16 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 {[
                   {
-                    icon: <Settings2 className="w-4.5 h-4.5" strokeWidth={1.8} />,
+                    icon: (
+                      <Settings2 className="w-4.5 h-4.5" strokeWidth={1.8} />
+                    ),
                     title: "Implementation",
                     text: "Guided deployment for corporate server and cloud environments.",
                   },
                   {
-                    icon: <Database className="w-4.5 h-4.5" strokeWidth={1.8} />,
+                    icon: (
+                      <Database className="w-4.5 h-4.5" strokeWidth={1.8} />
+                    ),
                     title: "Data Integrity",
                     text: "Secure storage for all uploaded plans and extracted quantity data.",
                   },
@@ -262,21 +318,27 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                     text: "Regular neural network training to improve material and dimension recognition.",
                   },
                   {
-                    icon: <Activity className="w-4.5 h-4.5" strokeWidth={1.8} />,
+                    icon: (
+                      <Activity className="w-4.5 h-4.5" strokeWidth={1.8} />
+                    ),
                     title: "24/7 Monitoring",
                     text: "Global uptime tracking for mission-critical takeoff and Auto-Calc availability.",
                   },
                 ].map((item, i) => (
                   <div key={i} className="space-y-1.5">
                     <div className="text-[#5BB539]">{item.icon}</div>
-                    <h4 className="font-bold text-[11px] uppercase tracking-wider">{item.title}</h4>
-                    <p className="text-[12px] text-gray-300 leading-relaxed">{item.text}</p>
+                    <h4 className="font-bold text-[11px] uppercase tracking-wider">
+                      {item.title}
+                    </h4>
+                    <p className="text-[12px] text-gray-300 leading-relaxed">
+                      {item.text}
+                    </p>
                   </div>
                 ))}
               </div>
               <button
                 onClick={goToTechnicalSupport}
-                className="mt-6 w-full md:w-auto border border-white text-white px-5 py-2.5 text-[10px] font-black uppercase tracking-wider hover:bg-white hover:text-[#001a35] transition-colors rounded-none"
+                className="mt-6 w-full md:w-auto border border-white text-white px-5 py-2.5 text-[10px] font-black uppercase tracking-wider hover:bg-white hover:text-[#001a35] transition-colors "
               >
                 Contact Technical Support
               </button>

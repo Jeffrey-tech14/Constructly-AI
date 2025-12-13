@@ -114,52 +114,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setAuthReady(true);
           setLoading(false);
         }
-
-        // Subscribe to auth changes
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
-          if (!isMounted.current) return;
-
-          if (session?.user) {
-            setUser(session.user);
-            await fetchProfile(session.user.id);
-
-            // Subscribe to profile changes for this user
-            if (profileChannel) {
-              supabase.removeChannel(profileChannel);
-            }
-
-            profileChannel = supabase
-              .channel(`profiles-${session.user.id}`)
-              .on(
-                "postgres_changes",
-                {
-                  event: "*",
-                  schema: "public",
-                  table: "profiles",
-                  filter: `id=eq.${session.user.id}`,
-                },
-                () => {
-                  if (isMounted.current) {
-                    fetchProfile(session.user.id);
-                  }
-                }
-              )
-              .subscribe();
-          } else {
-            setUser(null);
-            if (isMounted.current) {
-              setProfile(null);
-            }
-            if (profileChannel) {
-              supabase.removeChannel(profileChannel);
-              profileChannel = null;
-            }
-          }
-        });
-
-        authSubscription = { data: { subscription } };
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (isMounted.current) {

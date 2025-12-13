@@ -12,7 +12,7 @@ import {
   HelpCircle,
   Play,
   Database,
-  Filter
+  Filter,
 } from "lucide-react";
 
 // --- GLOBAL STYLES ---
@@ -81,7 +81,8 @@ const mockFaqResults = [
     answer:
       "**Your files are processed securely and deleted after export** unless you choose to save the project. We do not use your plans to train public AI models. All data is encrypted in transit and at rest.",
     historyText: "Data Retention",
-    historyAnswer: "Saved projects remain in your account until manually deleted. You retain full ownership of your files and estimates.",
+    historyAnswer:
+      "Saved projects remain in your account until manually deleted. You retain full ownership of your files and estimates.",
   },
 ];
 
@@ -104,7 +105,7 @@ const CategorySidebar = () => (
           >
             <input
               type="checkbox"
-              className="h-3.5 w-3.5 text-[#002d5c] border-gray-300 rounded-none focus:ring-[#002d5c] mr-3 cursor-pointer"
+              className="h-3.5 w-3.5 text-[#002d5c] border-gray-300  focus:ring-[#002d5c] mr-3 cursor-pointer"
               defaultChecked={category.checked}
             />
             <span className="group-hover:translate-x-1 transition-transform duration-200">
@@ -139,7 +140,6 @@ const FaqItem = ({ faq, index }) => {
 
       <div className="flex-grow bg-white border border-[#d1d5db] shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
         <div className="p-6 md:p-8">
-          
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className="text-[#002d5c] text-[10px] font-bold font-mono border border-[#002d5c]/20 bg-[#002d5c]/5 px-2 py-0.5 uppercase tracking-wider">
               {faq.id}
@@ -154,7 +154,9 @@ const FaqItem = ({ faq, index }) => {
             ))}
           </div>
 
-          <h3 className="text-lg font-bold text-[#001021] mb-6 uppercase tracking-tight">{faq.title}</h3>
+          <h3 className="text-lg font-bold text-[#001021] mb-6 uppercase tracking-tight">
+            {faq.title}
+          </h3>
 
           <div className="border border-[#e5e7eb] mb-3">
             <div
@@ -164,7 +166,11 @@ const FaqItem = ({ faq, index }) => {
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={`font-bold text-sm ${isOpenMain ? "text-[#002d5c]" : "text-gray-700"}`}>
+                <span
+                  className={`font-bold text-sm ${
+                    isOpenMain ? "text-[#002d5c]" : "text-gray-700"
+                  }`}
+                >
                   {faq.question}
                 </span>
               </div>
@@ -206,7 +212,11 @@ const FaqItem = ({ faq, index }) => {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`font-bold text-sm ${isOpenSub ? "text-[#002d5c]" : "text-gray-500"}`}>
+                  <span
+                    className={`font-bold text-sm ${
+                      isOpenSub ? "text-[#002d5c]" : "text-gray-500"
+                    }`}
+                  >
                     {faq.historyText}
                   </span>
                 </div>
@@ -257,18 +267,24 @@ const FaqSection = () => {
           className="w-full relative overflow-hidden h-[400px] border-b border-[#002d5c]"
           style={{ backgroundColor: THEME.headerBackground }}
         >
-          <div className="absolute inset-0 opacity-20 pointer-events-none" 
-               style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`, backgroundSize: '40px 40px' }} 
+          <div
+            className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+              backgroundSize: "40px 40px",
+            }}
           />
 
           <div className="max-w-[1200px] mx-auto px-5 h-full flex items-center relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-16 items-center">
               <div className="w-full max-w-lg">
                 <div className="flex items-center gap-3 mb-6">
-                    <span className="text-[#5BB539] font-mono text-[10px] font-bold uppercase tracking-[3px]">Support Center</span>
-                    <div className="h-[1px] w-12 bg-[#5BB539]/50" />
+                  <span className="text-[#5BB539] font-mono text-[10px] font-bold uppercase tracking-[3px]">
+                    Support Center
+                  </span>
+                  <div className="h-[1px] w-12 bg-[#5BB539]/50" />
                 </div>
-                
+
                 <motion.h1
                   className="text-4xl lg:text-5xl leading-[1.1] text-white mb-6 tracking-tight"
                   initial={{ opacity: 0, x: -20 }}
@@ -280,7 +296,8 @@ const FaqSection = () => {
                 </motion.h1>
 
                 <p className="text-gray-400 text-sm leading-relaxed mb-8 font-medium max-w-sm">
-                  Find answers about file uploads, AI takeoff, cost calculation, and exporting quotes.
+                  Find answers about file uploads, AI takeoff, cost calculation,
+                  and exporting quotes.
                 </p>
 
                 <div className="flex bg-white h-12 w-full shadow-2xl border border-white/10">
@@ -304,7 +321,7 @@ const FaqSection = () => {
               <div className="hidden lg:block relative h-64 w-full border border-white/20 bg-black/50 backdrop-blur-sm p-2">
                 <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/50" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/50" />
-                
+
                 <video
                   autoPlay
                   loop
@@ -323,14 +340,15 @@ const FaqSection = () => {
         <main className="max-w-[1200px] mx-auto flex py-16 px-5 gap-10 bg-white">
           <CategorySidebar />
           <div className="w-full md:flex-1">
-            
             <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 mb-8 pb-4 border-b border-[#e5e7eb]">
               <span className="font-bold text-[#001021] uppercase tracking-wider">
                 Displaying <span className="text-[#002d5c]">3</span> Entries
               </span>
               <div className="flex items-center gap-4 mt-3 sm:mt-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold uppercase tracking-wider text-gray-400">Sort By:</span>
+                  <span className="font-bold uppercase tracking-wider text-gray-400">
+                    Sort By:
+                  </span>
                   <select className="bg-transparent font-bold text-[#002d5c] focus:outline-none cursor-pointer uppercase tracking-wide">
                     <option>Relevance</option>
                     <option>Date Added</option>

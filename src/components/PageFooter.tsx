@@ -10,7 +10,7 @@ import {
   Facebook,
   ShieldCheck,
   FileText,
-  Server
+  Server,
 } from "lucide-react";
 
 const GlobalStyles = () => (
@@ -25,7 +25,7 @@ const THEME = {
   LIGHT_BLUE: "#0077B6",
   TEXT_MAIN: "#1a1a1a",
   BG_FOOTER: "#fcfcfc",
-  BORDER: "#d1d5db"
+  BORDER: "#d1d5db",
 };
 
 interface PageFooterProps {
@@ -60,8 +60,26 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
       <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LIGHT_BLUE} />
       <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LIGHT_BLUE} />
       <path d="M22.5 15.75V20.25" stroke={THEME.LIGHT_BLUE} strokeWidth="1.5" />
-      <text x="45" y="24" fontFamily="Inter, sans-serif" fontWeight="bold" fontSize="22" fill={THEME.NAVY}>JTech</text>
-      <text x="108" y="24" fontFamily="Inter, sans-serif" fontWeight="bold" fontSize="22" fill={THEME.LIGHT_BLUE}>AI</text>
+      <text
+        x="45"
+        y="24"
+        fontFamily="Inter, sans-serif"
+        fontWeight="bold"
+        fontSize="22"
+        fill={THEME.NAVY}
+      >
+        JTech
+      </text>
+      <text
+        x="108"
+        y="24"
+        fontFamily="Inter, sans-serif"
+        fontWeight="bold"
+        fontSize="22"
+        fill={THEME.LIGHT_BLUE}
+      >
+        AI
+      </text>
     </svg>
   );
 
@@ -74,20 +92,19 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
       >
         <div className="max-w-[1440px] mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-20 border-b border-[#e5e7eb] pb-16">
-            
             {/* COLUMN 1: CORPORATE IDENTITY */}
             <div className="flex flex-col items-start">
               <JTechAILogo />
               <p className="text-gray-500 text-xs leading-relaxed mb-8 max-w-xs font-medium">
-                Next-generation construction estimation powered by neural network analysis. 
-                ISO 27001 Certified Engineering Software.
+                Next-generation construction estimation powered by neural
+                network analysis. ISO 27001 Certified Engineering Software.
               </p>
               <div className="flex gap-2">
                 <a
                   href="https://linkedin.com/company/jtechai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-[#0A66C2] hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 rounded-none"
+                  className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-[#0A66C2] hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 "
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="w-4 h-4" />
@@ -96,7 +113,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                   href="https://x.com/jtechai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-black hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 rounded-none"
+                  className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-black hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 "
                   aria-label="X (Twitter)"
                 >
                   <Twitter className="w-4 h-4" />
@@ -105,7 +122,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                   href="https://facebook.com/jtechai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-[#1877F2] hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 rounded-none"
+                  className="w-10 h-10 flex items-center justify-center border border-[#d1d5db] text-[#1877F2] hover:bg-[#002d5c] hover:text-white hover:border-[#002d5c] transition-all duration-300 "
                   aria-label="Facebook"
                 >
                   <Facebook className="w-4 h-4" />
@@ -125,7 +142,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                       onClick={() => scrollTo(link.id)}
                       className="group flex items-center gap-3 text-gray-600 hover:text-[#002d5c] hover:pl-2 transition-all duration-300 text-[13px] font-bold uppercase tracking-wide"
                     >
-                      <div className="w-1 h-1 bg-gray-300 group-hover:bg-[#5BB539] transition-colors rounded-none" />
+                      <div className="w-1 h-1 bg-gray-300 group-hover:bg-[#5BB539] transition-colors " />
                       {link.label}
                     </button>
                   </li>
@@ -140,28 +157,41 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
               </h3>
               <div className="space-y-5">
                 <div className="flex items-start gap-4 text-gray-600 group">
-                  <div className="p-2 bg-gray-50 border border-gray-200 text-[#002d5c] rounded-none">
-                     <MapPin className="w-4 h-4" />
+                  <div className="p-2 bg-gray-50 border border-gray-200 text-[#002d5c] ">
+                    <MapPin className="w-4 h-4" />
                   </div>
                   <div className="text-xs leading-relaxed font-medium mt-0.5">
-                    <strong className="text-[#002d5c] block mb-1 uppercase tracking-wider">Nairobi Office</strong>
-                    JTech Plaza, 4th Floor<br />
+                    <strong className="text-[#002d5c] block mb-1 uppercase tracking-wider">
+                      Nairobi Office
+                    </strong>
+                    JTech Plaza, 4th Floor
+                    <br />
                     East Africa Region
                   </div>
                 </div>
 
-                <a href="tel:+254706927062" className="flex items-center gap-4 text-gray-600 group hover:text-[#002d5c] transition-colors">
-                  <div className="p-2 bg-gray-50 border border-gray-200 text-[#002d5c] group-hover:bg-[#002d5c] group-hover:text-white transition-colors rounded-none">
-                     <Phone className="w-4 h-4" />
+                <a
+                  href="tel:+254706927062"
+                  className="flex items-center gap-4 text-gray-600 group hover:text-[#002d5c] transition-colors"
+                >
+                  <div className="p-2 bg-gray-50 border border-gray-200 text-[#002d5c] group-hover:bg-[#002d5c] group-hover:text-white transition-colors ">
+                    <Phone className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-bold tracking-wider">+254 706 927062</span>
+                  <span className="text-xs font-bold tracking-wider">
+                    +254 706 927062
+                  </span>
                 </a>
 
-                <a href="mailto:support@jtechai.com" className="flex items-center gap-4 text-gray-600 group hover:text-[#002d5c] transition-colors">
-                  <div className="p-2 bg-gray-50 border border-gray-200 text-[#002d5c] group-hover:bg-[#002d5c] group-hover:text-white transition-colors rounded-none">
-                     <Mail className="w-4 h-4" />
+                <a
+                  href="mailto:support@jtechai.com"
+                  className="flex items-center gap-4 text-gray-600 group hover:text-[#002d5c] transition-colors"
+                >
+                  <div className="p-2 bg-gray-50 border border-gray-200 text-[#002d5c] group-hover:bg-[#002d5c] group-hover:text-white transition-colors ">
+                    <Mail className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-bold tracking-wider">support@jtechai.com</span>
+                  <span className="text-xs font-bold tracking-wider">
+                    support@jtechai.com
+                  </span>
                 </a>
               </div>
             </div>
@@ -172,15 +202,16 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                 Engineering Updates
               </h3>
               <p className="text-gray-500 text-xs mb-6 font-medium leading-relaxed">
-                Subscribe to our technical bulletin for software patches, API changelogs, and AI model updates.
+                Subscribe to our technical bulletin for software patches, API
+                changelogs, and AI model updates.
               </p>
               <div className="relative flex">
                 <input
                   type="email"
                   placeholder="CORP. EMAIL ADDRESS"
-                  className="w-full bg-white border border-[#d1d5db] py-3 px-4 text-xs font-bold text-[#002d5c] placeholder-gray-400 focus:outline-none focus:border-[#002d5c] transition-all rounded-none uppercase tracking-wide"
+                  className="w-full bg-white border border-[#d1d5db] py-3 px-4 text-xs font-bold text-[#002d5c] placeholder-gray-400 focus:outline-none focus:border-[#002d5c] transition-all  uppercase tracking-wide"
                 />
-                <button className="bg-[#002d5c] hover:bg-[#001a35] text-white px-5 transition-colors rounded-none flex items-center justify-center">
+                <button className="bg-[#002d5c] hover:bg-[#001a35] text-white px-5 transition-colors  flex items-center justify-center">
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -190,18 +221,30 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
           {/* BOTTOM BAR */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
             <div className="flex items-center gap-3">
-               <div className="w-2 h-2 bg-[#5BB539] rounded-full animate-pulse" />
-               <p>© {new Date().getFullYear()} JTech AI Systems. All rights reserved.</p>
+              <div className="w-2 h-2 bg-[#5BB539] rounded-full animate-pulse" />
+              <p>
+                © {new Date().getFullYear()} JTech AI Systems. All rights
+                reserved.
+              </p>
             </div>
 
             <div className="flex gap-8">
-              <a href="#" className="hover:text-[#002d5c] flex items-center gap-2 transition-colors">
+              <a
+                href="#"
+                className="hover:text-[#002d5c] flex items-center gap-2 transition-colors"
+              >
                 <ShieldCheck className="w-3 h-3" /> Privacy Protocol
               </a>
-              <a href="#" className="hover:text-[#002d5c] flex items-center gap-2 transition-colors">
+              <a
+                href="#"
+                className="hover:text-[#002d5c] flex items-center gap-2 transition-colors"
+              >
                 <FileText className="w-3 h-3" /> Terms of Service
               </a>
-              <a href="#" className="hover:text-[#002d5c] flex items-center gap-2 transition-colors">
+              <a
+                href="#"
+                className="hover:text-[#002d5c] flex items-center gap-2 transition-colors"
+              >
                 <Server className="w-3 h-3" /> System Status: Operational
               </a>
             </div>

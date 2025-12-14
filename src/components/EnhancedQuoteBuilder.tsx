@@ -440,8 +440,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   }, [user, location.key]);
 
   const transportCost = (() => {
-    const region = quoteData?.region || "Nairobi";
-    const rateForRegion = transportRates.find((r) => r.region === region);
+    const region = quoteData?.region.toString().trim();
+    const rateForRegion = transportRates.find(
+      (r) =>
+        r.region.toString().toLowerCase().trim() ===
+        region.toString().toLowerCase().trim()
+    );
     const defaultTransportRate = { cost_per_km: 50, base_cost: 500 };
     if (!rateForRegion) {
       console.warn(`No transport rate for ${region}. Using defaults.`);
@@ -1536,7 +1540,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               </div>
 
               {/* Upload Plan Button at Bottom */}
-              {profile.tier !== "Free" && (
+              {profile?.tier !== "Free" && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -3435,7 +3439,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <>
               <Button
                 onClick={nextStep}
-                className="rounded-full px-6 text-primary font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                className="rounded-full px-6 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
                 style={{
                   padding: "0.75rem 2rem",
                 }}

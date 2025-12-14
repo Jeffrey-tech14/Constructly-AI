@@ -16,7 +16,23 @@ export type ElementTypes =
   | "strip-footing"
   | "retaining-wall"
   | "tank";
-export type RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
+export type RebarSize =
+  | "Y6"
+  | "Y8"
+  | "Y10"
+  | "Y12"
+  | "Y14"
+  | "Y16"
+  | "Y18"
+  | "Y20"
+  | "Y22"
+  | "Y25"
+  | "Y28"
+  | "Y32"
+  | "Y36"
+  | "Y40"
+  | "Y50";
+
 export type ReinforcementType = "individual_bars" | "mesh";
 export type FootingType = "isolated" | "strip" | "combined";
 export type TankType =
@@ -185,47 +201,110 @@ export const REBAR_PROPERTIES: Record<
     standardLengths: number[];
   }
 > = {
+  Y6: {
+    diameterMm: 6,
+    areaMm2: 28.27,
+    weightKgPerM: 0.222,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
+  },
   Y8: {
     diameterMm: 8,
-    weightKgPerM: 0.395,
     areaMm2: 50.27,
+    weightKgPerM: 0.395,
     yieldStrength: 500,
     standardLengths: [6, 9, 12],
   },
   Y10: {
     diameterMm: 10,
-    weightKgPerM: 0.617,
     areaMm2: 78.54,
+    weightKgPerM: 0.617,
     yieldStrength: 500,
     standardLengths: [6, 9, 12],
   },
   Y12: {
     diameterMm: 12,
-    weightKgPerM: 0.888,
     areaMm2: 113.1,
+    weightKgPerM: 0.888,
     yieldStrength: 500,
-    standardLengths: [9, 12, 15],
+    standardLengths: [6, 9, 12],
+  },
+  Y14: {
+    diameterMm: 14,
+    areaMm2: 153.94,
+    weightKgPerM: 1.209,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
   },
   Y16: {
     diameterMm: 16,
-    weightKgPerM: 1.58,
     areaMm2: 201.06,
+    weightKgPerM: 1.58,
     yieldStrength: 500,
-    standardLengths: [9, 12, 15],
+    standardLengths: [6, 9, 12],
+  },
+  Y18: {
+    diameterMm: 18,
+    areaMm2: 254.47,
+    weightKgPerM: 2.0,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
   },
   Y20: {
     diameterMm: 20,
-    weightKgPerM: 2.47,
     areaMm2: 314.16,
+    weightKgPerM: 2.466,
     yieldStrength: 500,
-    standardLengths: [12, 15, 18],
+    standardLengths: [6, 9, 12],
+  },
+  Y22: {
+    diameterMm: 22,
+    areaMm2: 380.13,
+    weightKgPerM: 2.985,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
   },
   Y25: {
     diameterMm: 25,
-    weightKgPerM: 3.85,
     areaMm2: 490.87,
+    weightKgPerM: 3.853,
     yieldStrength: 500,
-    standardLengths: [12, 15, 18],
+    standardLengths: [6, 9, 12],
+  },
+  Y28: {
+    diameterMm: 28,
+    areaMm2: 615.75,
+    weightKgPerM: 4.834,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
+  },
+  Y32: {
+    diameterMm: 32,
+    areaMm2: 804.25,
+    weightKgPerM: 6.313,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
+  },
+  Y36: {
+    diameterMm: 36,
+    areaMm2: 1017.88,
+    weightKgPerM: 7.99,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
+  },
+  Y40: {
+    diameterMm: 40,
+    areaMm2: 1256.64,
+    weightKgPerM: 9.864,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
+  },
+  Y50: {
+    diameterMm: 50,
+    areaMm2: 1963.5,
+    weightKgPerM: 15.413,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
   },
 };
 
@@ -3037,6 +3116,7 @@ export const useRebarPrices = (region: string) => {
         const price = userRate ? userRate.price : materialP ?? 0;
         return {
           ...material,
+          region: userRegion,
           price,
           source: userRate ? "user" : material.price != null ? "base" : "none",
         };

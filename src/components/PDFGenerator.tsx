@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Font,
   Image,
+  Link,
 } from "@react-pdf/renderer";
 import { BOQSection, BOQItem, MaterialBreakdown } from "@/types/boq";
 import {
@@ -1831,7 +1832,13 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             • Valid for 30 days from {projectInfo.date || "date of issue"}
           </Text>
           <Text style={[styles.boldText, { marginBottom: 5 }]}>
-            Made using JTech AI <Target className="text-primary" />
+            Made using{" "}
+            <Link
+              src="https://jtechai.vercel.app"
+              style={{ color: "#3b82f6", textDecoration: "none" }} // your "text-primary"
+            >
+              JTech AI
+            </Link>
           </Text>
         </View>
 

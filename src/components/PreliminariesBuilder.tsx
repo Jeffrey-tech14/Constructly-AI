@@ -85,7 +85,7 @@ const PreliminariesBuilder = ({
 
   const generateWithAI = async () => {
     if (!quoteData || Object.keys(quoteData).length === 0) {
-      setLastError("No project data available for AI generation");
+      setLastError("No project data available for generation");
       return;
     }
 
@@ -275,7 +275,7 @@ const PreliminariesBuilder = ({
             ) : (
               <Brain className="w-4 h-4 mr-2" />
             )}
-            {isGenerating ? "Generating..." : "Generate with AI"}
+            {isGenerating ? "Generating..." : "Generate"}
           </Button>
         </div>
         <div className="flex items-center space-x-2">
@@ -291,7 +291,7 @@ const PreliminariesBuilder = ({
       {isGenerating && (
         <div className="flex justify-center items-center p-4">
           <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-          <span>Generating preliminaries with AI...</span>
+          <span>Generating preliminaries...</span>
         </div>
       )}
 
@@ -383,7 +383,7 @@ const PreliminariesBuilder = ({
                               : "bg-green-100 text-green-800"
                           }`}
                         >
-                          {item.source === "ai" ? "AI" : "User"}
+                          {item.source === "ai" ? "Jtech" : "User"}
                         </span>
                       </TableCell>
                       <TableCell>

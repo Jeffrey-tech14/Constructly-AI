@@ -1,4 +1,7 @@
 // © 2025 Jeff. All rights reserved.
+
+import { supabase } from "@/integrations/supabase/client";
+
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 export interface MaterialRelationship {
   relatedMaterial: string;
@@ -50,24 +53,19 @@ export interface GeminiMaterialResponse {
   };
 }
 class GeminiService {
-  private supabaseUrl = "https://jtdtzkpqncpmmenywnlw.supabase.co";
-  private endpoint = `${this.supabaseUrl}/functions/v1/analyze-materials`;
-
   async analyzeMaterials(quoteData: any) {
     try {
-      const response = await fetch(this.endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ quoteData }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Edge function error: ${response.statusText}`);
+      const { data: materials, error } = await supabase.functions.invoke(
+        "analyse-materials",
+        {
+          body: JSON.stringify({ quoteData }),
+        }
+      );
+      if (error) {
+        throw error;
       }
 
-      return await response.json();
+      return await JSON.parse(materials);
     } catch (error) {
       console.error("Gemini analysis failed:", error);
       throw error;

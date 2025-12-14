@@ -222,7 +222,7 @@ const Navbar = () => {
                         variant={isActive(item.path) ? "default" : "ghost"}
                         className={`relative font-medium transition-colors duration-500 ${
                           isActive(item.path)
-                            ? " text-primary shadow-lg"
+                            ? " text-white shadow-lg"
                             : " dark:text-gray-300"
                         } px-4`}
                       >

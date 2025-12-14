@@ -104,7 +104,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
           }
         } catch (error) {
           console.error("AI BOQ generation failed:", error);
-          setLastError("AI generation failed, using fallback data");
+          setLastError("Generation failed, using fallback data");
           // Set fallback empty sections
           const fallbackSections: BOQSection[] = [
             {
@@ -313,7 +313,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
             disabled={isGenerating}
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerate with AI
+            Regenerate
           </Button>
         </div>
         <div className="sm:flex flex-1 items-center space-x-2">

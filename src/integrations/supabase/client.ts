@@ -30,6 +30,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     schema: "public",
   },
   global: {
-    headers: { "x-application-name": "your-app-name" },
+    headers: { "x-jtech-ai": "jtechai" },
   },
 });

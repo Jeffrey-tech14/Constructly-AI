@@ -1,5 +1,3 @@
-// © 2025 Jeff. All rights reserved.
-
 import React, {
   createContext,
   useContext,
@@ -10,7 +8,7 @@ import React, {
 } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-
+import { Preferences } from "@capacitor/preferences";
 interface Profile {
   id: string;
   name: string;
@@ -30,177 +28,215 @@ interface Profile {
   avatar_url?: string;
   subscription_status?: string;
 }
-
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
   authReady: boolean;
   refreshProfile: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{
+    error: any;
+  }>;
   signUp: (
     email: string,
     password: string,
     name?: string
-  ) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  ) => Promise<{
+    error: any;
+  }>;
+  signInWithGoogle: () => Promise<{
+    error: any;
+  }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
-
-  // Track mounted state
-  const isMounted = useRef(true);
-
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
+  const prevUserId = useRef<string | null>(null);
   const fetchProfile = async (userId: string) => {
-    if (!userId || !isMounted.current) {
+    if (!userId) {
+      setProfile(null);
+      setLoading(false);
       return;
     }
-
+    setLoading(true);
     try {
-      const { data, error } = await supabase
+      const timeoutPromise = new Promise<{
+        error: Error;
+      }>((_, reject) =>
+        setTimeout(() => reject(new Error("Profile fetch timeout")), 30000)
+      );
+      const query = supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
-
+      const result = await Promise.race([
+        query.then((res) => ({ type: "success", res } as const)),
+        timeoutPromise
+          .then(() => ({ type: "timeout" } as const))
+          .catch((err) => ({ type: "error", err } as const)),
+      ]);
+      if (result.type === "timeout") {
+        throw new Error("Profile fetch timed out");
+      }
+      if (result.type === "error") {
+        throw result.err;
+      }
+      const { data, error } = result.res;
       if (error) {
         console.error("Profile fetch error:", error);
-        if (isMounted.current) {
-          setProfile(null);
-        }
-      } else if (isMounted.current) {
+        setProfile(null);
+      } else {
         setProfile(data);
       }
     } catch (err) {
-      console.error("Profile fetch failed:", err);
-      if (isMounted.current) {
-        setProfile(null);
-      }
+      console.error("Profile fetch exception:", err);
+      setProfile(null);
+    } finally {
+      setLoading(false);
     }
   };
-
   useEffect(() => {
-    isMounted.current = true;
-    let authSubscription: { data: { subscription: any } } | null = null;
-    let profileChannel: any = null;
-
-    const init = async () => {
+    let isMounted = true;
+    const initAuth = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-
-        if (isMounted.current && data?.session) {
-          setUser(data.session.user);
-          await fetchProfile(data.session.user.id);
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        if (error) {
+          console.error("Session restoration error:", error);
         }
-
-        if (isMounted.current) {
+        if (session?.user) {
+          prevUserId.current = session.user.id;
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error("Initial auth error:", err);
+      } finally {
+        if (isMounted) {
           setAuthReady(true);
           setLoading(false);
-        }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-        if (isMounted.current) {
-          setLoading(false);
-          setAuthReady(true);
         }
       }
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (!isMounted) return;
+        if (session?.user) {
+          if (session.user.id !== prevUserId.current) {
+            prevUserId.current = session.user.id;
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+          }
+        } else {
+          prevUserId.current = null;
+          setUser(null);
+          setProfile(null);
+        }
+      });
+      return () => {
+        isMounted = false;
+        subscription?.unsubscribe();
+      };
     };
-
-    init();
-
+    initAuth();
     return () => {
-      isMounted.current = false;
-
-      // Cleanup subscriptions
-      if (authSubscription?.data?.subscription) {
-        supabase.removeChannel(authSubscription.data.subscription);
-      }
-
-      if (profileChannel) {
-        supabase.removeChannel(profileChannel);
-      }
+      isMounted = false;
     };
   }, []);
-
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`profiles-changes-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("Realtime profile update:", payload);
+          fetchProfile(user.id);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    if (data.session) {
+      await Preferences.set({
+        key: "supabase_session",
+        value: JSON.stringify(data.session),
+      });
+    }
+    if (error) {
+      throw error;
+    }
     return { error };
   };
-
+  const refreshProfile = async () => {
+    if (user?.id) {
+      await fetchProfile(user.id);
+    }
+  };
   const signUp = async (email: string, password: string, name?: string) => {
+    const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: { name: name || email.split("@")[0] },
       },
     });
+    if (error) {
+      throw error;
+    }
     return { error };
   };
-
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/` },
     });
+    if (error) {
+      throw error;
+    }
     return { error };
   };
-
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
-    });
-    return { error };
-  };
-
   const signOut = async () => {
-    // Prevent state updates after sign out
-    isMounted.current = false;
     await supabase.auth.signOut();
-
-    // Reset mounted state
-    setTimeout(() => {
-      isMounted.current = true;
-    }, 100);
   };
-
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) throw new Error("Not logged in");
-
+    if (!user) throw new Error("No user logged in");
     const { error } = await supabase
       .from("profiles")
       .update(updates)
       .eq("id", user.id);
-
     if (error) throw error;
-
-    if (isMounted.current) {
-      await fetchProfile(user.id);
-    }
+    await fetchProfile(user.id);
   };
-
   const value = useMemo(
     () => ({
       user,
@@ -211,24 +247,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       signUp,
       signOut,
       signInWithGoogle,
-      resetPassword,
-      refreshProfile: async () => {
-        if (user?.id && isMounted.current) {
-          await fetchProfile(user.id);
-        }
-      },
+      refreshProfile,
       updateProfile,
     }),
     [user, profile, loading, authReady]
   );
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
 export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  return context;
 };
-
-export const refreshApp = () => window?.location?.reload();
+export const refreshApp = () => {
+  if (window && window.location) {
+    console.log("Refreshing app like a browser...");
+    window.location.reload();
+  }
+};

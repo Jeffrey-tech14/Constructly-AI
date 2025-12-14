@@ -899,14 +899,14 @@ export function calculateConcrete(
   );
 
   const grossCementBags = Math.ceil(
-    concreteMaterials.cementBags * (1 + settings.wastageConcrete / 100)
+    concreteMaterials.cementBags * 1.54 * (1 + settings.wastageConcrete / 100)
   );
   const grossSandM3 =
-    concreteMaterials.sandM3 * (1 + settings.wastageConcrete / 100);
+    concreteMaterials.sandM3 * 1.54 * (1 + settings.wastageConcrete / 100);
   const grossStoneM3 =
-    concreteMaterials.stoneM3 * (1 + settings.wastageConcrete / 100);
+    concreteMaterials.stoneM3 * 1.54 * (1 + settings.wastageConcrete / 100);
   const grossWaterRequiredL =
-    waterCalc.totalWaterL * (1 + settings.wastageWater / 100);
+    waterCalc.totalWaterL * 1.54 * (1 + settings.wastageWater / 100);
   const grossTotalBlocks = Math.ceil(
     netTotalBlocks * (1 + settings.wastageConcrete / 100)
   );
@@ -990,8 +990,7 @@ export function calculateConcrete(
   const mortarCementCost = (grossMortarCementBags || 0) * (cement?.price || 0);
   const mortarSandCost = (grossMortarSandM3 || 0) * (sand?.price || 0);
 
-  const totalConcreteCost =
-    cementCost * 1.54 + sandCost * 1.54 + waterCost * 1.54 + stoneCost * 1.54;
+  const totalConcreteCost = cementCost + sandCost + waterCost + stoneCost;
 
   const unitRate =
     totalConcreteVolume > 0 ? totalConcreteCost / totalConcreteVolume : 0;

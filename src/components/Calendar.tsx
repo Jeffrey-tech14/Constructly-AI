@@ -17,8 +17,23 @@ import {
 } from "@/components/ui/dialog";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, CalendarDays, Clock, MapPin, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, eachDayOfInterval, startOfMonth, endOfMonth, isSameMonth, isToday } from "date-fns";
+import {
+  Plus,
+  CalendarDays,
+  Clock,
+  MapPin,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  format,
+  eachDayOfInterval,
+  startOfMonth,
+  endOfMonth,
+  isSameMonth,
+  isToday,
+} from "date-fns";
 import { TimePicker } from "./ui/timepicker";
 const Calendar = () => {
   const { events, createEvent, deleteEvent, loading } = useCalendarEvents();
@@ -82,19 +97,31 @@ const Calendar = () => {
 
   // Add previous month's days to fill the first week
   const firstDayOfWeek = monthStart.getDay();
-  const previousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 0);
+  const previousMonth = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth(),
+    0
+  );
   const previousMonthEnd = endOfMonth(previousMonth);
   const daysToShow = [];
-  
+
   for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-    daysToShow.push(new Date(previousMonthEnd.getFullYear(), previousMonthEnd.getMonth(), previousMonthEnd.getDate() - i));
+    daysToShow.push(
+      new Date(
+        previousMonthEnd.getFullYear(),
+        previousMonthEnd.getMonth(),
+        previousMonthEnd.getDate() - i
+      )
+    );
   }
   daysToShow.push(...daysInMonth);
-  
+
   // Fill remaining days
   const remainingDays = 42 - daysToShow.length;
   for (let i = 1; i <= remainingDays; i++) {
-    daysToShow.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i));
+    daysToShow.push(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i)
+    );
   }
 
   const getEventCount = (date: Date) => {
@@ -284,10 +311,10 @@ const Calendar = () => {
                           !isCurrentMonth
                             ? "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400"
                             : isSelected
-                              ? "bg-blue-500 border-blue-600 text-white shadow-md scale-105"
-                              : isTodayDate
-                                ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white shadow-sm"
-                                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
+                            ? "bg-blue-500 border-blue-600 text-white shadow-md scale-105"
+                            : isTodayDate
+                            ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white shadow-sm"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
                         }
                       `}
                     >
@@ -295,14 +322,16 @@ const Calendar = () => {
                         {format(date, "d")}
                       </span>
                       {eventCount > 0 && (
-                        <span className={`
+                        <span
+                          className={`
                           text-xs font-bold mt-1 px-1.5 py-0.5 rounded-full
                           ${
                             isSelected
                               ? "bg-white/30 text-white"
                               : "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300"
                           }
-                        `}>
+                        `}
+                        >
                           {eventCount} {eventCount === 1 ? "event" : "events"}
                         </span>
                       )}

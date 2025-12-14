@@ -51,6 +51,7 @@ interface AuthContextType {
     error: any;
   }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -228,6 +229,12 @@ export const AuthProvider: React.FC<{
   const signOut = async () => {
     await supabase.auth.signOut();
   };
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/update-password`,
+    });
+    if (error) throw error;
+  };
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) throw new Error("No user logged in");
     const { error } = await supabase
@@ -247,6 +254,7 @@ export const AuthProvider: React.FC<{
       signUp,
       signOut,
       signInWithGoogle,
+      resetPassword,
       refreshProfile,
       updateProfile,
     }),

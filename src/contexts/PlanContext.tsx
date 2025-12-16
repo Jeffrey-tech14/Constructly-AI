@@ -162,6 +162,7 @@ export interface ExtractedPlan {
       wallThickness?: string;
       coverType?: string;
     };
+    verandahArea: string;
   }>;
 
   reinforcement?: Array<{
@@ -363,9 +364,6 @@ interface PlanContextType {
   getRoomConnections: (roomId: string) => string[];
   calculateMaterialSavings: () => {
     sharedArea: number;
-    blockSavings: number;
-    mortarSavings: number;
-    costSavings: number;
   };
   getRoomWallConnectivity: (roomId: string) => any | null;
 }
@@ -404,16 +402,8 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({
       0
     );
 
-    // Calculate material savings (you can adjust these formulas based on your rates)
-    const blockSavings = totalSharedArea / 0.08; // Assuming 0.08 m² per block
-    const mortarSavings = totalSharedArea * 0.017; // MORTAR_PER_SQM
-    const costSavings = blockSavings * 50 + mortarSavings * 5000; // Example rates
-
     return {
       sharedArea: totalSharedArea,
-      blockSavings,
-      mortarSavings,
-      costSavings,
     };
   };
 

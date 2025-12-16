@@ -117,6 +117,31 @@ export interface ElectricalSystem {
   voltage: number;
 }
 
+// Phase 6: Quick Mode Settings
+export interface ElectricalQuickModeSettings {
+  mode: "detailed" | "quick"; // defaults to "detailed"
+  quickMode?: {
+    numberOfRooms?: number;
+    numberOfFloors?: number;
+    hasSolarSystem?: boolean;
+    hasBoiler?: boolean;
+    hasCCTV?: boolean;
+    hasFireAlarm?: boolean;
+    hasAccessControl?: boolean;
+    hasAVSystem?: boolean;
+    // Calculated totals
+    roomsCost?: number;
+    floorsCost?: number;
+    solarSystemCost?: number;
+    boilerCost?: number;
+    cctvCost?: number;
+    fireAlarmCost?: number;
+    accessControlCost?: number;
+    avSystemCost?: number;
+    totalQuickCost?: number;
+  };
+}
+
 export interface ElectricalCalculation {
   id: string;
   name: string;

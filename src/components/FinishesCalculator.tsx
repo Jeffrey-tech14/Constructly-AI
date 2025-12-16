@@ -52,6 +52,7 @@ const FINISH_CATEGORIES: { value: FinishCategory; label: string }[] = [
   { value: "paint", label: "Painting" },
   { value: "glazing", label: "Glazing" },
   { value: "joinery", label: "Joinery" },
+  { value: "plaster", label: "Plaster" },
 ];
 
 const COMMON_MATERIALS = {
@@ -97,6 +98,7 @@ const COMMON_MATERIALS = {
     "Steel",
     "Aluminum",
   ],
+  plaster: ["Cement", "Gypsum", "Lime", "Textured Plaster"],
 };
 
 export default function FinishesCalculator({

@@ -3,13 +3,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import { CreditCard, ShieldCheck, Lock, CheckCircle2 } from "lucide-react";
 
-// --- GLOBAL STYLES ---
-const GlobalStyles = () => (
-  <style>{`
-    .font-engineering { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-  `}</style>
-);
-
 // --- THEME CONSTANTS ---
 const BRAND = {
   blue: "#00356B", // Deep JTech Blue
@@ -70,7 +63,6 @@ const PaymentMethod = ({ method, index }) => (
 export default function PaymentOptionsSection() {
   return (
     <>
-      <GlobalStyles />
       <motion.section
         id="payment-options"
         className="py-20 px-6 bg-[#f9fafb] font-engineering text-[#333] border-t border-gray-200"
@@ -91,8 +83,9 @@ export default function PaymentOptionsSection() {
             </h2>
 
             <p className="max-w-xl mx-auto text-slate-600 text-sm leading-relaxed">
-              We offer flexible, secure payment integration tailored for enterprise requirements.
-              Instant license activation upon successful transaction.
+              We offer flexible, secure payment integration tailored for
+              enterprise requirements. Instant license activation upon
+              successful transaction.
             </p>
           </div>
 
@@ -114,16 +107,24 @@ export default function PaymentOptionsSection() {
             <div className="flex items-center gap-3 px-5 py-3 bg-white rounded-sm border border-gray-200 shadow-sm">
               <ShieldCheck className="w-5 h-5" style={{ color: BRAND.green }} />
               <div className="flex flex-col text-left">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Encryption</span>
-                <span className="text-xs font-bold text-slate-700">256-bit SSL Secured</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  Encryption
+                </span>
+                <span className="text-xs font-bold text-slate-700">
+                  256-bit SSL Secured
+                </span>
               </div>
             </div>
 
             <div className="flex items-center gap-3 px-5 py-3 bg-white rounded-sm border border-gray-200 shadow-sm">
               <Lock className="w-5 h-5" style={{ color: BRAND.blue }} />
               <div className="flex flex-col text-left">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Compliance</span>
-                <span className="text-xs font-bold text-slate-700">PCI DSS Certified</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  Compliance
+                </span>
+                <span className="text-xs font-bold text-slate-700">
+                  PCI DSS Certified
+                </span>
               </div>
             </div>
           </motion.div>

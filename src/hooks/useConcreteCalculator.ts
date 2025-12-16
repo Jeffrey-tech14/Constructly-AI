@@ -155,6 +155,9 @@ export interface ConcreteRow {
   undergroundTankDetails?: UndergroundTankDetails;
   soakPitDetails?: SoakPitDetails;
   soakawayDetails?: SoakawayDetails;
+
+  verandahArea?: string;
+  corridorLobbyArea?: string;
 }
 
 export interface ConcreteResult {
@@ -607,6 +610,7 @@ export function calculateConcrete(
     undergroundTankDetails,
     soakPitDetails,
     soakawayDetails,
+    verandahArea,
   } = row;
 
   const len = parseFloat(length) || 0;
@@ -628,9 +632,22 @@ export function calculateConcrete(
     case "slab":
     case "raft-foundation":
     case "paving":
-      mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = calculateSurfaceArea(element, len, wid, hei, num);
-      formworkM2 = len * wid * num;
+      // Phase 3: Calculate slab area using external dimensions if provided
+      if (element === "slab") {
+        let slabArea = len * wid;
+
+        // Add verandah area if provided
+        if (verandahArea) {
+          slabArea += parseFloat(verandahArea) || 0;
+        }
+
+        // Ensure area is not negative
+        slabArea = Math.max(0, slabArea);
+
+        mainVolume = slabArea * hei * num;
+        surfaceAreaM2 = slabArea * num;
+        formworkM2 = slabArea * num;
+      }
       break;
 
     case "beam":
@@ -925,7 +942,8 @@ export function calculateConcrete(
   let gravelCost = 0;
 
   if (waterproofing) {
-    if (waterproofing.includesDPC) {
+    // DPC only for foundation elements
+    if (waterproofing.includesDPC && row.element === "foundation") {
       const dpcWidth = parseFloat(waterproofing.dpcWidth || "0.225");
       dpcArea = len * dpcWidth * num;
       const dpcMaterial = materials.find(
@@ -936,7 +954,8 @@ export function calculateConcrete(
       dpcCost = dpcArea * (dpcMaterial?.price || 0);
     }
 
-    if (waterproofing.includesPolythene) {
+    // Polythene only for slab elements
+    if (waterproofing.includesPolythene && row.element === "slab") {
       polytheneArea = len * wid * num;
       const polytheneMaterial = materials.find(
         (m) =>

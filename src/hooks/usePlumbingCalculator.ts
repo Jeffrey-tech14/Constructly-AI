@@ -80,6 +80,30 @@ export interface PlumbingSystem {
   fittings: any[];
 }
 
+// Phase 5: Quick Mode Settings
+export interface PlumbingQuickModeSettings {
+  mode: "detailed" | "quick"; // defaults to "detailed"
+  quickMode?: {
+    type: "lump-sum" | "itemized"; // lump-sum or itemized with washrooms/kitchens
+    lumpSumCost?: number; // used when type is "lump-sum"
+    // Itemized breakdown
+    washroomCount?: number;
+    kitchenCount?: number;
+    hasWaterTank?: boolean;
+    waterTankCapacity?: number; // liters
+    hasSepticTank?: boolean;
+    hasSauna?: boolean;
+    hasJacuzzi?: boolean;
+    // Calculated totals
+    washroomCost?: number;
+    kitchenCost?: number;
+    waterTankCost?: number;
+    septicTankCost?: number;
+    saunaCost?: number;
+    jacuzziCost?: number;
+  };
+}
+
 export interface PlumbingCalculation {
   id: string;
   name: string;

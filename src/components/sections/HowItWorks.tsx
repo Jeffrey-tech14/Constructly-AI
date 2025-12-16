@@ -5,7 +5,7 @@ import { ArrowRight, ChevronRight } from "lucide-react";
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-    .font-technical { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; }
+    .font-technical { font-family: 'Outfit', 'Helvetica Neue', Arial, sans-serif; }
   `}</style>
 );
 
@@ -47,7 +47,7 @@ export default function HowItWorks() {
   const THEME = {
     NAVY: "#002d5c",
     BORDER: "#d1d5db",
-    TEXT_GRAY: "#4b5563"
+    TEXT_GRAY: "#4b5563",
   };
 
   return (
@@ -62,16 +62,21 @@ export default function HowItWorks() {
           <div className="mb-14 text-center">
             <div className="inline-flex items-center gap-2 mb-3">
               <div className="h-[1.5px] w-6 bg-[#002d5c]"></div>
-              <span className="text-[10px] font-bold uppercase tracking-[2.5px] text-gray-500">Process Workflow</span>
+              <span className="text-[10px] font-bold uppercase tracking-[2.5px] text-gray-500">
+                Process Workflow
+              </span>
               <div className="h-[1.5px] w-6 bg-[#002d5c]"></div>
             </div>
 
             <h2 className="text-3xl md:text-4xl leading-[1.15] mb-4 tracking-tight text-[#001021]">
               <span className="font-light block">Automated</span>
-              <span className="font-bold text-[#002d5c] block my-1.5">Estimation Pipeline</span>
+              <span className="font-bold text-[#002d5c] block my-1.5">
+                Estimation Pipeline
+              </span>
             </h2>
             <p className="text-[13px] text-gray-500 max-w-xl mx-auto leading-relaxed">
-              Transform raw construction plans into precise, client-ready quotes in four automated stages.
+              Transform raw construction plans into precise, client-ready quotes
+              in four automated stages.
             </p>
           </div>
 

@@ -60,10 +60,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
   ];
 
   return (
-    <div
-      id="who-its-for"
-      className="bg-white font-sans antialiased text-[#1a1a1a]"
-    >
+    <div id="who-its-for" className="bg-white  antialiased text-[#1a1a1a]">
       {/* SECTION 1: TECHNICAL HERO / KNOWLEDGE BASE */}
       <section className="border-b border-[#d1d5db] bg-white">
         <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-stretch">
@@ -204,86 +201,6 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3: TECHNICAL DATA TABLE */}
-      <section className="py-12 bg-white border-t border-[#d1d5db]">
-        <div className="max-w-[1000px] mx-auto px-4">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-[#002d5c] uppercase tracking-tighter">
-                AI Processing Specifications
-              </h2>
-              <div className="h-0.5 w-8 bg-[#002d5c] mt-1" />
-            </div>
-            <div className="text-right text-[9px] font-bold text-gray-500 uppercase tracking-wider">
-              Last Update: Dec 2025
-            </div>
-          </div>
-
-          <div className="bg-white border border-[#d1d5db]  overflow-hidden">
-            <table className="w-full text-left text-[12px] border-collapse">
-              <thead>
-                <tr className="bg-[#002d5c] text-white">
-                  <th className="p-3.5 font-bold uppercase tracking-wider text-[10px]">
-                    Feature Metric
-                  </th>
-                  <th className="p-3.5 font-bold uppercase tracking-wider text-[10px] border-l border-white/20">
-                    Standard AI
-                  </th>
-                  <th className="p-3.5 font-bold uppercase tracking-wider text-[10px] border-l border-white/20">
-                    Neural Engine (Pro)
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#d1d5db]">
-                {[
-                  {
-                    feature: "Geometric Takeoff Accuracy",
-                    s: "95% Typical",
-                    p: "99.8% Verified",
-                  },
-                  {
-                    feature: "Processing Speed (per A1 Sheet)",
-                    s: "45 Seconds",
-                    p: "Sub 5-Seconds",
-                  },
-                  {
-                    feature: "Supported File Types",
-                    s: "PDF, JPG, PNG",
-                    p: "PDF, DWG, DXF, Raster",
-                  },
-                  {
-                    feature: "Multi-User Sync",
-                    s: "Available",
-                    p: "Real-time Collaborative",
-                  },
-                  {
-                    feature: "Custom Rate/Material Libraries",
-                    s: "Limited (CSV Import)",
-                    p: "Unlimited (SQL/CSV)",
-                  },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-[#f9fafb] transition-colors">
-                    <td className="p-3.5 font-medium text-[#002d5c] flex items-center gap-2">
-                      <CheckCircle2
-                        className="w-4 h-4 text-green-600"
-                        strokeWidth={2}
-                      />{" "}
-                      {row.feature}
-                    </td>
-                    <td className="p-3.5 text-gray-700 border-l border-[#d1d5db]">
-                      {row.s}
-                    </td>
-                    <td className="p-3.5 font-semibold text-[#002d5c] bg-[#002d5c]/5 border-l border-[#d1d5db]">
-                      {row.p}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </section>

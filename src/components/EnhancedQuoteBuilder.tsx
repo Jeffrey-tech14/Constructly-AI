@@ -623,6 +623,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               width: structure.width,
               height: structure.height,
               mix: structure.mix || "C25",
+              verandahArea: structure.verandahArea || 0,
               formwork: structure.formwork,
               category: structure.category || "substructure",
               number: structure.number || "1",
@@ -3414,7 +3415,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="sm:p-6 p-1 pt-6">
+              <CardContent className="sm:p-6 p-3 pt-6">
                 {renderStepContent()}
               </CardContent>
             </Card>

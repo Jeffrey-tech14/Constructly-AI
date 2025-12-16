@@ -17,6 +17,7 @@ export type ElementTypes =
   | "retaining-wall"
   | "tank";
 export type RebarSize =
+  | "R6"
   | "Y6"
   | "Y8"
   | "Y10"
@@ -313,6 +314,11 @@ export const MESH_PROPERTIES: Record<
   string,
   { weightPerSqm: number; wireDiameter: number; spacing: number }
 > = {
+  A98: {
+    weightPerSqm: 1.54,
+    wireDiameter: 5,
+    spacing: 200,
+  },
   A142: {
     weightPerSqm: 2.22,
     wireDiameter: 6,
@@ -332,6 +338,31 @@ export const MESH_PROPERTIES: Record<
     weightPerSqm: 6.16,
     wireDiameter: 10,
     spacing: 200,
+  },
+  B196: {
+    weightPerSqm: 2.45,
+    wireDiameter: 6,
+    spacing: 100,
+  },
+  B283: {
+    weightPerSqm: 3.73,
+    wireDiameter: 7,
+    spacing: 100,
+  },
+  B385: {
+    weightPerSqm: 5.0,
+    wireDiameter: 8,
+    spacing: 100,
+  },
+  B503: {
+    weightPerSqm: 6.72,
+    wireDiameter: 9,
+    spacing: 100,
+  },
+  B785: {
+    weightPerSqm: 10.9,
+    wireDiameter: 11,
+    spacing: 100,
   },
   C283: {
     weightPerSqm: 4.34,

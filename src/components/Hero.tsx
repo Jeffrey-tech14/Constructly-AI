@@ -9,7 +9,6 @@ const THEME = {
   NAVY_BG: "#000B29",
   HERO_BTN_GREEN: "#86bc25",
   HERO_ACCENT_BLUE: "#00356B",
-  FONT_FAMILY: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
 };
 
 const openDemoVideo = () => {
@@ -38,8 +37,26 @@ const AnimatedJTechLogo = () => (
       <circle cx="22.5" cy="13.5" r="2.25" fill="#0077B6" />
       <circle cx="22.5" cy="22.5" r="2.25" fill="#0077B6" />
       <path d="M22.5 15.75V20.25" stroke="#0077B6" strokeWidth="1.5" />
-      <text x="45" y="24" fontFamily="Segoe UI" fontWeight="800" fontSize="22" fill="#00356B">JTech</text>
-      <text x="108" y="24" fontFamily="Segoe UI" fontWeight="800" fontSize="22" fill="#0077B6">AI</text>
+      <text
+        x="45"
+        y="24"
+        fontFamily="Segoe UI"
+        fontWeight="800"
+        fontSize="22"
+        fill="#00356B"
+      >
+        JTech
+      </text>
+      <text
+        x="108"
+        y="24"
+        fontFamily="Segoe UI"
+        fontWeight="800"
+        fontSize="22"
+        fill="#0077B6"
+      >
+        AI
+      </text>
     </svg>
 
     {/* 🔹 ANIMATED PULSING NODES */}
@@ -57,10 +74,7 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="antialiased text-white selection:bg-[#86bc25] selection:text-white bg-[#000B29] relative"
-      style={{ fontFamily: THEME.FONT_FAMILY }}
-    >
+    <div className="antialiased text-white selection:bg-[#86bc25] selection:text-white bg-[#000B29] relative">
       {/* ✅ GLOBAL ANIMATION STYLES */}
       <style>{`
         @keyframes scan-line {
@@ -82,7 +96,7 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
 
       <NavbarSection scrollTo={scrollTo} setDemoOpen={setDemoOpen} />
 
-      <section className="relative w-full min-h-[50vh] lg:min-h-[580px] overflow-hidden flex items-center pt-16 lg:pt-0 border-b border-white/10">
+      <section className="relative min-h-screen w-full  overflow-hidden flex items-center pt-16 lg:pt-0 border-b border-white/10">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
@@ -90,7 +104,14 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-[#000B29]/85 mix-blend-multiply"></div>
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          ></div>
         </div>
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8">
@@ -104,7 +125,10 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
               <AnimatedJTechLogo />
 
               {/* Tagline - slightly smaller */}
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase mb-3 opacity-90" style={{ color: THEME.HERO_BTN_GREEN }}>
+              <p
+                className="text-[9px] font-bold tracking-[0.25em] uppercase mb-3 opacity-90"
+                style={{ color: THEME.HERO_BTN_GREEN }}
+              >
                 THE SOLUTION
               </p>
 
@@ -116,7 +140,8 @@ const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
 
               {/* Description - smaller, lighter */}
               <p className="text-xs text-blue-100/80 max-w-lg mx-auto lg:mx-0 mb-5 leading-relaxed font-light">
-                Generate and edit accurate quotes. Connect workflows, validate costs, and generate automated takeoffs with 99.9% precision.
+                Generate and edit accurate quotes. Connect workflows, validate
+                costs, and generate automated takeoffs with 99.9% precision.
               </p>
 
               {/* Divider - thinner */}

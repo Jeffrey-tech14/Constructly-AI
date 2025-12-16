@@ -339,6 +339,7 @@ export type Database = {
           name: string;
           unit: string;
           type: string[] | null;
+          size: string | null;
           updated_at: string | null;
         };
         Insert: {
@@ -348,6 +349,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           name: string;
+          size?: string | null;
           type?: string[] | null;
           unit?: string;
           updated_at?: string | null;
@@ -358,6 +360,7 @@ export type Database = {
           created_at?: string | null;
           description?: string | null;
           id?: string;
+          size?: string | null;
           name?: string;
           type?: string[] | null;
           unit?: string;
@@ -398,6 +401,7 @@ export type Database = {
           id: string;
           is_admin: boolean;
           location: string | null;
+          avatar_url: string | null;
           subscription_status: string;
           name: string;
           overall_profit_margin: number | null;
@@ -413,6 +417,7 @@ export type Database = {
           completed_projects?: number;
           created_at?: string;
           email: string;
+          avatar_url?: string | null;
           id: string;
           subscription_status?: string;
           is_admin?: boolean;
@@ -429,6 +434,7 @@ export type Database = {
         Update: {
           company?: string | null;
           completed_projects?: number;
+          avatar_url?: string | null;
           created_at?: string;
           email?: string;
           id?: string;

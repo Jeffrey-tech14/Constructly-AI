@@ -259,6 +259,9 @@ export interface MasonryQSSettings {
   lintelRebarSize: RebarSize;
   verticalRebarSize: RebarSize;
   bedJointRebarSize: RebarSize;
+
+  // Phase 4: Centre-Line Method (only method now)
+  showAssumptions: boolean; // whether to display calculation assumptions
 }
 export const REBAR_WEIGHTS: Record<RebarSize, number> = {
   Y8: 0.395,
@@ -559,13 +562,18 @@ export default function useMasonryCalculator({
       (dim) => !isNaN(dim) && dim > 0 && dim < 100
     );
   }, []);
-  const getBlockCount = (room: Room): number => {
+
+  // Phase 4: Centre-Line Method Calculation (only method now)
+  const getBlockCountCentreLinMethod = (room: Room): number => {
     const length = Number(room.length);
     const width = Number(room.width);
     const height = Number(room.height);
+    const thickness = Number(room.thickness);
     const joint = qsSettings.mortarJointThicknessM;
+
     let blockLength = 0.225,
       blockHeight = 0.075;
+
     if (room.blockType !== "Custom") {
       const blockDef = blockTypes.find((b) => b.name === room.blockType);
       if (blockDef?.size) {
@@ -576,13 +584,67 @@ export default function useMasonryCalculator({
       blockLength = Number(room.customBlock.length);
       blockHeight = Number(room.customBlock.height);
     }
+
+    // Centre-line method: calculate using centre line perimeter
+    const centreLine = 2 * (length - thickness + width - thickness);
     const effectiveBlockLength = blockLength + joint;
     const effectiveBlockHeight = blockHeight + joint;
-    const perimeter = 2 * (length + width);
-    const blocksPerCourse = Math.ceil(perimeter / effectiveBlockLength);
+
+    const blocksPerCourse = Math.ceil(centreLine / effectiveBlockLength);
     const courses = Math.ceil(height / effectiveBlockHeight);
+
     return blocksPerCourse * courses;
   };
+
+  // Phase 4: Calculate assumptions for display
+  const getCalculationAssumptions = (room: Room): Record<string, any> => {
+    const length = Number(room.length);
+    const width = Number(room.width);
+    const height = Number(room.height);
+    const thickness = Number(room.thickness);
+    const joint = qsSettings.mortarJointThicknessM;
+
+    let blockLength = 0.225,
+      blockHeight = 0.075;
+
+    if (room.blockType !== "Custom") {
+      const blockDef = blockTypes.find((b) => b.name === room.blockType);
+      if (blockDef?.size) {
+        blockLength = blockDef.size.length;
+        blockHeight = blockDef.size.height;
+      }
+    } else {
+      blockLength = Number(room.customBlock.length);
+      blockHeight = Number(room.customBlock.height);
+    }
+
+    // Always use centre-line method
+    const perimeter = 2 * (length - thickness + width - thickness);
+    const effectiveBlockLength = blockLength + joint;
+    const effectiveBlockHeight = blockHeight + joint;
+    const blocksPerCourse = Math.ceil(perimeter / effectiveBlockLength);
+    const courses = Math.ceil(height / effectiveBlockHeight);
+
+    return {
+      blockDimensions: {
+        length: blockLength,
+        height: blockHeight,
+        thickness: thickness,
+      },
+      mortarJoint: joint,
+      effectiveBlockDimensions: {
+        length: effectiveBlockLength,
+        height: effectiveBlockHeight,
+      },
+      perimeter: perimeter,
+      blocksPerCourse: blocksPerCourse,
+      courses: courses,
+      totalBlocks: blocksPerCourse * courses,
+      wastagePercent: qsSettings.wastageMasonry,
+      calculationMethod: "centre-line",
+    };
+  };
+
   const calculateWaterRequirements = useCallback(
     (
       cementQtyKg: number,
@@ -1144,6 +1206,7 @@ export default function useMasonryCalculator({
         return {
           ...material,
           price,
+          region: userRegion,
           source: userRate ? "user" : material.price != null ? "base" : "none",
         };
       }) || [];
@@ -1314,7 +1377,7 @@ export default function useMasonryCalculator({
   const getBlockCountWithConnectivity = useCallback(
     (room: Room): number => {
       if (!room.wallConnectivity?.walls) {
-        return getBlockCount(room); // fallback to old method
+        return getBlockCountCentreLinMethod(room); // use centre-line method
       }
 
       const { walls } = room.wallConnectivity;
@@ -1602,7 +1665,7 @@ export default function useMasonryCalculator({
       const grossWallArea = calculateWallArea(room);
       const openingsArea = calculateOpeningsArea(room);
       const netWallArea = Math.max(0, grossWallArea - openingsArea);
-      const netBlocks = getBlockCount(room);
+      const netBlocks = getBlockCountCentreLinMethod(room);
 
       const blockPrice = room.customBlock?.price
         ? Number(room.customBlock.price)
@@ -1622,7 +1685,7 @@ export default function useMasonryCalculator({
     [
       calculateWallArea,
       calculateOpeningsArea,
-      getBlockCount,
+      getBlockCountCentreLinMethod,
       getMaterialPrice,
       materials,
     ]
@@ -1805,7 +1868,15 @@ export default function useMasonryCalculator({
       const grossWallArea = calculateWallAreaWithConnectivity(room);
       const openingsArea = calculateOpeningsAreaWithConnectivity(room);
       const netWallArea = Math.max(0, grossWallArea - openingsArea);
-      const netBlocks = getBlockCountWithConnectivity(room);
+
+      // Phase 4: Use centre-line method (only method now)
+      let netBlocks = getBlockCountCentreLinMethod(room);
+      let calculationAssumptions = null;
+
+      // Calculate assumptions if enabled
+      if (qsSettings.showAssumptions) {
+        calculationAssumptions = getCalculationAssumptions(room);
+      }
 
       // Calculate material adjustments based on connectivity
       const connectivityMetrics = calculateConnectivityMetrics(room);
@@ -2204,6 +2275,8 @@ export default function useMasonryCalculator({
         netSand: totalNetSandM3,
         netWater: totalNetWater,
         totalCost: grossRoomTotalCost,
+        // Phase 4: Include calculation assumptions for display
+        calculationAssumptions: calculationAssumptions,
       };
     });
     setQuote((prev) => ({

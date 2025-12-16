@@ -55,7 +55,19 @@ interface Props {
   initialRows?: RebarRow[];
 }
 
-const sizeOptions: RebarSize[] = ["Y8", "Y10", "Y12", "Y16", "Y20", "Y25"];
+const sizeOptions: RebarSize[] = [
+  "R6",
+  "Y6",
+  "Y8",
+  "Y10",
+  "Y12",
+  "Y14",
+  "Y16",
+  "Y18",
+  "Y20",
+  "Y22",
+  "Y25",
+];
 const meshGrades = Object.keys(MESH_PROPERTIES);
 const meshSheetOptions = STANDARD_MESH_SHEETS.map(
   (sheet) => `${sheet.width}m × ${sheet.length}m`

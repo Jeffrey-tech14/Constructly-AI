@@ -9,7 +9,8 @@ export type FinishCategory =
   | "wall-finishes"
   | "paint"
   | "glazing"
-  | "joinery";
+  | "joinery"
+  | "plaster";
 
 export interface FinishElement {
   id: string;

@@ -249,6 +249,7 @@ export default function MasonryCalculatorForm({
             onRemoveNested={removeNested}
             onRemoveEntry={removeEntry}
             onRemoveRoom={() => removeRoom(index)}
+            qsSettings={qsSettings}
             roomBreakdown={results.breakdown?.[index]}
           />
         ))}
@@ -290,6 +291,7 @@ interface RoomSectionProps {
     nestedIndex: number
   ) => void;
   onRemoveRoom: () => void;
+  qsSettings: MasonryQSSettings;
   roomBreakdown?: any;
 }
 function RoomSection({
@@ -302,6 +304,7 @@ function RoomSection({
   onRemoveNested,
   onRemoveEntry,
   onRemoveRoom,
+  qsSettings,
   roomBreakdown,
 }: RoomSectionProps) {
   return (
@@ -533,6 +536,70 @@ function RoomSection({
                 {roomBreakdown.totalCost?.toLocaleString()}
               </div>
             </div>
+
+            {/* Phase 4: Display Calculation Assumptions */}
+            {qsSettings.showAssumptions &&
+              roomBreakdown.calculationAssumptions && (
+                <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded">
+                  <h5 className="font-semibold text-sm text-purple-900 dark:text-purple-100 mb-2">
+                    Calculation Assumptions
+                  </h5>
+                  <div className="text-xs text-purple-800 dark:text-purple-200 space-y-1">
+                    <div>
+                      <strong>Method:</strong> Centre-Line (Professional)
+                    </div>
+                    <div>
+                      <strong>Block Dimensions:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.blockDimensions
+                        .length * 1000}
+                      mm ×{" "}
+                      {roomBreakdown.calculationAssumptions.blockDimensions
+                        .height * 1000}
+                      mm × Thickness:{" "}
+                      {roomBreakdown.calculationAssumptions.blockDimensions
+                        .thickness * 1000}
+                      mm
+                    </div>
+                    <div>
+                      <strong>Mortar Joint:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.mortarJoint * 1000}
+                      mm
+                    </div>
+                    <div>
+                      <strong>Effective Block Dimensions:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions
+                        .effectiveBlockDimensions.length * 1000}
+                      mm ×{" "}
+                      {roomBreakdown.calculationAssumptions
+                        .effectiveBlockDimensions.height * 1000}
+                      mm
+                    </div>
+                    <div>
+                      <strong>Perimeter:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.perimeter.toFixed(
+                        2
+                      )}
+                      m
+                    </div>
+                    <div>
+                      <strong>Blocks Per Course:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.blocksPerCourse}
+                    </div>
+                    <div>
+                      <strong>Number of Courses:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.courses}
+                    </div>
+                    <div>
+                      <strong>Total Blocks (before wastage):</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.totalBlocks}
+                    </div>
+                    <div>
+                      <strong>Wastage Allowance:</strong>{" "}
+                      {roomBreakdown.calculationAssumptions.wastagePercent}%
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         )}
       </div>

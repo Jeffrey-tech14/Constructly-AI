@@ -141,6 +141,7 @@ export default function ConcreteCalculatorForm({
         includesPolythene: false,
         includesWaterproofing: false,
       },
+      verandahArea: "",
     };
   }, []);
 
@@ -1221,56 +1222,68 @@ export default function ConcreteCalculatorForm({
   };
 
   const renderWaterproofing = (row: ConcreteRow) => {
+    // Conditional logic: DPC for foundations, Polythene for slabs
+    const shouldShowDPC = row.element === "foundation";
+    const shouldShowPolythene = row.element === "slab";
+
     return (
       <div className="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-md">
         <h4 className="font-semibold text-green-800 dark:text-green-200">
-          Waterproofing & DPC Details
+          {row.element === "slab"
+            ? "Slab Waterproofing & Polythene"
+            : "Waterproofing & DPC Details"}
         </h4>
 
         <div className="grid sm:grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={row.waterproofing?.includesDPC || false}
-              onCheckedChange={(checked) =>
-                updateRow(row.id, "waterproofing", {
-                  ...row.waterproofing,
-                  includesDPC: checked === true,
-                })
-              }
-            />
-            <Label className="text-sm font-medium">Include DPC</Label>
-          </div>
+          {shouldShowDPC && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                checked={row.waterproofing?.includesDPC || false}
+                onCheckedChange={(checked) =>
+                  updateRow(row.id, "waterproofing", {
+                    ...row.waterproofing,
+                    includesDPC: checked === true,
+                  })
+                }
+              />
+              <Label className="text-sm font-medium">Include DPC</Label>
+            </div>
+          )}
+
+          {shouldShowPolythene && (
+            <div className="flex items-center space-x-2">
+              <Label className="text-sm font-medium flex items-center space-x-2">
+                <Checkbox
+                  checked={row.waterproofing?.includesPolythene || false}
+                  onCheckedChange={(checked) =>
+                    updateRow(row.id, "waterproofing", {
+                      ...row.waterproofing,
+                      includesPolythene: checked === true,
+                    })
+                  }
+                />
+                <span className="ml-2">Include Polythene Sheet</span>
+              </Label>
+            </div>
+          )}
 
           <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={row.waterproofing?.includesPolythene || false}
-              onCheckedChange={(checked) =>
-                updateRow(row.id, "waterproofing", {
-                  ...row.waterproofing,
-                  includesPolythene: checked === true,
-                })
-              }
-            />
-            <Label className="text-sm font-medium">
-              Include Polythene Sheet
+            <Label className="text-sm font-medium flex items-center space-x-2">
+              <Checkbox
+                checked={row.waterproofing?.includesWaterproofing || false}
+                onCheckedChange={(checked) =>
+                  updateRow(row.id, "waterproofing", {
+                    ...row.waterproofing,
+                    includesWaterproofing: checked === true,
+                  })
+                }
+              />
+              <span className="ml-2">Include Waterproofing</span>
             </Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={row.waterproofing?.includesWaterproofing || false}
-              onCheckedChange={(checked) =>
-                updateRow(row.id, "waterproofing", {
-                  ...row.waterproofing,
-                  includesWaterproofing: checked === true,
-                })
-              }
-            />
-            <Label className="text-sm font-medium">Include Waterproofing</Label>
           </div>
         </div>
 
-        {row.waterproofing?.includesDPC && (
+        {row.waterproofing?.includesDPC && shouldShowDPC && (
           <div className="grid sm:grid-cols-2 gap-2">
             <div className="space-y-2">
               <Label className="text-sm font-medium">DPC Width (m)</Label>
@@ -1312,7 +1325,7 @@ export default function ConcreteCalculatorForm({
           </div>
         )}
 
-        {row.waterproofing?.includesPolythene && (
+        {row.waterproofing?.includesPolythene && shouldShowPolythene && (
           <div className="space-y-2">
             <Label className="text-sm font-medium">Polythene Gauge</Label>
             <Select
@@ -1858,6 +1871,27 @@ export default function ConcreteCalculatorForm({
                 onChange={(e) => updateRow(row.id, "number", e.target.value)}
                 placeholder="Number of items"
               />
+              {row.element === "slab" && (
+                <div className="space-y-2">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Verandah Area (m²)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={row.verandahArea || ""}
+                      onChange={(e) =>
+                        updateRow(row.id, "verandahArea", e.target.value)
+                      }
+                      placeholder="Area to deduct"
+                      step="0.1"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Leave blank if no verandah
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {renderSpecializedFields(row)}

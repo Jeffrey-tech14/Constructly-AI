@@ -20,7 +20,6 @@ import {
 const GlobalStyles = () => (
   <style>{`
     .font-engineering { 
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
       letter-spacing: 0.01em;
     }
     .card-border { border: 1px solid #d1d5db; }

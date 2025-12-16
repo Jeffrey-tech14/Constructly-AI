@@ -7,7 +7,7 @@ const THEME = {
   GREEN: "#5BB539",
   BORDER: "#d1d5db",
   TEXT_MAIN: "#1a1a1a",
-  TEXT_MUTED: "#6b7280"
+  TEXT_MUTED: "#6b7280",
 };
 
 export default function TestimonialsSection() {
@@ -69,14 +69,18 @@ export default function TestimonialsSection() {
   }, []);
 
   return (
-    <section id="testimonials" className="py-16 bg-white border-b border-[#e1e1e1] scroll-mt-28 font-sans">
+    <section
+      id="testimonials"
+      className="py-16 bg-white border-b border-[#e1e1e1] scroll-mt-28 "
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header – Smaller, tighter */}
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-3">
             <span className="w-6 h-[1.5px] bg-[#002d5c]"></span>
-            <span className="text-[9px] font-bold uppercase tracking-[2.5px] text-gray-500">Feedback Matrix</span>
+            <span className="text-[9px] font-bold uppercase tracking-[2.5px] text-gray-500">
+              Feedback Matrix
+            </span>
             <span className="w-6 h-[1.5px] bg-[#002d5c]"></span>
           </div>
           <h2 className="text-2xl md:text-3xl font-light text-[#001021]">
@@ -87,7 +91,6 @@ export default function TestimonialsSection() {
 
         {/* Slider Container – Compact */}
         <div className="relative max-w-5xl mx-auto">
-          
           {/* Arrows – Slightly smaller, hidden on smaller screens */}
           <button
             onClick={prevSlide}
@@ -127,9 +130,14 @@ export default function TestimonialsSection() {
                     {/* Metadata */}
                     <div className="flex justify-between items-start mb-4">
                       <div className="w-8 h-8 bg-[#002d5c] flex items-center justify-center text-white">
-                        <Quote className="w-3.5 h-3.5 fill-current transform scale-x-[-1]" strokeWidth={0} />
+                        <Quote
+                          className="w-3.5 h-3.5 fill-current transform scale-x-[-1]"
+                          strokeWidth={0}
+                        />
                       </div>
-                      <span className="text-[8px] font-mono text-gray-400 font-bold uppercase tracking-widest">{item.refId}</span>
+                      <span className="text-[8px] font-mono text-gray-400 font-bold uppercase tracking-widest">
+                        {item.refId}
+                      </span>
                     </div>
 
                     {/* Quote */}

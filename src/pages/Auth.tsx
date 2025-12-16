@@ -333,7 +333,7 @@ const Auth = () => {
 
   return (
     <div
-      className="min-h-screen flex relative overflow-hidden bg-cover bg-center font-sans"
+      className="min-h-screen flex relative overflow-hidden bg-cover bg-center "
       style={{ backgroundImage: `url(${BACKGROUND_IMAGE_URL})` }}
     >
       <div
@@ -350,15 +350,21 @@ const Auth = () => {
           transition={{ duration: 0.8 }}
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 rounded bg-[#5BB539]/20 border border-[#5BB539]/30">
-             <div className="w-2 h-2 rounded-full bg-[#5BB539] animate-pulse"></div>
-             <span className="text-[10px] font-bold uppercase tracking-widest text-[#5BB539]">Secure Gateway</span>
+            <div className="w-2 h-2 rounded-full bg-[#5BB539] animate-pulse"></div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#5BB539]">
+              Secure Gateway
+            </span>
           </div>
 
           <h1 className="text-5xl lg:text-6xl font-light mb-6 leading-tight text-white tracking-tight">
             {authState.flow === "signin" ? (
-                <>JTech <span className="font-bold">Portal</span></>
+              <>
+                JTech <span className="font-bold">Portal</span>
+              </>
             ) : (
-                <>System <span className="font-bold">Setup</span></>
+              <>
+                System <span className="font-bold">Setup</span>
+              </>
             )}
           </h1>
           <p
@@ -487,7 +493,9 @@ const Auth = () => {
         >
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2 uppercase tracking-wide">
-              {authState.flow === "signin" ? "Authorized Access" : "New Registration"}
+              {authState.flow === "signin"
+                ? "Authorized Access"
+                : "New Registration"}
             </h1>
             <p
               className="text-xs opacity-80 mb-6"
@@ -556,7 +564,7 @@ const Auth = () => {
                 style={{
                   backgroundColor: THEME.NAVY_BG + "E6",
                   color: THEME.TEXT_LIGHT,
-                  opacity: 0.6
+                  opacity: 0.6,
                 }}
               >
                 Or use standard credentials
@@ -589,7 +597,10 @@ const Auth = () => {
                         className="w-5 h-5 mt-0.5 flex-shrink-0"
                         style={{ color: "#DC2626" }}
                       />
-                      <p className="text-xs font-bold" style={{ color: "#FECACA" }}>
+                      <p
+                        className="text-xs font-bold"
+                        style={{ color: "#FECACA" }}
+                      >
                         {authState.error}
                       </p>
                     </motion.div>

@@ -850,6 +850,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       category: Category;
       number: string;
       hasConcreteBed?: boolean;
+      verandahArea: number;
       bedDepth?: string;
       hasAggregateBed?: boolean;
       aggregateDepth?: string;

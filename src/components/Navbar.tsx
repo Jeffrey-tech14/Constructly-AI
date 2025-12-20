@@ -79,21 +79,20 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: BarChart },
     { path: "/quotes/new", label: "New Quote", icon: Building2 },
     { path: "/quotes/all", label: "All Quotes", icon: Eye },
-    { path: "/variables", label: "Variables", icon: Settings },
+    { path: "/variables", label: "Settings", icon: Settings },
   ];
   if (location.pathname === "/" || location.pathname === "/auth") {
     return null;
   }
-  // ✅ UPDATED THEME TO MATCH FRONTEND (FROM YOUR HERO/PRICING PAGES)
+
   const THEME = {
-    PRIMARY: "#002d5c", // Deep JTech Navy (was #005F9E)
-    ACCENT: "#86bc25", // JTech Action Green (was #5BB539)
+    PRIMARY: "#002d5c",
+    ACCENT: "#86bc25",
     TEXT_DARK: "#001226",
-    LOGO_DARK: "#002855", // Matches your SVG from NavbarSection
+    LOGO_DARK: "#002855",
     LOGO_LIGHT: "#0077B6",
   };
 
-  // ✅ EXACT SAME LOGO AS USED IN NavbarSection.tsx
   const JTechAILogo = () => (
     <svg
       width="135"

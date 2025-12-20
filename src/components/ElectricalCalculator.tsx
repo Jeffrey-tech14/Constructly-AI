@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -49,7 +50,6 @@ import useElectricalCalculator, {
   InstallationMethod,
 } from "@/hooks/useElectricalCalculator";
 import { MasonryQSSettings } from "@/hooks/useMasonryCalculator";
-import { Checkbox } from "./ui/checkbox";
 
 interface ElectricalCalculatorProps {
   electricalSystems: ElectricalSystem[];
@@ -161,6 +161,12 @@ export default function ElectricalCalculator({
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ElectricalSystem | null>(null);
+  const [useElectricalLumpsum, setUseElectricalLumpsum] = useState(
+    quote?.electrical?.useLumpsum === true || quote?.electrical_lumpsum_mode === true
+  );
+  const [electricalLumpsumAmount, setElectricalLumpsumAmount] = useState(
+    quote?.electrical?.amount || quote?.electrical_lumpsum_amount || 0
+  );
 
   const filteredCalculations = useMemo(() => {
     return calculations?.filter((calc) => {
@@ -501,730 +507,842 @@ export default function ElectricalCalculator({
         </Card>
       </div>
 
-      {/* Controls */}
-      <Card>
+      {/* Lumpsum Option for All Electrical */}
+      <Card className="border-l-4 border-l-yellow-500">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4">
-            <div>
-              <CardTitle>Electrical Systems Calculation</CardTitle>
-              <CardDescription>
-                Professional quantity surveying for electrical installations
-              </CardDescription>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 items-center">
-              <Label className="items-center space-x-2"> </Label>
-              Wastage Allowance (%)
-              <Input
-                type="number"
-                value={qsSettings.wastageElectricals ?? 1}
-                step="1"
-                min="1"
-                className="sm:max-w-xs max-w-none"
-                onChange={(e) =>
-                  onSettingsChange({
-                    ...qsSettings,
-                    wastageElectricals: parseFloat(e.target.value),
-                  })
-                }
-                placeholder="Electrical wastage (%)"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Checkbox
+                id="electrical-category-lumpsum"
+                checked={useElectricalLumpsum}
+                onCheckedChange={(checked) => {
+                  setUseElectricalLumpsum(checked as boolean);
+                  setQuoteData((prev: any) => ({
+                    ...prev,
+                    electrical: {
+                      ...prev?.electrical,
+                      useLumpsum: checked,
+                    },
+                  }));
+                }}
               />
-              {!readonly && (
-                <Button onClick={handleAddSystem} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add System
-                </Button>
-              )}
-              <Button onClick={exportToCSV} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
+              <Label
+                htmlFor="electrical-category-lumpsum"
+                className="cursor-pointer font-semibold"
+              >
+                Use Lumpsum for All Electrical Systems
+              </Label>
             </div>
           </div>
         </CardHeader>
-
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <Label htmlFor="search" className="sr-only">
-                Search
-              </Label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        {useElectricalLumpsum && (
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="electrical-lumpsum-amount">
+                  Total Electrical Lumpsum (KES)
+                </Label>
                 <Input
-                  id="search"
-                  placeholder="Search systems..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
+                  id="electrical-lumpsum-amount"
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={electricalLumpsumAmount}
+                  onChange={(e) => {
+                    const amount = parseFloat(e.target.value) || 0;
+                    setElectricalLumpsumAmount(amount);
+                    setQuoteData((prev: any) => ({
+                      ...prev,
+                      electrical: {
+                        ...prev?.electrical,
+                        amount: amount,
+                      },
+                    }));
+                  }}
+                  placeholder="Enter total electrical lumpsum"
                 />
               </div>
             </div>
+          </CardContent>
+        )}
+      </Card>
 
-            <div className="w-full sm:w-48">
-              <Label htmlFor="system-filter" className="sr-only">
-                Filter by system type
-              </Label>
-              <Select
-                value={filterType}
-                onValueChange={(value: ElectricalSystemType | "all") =>
-                  setFilterType(value)
-                }
-              >
-                <SelectTrigger>
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Systems</SelectItem>
-                  {SYSTEM_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      {/* Only show systems if not in lumpsum mode */}
+      {!useElectricalLumpsum && (
+        <>
+          {/* Controls */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4">
+                <div>
+                  <CardTitle>Electrical Systems Calculation</CardTitle>
+                  <CardDescription>
+                    Professional quantity surveying for electrical installations
+                  </CardDescription>
+                </div>
 
-          {/* Edit Form */}
-          {editingId && editForm && (
-            <Card className="mb-6 border-l-4 border-l-blue-500">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Edit Electrical System
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Basic Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-name">System Name</Label>
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  <Label className="items-center space-x-2"> </Label>
+                  Wastage Allowance (%)
+                  <Input
+                    type="number"
+                    value={qsSettings.wastageElectricals ?? 1}
+                    step="1"
+                    min="1"
+                    className="sm:max-w-xs max-w-none"
+                    onChange={(e) =>
+                      onSettingsChange({
+                        ...qsSettings,
+                        wastageElectricals: parseFloat(e.target.value),
+                      })
+                    }
+                    placeholder="Electrical wastage (%)"
+                  />
+                  {!readonly && (
+                    <Button onClick={handleAddSystem} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add System
+                    </Button>
+                  )}
+                  <Button onClick={exportToCSV} variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <Label htmlFor="search" className="sr-only">
+                    Search
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="edit-name"
-                      value={editForm.name}
-                      onChange={(e) =>
-                        handleEditFormChange("name", e.target.value)
-                      }
-                      placeholder="e.g., Main Power Distribution"
+                      id="search"
+                      placeholder="Search systems..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8"
                     />
                   </div>
-
-                  <div>
-                    <Label htmlFor="edit-type">System Type</Label>
-                    <Select
-                      value={editForm.systemType}
-                      onValueChange={(value: ElectricalSystemType) =>
-                        handleEditFormChange("systemType", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SYSTEM_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="edit-voltage">Voltage</Label>
-                    <Select
-                      value={editForm.voltage.toString()}
-                      onValueChange={(value) =>
-                        handleEditFormChange("voltage", parseInt(value))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VOLTAGE_OPTIONS.map((voltage) => (
-                          <SelectItem key={voltage} value={voltage.toString()}>
-                            {voltage}V
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
-                {/* Cables Section */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <Label className="text-lg font-semibold">Cables</Label>
-                    <Button onClick={addCable} size="sm" variant="outline">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Cable
-                    </Button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {editForm.cables.map((cable) => (
-                      <div
-                        key={cable.id}
-                        className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
-                      >
-                        <div>
-                          <Label>Type</Label>
-                          <Select
-                            value={cable.type}
-                            onValueChange={(value: CableType) =>
-                              updateCable(cable.id, "type", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {CABLE_TYPES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Size (mm²)</Label>
-                          <Select
-                            value={String(cable.size)}
-                            onValueChange={(value) =>
-                              updateCable(cable.id, "size", parseFloat(value))
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select size" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {commonCableSizes.map((size) => (
-                                <SelectItem key={size} value={String(size)}>
-                                  {size} mm²
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Length (m)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={cable.length}
-                            onChange={(e) =>
-                              updateCable(
-                                cable.id,
-                                "length",
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <Label>Quantity</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={cable.quantity}
-                            onChange={(e) =>
-                              updateCable(
-                                cable.id,
-                                "quantity",
-                                parseInt(e.target.value) || 1
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div>
-                          <Label>Installation</Label>
-                          <Select
-                            value={cable.installationMethod}
-                            onValueChange={(value: InstallationMethod) =>
-                              updateCable(cable.id, "installationMethod", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {INSTALLATION_METHODS.map((method) => (
-                                <SelectItem
-                                  key={method.value}
-                                  value={method.value}
-                                >
-                                  {method.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="flex items-end">
-                          <Button
-                            onClick={() => removeCable(cable.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Outlets Section */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <Label className="text-lg font-semibold">Outlets</Label>
-                    <Button onClick={addOutlet} size="sm" variant="outline">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Outlet
-                    </Button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {editForm.outlets.map((outlet) => (
-                      <div
-                        key={outlet.id}
-                        className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
-                      >
-                        <div>
-                          <Label>Type</Label>
-                          <Select
-                            value={outlet.type}
-                            onValueChange={(value: OutletType) =>
-                              updateOutlet(outlet.id, "type", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {OUTLET_TYPES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Gang</Label>
-                          <Select
-                            value={outlet.gang.toString()}
-                            onValueChange={(value) =>
-                              updateOutlet(outlet.id, "gang", parseInt(value))
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {GANG_OPTIONS.map((gang) => (
-                                <SelectItem key={gang} value={gang.toString()}>
-                                  {gang}-gang
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Rating (A)</Label>
-                          <Select
-                            value={String(outlet.rating)}
-                            onValueChange={(value) =>
-                              updateOutlet(outlet.id, "rating", parseInt(value))
-                            }
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select rating" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {commonOutletRatings.map((rating) => (
-                                <SelectItem
-                                  key={rating}
-                                  value={rating.toString()}
-                                >
-                                  {rating} A
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Location</Label>
-                          <Input
-                            value={outlet.location}
-                            onChange={(e) =>
-                              updateOutlet(
-                                outlet.id,
-                                "location",
-                                e.target.value
-                              )
-                            }
-                            placeholder="e.g., Living Room"
-                          />
-                        </div>
-
-                        <div>
-                          <Label>Count</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={outlet.count}
-                            onChange={(e) =>
-                              updateOutlet(
-                                outlet.id,
-                                "count",
-                                parseInt(e.target.value) || 1
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="flex items-end">
-                          <Button
-                            onClick={() => removeOutlet(outlet.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Lighting Section */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <Label className="text-lg font-semibold">Lighting</Label>
-                    <Button onClick={addLighting} size="sm" variant="outline">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Lighting
-                    </Button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {editForm.lighting.map((light) => (
-                      <div
-                        key={light.id}
-                        className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
-                      >
-                        <div>
-                          <Label>Type</Label>
-                          <Select
-                            value={light.type}
-                            onValueChange={(value: LightingType) =>
-                              updateLighting(light.id, "type", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {LIGHTING_TYPES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Wattage</Label>
-                          <Select
-                            value={String(light.wattage)}
-                            onValueChange={(value) =>
-                              updateLighting(
-                                light.id,
-                                "wattage",
-                                parseInt(value)
-                              )
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select wattage" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {LIGHTING_WATTAGE.map((w) => (
-                                <SelectItem key={w} value={String(w)}>
-                                  {w} W
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Control</Label>
-                          <Select
-                            value={light.controlType}
-                            onValueChange={(value) =>
-                              updateLighting(light.id, "controlType", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {CONTROL_TYPES.map((control) => (
-                                <SelectItem
-                                  key={control.value}
-                                  value={control.value}
-                                >
-                                  {control.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label>Location</Label>
-                          <Input
-                            value={light.location}
-                            onChange={(e) =>
-                              updateLighting(
-                                light.id,
-                                "location",
-                                e.target.value
-                              )
-                            }
-                            placeholder="e.g., Kitchen"
-                          />
-                        </div>
-
-                        <div>
-                          <Label>Count</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={light.count}
-                            onChange={(e) =>
-                              updateLighting(
-                                light.id,
-                                "count",
-                                parseInt(e.target.value) || 1
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="flex items-end">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`emergency-${light.id}`}
-                              checked={light.emergency}
-                              onCheckedChange={(checked) =>
-                                updateLighting(
-                                  light.id,
-                                  "emergency",
-                                  checked === true
-                                )
-                              }
-                            />
-                            <Label htmlFor={`emergency-${light.id}`}>
-                              Emergency
-                            </Label>
-                          </div>
-                          <Button
-                            onClick={() => removeLighting(light.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive ml-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditForm(null);
-                    }}
-                    variant="outline"
+                <div className="w-full sm:w-48">
+                  <Label htmlFor="system-filter" className="sr-only">
+                    Filter by system type
+                  </Label>
+                  <Select
+                    value={filterType}
+                    onValueChange={(value: ElectricalSystemType | "all") =>
+                      setFilterType(value)
+                    }
                   >
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSaveEdit}>Save Changes</Button>
+                    <SelectTrigger>
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Systems</SelectItem>
+                      {SYSTEM_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
 
-          {/* Calculations Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>System</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Cable</TableHead>
-                  <TableHead className="text-right">Outlets</TableHead>
-                  <TableHead className="text-right">Lighting</TableHead>
-                  <TableHead className="text-right">Power Load</TableHead>
-                  <TableHead className="text-right">Material Cost</TableHead>
-                  <TableHead className="text-right">Total Cost</TableHead>
-                  <TableHead className="text-right">Efficiency</TableHead>
-                  {!readonly && (
-                    <TableHead className="text-right">Actions</TableHead>
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCalculations?.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={readonly ? 10 : 11}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      No electrical systems found.{" "}
-                      {!readonly && "Add your first system to get started."}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredCalculations?.map((calc) => (
-                    <TableRow key={calc.id}>
-                      <TableCell className="font-medium">{calc.name}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={getSystemColor(calc.systemType)}
+              {/* Edit Form */}
+              {editingId && editForm && (
+                <Card className="mb-6 border-l-4 border-l-blue-500">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Edit Electrical System
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit-name">System Name</Label>
+                        <Input
+                          id="edit-name"
+                          value={editForm.name}
+                          onChange={(e) =>
+                            handleEditFormChange("name", e.target.value)
+                          }
+                          placeholder="e.g., Main Power Distribution"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit-type">System Type</Label>
+                        <Select
+                          value={editForm.systemType}
+                          onValueChange={(value: ElectricalSystemType) =>
+                            handleEditFormChange("systemType", value)
+                          }
                         >
-                          {SYSTEM_TYPES.find((t) => t.value === calc.systemType)
-                            ?.label || calc.systemType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatLength(calc.totalCableLength)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {calc.totalOutlets}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {calc.totalLighting}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatPower(calc.powerLoad)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(calc.materialCost)}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {formatCurrency(calc.totalCost)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-col text-xs">
-                          <span>
-                            Cable:{" "}
-                            {formatEfficiency(calc.efficiency.cableUtilization)}
-                          </span>
-                          <span>
-                            Circuit:{" "}
-                            {formatEfficiency(
-                              calc.efficiency.circuitEfficiency
-                            )}
-                          </span>
-                          <span>
-                            Energy:{" "}
-                            {formatEfficiency(calc.efficiency.energyEfficiency)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      {!readonly && (
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(calc)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(calc.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SYSTEM_TYPES.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit-voltage">Voltage</Label>
+                        <Select
+                          value={editForm.voltage.toString()}
+                          onValueChange={(value) =>
+                            handleEditFormChange("voltage", parseInt(value))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {VOLTAGE_OPTIONS.map((voltage) => (
+                              <SelectItem
+                                key={voltage}
+                                value={voltage.toString()}
+                              >
+                                {voltage}V
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Cables Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <Label className="text-lg font-semibold">Cables</Label>
+                        <Button onClick={addCable} size="sm" variant="outline">
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Cable
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {editForm.cables.map((cable) => (
+                          <div
+                            key={cable.id}
+                            className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
+                          >
+                            <div>
+                              <Label>Type</Label>
+                              <Select
+                                value={cable.type}
+                                onValueChange={(value: CableType) =>
+                                  updateCable(cable.id, "type", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {CABLE_TYPES.map((type) => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                    >
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Size (mm²)</Label>
+                              <Select
+                                value={String(cable.size)}
+                                onValueChange={(value) =>
+                                  updateCable(
+                                    cable.id,
+                                    "size",
+                                    parseFloat(value)
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select size" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {commonCableSizes.map((size) => (
+                                    <SelectItem key={size} value={String(size)}>
+                                      {size} mm²
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Length (m)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                value={cable.length}
+                                onChange={(e) =>
+                                  updateCable(
+                                    cable.id,
+                                    "length",
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div>
+                              <Label>Quantity</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={cable.quantity}
+                                onChange={(e) =>
+                                  updateCable(
+                                    cable.id,
+                                    "quantity",
+                                    parseInt(e.target.value) || 1
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div>
+                              <Label>Installation</Label>
+                              <Select
+                                value={cable.installationMethod}
+                                onValueChange={(value: InstallationMethod) =>
+                                  updateCable(
+                                    cable.id,
+                                    "installationMethod",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {INSTALLATION_METHODS.map((method) => (
+                                    <SelectItem
+                                      key={method.value}
+                                      value={method.value}
+                                    >
+                                      {method.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="flex items-end">
+                              <Button
+                                onClick={() => removeCable(cable.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        </TableCell>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Outlets Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <Label className="text-lg font-semibold">Outlets</Label>
+                        <Button onClick={addOutlet} size="sm" variant="outline">
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Outlet
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {editForm.outlets.map((outlet) => (
+                          <div
+                            key={outlet.id}
+                            className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
+                          >
+                            <div>
+                              <Label>Type</Label>
+                              <Select
+                                value={outlet.type}
+                                onValueChange={(value: OutletType) =>
+                                  updateOutlet(outlet.id, "type", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {OUTLET_TYPES.map((type) => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                    >
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Gang</Label>
+                              <Select
+                                value={outlet.gang.toString()}
+                                onValueChange={(value) =>
+                                  updateOutlet(
+                                    outlet.id,
+                                    "gang",
+                                    parseInt(value)
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {GANG_OPTIONS.map((gang) => (
+                                    <SelectItem
+                                      key={gang}
+                                      value={gang.toString()}
+                                    >
+                                      {gang}-gang
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Rating (A)</Label>
+                              <Select
+                                value={String(outlet.rating)}
+                                onValueChange={(value) =>
+                                  updateOutlet(
+                                    outlet.id,
+                                    "rating",
+                                    parseInt(value)
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select rating" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {commonOutletRatings.map((rating) => (
+                                    <SelectItem
+                                      key={rating}
+                                      value={rating.toString()}
+                                    >
+                                      {rating} A
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Location</Label>
+                              <Input
+                                value={outlet.location}
+                                onChange={(e) =>
+                                  updateOutlet(
+                                    outlet.id,
+                                    "location",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="e.g., Living Room"
+                              />
+                            </div>
+
+                            <div>
+                              <Label>Count</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={outlet.count}
+                                onChange={(e) =>
+                                  updateOutlet(
+                                    outlet.id,
+                                    "count",
+                                    parseInt(e.target.value) || 1
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div className="flex items-end">
+                              <Button
+                                onClick={() => removeOutlet(outlet.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Lighting Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <Label className="text-lg font-semibold">
+                          Lighting
+                        </Label>
+                        <Button
+                          onClick={addLighting}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Lighting
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {editForm.lighting.map((light) => (
+                          <div
+                            key={light.id}
+                            className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
+                          >
+                            <div>
+                              <Label>Type</Label>
+                              <Select
+                                value={light.type}
+                                onValueChange={(value: LightingType) =>
+                                  updateLighting(light.id, "type", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {LIGHTING_TYPES.map((type) => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                    >
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Wattage</Label>
+                              <Select
+                                value={String(light.wattage)}
+                                onValueChange={(value) =>
+                                  updateLighting(
+                                    light.id,
+                                    "wattage",
+                                    parseInt(value)
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select wattage" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {LIGHTING_WATTAGE.map((w) => (
+                                    <SelectItem key={w} value={String(w)}>
+                                      {w} W
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Control</Label>
+                              <Select
+                                value={light.controlType}
+                                onValueChange={(value) =>
+                                  updateLighting(light.id, "controlType", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {CONTROL_TYPES.map((control) => (
+                                    <SelectItem
+                                      key={control.value}
+                                      value={control.value}
+                                    >
+                                      {control.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Location</Label>
+                              <Input
+                                value={light.location}
+                                onChange={(e) =>
+                                  updateLighting(
+                                    light.id,
+                                    "location",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="e.g., Kitchen"
+                              />
+                            </div>
+
+                            <div>
+                              <Label>Count</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={light.count}
+                                onChange={(e) =>
+                                  updateLighting(
+                                    light.id,
+                                    "count",
+                                    parseInt(e.target.value) || 1
+                                  )
+                                }
+                              />
+                            </div>
+
+                            <div className="flex items-end">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`emergency-${light.id}`}
+                                  checked={light.emergency}
+                                  onCheckedChange={(checked) =>
+                                    updateLighting(
+                                      light.id,
+                                      "emergency",
+                                      checked === true
+                                    )
+                                  }
+                                />
+                                <Label htmlFor={`emergency-${light.id}`}>
+                                  Emergency
+                                </Label>
+                              </div>
+                              <Button
+                                onClick={() => removeLighting(light.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive ml-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditForm(null);
+                        }}
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSaveEdit}>Save Changes</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Calculations Table */}
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>System</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Cable</TableHead>
+                      <TableHead className="text-right">Outlets</TableHead>
+                      <TableHead className="text-right">Lighting</TableHead>
+                      <TableHead className="text-right">Power Load</TableHead>
+                      <TableHead className="text-right">
+                        Material Cost
+                      </TableHead>
+                      <TableHead className="text-right">Total Cost</TableHead>
+                      <TableHead className="text-right">Efficiency</TableHead>
+                      {!readonly && (
+                        <TableHead className="text-right">Actions</TableHead>
                       )}
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Summary */}
-          {filteredCalculations?.length > 0 && (
-            <div className="mt-4 p-4 bg-muted rounded-lg">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Systems:</span>{" "}
-                  {filteredCalculations?.length}
-                </div>
-                <div>
-                  <span className="font-medium">Total Cable:</span>{" "}
-                  {formatLength(totals.totalCableLength)}
-                </div>
-                <div>
-                  <span className="font-medium">Total Load:</span>{" "}
-                  {formatPower(totals.totalPowerLoad)}
-                </div>
-                <div className="font-semibold">
-                  <span>Grand Total:</span> {formatCurrency(totals.totalCost)}
-                </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCalculations?.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={readonly ? 10 : 11}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          No electrical systems found.{" "}
+                          {!readonly && "Add your first system to get started."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredCalculations?.map((calc) => (
+                        <TableRow key={calc.id}>
+                          <TableCell className="font-medium">
+                            {calc.name}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className={getSystemColor(calc.systemType)}
+                            >
+                              {SYSTEM_TYPES.find(
+                                (t) => t.value === calc.systemType
+                              )?.label || calc.systemType}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatLength(calc.totalCableLength)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {calc.totalOutlets}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {calc.totalLighting}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatPower(calc.powerLoad)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(calc.materialCost)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(calc.totalCost)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex flex-col text-xs">
+                              <span>
+                                Cable:{" "}
+                                {formatEfficiency(
+                                  calc.efficiency.cableUtilization
+                                )}
+                              </span>
+                              <span>
+                                Circuit:{" "}
+                                {formatEfficiency(
+                                  calc.efficiency.circuitEfficiency
+                                )}
+                              </span>
+                              <span>
+                                Energy:{" "}
+                                {formatEfficiency(
+                                  calc.efficiency.energyEfficiency
+                                )}
+                              </span>
+                            </div>
+                          </TableCell>
+                          {!readonly && (
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(calc)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(calc.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
 
-              {/* Breakdown */}
-              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                <div>
-                  <span className="font-medium">Cables:</span>{" "}
-                  {formatCurrency(totals.breakdown.cables)}
+              {/* Summary */}
+              {filteredCalculations?.length > 0 && (
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Systems:</span>{" "}
+                      {filteredCalculations?.length}
+                    </div>
+                    <div>
+                      <span className="font-medium">Total Cable:</span>{" "}
+                      {formatLength(totals.totalCableLength)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Total Load:</span>{" "}
+                      {formatPower(totals.totalPowerLoad)}
+                    </div>
+                    <div className="font-semibold">
+                      <span>Grand Total:</span>{" "}
+                      {formatCurrency(totals.totalCost)}
+                    </div>
+                  </div>
+
+                  {/* Breakdown */}
+                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <span className="font-medium">Cables:</span>{" "}
+                      {formatCurrency(totals.breakdown.cables)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Outlets:</span>{" "}
+                      {formatCurrency(totals.breakdown.outlets)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Lighting:</span>{" "}
+                      {formatCurrency(totals.breakdown.lighting)}
+                    </div>
+                    <div>
+                      <span className="font-medium">Distribution:</span>{" "}
+                      {formatCurrency(totals.breakdown.distribution)}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Outlets:</span>{" "}
-                  {formatCurrency(totals.breakdown.outlets)}
-                </div>
-                <div>
-                  <span className="font-medium">Lighting:</span>{" "}
-                  {formatCurrency(totals.breakdown.lighting)}
-                </div>
-                <div>
-                  <span className="font-medium">Distribution:</span>{" "}
-                  {formatCurrency(totals.breakdown.distribution)}
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

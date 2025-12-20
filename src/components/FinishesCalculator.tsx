@@ -290,6 +290,96 @@ export default function FinishesCalculator({
 
   return (
     <div className="space-y-6">
+      {/* Masonry Plaster Results */}
+      {quote?.masonry_materials?.netPlaster > 0 && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <span className="text-2xl">🧱</span> Masonry Plaster Finishes
+            </CardTitle>
+            <CardDescription>
+              Plaster quantities calculated from masonry wall construction
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Plaster Area */}
+              <Card className="">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium ">
+                    Plaster Area
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {(quote.masonry_materials.netPlaster || 0).toFixed(2)}
+                  </div>
+                  <p className="text-xs mt-1">m²</p>
+                </CardContent>
+              </Card>
+
+              {/* Plaster Cost */}
+              <Card className="">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium ">
+                    Plaster Materials Cost
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">
+                    {formatCurrency(
+                      quote.masonry_materials.netPlasterCost || 0
+                    )}
+                  </div>
+                  <p className="text-xs mt-1">Net cost</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Plaster Materials Breakdown */}
+            <div className="mt-6 border-t pt-4">
+              <h4 className="font-semibold mb-3">
+                Plaster Materials Breakdown
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {quote.masonry_materials.materials?.find(
+                  (m: any) => m.type === "plaster"
+                ) && (
+                  <>
+                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded">
+                      <div className="text-gray-600 dark:text-gray-400 mb-1">
+                        Volume
+                      </div>
+                      <div className="text-lg font-semibold">
+                        {(
+                          quote.masonry_materials.materials.find(
+                            (m: any) => m.type === "plaster"
+                          )?.netQuantity || 0
+                        ).toFixed(2)}{" "}
+                        m²
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded">
+                      <div className="text-gray-600 dark:text-gray-400 mb-1">
+                        Cost
+                      </div>
+                      <div className="text-lg font-semibold text-green-600">
+                        {formatCurrency(
+                          quote.masonry_materials.materials.find(
+                            (m: any) => m.type === "plaster"
+                          )?.netCost || 0
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>

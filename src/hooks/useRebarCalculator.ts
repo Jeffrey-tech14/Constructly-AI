@@ -202,6 +202,13 @@ export const REBAR_PROPERTIES: Record<
     standardLengths: number[];
   }
 > = {
+  R6: {
+    diameterMm: 6,
+    areaMm2: 28.27,
+    weightKgPerM: 0.222,
+    yieldStrength: 500,
+    standardLengths: [6, 9, 12],
+  },
   Y6: {
     diameterMm: 6,
     areaMm2: 28.27,

@@ -132,7 +132,23 @@ Analyze this construction document and extract ALL available information about:
   | "foundation"
   | "strip-footing"
   | "tank";
-- RebarSize = "Y8" | "Y10" | "Y12" | "Y16" | "Y20" | "Y25";
+- RebarSize =
+  | "R6"
+  | "Y6"
+  | "Y8"
+  | "Y10"
+  | "Y12"
+  | "Y14"
+  | "Y16"
+  | "Y18"
+  | "Y20"
+  | "Y22"
+  | "Y25"
+  | "Y28"
+  | "Y32"
+  | "Y36"
+  | "Y40"
+  | "Y50";
 - ReinforcementType = "individual_bars" | "mesh";
 - FootingType = "isolated" | "strip" | "combined";
 - TankType =
@@ -427,7 +443,7 @@ Analyze this construction document and extract ALL available information about:
 - Note any special features like fireplaces, built-in cabinets, etc.
 - If a room cannot be plasters for whatever reason, mark as "None"
 
-### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS (NEW FOCUS): 
+### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS: 
 # - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 
 # - Identify the specified **FOUNDATION TYPE** (e.g., Strip Footing, Raft). 
 # - Identify the material used for the foundation wall/plinth level, specifically the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone). 
@@ -1174,6 +1190,8 @@ IMPORTANT:
 5. **All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
 6. **Be consistent with your type system** — no arbitrary strings.
 - Base your analysis on what you can actually see in the drawing
+- Use extrenal measurements for slabs
+- Make sure to identify lobbies, hallways, corridors e.t.c
 - External works should be in the concreteStructures section
 - Use reasonable architectural standards for missing information
 - Return at least one room if any building elements are visible
@@ -1185,9 +1203,9 @@ IMPORTANT:
 - Use the provided equipment types and ids, if your findings dont exist on the provided list, add them on your own
 - Convert all measurements to meters (mm ÷ 1000)
 - Use the specific types provided
-- Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not chnage the speling or characters
+- Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not change the spelling or characters
 - Be precise with room identification and dimensions
-- Do not leave any null items. If empty use resonable estimates based on the plan and what would be expected
+- Do not leave any null items. If empty use reasonable estimates based on the plan and what would be expected
 """
 
     result = call_gemini(file_path, GEMINI_PROMPT)

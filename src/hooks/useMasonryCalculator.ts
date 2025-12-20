@@ -189,6 +189,13 @@ export interface DPC {
   material: string;
 }
 
+export interface DPCPricing {
+  type: string; // e.g., "Polyethylene", "Bituminous Felt", "PVC DPC Roll"
+  sizes_m: string[]; // e.g., ["0.15 × 30", "0.20 × 30"]
+  price_kes: Record<string, number>; // e.g., { "0.15 × 30 m": 1800 }
+  thickness_mm: number[]; // e.g., [250, 500, 1000]
+}
+
 export interface MovementJoint {
   length: number;
   material: string;
@@ -264,12 +271,22 @@ export interface MasonryQSSettings {
   showAssumptions: boolean; // whether to display calculation assumptions
 }
 export const REBAR_WEIGHTS: Record<RebarSize, number> = {
+  R6: 0.222,
+  Y6: 0.222,
   Y8: 0.395,
   Y10: 0.617,
   Y12: 0.888,
+  Y14: 1.21,
   Y16: 1.579,
+  Y18: 2.0,
   Y20: 2.466,
+  Y22: 2.98,
   Y25: 3.855,
+  Y28: 4.834,
+  Y32: 6.313,
+  Y36: 8.0,
+  Y40: 9.864,
+  Y50: 15.41,
 };
 
 interface CalculationTotals {
@@ -832,7 +849,29 @@ export default function useMasonryCalculator({
     ]
   );
 
-  // Add the calculation functions for professional elements
+  // Helper function to get DPC price from new Supabase structure
+  const getDPCPrice = useCallback(
+    (dpcArea: number, dpcType: string = "Polyethylene"): number => {
+      if (!materialBasePrices || materialBasePrices.length === 0) return 0;
+
+      const dpcMaterial = materials.find((m) =>
+        m.name?.toLowerCase().includes("dpc")
+      )?.type;
+      if (!dpcMaterial) return 0;
+      const dpcCost = dpcArea * (dpcMaterial[dpcType || "Polyethylene"] || 0);
+
+      if (!dpcMaterial) return 0;
+
+      return dpcCost;
+    },
+    [
+      materialBasePrices,
+      userRegion,
+      userMaterialPrices,
+      regionalMultipliers,
+      getEffectiveMaterialPrice,
+    ]
+  );
   const calculateLintels = useCallback(
     (
       room: Room,
@@ -975,12 +1014,8 @@ export default function useMasonryCalculator({
       if (!currentQsSettings.includesDPC) return 0;
 
       const length = Number(room.length) || 0;
-      const width = Number(room.width) || 0;
 
-      if (!length || !width) return 0;
-
-      const perimeter = 2 * (length + width);
-      return perimeter * currentQsSettings.DPCWidth;
+      return length;
     },
     []
   );
@@ -1279,15 +1314,32 @@ export default function useMasonryCalculator({
     const fetchAllRebarPrices = async () => {
       if (!profile?.id) return;
 
-      const prices: PriceMap = {} as PriceMap;
-      const rebarSizes: RebarSize[] = ["Y8", "Y10", "Y12", "Y16", "Y20", "Y25"];
+      const prices: Record<string, number> = {};
+      const rebarSizes: RebarSize[] = [
+        "R6",
+        "Y6",
+        "Y8",
+        "Y10",
+        "Y12",
+        "Y14",
+        "Y16",
+        "Y18",
+        "Y20",
+        "Y22",
+        "Y25",
+        "Y28",
+        "Y32",
+        "Y36",
+        "Y40",
+        "Y50",
+      ];
 
       for (const size of rebarSizes) {
         const price = await getRebarPrice(size);
         prices[size] = price;
       }
 
-      setRebarPrices(prices);
+      setRebarPrices(prices as PriceMap);
     };
 
     fetchAllRebarPrices();
@@ -1572,7 +1624,6 @@ export default function useMasonryCalculator({
         materials.find((m) => m.name?.toLowerCase() === "ballast")?.price || 0;
       const waterPrice =
         materials.find((m) => m.name?.toLowerCase() === "water")?.price || 0;
-      const dpcPrice = getMaterialPrice("DPC", "Polyethylene");
       const sealantPrice = getMaterialPrice("Sealant", "Polyurethane");
 
       let totalProfessionalCost = 0;
@@ -1620,7 +1671,7 @@ export default function useMasonryCalculator({
       // Calculate DPC
       if (currentQsSettings.includesDPC) {
         const dpcArea = calculateDPC(room, currentQsSettings);
-        const dpcCost = dpcArea * dpcPrice;
+        const dpcCost = getDPCPrice(dpcArea, quote.dpcType || "Polyethylene");
         totalProfessionalCost += dpcCost;
       }
 
@@ -2097,7 +2148,8 @@ export default function useMasonryCalculator({
         netPlasterCost +
         netOpeningsCost +
         netWaterCost +
-        professionalElementsCost;
+        professionalElementsCost +
+        dpcCost;
 
       const grossCementKg =
         Math.ceil(
@@ -2138,7 +2190,8 @@ export default function useMasonryCalculator({
         grossPlasterCost +
         grossOpeningsCost +
         grossWaterCost +
-        professionalElementsCost;
+        professionalElementsCost +
+        dpcCost;
       totals.netLintelsCost += lintelsConcreteCost;
       totals.grossLintelsCost += lintelsConcreteCost;
 

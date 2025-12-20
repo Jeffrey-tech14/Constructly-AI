@@ -150,9 +150,8 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       }
     } catch (error) {
       console.error("Regeneration failed:", error);
-      setLastError(
-        error instanceof Error ? error.message : "Regeneration failed"
-      );
+      setLastError("Regeneration failed. Try again");
+      regenerateWithAI();
     } finally {
       setIsGenerating(false);
     }

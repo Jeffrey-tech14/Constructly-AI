@@ -170,7 +170,7 @@ export default function MasonryCalculatorForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 m-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 m-2">
         <div>
           <Label htmlFor="mortar-ratio">Mortar Ratio (Cement:Sand)</Label>
           <Input
@@ -183,7 +183,7 @@ export default function MasonryCalculatorForm({
         </div>
 
         <div>
-          <Label htmlFor="wastage">Wastage</Label>
+          <Label htmlFor="wastage">Wastage (%)</Label>
           <Input
             id="wastage"
             type="number"
@@ -194,7 +194,7 @@ export default function MasonryCalculatorForm({
                 wastageMasonry: parseFloat(e.target.value),
               })
             }
-            placeholder="e.g., 1:4"
+            placeholder="e.g., 5"
           />
         </div>
 
@@ -211,6 +211,47 @@ export default function MasonryCalculatorForm({
           />
           <span className="text-xs text-gray-500">Typical: 0.01m (10mm)</span>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 m-2">
+        <div>
+          <Label htmlFor="dpc-type">DPC Type</Label>
+
+          <Select
+            value={quote.dpcType || "Polyethylene"}
+            onValueChange={(value) =>
+              setQuote((prev) => ({
+                ...prev,
+                dpcType: value,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Polyethylene">Polyethylene</SelectItem>
+              <SelectItem value="Bituminous Felt">Bituminous Felt</SelectItem>
+              <SelectItem value="PVC DPC Roll">PVC DPC Roll</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 m-2">
+        <Checkbox
+          id="include-dpc"
+          checked={quote.includeDPC !== false}
+          onCheckedChange={(checked) =>
+            setQuote((prev) => ({
+              ...prev,
+              includeDPC: checked,
+            }))
+          }
+        />
+        <Label htmlFor="include-dpc" className="cursor-pointer font-medium">
+          Include DPC (Damp Proof Course) in calculations
+        </Label>
       </div>
 
       {qsSettings.clientProvidesWater ? (

@@ -67,6 +67,11 @@ const sizeOptions: RebarSize[] = [
   "Y20",
   "Y22",
   "Y25",
+  "Y28",
+  "Y32",
+  "Y36",
+  "Y40",
+  "Y50",
 ];
 const meshGrades = Object.keys(MESH_PROPERTIES);
 const meshSheetOptions = STANDARD_MESH_SHEETS.map(

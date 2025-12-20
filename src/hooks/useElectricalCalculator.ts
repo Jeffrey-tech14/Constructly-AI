@@ -562,6 +562,43 @@ export default function useElectricalCalculator(
 
   const calculateElectricalSystem = useCallback(
     (system: ElectricalSystem): ElectricalCalculation => {
+      // Handle lumpsum case
+      if (system.isLumpsum && system.lumpsumAmount) {
+        return {
+          id: system.id,
+          name: system.name,
+          systemType: system.systemType,
+          totalCableLength: 0,
+          totalOutlets: 0,
+          totalLighting: 0,
+          materialCost: system.lumpsumAmount,
+          totalCost: system.lumpsumAmount,
+          breakdown: {
+            cables: 0,
+            outlets: 0,
+            lighting: 0,
+            distribution: 0,
+            protection: 0,
+            accessories: 0,
+          },
+          efficiency: {
+            cableUtilization: 100,
+            circuitEfficiency: 100,
+            energyEfficiency: 100,
+          },
+          powerLoad: 0,
+          wastage: {
+            percentage: 0,
+            adjustedQuantities: {
+              cables: [],
+              outlets: [],
+              lighting: [],
+            },
+            totalWastageItems: 0,
+          },
+        };
+      }
+
       const wastagePercentage = getWastagePercentage();
 
       // Calculate costs with wastage applied to quantities
@@ -679,6 +716,39 @@ export default function useElectricalCalculator(
   );
 
   const calculateAll = useCallback(() => {
+    // Check if lumpsum mode is enabled
+    const useLumpsum = quote?.electrical?.useLumpsum || quote?.electrical_lumpsum_mode;
+    const lumpsumAmount = quote?.electrical?.amount || quote?.electrical_lumpsum_amount;
+    
+    if (useLumpsum && lumpsumAmount) {
+      // In lumpsum mode, return single total amount without calculating individual systems
+      setCalculations([]);
+      const wastagePercentage = getWastagePercentage();
+
+      setTotals({
+        totalCableLength: 0,
+        totalOutlets: 0,
+        totalLighting: 0,
+        totalMaterialCost: lumpsumAmount,
+        totalCost: lumpsumAmount,
+        totalPowerLoad: 0,
+        breakdown: {
+          cables: 0,
+          outlets: 0,
+          lighting: 0,
+          distribution: 0,
+          protection: 0,
+          accessories: 0,
+        },
+        wastage: {
+          percentage: wastagePercentage,
+          totalAdjustedItems: 0,
+          totalWastageItems: 0,
+        },
+      });
+      return;
+    }
+
     const calculatedResults = electricalSystems.map(calculateElectricalSystem);
     setCalculations(calculatedResults);
 
@@ -739,7 +809,12 @@ export default function useElectricalCalculator(
     );
 
     setTotals(newTotals);
-  }, [electricalSystems, calculateElectricalSystem, getWastagePercentage]);
+  }, [
+    electricalSystems,
+    calculateElectricalSystem,
+    getWastagePercentage,
+    quote,
+  ]);
 
   useEffect(() => {
     if (electricalSystems?.length > 0) calculateAll();

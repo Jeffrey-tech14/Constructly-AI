@@ -1616,10 +1616,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         );
       case 4:
         return (
-          <Card className="mb-3 p-1">
-            <h3 className="text-lg font-semibold mb-3 mt-1 ml-3">
-              Room Details *
-            </h3>
+          <div className="mb-3 p-1">
             <MasonryCalculatorForm
               quote={quoteData}
               setQuote={setQuoteData}
@@ -1629,7 +1626,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               userMaterialPrices={userMaterialPrices}
               getEffectiveMaterialPrice={getEffectiveMaterialPrice}
             />
-          </Card>
+          </div>
         );
       case 5:
         return (

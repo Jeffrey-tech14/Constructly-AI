@@ -1129,7 +1129,7 @@ export default function ConcreteCalculatorForm({
     if (!row.isSteppedFoundation) return null;
 
     return (
-      <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+      <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl">
         <div className="flex items-center justify-between">
           <h4 className="font-semibold text-purple-800 dark:text-purple-200">
             Stepped Foundation Details
@@ -1148,7 +1148,7 @@ export default function ConcreteCalculatorForm({
         {row.foundationSteps?.map((step, index) => (
           <div
             key={step.id}
-            className="grid sm:grid-cols-5 gap-2 p-3 bg-white dark:bg-gray-800 rounded border"
+            className="grid sm:grid-cols-5 gap-2 p-3 bg-white dark:bg-gray-800 rounded-2xl border"
           >
             <div className="flex items-center">
               <Badge
@@ -1237,16 +1237,18 @@ export default function ConcreteCalculatorForm({
         <div className="grid sm:grid-cols-2 gap-4">
           {shouldShowDPC && (
             <div className="flex items-center space-x-2">
-              <Checkbox
-                checked={row.waterproofing?.includesDPC || false}
-                onCheckedChange={(checked) =>
-                  updateRow(row.id, "waterproofing", {
-                    ...row.waterproofing,
-                    includesDPC: checked === true,
-                  })
-                }
-              />
-              <Label className="text-sm font-medium">Include DPC</Label>
+              <Label className="text-sm font-medium flex items-center space-x-2">
+                <Checkbox
+                  checked={row.waterproofing?.includesDPC || false}
+                  onCheckedChange={(checked) =>
+                    updateRow(row.id, "waterproofing", {
+                      ...row.waterproofing,
+                      includesDPC: checked === true,
+                    })
+                  }
+                />
+                <span className="ml-2">Include DPC</span>
+              </Label>
             </div>
           )}
 
@@ -1284,31 +1286,16 @@ export default function ConcreteCalculatorForm({
         </div>
 
         {row.waterproofing?.includesDPC && shouldShowDPC && (
-          <div className="grid sm:grid-cols-2 gap-2">
+          <div className="grid sm:grid-cols-3 gap-2">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">DPC Width (m)</Label>
-              <Input
-                type="number"
-                value={row.waterproofing?.dpcWidth || "0.225"}
-                onChange={(e) =>
-                  updateRow(row.id, "waterproofing", {
-                    ...row.waterproofing,
-                    dpcWidth: e.target.value,
-                  })
-                }
-                placeholder="0.225"
-                step="0.01"
-                min="0.1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">DPC Material</Label>
+              <Label className="text-sm font-medium">DPC Type</Label>
               <Select
-                value={row.waterproofing?.dpcMaterial || "bituminous"}
+                value={row.waterproofing?.dpcMaterial || "Polyethylene"}
                 onValueChange={(value) =>
                   updateRow(row.id, "waterproofing", {
                     ...row.waterproofing,
                     dpcMaterial: value,
+                    dpcSize: undefined,
                   })
                 }
               >
@@ -1316,9 +1303,11 @@ export default function ConcreteCalculatorForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bituminous">Bituminous Felt</SelectItem>
-                  <SelectItem value="polythene">Polythene Sheet</SelectItem>
-                  <SelectItem value="pvc">PVC Membrane</SelectItem>
+                  <SelectItem value="Polyethylene">Polyethylene</SelectItem>
+                  <SelectItem value="Bituminous Felt">
+                    Bituminous Felt
+                  </SelectItem>
+                  <SelectItem value="PVC DPC Roll">PVC DPC Roll</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1883,7 +1872,7 @@ export default function ConcreteCalculatorForm({
                       onChange={(e) =>
                         updateRow(row.id, "verandahArea", e.target.value)
                       }
-                      placeholder="Area to deduct"
+                      placeholder="Area"
                       step="0.1"
                     />
                     <p className="text-xs text-gray-500">
@@ -2334,14 +2323,8 @@ export default function ConcreteCalculatorForm({
                       <b>Cost Breakdown:</b>
                     </p>
                     <p>
-                      • Material Cost: Ksh{" "}
-                      {Math.round(result.materialCost || 0).toLocaleString()}
-                    </p>
-                    <p>
                       • Total Cost: Ksh{" "}
-                      {Math.round(
-                        result.totalConcreteCost || 0
-                      ).toLocaleString()}
+                      {Math.round(result.materialCost || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>

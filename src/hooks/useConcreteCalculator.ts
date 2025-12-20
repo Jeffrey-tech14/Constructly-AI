@@ -50,10 +50,18 @@ export interface WaterproofingDetails {
   includesDPC: boolean;
   dpcWidth?: string;
   dpcMaterial?: string;
+  dpcSize?: string; // New: selected size from DPC options
   includesPolythene: boolean;
   polytheneGauge?: string;
   includesWaterproofing: boolean;
   waterproofingType?: "bituminous" | "crystalline" | "membrane";
+}
+
+export interface DPCPricing {
+  type: string; // e.g., "Polyethylene", "Bituminous Felt", "PVC DPC Roll"
+  sizes_m: string[]; // e.g., ["0.15 × 30", "0.20 × 30"]
+  price_kes: Record<string, number>; // e.g., { "0.15 × 30 m": 1800 }
+  thickness_mm: number[]; // e.g., [250, 500, 1000]
 }
 
 export interface SepticTankDetails {
@@ -946,43 +954,41 @@ export function calculateConcrete(
     if (waterproofing.includesDPC && row.element === "foundation") {
       const dpcWidth = parseFloat(waterproofing.dpcWidth || "0.225");
       dpcArea = len * dpcWidth * num;
-      const dpcMaterial = materials.find(
-        (m) =>
-          m.name?.toLowerCase().includes("dpc") ||
-          m.name?.toLowerCase().includes("damp")
-      );
-      dpcCost = dpcArea * (dpcMaterial?.price || 0);
+      const dpcMaterial = materials.find((m) =>
+        m.name?.toLowerCase().includes("dpc")
+      )?.type;
+      dpcCost =
+        dpcArea *
+        (dpcMaterial[waterproofing.dpcMaterial || "Polyethylene"] || 0);
     }
 
     // Polythene only for slab elements
     if (waterproofing.includesPolythene && row.element === "slab") {
       polytheneArea = len * wid * num;
-      const polytheneMaterial = materials.find(
-        (m) =>
-          m.name?.toLowerCase().includes("polythene") ||
-          m.name?.toLowerCase().includes("dpm")
-      );
-      polytheneCost = polytheneArea * (polytheneMaterial?.price || 0);
+      const polytheneMaterial = materials.find((m) =>
+        m.name?.toLowerCase().includes("polythene")
+      )?.type;
+      const polythene_cost =
+        polytheneMaterial[waterproofing.polytheneGauge || "1000g"] || 0;
+      polytheneCost = polytheneArea * (polythene_cost || 0);
     }
 
     if (waterproofing.includesWaterproofing) {
       waterproofingArea = surfaceAreaM2;
-      const waterproofingMaterial = materials.find(
-        (m) =>
-          m.name?.toLowerCase().includes("waterproof") ||
-          m.name?.toLowerCase().includes("bituminous")
-      );
-      console.log("waterproofingMaterial", waterproofingMaterial);
+      const waterproofingMaterial = materials.find((m) =>
+        m.name?.toLowerCase().includes("waterproof")
+      )?.type;
       waterproofingCost =
-        waterproofingArea * (waterproofingMaterial?.price || 0);
+        waterproofingArea *
+        (waterproofingMaterial[
+          waterproofing.waterproofingType || "Bituminous Coating"
+        ] || 0);
     }
   }
 
   if (gravelVolume > 0) {
-    const gravelMaterial = materials.find(
-      (m) =>
-        m.name?.toLowerCase().includes("gravel") ||
-        m.name?.toLowerCase().includes("aggregate")
+    const gravelMaterial = materials.find((m) =>
+      m.name?.toLowerCase().includes("aggregate")
     );
     gravelCost = gravelVolume * (gravelMaterial?.price || 0);
   }

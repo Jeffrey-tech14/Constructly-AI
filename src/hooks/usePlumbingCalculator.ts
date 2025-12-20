@@ -481,6 +481,36 @@ export default function usePlumbingCalculator(
   );
 
   const calculateAll = useCallback(() => {
+    // Check if using category-level lumpsum
+    const useLumpsum = quote?.plumbing?.useLumpsum || quote?.plumbing_lumpsum_mode;
+    const lumpsumAmount = quote?.plumbing?.amount || quote?.plumbing_lumpsum_amount;
+    
+    if (useLumpsum && lumpsumAmount) {
+      // Return a single calculation for the lumpsum
+      setCalculations([]);
+      setTotals({
+        totalPipeLength: 0,
+        totalFixtures: 0,
+        totalMaterialCost: lumpsumAmount,
+        totalMaterialCostWithWastage: lumpsumAmount,
+        totalCost: lumpsumAmount,
+        totalCostWithWastage: lumpsumAmount,
+        breakdown: { pipes: 0, fixtures: 0, fittings: 0, accessories: 0 },
+        breakdownWithWastage: {
+          pipes: 0,
+          fixtures: 0,
+          fittings: 0,
+          accessories: 0,
+        },
+        wastage: {
+          percentage: 0,
+          totalAdjustedItems: 0,
+          totalWastageItems: 0,
+        },
+      });
+      return;
+    }
+
     const calculatedResults = plumbingSystems.map(calculatePlumbingSystem);
     setCalculations(calculatedResults);
 

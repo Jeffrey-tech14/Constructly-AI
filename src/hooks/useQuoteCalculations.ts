@@ -35,6 +35,7 @@ export interface Material {
   unit: string;
   region: string;
   price: number;
+  type: any;
   category: string;
 }
 
@@ -286,6 +287,7 @@ export const useQuoteCalculations = () => {
       return {
         ...material,
         result,
+        region: userRegion,
         source: userRate ? "user" : material.price != null ? "base" : "none",
       };
     });
@@ -308,6 +310,10 @@ export const useQuoteCalculations = () => {
       return {
         ...service,
         price,
+        region: region || "Nairobi",
+        service_id: service.id,
+        total: price,
+        days: 0,
         source: userRate ? "user" : service.price != null ? "base" : "none",
       };
     });

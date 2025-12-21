@@ -266,9 +266,6 @@ export interface MasonryQSSettings {
   lintelRebarSize: RebarSize;
   verticalRebarSize: RebarSize;
   bedJointRebarSize: RebarSize;
-
-  // Phase 4: Centre-Line Method (only method now)
-  showAssumptions: boolean; // whether to display calculation assumptions
 }
 export const REBAR_WEIGHTS: Record<RebarSize, number> = {
   R6: 0.222,
@@ -1923,11 +1920,6 @@ export default function useMasonryCalculator({
       // Phase 4: Use centre-line method (only method now)
       let netBlocks = getBlockCountCentreLinMethod(room);
       let calculationAssumptions = null;
-
-      // Calculate assumptions if enabled
-      if (qsSettings.showAssumptions) {
-        calculationAssumptions = getCalculationAssumptions(room);
-      }
 
       // Calculate material adjustments based on connectivity
       const connectivityMetrics = calculateConnectivityMetrics(room);

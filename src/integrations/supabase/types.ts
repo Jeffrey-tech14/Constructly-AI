@@ -284,6 +284,7 @@ export type Database = {
           daily_rate: number;
           description: string | null;
           id: string;
+          total_cost: number;
           name: string;
           unit: string;
         };
@@ -293,6 +294,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           name: string;
+          total_cost?: number;
           unit?: string;
         };
         Update: {
@@ -300,6 +302,7 @@ export type Database = {
           daily_rate?: number;
           description?: string | null;
           id?: string;
+          total_cost?: number;
           name?: string;
           unit?: string;
         };
@@ -772,6 +775,7 @@ export type Database = {
           daily_rate: number;
           equipment_type_id: string;
           id: string;
+          total_cost: number;
           updated_at: string;
           user_id: string;
         };
@@ -780,6 +784,7 @@ export type Database = {
           daily_rate: number;
           equipment_type_id: string;
           id?: string;
+          total_cost?: number;
           updated_at?: string;
           user_id: string;
         };
@@ -788,6 +793,7 @@ export type Database = {
           daily_rate?: number;
           equipment_type_id?: string;
           id?: string;
+          total_cost?: number;
           updated_at?: string;
           user_id?: string;
         };

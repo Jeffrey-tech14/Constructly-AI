@@ -132,7 +132,8 @@ export default function PlumbingCalculator({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<PlumbingSystem | null>(null);
   const [usePlumbingLumpsum, setUsePlumbingLumpsum] = useState(
-    quote?.plumbing?.useLumpsum === true || quote?.plumbing_lumpsum_mode === true
+    quote?.plumbing?.useLumpsum === true ||
+      quote?.plumbing_lumpsum_mode === true
   );
   const [plumbingLumpsumAmount, setPlumbingLumpsumAmount] = useState(
     quote?.plumbing?.amount || quote?.plumbing_lumpsum_amount || 0

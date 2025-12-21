@@ -114,6 +114,8 @@ export interface ElectricalSystem {
   lighting: LightingFixture[];
   distributionBoards: DistributionBoard[];
   protectionDevices: any[];
+  isLumpsum: boolean;
+  lumpsumAmount?: number;
   voltage: number;
 }
 
@@ -717,9 +719,11 @@ export default function useElectricalCalculator(
 
   const calculateAll = useCallback(() => {
     // Check if lumpsum mode is enabled
-    const useLumpsum = quote?.electrical?.useLumpsum || quote?.electrical_lumpsum_mode;
-    const lumpsumAmount = quote?.electrical?.amount || quote?.electrical_lumpsum_amount;
-    
+    const useLumpsum =
+      quote?.electrical?.useLumpsum || quote?.electrical_lumpsum_mode;
+    const lumpsumAmount =
+      quote?.electrical?.amount || quote?.electrical_lumpsum_amount;
+
     if (useLumpsum && lumpsumAmount) {
       // In lumpsum mode, return single total amount without calculating individual systems
       setCalculations([]);

@@ -367,6 +367,7 @@ const Variables = () => {
                               "Timber",
                               "UnderLayment",
                               "Wall-Finishes",
+                              "Waterproof",
                             ].includes(material.name) && (
                               <div className="text-sm text-muted-foreground">
                                 Base: KSh {material.price.toLocaleString()}
@@ -409,6 +410,8 @@ const Variables = () => {
                               "Timber",
                               "UnderLayment",
                               "Wall-Finishes",
+                              ,
+                              "Waterproof",
                             ].includes(material.name) && (
                               <div className="flex items-center space-x-2">
                                 <Input
@@ -471,6 +474,7 @@ const Variables = () => {
                               "Timber",
                               "UnderLayment",
                               "Wall-Finishes",
+                              "Waterproof",
                             ].includes(material.name) && (
                               <div className="text-xs text-emerald-600 font-medium">
                                 Current: KSh {effectivePrice.toLocaleString()}

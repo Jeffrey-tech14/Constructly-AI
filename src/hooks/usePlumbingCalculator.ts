@@ -482,9 +482,11 @@ export default function usePlumbingCalculator(
 
   const calculateAll = useCallback(() => {
     // Check if using category-level lumpsum
-    const useLumpsum = quote?.plumbing?.useLumpsum || quote?.plumbing_lumpsum_mode;
-    const lumpsumAmount = quote?.plumbing?.amount || quote?.plumbing_lumpsum_amount;
-    
+    const useLumpsum =
+      quote?.plumbing?.useLumpsum || quote?.plumbing_lumpsum_mode;
+    const lumpsumAmount =
+      quote?.plumbing?.amount || quote?.plumbing_lumpsum_amount;
+
     if (useLumpsum && lumpsumAmount) {
       // Return a single calculation for the lumpsum
       setCalculations([]);

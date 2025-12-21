@@ -963,6 +963,118 @@ export default function renderMaterialEditor(
     return renderCollapsible(content);
   }
 
+  // DPC (Damp Proof Course) - Simple object with material types and prices
+  if (material.name === "DPC" && isObject(material.type)) {
+    const { userOverride } = getUserOverrideAndPrice();
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(material.type).map(([dpcType, price], idx) => {
+          const key = `dpc-${dpcType}`;
+          const overridePrice =
+            tempValues[key] !== undefined
+              ? tempValues[key]
+              : userOverride?.type?.[dpcType] ?? price;
+
+          return (
+            <div key={idx} className="p-2 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{dpcType}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        material.name,
+                        "material",
+                        material.id,
+                        material.name,
+                        tempValues[key] ?? overridePrice,
+                        dpcType
+                      )
+                    }
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
+  // Waterproof - Simple object with material types and prices
+  if (material.name === "Waterproof" && isObject(material.type)) {
+    const { userOverride } = getUserOverrideAndPrice();
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(material.type).map(([waterproofType, price], idx) => {
+          const key = `waterproof-${waterproofType}`;
+          const overridePrice =
+            tempValues[key] !== undefined
+              ? tempValues[key]
+              : userOverride?.type?.[waterproofType] ?? price;
+
+          return (
+            <div key={idx} className="p-2 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{waterproofType}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        material.name,
+                        "material",
+                        material.id,
+                        material.name,
+                        tempValues[key] ?? overridePrice,
+                        waterproofType
+                      )
+                    }
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
   // Default case - show a simple editor for materials with type but no specific handler
   const content = (
     <div className="p-4 text-center text-gray-500">

@@ -162,7 +162,8 @@ export default function ElectricalCalculator({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ElectricalSystem | null>(null);
   const [useElectricalLumpsum, setUseElectricalLumpsum] = useState(
-    quote?.electrical?.useLumpsum === true || quote?.electrical_lumpsum_mode === true
+    quote?.electrical?.useLumpsum === true ||
+      quote?.electrical_lumpsum_mode === true
   );
   const [electricalLumpsumAmount, setElectricalLumpsumAmount] = useState(
     quote?.electrical?.amount || quote?.electrical_lumpsum_amount || 0

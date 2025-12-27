@@ -34,7 +34,7 @@ import useUniversalFinishesCalculator, {
   FinishCategory,
   FinishCalculation,
 } from "@/hooks/useUniversalFinishesCalculator";
-import { MasonryQSSettings } from "@/hooks/useMasonryCalculator";
+import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface FinishesCalculatorProps {
   finishes: FinishElement[];
@@ -311,8 +311,8 @@ export default function FinishesCalculator({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {(quote.masonry_materials.netPlaster || 0).toFixed(2)}
+                  <div className="text-xl font-bold text-blue-600">
+                    {(quote.masonry_materials.grossPlaster || 0).toFixed(2)}
                   </div>
                   <p className="text-xs mt-1">m²</p>
                 </CardContent>
@@ -326,55 +326,14 @@ export default function FinishesCalculator({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
+                  <div className="text-xl font-bold text-green-600">
                     {formatCurrency(
-                      quote.masonry_materials.netPlasterCost || 0
+                      quote.masonry_materials.grossPlasterCost || 0
                     )}
                   </div>
-                  <p className="text-xs mt-1">Net cost</p>
+                  <p className="text-xs mt-1">gross cost</p>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Plaster Materials Breakdown */}
-            <div className="mt-6 border-t pt-4">
-              <h4 className="font-semibold mb-3">
-                Plaster Materials Breakdown
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                {quote.masonry_materials.materials?.find(
-                  (m: any) => m.type === "plaster"
-                ) && (
-                  <>
-                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded">
-                      <div className="text-gray-600 dark:text-gray-400 mb-1">
-                        Volume
-                      </div>
-                      <div className="text-lg font-semibold">
-                        {(
-                          quote.masonry_materials.materials.find(
-                            (m: any) => m.type === "plaster"
-                          )?.netQuantity || 0
-                        ).toFixed(2)}{" "}
-                        m²
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded">
-                      <div className="text-gray-600 dark:text-gray-400 mb-1">
-                        Cost
-                      </div>
-                      <div className="text-lg font-semibold text-green-600">
-                        {formatCurrency(
-                          quote.masonry_materials.materials.find(
-                            (m: any) => m.type === "plaster"
-                          )?.netCost || 0
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
           </CardContent>
         </Card>

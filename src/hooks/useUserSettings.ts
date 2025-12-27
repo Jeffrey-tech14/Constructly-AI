@@ -14,12 +14,6 @@ export interface EquipmentType {
   usage_unit: string;
   description?: string;
 }
-export interface RoomType {
-  id: string;
-  name: string;
-  calculation_method: "volume" | "area";
-  description?: string;
-}
 export interface AdditionalService {
   id: string;
   name: string;
@@ -27,8 +21,8 @@ export interface AdditionalService {
   description?: string;
   category?: string;
   payment_plan?: string;
-  total: number;
-  days: number;
+  total?: number;
+  days?: number;
   unit: string;
 }
 export interface UserEquipmentRate {
@@ -71,6 +65,29 @@ export interface UserMaterialPrice {
   material_id: string;
   price: number;
 }
+export interface UserCustomEquipment {
+  id: string;
+  user_id: string;
+  equipment_name: string;
+  daily_rate: number;
+  hourly_rate: number;
+  usage_unit?: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+export interface UserCustomMaterial {
+  id: string;
+  user_id: string;
+  material_name: string;
+  price_per_unit: number;
+  unit: string;
+  category?: string;
+  description?: string;
+  type?: Record<string, any>;
+  created_at?: string;
+  updated_at?: string;
+}
 export const useUserSettings = () => {
   const { user, profile } = useAuth();
   const [equipmentTypes, setEquipmentTypes] = useState<EquipmentType[]>([]);
@@ -78,6 +95,12 @@ export const useUserSettings = () => {
     AdditionalService[]
   >([]);
   const [equipmentRates, setEquipmentRates] = useState<UserEquipmentRate[]>([]);
+  const [customEquipment, setCustomEquipment] = useState<UserCustomEquipment[]>(
+    []
+  );
+  const [customMaterials, setCustomMaterials] = useState<UserCustomMaterial[]>(
+    []
+  );
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
   const [serviceRates, setServiceRates] = useState<UserServiceRate[]>([]);
   const [subcontractorRates, setSubcontractorRates] = useState<
@@ -88,16 +111,6 @@ export const useUserSettings = () => {
   const isInitialLoad = useRef(true);
   const location = useLocation();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const fetchRoomTypes = useCallback(async () => {
-    try {
-      const { data, error } = await supabase.from("room_types").select("*");
-      if (error) throw error;
-      setRoomTypes(data);
-    } catch (error) {
-      console.error("Error fetching room types:", error);
-    }
-  }, []);
   const fetchEquipmentTypes = useCallback(async () => {
     try {
       const { data } = await supabase
@@ -140,6 +153,8 @@ export const useUserSettings = () => {
         { data: serviceData },
         { data: subcontractorData },
         { data: materialData },
+        { data: customEquipmentData },
+        { data: customMaterialsData },
       ] = await Promise.all([
         supabase
           .from("user_equipment_rates")
@@ -158,12 +173,22 @@ export const useUserSettings = () => {
           .from("user_material_prices")
           .select("*")
           .eq("user_id", user.id),
+        supabase.from("user_equipment").select("*").eq("user_id", user.id),
+        supabase.from("user_materials").select("*").eq("user_id", user.id),
       ]);
-      setEquipmentRates(equipmentData);
-      setTransportRates(transportData);
-      setServiceRates(serviceData);
-      setSubcontractorRates(subcontractorData);
-      setMaterialPrices(materialData);
+      setEquipmentRates(equipmentData as unknown as UserEquipmentRate[]);
+      setTransportRates(transportData as unknown as UserTransportRate[]);
+      setServiceRates(serviceData as unknown as UserServiceRate[]);
+      setSubcontractorRates(
+        subcontractorData as unknown as UserSubcontractorRate[]
+      );
+      setMaterialPrices(materialData as unknown as UserMaterialPrice[]);
+      setCustomEquipment(
+        (customEquipmentData as unknown as UserCustomEquipment[]) || []
+      );
+      setCustomMaterials(
+        (customMaterialsData as unknown as UserCustomMaterial[]) || []
+      );
     } catch (err) {
       console.error("Error fetching user rates:", err);
     }
@@ -173,7 +198,6 @@ export const useUserSettings = () => {
       if (!silent && isInitialLoad.current) setLoading(true);
       await Promise.allSettled([
         fetchEquipmentTypes(),
-        fetchRoomTypes(),
         fetchAdditionalServices(),
         fetchSubcontractors(),
         fetchUserRates(),
@@ -185,7 +209,6 @@ export const useUserSettings = () => {
     },
     [
       fetchEquipmentTypes,
-      fetchRoomTypes,
       fetchAdditionalServices,
       fetchSubcontractors,
       fetchUserRates,
@@ -370,20 +393,228 @@ export const useUserSettings = () => {
       };
     }
   };
+
+  const addCustomEquipment = async (
+    equipmentName: string,
+    dailyRate: number,
+    hourlyRate: number,
+    description?: string,
+    usageUnit?: string
+  ) => {
+    if (!user) return { error: "User not authenticated" };
+    try {
+      const { data, error } = await supabase
+        .from("user_equipment")
+        .insert([
+          {
+            user_id: user.id,
+            equipment_name: equipmentName,
+            daily_rate: dailyRate,
+            hourly_rate: hourlyRate,
+            usage_unit: usageUnit || "day",
+            description: description || null,
+          },
+        ])
+        .select()
+        .single();
+      if (error) throw error;
+      setCustomEquipment((prev) => [
+        ...prev,
+        data as unknown as UserCustomEquipment,
+      ]);
+      return { data: data as unknown as UserCustomEquipment, error: null };
+    } catch (err) {
+      console.error("Error adding custom equipment:", err);
+      return {
+        data: null,
+        error: err instanceof Error ? err.message : "Failed to add equipment",
+      };
+    }
+  };
+
+  const updateCustomEquipment = async (
+    equipmentId: string,
+    equipmentName: string,
+    dailyRate: number,
+    hourlyRate: number,
+    description?: string,
+    usageUnit?: string
+  ) => {
+    if (!user) return { error: "User not authenticated" };
+    try {
+      const { data, error } = await supabase
+        .from("user_equipment")
+        .update({
+          equipment_name: equipmentName,
+          daily_rate: dailyRate,
+          hourly_rate: hourlyRate,
+          usage_unit: usageUnit || "day",
+          description: description || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", equipmentId)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      setCustomEquipment((prev) =>
+        prev.map((eq) =>
+          eq.id === equipmentId ? (data as unknown as UserCustomEquipment) : eq
+        )
+      );
+      return { data: data as unknown as UserCustomEquipment, error: null };
+    } catch (err) {
+      console.error("Error updating custom equipment:", err);
+      return {
+        data: null,
+        error:
+          err instanceof Error ? err.message : "Failed to update equipment",
+      };
+    }
+  };
+
+  const deleteCustomEquipment = async (equipmentId: string) => {
+    if (!user) return { error: "User not authenticated" };
+    try {
+      const { error } = await supabase
+        .from("user_equipment")
+        .delete()
+        .eq("id", equipmentId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setCustomEquipment((prev) => prev.filter((eq) => eq.id !== equipmentId));
+      return { error: null };
+    } catch (err) {
+      console.error("Error deleting custom equipment:", err);
+      return {
+        error:
+          err instanceof Error ? err.message : "Failed to delete equipment",
+      };
+    }
+  };
+
+  const addCustomMaterial = async (
+    materialName: string,
+    pricePerUnit: number,
+    unit: string = "unit",
+    category?: string,
+    description?: string,
+    type?: Record<string, any>
+  ) => {
+    if (!user) return { error: "User not authenticated" };
+    try {
+      const { data, error } = await supabase
+        .from("user_materials")
+        .insert([
+          {
+            user_id: user.id,
+            material_name: materialName,
+            price_per_unit: pricePerUnit,
+            unit,
+            category: category || null,
+            description: description || null,
+            type: type || null,
+          },
+        ])
+        .select()
+        .single();
+      if (error) throw error;
+      setCustomMaterials((prev) => [
+        ...prev,
+        data as unknown as UserCustomMaterial,
+      ]);
+      return { data: data as unknown as UserCustomMaterial, error: null };
+    } catch (err) {
+      console.error("Error adding custom material:", err);
+      return {
+        data: null,
+        error: err instanceof Error ? err.message : "Failed to add material",
+      };
+    }
+  };
+
+  const updateCustomMaterial = async (
+    materialId: string,
+    materialName: string,
+    pricePerUnit: number,
+    unit: string = "unit",
+    category?: string,
+    description?: string,
+    type?: Record<string, any>
+  ) => {
+    if (!user) return { error: "User not authenticated" };
+    try {
+      const { data, error } = await supabase
+        .from("user_materials")
+        .update({
+          material_name: materialName,
+          price_per_unit: pricePerUnit,
+          unit,
+          category: category || null,
+          description: description || null,
+          type: type || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", materialId)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      setCustomMaterials((prev) =>
+        prev.map((mat) =>
+          mat.id === materialId ? (data as unknown as UserCustomMaterial) : mat
+        )
+      );
+      return { data: data as unknown as UserCustomMaterial, error: null };
+    } catch (err) {
+      console.error("Error updating custom material:", err);
+      return {
+        data: null,
+        error: err instanceof Error ? err.message : "Failed to update material",
+      };
+    }
+  };
+
+  const deleteCustomMaterial = async (materialId: string) => {
+    if (!user) return { error: "User not authenticated" };
+    try {
+      const { error } = await supabase
+        .from("user_materials")
+        .delete()
+        .eq("id", materialId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+      setCustomMaterials((prev) => prev.filter((mat) => mat.id !== materialId));
+      return { error: null };
+    } catch (err) {
+      console.error("Error deleting custom material:", err);
+      return {
+        error: err instanceof Error ? err.message : "Failed to delete material",
+      };
+    }
+  };
+
   return {
     equipmentTypes,
     additionalServices,
     equipmentRates,
+    customEquipment,
+    customMaterials,
     transportRates,
     serviceRates,
     subcontractorRates,
-    roomTypes,
     materialPrices,
     loading,
     updateEquipmentRate,
     updateTransportRate,
     updateServiceRate,
     updateSubcontractorRate,
+    addCustomEquipment,
+    updateCustomEquipment,
+    deleteCustomEquipment,
+    addCustomMaterial,
+    updateCustomMaterial,
+    deleteCustomMaterial,
     updateMaterialPrice,
     updateLabourPercent,
     updateOverallProfitMargin,

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { RebarSize } from "@/hooks/useRebarCalculator";
 import { Building, DollarSign } from "lucide-react";
-import { MasonryQSSettings } from "@/hooks/useMasonryCalculator";
+import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface MasonrySettingsProps {
   quoteData;

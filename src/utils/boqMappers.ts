@@ -254,8 +254,12 @@ const generateSuperstructureSection = (data: any): BOQSection => {
     });
   }
 
-  // Masonry from rooms
-  const masonryItems = extractMasonryFromRooms(data.rooms || []);
+  // Masonry from wall structure
+  const masonryItems = extractMasonryFromWalls(
+    data.wallDimensions,
+    data.wallSections,
+    data.wallProperties
+  );
   items.push(...masonryItems);
 
   return {
@@ -293,47 +297,8 @@ const generateFinishesSection = (data: any): BOQSection => {
 const generateOpeningsSection = (data: any): BOQSection => {
   const items: BOQItem[] = [createHeaderItem("DOORS AND WINDOWS", "openings")];
 
-  if (Array.isArray(data.rooms)) {
-    data.rooms.forEach((room) => {
-      if (Array.isArray(room.doors)) {
-        room.doors.forEach((door: any) => {
-          if (door.count > 0 && door.price > 0) {
-            items.push(
-              createBOQItem(
-                `${door.type} Door ${
-                  door.standardSize ? `(${door.standardSize})` : ""
-                }`,
-                "No",
-                door.count,
-                door.price,
-                "openings",
-                "Doors"
-              )
-            );
-          }
-        });
-      }
-
-      if (Array.isArray(room.windows)) {
-        room.windows.forEach((window: any) => {
-          if (window.count > 0 && window.price > 0) {
-            items.push(
-              createBOQItem(
-                `${window.glass} Glass Window ${
-                  window.standardSize ? `(${window.standardSize})` : ""
-                }`,
-                "No",
-                window.count,
-                window.price,
-                "openings",
-                "Windows"
-              )
-            );
-          }
-        });
-      }
-    });
-  }
+  const openingItems = extractDoorsAndWindowsFromWalls(data.wallSections || []);
+  items.push(...openingItems);
 
   return {
     title: "BILL NO. 5: DOORS AND WINDOWS",
@@ -473,41 +438,156 @@ const calculateWallArea = (row: any): number => {
   return length * height;
 };
 
-const extractMasonryFromRooms = (rooms: any[]): BOQItem[] => {
+const extractMasonryFromWalls = (
+  dimensions: any,
+  sections: any[],
+  properties: any
+): BOQItem[] => {
   const items: BOQItem[] = [];
-  const wallTypes = new Map();
 
-  rooms.forEach((room) => {
-    if (room.netArea > 0 && room.blockCost > 0) {
-      const key = `${room.thickness}_${room.blockType}_${room.plaster}`;
-      const existing = wallTypes.get(key);
+  if (!dimensions || !properties) {
+    return items;
+  }
 
-      if (existing) {
-        existing.area += room.netArea;
-        existing.cost += room.blockCost;
-      } else {
-        wallTypes.set(key, {
-          area: room.netArea,
-          cost: room.blockCost,
-          thickness: room.thickness,
-          blockType: room.blockType,
-          plaster: room.plaster,
-        });
-      }
+  try {
+    // Calculate total wall area from external and internal walls
+    const externalWallArea =
+      (dimensions.externalWallPerimiter || 0) *
+      (dimensions.externalWallHeight || 0);
+    const internalWallArea =
+      (dimensions.internalWallPerimiter || 0) *
+      (dimensions.internalWallHeight || 0);
+    const totalWallArea = externalWallArea + internalWallArea;
+
+    // Calculate opening area (doors and windows) to subtract
+    let openingArea = 0;
+    if (sections && Array.isArray(sections)) {
+      sections.forEach((section: any) => {
+        if (section.doors) {
+          section.doors.forEach((door: any) => {
+            const doorWidth = door.width || 0.9;
+            const doorHeight = door.height || 2.1;
+            openingArea += doorWidth * doorHeight;
+          });
+        }
+        if (section.windows) {
+          section.windows.forEach((window: any) => {
+            const windowWidth = window.width || 1.2;
+            const windowHeight = window.height || 1.5;
+            openingArea += windowWidth * windowHeight;
+          });
+        }
+      });
+    }
+
+    // Net wall area for material calculation
+    const netWallArea = Math.max(0, totalWallArea - openingArea);
+
+    if (netWallArea > 0) {
+      items.push(
+        createBOQItem(
+          `${(properties.thickness || 0.2) * 1000}mm ${
+            properties.blockType || "Standard Block"
+          } walling (${properties.plaster || "Both Sides"})`,
+          "m²",
+          netWallArea,
+          1200, // Default masonry rate - adjust based on your data
+          "superstructure",
+          "Masonry"
+        )
+      );
+    }
+  } catch (error) {
+    console.error("Error extracting masonry from walls:", error);
+  }
+
+  return items;
+};
+
+const extractDoorsAndWindowsFromWalls = (sections: any[]): BOQItem[] => {
+  const items: BOQItem[] = [];
+  const doorsMap = new Map<string, { count: number; price: number }>();
+  const windowsMap = new Map<string, { count: number; price: number }>();
+
+  if (!sections || !Array.isArray(sections)) {
+    return items;
+  }
+
+  sections.forEach((section: any) => {
+    // Process doors
+    if (section.doors && Array.isArray(section.doors)) {
+      section.doors.forEach((door: any) => {
+        if (door && typeof door === "object") {
+          const doorSize =
+            door.standardSize || `${door.width || 0.9}x${door.height || 2.1}`;
+          const doorType = door.type || "Wooden";
+          const key = `${doorType}_${doorSize}`;
+          const count = door.count || 1;
+          const price = door.price || 0;
+
+          if (count > 0 && price > 0) {
+            const existing = doorsMap.get(key);
+            if (existing) {
+              existing.count += count;
+            } else {
+              doorsMap.set(key, { count, price });
+            }
+          }
+        }
+      });
+    }
+
+    // Process windows
+    if (section.windows && Array.isArray(section.windows)) {
+      section.windows.forEach((window: any) => {
+        if (window && typeof window === "object") {
+          const windowSize =
+            window.standardSize ||
+            `${window.width || 1.2}x${window.height || 1.5}`;
+          const glassType = window.glass || "Clear";
+          const key = `${glassType}_${windowSize}`;
+          const count = window.count || 1;
+          const price = window.price || 0;
+
+          if (count > 0 && price > 0) {
+            const existing = windowsMap.get(key);
+            if (existing) {
+              existing.count += count;
+            } else {
+              windowsMap.set(key, { count, price });
+            }
+          }
+        }
+      });
     }
   });
 
-  wallTypes.forEach((value, key) => {
+  // Add consolidated door items
+  doorsMap.forEach((value, key) => {
+    const [doorType, doorSize] = key.split("_");
     items.push(
       createBOQItem(
-        `${value.thickness || "0.2"}m ${
-          value.blockType || "Standard Block"
-        } walling (${value.plaster || "Both Sides"})`,
-        "m²",
-        value.area,
-        value.cost / value.area,
-        "superstructure",
-        "Masonry"
+        `${doorType} Door (${doorSize})`,
+        "No",
+        value.count,
+        value.price,
+        "openings",
+        "Doors"
+      )
+    );
+  });
+
+  // Add consolidated window items
+  windowsMap.forEach((value, key) => {
+    const [glassType, windowSize] = key.split("_");
+    items.push(
+      createBOQItem(
+        `${glassType} Glass Window (${windowSize})`,
+        "No",
+        value.count,
+        value.price,
+        "openings",
+        "Windows"
       )
     );
   });

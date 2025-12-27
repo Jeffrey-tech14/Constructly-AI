@@ -171,7 +171,6 @@ export const AuthProvider: React.FC<{
           filter: `id=eq.${user.id}`,
         },
         (payload) => {
-          console.log("Realtime profile update:", payload);
           fetchProfile(user.id);
         }
       )

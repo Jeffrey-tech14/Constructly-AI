@@ -32,11 +32,7 @@ const exportBOQPDF = async (
 ): Promise<boolean> => {
   try {
     let materialSchedule: any[] = [];
-    if (
-      quote?.concrete_materials ||
-      quote?.rebar_calculations ||
-      quote?.rooms
-    ) {
+    if (quote?.concrete_materials || quote?.rebar_calculations) {
       try {
         const rawSchedule: MaterialSchedule =
           await AdvancedMaterialExtractor.extractWithGemini(quote);

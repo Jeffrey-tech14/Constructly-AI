@@ -95,18 +95,19 @@ def analyze_with_gemini(file_path: str) -> Dict[str, Any]:
     """Analyze construction document using Gemini only"""
     GEMINI_PROMPT = """
 You are an expert architectural AI analyzing construction drawings and plans with extreme attention to detail.
-(Keep output EXACTLY as JSON matching the requested schema. If no rooms detected, respond with {"error":"No rooms found"}.)
+(Keep output EXACTLY as JSON matching the requested schema. If no walls detected, respond with {"error":"No walls found"}.)
 
 Analyze this construction document and extract ALL available information about:
 
-### 🏠 ROOM IDENTIFICATION:
-- Identify ALL rooms/spaces (living rooms, bedrooms, kitchens, bathrooms, etc.)
-- Look for room labels, dimensions, and layout information
-- Note any specific room names or numbers
-- Identify shared walls between rooms and map them according to the json structure filling in all required data based on the plan
-- Pay special attention to room boundaries and labels within floor plans
-- Identify if rooms are marked as "Master Bedroom", "Bedroom 1", "Bedroom 2", etc.
-- Identify en-suite bathrooms vs shared bathrooms
+### 🏗️ WALL STRUCTURE IDENTIFICATION:
+- Calculate the TOTAL EXTERNAL WALL PERIMETER of the building footprint in meters
+- Calculate the TOTAL INTERNAL WALL PERIMETER in meters  
+- Identify the EXTERNAL WALL HEIGHT from ground to slab level
+- Identify the INTERNAL WALL HEIGHT from ground to slab level
+- Create wall sections categorized as "external" or "internal"
+- For each wall section, identify and list all doors and windows with their properties
+- Pay special attention to door and window schedules or labels (like DOO-001, WD-012, etc.)
+- Count doors and windows per section type
 
 **Plumbing:**
 - System types: "water-supply", "drainage", "sewage", "rainwater", "hot-water", "fire-fighting", "gas-piping", "irrigation"
@@ -151,6 +152,79 @@ Analyze this construction document and extract ALL available information about:
   | "Y50";
 - ReinforcementType = "individual_bars" | "mesh";
 - FootingType = "isolated" | "strip" | "combined";
+- MESH_PROPERTIES: Record<
+    string,
+    { weightPerSqm: number; wireDiameter: number; spacing: number }
+  > = {
+    A98: {
+      weightPerSqm: 1.54,
+      wireDiameter: 5,
+      spacing: 200,
+    },
+    A142: {
+      weightPerSqm: 2.22,
+      wireDiameter: 6,
+      spacing: 200,
+    },
+    A193: {
+      weightPerSqm: 3.02,
+      wireDiameter: 7,
+      spacing: 200,
+    },
+    A252: {
+      weightPerSqm: 3.95,
+      wireDiameter: 8,
+      spacing: 200,
+    },
+    A393: {
+      weightPerSqm: 6.16,
+      wireDiameter: 10,
+      spacing: 200,
+    },
+    B196: {
+      weightPerSqm: 2.45,
+      wireDiameter: 6,
+      spacing: 100,
+    },
+    B283: {
+      weightPerSqm: 3.73,
+      wireDiameter: 7,
+      spacing: 100,
+    },
+    B385: {
+      weightPerSqm: 5.0,
+      wireDiameter: 8,
+      spacing: 100,
+    },
+    B503: {
+      weightPerSqm: 6.72,
+      wireDiameter: 9,
+      spacing: 100,
+    },
+    B785: {
+      weightPerSqm: 10.9,
+      wireDiameter: 11,
+      spacing: 100,
+    },
+    C283: {
+      weightPerSqm: 4.34,
+      wireDiameter: 7,
+      spacing: 100,
+    },
+    C385: {
+      weightPerSqm: 6.0,
+      wireDiameter: 8.5,
+      spacing: 100,
+    },
+  };
+
+- STANDARD_MESH_SHEETS = [
+    { width: 2.4, length: 4.8 },
+    { width: 2.4, length: 6.0 },
+    { width: 2.4, length: 7.2 },
+    { width: 3.0, length: 6.0 },
+    { width: 3.6, length: 6.0 },
+  ];
 - TankType =
   | "septic"
   | "underground"
@@ -410,31 +484,25 @@ Analyze this construction document and extract ALL available information about:
 - Mixes to follow ratios eg 1:2:4, 1:2:3
 - Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
 
-### 📐 DIMENSION EXTRACTION:
-- Extract room dimensions (length × width) in meters
-- Look for dimension lines, labels, or text annotations
+### 📐 WALL DIMENSION EXTRACTION:
+- Calculate EXTERNAL WALL PERIMETER: sum of all exterior wall lengths in meters
+- Calculate INTERNAL WALL PERIMETER: sum of all interior partition wall lengths in meters
+- Extract EXTERNAL WALL HEIGHT: distance from ground to slab level in meters
+- Extract INTERNAL WALL HEIGHT: distance from ground to slab level for interior walls in meters
+- Look for dimension lines, labels, or grid references on the plan
+- Use external dimensions marked on the drawing
 - Convert all measurements to meters (mm values should be divided by 1000)
-- Pay attention to dimension lines that connect to room boundaries
-- Look for both internal and external dimensions
-- Identify grid lines or dimension strings that show room measurements
+- Pay attention to dimension strings and annotation
 
-### 🚪 DOOR & WINDOW SPECIFICATIONS:
-- Identify door types, sizes, and locations
-- Identify window types, sizes, and locations
-- Look for door/window schedules or labels (like DOO-001, WD-012, etc.)
-- Note door swings and window opening directions if visible
-- Count the number of doors and windows in each room
-
-- standardDoorSizes = [
-  "0.9 \u00D7 2.1 m",
-  "1.0 \u00D7 2.1 m",
-  "1.2 \u00D7 2.4 m",
-];
-- standardWindowSizes = [
-  "1.2 \u00D7 1.2 m",
-  "1.5 \u00D7 1.2 m",
-  "2.0 \u00D7 1.5 m",
-];
+### 🚪 DOOR & WINDOW SPECIFICATIONS IN WALLS:
+- Identify all doors: types, sizes, frame types, and counts
+- Identify all windows: glass types, sizes, frame types, and counts
+- Look for door/window schedules or symbols (like DOO-001, WD-012, etc.)
+- Note whether openings are in external or internal walls
+- We can only have two inputs for wall sections: "external" and "internal", we cannot have multiple wall sections of the same type, only one wall section with all its doors and windows listed
+- Count the total number of each type per wall section
+- standardDoorSizes = ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"]
+- standardWindowSizes = ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"]
 
 ### 🏗️ CONSTRUCTION DETAILS:
 - Note wall thicknesses if specified
@@ -451,379 +519,115 @@ Analyze this construction document and extract ALL available information about:
 # - Extract the approximate **MASONRY WALL HEIGHT** from the top of the footing to the slab level (e.g., 1.0m).
 
 ### 📤 OUTPUT REQUIREMENTS:
+Only use the materials specified above strictly.
 Return ONLY valid JSON with this structure. Use reasonable estimates if exact dimensions aren't visible.
 
 {
- "rooms": [
-    {
-      "roomType": "Living Room",
-      "room_name": "Main Living",
-      "length": "5.0",
-      "width": "4.0",
-      "height": "2.7",
-      "thickness": "0.2",
-      "blockType": "Standard Block",
-      "plaster": "Both Sides",
-      "customBlock": {
-        "length": "",
-        "height": "",
-        "thickness": "",
-        "price": ""
-      },
-      "doors": [
-        {
-          "sizeType": "standard",
-          "standardSize": "0.9 × 2.1 m",
-          "custom": {
-            "height": "2.1",
-            "width": "0.9",
-            "price": ""
-          },
-          "type": "Panel",
-          "frame": {
-            "type": "Wood",
-            "sizeType": "standard",
-            "standardSize": "0.9 × 2.1 m",
-            "height": "2.1",
-            "width": "0.9",
-            "custom": {
-              "height": "1.2",
-              "width": "1.2",
-              "price": ""
-            }
-          },
-          "count": 1
-        }
-      ],
-      "windows": [
-        {
-          "sizeType": "standard",
-          "standardSize": "1.2 × 1.2 m",
-          "custom": {
-            "height": "1.2",
-            "width": "1.2",
-            "price": ""
-          },
-          "type": "Clear",
-          "frame": {
-            "type": "Steel",
-            "sizeType": "standard",
-            "standardSize": "1.2 × 1.2 m",
-            "height": "1.2",
-            "width": "1.2",
-            "custom": {
-              "height": "1.2",
-              "width": "1.2",
-              "price": ""
-            }
-          },
-          "count": 1
-        }
-      ],
-      "wallConnectivity": {
-        "roomId": "room_1",
-        "position": {
-          "x": 0,
-          "y": 0
-        },
-        "walls": {
-          "north": {
-            "id": "wall_living_north",
-            "type": "shared",
-            "sharedWith": "room_2",
-            "sharedLength": 5.0,
-            "sharedArea": 13.5,
-            "openings": [
-              {
-                "id": "door_1",
-                "type": "door",
-                "connectsTo": "room_2",
-                "size": {
-                  "width": 0.9,
-                  "height": 2.1
-                },
-                "position": {
-                  "fromStart": 2.0,
-                  "fromFloor": 0.0
-                },
-                "area": 1.89
-              }
-            ],
-            "length": 5.0,
-            "height": 2.7,
-            "netArea": 11.61,
-            "grossArea": 13.5
-          },
-          "south": {
-            "id": "wall_living_south",
-            "type": "external",
-            "openings": [
-              {
-                "id": "window_1",
-                "type": "window",
-                "size": {
-                  "width": 1.2,
-                  "height": 1.2
-                },
-                "position": {
-                  "fromStart": 1.5,
-                  "fromFloor": 1.0
-                },
-                "area": 1.44
-              }
-            ],
-            "length": 5.0,
-            "height": 2.7,
-            "netArea": 12.06,
-            "grossArea": 13.5
-          },
-          "east": {
-            "id": "wall_living_east",
-            "type": "shared",
-            "sharedWith": "room_3",
-            "sharedLength": 4.0,
-            "sharedArea": 10.8,
-            "openings": [],
-            "length": 4.0,
-            "height": 2.7,
-            "netArea": 10.8,
-            "grossArea": 10.8
-          },
-          "west": {
-            "id": "wall_living_west",
-            "type": "external",
-            "openings": [],
-            "length": 4.0,
-            "height": 2.7,
-            "netArea": 10.8,
-            "grossArea": 10.8
-          }
-        },
-        "connectedRooms": ["room_2", "room_3"],
-        "sharedArea": 24.3,
-        "externalWallArea": 24.3
-      }
-    },
-    {
-      "roomType": "Bedroom",
-      "room_name": "Master Bedroom",
-      "length": "4.0",
-      "width": "3.5",
-      "height": "2.7",
-      "thickness": "0.2",
-      "blockType": "Standard Block",
-      "plaster": "Both Sides",
-      "customBlock": {
-        "length": "",
-        "height": "",
-        "thickness": "",
-        "price": ""
-      },
-      "doors": [
-        {
-          "sizeType": "standard",
-          "standardSize": "0.9 × 2.1 m",
-          "custom": {
-            "height": "2.1",
-            "width": "0.9",
-            "price": ""
-          },
-          "type": "Panel",
-          "frame": {
-            "type": "Wood",
-            "sizeType": "standard",
-            "standardSize": "0.9 × 2.1 m",
-            "height": "2.1",
-            "width": "0.9",
-            "custom": {
-              "height": "1.2",
-              "width": "1.2",
-              "price": ""
-            }
-          },
-          "count": 1
-        }
-      ],
-      "windows": [
-        {
-          "sizeType": "standard",
-          "standardSize": "1.2 × 1.2 m",
-          "custom": {
-            "height": "1.2",
-            "width": "1.2",
-            "price": ""
-          },
-          "type": "Clear",
-          "frame": {
-            "type": "Steel",
-            "sizeType": "standard",
-            "standardSize": "1.2 × 1.2 m",
-            "height": "1.2",
-            "width": "1.2",
-            "custom": {
-              "height": "1.2",
-              "width": "1.2",
-              "price": ""
-            }
-          },
-          "count": 1
-        }
-      ],
-      "wallConnectivity": {
-        "roomId": "room_2",
-        "position": {
-          "x": 0,
-          "y": 4
-        },
-        "walls": {
-          "south": {
-            "id": "wall_bedroom_south",
-            "type": "shared",
-            "sharedWith": "room_1",
-            "sharedLength": 4.0,
-            "sharedArea": 10.8,
-            "openings": [
-              {
-                "id": "door_1",
-                "type": "door",
-                "connectsTo": "room_1",
-                "size": {
-                  "width": 0.9,
-                  "height": 2.1
-                },
-                "position": {
-                  "fromStart": 1.5,
-                  "fromFloor": 0.0
-                },
-                "area": 1.89
-              }
-            ],
-            "length": 4.0,
-            "height": 2.7,
-            "netArea": 8.91,
-            "grossArea": 10.8
-          },
-          "north": {
-            "id": "wall_bedroom_north",
-            "type": "external",
-            "openings": [
-              {
-                "id": "window_2",
-                "type": "window",
-                "size": {
-                  "width": 1.2,
-                  "height": 1.2
-                },
-                "position": {
-                  "fromStart": 1.0,
-                  "fromFloor": 1.0
-                },
-                "area": 1.44
-              }
-            ],
-            "length": 4.0,
-            "height": 2.7,
-            "netArea": 9.36,
-            "grossArea": 10.8
-          },
-          "east": {
-            "id": "wall_bedroom_east",
-            "type": "external",
-            "openings": [],
-            "length": 3.5,
-            "height": 2.7,
-            "netArea": 9.45,
-            "grossArea": 9.45
-          },
-          "west": {
-            "id": "wall_bedroom_west",
-            "type": "external",
-            "openings": [],
-            "length": 3.5,
-            "height": 2.7,
-            "netArea": 9.45,
-            "grossArea": 9.45
-          }
-        },
-        "connectedRooms": ["room_1"],
-        "sharedArea": 10.8,
-        "externalWallArea": 40.5
-      }
-    }
-  ],
-  "walls": [
-    {
-      "id": "wall_living_north",
-      "start": [0, 4],
-      "end": [5, 4],
-      "thickness": "0.2",
-      "height": "2.7",
-      "blockType": "Standard Block",
-      "connectedRooms": ["room_1", "room_2"],
-      "area": "13.5",
-      "isShared": true,
-      "sharedWith": ["room_2"]
-    },
-    {
-      "id": "wall_living_east",
-      "start": [5, 0],
-      "end": [5, 4],
-      "thickness": "0.2",
-      "height": "2.7",
-      "blockType": "Standard Block",
-      "connectedRooms": ["room_1", "room_3"],
-      "area": "10.8",
-      "isShared": true,
-      "sharedWith": ["room_3"]
-    }
-  ],
-  "floors": 1,
-  "connectivity": {
-    "sharedWalls": [
-      {
-        "id": "shared_living_bedroom",
-        "room1Id": "room_1",
-        "room2Id": "room_2",
-        "wall1Id": "wall_living_north",
-        "wall2Id": "wall_bedroom_south",
-        "sharedLength": 5.0,
-        "sharedArea": 13.5,
-        "openings": ["door_1"]
-      },
-      {
-        "id": "shared_living_kitchen",
-        "room1Id": "room_1",
-        "room2Id": "room_3",
-        "wall1Id": "wall_living_east",
-        "wall2Id": "wall_kitchen_west",
-        "sharedLength": 4.0,
-        "sharedArea": 10.8,
-        "openings": []
-      }
-    ],
-    "roomPositions": {
-      "room_1": {
-        "x": 0,
-        "y": 0
-      },
-      "room_2": {
-        "x": 0,
-        "y": 4
-      },
-      "room_3": {
-        "x": 5,
-        "y": 0
-      }
-    },
-    "totalSharedArea": 24.3,
-    "efficiency": {
-      "spaceUtilization": 0.85,
-      "wallEfficiency": 0.78,
-      "connectivityScore": 0.92
-    }
+  "wallDimensions": {
+    "externalWallPerimiter": 50.5,
+    "internalWallPerimiter": 35.2,
+    "externalWallHeight": 3.0,
+    "internalWallHeight": 2.7
   },
+  "wallSections": [
+    {
+      "type": "external",
+      "blockType": "Standard Block (400×200×200mm)",
+      "thickness": 0.2,
+      "plaster": "Both Sides",
+      "doors": [
+        {
+          "sizeType": "standard",
+          "standardSize": "0.9 × 2.1 m",
+          "custom": {
+            "height": "2.1",
+            "width": "0.9",
+            "price": ""
+          },
+          "type": "Panel",
+          "frame": {
+            "type": "Wood",
+            "sizeType": "standard",
+            "standardSize": "0.9 × 2.1 m",
+            "height": "2.1",
+            "width": "0.9",
+            "custom": {
+              "height": "2.1",
+              "width": "0.9",
+              "price": ""
+            }
+          },
+          "count": 1,
+          "price": 0
+        }
+      ],
+      "windows": [
+        {
+          "sizeType": "standard",
+          "standardSize": "1.2 × 1.2 m",
+          "custom": {
+            "height": "1.2",
+            "width": "1.2",
+            "price": ""
+          },
+          "glass": "Clear",
+          "frame": {
+            "type": "Steel",
+            "sizeType": "standard",
+            "standardSize": "1.2 × 1.2 m",
+            "height": "1.2",
+            "width": "1.2",
+            "custom": {
+              "height": "1.2",
+              "width": "1.2",
+              "price": ""
+            }
+          },
+          "count": 2,
+          "price": 0
+        }
+      ]
+    },
+    {
+      "type": "internal",
+      "blockType": "Standard Block (400×200×200mm)",
+      "thickness": 0.2,
+      "plaster": "Both Sides",
+      "doors": [
+        {
+          "sizeType": "standard",
+          "standardSize": "0.9 × 2.1 m",
+          "custom": {
+            "height": "2.1",
+            "width": "0.9",
+            "price": ""
+          },
+          "type": "Panel",
+          "frame": {
+            "type": "Wood",
+            "sizeType": "standard",
+            "standardSize": "0.9 × 2.1 m",
+            "height": "2.1",
+            "width": "0.9",
+            "custom": {
+              "height": "2.1",
+              "width": "0.9",
+              "price": ""
+            }
+          },
+          "count": 5,
+          "price": 0
+        }
+      ],
+      "windows": []
+    }
   ],
-  "floors": 1
+  "wallProperties": {
+    "blockType": "Standard Block (400×200×200mm)",
+    "thickness": 0.2,
+    "plaster": "Both Sides"
+  },
+  "floors": 1,
   "foundationDetails": { 
     "foundationType": "Strip Footing", 
     "totalPerimeter": 50.5, // Total length of all exterior foundation walls in meters 
@@ -838,7 +642,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
   "projectType": "residential" | "commercial" | "industrial" | "institutional",
   "floors": number,
   "totalArea": number,
-  "houseType": string,
+  "houseType": "bungalow" | "mansionate" | "apartment" | "villa" | "townhouse" |" warehouse"|"mansion",
   "description": string
   "projectName": string,
   "projectLocation": string,
@@ -867,6 +671,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       number: string;
       hasConcreteBed?: boolean;
       verandahArea: number;
+      slabArea?: number;
       bedDepth?: string;
       hasAggregateBed?: boolean;
       aggregateDepth?: string;
@@ -1180,7 +985,11 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
 IMPORTANT: 
 1. **DO NOT invent dimensions** that are not visible or inferable.
 2. **Use defaults only when reasonable**:
-   - Room height → 2.7 m
+   - External wall height → 3.0 m
+   - Internal wall height → 2.7 m
+   - Wall thickness → 0.2 m
+   - Block type → "Standard Block (400×200×200mm)"
+   - Plaster → "Both Sides"
    - Roof wastage → 5%
    - Electrical voltage → 230V
    - Fixture quality → "standard"
@@ -1190,38 +999,37 @@ IMPORTANT:
 5. **All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
 6. **Be consistent with your type system** — no arbitrary strings.
 - Base your analysis on what you can actually see in the drawing
-- Use extrenal measurements for slabs
-- Make sure to identify lobbies, hallways, corridors e.t.c
+- Use external dimensions for perimeters
+- Make sure to identify all wall sections (external and internal)
 - External works should be in the concreteStructures section
 - Use reasonable architectural standards for missing information
-- Return at least one room if any building elements are visible
+- Return wall structure even if some dimensions are estimated
 - Prefer custom sizes when specific dimensions are visible
-- For bedrooms, distinguish between "Master Bedroom" and regular "Bedroom"
-- For bathrooms, identify if they are "En-suite" or shared
 - Pay special attention to dimension lines and labels
-- Estimate resonably the equipment that would be used and days to be used
+- Estimate reasonably the equipment that would be used and days to be used
 - Use the provided equipment types and ids, if your findings dont exist on the provided list, add them on your own
 - Convert all measurements to meters (mm ÷ 1000)
 - Use the specific types provided
 - Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not change the spelling or characters
-- Be precise with room identification and dimensions
+- Be precise with wall dimension extraction
+- Calculate perimeters by summing all wall lengths
+- For internal walls, measure partition lengths
 - Do not leave any null items. If empty use reasonable estimates based on the plan and what would be expected
 """
 
     result = call_gemini(file_path, GEMINI_PROMPT)
     
-    # Validate the result structure
     if not isinstance(result, dict):
         raise RuntimeError("Gemini returned invalid response format")
     
     if "error" in result:
         return result
     
-    if "rooms" not in result:
-        raise RuntimeError("Gemini response missing 'rooms' field")
+    if "wallDimensions" not in result or "wallProperties" not in result:
+        raise RuntimeError("Gemini response missing 'wallDimensions' or 'wallProperties' fields")
     
-    if not result["rooms"]:
-        return {"error": "No rooms found in analysis"}
+    if not result.get("wallDimensions"):
+        return {"error": "No wall dimensions found in analysis"}
     
     return result
 

@@ -11,13 +11,15 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Calculator, Plus, Trash } from "lucide-react";
-import useMasonryCalculator, {
+import { Calculator, Plus, Trash, Layers } from "lucide-react";
+import useMasonryCalculatorNew, {
   MasonryQSSettings,
-  Room,
   Door,
   Window,
-} from "@/hooks/useMasonryCalculator";
+  Dimensions,
+  WallSection,
+  WallProperties,
+} from "@/hooks/useMasonryCalculatorNew";
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
 import { Card } from "./ui/card";
@@ -82,19 +84,25 @@ export default function MasonryCalculatorForm({
   getEffectiveMaterialPrice,
 }: MasonryCalculatorFormProps) {
   const {
-    rooms,
+    wallDimensions,
+    wallSections,
+    wallProperties,
+    updateWallDimensions,
+    updateWallProperties,
+    addWallSection,
+    removeWallSection,
+    addDoorToSection,
+    addWindowToSection,
+    removeDoorFromSection,
+    removeWindowFromSection,
+    updateDoorInSection,
+    updateWindowInSection,
+    updateWallSectionProperties,
+    calculateMasonry,
     results,
-    addRoom,
-    removeRoom,
-    handleRoomChange,
-    handleNestedChange,
-    addDoor,
-    addWindow,
-    removeNested,
-    removeEntry,
     qsSettings,
     waterPrice,
-  } = useMasonryCalculator({
+  } = useMasonryCalculatorNew({
     setQuote,
     quote,
     materialBasePrices,
@@ -143,15 +151,6 @@ export default function MasonryCalculatorForm({
             <span className="font-medium">Mortar:</span>{" "}
             {results.netMortar?.toFixed(3) || 0} net →{" "}
             {results.grossMortar?.toFixed(3) || 0} gross m³
-          </div>
-          <div>
-            <span className="font-medium">Plaster:</span>{" "}
-            {results.netPlaster?.toFixed(2) || 0} net →{" "}
-            {results.grossPlaster?.toFixed(2) || 0} gross m²
-          </div>
-          <div>
-            <span className="font-medium">Wall Area:</span>{" "}
-            {results.netArea?.toFixed(2) || 0} m² net
           </div>
           <div>
             <span className="font-medium">Water:</span>{" "}
@@ -278,307 +277,444 @@ export default function MasonryCalculatorForm({
       ) : null}
 
       <div className="space-y-4">
-        {rooms.map((room: Room, index: number) => (
-          <RoomSection
-            key={index}
-            room={room}
-            index={index}
-            onRoomChange={handleRoomChange}
-            onNestedChange={handleNestedChange}
-            onAddDoor={() => addDoor(index)}
-            onAddWindow={() => addWindow(index)}
-            onRemoveNested={removeNested}
-            onRemoveEntry={removeEntry}
-            onRemoveRoom={() => removeRoom(index)}
-            qsSettings={qsSettings}
-            roomBreakdown={results.breakdown?.[index]}
-          />
-        ))}
+        {/* Wall Dimensions Section */}
+        <Card className="border">
+          <div className="p-4 rounded-t-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+              <Layers className="w-5 h-5" />
+              Wall Dimensions
+            </h3>
+          </div>
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="ext-perimeter">
+                  External Wall Perimeter (m)
+                </Label>
+                <Input
+                  id="ext-perimeter"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={wallDimensions?.externalWallPerimiter || 0}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    updateWallDimensions({
+                      ...wallDimensions,
+                      externalWallPerimiter: value,
+                    });
+                    calculateMasonry();
+                  }}
+                  placeholder="e.g., 100"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Total perimeter of external walls
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="int-perimeter">
+                  Internal Wall Perimeter (m)
+                </Label>
+                <Input
+                  id="int-perimeter"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={wallDimensions?.internalWallPerimiter || 0}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    updateWallDimensions({
+                      ...wallDimensions,
+                      internalWallPerimiter: value,
+                    });
+                    calculateMasonry();
+                  }}
+                  placeholder="e.g., 50"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Total perimeter of internal walls
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="ext-height">External Wall Height (m)</Label>
+                <Input
+                  id="ext-height"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={wallDimensions?.externalWallHeight || 0}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    updateWallDimensions({
+                      ...wallDimensions,
+                      externalWallHeight: value,
+                    });
+                    calculateMasonry();
+                  }}
+                  placeholder="e.g., 3.0"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Height of external walls
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="int-height">Internal Wall Height (m)</Label>
+                <Input
+                  id="int-height"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={wallDimensions?.internalWallHeight || 0}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    updateWallDimensions({
+                      ...wallDimensions,
+                      internalWallHeight: value,
+                    });
+                    calculateMasonry();
+                  }}
+                  placeholder="e.g., 2.8"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Height of internal walls
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
 
-        <Button
-          onClick={addRoom}
-          variant="outline"
-          size="sm"
-          className="w-full"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Room
-        </Button>
+        {/* Wall Sections Section */}
+        <Card className="border">
+          <div className="p-4 bg-gradient-to-r rounded-t-3xl from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
+                Wall Sections & Openings
+              </h3>
+              <Button
+                onClick={() => {
+                  addWallSection("external");
+                  calculateMasonry();
+                }}
+                size="sm"
+                variant="outline"
+                className="mr-2"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add External Wall
+              </Button>
+              <Button
+                onClick={() => {
+                  addWallSection("internal");
+                  calculateMasonry();
+                }}
+                size="sm"
+                variant="outline"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Internal Wall
+              </Button>
+            </div>
+          </div>
+          <div className="p-4 space-y-4">
+            {wallSections && wallSections.length > 0 ? (
+              wallSections.map((section: WallSection, sectionIndex: number) => (
+                <WallSectionComponent
+                  key={sectionIndex}
+                  section={section}
+                  sectionIndex={sectionIndex}
+                  onAddDoor={() => {
+                    addDoorToSection(sectionIndex);
+                    calculateMasonry();
+                  }}
+                  onAddWindow={() => {
+                    addWindowToSection(sectionIndex);
+                    calculateMasonry();
+                  }}
+                  onRemoveSection={() => {
+                    removeWallSection(sectionIndex);
+                    calculateMasonry();
+                  }}
+                  onRemoveDoor={(doorIndex) => {
+                    removeDoorFromSection(sectionIndex, doorIndex);
+                    calculateMasonry();
+                  }}
+                  onRemoveWindow={(windowIndex) => {
+                    removeWindowFromSection(sectionIndex, windowIndex);
+                    calculateMasonry();
+                  }}
+                  onUpdateDoor={(doorIndex, field, value) => {
+                    updateDoorInSection(sectionIndex, doorIndex, field, value);
+                    calculateMasonry();
+                  }}
+                  onUpdateWindow={(windowIndex, field, value) => {
+                    updateWindowInSection(
+                      sectionIndex,
+                      windowIndex,
+                      field,
+                      value
+                    );
+                    calculateMasonry();
+                  }}
+                  onUpdateProperties={(properties) => {
+                    updateWallSectionProperties(sectionIndex, properties);
+                    calculateMasonry();
+                  }}
+                  standardDoorSizes={standardDoorSizes}
+                  standardWindowSizes={standardWindowSizes}
+                  doorTypes={doorTypes}
+                  windowGlassTypes={windowGlassTypes}
+                  frameTypes={frameTypes}
+                />
+              ))
+            ) : (
+              <div className="p-4 text-center text-gray-500 dark:text-gray-400 rounded-lg bg-gray-50 dark:bg-gray-800/20">
+                No wall sections added yet. Click "Add External Wall" or "Add
+                Internal Wall" to start.
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
     </div>
   );
 }
-interface RoomSectionProps {
-  room: Room;
-  index: number;
-  onRoomChange: (index: number, field: keyof Room, value: any) => void;
-  onNestedChange: (
-    index: number,
-    field: "doors" | "windows",
-    nestedIndex: number,
-    key: string,
-    value: any
-  ) => void;
+interface WallSectionComponentProps {
+  section: WallSection;
+  sectionIndex: number;
   onAddDoor: () => void;
   onAddWindow: () => void;
-  onRemoveNested: (
-    index: number,
-    field: "doors" | "windows",
-    nestedIndex: number
-  ) => void;
-  onRemoveEntry: (
-    index: number,
-    field: "doors" | "windows",
-    nestedIndex: number
-  ) => void;
-  onRemoveRoom: () => void;
-  qsSettings: MasonryQSSettings;
-  roomBreakdown?: any;
+  onRemoveSection: () => void;
+  onRemoveDoor: (doorIndex: number) => void;
+  onRemoveWindow: (windowIndex: number) => void;
+  onUpdateDoor: (doorIndex: number, field: string, value: any) => void;
+  onUpdateWindow: (windowIndex: number, field: string, value: any) => void;
+  onUpdateProperties: (properties: Partial<WallSection>) => void;
+  standardDoorSizes: string[];
+  standardWindowSizes: string[];
+  doorTypes: string[];
+  windowGlassTypes: string[];
+  frameTypes: string[];
 }
-function RoomSection({
-  room,
-  index,
-  onRoomChange,
-  onNestedChange,
+
+function WallSectionComponent({
+  section,
+  sectionIndex,
   onAddDoor,
   onAddWindow,
-  onRemoveNested,
-  onRemoveEntry,
-  onRemoveRoom,
-  qsSettings,
-  roomBreakdown,
-}: RoomSectionProps) {
+  onRemoveSection,
+  onRemoveDoor,
+  onRemoveWindow,
+  onUpdateDoor,
+  onUpdateWindow,
+  onUpdateProperties,
+  standardDoorSizes,
+  standardWindowSizes,
+  doorTypes,
+  windowGlassTypes,
+  frameTypes,
+}: WallSectionComponentProps) {
   return (
-    <Card className="border  overflow-hidden">
-      <div className="p-4 bg-gray-50 dark:bg-gray-800/20 border-b">
+    <Card
+      className={`border-l-4 ${
+        section.type === "external"
+          ? "border-l-blue-500"
+          : "border-l-orange-500"
+      }`}
+    >
+      <div
+        className={`p-4 ${
+          section.type === "external"
+            ? "bg-blue-50 dark:bg-blue-900/20"
+            : "bg-orange-50 dark:bg-orange-900/20"
+        } border-b`}
+      >
         <div className="flex items-center justify-between">
-          <Input
-            type="text"
-            value={room.room_name || ""}
-            onChange={(e) => onRoomChange(index, "room_name", e.target.value)}
-            placeholder="Room Name"
-            className="text-lg font-bold border-0 pl-3 bg-transparent focus:ring-0 w-auto"
-          />
-          <Button variant="destructive" size="sm" onClick={onRemoveRoom}>
+          <h4
+            className={`font-semibold text-lg capitalize ${
+              section.type === "external"
+                ? "text-blue-900 dark:text-blue-100"
+                : "text-orange-900 dark:text-orange-100"
+            }`}
+          >
+            {section.type === "external"
+              ? "🏢 External Wall"
+              : "🏠 Internal Wall"}
+          </h4>
+          <Button variant="destructive" size="sm" onClick={onRemoveSection}>
             <Trash className="w-4 h-4 mr-1" />
-            Remove Room
+            Remove
           </Button>
         </div>
       </div>
 
-      <div className="p-4 space-y-4 ">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div>
-            <Label>Length (m)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.1"
-              value={room.length}
-              onChange={(e) => onRoomChange(index, "length", e.target.value)}
-              placeholder="Length"
-            />
+      <div className="p-4 space-y-4">
+        {/* Wall Properties Section */}
+        <div className="p-3 border rounded-lg bg-purple-50 dark:bg-purple-900/20 space-y-3">
+          <h5 className="font-semibold text-md text-purple-900 dark:text-purple-100">
+            Wall Properties
+          </h5>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <Label className="text-sm">Block Type</Label>
+              <Select
+                value={section.blockType || ""}
+                onValueChange={(value) => {
+                  onUpdateProperties({ blockType: value });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Block Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {blockTypes.map((block) => (
+                    <SelectItem key={block.id} value={block.name}>
+                      {block.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-sm">Block Thickness (m)</Label>
+              <Select
+                value={section.thickness?.toString() || ""}
+                onValueChange={(value) => {
+                  onUpdateProperties({ thickness: parseFloat(value) });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Thickness" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0.1">Half Block (0.1m)</SelectItem>
+                  <SelectItem value="0.2">Standard (0.2m)</SelectItem>
+                  <SelectItem value="0.23">Cavity (0.23m)</SelectItem>
+                  <SelectItem value="0.3">Double (0.3m)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div>
-            <Label>Width (m)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.1"
-              value={room.width}
-              onChange={(e) => onRoomChange(index, "width", e.target.value)}
-              placeholder="Width"
-            />
-          </div>
-          <div>
-            <Label>Height (m)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.1"
-              value={room.height}
-              onChange={(e) => onRoomChange(index, "height", e.target.value)}
-              placeholder="Height"
-            />
-          </div>
-          <div>
-            <Label>Block Type</Label>
-            <Select
-              value={room.blockType}
-              onValueChange={(value) => onRoomChange(index, "blockType", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Block Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {blockTypes.map((block) => (
-                  <SelectItem key={block.id} value={block.name}>
-                    {block.displayName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
+          {section.blockType === "Custom" && (
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded border border-yellow-200 dark:border-yellow-800">
+              <div>
+                <Label className="text-xs">Block Name</Label>
+                <Input
+                  type="text"
+                  value={section.customBlockName || ""}
+                  onChange={(e) => {
+                    onUpdateProperties({
+                      customBlockName: e.target.value,
+                    });
+                  }}
+                  placeholder="e.g., Interlocking"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Custom Length (m)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={section.customBlockLength || ""}
+                  onChange={(e) => {
+                    onUpdateProperties({
+                      customBlockLength: parseFloat(e.target.value),
+                    });
+                  }}
+                  placeholder="Length"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Custom Height (m)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={section.customBlockHeight || ""}
+                  onChange={(e) => {
+                    onUpdateProperties({
+                      customBlockHeight: parseFloat(e.target.value),
+                    });
+                  }}
+                  placeholder="Height"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Custom Price (Ksh)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={section.customBlockPrice || ""}
+                  onChange={(e) => {
+                    onUpdateProperties({
+                      customBlockPrice: parseFloat(e.target.value),
+                    });
+                  }}
+                  placeholder="Price"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
-        {room.blockType === "Custom" && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-            <div>
-              <Label>Custom Length (m)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={room.customBlock.length}
-                onChange={(e) =>
-                  onRoomChange(index, "customBlock", {
-                    ...room.customBlock,
-                    length: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Label>Custom Height (m)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={room.customBlock.height}
-                onChange={(e) =>
-                  onRoomChange(index, "customBlock", {
-                    ...room.customBlock,
-                    height: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Label>Custom Thickness (m)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={room.customBlock.thickness}
-                onChange={(e) =>
-                  onRoomChange(index, "customBlock", {
-                    ...room.customBlock,
-                    thickness: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Label>Custom Price (Ksh)</Label>
-              <Input
-                type="number"
-                min="0"
-                value={room.customBlock.price}
-                onChange={(e) =>
-                  onRoomChange(index, "customBlock", {
-                    ...room.customBlock,
-                    price: e.target.value,
-                  })
-                }
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="max-w-xs">
-          <Label>Plastering</Label>
-          <Select
-            value={room.plaster}
-            onValueChange={(value) => onRoomChange(index, "plaster", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Plaster Option" />
-            </SelectTrigger>
-            <SelectContent>
-              {plasterOptions.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+        {/* Doors Section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold">Doors</h4>
+            <h5 className="font-semibold text-md">Doors</h5>
             <Button size="sm" variant="outline" onClick={onAddDoor}>
               <Plus className="w-4 h-4 mr-1" />
               Add Door
             </Button>
           </div>
-          {room.doors.map((door: Door, doorIndex: number) => (
-            <DoorWindowItem
-              key={doorIndex}
-              type="door"
-              item={door}
-              index={index}
-              itemIndex={doorIndex}
-              onNestedChange={onNestedChange}
-              onRemove={onRemoveNested}
-              standardSizes={standardDoorSizes}
-              types={doorTypes}
-            />
-          ))}
+          {section.doors && section.doors.length > 0 ? (
+            section.doors.map((door: Door, doorIndex: number) => (
+              <DoorWindowItem
+                key={doorIndex}
+                type="door"
+                item={door}
+                itemIndex={doorIndex}
+                onUpdate={(field, value) =>
+                  onUpdateDoor(doorIndex, field, value)
+                }
+                onRemove={() => onRemoveDoor(doorIndex)}
+                standardSizes={standardDoorSizes}
+                types={doorTypes}
+                frameTypes={frameTypes}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 italic">No doors added</p>
+          )}
         </div>
 
-        <div className="space-y-3">
+        {/* Windows Section */}
+        <div className="space-y-3 pt-2 border-t">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold">Windows</h4>
+            <h5 className="font-semibold text-md">Windows</h5>
             <Button size="sm" variant="outline" onClick={onAddWindow}>
               <Plus className="w-4 h-4 mr-1" />
               Add Window
             </Button>
           </div>
-          {room.windows.map((window: Window, windowIndex: number) => (
-            <DoorWindowItem
-              key={windowIndex}
-              type="window"
-              item={window}
-              index={index}
-              itemIndex={windowIndex}
-              onNestedChange={onNestedChange}
-              onRemove={onRemoveEntry}
-              standardSizes={standardWindowSizes}
-              types={windowGlassTypes}
-            />
-          ))}
+          {section.windows && section.windows.length > 0 ? (
+            section.windows.map((window: Window, windowIndex: number) => (
+              <DoorWindowItem
+                key={windowIndex}
+                type="window"
+                item={window}
+                itemIndex={windowIndex}
+                onUpdate={(field, value) =>
+                  onUpdateWindow(windowIndex, field, value)
+                }
+                onRemove={() => onRemoveWindow(windowIndex)}
+                standardSizes={standardWindowSizes}
+                types={windowGlassTypes}
+                frameTypes={frameTypes}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-gray-500 italic">No windows added</p>
+          )}
         </div>
-
-        {roomBreakdown && (
-          <div className="p-4 bg-gray-50 dark:bg-gray-800/40 rounded-lg">
-            <h4 className="font-semibold text-lg mb-3">Room Breakdown</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="font-medium">Dimensions:</span> {room.length}m
-                × {room.width}m × {room.height}m
-              </div>
-              <div>
-                <span className="font-medium">Wall Area:</span>{" "}
-                {roomBreakdown.grossWallArea?.toFixed(2)} m² gross
-              </div>
-              <div>
-                <span className="font-medium">Net Area:</span>{" "}
-                {roomBreakdown.netWallArea?.toFixed(2)} m²
-              </div>
-              <div>
-                <span className="font-medium">Blocks:</span>{" "}
-                {roomBreakdown.netBlocks} net → {roomBreakdown.grossBlocks}{" "}
-                gross
-              </div>
-              <div>
-                <span className="font-medium">Plaster:</span>{" "}
-                {roomBreakdown.netPlasterArea?.toFixed(2)} m²
-              </div>
-              <div>
-                <span className="font-medium">Total Cost:</span> Ksh{" "}
-                {roomBreakdown.totalCost?.toLocaleString()}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Card>
   );
@@ -586,42 +722,29 @@ function RoomSection({
 interface DoorWindowItemProps {
   type: "door" | "window";
   item: Door | Window;
-  index: number;
   itemIndex: number;
-  onNestedChange: (
-    index: number,
-    field: "doors" | "windows",
-    nestedIndex: number,
-    key: string,
-    value: any
-  ) => void;
-  onRemove: (
-    index: number,
-    field: "doors" | "windows",
-    nestedIndex: number
-  ) => void;
+  onUpdate: (field: string, value: any) => void;
+  onRemove: () => void;
   standardSizes: string[];
   types: string[];
+  frameTypes: string[];
 }
 function DoorWindowItem({
   type,
   item,
-  index,
   itemIndex,
-  onNestedChange,
+  onUpdate,
   onRemove,
   standardSizes,
   types,
+  frameTypes,
 }: DoorWindowItemProps) {
-  const field = type === "door" ? "doors" : "windows";
   return (
     <div className="p-3 border rounded-lg bg-gray-50 dark:glass space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
         <Select
           value={item.sizeType}
-          onValueChange={(value) =>
-            onNestedChange(index, field, itemIndex, "sizeType", value)
-          }
+          onValueChange={(value) => onUpdate("sizeType", value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="Size Type" />
@@ -635,9 +758,7 @@ function DoorWindowItem({
         {item.sizeType === "standard" && (
           <Select
             value={item.standardSize}
-            onValueChange={(value) =>
-              onNestedChange(index, field, itemIndex, "standardSize", value)
-            }
+            onValueChange={(value) => onUpdate("standardSize", value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select Size" />
@@ -660,7 +781,7 @@ function DoorWindowItem({
               step="0.01"
               value={item.custom.height}
               onChange={(e) =>
-                onNestedChange(index, field, itemIndex, "custom", {
+                onUpdate("custom", {
                   ...item.custom,
                   height: e.target.value,
                 })
@@ -672,7 +793,7 @@ function DoorWindowItem({
               step="0.01"
               value={item.custom.width}
               onChange={(e) =>
-                onNestedChange(index, field, itemIndex, "custom", {
+                onUpdate("custom", {
                   ...item.custom,
                   width: e.target.value,
                 })
@@ -682,9 +803,9 @@ function DoorWindowItem({
               placeholder="Price (Ksh)"
               type="number"
               min="0"
-              value={item.custom.price}
+              value={item.custom.price || ""}
               onChange={(e) =>
-                onNestedChange(index, field, itemIndex, "custom", {
+                onUpdate("custom", {
                   ...item.custom,
                   price: e.target.value,
                 })
@@ -695,9 +816,7 @@ function DoorWindowItem({
 
         <Select
           value={item.type}
-          onValueChange={(value) =>
-            onNestedChange(index, field, itemIndex, "type", value)
-          }
+          onValueChange={(value) => onUpdate("type", value)}
         >
           <SelectTrigger>
             <SelectValue
@@ -718,39 +837,27 @@ function DoorWindowItem({
           type="number"
           min="1"
           value={item.count}
-          onChange={(e) =>
-            onNestedChange(
-              index,
-              field,
-              itemIndex,
-              "count",
-              parseInt(e.target.value) || 1
-            )
-          }
+          onChange={(e) => onUpdate("count", parseInt(e.target.value) || 1)}
         />
 
         <Input
           placeholder="Price (Ksh)"
           type="number"
           min="0"
-          value={item.price}
-          onChange={(e) => onNestedChange(index, field, itemIndex, "price", e)}
+          value={item.price || ""}
+          onChange={(e) => onUpdate("price", e.target.value)}
         />
 
-        <Button
-          size="icon"
-          variant="destructive"
-          onClick={() => onRemove(index, field, itemIndex)}
-        >
+        <Button size="icon" variant="destructive" onClick={onRemove}>
           <Trash className="w-4 h-4" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-2  rounded">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-2 rounded">
         <Select
           value={item.frame.type}
           onValueChange={(value) =>
-            onNestedChange(index, field, itemIndex, "frame", {
+            onUpdate("frame", {
               ...item.frame,
               type: value,
             })
@@ -771,7 +878,7 @@ function DoorWindowItem({
         <Select
           value={item.frame?.sizeType || ""}
           onValueChange={(value) =>
-            onNestedChange(index, field, itemIndex, "frame", {
+            onUpdate("frame", {
               ...item.frame,
               sizeType: value,
             })
@@ -786,29 +893,6 @@ function DoorWindowItem({
           </SelectContent>
         </Select>
 
-        {/* {item.frame?.sizeType === "standard" && (
-          <Select
-            value={item.frame?.standardSize || ""}
-            onValueChange={(value) =>
-              onNestedChange(index, field, itemIndex, "frame", {
-                ...item.frame,
-                standardSize: value,
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Frame Size" />
-            </SelectTrigger>
-            <SelectContent>
-              {standardSizes.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )} */}
-
         {item.frame?.sizeType === "custom" ? (
           <>
             <Input
@@ -816,7 +900,7 @@ function DoorWindowItem({
               type="number"
               value={item.frame?.custom?.height || ""}
               onChange={(e) =>
-                onNestedChange(index, field, itemIndex, "frame", {
+                onUpdate("frame", {
                   ...item.frame,
                   custom: {
                     ...item.frame?.custom,
@@ -830,7 +914,7 @@ function DoorWindowItem({
               type="number"
               value={item.frame?.custom?.width || ""}
               onChange={(e) =>
-                onNestedChange(index, field, itemIndex, "frame", {
+                onUpdate("frame", {
                   ...item.frame,
                   custom: {
                     ...item.frame?.custom,
@@ -844,10 +928,10 @@ function DoorWindowItem({
               type="number"
               value={item.frame?.custom?.price || ""}
               onChange={(e) =>
-                onNestedChange(index, field, itemIndex, "frame", {
+                onUpdate("frame", {
                   ...item.frame,
                   custom: {
-                    ...item.frame.custom,
+                    ...item.frame?.custom,
                     price: e.target.value,
                   },
                 })
@@ -859,9 +943,9 @@ function DoorWindowItem({
             placeholder="Frame Price (Ksh)"
             type="number"
             min="0"
-            value={item.frame.price}
+            value={item.frame.price || ""}
             onChange={(e) =>
-              onNestedChange(index, field, itemIndex, "frame", {
+              onUpdate("frame", {
                 ...item.frame,
                 price: e.target.value,
               })

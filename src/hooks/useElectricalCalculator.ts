@@ -2,6 +2,7 @@
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import { useState, useCallback, useEffect } from "react";
+import { supabase } from "../integrations/supabase/client";
 
 export type ElectricalSystemType =
   | "lighting"
@@ -284,6 +285,9 @@ export default function useElectricalCalculator(
         rating?: number;
         wattage?: number;
         controlType?: string;
+        type?: "main" | "sub";
+        circuits?: number;
+        accessories?: string[];
       }
     ): number => {
       let price = 0;
@@ -393,11 +397,27 @@ export default function useElectricalCalculator(
         }
 
         case "distribution-board": {
-          const db = materialPrices.find(
-            (c) => c.name.toLowerCase() === category.toLowerCase()
-          );
-          price = db?.price || 0;
-          break;
+          const dbPrice =
+            materialPrices.find(
+              (item) => item.name.toLowerCase() === "distribution_board"
+            )?.price || [];
+          const targetRating = options?.rating || 100;
+          const targetCircuits = options?.circuits || 12;
+
+          // Calculate price based on DB specifications
+          const basePrice = dbPrice; // Base price in KES
+          const ratingMultiplier = targetRating / 100;
+          const circuitMultiplier = targetCircuits / 12;
+          const accessoriesCount = options?.accessories?.length || 0;
+          const accessoriesMultiplier = 1 + accessoriesCount * 0.05; // 5% per accessory
+
+          price =
+            basePrice *
+            ratingMultiplier *
+            circuitMultiplier *
+            accessoriesMultiplier;
+
+          return price;
         }
 
         default:
@@ -496,11 +516,30 @@ export default function useElectricalCalculator(
   );
 
   const calculateDBCost = useCallback(
-    (db: DistributionBoard) => {
-      const cost = getMaterialPrice("distribution-board", "main-db");
-      return { materialCost: cost * (db.circuits / 12) };
+    (db: DistributionBoard, wastagePercentage: number) => {
+      // Get base price from Supabase
+      const basePrice = getMaterialPrice("distribution-board", "distribution", {
+        type: db.type,
+        rating: db.rating,
+        circuits: db.circuits,
+        accessories: db.accessories,
+      });
+
+      // Calculate material cost with wastage
+      const adjustedQuantity = applyWastageToQuantity(1, wastagePercentage);
+      const wastageAmount = adjustedQuantity - 1;
+
+      const materialCost = basePrice * adjustedQuantity;
+
+      return {
+        materialCost,
+        adjustedQuantity,
+        wastageAmount,
+        basePrice,
+        originalQuantity: 1,
+      };
     },
-    [getMaterialPrice]
+    [getMaterialPrice, applyWastageToQuantity]
   );
 
   const calculatePowerLoad = useCallback((system: ElectricalSystem): number => {
@@ -640,9 +679,15 @@ export default function useElectricalCalculator(
         0
       );
 
-      const dbCalculations = system.distributionBoards.map(calculateDBCost);
+      const dbCalculations = system.distributionBoards.map((db) =>
+        calculateDBCost(db, wastagePercentage)
+      );
       const dbMaterialCost = dbCalculations.reduce(
         (sum, calc) => sum + calc.materialCost,
+        0
+      );
+      const dbWastageAmount = dbCalculations.reduce(
+        (sum, calc) => sum + calc.wastageAmount,
         0
       );
 
@@ -659,7 +704,11 @@ export default function useElectricalCalculator(
       const totalWastageItems =
         cableCalculations.reduce((sum, calc) => sum + calc.wastageAmount, 0) +
         outletCalculations.reduce((sum, calc) => sum + calc.wastageAmount, 0) +
-        lightingCalculations.reduce((sum, calc) => sum + calc.wastageAmount, 0);
+        lightingCalculations.reduce(
+          (sum, calc) => sum + calc.wastageAmount,
+          0
+        ) +
+        dbWastageAmount;
 
       return {
         id: system.id,
@@ -823,6 +872,7 @@ export default function useElectricalCalculator(
   useEffect(() => {
     if (electricalSystems?.length > 0) calculateAll();
   }, [electricalSystems, calculateAll]);
+
   const combined = { ...totals, calculations };
 
   useEffect(() => {

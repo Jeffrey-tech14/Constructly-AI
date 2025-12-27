@@ -38,10 +38,7 @@ import {
   Building,
   Ruler,
   Pickaxe,
-  Link,
-  Share2,
-  Network,
-  ArrowRightLeft,
+  LucideThumbsUp,
 } from "lucide-react";
 import { ExtractedPlan, usePlan } from "@/contexts/PlanContext";
 import { usePlanUpload } from "@/hooks/usePlanUpload";
@@ -49,7 +46,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Room } from "@/hooks/useMasonryCalculator";
+import { Dimensions, WallProperties } from "@/hooks/useMasonryCalculatorNew";
+import { WallSection } from "@/hooks/useMasonryCalculatorNew";
 
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
@@ -60,32 +58,15 @@ const RISA_LIGHT_GRAY = "#F5F7FA";
 const RISA_MEDIUM_GRAY = "#E2E8F0";
 
 export interface ParsedPlan {
-  rooms: Room[];
+  wallDimensions?: Dimensions;
+  wallSections?: WallSection[];
+  wallProperties?: WallProperties;
+
   floors: number;
   file_url?: string;
   uploaded_at?: string;
   file_name?: string;
   note?: string;
-  // NEW: Added connectivity data
-  connectivity?: {
-    sharedWalls: Array<{
-      id: string;
-      room1Id: string;
-      room2Id: string;
-      wall1Id: string;
-      wall2Id: string;
-      sharedLength: number;
-      sharedArea: number;
-      openings: string[];
-    }>;
-    roomPositions: { [roomId: string]: { x: number; y: number } };
-    totalSharedArea: number;
-    efficiency: {
-      spaceUtilization: number;
-      wallEfficiency: number;
-      connectivityScore: number;
-    };
-  };
 }
 
 const PreviewModal = ({
@@ -146,7 +127,6 @@ const UploadPlan = () => {
   } | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [analysisTimeLeft, setAnalysisTimeLeft] = useState<number | null>(null);
-  const [showConnectivityPanel, setShowConnectivityPanel] = useState(true);
 
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -242,7 +222,6 @@ const UploadPlan = () => {
     setEditablePlan(null);
     setError(null);
     setRetryCount(0);
-    setShowConnectivityPanel(false);
   };
 
   const handleRetry = async () => {
@@ -330,10 +309,6 @@ const UploadPlan = () => {
       }
     }
 
-    if (!result.rooms || !Array.isArray(result.rooms)) {
-      throw new Error("Invalid response format: missing rooms array");
-    }
-
     return result;
   };
 
@@ -392,45 +367,12 @@ const UploadPlan = () => {
       setCurrentStep("analyzing");
       const data = await analyzePlan(file, setError, setCurrentStep);
 
-      // NEW: Process connectivity data if available
       const processedPlan: ExtractedPlan = {
         ...data,
         file_url: fileUrl,
         file_name: file.name,
         uploaded_at: new Date().toISOString(),
-        // Add wall connectivity to rooms if available
-        rooms: data.rooms.map((room, index) => ({
-          ...room,
-          wallConnectivity: data.connectivity
-            ? {
-                roomId: `room_${index}`,
-                position: data.connectivity.roomPositions[`room_${index}`] || {
-                  x: 0,
-                  y: 0,
-                },
-                connectedRooms: data.connectivity.sharedWalls
-                  .filter(
-                    (wall) =>
-                      wall.room1Id === `room_${index}` ||
-                      wall.room2Id === `room_${index}`
-                  )
-                  .map((wall) =>
-                    wall.room1Id === `room_${index}`
-                      ? wall.room2Id
-                      : wall.room1Id
-                  ),
-                sharedArea: data.connectivity.sharedWalls
-                  .filter(
-                    (wall) =>
-                      wall.room1Id === `room_${index}` ||
-                      wall.room2Id === `room_${index}`
-                  )
-                  .reduce((sum, wall) => sum + wall.sharedArea, 0),
-                externalWallArea: 0, // Will be calculated based on wall types
-              }
-            : undefined,
-        })),
-        connectivity: data.connectivity,
+        wallDimensions: data.wallDimensions,
       };
 
       setEditablePlan(processedPlan);
@@ -495,7 +437,6 @@ const UploadPlan = () => {
 
       toast({
         title: "Plan Saved",
-        description: `${finalPlan.rooms.length} rooms across ${finalPlan.floors} floor(s) with wall connectivity analysis.`,
       });
 
       navigate("/quotes/new", { state: { quote: quoteData } });
@@ -538,133 +479,6 @@ const UploadPlan = () => {
       default:
         return "text-red-500 dark:text-red-200";
     }
-  };
-
-  // NEW: Get shared walls for a specific room
-  const getSharedWallsForRoom = (roomId: string) => {
-    if (!editablePlan?.connectivity?.sharedWalls) return [];
-    return editablePlan.connectivity.sharedWalls.filter(
-      (wall) => wall.room1Id === roomId || wall.room2Id === roomId
-    );
-  };
-
-  // NEW: Get room connections
-  const getRoomConnections = (roomId: string) => {
-    const room = editablePlan?.rooms.find(
-      (r) => r.wallConnectivity?.roomId === roomId
-    );
-    return room?.wallConnectivity?.connectedRooms || [];
-  };
-
-  // NEW: Render connectivity panel
-  const renderConnectivityPanel = () => {
-    if (!editablePlan?.connectivity) return null;
-
-    const efficiency = editablePlan.connectivity.efficiency;
-
-    return (
-      <Card className="border-l-4 border-l-blue-500">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center text-lg">
-            <Network className="w-5 h-5 mr-2 text-green-500" />
-            Wall Connectivity Analysis
-          </CardTitle>
-          <CardDescription>
-            AI-detected room connections and shared walls
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Efficiency Metrics */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">
-                {Math.round(efficiency.spaceUtilization * 100)}%
-              </div>
-              <div className="text-xs text-gray-500">Space Utilization</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {Math.round(efficiency.wallEfficiency * 100)}%
-              </div>
-              <div className="text-xs text-gray-500">Wall Efficiency</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {Math.round(efficiency.connectivityScore * 100)}%
-              </div>
-              <div className="text-xs text-gray-500">Connectivity</div>
-            </div>
-          </div>
-
-          {/* Shared Walls List */}
-          <div className="pb-3">
-            <h4 className="font-semibold mb-2 flex items-center">
-              <Link className="w-4 h-4 mr-2" />
-              Shared Walls ({editablePlan.connectivity.sharedWalls.length})
-            </h4>
-            <div className="space-y-2  overflow-y-auto">
-              {editablePlan.connectivity.sharedWalls.map((wall, index) => {
-                const room1 = editablePlan.rooms.find(
-                  (r) => r.wallConnectivity?.roomId === wall.room1Id
-                );
-                const room2 = editablePlan.rooms.find(
-                  (r) => r.wallConnectivity?.roomId === wall.room2Id
-                );
-
-                return (
-                  <div
-                    key={wall.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
-                  >
-                    <div className="flex items-center">
-                      <ArrowRightLeft className="w-3 h-3 mr-2 text-green-500" />
-                      {room1?.room_name || wall.room1Id} ↔{" "}
-                      {room2?.room_name || wall.room2Id}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {wall.sharedLength.toFixed(1)}m (
-                      {wall.sharedArea.toFixed(1)}m²)
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Room Connections */}
-          <div className="mt-5">
-            <h4 className="font-semibold mb-2">Room Connections</h4>
-            <div className="space-y-2">
-              {editablePlan.rooms.map((room, index) => {
-                const connections = getRoomConnections(`room_${index}`);
-                if (connections.length === 0) return null;
-
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm"
-                  >
-                    <div className="font-medium w-32 truncate">
-                      {room.room_name || `Room ${index + 1}`}:
-                    </div>
-                    <div className="flex-1 text-gray-600 dark:text-gray-300">
-                      {connections
-                        .map((connId) => {
-                          const connectedRoom = editablePlan.rooms.find(
-                            (r) => r.wallConnectivity?.roomId === connId
-                          );
-                          return connectedRoom?.room_name || connId;
-                        })
-                        .join(", ")}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
   };
 
   if (!user) navigate("/auth");
@@ -1048,6 +862,69 @@ const UploadPlan = () => {
                           </h3>
                         </div>
 
+                        {/* Extracted Wall Structure Results */}
+                        {editablePlan.wallDimensions && (
+                          <Card className="mb-8 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+                            <CardHeader className="bg-green-100 dark:bg-green-900/30 rounded-t-lg">
+                              <CardTitle className="text-lg flex items-center text-green-900 dark:text-green-100">
+                                <BarChart3 className="w-5 h-5 mr-2" />
+                                Wall Structure Extraction Results
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-6">
+                              {/* Wall Dimensions */}
+                              <div>
+                                <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+                                  <Ruler className="w-4 h-4 mr-2" />
+                                  Wall Dimensions
+                                </h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                      External Wall Perimeter
+                                    </p>
+                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                      {editablePlan.wallDimensions
+                                        .externalWallPerimiter || 0}{" "}
+                                      m
+                                    </p>
+                                  </div>
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                      External Wall Height
+                                    </p>
+                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                      {editablePlan.wallDimensions
+                                        .externalWallHeight || 0}{" "}
+                                      m
+                                    </p>
+                                  </div>
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                      Internal Wall Perimeter
+                                    </p>
+                                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                      {editablePlan.wallDimensions
+                                        .internalWallPerimiter || 0}{" "}
+                                      m
+                                    </p>
+                                  </div>
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                      Internal Wall Height
+                                    </p>
+                                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                      {editablePlan.wallDimensions
+                                        .internalWallHeight || 0}{" "}
+                                      m
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
                         <div className="space-y-6 mt-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -1084,379 +961,122 @@ const UploadPlan = () => {
                               />
                             </div>
                           </div>
-
-                          {editablePlan.rooms.map((room, i) => (
-                            <Card
-                              key={i}
-                              className="p-6  border border-slate-200 dark:border-slate-600 shadow-md transform transition-all hover:scale-102"
-                            >
-                              <div className="flex items-center justify-between mb-4">
-                                <h4 className="sm:text-xl font-bold text-primary dark:text-blue-400">
-                                  Room {i + 1}: {room.room_name || "Unnamed"}
-                                </h4>
-                                {room.wallConnectivity && (
-                                  <Badge
-                                    variant="outline"
-                                    className="flex items-center"
-                                  >
-                                    <Link className="w-3 h-3 mr-1" />
-                                    {room.wallConnectivity.connectedRooms
-                                      ?.length || 0}{" "}
-                                    connections
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <Input
-                                  placeholder="Room Name"
-                                  value={room.room_name}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    room_name: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
+                          {fileUrl ? (
+                            <div className="space-y-6">
+                              <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
+                                <LucideFileText className="w-10 h-10 text-green-500" />
+                                <p className="text-xl font-semibold truncate flex-1">
+                                  {fileUrl.split("/").pop() || "Uploaded Plan"}
+                                </p>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={handleRemoveFile}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="w-6 h-6" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    downloadFile(
+                                      fileUrl,
+                                      fileUrl.split("/").pop() ||
+                                        "Uploaded Plan"
                                     )
                                   }
                                   className=""
-                                />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Length (m)"
-                                  value={room.length}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    length: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
-                                    )
-                                  }
-                                  className=" "
-                                />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Width (m)"
-                                  value={room.width}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    width: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
-                                    )
-                                  }
-                                  className=" "
-                                />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Height (m)"
-                                  value={room.height}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    height: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
-                                    )
-                                  }
-                                  className=" "
-                                />
+                                >
+                                  <HardDriveDownload className="w-6 h-6" />
+                                </Button>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <Input
-                                  placeholder="Block Type"
-                                  value={room.blockType}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    blockType: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
-                                    )
+                              <div className="flex space-x-4">
+                                <Button
+                                  variant="outline"
+                                  onClick={() =>
+                                    navigate("/quotes/new", {
+                                      state: { quoteData },
+                                    })
                                   }
-                                  className=" "
-                                />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="Wall Thickness (m)"
-                                  value={room.thickness}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    thickness: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
-                                    )
-                                  }
-                                  className=" "
-                                />
-                                <Input
-                                  placeholder="Plaster"
-                                  value={room.plaster}
-                                  onChange={(e) =>
-                                    setEditablePlan((prev) =>
-                                      prev
-                                        ? {
-                                            ...prev,
-                                            rooms: prev.rooms.map((r, idx) =>
-                                              idx === i
-                                                ? {
-                                                    ...r,
-                                                    plaster: e.target.value,
-                                                  }
-                                                : r
-                                            ),
-                                          }
-                                        : prev
-                                    )
-                                  }
-                                  className=" "
-                                />
+                                  className="flex-1 text-slate-700 dark:text-slate-200  h-14"
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={handleRetry}
+                                  variant="secondary"
+                                  className="text-slate-700 dark:text-slate-200  h-14"
+                                >
+                                  <RefreshCw className="w-6 h-6 mr-2" />
+                                  Retry Analysis
+                                </Button>
                               </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div>
-                                  <Label className="flex mb-1 items-center ">
-                                    <DoorOpen className="w-5 h-5 mr-2 text-green-500" />
-                                    Doors Count
-                                  </Label>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    value={room.doors?.length || 0}
-                                    onChange={(e) => {
-                                      const count = Math.max(
-                                        0,
-                                        parseInt(e.target.value) || 0
-                                      );
-                                      setEditablePlan((prev) =>
-                                        prev
-                                          ? {
-                                              ...prev,
-                                              rooms: prev.rooms.map((r, idx) =>
-                                                idx === i
-                                                  ? {
-                                                      ...r,
-                                                      doors: Array.from(
-                                                        { length: count },
-                                                        (_, di) =>
-                                                          r.doors[di] || {
-                                                            sizeType:
-                                                              "standard",
-                                                            standardSize:
-                                                              "0.9 \u00D7 2.1 m",
-                                                            custom: {
-                                                              height: "",
-                                                              width: "",
-                                                              price: "",
-                                                            },
+                            </div>
+                          ) : !selectedFile ? (
+                            <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
+                              <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                              <p className="mb-4  text-slate-600 dark:text-slate-300">
+                                Drag & drop your plan or click to upload
+                              </p>
+                              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                Supported formats: JPEG, PNG, PDF, WEBP (Max
+                                10MB)
+                              </p>
 
-                                                            type: "Panel",
-                                                            frame: {
-                                                              type: "Wood",
-                                                              height: "2.7",
-                                                              width: "1.2",
-                                                              sizeType:
-                                                                "standard", // "standard" | "custom"
-                                                              standardSize:
-                                                                "1.2 x 1.2 m",
-                                                              custom: {
-                                                                height: "1.2",
-                                                                width: "1.2",
-                                                                price: "",
-                                                              },
-                                                            },
-                                                            count: 1,
-                                                          }
-                                                      ),
-                                                    }
-                                                  : r
-                                              ),
-                                            }
-                                          : prev
-                                      );
-                                    }}
-                                    className=" "
-                                  />
-                                </div>
-                                <div>
-                                  <Label className="flex mb-1 items-center ">
-                                    <LucideAppWindow className="w-5 h-5 mr-2 text-green-500" />
-                                    Windows Count
-                                  </Label>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    value={room.windows?.length || 0}
-                                    onChange={(e) => {
-                                      const count = Math.max(
-                                        0,
-                                        parseInt(e.target.value) || 0
-                                      );
-                                      setEditablePlan((prev) =>
-                                        prev
-                                          ? {
-                                              ...prev,
-                                              rooms: prev.rooms.map((r, idx) =>
-                                                idx === i
-                                                  ? {
-                                                      ...r,
-                                                      windows: Array.from(
-                                                        { length: count },
-                                                        (_, wi) =>
-                                                          r.windows[wi] || {
-                                                            sizeType:
-                                                              "standard",
-                                                            standardSize:
-                                                              "1.2 \u00D7 1.2 m",
-                                                            custom: {
-                                                              height: "",
-                                                              width: "",
-                                                              price: "",
-                                                            },
-                                                            type: "Clear",
-                                                            frame: {
-                                                              type: "Wood",
-                                                              height: "2.7",
-                                                              width: "1.2",
-                                                              sizeType:
-                                                                "standard", // "standard" | "custom"
-                                                              standardSize:
-                                                                "1.2 x 1.2 m",
-                                                              custom: {
-                                                                height: "1.2",
-                                                                width: "1.2",
-                                                                price: "",
-                                                              },
-                                                            },
-                                                            count: 1,
-                                                          }
-                                                      ),
-                                                    }
-                                                  : r
-                                              ),
-                                            }
-                                          : prev
-                                      );
-                                    }}
-                                    className=""
-                                  />
-                                </div>
-                              </div>
-                            </Card>
-                          ))}
+                              <Input
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
+                                onChange={handleFileChange}
+                                className="hidden"
+                                id="fileUpload"
+                              />
+
+                              <Label
+                                htmlFor="fileUpload"
+                                className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
+                              >
+                                📁 Select File
+                              </Label>
+                            </div>
+                          ) : null}
+
+                          <div className="flex space-x-4 pt-8">
+                            <Button
+                              variant="outline"
+                              onClick={() => navigate("/quotes/new")}
+                              className="flex-1 dark:hover:bg-primary hover:bg-blue-700 hover:text-white h-14"
+                            >
+                              Cancel
+                            </Button>
+
+                            {editablePlan &&
+                            selectedFile &&
+                            currentStep === "complete" ? (
+                              <Button
+                                onClick={handleDone}
+                                disabled={currentStep !== "complete"}
+                                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 shadow-lg transition-all"
+                              >
+                                {currentStep !== "complete" ? (
+                                  <>
+                                    <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                                    Processing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <LucideThumbsUp className="w-6 h-6 mr-3" />
+                                    Done
+                                  </>
+                                )}
+                              </Button>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
-                ) : fileUrl ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                      <LucideFileText className="w-10 h-10 text-green-500" />
-                      <p className="text-xl font-semibold truncate flex-1">
-                        {fileUrl.split("/").pop() || "Uploaded Plan"}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleRemoveFile}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="w-6 h-6" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          downloadFile(
-                            fileUrl,
-                            fileUrl.split("/").pop() || "Uploaded Plan"
-                          )
-                        }
-                        className=""
-                      >
-                        <HardDriveDownload className="w-6 h-6" />
-                      </Button>
-                    </div>
-                    <div className="flex space-x-4">
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          navigate("/quotes/new", { state: { quoteData } })
-                        }
-                        className="flex-1 text-slate-700 dark:text-slate-200  h-14"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleRetry}
-                        variant="secondary"
-                        className="text-slate-700 dark:text-slate-200  h-14"
-                      >
-                        <RefreshCw className="w-6 h-6 mr-2" />
-                        Retry Analysis
-                      </Button>
-                    </div>
-                  </div>
-                ) : !selectedFile ? (
+                ) : (
                   <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
                     <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
                     <p className="mb-4  text-slate-600 dark:text-slate-300">
@@ -1476,62 +1096,15 @@ const UploadPlan = () => {
 
                     <Label
                       htmlFor="fileUpload"
-                      className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
+                      className="cursor-pointer glass inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
                     >
                       📁 Select File
                     </Label>
                   </div>
-                ) : null}
-
-                <div className="flex space-x-4 pt-8">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/quotes/new")}
-                    className="flex-1 dark:hover:bg-primary hover:bg-blue-700 hover:text-white h-14"
-                  >
-                    Cancel
-                  </Button>
-
-                  {(editablePlan && currentStep === "complete") ||
-                  (selectedFile && !fileUrl && currentStep !== "error") ? (
-                    <Button
-                      onClick={handleDone}
-                      disabled={
-                        currentStep === "uploading" ||
-                        currentStep === "analyzing"
-                      }
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 rounded-xl shadow-lg transition-all"
-                    >
-                      {currentStep === "uploading" ||
-                      currentStep === "analyzing" ? (
-                        <>
-                          <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-6 h-6 mr-3" />
-                          Done
-                        </>
-                      )}
-                    </Button>
-                  ) : null}
-                </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* NEW: Connectivity Panel Sidebar */}
-          {showConnectivityPanel && (
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="lg:col-span-1"
-            >
-              {renderConnectivityPanel()}
-            </motion.div>
-          )}
         </div>
       </div>
 

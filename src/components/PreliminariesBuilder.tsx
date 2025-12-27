@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -51,6 +52,7 @@ const PreliminariesBuilder = ({
   onPreliminariesUpdate,
   onSaveToQuote,
 }: PreliminariesBuilderProps) => {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -86,6 +88,11 @@ const PreliminariesBuilder = ({
   const generateWithAI = async () => {
     if (!quoteData || Object.keys(quoteData).length === 0) {
       setLastError("No project data available for generation");
+      toast({
+        title: "Preliminaries Generation Error",
+        description: "No project data available for generation",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -93,12 +100,20 @@ const PreliminariesBuilder = ({
     setLastError(null);
 
     try {
-      const { data: aiSections } = await supabase.functions.invoke(
+      const { data: aiSections, error } = await supabase.functions.invoke(
         "generate-preliminaries",
         {
           body: { quoteData },
         }
       );
+
+      if (error) {
+        throw new Error(error.message || "API returned an error");
+      }
+
+      if (!aiSections) {
+        throw new Error("No preliminaries data generated");
+      }
 
       // Merge AI sections with existing user sections
       const mergedSections = mergeSectionsWithAI(sections, aiSections);
@@ -107,6 +122,14 @@ const PreliminariesBuilder = ({
       updateSections(mergedSections);
     } catch (error) {
       console.error("Gemini AI generation failed:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Generation failed";
+      setLastError(errorMessage);
+      toast({
+        title: "Preliminaries Generation Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }

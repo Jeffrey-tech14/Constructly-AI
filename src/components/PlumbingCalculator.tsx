@@ -46,7 +46,7 @@ import usePlumbingCalculator, {
   PipeMaterial,
   FixtureType,
 } from "@/hooks/usePlumbingCalculator";
-import { MasonryQSSettings } from "@/hooks/useMasonryCalculator";
+import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface PlumbingCalculatorProps {
   plumbingSystems: PlumbingSystem[];

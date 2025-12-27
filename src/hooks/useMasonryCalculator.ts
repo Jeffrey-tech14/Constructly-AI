@@ -9,7 +9,8 @@ import { REBAR_PROPERTIES, RebarSize } from "./useRebarCalculator";
 import { useMaterialPrices } from "./useMaterialPrices";
 
 type PriceMap = Record<RebarSize, number>;
-// Update your existing Door and Window interfaces
+
+// Door and Window interfaces
 export interface Door {
   sizeType: string;
   standardSize: string;
@@ -33,12 +34,6 @@ export interface Door {
       width: string;
       price?: string;
     };
-  };
-  // Add connectivity properties
-  connectsTo?: string; // roomId this door connects to
-  wallConnectivity?: {
-    connectsTo: string;
-    wallId: string;
   };
 }
 
@@ -66,48 +61,21 @@ export interface Window {
       price?: string;
     };
   };
-  // Add connectivity properties
-  connectsTo?: string; // roomId this window connects to (for pass-through windows)
-  wallConnectivity?: {
-    connectsTo: string;
-    wallId: string;
-  };
 }
 
-export interface Room {
-  roomType: string;
-  room_name: string;
-  width: string;
-  thickness: string;
-  blockType: string;
-  length: string;
-  height: string;
-  customBlock: {
-    length: string;
-    height: string;
-    thickness: string;
-    price: string;
-  };
-  plaster: string;
+// Wall dimension interface
+export interface Dimensions {
+  externalWallPerimiter: number;
+  internalWallPerimiter: number;
+  externalWallHeight: number;
+  internalWallHeight: number;
+}
+
+// Wall section interface for doors and windows
+export interface WallSection {
+  type: "external" | "internal";
   doors: Door[];
   windows: Window[];
-  netArea?: number;
-  netBlocks?: number;
-  grossBlocks?: number;
-  netMortar?: number;
-  grossMortar?: number;
-  netPlaster?: number;
-  grossPlaster?: number;
-  netCement?: number;
-  grossCement?: number;
-  netSand?: number;
-  grossSand?: number;
-  netWater?: number;
-  grossWater?: number;
-  totalCost?: number;
-  wallConnectivity: WallConnectivity;
-  connectivityMetrics: ConnectivityMetrics;
-  materialAdjustments: MaterialAdjustments;
 }
 // Add the new interfaces for professional elements
 export interface Lintel {
@@ -116,60 +84,6 @@ export interface Lintel {
   depth: number;
   reinforcement: number; // kg of rebar
   concrete: number; // m³
-}
-export interface Wall {
-  id: string;
-  type: "external" | "internal";
-  openings: Opening[];
-  length: number;
-  height: number;
-  netArea: number;
-  grossArea: number;
-  connectedTo?: string; // roomId of connected room for shared walls
-}
-
-export interface Opening {
-  id: string;
-  type: "door" | "window";
-  width: number;
-  height: number;
-  count: number;
-  area: number;
-}
-
-export interface WallConnectivity {
-  roomId: string;
-  position: { x: number; y: number };
-  walls: {
-    north: Wall;
-    south: Wall;
-    east: Wall;
-    west: Wall;
-  };
-  connectedRooms: string[];
-  sharedArea: number;
-  externalWallArea: number;
-}
-
-export interface ConnectivityMetrics {
-  sharedWalls: number;
-  sharedArea: number;
-  externalWalls: number;
-  internalWalls: number;
-  connectedDoors: number;
-  wallOpenings: {
-    doors: number;
-    windows: number;
-    totalArea: number;
-  };
-}
-
-export interface MaterialAdjustments {
-  sharedWallDeduction: number;
-  adjustedWallArea: number;
-  adjustedBlocks: number;
-  adjustedMortar: number;
-  efficiencyBonus: number;
 }
 
 export interface Reinforcement {
@@ -507,7 +421,9 @@ export default function useMasonryCalculator({
     },
     { id: 4, name: "Custom", size: null, volume: 0 },
   ];
-  const rooms = quote?.rooms ?? [];
+  // Use wall dimensions instead of rooms
+  const wallDimensions = quote?.wallDimensions as Dimensions | undefined;
+  const wallSections = quote?.wallSections as WallSection[] | undefined;
   const [rebarPrices, setRebarPrices] = useState<PriceMap>({} as PriceMap);
   const [priceMap, setPriceMap] = useState<PriceMap>({} as PriceMap);
   const [bindingWirePrice, setBindingWirePrice] = useState<number>(0);
@@ -568,92 +484,201 @@ export default function useMasonryCalculator({
     const parsed = parseFloat(ratio);
     return isNaN(parsed) || parsed <= 0 ? 0.5 : parsed;
   }, []);
-  const validateRoomDimensions = useCallback((room: Room): boolean => {
-    const length = Number(room.length);
-    const width = Number(room.width);
-    const height = Number(room.height);
-    return [length, width, height].every(
-      (dim) => !isNaN(dim) && dim > 0 && dim < 100
-    );
-  }, []);
 
-  // Phase 4: Centre-Line Method Calculation (only method now)
-  const getBlockCountCentreLinMethod = (room: Room): number => {
-    const length = Number(room.length);
-    const width = Number(room.width);
-    const height = Number(room.height);
-    const thickness = Number(room.thickness);
+  // Validate wall dimensions
+  const validateWallDimensions = useCallback(
+    (dims: Dimensions | undefined): boolean => {
+      if (!dims) return false;
+      const values = [
+        dims.externalWallPerimiter,
+        dims.internalWallPerimiter,
+        dims.externalWallHeight,
+        dims.internalWallHeight,
+      ];
+      return values.every(
+        (val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 1000
+      );
+    },
+    []
+  );
+
+  // Calculate wall areas based on dimensions
+  const calculateWallAreas = useCallback(
+    (
+      dims: Dimensions | undefined
+    ): { external: number; internal: number; total: number } => {
+      if (!validateWallDimensions(dims)) {
+        return { external: 0, internal: 0, total: 0 };
+      }
+
+      const externalArea =
+        Number(dims!.externalWallPerimiter) * Number(dims!.externalWallHeight);
+      const internalArea =
+        Number(dims!.internalWallPerimiter) * Number(dims!.internalWallHeight);
+
+      return {
+        external: externalArea,
+        internal: internalArea,
+        total: externalArea + internalArea,
+      };
+    },
+    [validateWallDimensions]
+  );
+
+  // Calculate openings area from wall sections
+  const calculateOpeningsAreaFromSections = useCallback(
+    (sections: WallSection[] | undefined): number => {
+      if (!sections || sections.length === 0) return 0;
+
+      let totalOpeningsArea = 0;
+
+      sections.forEach((section) => {
+        // Calculate doors openings
+        section.doors.forEach((door) => {
+          const area =
+            door.sizeType === "standard"
+              ? parseSize(door.standardSize)
+              : Number(door.custom.height) * Number(door.custom.width);
+          totalOpeningsArea += (area || 0) * door.count;
+        });
+
+        // Calculate windows openings
+        section.windows.forEach((window) => {
+          const area =
+            window.sizeType === "standard"
+              ? parseSize(window.standardSize)
+              : Number(window.custom.height) * Number(window.custom.width);
+          totalOpeningsArea += (area || 0) * window.count;
+        });
+      });
+
+      return totalOpeningsArea;
+    },
+    [parseSize]
+  );
+
+  // Calculate block count based on wall dimensions
+  const calculateBlockCountFromWalls = useCallback(
+    (
+      dims: Dimensions | undefined,
+      wallArea: number,
+      blockType: string
+    ): number => {
+      if (!validateWallDimensions(dims) || wallArea <= 0) return 0;
+
+      const joint = qsSettings.mortarJointThicknessM;
+      let blockLength = 0.225,
+        blockHeight = 0.075;
+
+      if (blockType !== "Custom") {
+        const blockDef = blockTypes.find((b) => b.name === blockType);
+        if (blockDef?.size) {
+          blockLength = blockDef.size.length;
+          blockHeight = blockDef.size.height;
+        }
+      }
+
+      const effectiveBlockLength = blockLength + joint;
+      const effectiveBlockHeight = blockHeight + joint;
+      const blockArea = effectiveBlockLength * effectiveBlockHeight;
+
+      return Math.ceil(wallArea / blockArea);
+    },
+    [validateWallDimensions, qsSettings.mortarJointThicknessM, blockTypes]
+  );
+
+  // Phase 4: Centre-Line Method Calculation for walls
+  const getBlockCountCentreLinMethodForWalls = (
+    externalPerimeter: number,
+    internalPerimeter: number,
+    height: number,
+    wallThickness: number
+  ): { external: number; internal: number; total: number } => {
     const joint = qsSettings.mortarJointThicknessM;
 
     let blockLength = 0.225,
       blockHeight = 0.075;
 
-    if (room.blockType !== "Custom") {
-      const blockDef = blockTypes.find((b) => b.name === room.blockType);
-      if (blockDef?.size) {
-        blockLength = blockDef.size.length;
-        blockHeight = blockDef.size.height;
-      }
-    } else {
-      blockLength = Number(room.customBlock.length);
-      blockHeight = Number(room.customBlock.height);
+    const blockDef = blockTypes.find((b) => b.name !== "Custom");
+    if (blockDef?.size) {
+      blockLength = blockDef.size.length;
+      blockHeight = blockDef.size.height;
     }
 
     // Centre-line method: calculate using centre line perimeter
-    const centreLine = 2 * (length - thickness + width - thickness);
+    const externalCentreLine = externalPerimeter;
+    const internalCentreLine = internalPerimeter;
+
     const effectiveBlockLength = blockLength + joint;
     const effectiveBlockHeight = blockHeight + joint;
 
-    const blocksPerCourse = Math.ceil(centreLine / effectiveBlockLength);
+    const externalBlocksPerCourse = Math.ceil(
+      externalCentreLine / effectiveBlockLength
+    );
+    const internalBlocksPerCourse = Math.ceil(
+      internalCentreLine / effectiveBlockLength
+    );
     const courses = Math.ceil(height / effectiveBlockHeight);
 
-    return blocksPerCourse * courses;
+    return {
+      external: externalBlocksPerCourse * courses,
+      internal: internalBlocksPerCourse * courses,
+      total: (externalBlocksPerCourse + internalBlocksPerCourse) * courses,
+    };
   };
 
-  // Phase 4: Calculate assumptions for display
-  const getCalculationAssumptions = (room: Room): Record<string, any> => {
-    const length = Number(room.length);
-    const width = Number(room.width);
-    const height = Number(room.height);
-    const thickness = Number(room.thickness);
+  // Calculate calculation assumptions for display
+  const getCalculationAssumptionsFromWalls = (
+    dims: Dimensions | undefined
+  ): Record<string, any> => {
+    if (!validateWallDimensions(dims)) return {};
+
     const joint = qsSettings.mortarJointThicknessM;
 
     let blockLength = 0.225,
       blockHeight = 0.075;
 
-    if (room.blockType !== "Custom") {
-      const blockDef = blockTypes.find((b) => b.name === room.blockType);
-      if (blockDef?.size) {
-        blockLength = blockDef.size.length;
-        blockHeight = blockDef.size.height;
-      }
-    } else {
-      blockLength = Number(room.customBlock.length);
-      blockHeight = Number(room.customBlock.height);
+    const blockDef = blockTypes.find((b) => b.name !== "Custom");
+    if (blockDef?.size) {
+      blockLength = blockDef.size.length;
+      blockHeight = blockDef.size.height;
     }
 
-    // Always use centre-line method
-    const perimeter = 2 * (length - thickness + width - thickness);
+    const externalCentreLine = Number(dims!.externalWallPerimiter);
+    const internalCentreLine = Number(dims!.internalWallPerimiter);
+
     const effectiveBlockLength = blockLength + joint;
     const effectiveBlockHeight = blockHeight + joint;
-    const blocksPerCourse = Math.ceil(perimeter / effectiveBlockLength);
-    const courses = Math.ceil(height / effectiveBlockHeight);
+
+    const externalBlocksPerCourse = Math.ceil(
+      externalCentreLine / effectiveBlockLength
+    );
+    const internalBlocksPerCourse = Math.ceil(
+      internalCentreLine / effectiveBlockLength
+    );
+    const courses = Math.ceil(
+      Number(dims!.externalWallHeight) / effectiveBlockHeight
+    );
 
     return {
       blockDimensions: {
         length: blockLength,
         height: blockHeight,
-        thickness: thickness,
       },
       mortarJoint: joint,
       effectiveBlockDimensions: {
         length: effectiveBlockLength,
         height: effectiveBlockHeight,
       },
-      perimeter: perimeter,
-      blocksPerCourse: blocksPerCourse,
+      externalPerimeter: externalCentreLine,
+      internalPerimeter: internalCentreLine,
+      externalBlocksPerCourse: externalBlocksPerCourse,
+      internalBlocksPerCourse: internalBlocksPerCourse,
       courses: courses,
-      totalBlocks: blocksPerCourse * courses,
+      externalTotalBlocks: externalBlocksPerCourse * courses,
+      internalTotalBlocks: internalBlocksPerCourse * courses,
+      totalBlocks:
+        (externalBlocksPerCourse + internalBlocksPerCourse) * courses,
       wastagePercent: qsSettings.wastageMasonry,
       calculationMethod: "centre-line",
     };
@@ -1376,173 +1401,7 @@ export default function useMasonryCalculator({
     [parseMortarRatio]
   );
 
-  const calculateWallAreaWithConnectivity = useCallback(
-    (room: Room): number => {
-      if (!room.wallConnectivity?.walls) {
-        return calculateWallArea(room); // fallback to old method
-      }
-
-      const { walls } = room.wallConnectivity;
-      let totalArea = 0;
-
-      // Calculate area for each wall, considering connectivity
-      Object.values(walls).forEach((wall: Wall) => {
-        const wallArea = wall.length * wall.height;
-
-        // If wall is shared with another room, only count half the area
-        if (wall.type === "internal" && wall.connectedTo) {
-          totalArea += wallArea * 0.5; // Shared wall - count only half
-        } else {
-          totalArea += wallArea; // External wall - count full area
-        }
-      });
-
-      return totalArea;
-    },
-    []
-  );
-
-  const calculateOpeningsAreaWithConnectivity = useCallback(
-    (room: Room): number => {
-      if (!room.wallConnectivity?.walls) {
-        return calculateOpeningsArea(room); // fallback to old method
-      }
-
-      const { walls } = room.wallConnectivity;
-      let totalOpeningsArea = 0;
-
-      // Sum openings from all walls
-      Object.values(walls).forEach((wall: Wall) => {
-        wall.openings.forEach((opening: Opening) => {
-          totalOpeningsArea += opening.area * opening.count;
-        });
-      });
-
-      return totalOpeningsArea;
-    },
-    []
-  );
-
-  const getBlockCountWithConnectivity = useCallback(
-    (room: Room): number => {
-      if (!room.wallConnectivity?.walls) {
-        return getBlockCountCentreLinMethod(room); // use centre-line method
-      }
-
-      const { walls } = room.wallConnectivity;
-      const joint = qsSettings.mortarJointThicknessM;
-
-      let blockLength = 0.225,
-        blockHeight = 0.075;
-
-      // Get block dimensions
-      if (room.blockType !== "Custom") {
-        const blockDef = blockTypes.find((b) => b.name === room.blockType);
-        if (blockDef?.size) {
-          blockLength = blockDef.size.length;
-          blockHeight = blockDef.size.height;
-        }
-      } else {
-        blockLength = Number(room.customBlock.length);
-        blockHeight = Number(room.customBlock.height);
-      }
-
-      const effectiveBlockLength = blockLength + joint;
-      const effectiveBlockHeight = blockHeight + joint;
-      let totalBlocks = 0;
-
-      // Calculate blocks for each wall separately
-      Object.values(walls).forEach((wall: Wall) => {
-        const wallLength = wall.length;
-        const wallHeight = wall.height;
-
-        // Calculate blocks needed for this wall
-        const blocksPerCourse = Math.ceil(wallLength / effectiveBlockLength);
-        const courses = Math.ceil(wallHeight / effectiveBlockHeight);
-        const wallBlocks = blocksPerCourse * courses;
-
-        // Apply connectivity adjustment
-        if (wall.type === "internal" && wall.connectedTo) {
-          // Shared wall - count only half the blocks
-          totalBlocks += Math.ceil(wallBlocks * 0.5);
-        } else {
-          // External wall - count all blocks
-          totalBlocks += wallBlocks;
-        }
-      });
-
-      return totalBlocks;
-    },
-    [qsSettings.mortarJointThicknessM]
-  );
-
-  const calculateConnectivityMetrics = useCallback(
-    (room: Room): ConnectivityMetrics => {
-      const walls = Object.values(room.wallConnectivity?.walls || {});
-
-      const externalWalls = walls.filter(
-        (wall) => wall.type === "external"
-      ).length;
-      const internalWalls = walls.filter(
-        (wall) => wall.type === "internal"
-      ).length;
-      const sharedWalls = room.wallConnectivity?.connectedRooms?.length || 0;
-
-      const sharedArea = walls
-        .filter((wall) => wall.type === "internal" && wall.connectedTo)
-        .reduce((sum, wall) => sum + wall.length * wall.height, 0);
-
-      const wallOpenings = {
-        doors: room.doors?.length || 0,
-        windows: room.windows?.length || 0,
-        totalArea: calculateOpeningsAreaWithConnectivity(room),
-      };
-
-      const connectedDoors =
-        room.doors?.filter(
-          (door) => door.connectsTo || door.wallConnectivity?.connectsTo
-        ).length || 0;
-
-      return {
-        sharedWalls,
-        sharedArea,
-        externalWalls,
-        internalWalls,
-        connectedDoors,
-        wallOpenings,
-      };
-    },
-    []
-  );
-
-  const calculateMaterialAdjustments = useCallback(
-    (
-      room: Room,
-      netWallArea: number,
-      netBlocks: number
-    ): MaterialAdjustments => {
-      const sharedWallDeduction = room.connectivityMetrics?.sharedArea || 0;
-      const adjustedWallArea = netWallArea - sharedWallDeduction;
-
-      // Apply efficiency bonus for shared walls (5% reduction in materials)
-      const hasSharedWalls = room.connectivityMetrics?.sharedWalls > 0;
-      const efficiencyBonus = hasSharedWalls ? 0.95 : 1.0;
-
-      const adjustedBlocks = Math.ceil(netBlocks * efficiencyBonus);
-      const adjustedMortar = adjustedWallArea * MORTAR_PER_SQM;
-
-      return {
-        sharedWallDeduction,
-        adjustedWallArea,
-        adjustedBlocks,
-        adjustedMortar,
-        efficiencyBonus,
-      };
-    },
-    []
-  );
-
-  const calculateOpeningsCostWithConnectivity = useCallback(
+  const calculateOpeningsCost = useCallback(
     (room: Room): number => {
       let totalCost = 0;
 
@@ -1568,13 +1427,7 @@ export default function useMasonryCalculator({
         door.price = doorPrice.toString();
         door.frame.price = framePrice.toString();
 
-        // Apply connectivity discount for internal doors
-        const isInternalDoor =
-          door.connectsTo || door.wallConnectivity?.connectsTo;
-        const connectivityMultiplier = isInternalDoor ? 0.9 : 1.0; // 10% discount for internal doors
-
-        totalCost +=
-          (doorPrice + framePrice) * door.count * connectivityMultiplier;
+        totalCost += (doorPrice + framePrice) * door.count;
       });
 
       room.windows.forEach((window) => {
@@ -1703,39 +1556,6 @@ export default function useMasonryCalculator({
       calculateMovementJoints,
       calculateScaffolding,
       calculateWasteRemoval,
-    ]
-  );
-
-  // Also, let me provide the missing calculateRoomCostWithoutConnectivity function:
-  const calculateRoomCostWithoutConnectivity = useCallback(
-    (room: Room): number => {
-      // Simple fallback calculation without connectivity considerations
-      const grossWallArea = calculateWallArea(room);
-      const openingsArea = calculateOpeningsArea(room);
-      const netWallArea = Math.max(0, grossWallArea - openingsArea);
-      const netBlocks = getBlockCountCentreLinMethod(room);
-
-      const blockPrice = room.customBlock?.price
-        ? Number(room.customBlock.price)
-        : getMaterialPrice("Bricks", room.blockType);
-
-      const cementPrice =
-        materials.find((m) => m.name?.toLowerCase() === "cement")?.price || 0;
-      const sandPrice =
-        materials.find((m) => m.name?.toLowerCase() === "sand")?.price || 0;
-
-      // Simplified calculation: blocks + mortar (estimated)
-      const blockCost = netBlocks * blockPrice;
-      const mortarCost = netWallArea * 0.02 * cementPrice; // Rough estimate
-
-      return blockCost + mortarCost;
-    },
-    [
-      calculateWallArea,
-      calculateOpeningsArea,
-      getBlockCountCentreLinMethod,
-      getMaterialPrice,
-      materials,
     ]
   );
 
@@ -1913,24 +1733,16 @@ export default function useMasonryCalculator({
       const formworkMat = materials.find(
         (m) => m.name?.toLowerCase() === "formwork"
       );
-      const grossWallArea = calculateWallAreaWithConnectivity(room);
-      const openingsArea = calculateOpeningsAreaWithConnectivity(room);
+      const grossWallArea = calculateWallArea(room);
+      const openingsArea = calculateOpeningsArea(room);
       const netWallArea = Math.max(0, grossWallArea - openingsArea);
 
       // Phase 4: Use centre-line method (only method now)
       let netBlocks = getBlockCountCentreLinMethod(room);
       let calculationAssumptions = null;
 
-      // Calculate material adjustments based on connectivity
-      const connectivityMetrics = calculateConnectivityMetrics(room);
-      const materialAdjustments = calculateMaterialAdjustments(
-        room,
-        netWallArea,
-        netBlocks
-      );
-
       // Apply efficiency bonus to costs
-      const efficiencyMultiplier = materialAdjustments.efficiencyBonus;
+      const efficiencyMultiplier = 1;
 
       // Apply efficiency bonus to block count
       const adjustedNetBlocks = Math.ceil(netBlocks * efficiencyMultiplier);
@@ -1938,8 +1750,7 @@ export default function useMasonryCalculator({
 
       // Calculate mortar with connectivity adjustments
       const mortarRatio = quote?.mortarRatio || "1:4";
-      const netMortarVolume =
-        materialAdjustments.adjustedWallArea * MORTAR_PER_SQM;
+      const netMortarVolume = netWallArea * MORTAR_PER_SQM;
       const mortarMaterials = calculateMortarMaterials(
         netMortarVolume,
         mortarRatio
@@ -1948,17 +1759,13 @@ export default function useMasonryCalculator({
       // Calculate plaster area considering connectivity
       let netPlasterArea = 0;
       if (room.plaster === "One Side") {
-        netPlasterArea = materialAdjustments.adjustedWallArea;
+        netPlasterArea = netWallArea;
       } else if (room.plaster === "Both Sides") {
-        // For shared walls, only plaster one side
-        const sharedWallArea = room.connectivityMetrics?.sharedArea;
-        const nonSharedWallArea =
-          materialAdjustments.adjustedWallArea - sharedWallArea;
-        netPlasterArea = nonSharedWallArea * 2 + sharedWallArea;
+        netPlasterArea = netWallArea * 2;
       }
 
       // Calculate openings costs with connectivity consideration
-      const openingsCost = calculateOpeningsCostWithConnectivity(room);
+      const openingsCost = calculateOpeningsCost(room);
 
       // Apply efficiency bonus to costs
       const netBlocksCost =
@@ -2029,58 +1836,66 @@ export default function useMasonryCalculator({
         netDoorFramesCost = 0,
         netWindowFramesCost = 0;
 
-      // room.doors.forEach((door) => {
-      //   netDoors += door.count;
+      room.doors.forEach((door) => {
+        const doorLeafPrice = door.custom?.price
+          ? Number(door.custom.price)
+          : getMaterialPrice("Doors", door.type);
 
-      //   const doorLeafPrice = door.custom?.price
-      //     ? Number(door.custom.price)
-      //     : getMaterialPrice("Doors", door.type);
+        const doorPrice = door.custom?.price
+          ? Number(door.custom.price)
+          : doorLeafPrice[door.standardSize] || 0;
 
-      //   const doorPrice = door.custom?.price
-      //     ? Number(door.custom.price)
-      //     : doorLeafPrice[door.standardSize] || 0;
+        const frameLeafPrice =
+          getMaterialPrice("Door Frames", door.frame?.type) || "Wood";
 
-      //   const frameLeafPrice =
-      //     getMaterialPrice("Door Frames", door.frame?.type) || "Wood";
+        const framePrice = door.frame?.custom?.price
+          ? Number(door.frame?.custom?.price)
+          : frameLeafPrice[door.standardSize] || 0;
 
-      //   const framePrice = door.frame?.custom?.price
-      //     ? Number(door.frame?.custom?.price)
-      //     : frameLeafPrice[door.standardSize] || 0;
+        door.price = doorPrice;
+        door.frame.price = framePrice;
 
-      //   door.price = doorPrice;
-      //   door.frame.price = framePrice;
+        door.price = doorPrice.toString();
+        door.frame.price = framePrice.toString();
+        netDoorsCost += doorPrice * door.count;
+        netDoorFramesCost += framePrice * door.count;
+        netDoors += door.count;
+        netDoorFrames += door.count;
+      });
 
-      //   netDoorsCost += doorPrice * door.count;
-      //   netDoorFramesCost += framePrice * door.count;
-      //   netDoorFrames += door.count;
-      // });
-      // room.windows.forEach((window) => {
-      //   netWindows += window.count;
+      room.windows.forEach((window) => {
+        const windowLeafPrice = window.custom?.price
+          ? Number(window.custom.price)
+          : getMaterialPrice("Windows", window.type);
 
-      //   const windowLeafPrice = window.custom?.price
-      //     ? Number(window.custom.price)
-      //     : getMaterialPrice("Windows", window.type);
+        const windowPrice = window.custom?.price
+          ? Number(window.custom.price)
+          : windowLeafPrice[window.standardSize] || 0;
 
-      //   const windowPrice = window.custom?.price
-      //     ? Number(window.custom.price)
-      //     : windowLeafPrice[window.standardSize] || 0;
+        const frameLeafPrice =
+          getMaterialPrice("window Frames", window.frame?.type) || "Wood";
 
-      //   const frameLeafPrice =
-      //     getMaterialPrice("window Frames", window.frame?.type) || "Wood";
+        const framePrice = window.frame?.custom?.price
+          ? Number(window.frame?.custom?.price)
+          : frameLeafPrice[window.standardSize] || 0;
 
-      //   const framePrice = window.frame?.custom?.price
-      //     ? Number(window.frame?.custom?.price)
-      //     : frameLeafPrice[window.standardSize] || 0;
+        window.price = windowPrice;
+        window.frame.price = framePrice;
 
-      //   window.price = windowPrice;
-      //   window.frame.price = framePrice;
+        window.price = windowPrice.toString();
+        window.frame.price = framePrice.toString();
+        netWindowsCost += windowPrice * window.count;
+        netWindowFramesCost += framePrice * window.count;
+        netWindows += window.count;
+        netWindowFrames += window.count;
+      });
 
-      //   netWindowsCost += windowPrice * window.count;
-      //   netWindowFramesCost += framePrice * window.count;
-      //   netWindowFrames += window.count;
-      // });
       const netOpeningsCost =
-        netDoorsCost + netWindowsCost + netDoorFramesCost + netWindowFramesCost;
+        (netDoorsCost +
+          netWindowsCost +
+          netDoorFramesCost +
+          netWindowFramesCost) *
+        (1 + currentQsSettings.wastageMasonry / 100);
       const grossDoors = Math.ceil(
         netDoors * (1 + currentQsSettings.wastageMasonry / 100)
       );
@@ -2306,12 +2121,6 @@ export default function useMasonryCalculator({
         netArea: netWallArea,
         netBlocks,
         grossBlocks,
-        connectivityMetrics,
-        materialAdjustments: {
-          ...materialAdjustments,
-          adjustedBlocks: adjustedNetBlocks,
-          adjustedMortar: netMortarVolume,
-        },
         blockCost: grossBlocksCost,
         blockRate: blockPrice,
         netMortar: netMortarVolume,
@@ -2484,27 +2293,6 @@ export default function useMasonryCalculator({
             scaffolding: totals.netScaffoldingCost || 0,
             wasteRemoval: totals.netWasteRemovalCost || 0,
           },
-        },
-        connectivitySummary: {
-          totalSharedArea: updatedRooms.reduce(
-            (sum, room) => sum + (room.connectivityMetrics?.sharedArea || 0),
-            0
-          ),
-          totalExternalWalls: updatedRooms.reduce(
-            (sum, room) => sum + (room.connectivityMetrics?.externalWalls || 0),
-            0
-          ),
-          totalInternalWalls: updatedRooms.reduce(
-            (sum, room) => sum + (room.connectivityMetrics?.internalWalls || 0),
-            0
-          ),
-          efficiencySavings: updatedRooms.reduce((sum, room) => {
-            const originalArea = calculateWallArea(room); // old method
-            const connectedArea =
-              room.materialAdjustments?.adjustedWallArea || 0;
-            const areaSavings = Math.max(0, originalArea - connectedArea);
-            return sum + areaSavings * 0.1; // Estimate savings based on area reduction
-          }, 0),
         },
       },
       rooms: updatedRooms,

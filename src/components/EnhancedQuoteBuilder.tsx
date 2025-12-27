@@ -31,11 +31,7 @@ import {
   Percentage,
   Material,
 } from "@/hooks/useQuoteCalculations";
-import {
-  RoomType,
-  UserTransportRate,
-  useUserSettings,
-} from "@/hooks/useUserSettings";
+import { UserTransportRate, useUserSettings } from "@/hooks/useUserSettings";
 import { useQuotes } from "@/hooks/useQuotes";
 import {
   ArrowLeft,
@@ -88,9 +84,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ElementTypes } from "@/hooks/useRebarCalculator";
 import RebarCalculatorForm from "./RebarCalculationForm";
 import MasonryCalculatorForm from "./MasonryCalculatorForm";
-import useMasonryCalculator, {
+import useMasonryCalculatorNew, {
   MasonryQSSettings,
-} from "@/hooks/useMasonryCalculator";
+} from "@/hooks/useMasonryCalculatorNew";
 import ConcreteCalculatorForm from "./ConcreteCalculatorForm";
 import { useDynamicPricing } from "@/hooks/useDynamicPricing";
 import BOQBuilder from "./BOQBuilder";
@@ -138,43 +134,6 @@ const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
 const RISA_WHITE = "#ffffff";
 const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
-
-interface Room {
-  room_name: string;
-  length: string;
-  width: string;
-  height: string;
-  doors: any[];
-  windows: any[];
-  blockType: string;
-  thickness: string;
-  customBlock: {
-    price: string;
-    height: string;
-    length: string;
-    thickness: string;
-  };
-  roomArea: number;
-  plasterArea: number;
-  openings: number;
-  netArea: number;
-  blocks: number;
-  mortar: number;
-  plaster: string;
-  blockCost: number;
-  mortarCost: number;
-  plasterCost: number;
-  openingsCost: number;
-  cementBags: number;
-  cementCost: number;
-  sandVolume: number;
-  sandCost: number;
-  stoneVolume: number;
-  totalCost: number;
-}
-
 const EnhancedQuoteBuilder = ({ quote }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -195,9 +154,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     loading: calculationLoading,
   } = useQuoteCalculations();
   const { extractedPlan } = usePlan();
-  const { loading: settingsLoading } = useUserSettings();
+  const {
+    customEquipment,
+    customMaterials,
+    loading: settingsLoading,
+  } = useUserSettings();
   const { createQuote, updateQuote } = useQuotes();
-  const { roomTypes } = useUserSettings();
   const { profile, user } = useAuth();
   const [direction, setDirection] = useState<"left" | "right">("right");
   const variants = {
@@ -285,7 +247,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   };
 
   const [quoteData, setQuoteData] = useState<QuoteCalculation>({
-    rooms: [] as Room[],
+    wallDimensions: {
+      externalWallPerimiter: 0,
+      internalWallPerimiter: 0,
+      externalWallHeight: 0,
+      internalWallHeight: 0,
+    },
+    wallSections: [],
+    wallProperties: {
+      blockType: "Standard Block (400×200×200mm)",
+      thickness: 0.2,
+      plaster: "Both Sides",
+    },
     client_name: "",
     client_email: "",
     title: "",
@@ -349,7 +322,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       setQuoteData((prev) => ({
         ...prev,
         ...quote,
-        rooms: quote.rooms || [],
+        wallDimensions: quote.wallDimensions || {
+          externalWallPerimiter: 0,
+          internalWallPerimiter: 0,
+          externalWallHeight: 0,
+          internalWallHeight: 0,
+        },
+        wallSections: quote.wallSections || [],
+        wallProperties: quote.wallProperties || {
+          blockType: "Standard Block (400×200×200mm)",
+          thickness: 0.2,
+          plaster: "Both Sides",
+        },
         selected_equipment: quote.selected_equipment || [],
         selected_services: quote.selected_services || [],
       }));
@@ -448,7 +432,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     );
     const defaultTransportRate = { cost_per_km: 50, base_cost: 500 };
     if (!rateForRegion) {
-      console.warn(`No transport rate for ${region}. Using defaults.`);
       return (
         quoteData.distance_km * defaultTransportRate.cost_per_km +
         defaultTransportRate.base_cost
@@ -478,139 +461,27 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         title: extractedPlan.projectName || "",
         plan_file_url: extractedPlan.file_url || "",
 
-        // Rooms mapping
-        rooms:
-          extractedPlan.rooms?.map((room: any) => ({
-            room_name: room.room_name,
-            length: room.length,
-            width: room.width,
-            height: room.height || "2.7",
-            doors: room.doors || [],
-            windows: room.windows || [],
-            blockType: room.blockType || "Standard Block (400×200×200mm)",
-            thickness: room.thickness || "0.2",
-            customBlock: room.customBlock || {
-              price: "",
-              height: "",
-              length: "",
-              thickness: "",
-            },
-            roomArea: 0,
-            plasterArea: 0,
-            openings: 0,
-            netArea: 0,
-            blocks: 0,
-            mortar: 0,
-            plaster: room.plaster || "Both Sides",
-            blockCost: 0,
-            mortarCost: 0,
-            plasterCost: 0,
-            openingsCost: 0,
-            cementBags: 0,
-            cementCost: 0,
-            sandVolume: 0,
-            sandCost: 0,
-            stoneVolume: 0,
-            totalCost: 0,
-
-            // NEW: Wall connectivity details
-            wallConnectivity: room.wallConnectivity || {
-              roomId: `room_${extractedPlan.rooms?.indexOf(room)}`,
-              position: room.wallConnectivity?.position || { x: 0, y: 0 },
-              walls: room.wallConnectivity?.walls || {
-                north: room.wallConnectivity?.walls?.north || {
-                  id: `wall_${room.room_name}_north`,
-                  type: "external",
-                  openings: [],
-                  length: parseFloat(room.width) || 0,
-                  height: parseFloat(room.height) || 2.7,
-                  netArea: 0,
-                  grossArea: 0,
-                },
-                south: room.wallConnectivity?.walls?.south || {
-                  id: `wall_${room.room_name}_south`,
-                  type: "external",
-                  openings: [],
-                  length: parseFloat(room.width) || 0,
-                  height: parseFloat(room.height) || 2.7,
-                  netArea: 0,
-                  grossArea: 0,
-                },
-                east: room.wallConnectivity?.walls?.east || {
-                  id: `wall_${room.room_name}_east`,
-                  type: "external",
-                  openings: [],
-                  length: parseFloat(room.length) || 0,
-                  height: parseFloat(room.height) || 2.7,
-                  netArea: 0,
-                  grossArea: 0,
-                },
-                west: room.wallConnectivity?.walls?.west || {
-                  id: `wall_${room.room_name}_west`,
-                  type: "external",
-                  openings: [],
-                  length: parseFloat(room.length) || 0,
-                  height: parseFloat(room.height) || 2.7,
-                  netArea: 0,
-                  grossArea: 0,
-                },
-              },
-              connectedRooms: room.wallConnectivity?.connectedRooms || [],
-              sharedArea: room.wallConnectivity?.sharedArea || 0,
-              externalWallArea: room.wallConnectivity?.externalWallArea || 0,
-            },
-
-            // NEW: Connectivity metrics for calculations
-            connectivityMetrics: {
-              sharedWalls: room.wallConnectivity?.connectedRooms?.length || 0,
-              sharedArea: room.wallConnectivity?.sharedArea || 0,
-              externalWalls: Object.values(
-                room.wallConnectivity?.walls || {}
-              ).filter((wall: any) => wall.type === "external").length,
-              internalWalls: Object.values(
-                room.wallConnectivity?.walls || {}
-              ).filter((wall: any) => wall.type === "internal").length,
-              connectedDoors:
-                room.doors?.filter(
-                  (door: any) =>
-                    door.connectsTo || door.wallConnectivity?.connectsTo
-                ).length || 0,
-              wallOpenings: {
-                doors: room.doors?.length || 0,
-                windows: room.windows?.length || 0,
-                totalArea:
-                  (room.doors || []).reduce((sum: number, door: any) => {
-                    const area =
-                      door.sizeType === "standard"
-                        ? parseFloat(door.standardSize?.split("×")[0] || "0") *
-                          parseFloat(door.standardSize?.split("×")[1] || "0")
-                        : parseFloat(door.custom?.width || "0") *
-                          parseFloat(door.custom?.height || "0");
-                    return sum + area * (door.count || 1);
-                  }, 0) +
-                  (room.windows || []).reduce((sum: number, window: any) => {
-                    const area =
-                      window.sizeType === "standard"
-                        ? parseFloat(
-                            window.standardSize?.split("×")[0] || "0"
-                          ) *
-                          parseFloat(window.standardSize?.split("×")[1] || "0")
-                        : parseFloat(window.custom?.width || "0") *
-                          parseFloat(window.custom?.height || "0");
-                    return sum + area * (window.count || 1);
-                  }, 0),
-              },
-            },
-
-            // NEW: Material adjustments for shared walls
-            materialAdjustments: {
-              sharedWallDeduction: room.wallConnectivity?.sharedArea || 0,
-              adjustedWallArea: 0, // Will be calculated
-              adjustedBlocks: 0, // Will be calculated
-              adjustedMortar: 0, // Will be calculated
-              efficiencyBonus: room.wallConnectivity?.sharedArea ? 0.95 : 1.0, // 5% efficiency for shared walls
-            },
-          })) || prev.rooms,
+        // Wall dimensions and properties (new structure)
+        wallDimensions: extractedPlan.wallDimensions || {
+          externalWallPerimiter: 0,
+          internalWallPerimiter: 0,
+          externalWallHeight: 0,
+          internalWallHeight: 0,
+        },
+        wallSections:
+          extractedPlan.wallSections?.map((section: any) => ({
+            type: section.type || "external",
+            blockType: section.blockType,
+            thickness: section.thickness,
+            plaster: section.plaster,
+            doors: section.doors || [],
+            windows: section.windows || [],
+          })) || [],
+        wallProperties: extractedPlan.wallProperties || {
+          blockType: "Standard Block (400×200×200mm)",
+          thickness: 0.2,
+          plaster: "Both Sides",
+        },
 
         // Concrete structures
         concrete_rows:
@@ -624,6 +495,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               height: structure.height,
               mix: structure.mix || "C25",
               verandahArea: structure.verandahArea || 0,
+              slabArea: structure.slabArea || 0,
               formwork: structure.formwork,
               category: structure.category || "substructure",
               number: structure.number || "1",
@@ -811,6 +683,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             tanks: system.tanks || [],
             pumps: system.pumps || [],
             fittings: system.fittings || [],
+            isLumpsum: false,
           })) || prev.plumbing_systems,
 
         // Electrical Systems
@@ -868,6 +741,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               })) || [],
             protectionDevices: system.protectionDevices || [],
             voltage: parseFloat(system.voltage) || 230,
+            isLumpsum: false,
           })) || prev.electrical_systems,
 
         // Finishes
@@ -912,7 +786,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           })) || prev.earthwork,
       }));
     }
-    console.log("Extracted Plan Changed:");
   }, [extractedPlan]);
 
   const fetchMaterials = useCallback(async () => {
@@ -923,10 +796,19 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       .from("user_material_prices")
       .select("material_id, region, price")
       .eq("user_id", profile.id);
+    const { data: customMaterials, error: customError } = await supabase
+      .from("user_materials")
+      .select("*")
+      .eq("user_id", profile.id);
     if (baseError) console.error("Base materials error:", baseError);
     if (overrideError) console.error("Overrides error:", overrideError);
+    if (customError) console.error("Custom materials error:", customError);
+
+    const userRegion = quoteData.region || "Nairobi";
+    const multiplier =
+      regionalMultipliers.find((r) => r.region === userRegion)?.multiplier || 1;
+
     const merged = baseMaterials.map((material) => {
-      const userRegion = quoteData.region || "Nairobi";
       const userRate = overrides?.find(
         (o) => o.material_id === material.id && o.region === userRegion
       );
@@ -942,7 +824,22 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         region: userRegion,
       };
     });
-    setMaterials(merged);
+
+    // Add custom materials
+    const customMaterialsItems = (customMaterials || []).map((custom) => ({
+      id: custom.id,
+      name: custom.material_name,
+      unit: custom.unit,
+      region: userRegion,
+      price: custom.price_per_unit,
+      result: custom.price_per_unit * multiplier,
+      category: custom.category || "Custom",
+      description: custom.description,
+      source: "custom",
+      type: custom.type || "[]",
+    }));
+
+    setMaterials([...merged, ...customMaterialsItems]);
   }, [user, location, location.key, quoteData.region, regionalMultipliers]);
 
   const steps = [
@@ -1066,7 +963,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       const result = await calculateQuote({
         user_id: quoteData.user_id,
         id: quoteData.id,
-        rooms: quoteData.rooms,
         title: quoteData.title,
         client_name: quoteData.client_name,
         client_email: quoteData.client_email,
@@ -1155,8 +1051,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           client_name: quoteData.client_name,
           client_email: quoteData.client_email || null,
           location: quoteData.location,
-          rooms: quoteData.rooms,
           region: quoteData.region,
+          wallDimensions: quoteData.wallDimensions,
+          wallSections: quoteData.wallSections,
+          wallProperties: quoteData.wallProperties,
           project_type: quoteData.project_type,
           custom_specs: quoteData.custom_specs || null,
           status: quoteData.status,
@@ -1221,11 +1119,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           client_name: quoteData.client_name,
           client_email: quoteData.client_email || null,
           location: quoteData.location,
-          rooms: quoteData.rooms,
           region: quoteData.region,
           project_type: quoteData.project_type,
           custom_specs: quoteData.custom_specs || null,
           status: "draft",
+          wallDimensions: quoteData.wallDimensions,
+          wallSections: quoteData.wallSections,
+          wallProperties: quoteData.wallProperties,
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           boq_data: boqData,
@@ -1915,10 +1815,245 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       </Card>
                     );
                   })}
+                {customEquipment
+                  .sort((a, b) =>
+                    a.equipment_name.localeCompare(b.equipment_name)
+                  )
+                  .map((customEq) => {
+                    const isChecked = quoteData.equipment.some(
+                      (eq) => eq.equipment_type_id === customEq.id
+                    );
+                    const equipmentItem = quoteData.equipment.find(
+                      (eq) => eq.equipment_type_id === customEq.id
+                    );
+                    return (
+                      <Card
+                        key={customEq.id}
+                        className="p-6 border-l-4 border-l-blue-500"
+                      >
+                        <div className="items-center justify-between">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setQuoteData((prev) => ({
+                                      ...prev,
+                                      equipment: [
+                                        ...prev.equipment,
+                                        {
+                                          equipment_type_id: customEq.id,
+                                          name: customEq.equipment_name,
+                                          desc: customEq.description,
+                                          usage_quantity: 1,
+                                          usage_unit:
+                                            customEq?.usage_unit || "day",
+                                          rate_per_unit:
+                                            customEq.daily_rate || 0,
+                                          total_cost: customEq.daily_rate || 0,
+                                        },
+                                      ],
+                                    }));
+                                  } else {
+                                    setQuoteData((prev) => ({
+                                      ...prev,
+                                      equipment: prev.equipment.filter(
+                                        (eq) =>
+                                          eq.equipment_type_id !== customEq.id
+                                      ),
+                                    }));
+                                  }
+                                }}
+                              />
+                              <div>
+                                <h4 className="font-medium text-gray-900 dark:text-white">
+                                  {customEq.equipment_name}
+                                  <Badge className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                                    Custom
+                                  </Badge>
+                                </h4>
+                                {customEq.description && (
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                                    {customEq.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            {isChecked && (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <Label
+                                      htmlFor={`quantity-${customEq.id}`}
+                                      className="text-gray-900 dark:text-white"
+                                    >
+                                      Quantity
+                                    </Label>
+                                    <Input
+                                      id={`quantity-${customEq.id}`}
+                                      type="number"
+                                      min="0"
+                                      step="0.1"
+                                      value={equipmentItem?.usage_quantity || 1}
+                                      onChange={(e) => {
+                                        const quantity =
+                                          parseFloat(e.target.value) || 0;
+                                        const rate =
+                                          equipmentItem?.rate_per_unit || 0;
+                                        setQuoteData((prev) => ({
+                                          ...prev,
+                                          equipment: prev.equipment.map((eq) =>
+                                            eq.equipment_type_id === customEq.id
+                                              ? {
+                                                  ...eq,
+                                                  usage_quantity: quantity,
+                                                  total_cost: quantity * rate,
+                                                }
+                                              : eq
+                                          ),
+                                        }));
+                                      }}
+                                      className=""
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label
+                                      htmlFor={`unit-${customEq.id}`}
+                                      className="text-gray-900 dark:text-white"
+                                    >
+                                      Unit
+                                    </Label>
+                                    <div id={`unit-${customEq.id}`}>
+                                      <Select
+                                        value={
+                                          equipmentItem?.usage_unit || "day"
+                                        }
+                                        onValueChange={(value) => {
+                                          setQuoteData((prev) => ({
+                                            ...prev,
+                                            equipment: prev.equipment.map(
+                                              (eq) =>
+                                                eq.equipment_type_id ===
+                                                customEq.id
+                                                  ? {
+                                                      ...eq,
+                                                      usage_unit: value,
+                                                    }
+                                                  : eq
+                                            ),
+                                          }));
+                                        }}
+                                      >
+                                        <SelectTrigger className="h-10 w-full ">
+                                          <SelectValue placeholder="Select unit" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="hour">
+                                            Hour
+                                          </SelectItem>
+                                          <SelectItem value="day">
+                                            Day
+                                          </SelectItem>
+                                          <SelectItem value="week">
+                                            Week
+                                          </SelectItem>
+                                          <SelectItem value="month">
+                                            Month
+                                          </SelectItem>
+                                          <SelectItem value="unit">
+                                            Unit
+                                          </SelectItem>
+                                          <SelectItem value="trip">
+                                            Trip
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <Label
+                                    htmlFor={`rate-${customEq.id}`}
+                                    className="text-gray-900 dark:text-white"
+                                  >
+                                    Rate per{" "}
+                                    {equipmentItem?.usage_unit || "unit"}
+                                  </Label>
+                                  <Input
+                                    id={`rate-${customEq.id}`}
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={equipmentItem?.rate_per_unit || 0}
+                                    onChange={(e) => {
+                                      const rate =
+                                        parseFloat(e.target.value) || 0;
+                                      const quantity =
+                                        equipmentItem?.usage_quantity || 1;
+                                      setQuoteData((prev) => ({
+                                        ...prev,
+                                        equipment: prev.equipment.map((eq) =>
+                                          eq.equipment_type_id === customEq.id
+                                            ? {
+                                                ...eq,
+                                                rate_per_unit: rate,
+                                                total_cost: quantity * rate,
+                                              }
+                                            : eq
+                                        ),
+                                      }));
+                                    }}
+                                    className=""
+                                  />
+                                </div>
+                                <div>
+                                  <Label
+                                    htmlFor={`total-${customEq.id}`}
+                                    className="text-gray-900 dark:text-white"
+                                  >
+                                    Total Cost
+                                  </Label>
+                                  <Input
+                                    id={`total-${customEq.id}`}
+                                    type="text"
+                                    readOnly
+                                    value={`KES ${(
+                                      equipmentItem?.total_cost || 0
+                                    ).toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}`}
+                                    className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
+                                  />
+                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                                    {equipmentItem?.usage_quantity || 0}{" "}
+                                    {equipmentItem?.usage_unit || "unit"} × KES
+                                    {(
+                                      equipmentItem?.rate_per_unit || 0
+                                    ).toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                    /{equipmentItem?.usage_unit || "unit"}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
                 {quoteData.equipment
                   .filter(
                     (eq) =>
-                      !equipmentRates.some((e) => e.id === eq.equipment_type_id)
+                      !equipmentRates.some(
+                        (e) => e.id === eq.equipment_type_id
+                      ) &&
+                      !customEquipment.some(
+                        (ce) => ce.id === eq.equipment_type_id
+                      )
                   )
                   .map((eq) => {
                     const totalCost =
@@ -3127,9 +3262,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 <TableHead className="text-gray-900 dark:text-white">
                                   Amount
                                 </TableHead>
-                                <TableHead className="text-gray-900 dark:text-white">
-                                  Source
-                                </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -3174,9 +3306,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                             {item.amount
                                               ? item.amount.toLocaleString()
                                               : "-"}
-                                          </TableCell>
-                                          <TableCell className="text-xs text-gray-500 dark:text-gray-400">
-                                            {item.calculatedFrom || "-"}
                                           </TableCell>
                                         </>
                                       )}

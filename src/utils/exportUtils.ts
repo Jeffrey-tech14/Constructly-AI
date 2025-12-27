@@ -42,7 +42,6 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
       if (
         quote?.concrete_materials ||
         quote?.rebar_calculations ||
-        quote?.rooms ||
         quote?.boq_data
       ) {
         try {

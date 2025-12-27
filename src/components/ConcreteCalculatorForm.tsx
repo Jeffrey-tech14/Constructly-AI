@@ -36,9 +36,9 @@ import { RegionalMultiplier } from "@/hooks/useDynamicPricing";
 import { supabase } from "@/integrations/supabase/client";
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
-import useMasonryCalculator, {
+import useMasonryCalculatorNew, {
   MasonryQSSettings,
-} from "@/hooks/useMasonryCalculator";
+} from "@/hooks/useMasonryCalculatorNew";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -141,6 +141,7 @@ export default function ConcreteCalculatorForm({
         includesPolythene: false,
         includesWaterproofing: false,
       },
+      slabArea: "",
       verandahArea: "",
     };
   }, []);
@@ -310,7 +311,7 @@ export default function ConcreteCalculatorForm({
     rows.find((r) => r.masonryBlockType?.toLocaleLowerCase())
       ?.masonryBlockType || "Standard Block";
 
-  const foundationBlockPrice = useMasonryCalculator({
+  const foundationBlockPrice = useMasonryCalculatorNew({
     setQuote,
     quote,
     materialBasePrices,
@@ -1832,54 +1833,85 @@ export default function ConcreteCalculatorForm({
             </div>
 
             <div className="grid sm:grid-cols-4 gap-2">
-              <Input
-                type="number"
-                value={row.length}
-                onChange={(e) => updateRow(row.id, "length", e.target.value)}
-                placeholder={"Length (m)"}
-              />
-              <Input
-                type="number"
-                value={row.width}
-                onChange={(e) => updateRow(row.id, "width", e.target.value)}
-                placeholder={"Width (m)"}
-              />
-              <Input
-                type="number"
-                value={row.height}
-                step="0.1"
-                onChange={(e) => updateRow(row.id, "height", e.target.value)}
-                placeholder={"Height/Thickness (m)"}
-              />
-              <Input
-                type="number"
-                value={row.number}
-                step="1"
-                min="1"
-                defaultValue="1"
-                onChange={(e) => updateRow(row.id, "number", e.target.value)}
-                placeholder="Number of items"
-              />
-              {row.element === "slab" && (
-                <div className="space-y-2">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Verandah Area (m²)
-                    </Label>
-                    <Input
-                      type="number"
-                      value={row.verandahArea || ""}
-                      onChange={(e) =>
-                        updateRow(row.id, "verandahArea", e.target.value)
-                      }
-                      placeholder="Area"
-                      step="0.1"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Leave blank if no verandah
-                    </p>
-                  </div>
-                </div>
+              {row.element === "slab" ? (
+                <>
+                  <Input
+                    type="number"
+                    value={row.slabArea || ""}
+                    onChange={(e) =>
+                      updateRow(row.id, "slabArea", e.target.value)
+                    }
+                    placeholder="Slab Area (m²)"
+                    step="0.1"
+                    min="0"
+                  />
+                  <Input
+                    type="number"
+                    value={row.height}
+                    step="0.1"
+                    onChange={(e) =>
+                      updateRow(row.id, "height", e.target.value)
+                    }
+                    placeholder={"Thickness (m)"}
+                  />
+                  <Input
+                    type="number"
+                    value={row.number}
+                    step="1"
+                    min="1"
+                    defaultValue="1"
+                    onChange={(e) =>
+                      updateRow(row.id, "number", e.target.value)
+                    }
+                    placeholder="Number of items"
+                  />
+                  <Input
+                    type="number"
+                    value={row.verandahArea || ""}
+                    onChange={(e) =>
+                      updateRow(row.id, "verandahArea", e.target.value)
+                    }
+                    placeholder="Additional area"
+                    step="0.1"
+                  />
+                </>
+              ) : (
+                <>
+                  <Input
+                    type="number"
+                    value={row.length}
+                    onChange={(e) =>
+                      updateRow(row.id, "length", e.target.value)
+                    }
+                    placeholder={"Length (m)"}
+                  />
+                  <Input
+                    type="number"
+                    value={row.width}
+                    onChange={(e) => updateRow(row.id, "width", e.target.value)}
+                    placeholder={"Width (m)"}
+                  />
+                  <Input
+                    type="number"
+                    value={row.height}
+                    step="0.1"
+                    onChange={(e) =>
+                      updateRow(row.id, "height", e.target.value)
+                    }
+                    placeholder={"Height/Thickness (m)"}
+                  />
+                  <Input
+                    type="number"
+                    value={row.number}
+                    step="1"
+                    min="1"
+                    defaultValue="1"
+                    onChange={(e) =>
+                      updateRow(row.id, "number", e.target.value)
+                    }
+                    placeholder="Number of items"
+                  />
+                </>
               )}
             </div>
 

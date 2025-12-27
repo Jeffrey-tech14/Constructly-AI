@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ interface BOQBuilderProps {
 }
 
 const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
+  const { toast } = useToast();
   const [boqSections, setBoqSections] = useState<BOQSection[]>([]);
   const [editingItem, setEditingItem] = useState<{
     sectionIndex: number;
@@ -87,12 +89,16 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
         setLastError(null);
 
         try {
-          const { data: boq } = await supabase.functions.invoke(
+          const { data: boq, error } = await supabase.functions.invoke(
             "generate-boq-ai",
             {
               body: quoteData,
             }
           );
+
+          if (error) {
+            throw new Error(error.message || "API returned an error");
+          }
 
           const newSections = JSON.parse(boq);
           if (newSections.length > 0) {
@@ -104,7 +110,14 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
           }
         } catch (error) {
           console.error("AI BOQ generation failed:", error);
-          setLastError("Generation failed, using fallback data");
+          const errorMessage =
+            error instanceof Error ? error.message : "Generation failed";
+          setLastError(errorMessage);
+          toast({
+            title: "BOQ Generation Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
           // Set fallback empty sections
           const fallbackSections: BOQSection[] = [
             {
@@ -136,11 +149,15 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
         }
       );
       if (error) {
-        throw error;
+        throw new Error(error.message || "API returned an error");
+      }
+
+      if (!newBOQ) {
+        throw new Error("No BOQ data generated");
       }
 
       const newSections = JSON.parse(newBOQ);
-      if (newBOQ) {
+      if (newSections.length > 0) {
         setBoqSections(newSections);
         onBOQUpdate(newSections);
         setGenerationMethod("ai");
@@ -150,8 +167,16 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       }
     } catch (error) {
       console.error("Regeneration failed:", error);
-      setLastError("Regeneration failed. Try again");
-      regenerateWithAI();
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Regeneration failed. Try again";
+      setLastError(errorMessage);
+      toast({
+        title: "BOQ Regeneration Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
     }

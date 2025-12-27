@@ -4,39 +4,26 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Database } from "@/integrations/supabase/types";
 import { useLocation } from "react-router-dom";
 export interface Quote {
-  rooms: Array<{
-    room_name: string;
-    length: string;
-    width: string;
-    height: string;
+  // New wall-based structure (replaces rooms)
+  wallDimensions?: {
+    externalWallPerimiter: number;
+    internalWallPerimiter: number;
+    externalWallHeight: number;
+    internalWallHeight: number;
+  };
+  wallSections?: Array<{
+    type: "external" | "internal";
     doors: any[];
     windows: any[];
-    blockType: string;
-    thickness: string;
-    customBlock: {
-      price: string;
-      height: string;
-      length: string;
-      thickness: string;
-    };
-    roomArea: number;
-    plasterArea: number;
-    openings: number;
-    netArea: number;
-    blocks: number;
-    mortar: number;
-    plaster: string;
-    blockCost: number;
-    mortarCost: number;
-    plasterCost: number;
-    openingsCost: number;
-    cementBags: number;
-    cementCost: number;
-    sandVolume: number;
-    sandCost: number;
-    stoneVolume: number;
-    totalCost: number;
   }>;
+  wallProperties?: {
+    blockType: string;
+    thickness: number;
+    plaster: "None" | "One Side" | "Both Sides";
+    customBlockLength?: number;
+    customBlockHeight?: number;
+    customBlockPrice?: number;
+  };
   id: string;
   user_id: string;
   title: string;
@@ -103,7 +90,7 @@ export const useQuotes = () => {
       try {
         if (!silent) setLoading(true);
         await refreshSessionIfNeeded();
-        let query = (supabase.from("quotes").select("*") as any);
+        let query = supabase.from("quotes").select("*") as any;
         if (!profile?.is_admin) {
           query = query.eq("user_id", user.id);
         }
@@ -149,33 +136,35 @@ export const useQuotes = () => {
     quoteData: Omit<Quote, "id" | "user_id" | "created_at" | "updated_at">
   ) => {
     if (!user) throw new Error("User not authenticated");
-    const { data, error } = await ((supabase
-      .from("quotes") as any)
-      .insert([{ ...quoteData, user_id: user.id }]))
+    const { data, error } = await (supabase.from("quotes") as any)
+      .insert([{ ...quoteData, user_id: user.id }])
       .select()
       .single();
     if (error) throw error;
     return data as Database;
   };
   const updateQuote = async (id: string, updates: Partial<Quote>) => {
-    const { data, error } = await ((supabase
-      .from("quotes") as any)
-      .update(updates))
+    const { data, error } = await (supabase.from("quotes") as any)
+      .update(updates)
       .eq("id", id)
       .select()
       .maybeSingle();
     if (error) throw error;
     if (!data) {
-      const { data: created, error: insertError } = await ((supabase
-        .from("quotes") as any)
-        .insert([{ ...updates, id, user_id: user.id }]))
+      const { data: created, error: insertError } = await (
+        supabase.from("quotes") as any
+      )
+        .insert([{ ...updates, id, user_id: user.id }])
         .select()
         .single();
       if (insertError) throw insertError;
       setQuotes((prev) => [...prev, created as any]);
       return created as any;
     }
-    const updatedQuote = { ...(data as any), status: (data as any).status as Quote["status"] };
+    const updatedQuote = {
+      ...(data as any),
+      status: (data as any).status as Quote["status"],
+    };
     setQuotes((prev) => prev.map((q) => (q.id === id ? updatedQuote : q)));
     return updatedQuote;
   };

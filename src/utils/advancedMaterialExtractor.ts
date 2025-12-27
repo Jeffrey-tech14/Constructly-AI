@@ -371,6 +371,19 @@ export class AdvancedMaterialExtractor {
           console.warn("Error extracting BOQ materials:", error);
         }
       }
+      // Extract wall-based masonry materials (new structure)
+      if (quote.wallDimensions && quote.wallProperties) {
+        try {
+          const wallMaterials = this.extractWallMaterials(
+            quote.wallDimensions,
+            quote.wallSections,
+            quote.wallProperties
+          );
+          allMaterials.push(...wallMaterials);
+        } catch (error) {
+          console.warn("Error extracting wall materials:", error);
+        }
+      }
       if (quote.concrete_materials) {
         try {
           const concreteMaterials = this.extractConcreteMaterials(
@@ -423,35 +436,6 @@ export class AdvancedMaterialExtractor {
           allMaterials.push(...enhancedRebarMaterials);
         } catch (error) {
           console.warn("Error extracting rebar materials:", error);
-        }
-      }
-      if (quote.rooms) {
-        try {
-          const roomMaterials = this.extractRoomMaterials(quote.rooms);
-          const enhancedRoomMaterials = roomMaterials.map((material) => {
-            const relationships = [];
-            if (material.materialType === "masonry") {
-              relationships.push(
-                {
-                  material: "mortar",
-                  type: "requires" as const,
-                  description: "Requires mortar for bonding",
-                },
-                {
-                  material: "wall ties",
-                  type: "requires" as const,
-                  description: "Requires wall ties for stability",
-                }
-              );
-            }
-            return {
-              ...material,
-              relationships,
-            };
-          });
-          allMaterials.push(...enhancedRoomMaterials);
-        } catch (error) {
-          console.warn("Error extracting room materials:", error);
         }
       }
       allMaterials.sort((a, b) => {
@@ -628,49 +612,100 @@ export class AdvancedMaterialExtractor {
       location: r.location || "General",
     }));
   }
-  private static extractRoomMaterials(rooms: any[]): MaterialSchedule {
+  private static extractWallMaterials(
+    dimensions: any,
+    sections: any[],
+    properties: any
+  ): MaterialSchedule {
     const materials: CategorizedMaterial[] = [];
-    for (const room of rooms) {
-      if (room.wallArea) {
-        const quantityResult = calculateMaterialQuantities(
-          "masonry",
-          room.wallArea
-        );
-        const breakdownResult = getMaterialBreakdown("masonry", room.wallArea);
-        if (breakdownResult.errors.length > 0) {
-          console.warn(
-            "Room material breakdown errors:",
-            breakdownResult.errors
-          );
-        }
-        if (quantityResult.errors.length > 0) {
-          console.warn(
-            "Room quantity calculation errors:",
-            quantityResult.errors
-          );
-        }
-        breakdownResult.breakdown.forEach((mat) => {
-          const quantity = quantityResult.quantities?.[mat.material] || 0;
-          materials.push({
-            itemNo: `WM${(this.itemCounter++).toString().padStart(3, "0")}`,
-            category: "Masonry",
-            element: mat.element,
-            description: mat.material,
-            unit: mat.unit,
-            quantity: quantity,
-            rate: room.wallRate || 0,
-            amount: (room.wallRate || 0) * quantity,
-            source: "room-calculator",
-            location: room.room_name || "Unknown Room",
-            requirements: mat.requirements,
-            preparationSteps: mat.preparationSteps,
-            relationships: mat.relationships,
-            materialType: "masonry",
-          });
-        });
-      }
+
+    if (!dimensions || !properties) {
+      return materials;
     }
-    return materials;
+
+    try {
+      // Calculate total wall area from external and internal walls
+      const externalWallArea =
+        (dimensions.externalWallPerimiter || 0) *
+        (dimensions.externalWallHeight || 0);
+      const internalWallArea =
+        (dimensions.internalWallPerimiter || 0) *
+        (dimensions.internalWallHeight || 0);
+      const totalWallArea = externalWallArea + internalWallArea;
+
+      if (totalWallArea <= 0) {
+        return materials;
+      }
+
+      // Calculate opening area (doors and windows) to subtract
+      let openingArea = 0;
+      if (sections && Array.isArray(sections)) {
+        for (const section of sections) {
+          if (section.doors) {
+            for (const door of section.doors) {
+              const doorWidth = door.width || 0.9;
+              const doorHeight = door.height || 2.1;
+              openingArea += doorWidth * doorHeight;
+            }
+          }
+          if (section.windows) {
+            for (const window of section.windows) {
+              const windowWidth = window.width || 1.2;
+              const windowHeight = window.height || 1.5;
+              openingArea += windowWidth * windowHeight;
+            }
+          }
+        }
+      }
+
+      // Net wall area for material calculation
+      const netWallArea = Math.max(0, totalWallArea - openingArea);
+
+      // Get material breakdown for masonry
+      const breakdownResult = getMaterialBreakdown("masonry", netWallArea);
+      if (breakdownResult.errors.length > 0) {
+        console.warn("Wall material breakdown errors:", breakdownResult.errors);
+      }
+
+      const quantityResult = calculateMaterialQuantities(
+        "masonry",
+        netWallArea
+      );
+      if (quantityResult.errors.length > 0) {
+        console.warn(
+          "Wall quantity calculation errors:",
+          quantityResult.errors
+        );
+      }
+
+      // Generate materials from breakdown
+      breakdownResult.breakdown.forEach((mat) => {
+        const quantity = quantityResult.quantities?.[mat.material] || 0;
+        materials.push({
+          itemNo: `WM${(this.itemCounter++).toString().padStart(3, "0")}`,
+          category: "Masonry",
+          element: mat.element,
+          description: mat.material,
+          unit: mat.unit,
+          quantity: quantity,
+          rate: 0, // Rate will be determined by pricing
+          amount: 0,
+          source: "wall-calculator",
+          location: `${properties.blockType || "Wall"} - ${
+            properties.thickness || ""
+          }m thick`,
+          requirements: mat.requirements,
+          preparationSteps: mat.preparationSteps,
+          relationships: mat.relationships,
+          materialType: "structural-masonry",
+        });
+      });
+
+      return materials;
+    } catch (error) {
+      console.error("Error extracting wall materials:", error);
+      return materials;
+    }
   }
   private static autoCategory(description: string): string {
     const lowerDesc = description.toLowerCase();

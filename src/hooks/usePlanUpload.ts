@@ -7,14 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 export interface PlanAnalysis {
   floors: number;
-  rooms: Array<{
-    name: string;
-    length: number;
-    width: number;
-    height?: number;
-    doors?: number;
-    windows?: number;
-  }>;
 }
 export const usePlanUpload = () => {
   const [uploading, setUploading] = useState(false);

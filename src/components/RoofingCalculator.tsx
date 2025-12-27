@@ -51,7 +51,7 @@ import useRoofingCalculator, {
   SoffitType,
   estimateRoofArea,
 } from "@/hooks/useRoofingCalculator";
-import { MasonryQSSettings } from "@/hooks/useMasonryCalculator";
+import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface RoofingCalculatorProps {
   roofStructures: RoofStructure[];

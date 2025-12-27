@@ -239,7 +239,7 @@ Constructly-AI/
 │   │   ├── useQuotes.ts          # Quote management hook
 │   │   ├── useRebarCalculator.ts # Rebar calculations
 │   │   ├── useConcreteCalculator.ts
-│   │   ├── useMasonryCalculator.ts
+│   │   ├── useMasonryCalculatorNew.ts
 │   │   ├── usePlumbingCalculator.ts
 │   │   ├── useElectricalCalculator.ts
 │   │   ├── useRoofingCalculator.ts

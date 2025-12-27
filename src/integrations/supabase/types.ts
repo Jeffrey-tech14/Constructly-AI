@@ -685,45 +685,7 @@ export type Database = {
         };
         Relationships: [];
       };
-      room_material_requirements: {
-        Row: {
-          created_at: string | null;
-          id: string;
-          material_id: string | null;
-          quantity_per_unit: number;
-          room_type_id: string | null;
-        };
-        Insert: {
-          created_at?: string | null;
-          id?: string;
-          material_id?: string | null;
-          quantity_per_unit: number;
-          room_type_id?: string | null;
-        };
-        Update: {
-          created_at?: string | null;
-          id?: string;
-          material_id?: string | null;
-          quantity_per_unit?: number;
-          room_type_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "room_material_requirements_material_id_fkey";
-            columns: ["material_id"];
-            isOneToOne: false;
-            referencedRelation: "material_base_prices";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "room_material_requirements_room_type_id_fkey";
-            columns: ["room_type_id"];
-            isOneToOne: false;
-            referencedRelation: "room_types";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+
       user_equipment_overrides: {
         Row: {
           created_at: string | null;
@@ -1025,6 +987,91 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_transport_rates_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      user_equipment: {
+        Row: {
+          created_at: string;
+          daily_rate: number;
+          description: string | null;
+          equipment_name: string;
+          hourly_rate: number;
+          id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          daily_rate: number;
+          description?: string | null;
+          equipment_name: string;
+          hourly_rate: number;
+          id?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          daily_rate?: number;
+          description?: string | null;
+          equipment_name?: string;
+          hourly_rate?: number;
+          id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_equipment_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      user_materials: {
+        Row: {
+          category: string | null;
+          created_at: string;
+          description: string | null;
+          id: string;
+          material_name: string;
+          price_per_unit: number;
+          unit: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          category?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          material_name: string;
+          price_per_unit: number;
+          unit?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          category?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          material_name?: string;
+          price_per_unit?: number;
+          unit?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_materials_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";

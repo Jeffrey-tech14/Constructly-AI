@@ -49,7 +49,7 @@ import useElectricalCalculator, {
   LightingType,
   InstallationMethod,
 } from "@/hooks/useElectricalCalculator";
-import { MasonryQSSettings } from "@/hooks/useMasonryCalculator";
+import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface ElectricalCalculatorProps {
   electricalSystems: ElectricalSystem[];
@@ -198,6 +198,7 @@ export default function ElectricalCalculator({
       distributionBoards: [],
       protectionDevices: [],
       voltage: 230,
+      isLumpsum: false,
     };
 
     if (onElectricalSystemsUpdate) {
@@ -1159,6 +1160,145 @@ export default function ElectricalCalculator({
                                 className="text-destructive ml-2"
                               >
                                 <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Distribution Boards Section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <Label className="text-lg font-semibold flex items-center">
+                          <CircuitBoard className="h-5 w-5 mr-2" />
+                          Distribution Boards
+                        </Label>
+                        <Button
+                          onClick={addDistributionBoard}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add DB
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {editForm.distributionBoards.map((db) => (
+                          <div
+                            key={db.id}
+                            className="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 border rounded-lg bg-slate-50 dark:bg-slate-900"
+                          >
+                            <div>
+                              <Label>Type</Label>
+                              <Select
+                                value={db.type}
+                                onValueChange={(value: "main" | "sub") =>
+                                  updateDistributionBoard(db.id, "type", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="main">
+                                    Main Board
+                                  </SelectItem>
+                                  <SelectItem value="sub">Sub Board</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Rating (A)</Label>
+                              <Select
+                                value={db.rating.toString()}
+                                onValueChange={(value) =>
+                                  updateDistributionBoard(
+                                    db.id,
+                                    "rating",
+                                    parseInt(value)
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[40, 63, 100, 125].map((rating) => (
+                                    <SelectItem
+                                      key={rating}
+                                      value={rating.toString()}
+                                    >
+                                      {rating}A
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Circuits</Label>
+                              <Select
+                                value={db.circuits.toString()}
+                                onValueChange={(value) =>
+                                  updateDistributionBoard(
+                                    db.id,
+                                    "circuits",
+                                    parseInt(value)
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[4, 6, 8, 12, 16, 18, 24].map((circuit) => (
+                                    <SelectItem
+                                      key={circuit}
+                                      value={circuit.toString()}
+                                    >
+                                      {circuit} ways
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label>Mounting</Label>
+                              <Select
+                                value={db.mounting}
+                                onValueChange={(value: "surface" | "flush") =>
+                                  updateDistributionBoard(
+                                    db.id,
+                                    "mounting",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="surface">
+                                    Surface
+                                  </SelectItem>
+                                  <SelectItem value="flush">Flush</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="flex items-end">
+                              <Button
+                                onClick={() => removeDistributionBoard(db.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive w-full"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Remove
                               </Button>
                             </div>
                           </div>

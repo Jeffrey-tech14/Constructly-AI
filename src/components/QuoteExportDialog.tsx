@@ -19,7 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Download, Clock, MapPin, User, Building2 } from "lucide-react";
 import { exportQuote } from "@/utils/exportUtils";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface QuoteExportDialogProps {
   quote: any;
@@ -38,6 +38,7 @@ export const QuoteExportDialog = ({
   companyName,
   logoUrl,
 }: QuoteExportDialogProps) => {
+  const { toast } = useToast();
   const [exportType, setExportType] = useState<"client" | "contractor">(
     "contractor"
   );

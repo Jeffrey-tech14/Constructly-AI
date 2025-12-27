@@ -27,7 +27,12 @@ import {
   FinishElement,
 } from "./useUniversalFinishesCalculator";
 import { RoofStructure } from "./useRoofingCalculator";
-import { MasonryQSSettings } from "./useMasonryCalculator";
+import { MasonryQSSettings } from "./useMasonryCalculatorNew";
+import {
+  Dimensions,
+  WallSection,
+  WallProperties,
+} from "./useMasonryCalculatorNew";
 
 export interface Material {
   id: string;
@@ -74,39 +79,11 @@ export interface Addons {
 }
 
 export interface QuoteCalculation {
-  rooms: Array<{
-    room_name: string;
-    length: string;
-    width: string;
-    height: string;
-    doors: any[];
-    windows: any[];
-    blockType: string;
-    thickness: string;
-    customBlock: {
-      price: string;
-      height: string;
-      length: string;
-      thickness: string;
-    };
-    roomArea: number;
-    plasterArea: number;
-    openings: number;
-    netArea: number;
-    blocks: number;
-    mortar: number;
-    plaster: string;
-    blockCost: number;
-    mortarCost: number;
-    plasterCost: number;
-    openingsCost: number;
-    cementBags: number;
-    cementCost: number;
-    sandVolume: number;
-    sandCost: number;
-    stoneVolume: number;
-    totalCost: number;
-  }>;
+  // New wall-based structure
+  wallDimensions?: Dimensions;
+  wallSections?: WallSection[];
+  wallProperties?: WallProperties;
+
   id: string;
   user_id: string;
   title: string;
@@ -272,8 +249,18 @@ export const useQuoteCalculations = () => {
       .from("user_material_prices")
       .select("material_id, region, price")
       .eq("user_id", profile.id);
+    const { data: customMaterials, error: customError } = await supabase
+      .from("user_materials")
+      .select("*")
+      .eq("user_id", profile.id);
     if (baseError) console.error("Base materials error:", baseError);
     if (overrideError) console.error("Overrides error:", overrideError);
+    if (customError) console.error("Custom materials error:", customError);
+
+    const userRegion = region || "Nairobi";
+    const multiplier =
+      regionalMultipliers.find((r) => r.region === userRegion)?.multiplier || 1;
+
     const merged = baseMaterials.map((material) => {
       const userRegion = region || "Nairobi";
       const userRate = overrides?.find(
@@ -291,7 +278,21 @@ export const useQuoteCalculations = () => {
         source: userRate ? "user" : material.price != null ? "base" : "none",
       };
     });
-    setMaterials(merged);
+
+    // Add custom materials
+    const customMaterialsItems = (customMaterials || []).map((custom) => ({
+      id: custom.id,
+      name: custom.material_name,
+      unit: custom.unit,
+      region: userRegion,
+      price: custom.price_per_unit,
+      result: custom.price_per_unit * multiplier,
+      category: custom.category || "Custom",
+      description: custom.description,
+      source: "custom",
+    }));
+
+    setMaterials([...merged, ...customMaterialsItems]);
   }, [user, location, location.key]);
 
   const fetchServices = useCallback(async () => {
@@ -355,8 +356,14 @@ export const useQuoteCalculations = () => {
       .from("user_equipment_rates")
       .select("equipment_type_id, total_cost")
       .eq("user_id", profile.id);
+    const { data: customEquipment, error: customError } = await supabase
+      .from("user_equipment")
+      .select("*")
+      .eq("user_id", profile.id);
     if (baseError) console.error("Base equipment error:", baseError);
     if (overrideError) console.error("Overrides error:", overrideError);
+    if (customError) console.error("Custom equipment error:", customError);
+
     const merged = baseEquipment.map((equipment) => {
       const userRate = overrides?.find(
         (o) => o.equipment_type_id === equipment.id
@@ -372,7 +379,20 @@ export const useQuoteCalculations = () => {
           : "none",
       };
     });
-    setEquipmentRates(merged);
+
+    // Add custom equipment
+    const customEquipmentItems = (customEquipment || []).map((custom) => ({
+      id: custom.id,
+      name: custom.equipment_name,
+      description: custom.description,
+      total_cost: custom.daily_rate || custom.hourly_rate || 0,
+      rate_per_unit: custom.daily_rate || custom.hourly_rate || 0,
+      usage_quantity: 1,
+      usage_unit: "day",
+      source: "custom",
+    }));
+
+    setEquipmentRates([...merged, ...customEquipmentItems]);
   }, [user, location.key]);
 
   useEffect(() => {

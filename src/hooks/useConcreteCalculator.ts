@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { RebarSize } from "./useRebarCalculator";
-import { MasonryQSSettings } from "./useMasonryCalculator";
+import { MasonryQSSettings } from "./useMasonryCalculatorNew";
 
 export type Category = "substructure" | "superstructure";
 export type ElementType =
@@ -164,6 +164,7 @@ export interface ConcreteRow {
   soakPitDetails?: SoakPitDetails;
   soakawayDetails?: SoakawayDetails;
 
+  slabArea?: string;
   verandahArea?: string;
   corridorLobbyArea?: string;
 }
@@ -618,6 +619,7 @@ export function calculateConcrete(
     undergroundTankDetails,
     soakPitDetails,
     soakawayDetails,
+    slabArea,
     verandahArea,
   } = row;
 
@@ -640,21 +642,28 @@ export function calculateConcrete(
     case "slab":
     case "raft-foundation":
     case "paving":
-      // Phase 3: Calculate slab area using external dimensions if provided
+      // Use slabArea if provided for slab elements, otherwise calculate from length * width
       if (element === "slab") {
-        let slabArea = len * wid;
+        let calculatedSlabArea = 0;
+
+        // Use provided slabArea if available, otherwise calculate from length and width
+        if (slabArea) {
+          calculatedSlabArea = parseFloat(slabArea) || 0;
+        } else {
+          calculatedSlabArea = len * wid;
+        }
 
         // Add verandah area if provided
         if (verandahArea) {
-          slabArea += parseFloat(verandahArea) || 0;
+          calculatedSlabArea += parseFloat(verandahArea) || 0;
         }
 
         // Ensure area is not negative
-        slabArea = Math.max(0, slabArea);
+        calculatedSlabArea = Math.max(0, calculatedSlabArea);
 
-        mainVolume = slabArea * hei * num;
-        surfaceAreaM2 = slabArea * num;
-        formworkM2 = slabArea * num;
+        mainVolume = calculatedSlabArea * hei * num;
+        surfaceAreaM2 = calculatedSlabArea * num;
+        formworkM2 = calculatedSlabArea * num;
       }
       break;
 

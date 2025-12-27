@@ -44,7 +44,7 @@ const Reports = () => {
   const userQuotes = useMemo(() => {
     if (!user) return [];
     return quotes.filter((quote) => quote.user_id === user.id);
-  }, [quotes, user, location.key]);
+  }, [quotes, user]);
   const formatCurrency = (value: number) => {
     if (value >= 1000000)
       return `${(value / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
@@ -117,7 +117,7 @@ const Reports = () => {
       value: count,
       color: colors[status as keyof typeof colors] || "#6b7280",
     }));
-  }, [userQuotes, location.key]);
+  }, [userQuotes]);
   const activeProjects = userQuotes.filter((q) =>
     ["started", "in_progress"].includes(q.status)
   );

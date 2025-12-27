@@ -70,7 +70,7 @@ const PaymentPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [user, location.key]);
+  }, [user]);
 
   const selectedPlanDetails = tiers.find((plan) => plan?.name === selectedPlan);
   const [selectedAction, setSelectedAction] = useState<string>("");

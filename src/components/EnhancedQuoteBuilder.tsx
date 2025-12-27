@@ -383,7 +383,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     fetchRates();
     fetchLimit();
     fetchMaterials();
-  }, [user, location.key]);
+  }, [user]);
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
 
   const fetchTransportRates = useCallback(async () => {
@@ -421,7 +421,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       };
     });
     setTransportRates(merged);
-  }, [user, location.key]);
+  }, [user]);
 
   const transportCost = (() => {
     const region = quoteData?.region.toString().trim();
@@ -448,7 +448,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       fetchTransportRates();
       fetchRates();
     }
-  }, [user, profile, location.key]);
+  }, [user, profile]);
 
   useEffect(() => {
     if (extractedPlan) {
@@ -840,7 +840,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }));
 
     setMaterials([...merged, ...customMaterialsItems]);
-  }, [user, location, location.key, quoteData.region, regionalMultipliers]);
+  }, [user, location, quoteData.region, regionalMultipliers]);
 
   const steps = [
     { id: 1, name: "Project Details", icon: <FileText className="w-5 h-5" /> },

@@ -82,7 +82,7 @@ export const useCalendarEvents = () => {
   };
   useEffect(() => {
     fetchEvents();
-  }, [user, location.key]);
+  }, [user]);
   return {
     events,
     loading,

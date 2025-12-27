@@ -113,7 +113,7 @@ const AdminDashboard = () => {
     if (profile?.is_admin) {
       fetchDashboardData();
     }
-  }, [profile, location.key]);
+  }, [profile]);
 
   const fetchDashboardData = async () => {
     setLoading(true);

@@ -140,7 +140,7 @@ const Profile = () => {
     if (profile.id) {
       fetchDashboardStats(profile.id).then(setStats);
     }
-  }, [profile.id, location.key]);
+  }, [profile.id]);
 
   const fetchDashboardStats = async (userId: string) => {
     const { data, error } = await supabase
@@ -539,7 +539,9 @@ const Profile = () => {
 
                   <div className="space-y-2">
                     <h4 className="font-semibold text-md">Features:</h4>
-                    {tierData && Array.isArray(tierData.features) && tierData.features.length > 0 ? (
+                    {tierData &&
+                    Array.isArray(tierData.features) &&
+                    tierData.features.length > 0 ? (
                       <ul className="space-y-1">
                         {tierData.features.map((feature, idx) => (
                           <li key={idx} className="flex text-sm items-center">
@@ -549,7 +551,9 @@ const Profile = () => {
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No features available</p>
+                      <p className="text-sm text-muted-foreground">
+                        No features available
+                      </p>
                     )}
                   </div>
                 </div>

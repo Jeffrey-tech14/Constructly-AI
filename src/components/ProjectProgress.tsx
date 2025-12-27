@@ -70,7 +70,7 @@ const ProjectProgress = ({
   const [updating, setUpdating] = useState(false);
   useEffect(() => {
     fetchProjectProgress();
-  }, [quoteId, user, location.key]);
+  }, [quoteId, user]);
   const fetchProjectProgress = async () => {
     if (!user) return;
     setLoading(true);

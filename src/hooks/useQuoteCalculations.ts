@@ -293,7 +293,7 @@ export const useQuoteCalculations = () => {
     }));
 
     setMaterials([...merged, ...customMaterialsItems]);
-  }, [user, location, location.key]);
+  }, [user, location]);
 
   const fetchServices = useCallback(async () => {
     const { data: baseServices, error: baseError } = await supabase
@@ -319,7 +319,7 @@ export const useQuoteCalculations = () => {
       };
     });
     setServices(merged);
-  }, [user, profile, location.key]);
+  }, [user, profile]);
 
   const fetchRates = async () => {
     const { data: baseServices, error: baseError } = await supabase
@@ -393,7 +393,7 @@ export const useQuoteCalculations = () => {
     }));
 
     setEquipmentRates([...merged, ...customEquipmentItems]);
-  }, [user, location.key]);
+  }, [user]);
 
   useEffect(() => {
     if (user && profile !== null) {
@@ -402,7 +402,7 @@ export const useQuoteCalculations = () => {
       fetchEquipment();
       fetchRates();
     }
-  }, [user, profile, location.key]);
+  }, [user, profile]);
 
   const calculateQuote = async (
     params: QuoteCalculation

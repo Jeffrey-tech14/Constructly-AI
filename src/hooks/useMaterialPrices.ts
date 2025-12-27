@@ -124,7 +124,7 @@ export const useMaterialPrices = () => {
   };
   useEffect(() => {
     fetchData();
-  }, [user, profile, location.key]);
+  }, [user, profile]);
   return {
     materials,
     multipliers,

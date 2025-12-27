@@ -217,7 +217,7 @@ export const useUserSettings = () => {
   useEffect(() => {
     if (!user) return;
     fetchAll();
-  }, [user, profile, location.key]);
+  }, [user, profile]);
 
   const updateEquipmentRate = async (
     equipmentTypeId: string,

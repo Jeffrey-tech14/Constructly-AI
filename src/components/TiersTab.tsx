@@ -44,7 +44,7 @@ const TiersTab = ({ refreshKey }: { refreshKey: number }) => {
       setLoading(false);
     };
     fetchTiers();
-  }, [refreshKey, user, location.key]);
+  }, [refreshKey, user]);
   const savePrice = async (tierId: number) => {
     const newPrice = editedPrices[tierId];
     if (newPrice === undefined) return;

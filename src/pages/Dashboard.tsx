@@ -150,7 +150,7 @@ const Dashboard = () => {
     };
 
     fetchAndSet();
-  }, [user, location.key, profile?.id]);
+  }, [user, profile?.id]);
 
   const getStatusColor = (status: string) => {
     const colors = {

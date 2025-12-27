@@ -96,7 +96,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
     };
 
     fetchQuotes();
-  }, [refreshKey, user, location.key, toast]);
+  }, [refreshKey, user, toast]);
 
   const filteredQuotes = quotes.filter((q) => {
     const profileName = q.profile?.name || "";

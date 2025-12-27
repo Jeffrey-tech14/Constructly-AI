@@ -424,7 +424,7 @@ export const useDynamicPricing = () => {
       setLoading(false);
     };
     fetchData();
-  }, [user, profile, location.key]);
+  }, [user, profile]);
   return {
     materialBasePrices,
     userMaterialPrices,

@@ -132,7 +132,7 @@ const Variables = () => {
       fetchTransportRates();
       fetchRates();
     }
-  }, [user, profile, location.key]);
+  }, [user, profile]);
 
   // Handle material editing
   useEffect(() => {
@@ -211,7 +211,7 @@ const Variables = () => {
       };
     });
     setTransportRates(merged);
-  }, [user, location.key]);
+  }, [user]);
 
   const handleSaveEquipment = async (
     equipmentTypeId: string,

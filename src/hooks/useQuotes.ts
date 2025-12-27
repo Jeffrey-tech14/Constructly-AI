@@ -130,7 +130,7 @@ export const useQuotes = () => {
         if (isInitialLoad) setIsInitialLoad(false);
       }
     },
-    [user, profile?.is_admin, quotes, isInitialLoad, location.key]
+    [user, profile?.is_admin, quotes, isInitialLoad]
   );
   const createQuote = async (
     quoteData: Omit<Quote, "id" | "user_id" | "created_at" | "updated_at">
@@ -181,7 +181,7 @@ export const useQuotes = () => {
     if (user && profile !== null) {
       fetchQuotes();
     }
-  }, [fetchQuotes, user, profile, quotes, location.key]);
+  }, [fetchQuotes, user, profile, quotes]);
   return {
     quotes,
     loading: isInitialLoad ? loading : false,

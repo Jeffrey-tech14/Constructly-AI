@@ -41,7 +41,7 @@ export const useClientReviews = () => {
       : 0;
   useEffect(() => {
     fetchReviews();
-  }, [user, profile, location.key]);
+  }, [user, profile]);
   return {
     reviews,
     loading,

@@ -1264,16 +1264,10 @@ export default function useMasonryCalculatorNew({
 
     // Lintels
     if (qsSettings.includesLintels) {
-      let totalLintelLength = 0;
-      wallSections?.forEach((section) => {
-        [...section.doors, ...section.windows].forEach((opening) => {
-          const width =
-            opening.sizeType === "standard"
-              ? parseFloat(opening.standardSize.split("×")[0]?.trim() || "1")
-              : parseFloat(opening.custom.width) || 1;
-          totalLintelLength += width + 0.3;
-        });
-      });
+      // Total lintel length = total wall perimeter (external + internal)
+      const totalLintelLength =
+        Number(wallDimensions.externalWallPerimiter) +
+        Number(wallDimensions.internalWallPerimiter);
 
       const lintelConcrete =
         totalLintelLength * qsSettings.lintelWidth * qsSettings.lintelDepth;
@@ -1293,10 +1287,16 @@ export default function useMasonryCalculatorNew({
         lintelRebarWeight * (rebarPrices[qsSettings.lintelRebarSize] || 0);
       professionalCost += lintelCost + lintelRebarCost;
 
+      totals.netLintelsCost = Math.ceil(lintelCost);
+      totals.grossLintelsCost = Math.ceil(
+        lintelCost * (1 + qsSettings.wastageMasonry / 100)
+      );
       totals.netLintelRebar = lintelRebarWeight;
       totals.grossLintelRebar = lintelRebarWeight;
-      totals.netLintelRebarCost = lintelRebarCost;
-      totals.grossLintelRebarCost = lintelRebarCost;
+      totals.netLintelRebarCost = Math.ceil(lintelRebarCost);
+      totals.grossLintelRebarCost = Math.ceil(
+        lintelRebarCost * (1 + qsSettings.wastageMasonry / 100)
+      );
     }
 
     // Wall reinforcement
@@ -1334,8 +1334,10 @@ export default function useMasonryCalculatorNew({
       professionalCost += rebarCost;
       totals.netWallRebar = totalRebarWeight;
       totals.grossWallRebar = totalRebarWeight;
-      totals.netWallRebarCost = rebarCost;
-      totals.grossWallRebarCost = rebarCost;
+      totals.netWallRebarCost = Math.ceil(rebarCost);
+      totals.grossWallRebarCost = Math.ceil(
+        rebarCost * (1 + qsSettings.wastageMasonry / 100)
+      );
     }
 
     // DPC
@@ -1345,8 +1347,10 @@ export default function useMasonryCalculatorNew({
       professionalCost += dpcCost;
       totals.netDPCArea = dpcArea;
       totals.grossDPCArea = dpcArea;
-      totals.netDPCCost = dpcCost;
-      totals.grossDPCCost = dpcCost;
+      totals.netDPCCost = Math.ceil(dpcCost);
+      totals.grossDPCCost = Math.ceil(
+        dpcCost * (1 + qsSettings.wastageMasonry / 100)
+      );
     }
 
     // Movement joints
@@ -1358,13 +1362,16 @@ export default function useMasonryCalculatorNew({
         perimeter / (qsSettings.movementJointSpacing || 5)
       );
       const sealantPrice = getMaterialPrice("Sealant", "Polyurethane");
+      const sealantPriceTube = sealantPrice["600 ml sausage"] || 0;
       const sealantVolume = joints * 0.01;
-      const sealantCost = sealantVolume * sealantPrice;
+      const sealantCost = sealantVolume * sealantPriceTube;
       professionalCost += sealantCost;
       totals.netMovementJoints = joints;
       totals.grossMovementJoints = joints;
-      totals.netMovementJointsCost = sealantCost;
-      totals.grossMovementJointsCost = sealantCost;
+      totals.netMovementJointsCost = Math.ceil(sealantCost);
+      totals.grossMovementJointsCost = Math.ceil(
+        sealantCost * (1 + qsSettings.wastageMasonry / 100)
+      );
     }
 
     // Scaffolding
@@ -1375,8 +1382,10 @@ export default function useMasonryCalculatorNew({
       professionalCost += scaffoldingCost;
       totals.netScaffoldingArea = scaffoldingArea;
       totals.grossScaffoldingArea = scaffoldingArea;
-      totals.netScaffoldingCost = scaffoldingCost;
-      totals.grossScaffoldingCost = scaffoldingCost;
+      totals.netScaffoldingCost = Math.ceil(scaffoldingCost);
+      totals.grossScaffoldingCost = Math.ceil(
+        scaffoldingCost * (1 + qsSettings.wastageMasonry / 100)
+      );
     }
 
     // Waste removal
@@ -1396,8 +1405,10 @@ export default function useMasonryCalculatorNew({
       professionalCost += wasteCost;
       totals.netWasteVolume = wasteVolume;
       totals.grossWasteVolume = wasteVolume;
-      totals.netWasteRemovalCost = wasteCost;
-      totals.grossWasteRemovalCost = wasteCost;
+      totals.netWasteRemovalCost = Math.ceil(wasteCost);
+      totals.grossWasteRemovalCost = Math.ceil(
+        wasteCost * (1 + qsSettings.wastageMasonry / 100)
+      );
     }
 
     // Update totals

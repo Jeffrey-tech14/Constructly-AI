@@ -1218,12 +1218,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       case 1:
         return (
           <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="space-y-6"
-            >
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
@@ -1471,7 +1466,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   </Card>
                 </motion.div>
               )}
-            </motion.div>
+            </div>
           </div>
         );
       case 2:
@@ -3477,7 +3472,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               Please upgrade your plan to access more quote allocations.
             </p>
             <div className="mb-6">{getTierBadge(profile.tier)}</div>
-            <motion.div whileTap={{ scale: 0.95 }}>
+            <div>
               <Button
                 onClick={() => navigate("/payment")}
                 className="w-full rounded-full font-semibold"
@@ -3485,7 +3480,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 <CreditCard className="w-4 h-4 mr-2" />
                 Upgrade Plan
               </Button>
-            </motion.div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -3513,47 +3508,32 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <Progress value={(currentStep / 13) * 100} className="w-full" />
         </div>
 
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.2 }}
-          >
-            <Card className="mb-8 -p-5">
-              <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                <CardTitle className="flex justify-between items-center gap-3 text-gray-900 dark:text-white">
-                  <div className="flex gap-3  items-center">
-                    <div className="p-2 rounded-full bg-primary/20 dark:bg-primary">
-                      {steps[currentStep - 1]?.icon}
+        <div key={`step-${currentStep}`}>
+          <Card className="mb-8 -p-5">
+            <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="flex justify-between items-center gap-3 text-gray-900 dark:text-white">
+                <div className="flex gap-3  items-center">
+                  <div className="p-2 rounded-full bg-primary/20 dark:bg-primary">
+                    {steps[currentStep - 1]?.icon}
+                  </div>
+                  <div>
+                    <div className="text-lg font-semibold">
+                      {steps[currentStep - 1]?.name}
                     </div>
-                    <div>
-                      <div className="text-lg font-semibold">
-                        {steps[currentStep - 1]?.name}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
-                        Step {currentStep} of {steps?.length}
-                      </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
+                      Step {currentStep} of {steps?.length}
                     </div>
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="sm:p-6 p-3 pt-6">
-                {renderStepContent()}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </AnimatePresence>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="sm:p-6 p-3 pt-6">
+              {renderStepContent()}
+            </CardContent>
+          </Card>
+        </div>
         {/* Navigation Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex justify-between items-center mb-8"
-        >
+        <div className="flex justify-between items-center mb-8">
           <Button
             onClick={prevStep}
             variant="outline"
@@ -3576,7 +3556,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               </Button>
             </>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

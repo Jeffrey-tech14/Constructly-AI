@@ -157,7 +157,7 @@ export default function MasonryCalculatorForm({
             {results.netWater?.toFixed(0) || 0} net →{" "}
             {results.grossWater?.toFixed(0) || 0} gross liters
           </div>
-          {!qsSettings.clientProvidesWater && results.grossWaterCost > 0 && (
+          {qsSettings.clientProvidesWater && results.grossWaterCost > 0 && (
             <div>
               <span className="font-medium">Water Cost:</span> Ksh{" "}
               {results.grossWaterCost?.toLocaleString() || 0}
@@ -165,6 +165,20 @@ export default function MasonryCalculatorForm({
                 (@ Ksh {waterPrice || 0}/m³)
               </span>
             </div>
+          )}
+          {qsSettings.includesLintels && (
+            <>
+              <div>
+                <span className="font-medium">Lintel Beam:</span>{" "}
+                {results.netLintelRebar?.toFixed(1) || 0} net →{" "}
+                {results.grossLintelRebar?.toFixed(1) || 0} gross kg (rebar)
+              </div>
+              <div>
+                <span className="font-medium">Lintel Cost:</span> Ksh{" "}
+                {results.netLintelsCost?.toLocaleString() || 0} net → Ksh{" "}
+                {results.grossLintelsCost?.toLocaleString() || 0} gross
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -289,7 +303,7 @@ export default function MasonryCalculatorForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="ext-perimeter">
-                  External Wall Perimeter (m)
+                  External Wall Length/Perimeter (m)
                 </Label>
                 <Input
                   id="ext-perimeter"
@@ -313,7 +327,7 @@ export default function MasonryCalculatorForm({
               </div>
               <div>
                 <Label htmlFor="int-perimeter">
-                  Internal Wall Perimeter (m)
+                  Internal Wall Length/Perimeter (m)
                 </Label>
                 <Input
                   id="int-perimeter"

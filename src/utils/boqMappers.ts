@@ -262,6 +262,10 @@ const generateSuperstructureSection = (data: any): BOQSection => {
   );
   items.push(...masonryItems);
 
+  // Lintel beam - comes after walling, length equals total walling length
+  const lintelItems = extractLintelFromMasonry(data.masonry_materials);
+  items.push(...lintelItems);
+
   return {
     title: "BILL NO. 3: SUPERSTRUCTURE WORKS",
     items,
@@ -499,6 +503,49 @@ const extractMasonryFromWalls = (
     }
   } catch (error) {
     console.error("Error extracting masonry from walls:", error);
+  }
+
+  return items;
+};
+
+const extractLintelFromMasonry = (masonryMaterials: any): BOQItem[] => {
+  const items: BOQItem[] = [];
+
+  if (!masonryMaterials) {
+    return items;
+  }
+
+  try {
+    // Extract lintel data from existing masonry calculations
+    if (masonryMaterials.netLintelsCost > 0) {
+      items.push(
+        createBOQItem(
+          `Concrete lintel beam reinforced`,
+          "m³",
+          0, // Quantity in m³ is not directly available, using cost breakdown
+          0, // Rate is embedded in cost
+          "superstructure",
+          "Lintel Beam"
+        )
+      );
+    }
+
+    // Add lintel reinforcement if available
+    if (masonryMaterials.netLintelRebar > 0) {
+      items.push(
+        createBOQItem(
+          `Reinforcement steel for lintels`,
+          "kg",
+          masonryMaterials.netLintelRebar,
+          masonryMaterials.netLintelRebarCost /
+            Math.max(masonryMaterials.netLintelRebar, 1),
+          "superstructure",
+          "Lintel Reinforcement"
+        )
+      );
+    }
+  } catch (error) {
+    console.error("Error extracting lintel from masonry:", error);
   }
 
   return items;

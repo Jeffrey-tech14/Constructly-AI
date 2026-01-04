@@ -165,12 +165,42 @@ export default function FinishesCalculator({
     setEditForm(newFinish);
   };
 
+  // Auto-create or update painting finish with masonry wall area (doubled for both sides)
+  useEffect(() => {
+    const masonryNetArea = quote?.masonry_materials?.grossPlaster || 0;
+    const paintingArea = masonryNetArea; // Double area for both sides
+
+    if (masonryNetArea > 0) {
+      // Check if painting finish for masonry walls exists
+      const existingPaintingIndex = finishes.findIndex(
+        (f) =>
+          f.category === "paint" &&
+          f.location.toLowerCase().includes("all walls")
+      );
+
+      if (existingPaintingIndex >= 0) {
+        // Update existing painting finish area
+        const updatedFinishes = [...finishes];
+        if (updatedFinishes[existingPaintingIndex].quantity !== paintingArea) {
+          updatedFinishes[existingPaintingIndex] = {
+            ...updatedFinishes[existingPaintingIndex],
+            quantity: paintingArea,
+            area: paintingArea,
+          };
+          if (onFinishesUpdate) {
+            onFinishesUpdate(updatedFinishes);
+          }
+        }
+      }
+    }
+  }, [quote?.masonry_materials?.grossPlaster, onFinishesUpdate, finishes]);
+
   useEffect(() => {
     setQuoteData((prev: any) => ({
       ...prev,
       finishes: finishes,
     }));
-  }, [finishes, setEditForm]);
+  }, [finishes, setQuoteData]);
 
   const handleEdit = (calc: FinishCalculation) => {
     const finish = finishes.find((f) => f.id === calc.id);
@@ -295,11 +325,8 @@ export default function FinishesCalculator({
         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <span className="text-2xl">🧱</span> Masonry Plaster Finishes
+              <span className="text-2xl">🧱</span> Plaster Finishes
             </CardTitle>
-            <CardDescription>
-              Plaster quantities calculated from masonry wall construction
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,7 +358,7 @@ export default function FinishesCalculator({
                       quote.masonry_materials.grossPlasterCost || 0
                     )}
                   </div>
-                  <p className="text-xs mt-1">gross cost</p>
+                  <p className="text-xs mt-1">Gross Cost</p>
                 </CardContent>
               </Card>
             </div>

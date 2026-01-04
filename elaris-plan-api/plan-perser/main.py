@@ -82,7 +82,6 @@ async def parse_plan(file: UploadFile = File(...)):
             ["python", "parser.py", str(file_path)],
             capture_output=True,
             text=True,
-            timeout=300,
             cwd=os.path.dirname(os.path.abspath(__file__))
         )
 

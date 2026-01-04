@@ -1839,7 +1839,8 @@ const Variables = () => {
                                 undefined,
                                 "subcontractor",
                                 sub.id,
-                                tempValues[sub.id] || sub.rate,
+                                "name",
+                                tempValues[sub.id] || sub.price,
                                 0
                               )
                             }

@@ -483,12 +483,14 @@ Analyze this construction document and extract ALL available information about:
 - Rebar sizes follow standard notation (e.g., "Y10", "Y12")
 - Mixes to follow ratios eg 1:2:4, 1:2:3
 - Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
+- Note that the provided file contains information about one building from different perspectives (e.g plan, section, elevation etc). Use all the information available to provide the most accurate dimensions and details
+- Ensure accuracy on measuring the wall perimeters and heights
 
 ### 📐 WALL DIMENSION EXTRACTION:
 - Calculate EXTERNAL WALL PERIMETER: sum of all exterior wall lengths in meters
 - Calculate INTERNAL WALL PERIMETER: sum of all interior partition wall lengths in meters
-- Extract EXTERNAL WALL HEIGHT: distance from ground to slab level in meters
-- Extract INTERNAL WALL HEIGHT: distance from ground to slab level for interior walls in meters
+- Extract EXTERNAL WALL HEIGHT: distance from ground to roof level in meters
+- Extract INTERNAL WALL HEIGHT: distance from ground to roof level for interior walls in meters
 - Look for dimension lines, labels, or grid references on the plan
 - Use external dimensions marked on the drawing
 - Convert all measurements to meters (mm values should be divided by 1000)
@@ -510,6 +512,8 @@ Analyze this construction document and extract ALL available information about:
 - Look for any construction notes or specifications
 - Note any special features like fireplaces, built-in cabinets, etc.
 - If a room cannot be plasters for whatever reason, mark as "None"
+- Do not assume any dimensions, only extract what is visible on the drawings
+- Make sure you get the correct areas for the finishes, eg painting area should be wall area minus openings area (doors and windows)
 
 ### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS: 
 # - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 

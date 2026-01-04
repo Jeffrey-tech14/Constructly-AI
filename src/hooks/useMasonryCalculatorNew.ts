@@ -1413,6 +1413,7 @@ export default function useMasonryCalculatorNew({
 
     // Update totals
     totals.netArea = centerLineNetWallArea;
+    totals.grossArea = centerLineGrossWallArea;
     totals.netBlocks = netBlocks;
     totals.grossBlocks = grossBlocks;
     totals.netMortar = netMortarVolume;

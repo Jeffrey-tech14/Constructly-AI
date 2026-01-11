@@ -3,10 +3,10 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
+import { useMaterialPrices } from "./useMaterialPrices";
+import { RebarSize } from "./useRebarCalculator";
 import { Material } from "./useQuoteCalculations";
 import { supabase } from "@/integrations/supabase/client";
-import { REBAR_PROPERTIES, RebarSize } from "./useRebarCalculator";
-import { useMaterialPrices } from "./useMaterialPrices";
 
 type PriceMap = Record<RebarSize, number>;
 

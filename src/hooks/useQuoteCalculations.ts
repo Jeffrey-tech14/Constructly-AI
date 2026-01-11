@@ -186,6 +186,9 @@ export interface QuoteCalculation {
   contingency_percentages: number;
   permit_cost: number;
   foundationDetails: {};
+  wardrobes_cabinets?: any[];
+  paintings_specifications?: any[];
+  paintings_totals?: any;
 }
 
 export interface CalculationResult {

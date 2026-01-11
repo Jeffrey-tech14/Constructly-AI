@@ -1,5 +1,6 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+// BOQ Builder component - Shows existing BOQ or allows generation
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,7 +65,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     return [];
   };
 
-  // Initialize BOQ from existing quoteData or generate new only if empty
+  // Initialize BOQ from existing quoteData only - don't auto-generate
   useEffect(() => {
     const initializeBOQ = async () => {
       if (!quoteData || Object.keys(quoteData).length === 0) {
@@ -80,61 +81,16 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
         setBoqSections(existingSections);
         onBOQUpdate(existingSections);
         setGenerationMethod("existing");
-        return;
-      }
-
-      // Only generate new BOQ if there's no existing data AND user hasn't manually added sections
-      if (boqSections.length === 0) {
-        setIsGenerating(true);
-        setLastError(null);
-
-        try {
-          const { data: boq, error } = await supabase.functions.invoke(
-            "generate-boq-ai",
-            {
-              body: quoteData,
-            }
-          );
-
-          if (error) {
-            throw new Error(error.message || "API returned an error");
-          }
-
-          const newSections = JSON.parse(boq);
-          if (newSections.length > 0) {
-            setBoqSections(newSections);
-            onBOQUpdate(newSections);
-            setGenerationMethod("ai");
-          } else {
-            throw new Error("No BOQ data generated");
-          }
-        } catch (error) {
-          console.error("AI BOQ generation failed:", error);
-          const errorMessage =
-            error instanceof Error ? error.message : "Generation failed";
-          setLastError(errorMessage);
-          toast({
-            title: "BOQ Generation Error",
-            description: errorMessage,
-            variant: "destructive",
-          });
-          // Set fallback empty sections
-          const fallbackSections: BOQSection[] = [
-            {
-              title: "Default Section",
-              items: [],
-            },
-          ];
-          setBoqSections(fallbackSections);
-          onBOQUpdate(fallbackSections);
-          setGenerationMethod("local");
-        } finally {
-          setIsGenerating(false);
-        }
+      } else {
+        // No existing data - don't auto-generate, let user request it
+        setBoqSections([]);
+        onBOQUpdate([]);
+        setGenerationMethod("none");
       }
     };
 
     initializeBOQ();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quoteData]);
 
   const regenerateWithAI = async () => {
@@ -313,12 +269,18 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
           <div className="text-sm text-muted-foreground mb-4">
             {lastError
               ? `Error: ${lastError}`
-              : "Insufficient data to generate BOQ"}
+              : "Create a new BOQ or generate from project data"}
           </div>
-          <Button onClick={regenerateWithAI} disabled={isGenerating}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Generate BOQ
-          </Button>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={addCustomSection}>
+              <FolderPlus className="w-4 h-4 mr-2" />
+              Create Manually
+            </Button>
+            <Button onClick={regenerateWithAI} disabled={isGenerating}>
+              <Brain className="w-4 h-4 mr-2" />
+              Generate with AI
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -336,8 +298,12 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
             onClick={regenerateWithAI}
             disabled={isGenerating}
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerate
+            {isGenerating ? (
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Brain className="w-4 h-4 mr-2" />
+            )}
+            {isGenerating ? "Generating..." : "Generate"}
           </Button>
         </div>
         <div className="sm:flex flex-1 items-center space-x-2">

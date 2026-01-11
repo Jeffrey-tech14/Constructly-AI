@@ -106,6 +106,9 @@ export interface RoofStructure {
   treatment?: string;
   timbers: RoofTimber[];
   accessories?: RoofAccessories;
+  // Lump-sum options
+  isLumpSum?: boolean; // Whether this roof uses lump-sum pricing
+  lumpSumAmount?: number; // Fixed lump-sum price for the entire roof
 }
 
 export interface RoofingCalculation {

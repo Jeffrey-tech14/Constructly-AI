@@ -346,11 +346,11 @@ const AdminDashboard = () => {
             Free
           </Badge>
         );
-      case "Intermediate":
+      case "Enterprise":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Crown className="w-3 h-3 mr-1" />
-            Intermediate
+            Enterprise
           </Badge>
         );
       case "Professional":
@@ -518,7 +518,7 @@ const AdminDashboard = () => {
                     <SelectContent>
                       <SelectItem value="all">All Tiers</SelectItem>
                       <SelectItem value="free">Free</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
                       <SelectItem value="professional">Professional</SelectItem>
                     </SelectContent>
                   </Select>
@@ -613,10 +613,10 @@ const AdminDashboard = () => {
                                   Free
                                 </SelectItem>
                                 <SelectItem
-                                  value="Intermediate"
+                                  value="Enterprise"
                                   className="text-xs md:text-sm"
                                 >
-                                  Intermediate
+                                  Enterprise
                                 </SelectItem>
                                 <SelectItem
                                   value="Professional"

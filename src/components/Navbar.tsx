@@ -157,7 +157,7 @@ const Navbar = () => {
     switch (t) {
       case "Free":
         return <Home className="w-4 h-4" />;
-      case "Intermediate":
+      case "Enterprise":
         return <Crown className="w-4 h-4" />;
       case "Professional":
         return <Shield className="w-4 h-4" />;
@@ -176,11 +176,11 @@ const Navbar = () => {
             <span className="hidden md:flex ">Free</span>
           </Badge>
         );
-      case "Intermediate":
+      case "Enterprise":
         return (
           <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Crown className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Intermediate</span>
+            <span className="hidden md:flex ">Enterprise</span>
           </Badge>
         );
       case "Professional":
@@ -255,7 +255,7 @@ const Navbar = () => {
                 className={`flex h-6 w-6 items-center hidden md:flex justify-center rounded-full ${
                   profile?.tier === "Free"
                     ? "bg-green-100 text-green-700"
-                    : profile?.tier === "Intermediate"
+                    : profile?.tier === "Enterprise"
                     ? "bg-blue-100 text-blue-700"
                     : "bg-purple-100 text-purple-700"
                 }`}

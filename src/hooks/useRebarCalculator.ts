@@ -5,14 +5,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useEffect, useState, useCallback } from "react";
 import { Category } from "./useConcreteCalculator";
-import { Material } from "./useQuoteCalculations";
 import { useMaterialPrices } from "./useMaterialPrices";
+import { Material } from "./useQuoteCalculations";
 
 export type ElementTypes =
   | "slab"
   | "beam"
   | "column"
-  | "foundation"
+  | "raft-foundation"
   | "strip-footing"
   | "retaining-wall"
   | "tank";
@@ -164,6 +164,34 @@ export const DEFAULT_TANK_REINFORCEMENT: Record<TankType, TankReinforcement> = {
 
 export type RetainingWallType = "cantilever" | "gravity" | "counterfort";
 export type WallSection = "stem" | "base" | "heel" | "toe";
+
+// Rebar calculation modes
+export type RebarCalculationMode =
+  | "DETAILED_REBAR_MODE"
+  | "INTENSITY_REBAR_MODE";
+
+// Steel grade for intensity-based calculations (affects pricing)
+export type SteelGrade = "mild" | "high-yield" | "special";
+
+// Area selection mode - choose between providing area directly or calculating from length x width
+export type AreaSelectionMode = "LENGTH_WIDTH" | "DIRECT_AREA";
+
+// Default steel intensities (kg/m³) by element type
+export const DEFAULT_STEEL_INTENSITIES: Record<ElementTypes, number> = {
+  "strip-footing": 70,
+  slab: 80,
+  beam: 120,
+  column: 150,
+  "raft-foundation": 90,
+  "retaining-wall": 110,
+  tank: 100,
+};
+
+// Intensity bounds for validation
+export const INTENSITY_BOUNDS = {
+  min: 40,
+  max: 200,
+};
 
 export interface RetainingWallReinforcement {
   stem: {
@@ -568,6 +596,16 @@ export interface CalcInput {
   stemHorizontalBarSize?: RebarSize;
   stemVerticalSpacing?: string;
   stemHorizontalSpacing?: string;
+
+  // Rebar calculation mode fields
+  rebarCalculationMode?: RebarCalculationMode;
+  steelIntensityKgPerM3?: string; // kg/m³ for INTENSITY_REBAR_MODE
+  concreteVolumeM3?: number; // Calculated volume (m³)
+  steelGrade?: SteelGrade; // For pricing in intensity mode
+
+  // Area selection fields - choose between direct area input or length x width
+  areaSelectionMode?: AreaSelectionMode; // "LENGTH_WIDTH" or "DIRECT_AREA"
+  area?: string; // Direct area input (m²) when using DIRECT_AREA mode
 }
 export interface CalcBreakdown {
   // Existing fields
@@ -674,6 +712,15 @@ export interface CalcResult {
   meshTotalPrice?: number;
   // Strip footing specific fields
   footingType?: FootingType;
+  // Intensity-based rebar calculation fields
+  rebarCalculationMode?: RebarCalculationMode;
+  steelIntensityKgPerM3?: number; // kg/m³ used in calculation
+  concreteVolumeM3?: number; // Concrete volume (m³)
+  steelGrade?: SteelGrade; // Steel grade used for pricing
+
+  // Area selection fields - persisted from input
+  areaSelectionMode?: AreaSelectionMode; // "LENGTH_WIDTH" or "DIRECT_AREA"
+  area?: number; // Direct area (m²) when using DIRECT_AREA mode
 }
 
 const mmToM = (mm: number) => (isNaN(mm) ? 0 : mm / 1000);
@@ -1218,7 +1265,7 @@ function getBendingInstructions(
 
   switch (element) {
     case "slab":
-    case "foundation":
+    case "raft-foundation":
       if (barType === "main" || barType === "distribution") {
         return "Straight bar - no bending required";
       }
@@ -1992,8 +2039,14 @@ function calculateBarCountsByRatio(
 function createEmptyResult(
   input: CalcInput,
   rebarPrices: Record<RebarSize, number>,
-  bindingWirePrice: number
+  bindingWirePrice: number,
+  errorMessage?: string
 ): CalcResult {
+  const errors: string[] = [];
+  if (errorMessage) {
+    errors.push(errorMessage);
+  }
+
   return {
     id: input.id,
     name: input.name,
@@ -2020,10 +2073,10 @@ function createEmptyResult(
       complianceScore: 0,
     },
     compliance: {
-      isValid: true,
+      isValid: false,
       warnings: [],
-      errors: [],
-      score: 100,
+      errors,
+      score: 0,
     },
     wasteOptimization: {
       actualWastePercentage: 0,
@@ -2038,10 +2091,16 @@ function createEmptyResult(
 
 function createEmptyMeshResult(
   input: CalcInput,
-  meshPrices: Record<string, number>
+  meshPrices: Record<string, number>,
+  errorMessage?: string
 ): CalcResult {
   return {
-    ...createEmptyResult(input, {} as Record<RebarSize, number>, 0),
+    ...createEmptyResult(
+      input,
+      {} as Record<RebarSize, number>,
+      0,
+      errorMessage
+    ),
     reinforcementType: "mesh",
     meshResult: {
       totalSheets: 0,
@@ -2215,14 +2274,45 @@ function calculateMeshRebar(
   const sheetLength = safeParseFloat(meshSheetLength, 4.8);
   const lapLength = safeParseFloat(meshLapLength, 0.3);
 
-  if (L <= 0 || W <= 0) {
-    return createEmptyMeshResult(input, meshPrices);
+  // Handle area selection mode
+  let effectiveL = L;
+  let effectiveW = W;
+  if (input.areaSelectionMode === "DIRECT_AREA" && input.area) {
+    const directArea = safeParseFloat(input.area, 0);
+    if (directArea > 0) {
+      if (W > 0) {
+        effectiveL = directArea / W;
+      } else {
+        effectiveL = Math.sqrt(directArea);
+        effectiveW = effectiveL;
+      }
+    }
+  }
+
+  if (effectiveL <= 0 || effectiveW <= 0) {
+    let errorMsg = "Invalid dimensions: ";
+    if (input.areaSelectionMode === "DIRECT_AREA") {
+      errorMsg += "Area-based mode - ";
+      if (input.area && parseFloat(input.area) <= 0) {
+        errorMsg += "area must be greater than 0";
+      } else if (!input.area) {
+        errorMsg += "area is required";
+      }
+    } else {
+      errorMsg += "Length/Width mode - ";
+      if (L <= 0) {
+        errorMsg += "length must be greater than 0";
+      } else if (W <= 0) {
+        errorMsg += "width must be greater than 0";
+      }
+    }
+    return createEmptyMeshResult(input, meshPrices, errorMsg);
   }
 
   // Calculate mesh reinforcement
   const meshResult = calculateMeshReinforcement(
-    L,
-    W,
+    effectiveL,
+    effectiveW,
     meshGrade,
     sheetWidth,
     sheetLength,
@@ -2275,6 +2365,118 @@ function calculateMeshRebar(
     meshPricePerSqm,
     meshTotalPrice,
     footingType: input.footingType,
+    // Area selection fields - persisted from input
+    areaSelectionMode: input.areaSelectionMode,
+    area: input.area ? safeParseFloat(input.area, 0) : undefined,
+  };
+}
+
+/**
+ * Calculate rebar quantity based on steel intensity (kg/m³)
+ * Geometry → Volume → Intensity → Steel Quantity → Cost
+ */
+function calculateIntensityRebar(
+  input: CalcInput,
+  settings: RebarQSSettings,
+  {
+    rebarPrices,
+    bindingWirePrice,
+  }: {
+    rebarPrices: Record<RebarSize, number>;
+    bindingWirePrice: number;
+  }
+): CalcResult {
+  const {
+    id,
+    name,
+    element,
+    category = "superstructure",
+    number = "1",
+    steelIntensityKgPerM3,
+    concreteVolumeM3,
+    steelGrade = "mild",
+  } = input;
+
+  // Validate intensity mode inputs
+  const intensity = steelIntensityKgPerM3
+    ? parseFloat(steelIntensityKgPerM3)
+    : DEFAULT_STEEL_INTENSITIES[element];
+  const volume = concreteVolumeM3 || 0;
+
+  if (volume <= 0 || intensity <= 0) {
+    let errorMsg = "Invalid intensity-based calculation: ";
+    if (volume <= 0) {
+      errorMsg += "concrete volume must be greater than 0";
+    } else if (intensity <= 0) {
+      errorMsg += "steel intensity must be greater than 0";
+    }
+    return createEmptyResult(input, rebarPrices, bindingWirePrice, errorMsg);
+  }
+
+  // Core calculation: steel_kg = volume_m3 × steel_kg_per_m3
+  const totalSteelKg = volume * intensity;
+
+  // Use average rebar price for intensity mode (no specific bars)
+  // Use Y12 as representative bar for pricing
+  const representativeSize: RebarSize = "Y12";
+  const pricePerKg = rebarPrices[representativeSize] || 20; // fallback price
+
+  const totalPrice = totalSteelKg * pricePerKg;
+
+  // Binding wire estimate: typically 1-2% of steel weight for ties/connections
+  const bindingWireEstimateKg = totalSteelKg * 0.015; // 1.5%
+  const bindingWirePriceTotal = bindingWireEstimateKg * bindingWirePrice;
+
+  const count = safeParseInt(number, 1);
+
+  return {
+    id,
+    name,
+    element,
+    mainBarSize: representativeSize,
+    totalBars: 0, // Not applicable in intensity mode
+    totalLengthM: 0, // Not calculated in intensity mode
+    totalWeightKg: totalSteelKg * count,
+    pricePerKg,
+    totalPrice: totalPrice * count + bindingWirePriceTotal * count,
+    bindingWireWeightKg: bindingWireEstimateKg * count,
+    bindingWirePrice: bindingWirePriceTotal * count,
+    breakdown: {
+      weightBreakdownKg: {
+        mainBars: totalSteelKg * count,
+      },
+    },
+    weightBreakdownKg: {
+      mainBars: totalSteelKg * count,
+    },
+    number,
+    rate: pricePerKg,
+    category,
+    barSchedule: [],
+    efficiency: {
+      materialUtilization: 0,
+      standardBarUtilization: 0,
+      wastePercentage: 0,
+      cuttingEfficiency: 0,
+      complianceScore: 0,
+    },
+    compliance: {
+      isValid: true,
+      warnings: [],
+      errors: [],
+      score: 100,
+    },
+    wasteOptimization: {
+      actualWastePercentage: 0,
+      optimizedWastePercentage: 0,
+      cuttingPatterns: [],
+      savedMaterialKg: 0,
+    },
+    reinforcementType: input.reinforcementType || "individual_bars",
+    rebarCalculationMode: "INTENSITY_REBAR_MODE",
+    steelIntensityKgPerM3: intensity,
+    concreteVolumeM3: volume,
+    steelGrade,
   };
 }
 
@@ -2291,13 +2493,21 @@ export function calculateRebar(
     meshPrices: Record<string, number>;
   }
 ): CalcResult {
+  // Check if using intensity-based calculation
+  if (input.rebarCalculationMode === "INTENSITY_REBAR_MODE") {
+    return calculateIntensityRebar(input, settings, {
+      rebarPrices,
+      bindingWirePrice,
+    });
+  }
+
   const { reinforcementType = "individual_bars", meshGrade = "A142" } = input;
   let retainingWallReinforcement;
 
   // If it's mesh reinforcement, calculate mesh instead of individual bars
   if (
     reinforcementType === "mesh" &&
-    (input.element === "slab" || input.element === "foundation")
+    (input.element === "slab" || input.element === "raft-foundation")
   ) {
     return calculateMeshRebar(input, settings, { meshPrices });
   }
@@ -2334,8 +2544,56 @@ export function calculateRebar(
   const count = safeParseInt(number, 1);
   const layers = safeParseInt(slabLayers, 1);
 
-  if (L <= 0 || W <= 0 || D <= 0 || (element === "column" && H <= 0)) {
-    return createEmptyResult(input, rebarPrices, bindingWirePrice);
+  // Handle area selection mode
+  let effectiveL = L;
+  let effectiveW = W;
+  if (input.areaSelectionMode === "DIRECT_AREA" && input.area) {
+    const directArea = safeParseFloat(input.area, 0);
+    // For direct area, we assume square dimensions for simplicity in calculations
+    // If width is also provided, use it; otherwise calculate width from area
+    if (directArea > 0) {
+      if (W > 0) {
+        // If width is provided, calculate length from area
+        effectiveL = directArea / W;
+      } else {
+        // If only area is provided, assume square
+        effectiveL = Math.sqrt(directArea);
+        effectiveW = effectiveL;
+      }
+    }
+  }
+
+  if (
+    effectiveL <= 0 ||
+    effectiveW <= 0 ||
+    D <= 0 ||
+    (element === "column" && H <= 0)
+  ) {
+    let errorMsg = "Invalid dimensions: ";
+    if (input.areaSelectionMode === "DIRECT_AREA") {
+      errorMsg += "Area-based mode - ";
+      if (input.area && parseFloat(input.area) <= 0) {
+        errorMsg += "area must be greater than 0";
+      } else if (!input.area) {
+        errorMsg += "area is required";
+      } else if (D <= 0) {
+        errorMsg += "depth must be greater than 0";
+      } else if (element === "column" && H <= 0) {
+        errorMsg += "height must be greater than 0";
+      }
+    } else {
+      errorMsg += "Length/Width mode - ";
+      if (L <= 0) {
+        errorMsg += "length must be greater than 0";
+      } else if (W <= 0) {
+        errorMsg += "width must be greater than 0";
+      } else if (D <= 0) {
+        errorMsg += "depth must be greater than 0";
+      } else if (element === "column" && H <= 0) {
+        errorMsg += "height must be greater than 0";
+      }
+    }
+    return createEmptyResult(input, rebarPrices, bindingWirePrice, errorMsg);
   }
 
   const mainSpacing = mmToM(safeParseFloat(mainBarSpacing, 200));
@@ -2394,16 +2652,22 @@ export function calculateRebar(
   const getWeight = (length: number, size: RebarSize) =>
     length * (REBAR_PROPERTIES[size]?.weightKgPerM || 0.888);
 
-  if ((element === "slab" || element === "foundation") && L > 0 && W > 0) {
-    const mainBarsCountRaw = Math.ceil(L / Math.max(mainSpacing, 0.001)) + 1;
-    const distBarsCountRaw = Math.ceil(W / Math.max(distSpacing, 0.001)) + 1;
+  if (
+    (element === "slab" || element === "raft-foundation") &&
+    effectiveL > 0 &&
+    effectiveW > 0
+  ) {
+    const mainBarsCountRaw =
+      Math.ceil(effectiveL / Math.max(mainSpacing, 0.001)) + 1;
+    const distBarsCountRaw =
+      Math.ceil(effectiveW / Math.max(distSpacing, 0.001)) + 1;
     mainBarsCountResult = Math.max(settings.minSlabBars, mainBarsCountRaw);
     distributionBarsCountResult = Math.max(
       settings.minSlabBars,
       distBarsCountRaw
     );
-    const mainBarLength = W + 2 * devLengthMain;
-    const distBarLength = L + 2 * devLengthDist;
+    const mainBarLength = effectiveW + 2 * devLengthMain;
+    const distBarLength = effectiveL + 2 * devLengthDist;
     mainBarsLength = mainBarsCountResult * mainBarLength * layers * count;
     distributionBarsLength =
       distributionBarsCountResult * distBarLength * layers * count;
@@ -2411,7 +2675,12 @@ export function calculateRebar(
       (mainBarsCountResult + distributionBarsCountResult) * layers * count;
   }
 
-  if (element === "retaining-wall" && L > 0 && H > 0 && W > 0) {
+  if (
+    element === "retaining-wall" &&
+    effectiveL > 0 &&
+    H > 0 &&
+    effectiveW > 0
+  ) {
     retainingWallReinforcement = calculateRetainingWallReinforcement(
       input,
       settings,
@@ -2553,7 +2822,7 @@ export function calculateRebar(
     };
   }
 
-  if (element === "beam" && L > 0 && W > 0 && D > 0) {
+  if (element === "beam" && effectiveL > 0 && W > 0 && D > 0) {
     const crossSection = W * D;
     let mainCalc;
     const userMainCount = safeParseInt(mainBarsCount, 0);
@@ -2602,7 +2871,7 @@ export function calculateRebar(
     requiredSteelAreaMm2 = mainCalc.requiredArea + distCalc.requiredArea;
     providedSteelAreaMm2 = mainCalc.providedArea + distCalc.providedArea;
     reinforcementRatio = providedSteelAreaMm2 / (crossSection * 1000000);
-    const clearLength = Math.max(0, L - 2 * cover);
+    const clearLength = Math.max(0, effectiveL - 2 * cover);
     const reqMainLength = clearLength + 2 * devLengthMain;
     const reqDistLength = clearLength + 2 * devLengthDist;
     const mainBarOpt = calculateOptimizedBars(
@@ -2689,7 +2958,12 @@ export function calculateRebar(
     totalBars += tiesCount * count;
   }
 
-  if (element === "strip-footing" && L > 0 && W > 0 && D > 0) {
+  if (
+    element === "strip-footing" &&
+    effectiveL > 0 &&
+    effectiveW > 0 &&
+    D > 0
+  ) {
     const stripFootingCalc = calculateStripFootingReinforcement(
       input,
       settings,
@@ -3047,6 +3321,9 @@ export function calculateRebar(
     },
     reinforcementType: "individual_bars",
     footingType: input.footingType,
+    // Area selection fields - persisted from input
+    areaSelectionMode: input.areaSelectionMode,
+    area: input.area ? safeParseFloat(input.area, 0) : undefined,
   };
 }
 

@@ -12,6 +12,20 @@ export const usePlanUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const { toast } = useToast();
+
+  /**
+   * Check if a file URL already exists and is valid
+   */
+  const fileUrlExists = async (publicUrl: string): Promise<boolean> => {
+    try {
+      if (!publicUrl) return false;
+      const response = await fetch(publicUrl, { method: "HEAD" });
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  };
+
   const uploadPlan = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
@@ -100,6 +114,7 @@ export const usePlanUpload = () => {
     uploadPlan,
     analyzePlan,
     deletePlan,
+    fileUrlExists,
     uploading,
     analyzing,
   };

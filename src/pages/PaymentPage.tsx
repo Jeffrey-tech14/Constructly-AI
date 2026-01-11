@@ -93,9 +93,9 @@ const PaymentPage = () => {
     switch (tier) {
       case "Free":
         return <Shell className="w-5 h-5" />;
-      case "Intermediate":
-        return <Crown className="w-5 h-5" />;
       case "Professional":
+        return <Crown className="w-5 h-5" />;
+      case "Enterprise":
         return <Shield className="w-5 h-5" />;
       default:
         return <span className="text-sm font-medium">{tier}</span>;
@@ -240,7 +240,7 @@ const PaymentPage = () => {
                           className={`flex h-12 w-12 items-center justify-center rounded-lg border ${
                             plan.name === "Free"
                               ? "bg-muted text-muted-foreground border-muted-foreground/20"
-                              : plan.name === "Intermediate"
+                              : plan.name === "Professional"
                               ? "bg-primary/10 text-primary border-primary/30"
                               : "bg-primary/20 text-primary border-primary/40"
                           }`}

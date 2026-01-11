@@ -10,7 +10,6 @@ export type ElementType =
   | "slab"
   | "beam"
   | "column"
-  | "foundation"
   | "septic-tank"
   | "underground-tank"
   | "staircase"
@@ -167,6 +166,10 @@ export interface ConcreteRow {
   slabArea?: string;
   verandahArea?: string;
   corridorLobbyArea?: string;
+
+  // Area selection fields - choose between direct area input or length x width
+  areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
+  area?: string; // Direct area input (m²) when using DIRECT_AREA mode
 }
 
 export interface ConcreteResult {
@@ -222,6 +225,10 @@ export interface ConcreteResult {
   connectionDetails?: ConnectionDetails;
   gravelVolume?: number;
   gravelCost?: number;
+
+  // Area selection fields - persisted from input
+  areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
+  area?: number; // Direct area (m²) when using DIRECT_AREA mode
 }
 
 const CEMENT_DENSITY = 1440;
@@ -545,7 +552,6 @@ function calculateSurfaceArea(
       return (2 * (len * hei) + len * wid) * num;
     case "column":
       return 2 * (len + wid) * hei * num;
-    case "foundation":
     case "strip-footing":
     case "pile-cap":
       return len * wid * num;
@@ -621,6 +627,8 @@ export function calculateConcrete(
     soakawayDetails,
     slabArea,
     verandahArea,
+    areaSelectionMode,
+    area,
   } = row;
 
   const len = parseFloat(length) || 0;
@@ -632,6 +640,26 @@ export function calculateConcrete(
   const wallThicknessNum = parseFloat(masonryWallThickness) || 0.2;
   const wallHeightNum = parseFloat(masonryWallHeight) || 0;
 
+  // Handle area selection mode for non-slab elements
+  let effectiveLen = len;
+  let effectiveWid = wid;
+  if (
+    element !== "slab" &&
+    areaSelectionMode === "DIRECT_AREA" &&
+    area &&
+    parseFloat(area) > 0
+  ) {
+    const directArea = parseFloat(area) || 0;
+    if (directArea > 0) {
+      if (wid > 0) {
+        effectiveLen = directArea / wid;
+      } else {
+        effectiveLen = Math.sqrt(directArea);
+        effectiveWid = effectiveLen;
+      }
+    }
+  }
+
   let mainVolume = 0;
   let surfaceAreaM2 = 0;
   let formworkM2 = 0;
@@ -640,10 +668,7 @@ export function calculateConcrete(
 
   switch (element) {
     case "slab":
-    case "raft-foundation":
-    case "paving":
-      // Use slabArea if provided for slab elements, otherwise calculate from length * width
-      if (element === "slab") {
+      {
         let calculatedSlabArea = 0;
 
         // Use provided slabArea if available, otherwise calculate from length and width
@@ -667,20 +692,75 @@ export function calculateConcrete(
       }
       break;
 
+    case "raft-foundation":
+      {
+        let calculatedRaftArea = 0;
+
+        // Use provided slabArea (reused for raft) if available, otherwise calculate from length and width
+        if (slabArea) {
+          calculatedRaftArea = parseFloat(slabArea) || 0;
+        } else {
+          calculatedRaftArea = len * wid;
+        }
+
+        // Ensure area is not negative
+        calculatedRaftArea = Math.max(0, calculatedRaftArea);
+
+        // Raft foundation volume calculation
+        mainVolume = calculatedRaftArea * hei * num;
+        surfaceAreaM2 = calculatedRaftArea * num;
+        // Raft formwork is typically under side only (top is open for building)
+        formworkM2 = calculatedRaftArea * num;
+      }
+      break;
+
+    case "paving":
+      {
+        let calculatedPavingArea = 0;
+
+        // Use provided slabArea (reused for paving) if available, otherwise calculate from length and width
+        if (slabArea) {
+          calculatedPavingArea = parseFloat(slabArea) || 0;
+        } else {
+          calculatedPavingArea = len * wid;
+        }
+
+        // Ensure area is not negative
+        calculatedPavingArea = Math.max(0, calculatedPavingArea);
+
+        // Paving volume calculation (length × width × thickness)
+        mainVolume = calculatedPavingArea * hei * num;
+        surfaceAreaM2 = calculatedPavingArea * num;
+        // Paving typically has minimal formwork (temporary edge support)
+        formworkM2 = 2 * (len + wid) * num;
+      }
+      break;
+
     case "beam":
     case "ring-beam":
-      mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = calculateSurfaceArea(element, len, wid, hei, num);
-      formworkM2 = (2 * hei * len + wid * len) * num;
+      mainVolume = effectiveLen * effectiveWid * hei * num;
+      surfaceAreaM2 = calculateSurfaceArea(
+        element,
+        effectiveLen,
+        effectiveWid,
+        hei,
+        num
+      );
+      formworkM2 = (2 * hei * effectiveLen + effectiveWid * effectiveLen) * num;
       break;
 
     case "column":
-      mainVolume = len * wid * hei * num;
-      surfaceAreaM2 = calculateSurfaceArea(element, len, wid, hei, num);
-      formworkM2 = 2 * (len + wid) * hei * num;
+      mainVolume = effectiveLen * effectiveWid * hei * num;
+      surfaceAreaM2 = calculateSurfaceArea(
+        element,
+        effectiveLen,
+        effectiveWid,
+        hei,
+        num
+      );
+      formworkM2 = 2 * (effectiveLen + effectiveWid) * hei * num;
       break;
 
-    case "foundation":
     case "strip-footing":
     case "pile-cap":
       if (isSteppedFoundation && foundationSteps.length > 0) {
@@ -689,7 +769,7 @@ export function calculateConcrete(
           num
         );
         mainVolume = steppedFoundationVolume;
-        surfaceAreaM2 = len * wid * num;
+        surfaceAreaM2 = effectiveLen * effectiveWid * num;
         formworkM2 = foundationSteps.reduce((total, step) => {
           const stepLen = parseFloat(step.length) || 0;
           const stepWid = parseFloat(step.width) || 0;
@@ -697,9 +777,15 @@ export function calculateConcrete(
           return total + 2 * (stepLen + stepWid) * stepDepth * num;
         }, 0);
       } else {
-        mainVolume = len * wid * hei * num;
-        surfaceAreaM2 = calculateSurfaceArea(element, len, wid, hei, num);
-        formworkM2 = 2 * (len + wid) * hei * num;
+        mainVolume = effectiveLen * effectiveWid * hei * num;
+        surfaceAreaM2 = calculateSurfaceArea(
+          element,
+          effectiveLen,
+          effectiveWid,
+          hei,
+          num
+        );
+        formworkM2 = 2 * (effectiveLen + effectiveWid) * hei * num;
       }
       break;
 
@@ -892,9 +978,9 @@ export function calculateConcrete(
   if (
     hasMasonryWall &&
     wallHeightNum > 0 &&
-    ["foundation", "retaining-wall"].includes(element)
+    ["raft-foundation", "retaining-wall"].includes(element)
   ) {
-    const wallLength = element === "foundation" ? len * num : len;
+    const wallLength = element === "raft-foundation" ? len * num : len;
     const masonry = calculateMasonryQuantities(
       wallLength,
       wallHeightNum,
@@ -960,7 +1046,10 @@ export function calculateConcrete(
 
   if (waterproofing) {
     // DPC only for foundation elements
-    if (waterproofing.includesDPC && row.element === "foundation") {
+    if (
+      (waterproofing.includesDPC && row.element === "raft-foundation") ||
+      row.element === "strip-footing"
+    ) {
       const dpcWidth = parseFloat(waterproofing.dpcWidth || "0.225");
       dpcArea = len * dpcWidth * num;
       const dpcMaterial = materials.find((m) =>
@@ -1093,6 +1182,10 @@ export function calculateConcrete(
     connectionDetails: row.reinforcement?.connectionDetails,
     gravelVolume,
     gravelCost,
+
+    // Area selection fields - persisted from input
+    areaSelectionMode,
+    area: area ? parseFloat(area) : undefined,
   };
 }
 

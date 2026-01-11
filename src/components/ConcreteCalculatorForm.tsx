@@ -30,7 +30,6 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Trash, Plus } from "lucide-react";
-import { Material } from "@/hooks/useQuoteCalculations";
 import { useAuth } from "@/contexts/AuthContext";
 import { RegionalMultiplier } from "@/hooks/useDynamicPricing";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +41,7 @@ import useMasonryCalculatorNew, {
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Material } from "@/hooks/useQuoteCalculations";
 
 interface Props {
   quote: any;
@@ -90,7 +90,7 @@ export default function ConcreteCalculatorForm({
     return {
       id,
       name: `Element ${id}`,
-      element: "foundation",
+      element: "raft-foundation",
       length: quote.foundationDetails?.length || "",
       width: quote.foundationDetails?.width || "",
       height: quote.foundationDetails?.height || "",
@@ -148,14 +148,6 @@ export default function ConcreteCalculatorForm({
 
   const [rows, setRows] = useState<ConcreteRow[]>([]);
 
-  useEffect(() => {
-    if (Array.isArray(quote?.concrete_rows)) {
-      setRows(quote.concrete_rows);
-    } else {
-      setRows([]);
-    }
-  }, [quote?.concrete_rows]);
-
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const DEBOUNCE_MS = 500;
 
@@ -172,6 +164,76 @@ export default function ConcreteCalculatorForm({
       }, DEBOUNCE_MS);
     },
     [setQuote]
+  );
+
+  /**
+   * Auto-fill aggregate bed and masonry wall height when foundation depth changes
+   */
+  useEffect(() => {
+    setRows((prevRows) => {
+      let updated = false;
+      const newRows = prevRows.map((row) => {
+        let rowUpdated = false;
+        let updatedRow = { ...row };
+
+        const foundationHeight = parseFloat(row.height || "0");
+
+        // Auto-fill aggregate bed depth from foundation height
+        if (row.hasAggregateBed && !row.aggregateDepth) {
+          updatedRow.aggregateDepth = foundationHeight.toString();
+          rowUpdated = true;
+        }
+
+        // Auto-fill masonry wall height from foundation height
+        if (row.hasMasonryWall && !row.masonryWallHeight) {
+          updatedRow.masonryWallHeight = foundationHeight.toString();
+          rowUpdated = true;
+        }
+
+        if (rowUpdated) {
+          updated = true;
+        }
+
+        return updatedRow;
+      });
+
+      if (updated) {
+        pushRowsDebounced(newRows);
+      }
+
+      return newRows;
+    });
+  }, [rows]);
+
+  /**
+   * Sync aggregate bed and masonry wall heights with foundation height when it changes
+   */
+  const syncHeightFields = useCallback(
+    (rowId: string, newHeight: string) => {
+      setRows((prev) => {
+        const next = prev.map((r) => {
+          if (r.id === rowId) {
+            const updated = { ...r, height: newHeight };
+
+            // If aggregate bed is enabled, sync its height
+            if (r.hasAggregateBed) {
+              updated.aggregateDepth = newHeight;
+            }
+
+            // If masonry wall is enabled, sync its height
+            if (r.hasMasonryWall) {
+              updated.masonryWallHeight = newHeight;
+            }
+
+            return updated;
+          }
+          return r;
+        });
+        pushRowsDebounced(next);
+        return next;
+      });
+    },
+    [pushRowsDebounced]
   );
 
   const updateRow = useCallback(
@@ -212,7 +274,7 @@ export default function ConcreteCalculatorForm({
   useEffect(() => {
     const timer = setTimeout(() => {
       const hasFoundationRow = quote.concrete_rows?.some(
-        (row: ConcreteRow) => row.element === "foundation"
+        (row: ConcreteRow) => row.element === "raft-foundation"
       );
       const hasFoundationDetails = quote.foundationDetails?.totalPerimeter;
 
@@ -410,7 +472,7 @@ export default function ConcreteCalculatorForm({
         updateRow(id, "septicTankDetails", undefined);
         updateRow(id, "undergroundTankDetails", undefined);
       }
-      if (element !== "foundation") {
+      if (element !== "raft-foundation" && element !== "strip-footing") {
         updateRow(id, "hasConcreteBed", false);
         updateRow(id, "hasAggregateBed", false);
         updateRow(id, "hasMasonryWall", false);
@@ -1224,7 +1286,8 @@ export default function ConcreteCalculatorForm({
 
   const renderWaterproofing = (row: ConcreteRow) => {
     // Conditional logic: DPC for foundations, Polythene for slabs
-    const shouldShowDPC = row.element === "foundation";
+    const shouldShowDPC =
+      row.element === "raft-foundation" || row.element === "strip-footing";
     const shouldShowPolythene = row.element === "slab";
 
     return (
@@ -1780,7 +1843,6 @@ export default function ConcreteCalculatorForm({
                   <SelectItem value="kerb">Kerb</SelectItem>
 
                   {/* Foundation Elements */}
-                  <SelectItem value="foundation">Foundation</SelectItem>
                   <SelectItem value="strip-footing">Strip Footing</SelectItem>
                   <SelectItem value="raft-foundation">
                     Raft Foundation
@@ -1832,6 +1894,29 @@ export default function ConcreteCalculatorForm({
               </Button>
             </div>
 
+            {row.element !== "slab" && (
+              <div className="grid sm:grid-cols-2 gap-2 mb-2">
+                <Select
+                  value={row.areaSelectionMode || "LENGTH_WIDTH"}
+                  onValueChange={(value) =>
+                    updateRow(
+                      row.id,
+                      "areaSelectionMode",
+                      value as "LENGTH_WIDTH" | "DIRECT_AREA"
+                    )
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Dimension mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LENGTH_WIDTH">Length × Width</SelectItem>
+                    <SelectItem value="DIRECT_AREA">Direct Area</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="grid sm:grid-cols-4 gap-2">
               {row.element === "slab" ? (
                 <>
@@ -1875,6 +1960,38 @@ export default function ConcreteCalculatorForm({
                     step="0.1"
                   />
                 </>
+              ) : row.areaSelectionMode === "DIRECT_AREA" ? (
+                <>
+                  <Input
+                    type="number"
+                    value={row.area}
+                    onChange={(e) => updateRow(row.id, "area", e.target.value)}
+                    placeholder="Area (m²)"
+                    step="0.1"
+                    min="0"
+                  />
+                  <Input
+                    type="number"
+                    value={row.height}
+                    step="0.1"
+                    onChange={(e) =>
+                      updateRow(row.id, "height", e.target.value)
+                    }
+                    placeholder={"Height/Thickness (m)"}
+                  />
+                  <Input
+                    type="number"
+                    value={row.number}
+                    step="1"
+                    min="1"
+                    defaultValue="1"
+                    onChange={(e) =>
+                      updateRow(row.id, "number", e.target.value)
+                    }
+                    placeholder="Number of items"
+                  />
+                  <div></div>
+                </>
               ) : (
                 <>
                   <Input
@@ -1896,7 +2013,7 @@ export default function ConcreteCalculatorForm({
                     value={row.height}
                     step="0.1"
                     onChange={(e) =>
-                      updateRow(row.id, "height", e.target.value)
+                      syncHeightFields(row.id, e.target.value)
                     }
                     placeholder={"Height/Thickness (m)"}
                   />
@@ -1919,7 +2036,8 @@ export default function ConcreteCalculatorForm({
 
             {renderWaterproofing(row)}
 
-            {row.element === "foundation" && (
+            {(row.element === "raft-foundation" ||
+              row.element === "strip-footing") && (
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-center space-x-2">
@@ -1960,7 +2078,7 @@ export default function ConcreteCalculatorForm({
                       htmlFor={`bed-${row.id}`}
                       className="text-sm font-medium cursor-pointer"
                     >
-                      Include Concrete Bed (Blinding)
+                      Concrete Bed (Blinding)
                     </Label>
                   </div>
 
@@ -1993,7 +2111,7 @@ export default function ConcreteCalculatorForm({
                       htmlFor={`aggregate-${row.id}`}
                       className="text-sm font-medium cursor-pointer"
                     >
-                      Include Aggregate Bed
+                      Hardcore Backfill
                     </Label>
                   </div>
 
@@ -2004,7 +2122,7 @@ export default function ConcreteCalculatorForm({
                       onChange={(e) =>
                         updateRow(row.id, "aggregateDepth", e.target.value)
                       }
-                      placeholder="Aggregate depth (m)"
+                      placeholder={`Hardcore backfill depth (m) - Auto-filled: ${row.height || "0"} m`}
                       step="0.05"
                       min="0.05"
                       max="0.3"
@@ -2026,7 +2144,7 @@ export default function ConcreteCalculatorForm({
                       htmlFor={`masonry-${row.id}`}
                       className="text-sm font-medium cursor-pointer"
                     >
-                      Include Masonry Wall (Blocks/Stone)
+                      Masonry Wall
                     </Label>
                   </div>
 
@@ -2085,7 +2203,7 @@ export default function ConcreteCalculatorForm({
                         onChange={(e) =>
                           updateRow(row.id, "masonryWallHeight", e.target.value)
                         }
-                        placeholder="Wall Height (m, e.g., 1.0)"
+                        placeholder={`Wall Height (m) - Auto-filled: ${row.height || "0"} m`}
                         step="0.1"
                         min="0.1"
                       />
@@ -2148,7 +2266,8 @@ export default function ConcreteCalculatorForm({
                   </div>
                 )}
 
-                {result.element === "foundation" && (
+                {(result.element === "raft-foundation" ||
+                  result.element === "strip-footing") && (
                   <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-800/40 rounded-md">
                     <h4 className="font-semibold mb-2">Foundation Workings:</h4>
 

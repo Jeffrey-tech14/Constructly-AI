@@ -40,13 +40,13 @@ import {
   Clock,
   Zap,
 } from "lucide-react";
+import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 import usePlumbingCalculator, {
+  FixtureType,
+  PipeMaterial,
   PlumbingSystem,
   PlumbingSystemType,
-  PipeMaterial,
-  FixtureType,
 } from "@/hooks/usePlumbingCalculator";
-import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface PlumbingCalculatorProps {
   plumbingSystems: PlumbingSystem[];

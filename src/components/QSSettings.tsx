@@ -187,13 +187,8 @@ export default function QSSettings({
   };
 
   const houseTypes = [
-    { value: "Bungalow", label: "Bungalow" },
-    { value: "Maisonette", label: "Maisonette" },
-    { value: "Apartment", label: "Apartment" },
-    { value: "Villa", label: "Villa" },
-    { value: "Townhouse", label: "Townhouse" },
-    { value: "Warehouse", label: "Warehouse" },
-    { value: "Mansion", label: "Mansion" },
+    { value: "bungalow", label: "Bungalow" },
+    { value: "maisonette", label: "Maisonette" },
   ];
 
   const handleValueChange = (field: keyof FinancialModes, value: string) => {

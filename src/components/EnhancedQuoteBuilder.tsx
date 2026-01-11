@@ -83,7 +83,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ElementTypes } from "@/hooks/useRebarCalculator";
 import RebarCalculatorForm from "./RebarCalculationForm";
-import MasonryCalculatorForm from "./MasonryCalculatorForm";
 import useMasonryCalculatorNew, {
   MasonryQSSettings,
 } from "@/hooks/useMasonryCalculatorNew";
@@ -101,18 +100,6 @@ import {
 import PreliminariesBuilder from "./PreliminariesBuilder";
 import PlumbingCalculator from "./PlumbingCalculator";
 import ElectricalCalculator from "./ElectricalCalculator";
-import {
-  CableType,
-  ElectricalSystem,
-  InstallationMethod,
-  LightingType,
-  OutletType,
-} from "@/hooks/useElectricalCalculator";
-import {
-  FixtureType,
-  PipeMaterial,
-  PlumbingSystem,
-} from "@/hooks/usePlumbingCalculator";
 import RoofingCalculator, { DEFAULT_TIMBERS } from "./RoofingCalculator";
 import FinishesCalculator from "./FinishesCalculator";
 import {
@@ -127,8 +114,16 @@ import {
   FinishCategory,
   FinishElement,
 } from "@/hooks/useUniversalFinishesCalculator";
-import QSSettings from "./QSSettings";
 import EarthworksForm, { EarthworkItem } from "./EarthWorksForm";
+import { PlumbingSystem } from "@/hooks/usePlumbingCalculator";
+import {
+  CableType,
+  ElectricalSystem,
+  InstallationMethod,
+} from "@/hooks/useElectricalCalculator";
+import QSSettings from "./QSSettings";
+import MasonryCalculatorForm from "./MasonryCalculatorForm";
+import WardrobesCalculator, { WardrobeItem } from "./WardrobesCalculator";
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
@@ -316,6 +311,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     profit_percentages: 0,
     contingency_percentages: 0,
     permit_cost: 0,
+    wardrobes_cabinets: [],
+    paintings_specifications: [],
+    paintings_totals: null,
   });
   useEffect(() => {
     if (quote) {
@@ -348,6 +346,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     ElectricalSystem[]
   >([]);
   const [finishes, setFinishes] = useState<FinishElement[]>([]);
+  const [wardrobes, setWardrobes] = useState<WardrobeItem[]>([]);
 
   useEffect(() => {
     setPlumbingSystems(quoteData?.plumbing_systems || []);
@@ -355,12 +354,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     setElectricalSystems(quoteData?.electrical_systems || []);
     setFinishes(quoteData?.finishes || []);
     setEarthWorks(quoteData?.earthwork || []);
+    setWardrobes(quoteData?.wardrobes_cabinets || []);
   }, [
     quoteData.plumbing_systems,
     quoteData.roof_structures,
     quoteData.electrical_systems,
     quoteData.finishes,
     quoteData.earthwork,
+    quoteData.wardrobes_cabinets,
   ]);
   useEffect(() => {
     if (quoteData.region) {
@@ -864,20 +865,25 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     { id: 6, name: "Roofing", icon: <Hourglass className="w-5 h-5" /> },
     { id: 7, name: "Finishes", icon: <Paintbrush className="w-5 h-5" /> },
     { id: 8, name: "Equipment Usage", icon: <Wrench className="w-5 h-5" /> },
-    { id: 9, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
-    { id: 10, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
     {
-      id: 11,
+      id: 9,
+      name: "Wardrobes & Cabinets",
+      icon: <Building className="w-5 h-5" />,
+    },
+    { id: 10, name: "Services and Extras", icon: <Plus className="w-5 h-5" /> },
+    { id: 11, name: "Subcontractor Rates", icon: <Zap className="w-5 h-5" /> },
+    {
+      id: 12,
       name: "Preliminaries and Legal",
       icon: <FileSpreadsheet className="w-5 h-5" />,
     },
     {
-      id: 12,
+      id: 13,
       name: "BOQ Builder",
       icon: <ListStartIcon className="w-5 h-5" />,
     },
     {
-      id: 13,
+      id: 14,
       name: "Review & Export",
       icon: <Calculator className="w-5 h-5" />,
     },
@@ -945,7 +951,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     if (currentStep < steps.length) {
       setDirection("right");
       setCurrentStep(currentStep + 1);
-      if (currentStep + 1 === 13) {
+      if (currentStep + 1 === 14) {
         handleCalculate();
       }
     }
@@ -1097,6 +1103,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           subcontractors: quoteData.subcontractors,
           percentages: calculation.percentages,
           materialPrices: calculation.materialPrices,
+          wardrobes_cabinets: wardrobes,
+          paintings_specifications: quoteData.paintings_specifications || [],
+          paintings_totals: quoteData.paintings_totals || null,
         });
         toast({
           title: "Quote Updated",
@@ -1166,6 +1175,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           subcontractors: calculation.subcontractors,
           percentages: calculation.percentages,
           materialPrices: calculation.materialPrices,
+          wardrobes_cabinets: wardrobes,
+          paintings_specifications: quoteData.paintings_specifications || [],
+          paintings_totals: quoteData.paintings_totals || null,
         });
         toast({
           title: "Quote Saved",
@@ -1207,6 +1219,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       case 10:
       case 11:
       case 12:
+      case 13:
+      case 14:
         return true;
       default:
         return false;
@@ -1570,6 +1584,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             materialPrices={materials}
             setQuoteData={setQuoteData}
             quote={quoteData}
+            wallDimensions={quoteData.wallDimensions}
           />
         );
       case 8:
@@ -2279,6 +2294,15 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         );
       case 9:
         return (
+          <WardrobesCalculator
+            wardrobes={wardrobes}
+            setWardrobes={setWardrobes}
+            setQuoteData={setQuoteData}
+            quote={quoteData}
+          />
+        );
+      case 10:
+        return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2805,7 +2829,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </motion.div>
         );
-      case 10:
+      case 11:
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -3186,7 +3210,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             </div>
           </motion.div>
         );
-      case 11:
+      case 12:
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -3206,13 +3230,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             />
           </motion.div>
         );
-      case 12:
+      case 13:
         return (
           <div className="space-y-6">
             <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />
           </div>
         );
-      case 13:
+      case 14:
         return (
           <div className="space-y-6">
             {calculation ? (
@@ -3438,11 +3462,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             Free
           </Badge>
         );
-      case "Intermediate":
+      case "Enterprise":
         return (
           <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
             <Crown className="w-3 h-3 mr-1" />
-            Intermediate
+            Enterprise
           </Badge>
         );
       case "Professional":
@@ -3493,7 +3517,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         <div className="mb-8">
           <div className="flex sm:text-2xl text-xl font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
             <BuildingIcon className="sm:w-7 sm:h-7 sm:mt-0 mt-1 mr-2 text-primary dark:text-white" />
-            Enhanced Quote Builder
+            Quote Builder
           </div>
           <p className="bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
@@ -3505,7 +3529,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             setDirection={setDirection}
             handleCalculate={handleCalculate}
           />
-          <Progress value={(currentStep / 13) * 100} className="w-full" />
+          <Progress value={(currentStep / 14) * 100} className="w-full" />
         </div>
 
         <div key={`step-${currentStep}`}>
@@ -3542,7 +3566,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 13 && (
+          {currentStep < 14 && (
             <>
               <Button
                 onClick={nextStep}

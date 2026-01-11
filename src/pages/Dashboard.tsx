@@ -79,7 +79,8 @@ const Dashboard = () => {
       const { data: quotes, error: quotesError } = await supabase
         .from("quotes")
         .select("*")
-        .eq("user_id", profile.id);
+        .eq("user_id", profile.id)
+        .limit(5);
       if (quotesError) throw quotesError;
 
       const { data: events, error: eventsError } = await supabase

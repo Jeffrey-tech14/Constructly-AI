@@ -24,6 +24,12 @@ export interface EarthworkItem {
   depth: string;
   volume: string;
   material: string;
+  // Area selection fields - choose between direct area input or length x width
+  areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
+  area?: string; // Direct area input (m²) when using DIRECT_AREA mode
+  // Foundation type fields
+  foundationType?: "strip" | "raft" | "pad" | "general";
+  wallLocation?: "external" | "internal"; // For strip footing - whether it's external or internal walls
 }
 
 interface EarthworksFormProps {
@@ -41,15 +47,39 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
   setQuoteData,
   quote,
 }) => {
-  // Calculate volume based on dimensions
+  // Get minimum depth based on excavation type
+  const getMinimumDepth = (type: string): number => {
+    if (type === "topsoil-removal") {
+      return 0.15; // Topsoil removal minimum 0.15m
+    }
+    // Foundation excavation and others minimum 0.65m
+    return 0.65;
+  };
+
+  // Calculate volume based on dimensions or area
   const calculateVolume = (
     length: string,
     width: string,
-    depth: string
+    depth: string,
+    area?: string,
+    areaSelectionMode?: string,
+    type?: string
   ): string => {
+    let d = parseFloat(depth) || 0;
+    const minDepth = getMinimumDepth(type || "foundation-excavation");
+
+    // Enforce minimum depth
+    d = Math.max(d, minDepth);
+
+    // If area mode is selected and area is provided, use it
+    if (areaSelectionMode === "DIRECT_AREA" && area) {
+      const a = parseFloat(area) || 0;
+      return (a * d).toFixed(3);
+    }
+
+    // Otherwise use length × width × depth
     const l = parseFloat(length) || 0;
     const w = parseFloat(width) || 0;
-    const d = parseFloat(depth) || 0;
     return (l * w * d).toFixed(3);
   };
 
@@ -91,12 +121,24 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
         if (item.id === id) {
           const updatedItem = { ...item, [field]: value };
 
-          // Recalculate volume if dimensions change
-          if (field === "length" || field === "width" || field === "depth") {
+          // Recalculate volume if dimensions or type change
+          if (
+            field === "length" ||
+            field === "width" ||
+            field === "depth" ||
+            field === "area" ||
+            field === "areaSelectionMode" ||
+            field === "type" ||
+            field === "foundationType" ||
+            field === "wallLocation"
+          ) {
             updatedItem.volume = calculateVolume(
               field === "length" ? value : item.length,
               field === "width" ? value : item.width,
-              field === "depth" ? value : item.depth
+              field === "depth" ? value : item.depth,
+              field === "area" ? value : item.area,
+              field === "areaSelectionMode" ? value : item.areaSelectionMode,
+              field === "type" ? value : item.type
             );
           }
 
@@ -117,6 +159,8 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       depth: "",
       volume: "0",
       material: "soil",
+      foundationType: "general",
+      wallLocation: "external",
     };
     setEarthworks([...earthworks, newEarthwork]);
   };
@@ -142,6 +186,18 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
     { value: "rock", label: "Rock" },
     { value: "sand", label: "Sand" },
     { value: "mixed", label: "Mixed Material" },
+  ];
+
+  const foundationTypes = [
+    { value: "strip", label: "Strip Footing" },
+    { value: "raft", label: "Raft Foundation" },
+    { value: "pad", label: "Pad Foundation" },
+    { value: "general", label: "General/Other" },
+  ];
+
+  const wallLocations = [
+    { value: "external", label: "External Walls" },
+    { value: "internal", label: "Internal Walls" },
   ];
 
   const earthworkRate = getEarthworkRate();
@@ -227,36 +283,158 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                     </Select>
                   </div>
 
-                  {/* Dimensions */}
+                  {/* Foundation Type */}
                   <div className="space-y-2">
-                    <Label htmlFor={`length-${earthwork.id}`}>Length (m)</Label>
-                    <Input
-                      id={`length-${earthwork.id}`}
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={earthwork.length}
-                      onChange={(e) =>
-                        updateEarthwork(earthwork.id, "length", e.target.value)
+                    <Label htmlFor={`foundation-type-${earthwork.id}`}>
+                      Foundation Type
+                    </Label>
+                    <Select
+                      value={earthwork.foundationType || "general"}
+                      onValueChange={(value) =>
+                        updateEarthwork(earthwork.id, "foundationType", value)
                       }
-                      placeholder="0.0"
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select foundation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {foundationTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
+                  {/* Wall Location - only show for strip footing */}
+                  {earthwork.foundationType === "strip" && (
+                    <div className="space-y-2">
+                      <Label htmlFor={`wall-location-${earthwork.id}`}>
+                        Wall Location
+                      </Label>
+                      <Select
+                        value={earthwork.wallLocation || "external"}
+                        onValueChange={(value) =>
+                          updateEarthwork(earthwork.id, "wallLocation", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {wallLocations.map((location) => (
+                            <SelectItem
+                              key={location.value}
+                              value={location.value}
+                            >
+                              {location.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Dimension Mode */}
                   <div className="space-y-2">
-                    <Label htmlFor={`width-${earthwork.id}`}>Width (m)</Label>
-                    <Input
-                      id={`width-${earthwork.id}`}
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={earthwork.width}
-                      onChange={(e) =>
-                        updateEarthwork(earthwork.id, "width", e.target.value)
+                    <Label htmlFor={`dimension-mode-${earthwork.id}`}>
+                      Dimension Mode
+                    </Label>
+                    <Select
+                      value={earthwork.areaSelectionMode || "LENGTH_WIDTH"}
+                      onValueChange={(value) =>
+                        updateEarthwork(
+                          earthwork.id,
+                          "areaSelectionMode",
+                          value
+                        )
                       }
-                      placeholder="0.0"
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="LENGTH_WIDTH">
+                          Length × Width
+                        </SelectItem>
+                        <SelectItem value="DIRECT_AREA">Direct Area</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+
+                {/* Conditional Dimensions Based on Mode */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {earthwork.areaSelectionMode === "DIRECT_AREA" ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor={`area-${earthwork.id}`}>
+                          Area (m²)
+                        </Label>
+                        <Input
+                          id={`area-${earthwork.id}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={earthwork.area || ""}
+                          onChange={(e) =>
+                            updateEarthwork(
+                              earthwork.id,
+                              "area",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.0"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Dimensions */}
+                      <div className="space-y-2">
+                        <Label htmlFor={`length-${earthwork.id}`}>
+                          Length (m)
+                        </Label>
+                        <Input
+                          id={`length-${earthwork.id}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={earthwork.length}
+                          onChange={(e) =>
+                            updateEarthwork(
+                              earthwork.id,
+                              "length",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.0"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor={`width-${earthwork.id}`}>
+                          Width (m)
+                        </Label>
+                        <Input
+                          id={`width-${earthwork.id}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={earthwork.width}
+                          onChange={(e) =>
+                            updateEarthwork(
+                              earthwork.id,
+                              "width",
+                              e.target.value
+                            )
+                          }
+                          placeholder="0.0"
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor={`depth-${earthwork.id}`}>Depth (m)</Label>
@@ -286,7 +464,9 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                       className="bg-gray-100 dark:bg-gray-600 font-medium"
                     />
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Price Calculation */}
                   <div className="space-y-2">
                     <Label htmlFor={`price-${earthwork.id}`}>

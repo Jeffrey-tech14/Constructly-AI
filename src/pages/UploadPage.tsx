@@ -132,7 +132,7 @@ const UploadPlan = () => {
   const { user, profile } = useAuth();
   const location = useLocation();
   const { quoteData } = location.state || {};
-  const { uploadPlan, deletePlan } = usePlanUpload();
+  const { uploadPlan, deletePlan, fileUrlExists } = usePlanUpload();
   const { toast } = useToast();
   const MAX_RETRIES = 3;
 
@@ -142,6 +142,11 @@ const UploadPlan = () => {
     if (quoteData?.plan_file_url) {
       setFileUrl(quoteData.plan_file_url);
       setPreviewUrl(quoteData.plan_file_url);
+      toast({
+        title: "Plan File Loaded",
+        description:
+          "Existing plan file found. You can re-scan or upload a new one.",
+      });
     }
   }, [quoteData]);
 
@@ -271,7 +276,7 @@ const UploadPlan = () => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(
-      "https://constructly-backend.onrender.com/api/plan/upload",
+      "https://constructly.onrender.com/api/plan/upload",
       {
         method: "POST",
         body: formData,
@@ -313,12 +318,99 @@ const UploadPlan = () => {
   };
 
   const uploadAndSave = async (file: File): Promise<string> => {
+    // Check if quote already has a valid file URL - if so, reuse it
+    if (quoteData?.plan_file_url) {
+      const urlExists = await fileUrlExists(quoteData.plan_file_url);
+      if (urlExists) {
+        toast({
+          title: "Plan File Reused",
+          description: "Using existing plan file from storage",
+        });
+        return quoteData.plan_file_url;
+      }
+    }
+
+    // File doesn't exist or is invalid, upload new one
     const fileUrl = await uploadPlan(file);
-    await supabase
-      .from("quotes")
-      .update({ plan_file_url: fileUrl })
-      .eq("id", quoteData.id);
+    if (fileUrl) {
+      await supabase
+        .from("quotes")
+        .update({ plan_file_url: fileUrl })
+        .eq("id", quoteData.id);
+    }
     return fileUrl;
+  };
+
+  /**
+   * Download existing plan file from URL and use it as selected file
+   */
+  const handleUseExistingFile = async () => {
+    if (!fileUrl) return;
+
+    try {
+      setCurrentStep("uploading");
+      toast({
+        title: "Loading Plan",
+        description: "Retrieving existing plan file...",
+      });
+
+      // Fetch the file from URL
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error("Failed to fetch file");
+
+      // Get filename from URL or use default
+      const filename = fileUrl.split("/").pop() || `plan-${Date.now()}.pdf`;
+      const blob = await response.blob();
+
+      // Create a File object from the blob
+      const file = new File([blob], filename, {
+        type: blob.type || "application/octet-stream",
+      });
+
+      setSelectedFile(file);
+      setPreviewUrl(fileUrl);
+      setError(null);
+
+      // Proceed with analysis
+      try {
+        setCurrentStep("analyzing");
+        const data = await analyzePlan(file, setError, setCurrentStep);
+
+        const processedPlan: ExtractedPlan = {
+          ...data,
+          file_url: fileUrl,
+          file_name: file.name,
+          uploaded_at: new Date().toISOString(),
+          wallDimensions: data.wallDimensions,
+        };
+
+        setEditablePlan(processedPlan);
+        setConfidence(Math.min(80 + Math.random() * 20, 100));
+        setCurrentStep("complete");
+        setRetryCount(0);
+
+        toast({
+          title: "Plan Loaded",
+          description: "Existing plan file loaded successfully",
+        });
+      } catch (err) {
+        console.error("Analysis error:", err);
+        setError({
+          message: "Failed to analyze plan",
+          type: "analysis",
+          retryable: true,
+        });
+        setCurrentStep("error");
+      }
+    } catch (error) {
+      console.error("Error loading file:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load existing plan file",
+        variant: "destructive",
+      });
+      setCurrentStep("error");
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -493,11 +585,11 @@ const UploadPlan = () => {
               Free
             </Badge>
           );
-        case "Intermediate":
+        case "Enterprise":
           return (
             <Badge className="bg-blue-100 text-blue-800">
               <Crown className="w-3 h-3 mr-1" />
-              Intermediate
+              Enterprise
             </Badge>
           );
         case "Professional":
@@ -880,44 +972,128 @@ const UploadPlan = () => {
                                 </h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                   <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                                      External Wall Perimeter
-                                    </p>
-                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                                      {editablePlan.wallDimensions
-                                        .externalWallPerimiter || 0}{" "}
-                                      m
-                                    </p>
+                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                      External Wall Perimeter (m)
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.1"
+                                      min="0"
+                                      value={
+                                        editablePlan.wallDimensions
+                                          ?.externalWallPerimiter || 0
+                                      }
+                                      onChange={(e) =>
+                                        setEditablePlan((prev) =>
+                                          prev && prev.wallDimensions
+                                            ? {
+                                                ...prev,
+                                                wallDimensions: {
+                                                  ...prev.wallDimensions,
+                                                  externalWallPerimiter:
+                                                    parseFloat(
+                                                      e.target.value
+                                                    ) || 0,
+                                                },
+                                              }
+                                            : prev
+                                        )
+                                      }
+                                      className="bg-green-50 dark:bg-slate-700"
+                                    />
                                   </div>
                                   <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                                      External Wall Height
-                                    </p>
-                                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                                      {editablePlan.wallDimensions
-                                        .externalWallHeight || 0}{" "}
-                                      m
-                                    </p>
+                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                      External Wall Height (m)
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.1"
+                                      min="0"
+                                      value={
+                                        editablePlan.wallDimensions
+                                          ?.externalWallHeight || 0
+                                      }
+                                      onChange={(e) =>
+                                        setEditablePlan((prev) =>
+                                          prev && prev.wallDimensions
+                                            ? {
+                                                ...prev,
+                                                wallDimensions: {
+                                                  ...prev.wallDimensions,
+                                                  externalWallHeight:
+                                                    parseFloat(
+                                                      e.target.value
+                                                    ) || 0,
+                                                },
+                                              }
+                                            : prev
+                                        )
+                                      }
+                                      className="bg-green-50 dark:bg-slate-700"
+                                    />
                                   </div>
                                   <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                                      Internal Wall Perimeter
-                                    </p>
-                                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                      {editablePlan.wallDimensions
-                                        .internalWallPerimiter || 0}{" "}
-                                      m
-                                    </p>
+                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                      Internal Wall Perimeter (m)
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.1"
+                                      min="0"
+                                      value={
+                                        editablePlan.wallDimensions
+                                          ?.internalWallPerimiter || 0
+                                      }
+                                      onChange={(e) =>
+                                        setEditablePlan((prev) =>
+                                          prev && prev.wallDimensions
+                                            ? {
+                                                ...prev,
+                                                wallDimensions: {
+                                                  ...prev.wallDimensions,
+                                                  internalWallPerimiter:
+                                                    parseFloat(
+                                                      e.target.value
+                                                    ) || 0,
+                                                },
+                                              }
+                                            : prev
+                                        )
+                                      }
+                                      className="bg-blue-50 dark:bg-slate-700"
+                                    />
                                   </div>
                                   <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                                      Internal Wall Height
-                                    </p>
-                                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                      {editablePlan.wallDimensions
-                                        .internalWallHeight || 0}{" "}
-                                      m
-                                    </p>
+                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                      Internal Wall Height (m)
+                                    </Label>
+                                    <Input
+                                      type="number"
+                                      step="0.1"
+                                      min="0"
+                                      value={
+                                        editablePlan.wallDimensions
+                                          ?.internalWallHeight || 0
+                                      }
+                                      onChange={(e) =>
+                                        setEditablePlan((prev) =>
+                                          prev && prev.wallDimensions
+                                            ? {
+                                                ...prev,
+                                                wallDimensions: {
+                                                  ...prev.wallDimensions,
+                                                  internalWallHeight:
+                                                    parseFloat(
+                                                      e.target.value
+                                                    ) || 0,
+                                                },
+                                              }
+                                            : prev
+                                        )
+                                      }
+                                      className="bg-blue-50 dark:bg-slate-700"
+                                    />
                                   </div>
                                 </div>
                               </div>
@@ -1014,30 +1190,48 @@ const UploadPlan = () => {
                               </div>
                             </div>
                           ) : !selectedFile ? (
-                            <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                              <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
-                              <p className="mb-4  text-slate-600 dark:text-slate-300">
-                                Drag & drop your plan or click to upload
-                              </p>
-                              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                Supported formats: JPEG, PNG, PDF, WEBP (Max
-                                10MB)
-                              </p>
+                            <div>
+                              <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
+                                <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                                <p className="mb-4  text-slate-600 dark:text-slate-300">
+                                  Drag & drop your plan or click to upload
+                                </p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                  Supported formats: JPEG, PNG, PDF, WEBP (Max
+                                  10MB)
+                                </p>
 
-                              <Input
-                                type="file"
-                                accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
-                                onChange={handleFileChange}
-                                className="hidden"
-                                id="fileUpload"
-                              />
+                                <Input
+                                  type="file"
+                                  accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
+                                  onChange={handleFileChange}
+                                  className="hidden"
+                                  id="fileUpload"
+                                />
 
-                              <Label
-                                htmlFor="fileUpload"
-                                className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
-                              >
-                                📁 Select File
-                              </Label>
+                                <Label
+                                  htmlFor="fileUpload"
+                                  className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
+                                >
+                                  📁 Select File
+                                </Label>
+                              </div>
+
+                              {/* Show button to use existing file if available */}
+                              {fileUrl && previewUrl && (
+                                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                                    Or use your existing plan file
+                                  </p>
+                                  <Button
+                                    onClick={handleUseExistingFile}
+                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
+                                  >
+                                    <Eye className="w-5 h-5 mr-2" />
+                                    Use Existing Plan File
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           ) : null}
 
@@ -1100,6 +1294,22 @@ const UploadPlan = () => {
                     >
                       📁 Select File
                     </Label>
+
+                    {/* Show button to use existing file if available */}
+                    {fileUrl && previewUrl && (
+                      <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                          Or use your existing plan file
+                        </p>
+                        <Button
+                          onClick={handleUseExistingFile}
+                          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
+                        >
+                          <Eye className="w-5 h-5 mr-2" />
+                          Use Existing Plan File
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

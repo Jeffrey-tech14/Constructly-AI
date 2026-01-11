@@ -23,6 +23,10 @@ import {
   FootingType,
   TankType,
   RetainingWallType,
+  RebarCalculationMode,
+  SteelGrade,
+  DEFAULT_STEEL_INTENSITIES,
+  INTENSITY_BOUNDS,
 } from "@/hooks/useRebarCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -143,10 +147,45 @@ const makeDefaultRow = (): RebarRow => ({
 function validateRow(row: RebarRow): string[] {
   const errs: string[] = [];
 
+  // Check if using intensity-based mode
+  if (row.rebarCalculationMode === "INTENSITY_REBAR_MODE") {
+    // Intensity mode validation
+    const intensity = row.steelIntensityKgPerM3
+      ? parseFloat(row.steelIntensityKgPerM3)
+      : DEFAULT_STEEL_INTENSITIES[row.element];
+
+    if (!row.concreteVolumeM3 || row.concreteVolumeM3 <= 0)
+      errs.push("Concrete volume must be > 0 m³");
+
+    if (!row.steelIntensityKgPerM3)
+      errs.push("Steel intensity must be specified (kg/m³)");
+
+    const intensityVal = parseFloat(row.steelIntensityKgPerM3 || "0");
+    if (
+      intensityVal < INTENSITY_BOUNDS.min ||
+      intensityVal > INTENSITY_BOUNDS.max
+    ) {
+      errs.push(
+        `Steel intensity should be between ${INTENSITY_BOUNDS.min}-${INTENSITY_BOUNDS.max} kg/m³ (current: ${intensityVal})`
+      );
+    }
+
+    return errs;
+  }
+
+  // Default detailed mode validation
   // Basic validation for all elements
-  if (!row.length || parseFloat(row.length) <= 0)
-    errs.push("Length must be > 0");
-  if (!row.width || parseFloat(row.width) <= 0) errs.push("Width must be > 0");
+  // Check area or length/width based on selection mode
+  if (row.areaSelectionMode === "DIRECT_AREA") {
+    // In area mode, validate area field instead of length/width
+    if (!row.area || parseFloat(row.area) <= 0) errs.push("Area must be > 0");
+  } else {
+    // In length/width mode, validate both dimensions
+    if (!row.length || parseFloat(row.length) <= 0)
+      errs.push("Length must be > 0");
+    if (!row.width || parseFloat(row.width) <= 0)
+      errs.push("Width must be > 0");
+  }
 
   const isPosInt = (v?: string) =>
     v !== undefined && !isNaN(parseFloat(v)) && parseFloat(v) > 0;
@@ -154,7 +193,7 @@ function validateRow(row: RebarRow): string[] {
   if (row.reinforcementType === "individual_bars") {
     if (!row.depth || parseFloat(row.depth) <= 0)
       errs.push("Thickness/Depth must be > 0");
-    if (row.element === "slab" || row.element === "foundation") {
+    if (row.element === "slab" || row.element === "raft-foundation") {
       if (!isPosInt(row.mainBarSpacing))
         errs.push("Main bar spacing must be a positive number (mm)");
       if (!isPosInt(row.distributionBarSpacing))
@@ -245,7 +284,7 @@ function validateRow(row: RebarRow): string[] {
     // Mesh validation - only allow for slabs and foundations
     if (
       row.element !== "slab" &&
-      row.element !== "foundation" &&
+      row.element !== "raft-foundation" &&
       row.element !== "strip-footing"
     ) {
       errs.push(
@@ -482,7 +521,7 @@ export default function RebarCalculatorForm({
         if (
           row.reinforcementType === "mesh" &&
           row.element !== "slab" &&
-          row.element !== "foundation" &&
+          row.element !== "raft-foundation" &&
           row.element !== "strip-footing"
         ) {
           return { ...row, reinforcementType: "individual_bars" };
@@ -973,6 +1012,34 @@ export default function RebarCalculatorForm({
                   </div>
 
                   <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Calculation Mode
+                    </Label>
+                    <Select
+                      value={row.rebarCalculationMode || "DETAILED_REBAR_MODE"}
+                      onValueChange={(v) =>
+                        updateRow(
+                          row.id,
+                          "rebarCalculationMode",
+                          v as RebarCalculationMode
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DETAILED_REBAR_MODE">
+                          Detailed (Bar Geometry)
+                        </SelectItem>
+                        <SelectItem value="INTENSITY_REBAR_MODE">
+                          Intensity (kg/m³)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label className="text-sm font-medium">Quantity</Label>
                     <Input
                       type="number"
@@ -1035,1374 +1102,1648 @@ export default function RebarCalculatorForm({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        {row.element === "column"
-                          ? "Height (m)"
-                          : row.element === "beam" ||
-                            row.element === "strip-footing"
-                          ? "Length (m)"
-                          : "Length (m)"}
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={row.length}
-                        onChange={(e) =>
-                          updateRow(row.id, "length", e.target.value)
-                        }
-                        placeholder="e.g., 5.0"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        {row.element === "slab" ||
-                        row.element === "foundation" ||
-                        row.element === "strip-footing"
-                          ? "Width (m)"
-                          : "Width (m)"}
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={row.width}
-                        onChange={(e) =>
-                          updateRow(row.id, "width", e.target.value)
-                        }
-                        placeholder="e.g., 0.3"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {row.reinforcementType === "mesh" && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                        Mesh Grade
+                        Dimension Mode
                       </Label>
                       <Select
-                        value={row.meshGrade}
-                        onValueChange={(v) => updateRow(row.id, "meshGrade", v)}
+                        value={row.areaSelectionMode || "LENGTH_WIDTH"}
+                        onValueChange={(v) =>
+                          updateRow(
+                            row.id,
+                            "areaSelectionMode",
+                            v as "LENGTH_WIDTH" | "DIRECT_AREA"
+                          )
+                        }
                       >
-                        <SelectTrigger className="border-indigo-300">
+                        <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {meshGrades.map((grade) => (
-                            <SelectItem key={grade} value={grade}>
-                              {grade} ({MESH_PROPERTIES[grade]?.weightPerSqm}{" "}
-                              kg/m²)
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="LENGTH_WIDTH">
+                            Length × Width
+                          </SelectItem>
+                          <SelectItem value="DIRECT_AREA">
+                            Direct Area
+                          </SelectItem>
                         </SelectContent>
                       </Select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Choose how to input dimensions
+                      </p>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                        Sheet Size
-                      </Label>
-                      <Select
-                        value={getCurrentMeshSheetValue(row)}
-                        onValueChange={(v) => handleMeshSheetChange(row.id, v)}
-                      >
-                        <SelectTrigger className="border-indigo-300">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {meshSheetOptions.map((sheet, index) => (
-                            <SelectItem key={index} value={sheet}>
-                              {sheet}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                        Lap Length (m)
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.05"
-                        min="0.1"
-                        max="0.5"
-                        value={row.meshLapLength}
-                        onChange={(e) =>
-                          updateRow(row.id, "meshLapLength", e.target.value)
-                        }
-                        className="border-indigo-300"
-                        placeholder="0.3"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                        Area (m²)
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={row.length}
-                        onChange={(e) =>
-                          updateRow(row.id, "length", e.target.value)
-                        }
-                        placeholder="Length"
-                        className="border-indigo-300"
-                      />
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={row.width}
-                        onChange={(e) =>
-                          updateRow(row.id, "width", e.target.value)
-                        }
-                        placeholder="Width"
-                        className="border-indigo-300 mt-1"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {row.reinforcementType === "individual_bars" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        {row.element === "slab" ||
-                        row.element === "foundation" ||
-                        row.element === "strip-footing"
-                          ? "Thickness (m)"
-                          : "Depth (m)"}
-                      </Label>
-                      <Input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={row.depth}
-                        onChange={(e) =>
-                          updateRow(row.id, "depth", e.target.value)
-                        }
-                        placeholder="e.g., 0.6"
-                      />
-                    </div>
-
-                    {(row.element === "slab" ||
-                      row.element === "foundation" ||
-                      row.element === "strip-footing") && (
-                      <div
-                        className={`grid grid-cols-1 md:grid-cols-3 gap-4 p-4 ${
-                          row.element === "slab"
-                            ? "bg-blue-100 dark:bg-blue-700 text-blue-700 dark:text-blue-50"
-                            : row.element === "foundation"
-                            ? "bg-orange-100 dark:bg-orange-700 text-orange-700 dark:text-orange-50"
-                            : "bg-red-100 dark:bg-red-700 text-red-700 dark:text-red-50"
-                        } rounded-lg`}
-                      >
+                    {row.areaSelectionMode === "LENGTH_WIDTH" && (
+                      <>
                         <div className="space-y-2">
-                          <Label className="text-sm font-medium ">
-                            Main Bar Spacing (mm)
-                          </Label>
-                          <Input
-                            type="number"
-                            min="50"
-                            value={row.mainBarSpacing}
-                            onChange={(e) =>
-                              updateRow(
-                                row.id,
-                                "mainBarSpacing",
-                                e.target.value
-                              )
-                            }
-                            placeholder="200"
-                            className="border-blue-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium ">
-                            Distribution Bar Spacing (mm)
-                          </Label>
-                          <Input
-                            type="number"
-                            min="50"
-                            value={row.distributionBarSpacing}
-                            onChange={(e) =>
-                              updateRow(
-                                row.id,
-                                "distributionBarSpacing",
-                                e.target.value
-                              )
-                            }
-                            placeholder="200"
-                            className="border-blue-200"
-                          />
-                        </div>
-                        {row.element === "slab" && (
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium ">
-                              Layers
-                            </Label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="4"
-                              value={row.slabLayers}
-                              onChange={(e) =>
-                                updateRow(row.id, "slabLayers", e.target.value)
-                              }
-                              placeholder="1"
-                              className="border-blue-200"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {row.element === "tank" && (
-                      <div className="space-y-4">
-                        {/* Tank Type and Shape */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                              Tank Type
-                            </Label>
-                            <Select
-                              value={row.tankType}
-                              onValueChange={(v) =>
-                                updateRow(row.id, "tankType", v as TankType)
-                              }
-                            >
-                              <SelectTrigger className="border-cyan-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {tankTypes.map((type) => (
-                                  <SelectItem key={type} value={type}>
-                                    {type.charAt(0).toUpperCase() +
-                                      type.slice(1)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                              Tank Shape
-                            </Label>
-                            <Select
-                              value={row.tankShape}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "tankShape",
-                                  v as "rectangular" | "circular"
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-cyan-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="rectangular">
-                                  Rectangular
-                                </SelectItem>
-                                <SelectItem value="circular">
-                                  Circular
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                              Include Cover Slab
-                            </Label>
-                            <Select
-                              value={row.includeCover ? "yes" : "no"}
-                              onValueChange={(v) =>
-                                updateRow(row.id, "includeCover", v === "yes")
-                              }
-                            >
-                              <SelectTrigger className="border-cyan-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="yes">Yes</SelectItem>
-                                <SelectItem value="no">No</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Tank Thickness Settings */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-teal-50 dark:bg-teal-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-teal-700 dark:text-teal-50">
-                              Wall Thickness (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0.1"
-                              step="0.05"
-                              value={row.wallThickness}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "wallThickness",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="0.2"
-                              className="border-teal-300"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-teal-700 dark:text-teal-50">
-                              Base Thickness (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0.1"
-                              step="0.05"
-                              value={row.baseThickness}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "baseThickness",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="0.2"
-                              className="border-teal-300"
-                            />
-                          </div>
-
-                          {row.includeCover && (
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-teal-700 dark:text-teal-50">
-                                Cover Thickness (m)
-                              </Label>
-                              <Input
-                                type="number"
-                                min="0.1"
-                                step="0.05"
-                                value={row.coverThickness}
-                                onChange={(e) =>
-                                  updateRow(
-                                    row.id,
-                                    "coverThickness",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="0.15"
-                                className="border-teal-300"
-                              />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Wall Reinforcement */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                              Wall Vertical Bars
-                            </Label>
-                            <Select
-                              value={row.wallVerticalBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "wallVerticalBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-indigo-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                              Wall Horizontal Bars
-                            </Label>
-                            <Select
-                              value={row.wallHorizontalBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "wallHorizontalBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-indigo-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                              Vertical Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.wallVerticalSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "wallVerticalSpacing",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="150"
-                              className="border-indigo-300"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                              Horizontal Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.wallHorizontalSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "wallHorizontalSpacing",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="200"
-                              className="border-indigo-300"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Base Reinforcement */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-green-50 dark:bg-green-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Base Main Bars
-                            </Label>
-                            <Select
-                              value={row.baseMainBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "baseMainBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-green-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Base Distribution Bars
-                            </Label>
-                            <Select
-                              value={row.baseDistributionBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "baseDistributionBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-green-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Main Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.baseMainSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "baseMainSpacing",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="150"
-                              className="border-green-300"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Distribution Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.baseDistributionSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "baseDistributionSpacing",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="200"
-                              className="border-green-300"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Cover Reinforcement (if included) */}
-                        {row.includeCover && (
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-purple-50 dark:bg-purple-900 rounded-lg">
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
-                                Cover Main Bars
-                              </Label>
-                              <Select
-                                value={row.coverMainBarSize}
-                                onValueChange={(v) =>
-                                  updateRow(
-                                    row.id,
-                                    "coverMainBarSize",
-                                    v as RebarSize
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="border-purple-300">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {sizeOptions.map((size) => (
-                                    <SelectItem key={size} value={size}>
-                                      {size}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
-                                Cover Distribution Bars
-                              </Label>
-                              <Select
-                                value={row.coverDistributionBarSize}
-                                onValueChange={(v) =>
-                                  updateRow(
-                                    row.id,
-                                    "coverDistributionBarSize",
-                                    v as RebarSize
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="border-purple-300">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {sizeOptions.map((size) => (
-                                    <SelectItem key={size} value={size}>
-                                      {size}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
-                                Main Spacing (mm)
-                              </Label>
-                              <Input
-                                type="number"
-                                min="50"
-                                value={row.coverMainSpacing}
-                                onChange={(e) =>
-                                  updateRow(
-                                    row.id,
-                                    "coverMainSpacing",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="200"
-                                className="border-purple-300"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
-                                Distribution Spacing (mm)
-                              </Label>
-                              <Input
-                                type="number"
-                                min="50"
-                                value={row.coverDistributionSpacing}
-                                onChange={(e) =>
-                                  updateRow(
-                                    row.id,
-                                    "coverDistributionSpacing",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="250"
-                                className="border-purple-300"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {row.element === "retaining-wall" && (
-                      <div className="space-y-4">
-                        {/* Wall Type */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-orange-50 dark:bg-orange-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
-                              Wall Type
-                            </Label>
-                            <Select
-                              value={row.retainingWallType}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "retainingWallType",
-                                  v as RetainingWallType
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-orange-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="cantilever">
-                                  Cantilever
-                                </SelectItem>
-                                <SelectItem value="gravity">Gravity</SelectItem>
-                                <SelectItem value="counterfort">
-                                  Counterfort
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
-                              Heel Length (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={row.heelLength}
-                              onChange={(e) =>
-                                updateRow(row.id, "heelLength", e.target.value)
-                              }
-                              className="border-orange-300"
-                              placeholder="0.5"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
-                              Toe Length (m)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={row.toeLength}
-                              onChange={(e) =>
-                                updateRow(row.id, "toeLength", e.target.value)
-                              }
-                              className="border-orange-300"
-                              placeholder="0.5"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Stem Reinforcement */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Stem Vertical Bars
-                            </Label>
-                            <Select
-                              value={row.stemVerticalBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "stemVerticalBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-blue-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Stem Horizontal Bars
-                            </Label>
-                            <Select
-                              value={row.stemHorizontalBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "stemHorizontalBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-blue-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Vertical Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.stemVerticalSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "stemVerticalSpacing",
-                                  e.target.value
-                                )
-                              }
-                              className="border-blue-300"
-                              placeholder="150"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
-                              Horizontal Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.stemHorizontalSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "stemHorizontalSpacing",
-                                  e.target.value
-                                )
-                              }
-                              className="border-blue-300"
-                              placeholder="200"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Base Reinforcement */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-green-50 dark:bg-green-900 rounded-lg">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Base Main Bars
-                            </Label>
-                            <Select
-                              value={row.baseMainBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "baseMainBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-green-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Base Distribution Bars
-                            </Label>
-                            <Select
-                              value={row.baseDistributionBarSize}
-                              onValueChange={(v) =>
-                                updateRow(
-                                  row.id,
-                                  "baseDistributionBarSize",
-                                  v as RebarSize
-                                )
-                              }
-                            >
-                              <SelectTrigger className="border-green-300">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sizeOptions.map((size) => (
-                                  <SelectItem key={size} value={size}>
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Main Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.baseMainSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "baseMainSpacing",
-                                  e.target.value
-                                )
-                              }
-                              className="border-green-300"
-                              placeholder="150"
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                              Distribution Spacing (mm)
-                            </Label>
-                            <Input
-                              type="number"
-                              min="50"
-                              value={row.baseDistributionSpacing}
-                              onChange={(e) =>
-                                updateRow(
-                                  row.id,
-                                  "baseDistributionSpacing",
-                                  e.target.value
-                                )
-                              }
-                              className="border-green-300"
-                              placeholder="200"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {row.element === "beam" && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                            Main Bars Count
-                          </Label>
-                          <Input
-                            type="number"
-                            min="2"
-                            value={row.mainBarsCount}
-                            onChange={(e) =>
-                              updateRow(row.id, "mainBarsCount", e.target.value)
-                            }
-                            placeholder="4"
-                            className="border-green-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                            Distribution Bars Count
-                          </Label>
-                          <Input
-                            type="number"
-                            min="2"
-                            value={row.distributionBarsCount}
-                            onChange={(e) =>
-                              updateRow(
-                                row.id,
-                                "distributionBarsCount",
-                                e.target.value
-                              )
-                            }
-                            placeholder="2"
-                            className="border-green-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-green-700 dark:text-green-50">
-                            Stirrup Spacing (mm)
-                          </Label>
-                          <Input
-                            type="number"
-                            min="50"
-                            value={row.stirrupSpacing}
-                            onChange={(e) =>
-                              updateRow(
-                                row.id,
-                                "stirrupSpacing",
-                                e.target.value
-                              )
-                            }
-                            placeholder="200"
-                            className="border-green-200"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {row.element === "column" && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-purple-100 dark:bg-purple-800/30 rounded-lg">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-purple-700  dark:text-purple-50">
-                            Main Bars Count
-                          </Label>
-                          <Input
-                            type="number"
-                            min="4"
-                            value={row.mainBarsCount}
-                            onChange={(e) =>
-                              updateRow(row.id, "mainBarsCount", e.target.value)
-                            }
-                            placeholder="4"
-                            className="border-purple-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
-                            Tie Spacing (mm)
-                          </Label>
-                          <Input
-                            type="number"
-                            min="50"
-                            value={row.tieSpacing}
-                            onChange={(e) =>
-                              updateRow(row.id, "tieSpacing", e.target.value)
-                            }
-                            placeholder="250"
-                            className="border-purple-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
-                            Column Height (m)
+                          <Label className="text-sm font-medium">
+                            {row.element === "column"
+                              ? "Height (m)"
+                              : row.element === "beam" ||
+                                row.element === "strip-footing"
+                              ? "Length (m)"
+                              : "Length (m)"}
                           </Label>
                           <Input
                             type="number"
                             min="0.1"
                             step="0.1"
-                            value={row.columnHeight || row.length}
+                            value={row.length}
                             onChange={(e) =>
-                              updateRow(row.id, "columnHeight", e.target.value)
+                              updateRow(row.id, "length", e.target.value)
                             }
-                            placeholder="3.0"
-                            className="border-purple-200"
+                            placeholder="e.g., 5.0"
                           />
                         </div>
+                      </>
+                    )}
+
+                    {row.areaSelectionMode === "DIRECT_AREA" && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Area (m²)</Label>
+                        <Input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          value={row.area}
+                          onChange={(e) =>
+                            updateRow(row.id, "area", e.target.value)
+                          }
+                          placeholder="e.g., 5.0"
+                        />
+                        <p className="text-xs text-blue-600 dark:text-blue-300">
+                          Direct area input
+                        </p>
                       </div>
                     )}
-                  </>
-                )}
-
-                {errors.length > 0 && (
-                  <div className="rounded-md border border-red-300 bg-red-50 dark:bg-destructive p-4">
-                    <div className="font-medium text-red-800 dark:text-red-100 mb-2">
-                      Please fix the following issues:
-                    </div>
-                    <ul className="list-disc list-inside text-red-700 dark:text-red-50 text-sm space-y-1">
-                      {errors.map((e, idx) => (
-                        <li key={idx}>{e}</li>
-                      ))}
-                    </ul>
                   </div>
                 )}
 
-                {result && (
-                  <Card
-                    className={
-                      result.reinforcementType === "mesh"
-                        ? "bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900 dark:to-purple-900 border-indigo-200"
-                        : "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-200"
-                    }
-                  >
-                    <CardContent className="p-4 rounded-lg">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        {result.reinforcementType === "mesh" ? (
-                          <>
-                            <div className="space-y-1">
-                              <div className="text-indigo-700 dark:text-indigo-50 font-medium">
-                                Total Sheets
-                              </div>
-                              <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
-                                {result.totalBars}
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-indigo-700 dark:text-indigo-50 font-medium">
-                                Net Area
-                              </div>
-                              <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
-                                {result.meshResult?.netArea.toFixed(1)} m²
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-indigo-700 dark:text-indigo-50 font-medium">
-                                Total Weight
-                              </div>
-                              <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
-                                {result.totalWeightKg.toFixed(0)} kg
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-indigo-700 dark:text-indigo-50 font-medium">
-                                Total Cost
-                              </div>
-                              <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
-                                Ksh{" "}
-                                {Math.round(
-                                  result.meshTotalPrice || 0
-                                ).toLocaleString()}
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="space-y-1">
-                              <div className="text-green-700 dark:text-green-50 font-medium">
-                                Total Bars
-                              </div>
-                              <div className="text-lg font-bold text-green-900  dark:text-green-100">
-                                {result.totalBars}
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-green-700 dark:text-green-50 font-medium">
-                                Total Length
-                              </div>
-                              <div className="text-lg font-bold text-green-900 dark:text-green-100">
-                                {result.totalLengthM.toFixed(0)} m
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-green-700 dark:text-green-50 font-medium">
-                                Total Weight
-                              </div>
-                              <div className="text-lg font-bold text-green-900 dark:text-green-100">
-                                {result.totalWeightKg.toFixed(0)} kg
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="text-green-700 dark:text-green-50 font-medium">
-                                Total Cost
-                              </div>
-                              <div className="text-lg font-bold text-green-900 dark:text-green-100">
-                                Ksh{" "}
-                                {Math.round(
-                                  result.totalPrice + result.bindingWirePrice
-                                ).toLocaleString()}
-                              </div>
-                            </div>
-                          </>
-                        )}
+                {row.reinforcementType === "individual_bars" &&
+                  row.areaSelectionMode === "LENGTH_WIDTH" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          {row.element === "slab" ||
+                          row.element === "raft-foundation" ||
+                          row.element === "strip-footing"
+                            ? "Width (m)"
+                            : "Width (m)"}
+                        </Label>
+                        <Input
+                          type="number"
+                          min="0.1"
+                          step="0.1"
+                          value={row.width}
+                          onChange={(e) =>
+                            updateRow(row.id, "width", e.target.value)
+                          }
+                          placeholder="e.g., 0.3"
+                        />
                       </div>
+                    </div>
+                  )}
 
-                      {result.reinforcementType === "individual_bars" &&
-                        result.weightBreakdownKg && (
-                          <div className="mt-3 pt-3 border-t border-green-200">
-                            <div className="text-xs text-green-700 dark:text-green-50 font-medium mb-2">
-                              Weight Breakdown (kg):
+                {row.reinforcementType === "individual_bars" && (
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                    <div />
+                  </div>
+                )}
+
+                {row.rebarCalculationMode === "INTENSITY_REBAR_MODE" && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Concrete Volume (m³)
+                      </Label>
+                      <Input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={row.concreteVolumeM3 || ""}
+                        onChange={(e) =>
+                          updateRow(
+                            row.id,
+                            "concreteVolumeM3",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        placeholder="e.g., 10.5"
+                      />
+                      <p className="text-xs text-amber-600 dark:text-amber-300">
+                        Total concrete volume
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Steel Intensity (kg/m³)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={INTENSITY_BOUNDS.min}
+                        max={INTENSITY_BOUNDS.max}
+                        step="5"
+                        value={row.steelIntensityKgPerM3 || ""}
+                        onChange={(e) =>
+                          updateRow(
+                            row.id,
+                            "steelIntensityKgPerM3",
+                            e.target.value
+                          )
+                        }
+                        placeholder={`${
+                          DEFAULT_STEEL_INTENSITIES[row.element]
+                        }`}
+                      />
+                      <p className="text-xs text-amber-600 dark:text-amber-300">
+                        Default: {DEFAULT_STEEL_INTENSITIES[row.element]} kg/m³
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Steel Grade</Label>
+                      <Select
+                        value={row.steelGrade || "mild"}
+                        onValueChange={(v) =>
+                          updateRow(row.id, "steelGrade", v as SteelGrade)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mild">Mild Steel</SelectItem>
+                          <SelectItem value="high-yield">High Yield</SelectItem>
+                          <SelectItem value="special">Special Grade</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-amber-600 dark:text-amber-300">
+                        For pricing only
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Estimated Steel (kg)
+                      </Label>
+                      <div className="border rounded px-3 py-2 bg-white dark:bg-slate-950">
+                        <p className="text-sm font-semibold">
+                          {row.concreteVolumeM3 && row.steelIntensityKgPerM3
+                            ? (
+                                parseFloat(row.concreteVolumeM3.toString()) *
+                                parseFloat(row.steelIntensityKgPerM3)
+                              ).toFixed(1)
+                            : "0.0"}
+                          {" kg"}
+                        </p>
+                        <p className="text-xs text-gray-500">Auto-calculated</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {row.rebarCalculationMode === "INTENSITY_REBAR_MODE" ? null : (
+                  <>
+                    {row.reinforcementType === "mesh" && (
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                            Mesh Grade
+                          </Label>
+                          <Select
+                            value={row.meshGrade}
+                            onValueChange={(v) =>
+                              updateRow(row.id, "meshGrade", v)
+                            }
+                          >
+                            <SelectTrigger className="border-indigo-300">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {meshGrades.map((grade) => (
+                                <SelectItem key={grade} value={grade}>
+                                  {grade} (
+                                  {MESH_PROPERTIES[grade]?.weightPerSqm} kg/m²)
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                            Sheet Size
+                          </Label>
+                          <Select
+                            value={getCurrentMeshSheetValue(row)}
+                            onValueChange={(v) =>
+                              handleMeshSheetChange(row.id, v)
+                            }
+                          >
+                            <SelectTrigger className="border-indigo-300">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {meshSheetOptions.map((sheet, index) => (
+                                <SelectItem key={index} value={sheet}>
+                                  {sheet}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                            Lap Length (m)
+                          </Label>
+                          <Input
+                            type="number"
+                            step="0.05"
+                            min="0.1"
+                            max="0.5"
+                            value={row.meshLapLength}
+                            onChange={(e) =>
+                              updateRow(row.id, "meshLapLength", e.target.value)
+                            }
+                            className="border-indigo-300"
+                            placeholder="0.3"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                            Dimension Mode
+                          </Label>
+                          <Select
+                            value={row.areaSelectionMode || "LENGTH_WIDTH"}
+                            onValueChange={(v) =>
+                              updateRow(
+                                row.id,
+                                "areaSelectionMode",
+                                v as "LENGTH_WIDTH" | "DIRECT_AREA"
+                              )
+                            }
+                          >
+                            <SelectTrigger className="border-indigo-300">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="LENGTH_WIDTH">
+                                Length × Width
+                              </SelectItem>
+                              <SelectItem value="DIRECT_AREA">
+                                Direct Area
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {row.reinforcementType === "mesh" &&
+                      row.areaSelectionMode !== "DIRECT_AREA" && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                              Length (m)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              value={row.length}
+                              onChange={(e) =>
+                                updateRow(row.id, "length", e.target.value)
+                              }
+                              placeholder="Length"
+                              className="border-indigo-300"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                              Width (m)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              value={row.width}
+                              onChange={(e) =>
+                                updateRow(row.id, "width", e.target.value)
+                              }
+                              placeholder="Width"
+                              className="border-indigo-300"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                    {row.reinforcementType === "mesh" &&
+                      row.areaSelectionMode === "DIRECT_AREA" && (
+                        <div className="grid grid-cols-1 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                              Area (m²)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              value={row.area}
+                              onChange={(e) =>
+                                updateRow(row.id, "area", e.target.value)
+                              }
+                              placeholder="e.g., 25.5"
+                              className="border-indigo-300"
+                            />
+                            <p className="text-xs text-indigo-600 dark:text-indigo-300">
+                              Direct area input
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                    {row.reinforcementType === "individual_bars" && (
+                      <>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">
+                            {row.element === "slab" ||
+                            row.element === "raft-foundation" ||
+                            row.element === "strip-footing"
+                              ? "Thickness (m)"
+                              : "Depth (m)"}
+                          </Label>
+                          <Input
+                            type="number"
+                            min="0.1"
+                            step="0.1"
+                            value={row.depth}
+                            onChange={(e) =>
+                              updateRow(row.id, "depth", e.target.value)
+                            }
+                            placeholder="e.g., 0.6"
+                          />
+                        </div>
+
+                        {(row.element === "slab" ||
+                          row.element === "raft-foundation" ||
+                          row.element === "strip-footing") && (
+                          <div
+                            className={`grid grid-cols-1 md:grid-cols-3 gap-4 p-4 ${
+                              row.element === "slab"
+                                ? "bg-blue-100 dark:bg-blue-700 text-blue-700 dark:text-blue-50"
+                                : row.element === "raft-foundation"
+                                ? "bg-orange-100 dark:bg-orange-700 text-orange-700 dark:text-orange-50"
+                                : "bg-red-100 dark:bg-red-700 text-red-700 dark:text-red-50"
+                            } rounded-lg`}
+                          >
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium ">
+                                Main Bar Spacing (mm)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="50"
+                                value={row.mainBarSpacing}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "mainBarSpacing",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="200"
+                                className="border-blue-200"
+                              />
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                              {result.weightBreakdownKg.mainBars !==
-                                undefined && (
-                                <div>
-                                  Main Bars:{" "}
-                                  {result.weightBreakdownKg.mainBars.toFixed(1)}
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium ">
+                                Distribution Bar Spacing (mm)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="50"
+                                value={row.distributionBarSpacing}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "distributionBarSpacing",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="200"
+                                className="border-blue-200"
+                              />
+                            </div>
+                            {row.element === "slab" && (
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium ">
+                                  Layers
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="4"
+                                  value={row.slabLayers}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "slabLayers",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="1"
+                                  className="border-blue-200"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {row.element === "tank" && (
+                          <div className="space-y-4">
+                            {/* Tank Type and Shape */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                  Tank Type
+                                </Label>
+                                <Select
+                                  value={row.tankType}
+                                  onValueChange={(v) =>
+                                    updateRow(row.id, "tankType", v as TankType)
+                                  }
+                                >
+                                  <SelectTrigger className="border-cyan-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {tankTypes.map((type) => (
+                                      <SelectItem key={type} value={type}>
+                                        {type.charAt(0).toUpperCase() +
+                                          type.slice(1)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                  Tank Shape
+                                </Label>
+                                <Select
+                                  value={row.tankShape}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "tankShape",
+                                      v as "rectangular" | "circular"
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-cyan-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="rectangular">
+                                      Rectangular
+                                    </SelectItem>
+                                    <SelectItem value="circular">
+                                      Circular
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                  Include Cover Slab
+                                </Label>
+                                <Select
+                                  value={row.includeCover ? "yes" : "no"}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "includeCover",
+                                      v === "yes"
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-cyan-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="yes">Yes</SelectItem>
+                                    <SelectItem value="no">No</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            {/* Tank Thickness Settings */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-teal-50 dark:bg-teal-900 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-teal-700 dark:text-teal-50">
+                                  Wall Thickness (m)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="0.1"
+                                  step="0.05"
+                                  value={row.wallThickness}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "wallThickness",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="0.2"
+                                  className="border-teal-300"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-teal-700 dark:text-teal-50">
+                                  Base Thickness (m)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="0.1"
+                                  step="0.05"
+                                  value={row.baseThickness}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseThickness",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="0.2"
+                                  className="border-teal-300"
+                                />
+                              </div>
+
+                              {row.includeCover && (
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-teal-700 dark:text-teal-50">
+                                    Cover Thickness (m)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min="0.1"
+                                    step="0.05"
+                                    value={row.coverThickness}
+                                    onChange={(e) =>
+                                      updateRow(
+                                        row.id,
+                                        "coverThickness",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="0.15"
+                                    className="border-teal-300"
+                                  />
                                 </div>
                               )}
-                              {result.weightBreakdownKg.distributionBars !==
-                                undefined ||
-                                (0 && (
-                                  <div>
-                                    Distribution:{" "}
-                                    {result.weightBreakdownKg.distributionBars.toFixed(
-                                      1
-                                    )}
-                                  </div>
-                                ))}
-                              {result.weightBreakdownKg.stirrups !==
-                                undefined ||
-                                (0 && (
-                                  <div>
-                                    Stirrups:{" "}
-                                    {result.weightBreakdownKg.stirrups.toFixed(
-                                      1
-                                    )}
-                                  </div>
-                                ))}
-                              {result.weightBreakdownKg.ties !== undefined ||
-                                (0 && (
-                                  <div>
-                                    Ties:{" "}
-                                    {result.weightBreakdownKg.ties.toFixed(1)}
-                                  </div>
-                                ))}
-                              <div>
-                                Binding Wire:{" "}
-                                {result.bindingWireWeightKg.toFixed(1)}
+                            </div>
+
+                            {/* Wall Reinforcement */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                                  Wall Vertical Bars
+                                </Label>
+                                <Select
+                                  value={row.wallVerticalBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "wallVerticalBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-indigo-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                                  Wall Horizontal Bars
+                                </Label>
+                                <Select
+                                  value={row.wallHorizontalBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "wallHorizontalBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-indigo-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                                  Vertical Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.wallVerticalSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "wallVerticalSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="150"
+                                  className="border-indigo-300"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                                  Horizontal Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.wallHorizontalSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "wallHorizontalSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="200"
+                                  className="border-indigo-300"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Base Reinforcement */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-green-50 dark:bg-green-900 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Base Main Bars
+                                </Label>
+                                <Select
+                                  value={row.baseMainBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseMainBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Base Distribution Bars
+                                </Label>
+                                <Select
+                                  value={row.baseDistributionBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseDistributionBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Main Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.baseMainSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseMainSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="150"
+                                  className="border-green-300"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Distribution Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.baseDistributionSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseDistributionSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="200"
+                                  className="border-green-300"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Cover Reinforcement (if included) */}
+                            {row.includeCover && (
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-purple-50 dark:bg-purple-900 rounded-lg">
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
+                                    Cover Main Bars
+                                  </Label>
+                                  <Select
+                                    value={row.coverMainBarSize}
+                                    onValueChange={(v) =>
+                                      updateRow(
+                                        row.id,
+                                        "coverMainBarSize",
+                                        v as RebarSize
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="border-purple-300">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {sizeOptions.map((size) => (
+                                        <SelectItem key={size} value={size}>
+                                          {size}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
+                                    Cover Distribution Bars
+                                  </Label>
+                                  <Select
+                                    value={row.coverDistributionBarSize}
+                                    onValueChange={(v) =>
+                                      updateRow(
+                                        row.id,
+                                        "coverDistributionBarSize",
+                                        v as RebarSize
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="border-purple-300">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {sizeOptions.map((size) => (
+                                        <SelectItem key={size} value={size}>
+                                          {size}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
+                                    Main Spacing (mm)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min="50"
+                                    value={row.coverMainSpacing}
+                                    onChange={(e) =>
+                                      updateRow(
+                                        row.id,
+                                        "coverMainSpacing",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="200"
+                                    className="border-purple-300"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
+                                    Distribution Spacing (mm)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min="50"
+                                    value={row.coverDistributionSpacing}
+                                    onChange={(e) =>
+                                      updateRow(
+                                        row.id,
+                                        "coverDistributionSpacing",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="250"
+                                    className="border-purple-300"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {row.element === "retaining-wall" && (
+                          <div className="space-y-4">
+                            {/* Wall Type */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-orange-50 dark:bg-orange-900 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
+                                  Wall Type
+                                </Label>
+                                <Select
+                                  value={row.retainingWallType}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "retainingWallType",
+                                      v as RetainingWallType
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-orange-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="cantilever">
+                                      Cantilever
+                                    </SelectItem>
+                                    <SelectItem value="gravity">
+                                      Gravity
+                                    </SelectItem>
+                                    <SelectItem value="counterfort">
+                                      Counterfort
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
+                                  Heel Length (m)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={row.heelLength}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "heelLength",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="border-orange-300"
+                                  placeholder="0.5"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-orange-700 dark:text-orange-50">
+                                  Toe Length (m)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={row.toeLength}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "toeLength",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="border-orange-300"
+                                  placeholder="0.5"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Stem Reinforcement */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                  Stem Vertical Bars
+                                </Label>
+                                <Select
+                                  value={row.stemVerticalBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "stemVerticalBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-blue-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                  Stem Horizontal Bars
+                                </Label>
+                                <Select
+                                  value={row.stemHorizontalBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "stemHorizontalBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-blue-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                  Vertical Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.stemVerticalSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "stemVerticalSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="border-blue-300"
+                                  placeholder="150"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                  Horizontal Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.stemHorizontalSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "stemHorizontalSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="border-blue-300"
+                                  placeholder="200"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Base Reinforcement */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-green-50 dark:bg-green-900 rounded-lg">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Base Main Bars
+                                </Label>
+                                <Select
+                                  value={row.baseMainBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseMainBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Base Distribution Bars
+                                </Label>
+                                <Select
+                                  value={row.baseDistributionBarSize}
+                                  onValueChange={(v) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseDistributionBarSize",
+                                      v as RebarSize
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className="border-green-300">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizeOptions.map((size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Main Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.baseMainSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseMainSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="border-green-300"
+                                  placeholder="150"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                  Distribution Spacing (mm)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min="50"
+                                  value={row.baseDistributionSpacing}
+                                  onChange={(e) =>
+                                    updateRow(
+                                      row.id,
+                                      "baseDistributionSpacing",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="border-green-300"
+                                  placeholder="200"
+                                />
                               </div>
                             </div>
                           </div>
                         )}
 
-                      {result.reinforcementType === "mesh" &&
-                        result.meshResult && (
-                          <div className="mt-3 pt-3 border-t border-indigo-200">
-                            <div className="text-xs text-indigo-700 dark:text-indigo-50 font-medium mb-2">
-                              Mesh Details:
+                        {row.element === "beam" && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                Main Bars Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min="2"
+                                value={row.mainBarsCount}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "mainBarsCount",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="4"
+                                className="border-green-200"
+                              />
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                              <div>Sheets: {result.meshResult.totalSheets}</div>
-                              <div>
-                                Lap Area: {result.meshResult.lapArea.toFixed(1)}{" "}
-                                m²
-                              </div>
-                              <div>
-                                Waste: {result.meshResult.wastePercentage}%
-                              </div>
-                              <div>
-                                Price/m²: Ksh{" "}
-                                {result.meshPricePerSqm?.toLocaleString()}
-                              </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                Distribution Bars Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min="2"
+                                value={row.distributionBarsCount}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "distributionBarsCount",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="2"
+                                className="border-green-200"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-green-700 dark:text-green-50">
+                                Stirrup Spacing (mm)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="50"
+                                value={row.stirrupSpacing}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "stirrupSpacing",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="200"
+                                className="border-green-200"
+                              />
                             </div>
                           </div>
                         )}
-                      {result && result.element === "tank" && (
-                        <div className="mt-3 pt-3 border-t border-cyan-200">
-                          <div className="text-xs text-cyan-700 dark:text-cyan-50 font-medium mb-2">
-                            Tank Reinforcement Breakdown:
+
+                        {row.element === "column" && (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-purple-100 dark:bg-purple-800/30 rounded-lg">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-purple-700  dark:text-purple-50">
+                                Main Bars Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min="4"
+                                value={row.mainBarsCount}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "mainBarsCount",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="4"
+                                className="border-purple-200"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
+                                Tie Spacing (mm)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="50"
+                                value={row.tieSpacing}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "tieSpacing",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="250"
+                                className="border-purple-200"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-purple-700 dark:text-purple-50">
+                                Column Height (m)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0.1"
+                                step="0.1"
+                                value={row.columnHeight || row.length}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "columnHeight",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="3.0"
+                                className="border-purple-200"
+                              />
+                            </div>
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                            {result.weightBreakdownKg.wallVerticalBars > 0 && (
-                              <div>
-                                Wall Vertical:{" "}
-                                {result.weightBreakdownKg.wallVerticalBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                            {result.weightBreakdownKg.wallHorizontalBars >
-                              0 && (
-                              <div>
-                                Wall Horizontal:{" "}
-                                {result.weightBreakdownKg.wallHorizontalBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                            {result.weightBreakdownKg.baseMainBars > 0 && (
-                              <div>
-                                Base Main:{" "}
-                                {result.weightBreakdownKg.baseMainBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                            {result.weightBreakdownKg.baseDistributionBars >
-                              0 && (
-                              <div>
-                                Base Distribution:{" "}
-                                {result.weightBreakdownKg.baseDistributionBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                            {result.weightBreakdownKg.coverMainBars > 0 && (
-                              <div>
-                                Cover Main:{" "}
-                                {result.weightBreakdownKg.coverMainBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                            {result.weightBreakdownKg.coverDistributionBars >
-                              0 && (
-                              <div>
-                                Cover Distribution:{" "}
-                                {result.weightBreakdownKg.coverDistributionBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {errors.length > 0 && (
+                      <div className="rounded-md border border-red-300 bg-red-50 dark:bg-destructive p-4">
+                        <div className="font-medium text-red-800 dark:text-red-100 mb-2">
+                          Please fix the following issues:
                         </div>
-                      )}
-                      {result && result.element === "retaining-wall" && (
-                        <div className="mt-3 pt-3 border-t border-amber-200">
-                          <div className="text-xs text-amber-700 dark:text-amber-50 font-medium mb-2">
-                            Retaining Wall Reinforcement Breakdown:
+                        <ul className="list-disc list-inside text-red-700 dark:text-red-50 text-sm space-y-1">
+                          {errors.map((e, idx) => (
+                            <li key={idx}>{e}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {result && (
+                      <Card
+                        className={
+                          result.reinforcementType === "mesh"
+                            ? "bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900 dark:to-purple-900 border-indigo-200"
+                            : "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 border-green-200"
+                        }
+                      >
+                        <CardContent className="p-4 rounded-lg">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            {result.reinforcementType === "mesh" ? (
+                              <>
+                                <div className="space-y-1">
+                                  <div className="text-indigo-700 dark:text-indigo-50 font-medium">
+                                    Total Sheets
+                                  </div>
+                                  <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                                    {result.totalBars}
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-indigo-700 dark:text-indigo-50 font-medium">
+                                    Net Area
+                                  </div>
+                                  <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                                    {result.meshResult?.netArea.toFixed(1)} m²
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-indigo-700 dark:text-indigo-50 font-medium">
+                                    Total Weight
+                                  </div>
+                                  <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                                    {result.totalWeightKg.toFixed(0)} kg
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-indigo-700 dark:text-indigo-50 font-medium">
+                                    Total Cost
+                                  </div>
+                                  <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                                    Ksh{" "}
+                                    {Math.round(
+                                      result.meshTotalPrice || 0
+                                    ).toLocaleString()}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="space-y-1">
+                                  <div className="text-green-700 dark:text-green-50 font-medium">
+                                    Total Bars
+                                  </div>
+                                  <div className="text-lg font-bold text-green-900  dark:text-green-100">
+                                    {result.totalBars}
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-green-700 dark:text-green-50 font-medium">
+                                    Total Length
+                                  </div>
+                                  <div className="text-lg font-bold text-green-900 dark:text-green-100">
+                                    {result.totalLengthM.toFixed(0)} m
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-green-700 dark:text-green-50 font-medium">
+                                    Total Weight
+                                  </div>
+                                  <div className="text-lg font-bold text-green-900 dark:text-green-100">
+                                    {result.totalWeightKg.toFixed(0)} kg
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="text-green-700 dark:text-green-50 font-medium">
+                                    Total Cost
+                                  </div>
+                                  <div className="text-lg font-bold text-green-900 dark:text-green-100">
+                                    Ksh{" "}
+                                    {Math.round(
+                                      result.totalPrice +
+                                        result.bindingWirePrice
+                                    ).toLocaleString()}
+                                  </div>
+                                </div>
+                              </>
+                            )}
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
-                            {result.weightBreakdownKg.stemVerticalBars > 0 && (
-                              <div>
-                                Stem Vertical:{" "}
-                                {result.weightBreakdownKg.stemVerticalBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
+
+                          {result.reinforcementType === "individual_bars" &&
+                            result.weightBreakdownKg && (
+                              <div className="mt-3 pt-3 border-t border-green-200">
+                                <div className="text-xs text-green-700 dark:text-green-50 font-medium mb-2">
+                                  Weight Breakdown (kg):
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                  {result.weightBreakdownKg.mainBars !==
+                                    undefined && (
+                                    <div>
+                                      Main Bars:{" "}
+                                      {result.weightBreakdownKg.mainBars.toFixed(
+                                        1
+                                      )}
+                                    </div>
+                                  )}
+                                  {result.weightBreakdownKg.distributionBars !==
+                                    undefined ||
+                                    (0 && (
+                                      <div>
+                                        Distribution:{" "}
+                                        {result.weightBreakdownKg.distributionBars.toFixed(
+                                          1
+                                        )}
+                                      </div>
+                                    ))}
+                                  {result.weightBreakdownKg.stirrups !==
+                                    undefined ||
+                                    (0 && (
+                                      <div>
+                                        Stirrups:{" "}
+                                        {result.weightBreakdownKg.stirrups.toFixed(
+                                          1
+                                        )}
+                                      </div>
+                                    ))}
+                                  {result.weightBreakdownKg.ties !==
+                                    undefined ||
+                                    (0 && (
+                                      <div>
+                                        Ties:{" "}
+                                        {result.weightBreakdownKg.ties.toFixed(
+                                          1
+                                        )}
+                                      </div>
+                                    ))}
+                                  <div>
+                                    Binding Wire:{" "}
+                                    {result.bindingWireWeightKg.toFixed(1)}
+                                  </div>
+                                </div>
                               </div>
                             )}
-                            {result.weightBreakdownKg.stemHorizontalBars >
-                              0 && (
-                              <div>
-                                Stem Horizontal:{" "}
-                                {result.weightBreakdownKg.stemHorizontalBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
+
+                          {result.reinforcementType === "mesh" &&
+                            result.meshResult && (
+                              <div className="mt-3 pt-3 border-t border-indigo-200">
+                                <div className="text-xs text-indigo-700 dark:text-indigo-50 font-medium mb-2">
+                                  Mesh Details:
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                  <div>
+                                    Sheets: {result.meshResult.totalSheets}
+                                  </div>
+                                  <div>
+                                    Lap Area:{" "}
+                                    {result.meshResult.lapArea.toFixed(1)} m²
+                                  </div>
+                                  <div>
+                                    Waste: {result.meshResult.wastePercentage}%
+                                  </div>
+                                  <div>
+                                    Price/m²: Ksh{" "}
+                                    {result.meshPricePerSqm?.toLocaleString()}
+                                  </div>
+                                </div>
                               </div>
                             )}
-                            {result.weightBreakdownKg.baseMainBars > 0 && (
-                              <div>
-                                Base Main:{" "}
-                                {result.weightBreakdownKg.baseMainBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
+                          {result && result.element === "tank" && (
+                            <div className="mt-3 pt-3 border-t border-cyan-200">
+                              <div className="text-xs text-cyan-700 dark:text-cyan-50 font-medium mb-2">
+                                Tank Reinforcement Breakdown:
                               </div>
-                            )}
-                            {result.weightBreakdownKg.baseDistributionBars >
-                              0 && (
-                              <div>
-                                Base Distribution:{" "}
-                                {result.weightBreakdownKg.baseDistributionBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                {result.weightBreakdownKg.wallVerticalBars >
+                                  0 && (
+                                  <div>
+                                    Wall Vertical:{" "}
+                                    {result.weightBreakdownKg.wallVerticalBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.wallHorizontalBars >
+                                  0 && (
+                                  <div>
+                                    Wall Horizontal:{" "}
+                                    {result.weightBreakdownKg.wallHorizontalBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.baseMainBars > 0 && (
+                                  <div>
+                                    Base Main:{" "}
+                                    {result.weightBreakdownKg.baseMainBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.baseDistributionBars >
+                                  0 && (
+                                  <div>
+                                    Base Distribution:{" "}
+                                    {result.weightBreakdownKg.baseDistributionBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.coverMainBars > 0 && (
+                                  <div>
+                                    Cover Main:{" "}
+                                    {result.weightBreakdownKg.coverMainBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg
+                                  .coverDistributionBars > 0 && (
+                                  <div>
+                                    Cover Distribution:{" "}
+                                    {result.weightBreakdownKg.coverDistributionBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {result.weightBreakdownKg.heelMainBars > 0 && (
-                              <div>
-                                Heel Main:{" "}
-                                {result.weightBreakdownKg.heelMainBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
+                            </div>
+                          )}
+                          {result && result.element === "retaining-wall" && (
+                            <div className="mt-3 pt-3 border-t border-amber-200">
+                              <div className="text-xs text-amber-700 dark:text-amber-50 font-medium mb-2">
+                                Retaining Wall Reinforcement Breakdown:
                               </div>
-                            )}
-                            {result.weightBreakdownKg.heelDistributionBars >
-                              0 && (
-                              <div>
-                                Heel Distribution:{" "}
-                                {result.weightBreakdownKg.heelDistributionBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                {result.weightBreakdownKg.stemVerticalBars >
+                                  0 && (
+                                  <div>
+                                    Stem Vertical:{" "}
+                                    {result.weightBreakdownKg.stemVerticalBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.stemHorizontalBars >
+                                  0 && (
+                                  <div>
+                                    Stem Horizontal:{" "}
+                                    {result.weightBreakdownKg.stemHorizontalBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.baseMainBars > 0 && (
+                                  <div>
+                                    Base Main:{" "}
+                                    {result.weightBreakdownKg.baseMainBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.baseDistributionBars >
+                                  0 && (
+                                  <div>
+                                    Base Distribution:{" "}
+                                    {result.weightBreakdownKg.baseDistributionBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.heelMainBars > 0 && (
+                                  <div>
+                                    Heel Main:{" "}
+                                    {result.weightBreakdownKg.heelMainBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.heelDistributionBars >
+                                  0 && (
+                                  <div>
+                                    Heel Distribution:{" "}
+                                    {result.weightBreakdownKg.heelDistributionBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.toeMainBars > 0 && (
+                                  <div>
+                                    Toe Main:{" "}
+                                    {result.weightBreakdownKg.toeMainBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
+                                {result.weightBreakdownKg.toeDistributionBars >
+                                  0 && (
+                                  <div>
+                                    Toe Distribution:{" "}
+                                    {result.weightBreakdownKg.toeDistributionBars.toFixed(
+                                      1
+                                    )}{" "}
+                                    kg
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {result.weightBreakdownKg.toeMainBars > 0 && (
-                              <div>
-                                Toe Main:{" "}
-                                {result.weightBreakdownKg.toeMainBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                            {result.weightBreakdownKg.toeDistributionBars >
-                              0 && (
-                              <div>
-                                Toe Distribution:{" "}
-                                {result.weightBreakdownKg.toeDistributionBars.toFixed(
-                                  1
-                                )}{" "}
-                                kg
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

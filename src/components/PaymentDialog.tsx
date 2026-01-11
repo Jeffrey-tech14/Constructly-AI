@@ -40,8 +40,8 @@ export default function PaymentAction() {
   };
   // Plan mapping - update these with your actual Paystack plan codes
   const planCodes = {
-    Intermediate:
-      getEnv("VITE_PAYSTACK_PLAN_INTERMEDIATE") || "PLAN_intermediate_monthly",
+    Enterprise:
+      getEnv("VITE_PAYSTACK_PLAN_ENTERPRISE") || "PLAN_enterprise_monthly",
     Professional:
       getEnv("VITE_PAYSTACK_PLAN_PROFESSIONAL") || "PLAN_professional_monthly",
   };

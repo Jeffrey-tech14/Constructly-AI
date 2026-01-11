@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Search,
   Filter,
@@ -254,6 +255,8 @@ export default function RoofingCalculator({
       grade: "structural",
       treatment: "pressure-treated",
       eavesOverhang: 0.5,
+      isLumpSum: false,
+      lumpSumAmount: 0,
       covering: {
         type: "concrete-tiles",
         material: "concrete-tiles",
@@ -824,30 +827,213 @@ export default function RoofingCalculator({
                   </div>
                 </div>
 
-                {/* Timber Details */}
-                <div>
-                  <Label className="text-lg font-semibold">
-                    Timber Structure
-                  </Label>
-                  <div className="mt-2 space-y-3">
-                    {editForm.timbers.map((timber) => (
-                      <div
-                        key={timber.id}
-                        className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
-                      >
+                {/* Lump-Sum Option */}
+                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="edit-lump-sum"
+                      checked={editForm.isLumpSum}
+                      onCheckedChange={(checked) =>
+                        handleEditFormChange("isLumpSum", checked)
+                      }
+                    />
+                    <Label
+                      htmlFor="edit-lump-sum"
+                      className="font-medium cursor-pointer"
+                    >
+                      Use Lump-Sum Pricing
+                    </Label>
+                  </div>
+
+                  {editForm.isLumpSum && (
+                    <div>
+                      <Label htmlFor="edit-lump-sum-amount">
+                        Lump-Sum Amount (KSh)
+                      </Label>
+                      <Input
+                        id="edit-lump-sum-amount"
+                        type="number"
+                        min="0"
+                        step="100"
+                        value={editForm.lumpSumAmount || 0}
+                        onChange={(e) =>
+                          handleEditFormChange(
+                            "lumpSumAmount",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        placeholder="Enter fixed amount"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {!editForm.isLumpSum && (
+                  <>
+                    {/* Timber Details */}
+                    <div>
+                      <Label className="text-lg font-semibold">
+                        Timber Structure
+                      </Label>
+                      <div className="mt-2 space-y-3">
+                        {editForm.timbers.map((timber) => (
+                          <div
+                            key={timber.id}
+                            className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
+                          >
+                            <div>
+                              <Label>Type</Label>
+                              <Select
+                                value={timber.type}
+                                onValueChange={(value) =>
+                                  handleTimberChange(timber.id, "type", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TIMBER_TYPES.map((type) => (
+                                    <SelectItem
+                                      key={type.value}
+                                      value={type.value}
+                                    >
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Size</Label>
+                              <Select
+                                value={timber.size}
+                                onValueChange={(value: TimberSize) =>
+                                  handleTimberChange(timber.id, "size", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TIMBER_SIZES.map((size) => (
+                                    <SelectItem
+                                      key={size.value}
+                                      value={size.value}
+                                    >
+                                      {size.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Grade</Label>
+                              <Select
+                                value={timber.grade || "structural"}
+                                onValueChange={(value) =>
+                                  handleTimberChange(timber.id, "grade", value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TIMBER_GRADES.map((grade) => (
+                                    <SelectItem
+                                      key={grade.value}
+                                      value={grade.value}
+                                    >
+                                      {grade.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Treatment</Label>
+                              <Select
+                                value={timber.treatment || "pressure-treated"}
+                                onValueChange={(value) =>
+                                  handleTimberChange(
+                                    timber.id,
+                                    "treatment",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {TIMBER_TREATMENTS.map((treatment) => (
+                                    <SelectItem
+                                      key={treatment.value}
+                                      value={treatment.value}
+                                    >
+                                      {treatment.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Spacing (mm)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                value={timber.spacing}
+                                onChange={(e) =>
+                                  handleTimberChange(
+                                    timber.id,
+                                    "spacing",
+                                    parseInt(e.target.value) || 0
+                                  )
+                                }
+                              />
+                            </div>
+                            <div>
+                              <Label>Length (m)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                value={timber.length}
+                                onChange={(e) =>
+                                  handleTimberChange(
+                                    timber.id,
+                                    "length",
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Underlayment and Insulation Section */}
+                    <div>
+                      <Label className="text-lg font-semibold">
+                        Roof Protection
+                      </Label>
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <Label>Type</Label>
+                          <Label htmlFor="edit-underlayment">
+                            Underlayment Type
+                          </Label>
                           <Select
-                            value={timber.type}
-                            onValueChange={(value) =>
-                              handleTimberChange(timber.id, "type", value)
+                            value={editForm.covering.underlayment || "felt-30"}
+                            onValueChange={(value: UnderlaymentType) =>
+                              handleCoveringChange("underlayment", value)
                             }
                           >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {TIMBER_TYPES.map((type) => (
+                              {UNDERLAYMENT_TYPES.map((type) => (
                                 <SelectItem key={type.value} value={type.value}>
                                   {type.label}
                                 </SelectItem>
@@ -855,404 +1041,297 @@ export default function RoofingCalculator({
                             </SelectContent>
                           </Select>
                         </div>
+
                         <div>
-                          <Label>Size</Label>
+                          <Label htmlFor="edit-insulation-type">
+                            Insulation Type
+                          </Label>
                           <Select
-                            value={timber.size}
-                            onValueChange={(value: TimberSize) =>
-                              handleTimberChange(timber.id, "size", value)
+                            value={
+                              editForm.covering.insulation?.type || "glass-wool"
+                            }
+                            onValueChange={(value: InsulationType) =>
+                              handleInsulationChange("type", value)
                             }
                           >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {TIMBER_SIZES.map((size) => (
-                                <SelectItem key={size.value} value={size.value}>
-                                  {size.label}
+                              {INSULATION_TYPES.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
+
                         <div>
-                          <Label>Grade</Label>
-                          <Select
-                            value={timber.grade || "structural"}
-                            onValueChange={(value) =>
-                              handleTimberChange(timber.id, "grade", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TIMBER_GRADES.map((grade) => (
-                                <SelectItem
-                                  key={grade.value}
-                                  value={grade.value}
-                                >
-                                  {grade.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Treatment</Label>
-                          <Select
-                            value={timber.treatment || "pressure-treated"}
-                            onValueChange={(value) =>
-                              handleTimberChange(timber.id, "treatment", value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TIMBER_TREATMENTS.map((treatment) => (
-                                <SelectItem
-                                  key={treatment.value}
-                                  value={treatment.value}
-                                >
-                                  {treatment.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Spacing (mm)</Label>
+                          <Label htmlFor="edit-insulation-thickness">
+                            Insulation Thickness (m)
+                          </Label>
                           <Input
+                            id="edit-insulation-thickness"
                             type="number"
                             min="0"
-                            value={timber.spacing}
+                            step="10"
+                            value={editForm.covering.insulation?.thickness || 5}
                             onChange={(e) =>
-                              handleTimberChange(
-                                timber.id,
-                                "spacing",
-                                parseInt(e.target.value) || 0
-                              )
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label>Length (m)</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={timber.length}
-                            onChange={(e) =>
-                              handleTimberChange(
-                                timber.id,
-                                "length",
+                              handleInsulationChange(
+                                "thickness",
                                 parseFloat(e.target.value) || 0
                               )
                             }
                           />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Underlayment and Insulation Section */}
-                <div>
-                  <Label className="text-lg font-semibold">
-                    Roof Protection
-                  </Label>
-                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Enhanced Accessories Section */}
                     <div>
-                      <Label htmlFor="edit-underlayment">
-                        Underlayment Type
+                      <Label className="text-lg font-semibold">
+                        Roof Accessories
                       </Label>
-                      <Select
-                        value={editForm.covering.underlayment || "felt-30"}
-                        onValueChange={(value: UnderlaymentType) =>
-                          handleCoveringChange("underlayment", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {UNDERLAYMENT_TYPES.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-gutters">Gutters (m)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="edit-gutters"
+                              type="number"
+                              min="0"
+                              value={editForm.accessories?.gutters || 0}
+                              onChange={(e) =>
+                                handleAccessoryChange(
+                                  "gutters",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="Length in meters"
+                            />
+                            <Select
+                              value={editForm.accessories?.gutterType || "PVC"}
+                              onValueChange={(value: GutterType) =>
+                                handleAccessoryChange("gutterType", value)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {GUTTER_TYPES.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
 
-                    <div>
-                      <Label htmlFor="edit-insulation-type">
-                        Insulation Type
-                      </Label>
-                      <Select
-                        value={
-                          editForm.covering.insulation?.type || "glass-wool"
-                        }
-                        onValueChange={(value: InsulationType) =>
-                          handleInsulationChange("type", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {INSULATION_TYPES.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-downpipes">Downpipes</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="edit-downpipes"
+                              type="number"
+                              min="0"
+                              value={editForm.accessories?.downpipes || 0}
+                              onChange={(e) =>
+                                handleAccessoryChange(
+                                  "downpipes",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="Number of pieces"
+                            />
+                            <Select
+                              value={
+                                editForm.accessories?.downpipeType || "PVC"
+                              }
+                              onValueChange={(value: DownpipeType) =>
+                                handleAccessoryChange("downpipeType", value)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DOWNPIPE_TYPES.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
 
-                    <div>
-                      <Label htmlFor="edit-insulation-thickness">
-                        Insulation Thickness (m)
-                      </Label>
-                      <Input
-                        id="edit-insulation-thickness"
-                        type="number"
-                        min="0"
-                        step="10"
-                        value={editForm.covering.insulation?.thickness || 5}
-                        onChange={(e) =>
-                          handleInsulationChange(
-                            "thickness",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-flashings">Flashings (m)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="edit-flashings"
+                              type="number"
+                              min="0"
+                              value={editForm.accessories?.flashings || 0}
+                              onChange={(e) =>
+                                handleAccessoryChange(
+                                  "flashings",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="Length in meters"
+                            />
+                            <Select
+                              value={
+                                editForm.accessories?.flashingType || "PVC"
+                              }
+                              onValueChange={(value: FlashingType) =>
+                                handleAccessoryChange("flashingType", value)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {FLASHING_TYPES.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
 
-                {/* Enhanced Accessories Section */}
-                <div>
-                  <Label className="text-lg font-semibold">
-                    Roof Accessories
-                  </Label>
-                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-gutters">Gutters (m)</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="edit-gutters"
-                          type="number"
-                          min="0"
-                          value={editForm.accessories?.gutters || 0}
-                          onChange={(e) =>
-                            handleAccessoryChange(
-                              "gutters",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="Length in meters"
-                        />
-                        <Select
-                          value={editForm.accessories?.gutterType || "PVC"}
-                          onValueChange={(value: GutterType) =>
-                            handleAccessoryChange("gutterType", value)
-                          }
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {GUTTER_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-fascia">Fascia (m)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="edit-fascia"
+                              type="number"
+                              min="0"
+                              value={editForm.accessories?.fascia || 0}
+                              onChange={(e) =>
+                                handleAccessoryChange(
+                                  "fascia",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="Length in meters"
+                            />
+                            <Select
+                              value={editForm.accessories?.fasciaType || "PVC"}
+                              onValueChange={(value: FasciaType) =>
+                                handleAccessoryChange("fasciaType", value)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {FASCIA_TYPES.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-soffit">Soffit (m)</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="edit-soffit"
+                              type="number"
+                              min="0"
+                              value={editForm.accessories?.soffit || 0}
+                              onChange={(e) =>
+                                handleAccessoryChange(
+                                  "soffit",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="Length in meters"
+                            />
+                            <Select
+                              value={editForm.accessories?.soffitType || "PVC"}
+                              onValueChange={(value: SoffitType) =>
+                                handleAccessoryChange("soffitType", value)
+                              }
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {SOFFIT_TYPES.map((type) => (
+                                  <SelectItem
+                                    key={type.value}
+                                    value={type.value}
+                                  >
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-ridge-caps">
+                            Ridge Caps (m)
+                          </Label>
+                          <Input
+                            id="edit-ridge-caps"
+                            type="number"
+                            min="0"
+                            value={editForm.accessories?.ridgeCaps || 0}
+                            onChange={(e) =>
+                              handleAccessoryChange(
+                                "ridgeCaps",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-valley-trays">
+                            Valley Trays (m)
+                          </Label>
+                          <Input
+                            id="edit-valley-trays"
+                            type="number"
+                            min="0"
+                            value={editForm.accessories?.valleyTrays || 0}
+                            onChange={(e) =>
+                              handleAccessoryChange(
+                                "valleyTrays",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                          />
+                        </div>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-downpipes">Downpipes</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="edit-downpipes"
-                          type="number"
-                          min="0"
-                          value={editForm.accessories?.downpipes || 0}
-                          onChange={(e) =>
-                            handleAccessoryChange(
-                              "downpipes",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="Number of pieces"
-                        />
-                        <Select
-                          value={editForm.accessories?.downpipeType || "PVC"}
-                          onValueChange={(value: DownpipeType) =>
-                            handleAccessoryChange("downpipeType", value)
-                          }
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {DOWNPIPE_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-flashings">Flashings (m)</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="edit-flashings"
-                          type="number"
-                          min="0"
-                          value={editForm.accessories?.flashings || 0}
-                          onChange={(e) =>
-                            handleAccessoryChange(
-                              "flashings",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="Length in meters"
-                        />
-                        <Select
-                          value={editForm.accessories?.flashingType || "PVC"}
-                          onValueChange={(value: FlashingType) =>
-                            handleAccessoryChange("flashingType", value)
-                          }
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FLASHING_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-fascia">Fascia (m)</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="edit-fascia"
-                          type="number"
-                          min="0"
-                          value={editForm.accessories?.fascia || 0}
-                          onChange={(e) =>
-                            handleAccessoryChange(
-                              "fascia",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="Length in meters"
-                        />
-                        <Select
-                          value={editForm.accessories?.fasciaType || "PVC"}
-                          onValueChange={(value: FasciaType) =>
-                            handleAccessoryChange("fasciaType", value)
-                          }
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FASCIA_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-soffit">Soffit (m)</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="edit-soffit"
-                          type="number"
-                          min="0"
-                          value={editForm.accessories?.soffit || 0}
-                          onChange={(e) =>
-                            handleAccessoryChange(
-                              "soffit",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="Length in meters"
-                        />
-                        <Select
-                          value={editForm.accessories?.soffitType || "PVC"}
-                          onValueChange={(value: SoffitType) =>
-                            handleAccessoryChange("soffitType", value)
-                          }
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SOFFIT_TYPES.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-ridge-caps">Ridge Caps (m)</Label>
-                      <Input
-                        id="edit-ridge-caps"
-                        type="number"
-                        min="0"
-                        value={editForm.accessories?.ridgeCaps || 0}
-                        onChange={(e) =>
-                          handleAccessoryChange(
-                            "ridgeCaps",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-valley-trays">
-                        Valley Trays (m)
-                      </Label>
-                      <Input
-                        id="edit-valley-trays"
-                        type="number"
-                        min="0"
-                        value={editForm.accessories?.valleyTrays || 0}
-                        onChange={(e) =>
-                          handleAccessoryChange(
-                            "valleyTrays",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
 
                 <div className="flex gap-2 justify-end">
                   <Button onClick={handleCancelEdit} variant="outline">

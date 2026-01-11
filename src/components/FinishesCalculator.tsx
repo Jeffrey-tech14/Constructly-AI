@@ -34,6 +34,11 @@ import useUniversalFinishesCalculator, {
   FinishCategory,
   FinishCalculation,
 } from "@/hooks/useUniversalFinishesCalculator";
+import usePaintingCalculator, {
+  createDefaultPaintingFromInternalWalls,
+} from "@/hooks/usePaintingCalculator";
+import PaintingLayerConfig from "@/components/PaintingLayerConfig";
+import { PaintingSpecification } from "@/types/painting";
 import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface FinishesCalculatorProps {
@@ -43,16 +48,14 @@ interface FinishesCalculatorProps {
   readonly?: boolean;
   setQuoteData?: (data: any) => void;
   quote?: any;
+  wallDimensions?: any;
 }
 
 const FINISH_CATEGORIES: { value: FinishCategory; label: string }[] = [
   { value: "flooring", label: "Flooring" },
   { value: "ceiling", label: "Ceiling" },
   { value: "wall-finishes", label: "Wall Finishes" },
-  { value: "paint", label: "Painting" },
-  { value: "glazing", label: "Glazing" },
   { value: "joinery", label: "Joinery" },
-  { value: "plaster", label: "Plaster" },
 ];
 
 const COMMON_MATERIALS = {
@@ -68,6 +71,7 @@ const COMMON_MATERIALS = {
   ],
   ceiling: [
     "Gypsum Board",
+    "Jointing Compound",
     "PVC",
     "Acoustic Tiles",
     "Exposed Concrete",
@@ -81,7 +85,6 @@ const COMMON_MATERIALS = {
     "Wood Paneling",
     "Smooth Stucco",
   ],
-  paint: ["Emulsion", "Enamel", "Weatherproof", "Textured", "Metallic"],
   glazing: [
     "Clear Glass",
     "Tinted Glass",
@@ -98,7 +101,6 @@ const COMMON_MATERIALS = {
     "Steel",
     "Aluminum",
   ],
-  plaster: ["Cement", "Gypsum", "Lime", "Textured Plaster"],
 };
 
 export default function FinishesCalculator({
@@ -108,6 +110,7 @@ export default function FinishesCalculator({
   readonly = false,
   setQuoteData,
   quote,
+  wallDimensions,
 }: FinishesCalculatorProps) {
   const { calculations, totals, calculateAll, wastagePercentage } =
     useUniversalFinishesCalculator(
@@ -117,12 +120,45 @@ export default function FinishesCalculator({
       setQuoteData
     );
 
+  // Initialize painting calculator
+  const {
+    paintings,
+    totals: paintingTotals,
+    addPainting,
+    updatePainting,
+    deletePainting,
+  } = usePaintingCalculator({
+    initialPaintings: quote?.paintings_specifications || [],
+    materialPrices,
+    quote,
+    setQuoteData,
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<FinishCategory | "all">(
     "all"
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
+
+  // Auto-create default painting from internal walls
+  useEffect(() => {
+    if (
+      paintings.length === 0 &&
+      wallDimensions?.internalWallPerimiter &&
+      wallDimensions?.internalWallHeight &&
+      !readonly
+    ) {
+      const internalPerimeter =
+        parseFloat(wallDimensions.internalWallPerimiter) || 0;
+      const internalHeight = parseFloat(wallDimensions.internalWallHeight) || 0;
+
+      if (internalPerimeter > 0 && internalHeight > 0) {
+        // Create empty painting that will trigger the default prompt
+        addPainting(0, "");
+      }
+    }
+  }, [wallDimensions, paintings.length, readonly, addPainting]);
 
   const qsSettings = quote?.qsSettings as MasonryQSSettings;
   const onSettingsChange = useCallback(
@@ -164,36 +200,6 @@ export default function FinishesCalculator({
     setEditingId(newFinish.id);
     setEditForm(newFinish);
   };
-
-  // Auto-create or update painting finish with masonry wall area (doubled for both sides)
-  useEffect(() => {
-    const masonryNetArea = quote?.masonry_materials?.grossPlaster || 0;
-    const paintingArea = masonryNetArea; // Double area for both sides
-
-    if (masonryNetArea > 0) {
-      // Check if painting finish for masonry walls exists
-      const existingPaintingIndex = finishes.findIndex(
-        (f) =>
-          f.category === "paint" &&
-          f.location.toLowerCase().includes("all walls")
-      );
-
-      if (existingPaintingIndex >= 0) {
-        // Update existing painting finish area
-        const updatedFinishes = [...finishes];
-        if (updatedFinishes[existingPaintingIndex].quantity !== paintingArea) {
-          updatedFinishes[existingPaintingIndex] = {
-            ...updatedFinishes[existingPaintingIndex],
-            quantity: paintingArea,
-            area: paintingArea,
-          };
-          if (onFinishesUpdate) {
-            onFinishesUpdate(updatedFinishes);
-          }
-        }
-      }
-    }
-  }, [quote?.masonry_materials?.grossPlaster, onFinishesUpdate, finishes]);
 
   useEffect(() => {
     setQuoteData((prev: any) => ({
@@ -401,6 +407,72 @@ export default function FinishesCalculator({
           </CardContent>
         </Card>
       </div>
+
+      {/* Painting System */}
+      {paintings.length > 0 && (
+        <Card className="border">
+          <CardHeader className="border-b rounded-t-2xl">
+            <CardTitle className="text-lg flex items-center gap-2 ">
+              <span className="text-2xl">🎨</span> Painting Specifications
+            </CardTitle>
+            <CardDescription className="text-slate-700 dark:text-slate-300">
+              Multi-layer painting calculations with coverage-aware sizing
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
+            {paintings.map((painting) => (
+              <PaintingLayerConfig
+                key={painting.id}
+                painting={painting}
+                onUpdate={(updates) => updatePainting(painting.id, updates)}
+                onDelete={() => deletePainting(painting.id)}
+                wallDimensions={wallDimensions}
+              />
+            ))}
+
+            {/* Add Painting Button */}
+            {!readonly && (
+              <Button
+                onClick={() => addPainting(0, "")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Painting Surface
+              </Button>
+            )}
+
+            {/* Painting Totals Summary */}
+            {paintingTotals && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 rounded-lg bg-muted ">
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold ">Total Area</div>
+                  <div className="text-lg font-bold ">
+                    {paintingTotals.totalArea.toFixed(2)} m²
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold ">Total Paint</div>
+                  <div className="text-lg font-bold ">
+                    {paintingTotals.totalLitres.toFixed(2)} L
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold ">With Wastage (10%)</div>
+                  <div className="text-lg font-bold ">
+                    {(paintingTotals.totalLitres * 1.1).toFixed(2)} L
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold ">Total Cost</div>
+                  <div className="text-lg font-bold ">
+                    Ksh.{paintingTotals.totalCostWithWastage.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Controls */}
       <Card>

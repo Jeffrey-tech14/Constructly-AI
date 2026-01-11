@@ -27,21 +27,21 @@ import { RebarSize } from "@/hooks/useRebarCalculator";
 const blockTypes = [
   {
     id: 1,
-    displayName: "Standard Block (400\u00D7200\u00D7200mm)",
-    name: "Standard Block",
-    size: { length: 0.4, height: 0.2, thickness: 0.2 },
+    displayName: "200×200/9×9",
+    name: "Large Block",
+    size: { length: 0.2, height: 0.2, thickness: 0.2 },
   },
   {
     id: 2,
-    displayName: "Half Block (400\u00D7200\u00D7100mm)",
-    name: "Half Block",
-    size: { length: 0.4, height: 0.2, thickness: 0.1 },
+    displayName: "150×200/6×9",
+    name: "Standard Block",
+    size: { length: 0.15, height: 0.2, thickness: 0.15 },
   },
   {
     id: 3,
-    displayName: "Brick (225\u00D7112.5\u00D775mm)",
-    name: "Brick",
-    size: { length: 0.225, height: 0.075, thickness: 0.1125 },
+    displayName: "100×200/4×9",
+    name: "Small Block",
+    size: { length: 0.1, height: 0.2, thickness: 0.1 },
   },
   { id: 4, displayName: "Custom", name: "Custom", size: null },
 ];

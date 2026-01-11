@@ -7,10 +7,7 @@ export type FinishCategory =
   | "flooring"
   | "ceiling"
   | "wall-finishes"
-  | "paint"
-  | "glazing"
-  | "joinery"
-  | "plaster";
+  | "joinery";
 
 export interface FinishElement {
   id: string;
@@ -150,7 +147,44 @@ export default function useUniversalFinishesCalculator(
   );
 
   const calculateAll = useCallback(() => {
-    const calculated = finishes.map(calculateFinish);
+    // First, check if there are gypsum boards and add jointing compound
+    const gypsumBoard = finishes.find(
+      (f) =>
+        f.category === "ceiling" && f.material.toLowerCase() === "gypsum board"
+    );
+
+    let finishesToCalculate = [...finishes];
+
+    // If gypsum board exists, add jointing compound (1/3 of gypsum board quantity)
+    if (gypsumBoard) {
+      const jointingCompoundId = `jointing-compound-${gypsumBoard.id}`;
+      const existingJointingCompound = finishesToCalculate.find(
+        (f) => f.id === jointingCompoundId
+      );
+
+      if (!existingJointingCompound) {
+        // Add jointing compound as 1/3 of gypsum board quantity
+        finishesToCalculate.push({
+          id: jointingCompoundId,
+          category: "ceiling",
+          material: "Jointing Compound",
+          area: gypsumBoard.area,
+          quantity: gypsumBoard.quantity / 3,
+          unit: gypsumBoard.unit,
+          location: gypsumBoard.location,
+          specifications: gypsumBoard.specifications,
+        });
+      } else {
+        // Update existing jointing compound to be 1/3 of gypsum board
+        finishesToCalculate = finishesToCalculate.map((f) =>
+          f.id === jointingCompoundId
+            ? { ...f, quantity: gypsumBoard.quantity / 3 }
+            : f
+        );
+      }
+    }
+
+    const calculated = finishesToCalculate.map(calculateFinish);
     setCalculations(calculated);
 
     const wastagePercentage = getWastagePercentage();

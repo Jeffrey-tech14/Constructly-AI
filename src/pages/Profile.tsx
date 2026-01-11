@@ -218,7 +218,7 @@ const Profile = () => {
     switch (tier) {
       case "Free":
         return <Shell className="w-6 h-6" />;
-      case "Intermediate":
+      case "Enterprise":
         return <Crown className="w-6 h-6" />;
       case "Professional":
         return <Shield className="w-6 h-6" />;
@@ -235,10 +235,10 @@ const Profile = () => {
             Free
           </Badge>
         );
-      case "Intermediate":
+      case "Enterprise":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            Intermediate
+            Enterprise
           </Badge>
         );
       case "Professional":
@@ -487,7 +487,7 @@ const Profile = () => {
                       className={`flex h-12 w-12 items-center justify-center rounded-full ${
                         profile.tier === "Free"
                           ? "bg-green-100 text-green-700"
-                          : profile.tier === "Intermediate"
+                          : profile.tier === "Enterprise"
                           ? "bg-blue-100 text-blue-700"
                           : "bg-purple-100 text-purple-700"
                       }`}

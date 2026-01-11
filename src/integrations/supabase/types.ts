@@ -1042,6 +1042,7 @@ export type Database = {
           description: string | null;
           id: string;
           material_name: string;
+          type: string[] | null;
           price_per_unit: number;
           unit: string;
           updated_at: string;
@@ -1051,6 +1052,7 @@ export type Database = {
           category?: string | null;
           created_at?: string;
           description?: string | null;
+          type?: string[] | null;
           id?: string;
           material_name: string;
           price_per_unit: number;
@@ -1063,6 +1065,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          type?: string[] | null;
           material_name?: string;
           price_per_unit?: number;
           unit?: string;

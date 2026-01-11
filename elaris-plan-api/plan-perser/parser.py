@@ -5,6 +5,7 @@ import sys
 import json
 import os
 import re
+import time
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -16,11 +17,16 @@ DEFAULT_THICKNESS = "0.2"
 DEFAULT_BLOCK_TYPE = "Standard Block"
 DEFAULT_PLASTER = "Both Sides"
 
+# Gemini API Configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 GEMINI_ENABLED = bool(GEMINI_API_KEY)
+GEMINI_TIMEOUT = 300  # 5 minutes timeout
+GEMINI_MAX_RETRIES = 3
+GEMINI_RETRY_DELAY = 10  # seconds between retries (will be multiplied by attempt number)
+GEMINI_MODEL = "gemini-2.5-flash-lite"  # Faster, more efficient model
 
 def call_gemini(file_path: str, prompt: str) -> Optional[Dict[str, Any]]:
-    """Call Gemini API with proper error handling"""
+    """Call Gemini API with retry logic and timeout handling"""
     if not GEMINI_ENABLED:
         raise RuntimeError("Gemini API key not found. Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable.")
     
@@ -29,67 +35,98 @@ def call_gemini(file_path: str, prompt: str) -> Optional[Dict[str, Any]]:
     except ImportError as e:
         raise RuntimeError(f"Google Generative AI library not installed: {e}")
     
-    try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        
-        # Use the most stable model
-        model_name = "gemini-2.5-flash-lite"
-        print(f"🔄 Using model: {model_name}", file=sys.stderr)
-        model = genai.GenerativeModel(model_name)
-        
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
-        
-        print(f"📤 Processing file: {os.path.basename(file_path)}", file=sys.stderr)
-        
-        # Read file as binary data
-        with open(file_path, 'rb') as f:
-            file_data = f.read()
-        
-        # Get file extension and set MIME type
-        ext = os.path.splitext(file_path)[1].lower()
-        mime_type = {
-            '.pdf': 'application/pdf',
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png'
-        }.get(ext, 'application/octet-stream')
-        
-        # Create file parts for the model
-        file_part = {
-            "mime_type": mime_type,
-            "data": file_data
-        }
-        
-        print("⏳ Waiting for Gemini response...", file=sys.stderr)
-        
-        # Generate content with file data
-        response = model.generate_content([prompt, file_part])
-        
-        if response and response.text:
-            cleaned = response.text.strip().replace('```json', '').replace('```', '').strip()
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    # Read file once
+    print(f"📤 Processing file: {os.path.basename(file_path)}", file=sys.stderr)
+    with open(file_path, 'rb') as f:
+        file_data = f.read()
+    
+    # Get file extension and set MIME type
+    ext = os.path.splitext(file_path)[1].lower()
+    mime_type = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png'
+    }.get(ext, 'application/octet-stream')
+    
+    # Create file parts for the model
+    file_part = {
+        "mime_type": mime_type,
+        "data": file_data
+    }
+    
+    # Retry logic
+    last_error = None
+    for attempt in range(GEMINI_MAX_RETRIES + 1):
+        try:
+            genai.configure(api_key=GEMINI_API_KEY)
             
-            # Try to parse JSON
-            try:
-                result = json.loads(cleaned)
-                print("✅ Successfully parsed Gemini response", file=sys.stderr)
-                return result
-            except json.JSONDecodeError:
-                # Try to extract JSON from text
-                m = re.search(r'\{.*\}', cleaned, re.DOTALL)
-                if m:
-                    try:
-                        result = json.loads(m.group())
-                        print("✅ Successfully extracted JSON from response", file=sys.stderr)
-                        return result
-                    except Exception:
-                        pass
-                raise RuntimeError("Gemini returned non-JSON response")
-        else:
-            raise RuntimeError("Gemini returned empty response")
-        
-    except Exception as e:
-        raise RuntimeError(f"Gemini API call failed: {e}")
+            # Use the fastest available model
+            model_name = GEMINI_MODEL
+            if attempt == 0:
+                print(f"🔄 Using model: {model_name}", file=sys.stderr)
+            else:
+                print(f"🔄 Retry attempt {attempt}/{GEMINI_MAX_RETRIES} with model: {model_name}", file=sys.stderr)
+            
+            model = genai.GenerativeModel(model_name)
+            
+            print(f"⏳ Waiting for Gemini response...", file=sys.stderr)
+            
+            # Generate content with file data
+            response = model.generate_content([prompt, file_part])
+            
+            if response and response.text:
+                cleaned = response.text.strip().replace('```json', '').replace('```', '').strip()
+                
+                # Try to parse JSON
+                try:
+                    result = json.loads(cleaned)
+                    print("✅ Successfully parsed Gemini response", file=sys.stderr)
+                    return result
+                except json.JSONDecodeError:
+                    # Try to extract JSON from text
+                    m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+                    if m:
+                        try:
+                            result = json.loads(m.group())
+                            print("✅ Successfully extracted JSON from response", file=sys.stderr)
+                            return result
+                        except Exception:
+                            pass
+                    raise RuntimeError("Gemini returned non-JSON response")
+            else:
+                raise RuntimeError("Gemini returned empty response")
+                
+        except (TimeoutError, Exception) as e:
+            last_error = e
+            error_type = type(e).__name__
+            error_str = str(e).lower()
+            
+            # Log full error details
+            print(f"🔍 Exception type: {error_type}", file=sys.stderr)
+            print(f"🔍 Full error: {str(e)}", file=sys.stderr)
+            
+            # Check if it's a timeout/deadline error (handles google.api_core.exceptions.DeadlineExceeded)
+            is_timeout = any(keyword in error_str for keyword in ['timeout', 'deadline', '504', 'deadlineexceeded', 'resource exhausted'])
+            is_timeout = is_timeout or error_type in ['DeadlineExceeded', 'ServerError', 'ServiceUnavailable']
+            
+            print(f"🔍 Is timeout: {is_timeout} (attempt {attempt + 1}/{GEMINI_MAX_RETRIES + 1})", file=sys.stderr)
+            
+            if attempt < GEMINI_MAX_RETRIES and is_timeout:
+                wait_time = GEMINI_RETRY_DELAY * (attempt + 1)  # Exponential backoff
+                print(f"⚠️  Timeout/Deadline error on attempt {attempt + 1}. Retrying in {wait_time}s...", file=sys.stderr)
+                time.sleep(wait_time)
+                continue
+            elif is_timeout:
+                raise RuntimeError(f"Gemini API timeout after {attempt + 1} attempts: {e}")
+            else:
+                raise RuntimeError(f"Gemini API call failed: {e}")
+    
+    # If we get here, all retries failed
+    raise RuntimeError(f"Gemini API failed after {GEMINI_MAX_RETRIES + 1} attempts: {last_error}")
 
 def analyze_with_gemini(file_path: str) -> Dict[str, Any]:
     """Analyze construction document using Gemini only"""
@@ -130,7 +167,7 @@ Analyze this construction document and extract ALL available information about:
   | "slab"
   | "beam"
   | "column"
-  | "foundation"
+  | "raft-foundation"
   | "strip-footing"
   | "tank";
 - RebarSize =
@@ -353,7 +390,7 @@ Analyze this construction document and extract ALL available information about:
 
 
 **Finishes:**
-- Categories: "flooring", "ceiling", "wall-finishes", "paint", "joinery"
+- Categories: "flooring", "ceiling", "wall-finishes",  "joinery"
 - Only use these specified categories: skip glass, blocks, anyting to do with masonry or glass etc that are not in this list
 - Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
 - COMMON_MATERIALS = {
@@ -381,36 +418,14 @@ Analyze this construction document and extract ALL available information about:
     "Tile Cladding",
     "Wood Paneling",
   ],
-  paint: ["Emulsion", "Enamel", "Weatherproof", "Textured", "Metallic"],
   joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"],
 };
 
 **Concrete & Structure:**
 - Category = "substructure" | "superstructure";
-- ElementType =
-  | "slab"
-  | "beam"
-  | "column"
-  | "foundation"
-  | "septic-tank"
-  | "underground-tank"
-  | "staircase"
-  | "ring-beam"
-  | "strip-footing"
-  | "raft-foundation"
-  | "pile-cap"
-  | "water-tank"
-  | "ramp"
-  | "retaining-wall"
-  | "culvert"
-  | "swimming-pool"
-  | "paving"
-  | "kerb"
-  | "drainage-channel"
-  | "manhole"
-  | "inspection-chamber"
-  | "soak-pit"
-  | "soakaway";
+- If we have a concrete item, ensure there is a corresponding reinforcement item extracted as well, and vice versa
+- ElementType = "slab"| "beam"| "column"| "septic-tank"| "underground-tank"| "staircase"| "ring-beam"| "strip-footing"| "raft-foundation"| "pile-cap"|"water-tank"
+  | "ramp"| "retaining-wall"| "culvert"| "swimming-pool"| "paving"| "kerb"| "drainage-channel"| "manhole"| "inspection-chamber"|"soak-pit"| "soakaway";
 
 - FoundationStep {
   id: string;
@@ -485,6 +500,7 @@ Analyze this construction document and extract ALL available information about:
 - Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
 - Note that the provided file contains information about one building from different perspectives (e.g plan, section, elevation etc). Use all the information available to provide the most accurate dimensions and details
 - Ensure accuracy on measuring the wall perimeters and heights
+- If you create a concrete item, make sure there is a corresponding reinforcement item extracted as well, and vice versa
 
 ### 📐 WALL DIMENSION EXTRACTION:
 - Calculate EXTERNAL WALL PERIMETER: sum of all exterior wall lengths in meters
@@ -518,6 +534,7 @@ Analyze this construction document and extract ALL available information about:
 ### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS: 
 # - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 
 # - Identify the specified **FOUNDATION TYPE** (e.g., Strip Footing, Raft). 
+# - All concrete elements will need their reinforcement counterparts extracted as well.
 # - Identify the material used for the foundation wall/plinth level, specifically the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone). 
 # - Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m). 
 # - Extract the approximate **MASONRY WALL HEIGHT** from the top of the footing to the slab level (e.g., 1.0m).
@@ -646,7 +663,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
   "projectType": "residential" | "commercial" | "industrial" | "institutional",
   "floors": number,
   "totalArea": number,
-  "houseType": "bungalow" | "mansionate" | "apartment" | "villa" | "townhouse" |" warehouse"|"mansion",
+  "houseType": "bungalow" | "mansionate",
   "description": string
   "projectName": string,
   "projectLocation": string,

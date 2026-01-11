@@ -27,6 +27,61 @@ export interface EquipmentItem {
   category?: string;
 }
 
+export interface PaintingLayerCalculation {
+  quantity: number; // raw calculated quantity
+  roundedQuantity: number; // net quantity (rounded to purchasable units)
+  grossQuantity: number; // rounded + wastage adjustment (what to purchase)
+  unit: "bags" | "litres";
+  unitRate: number; // price per unit
+  totalCost: number;
+  totalCostWithWastage: number;
+}
+
+export interface PaintingSpecificationData {
+  id: string;
+  surfaceArea: number; // m²
+  location?: string; // e.g., "Living Room", "All Interior Walls"
+  skimming?: {
+    enabled: boolean;
+    coats: number;
+    coverage: number;
+  };
+  undercoat?: {
+    enabled: boolean;
+    coverage: number;
+  };
+  finishingPaint?: {
+    category: "emulsion" | "enamel";
+    subtype:
+      | "vinyl-matt"
+      | "vinyl-silk"
+      | "antibacterial"
+      | "eggshell"
+      | "gloss";
+    coats: number;
+    coverage: number;
+  };
+  calculations?: {
+    skimming: PaintingLayerCalculation | null;
+    undercoat: PaintingLayerCalculation | null;
+    finishing: PaintingLayerCalculation | null;
+  };
+}
+
+export interface PaintingTotalsData {
+  totalArea: number; // m²
+  skimmingBags: number;
+  skimmingCost: number;
+  undercoatLitres: number;
+  undercoatCost: number;
+  finishingLitres: number;
+  finishingCost: number;
+  totalLitres: number;
+  totalBags: number;
+  totalCost: number;
+  totalCostWithWastage: number; // includes wastage from finishes settings
+}
+
 export interface ExtractedPlan {
   projectInfo?: {
     projectType: string;
@@ -243,6 +298,10 @@ export interface ExtractedPlan {
     height?: string;
     specifications?: any;
   }>;
+
+  // Painting specifications (multi-layer painting system)
+  painting?: PaintingSpecificationData[];
+  paintingTotals?: PaintingTotalsData;
 
   // External works
   externalWorks?: Array<{

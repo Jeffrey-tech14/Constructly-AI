@@ -17,6 +17,7 @@ interface Profile {
   phone?: string;
   location?: string;
   tier: string;
+  subscription_status?: string;
   quotes_used: number;
   total_projects: number;
   completed_projects: number;

@@ -225,8 +225,12 @@ export const useDynamicPricing = () => {
           };
         }
       } else if (typeof updatedType === "object" && updatedType !== null) {
-        // Handle object type materials like DPC and Waterproof
-        if (materialName === "DPC" || materialName === "Waterproof") {
+        // Handle object type materials like DPC, Waterproof, and Polythene
+        if (
+          materialName === "DPC" ||
+          materialName === "Waterproof" ||
+          materialName === "Polythene"
+        ) {
           updatedType = {
             ...updatedType,
             [index]: newData,

@@ -679,6 +679,60 @@ export default function renderMaterialEditor(
     return renderCollapsible(content);
   }
 
+  // 10a. Polythene - Object with gauge keys (1000g, 1200g, 1500g)
+  if (material.name === "Polythene" && isObject(material.type)) {
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(material.type).map(([gauge, price]) => {
+          const key = `${material.name.toLowerCase()}-${gauge}`;
+          const overridePrice =
+            tempValues[key] !== undefined ? tempValues[key] : price;
+
+          return (
+            <div key={gauge} className="p-2 border rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{gauge}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() => {
+                      const currentValue =
+                        tempValues[key] !== undefined ? tempValues[key] : price;
+                      handleSave(
+                        material.name,
+                        "material",
+                        material.id,
+                        material.name,
+                        currentValue,
+                        gauge
+                      );
+                    }}
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
   // 11. Fixtures - Array with price_kes_per_item and qualities
   if (material.name === "Fixtures" && isArray(material.type)) {
     const { userOverride } = getUserOverrideAndPrice();

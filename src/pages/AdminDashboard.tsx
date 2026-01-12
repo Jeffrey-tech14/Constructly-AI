@@ -346,18 +346,18 @@ const AdminDashboard = () => {
             Free
           </Badge>
         );
-      case "Enterprise":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <Crown className="w-3 h-3 mr-1" />
-            Enterprise
-          </Badge>
-        );
       case "Professional":
         return (
           <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
             <Shield className="w-3 h-3 mr-1" />
             Professional
+          </Badge>
+        );
+      case "Enterprise":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            <Crown className="w-3 h-3 mr-1" />
+            Enterprise
           </Badge>
         );
       default:
@@ -613,16 +613,16 @@ const AdminDashboard = () => {
                                   Free
                                 </SelectItem>
                                 <SelectItem
-                                  value="Enterprise"
-                                  className="text-xs md:text-sm"
-                                >
-                                  Enterprise
-                                </SelectItem>
-                                <SelectItem
                                   value="Professional"
                                   className="text-xs md:text-sm"
                                 >
                                   Professional
+                                </SelectItem>
+                                <SelectItem
+                                  value="Enterprise"
+                                  className="text-xs md:text-sm"
+                                >
+                                  Enterprise
                                 </SelectItem>
                               </SelectContent>
                             </Select>

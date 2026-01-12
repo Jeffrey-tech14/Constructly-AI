@@ -3462,18 +3462,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             Free
           </Badge>
         );
-      case "Enterprise":
-        return (
-          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
-            <Crown className="w-3 h-3 mr-1" />
-            Enterprise
-          </Badge>
-        );
       case "Professional":
         return (
           <Badge className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300">
             <Shield className="w-3 h-3 mr-1" />
             Professional
+          </Badge>
+        );
+      case "Enterprise":
+        return (
+          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
+            <Crown className="w-3 h-3 mr-1" />
+            Enterprise
           </Badge>
         );
       default:

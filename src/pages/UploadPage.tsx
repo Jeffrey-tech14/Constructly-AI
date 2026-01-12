@@ -585,18 +585,18 @@ const UploadPlan = () => {
               Free
             </Badge>
           );
-        case "Enterprise":
-          return (
-            <Badge className="bg-blue-100 text-blue-800">
-              <Crown className="w-3 h-3 mr-1" />
-              Enterprise
-            </Badge>
-          );
         case "Professional":
           return (
             <Badge className="bg-purple-100 text-purple-800 ">
               <Shield className="w-3 h-3 mr-1" />
               Professional
+            </Badge>
+          );
+        case "Enterprise":
+          return (
+            <Badge className="bg-blue-100 text-blue-800">
+              <Crown className="w-3 h-3 mr-1" />
+              Enterprise
             </Badge>
           );
         default:

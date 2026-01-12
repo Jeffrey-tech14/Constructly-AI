@@ -2012,9 +2012,7 @@ export default function ConcreteCalculatorForm({
                     type="number"
                     value={row.height}
                     step="0.1"
-                    onChange={(e) =>
-                      syncHeightFields(row.id, e.target.value)
-                    }
+                    onChange={(e) => syncHeightFields(row.id, e.target.value)}
                     placeholder={"Height/Thickness (m)"}
                   />
                   <Input
@@ -2122,7 +2120,9 @@ export default function ConcreteCalculatorForm({
                       onChange={(e) =>
                         updateRow(row.id, "aggregateDepth", e.target.value)
                       }
-                      placeholder={`Hardcore backfill depth (m) - Auto-filled: ${row.height || "0"} m`}
+                      placeholder={`Hardcore backfill depth (m) - Auto-filled: ${
+                        row.height || "0"
+                      } m`}
                       step="0.05"
                       min="0.05"
                       max="0.3"
@@ -2203,7 +2203,9 @@ export default function ConcreteCalculatorForm({
                         onChange={(e) =>
                           updateRow(row.id, "masonryWallHeight", e.target.value)
                         }
-                        placeholder={`Wall Height (m) - Auto-filled: ${row.height || "0"} m`}
+                        placeholder={`Wall Height (m) - Auto-filled: ${
+                          row.height || "0"
+                        } m`}
                         step="0.1"
                         min="0.1"
                       />

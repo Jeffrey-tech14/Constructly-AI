@@ -264,7 +264,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
             </Button>
             <Button onClick={regenerateWithAI} disabled={isGenerating}>
               <Brain className="w-4 h-4 mr-2" />
-              Generate with AI
+              Generate BOQ
             </Button>
           </div>
         </div>

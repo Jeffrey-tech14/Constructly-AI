@@ -58,18 +58,6 @@ const RISA_DARK_TEXT = "#2D3748";
 const RISA_LIGHT_GRAY = "#F5F7FA";
 const RISA_MEDIUM_GRAY = "#E2E8F0";
 
-export interface ParsedPlan {
-  wallDimensions?: Dimensions;
-  wallSections?: WallSection[];
-  wallProperties?: WallProperties;
-
-  floors: number;
-  file_url?: string;
-  uploaded_at?: string;
-  file_name?: string;
-  note?: string;
-}
-
 const PreviewModal = ({
   fileUrl,
   fileType,
@@ -118,7 +106,7 @@ const UploadPlan = () => {
   >("idle");
   const [confidence, setConfidence] = useState<number>(0);
   const [extractedDataPreview, setExtractedDataPreview] =
-    useState<ParsedPlan | null>(null);
+    useState<ExtractedPlan | null>(null);
   const [editablePlan, setEditablePlan] = useState<ExtractedPlan | null>(null);
   const [response, setResponse] = useState([]);
   const [error, setError] = useState<{
@@ -273,19 +261,15 @@ const UploadPlan = () => {
     file: File,
     setError: Function,
     setCurrentStep: Function
-  ): Promise<ParsedPlan> => {
+  ): Promise<ExtractedPlan> => {
     try {
       const parsedData = await planParserService.parsePlanFile(file);
 
       // Transform the parsed data to match ParsedPlan interface
-      const result: ParsedPlan = {
-        floors: parsedData.floors || 1,
+      const result: ExtractedPlan = {
+        ...parsedData,
         file_name: file.name,
         uploaded_at: new Date().toISOString(),
-        wallDimensions: parsedData.wallDimensions,
-        wallSections: parsedData.wallSections,
-        wallProperties: parsedData.wallProperties,
-        note: parsedData.notes,
       };
 
       return result;
@@ -372,6 +356,7 @@ const UploadPlan = () => {
         };
 
         setEditablePlan(processedPlan);
+
         setConfidence(Math.min(80 + Math.random() * 20, 100));
         setCurrentStep("complete");
         setRetryCount(0);
@@ -637,8 +622,8 @@ const UploadPlan = () => {
               Upload & Analyze Plan
             </div>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text mt-2">
-              AI-powered extraction of rooms, dimensions, doors, and windows —
-              instantly generate accurate construction estimates.
+              AI-powered extraction of wall data, dimensions, doors, and windows
+              — instantly generate accurate construction estimates.
             </p>
           </div>
           <div className="w-10"></div>
@@ -957,8 +942,8 @@ const UploadPlan = () => {
                                   Wall Dimensions
                                 </h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                  <div className="p-4 glass rounded-3xl border border-green-200 dark:border-green-700">
+                                    <Label className="text-sm block mb-2">
                                       External Wall Perimeter (m)
                                     </Label>
                                     <Input
@@ -985,11 +970,10 @@ const UploadPlan = () => {
                                             : prev
                                         )
                                       }
-                                      className="bg-green-50 dark:bg-slate-700"
                                     />
                                   </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                  <div className="p-4 glass rounded-3xl border border-green-200 dark:border-green-700">
+                                    <Label className="text-sm block mb-2">
                                       External Wall Height (m)
                                     </Label>
                                     <Input
@@ -1016,11 +1000,10 @@ const UploadPlan = () => {
                                             : prev
                                         )
                                       }
-                                      className="bg-green-50 dark:bg-slate-700"
                                     />
                                   </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                  <div className="p-4 glass rounded-3xl border border-blue-200 dark:border-blue-700">
+                                    <Label className="text-sm block mb-2">
                                       Internal Wall Perimeter (m)
                                     </Label>
                                     <Input
@@ -1047,11 +1030,10 @@ const UploadPlan = () => {
                                             : prev
                                         )
                                       }
-                                      className="bg-blue-50 dark:bg-slate-700"
                                     />
                                   </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                  <div className="p-4 glass rounded-3xl border border-blue-200 dark:border-blue-700">
+                                    <Label className="text-sm block mb-2">
                                       Internal Wall Height (m)
                                     </Label>
                                     <Input
@@ -1078,7 +1060,6 @@ const UploadPlan = () => {
                                             : prev
                                         )
                                       }
-                                      className="bg-blue-50 dark:bg-slate-700"
                                     />
                                   </div>
                                 </div>

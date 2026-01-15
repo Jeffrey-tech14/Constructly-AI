@@ -258,6 +258,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     client_email: "",
     title: "",
     location: "",
+
+    earthwork_items: [],
+    earthwork_total: [],
     id: uuidv4(),
     qsSettings: [] as MasonryQSSettings[],
     boq_data: [],
@@ -765,8 +768,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         // External Works
         external_works:
           extractedPlan.externalWorks?.map((work: any, index: number) => ({
-            id: work.id || `external-${index}`,
-            type: work.type,
+            id: work.type || `external-${index}`,
+            type: work.id,
             material: work.material,
             area: parseFloat(work.area) || 0,
             length: parseFloat(work.length) || 0,
@@ -1012,6 +1015,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         project_type: quoteData.project_type,
         equipment_costs: quoteData.equipment_costs,
         transport_costs: transportCost,
+
+        earthwork_items: quoteData.earthwork_items,
+        earthwork_total: quoteData.earthwork_total,
         additional_services_cost: quoteData.additional_services_cost,
         electrical_calculations: quoteData.electrical_calculations,
         roofing_calculations: quoteData.roofing_calculations,
@@ -1101,6 +1107,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plaster_thickness: quoteData.plaster_thickness,
           profit_amount: calculation.profit_amount,
           subcontractors: quoteData.subcontractors,
+          earthwork_items: quoteData.earthwork_items,
+          earthwork_total: quoteData.earthwork_total,
           percentages: calculation.percentages,
           materialPrices: calculation.materialPrices,
           wardrobes_cabinets: wardrobes,
@@ -1165,6 +1173,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           services: calculation.services,
           equipment: calculation.equipment,
           masonry_materials: quoteData.masonry_materials,
+          earthwork_items: quoteData.earthwork_items,
+          earthwork_total: quoteData.earthwork_total,
           rebar_calculations: quoteData.rebar_calculations,
           overhead_amount: calculation.overhead_amount,
           contingency_amount: calculation.contingency_amount,
@@ -1500,6 +1510,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 excavationRates={materials}
                 setEarthworks={setEarthWorks}
                 setQuoteData={setQuoteData}
+                setQuote={setQuoteData}
                 quote={quoteData}
               />
             </div>

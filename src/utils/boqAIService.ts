@@ -150,8 +150,6 @@ STRICT REQUIREMENTS:
 - Do not include wastage percentages 
 - If equipment is linked to a trade (e.g. “Mixer for concrete works”) → add it. Only skip general equipment (e.g. “Site generator”, "Water Pump")
 - If items ARE NOT similar even by one attribute, do not merge them, keep them separate
-- Do not consolidate materials, eg Painting materials should be listed individually as skimming- then its items, emulsion paint- its description and items, not into one line item with a collective description, individual quantities and rates for each item under each category
-- Each single item is to be laid out as it is in the data provided, no merging of items into one line item, show their rates and values as stipulated in the data provided
 
 OUTPUT FORMAT (STRICT JSON):
 [

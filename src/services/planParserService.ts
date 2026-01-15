@@ -14,17 +14,6 @@ const getEnv = (key: string) => {
   return undefined;
 };
 
-export interface RoomData {
-  name: string;
-  area?: number;
-  height?: number;
-  materials?: {
-    walls?: string;
-    floor?: string;
-    ceiling?: string;
-  };
-}
-
 class PlanParserService {
   private genAI: GoogleGenerativeAI;
   private model;
@@ -35,7 +24,9 @@ class PlanParserService {
       throw new Error("VITE_GEMINI_API_KEY environment variable is not set");
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
   }
 
   /**
@@ -128,6 +119,84 @@ class PlanParserService {
     return `
 You are an expert architectural AI analyzing construction drawings and plans with extreme attention to detail.
 (Keep output EXACTLY as JSON matching the requested schema. If no walls detected, respond with {"error":"No walls found"}.)
+SYSTEM ROLE
+You are a deterministic architectural data extraction engine.
+You do NOT explain.
+You do NOT narrate.
+You do NOT invent.
+You do NOT rename enums.
+You do NOT output anything except valid JSON.
+
+Any deviation invalidates the result.
+
+════════════════════════════════════
+GLOBAL RULES (NON-NEGOTIABLE)
+════════════════════════════════════
+
+1. OUTPUT MUST BE VALID JSON ONLY
+   - First character: {
+   - Last character: }
+   - No markdown
+   - No comments
+   - No trailing commas
+   - No explanatory text
+
+2. SCHEMA LOCK
+   - Field names MUST match exactly
+   - Enum values MUST match exactly
+   - Arrays must be [] if empty
+   - Optional objects may be omitted, never null
+
+3. SOURCE OF TRUTH
+   - Extract ONLY what is visible, labelled, or inferable from the drawings
+   - Do NOT hallucinate dimensions
+   - Defaults are allowed ONLY where explicitly permitted
+
+4. UNIT NORMALIZATION
+   - Lengths → meters
+   - Areas → m²
+   - mm ÷ 1000
+   - Do NOT mix units
+
+5. ENUM DISCIPLINE
+   - If a value does not exist in the provided enums → map to closest valid enum
+   - NEVER invent new enum values
+   - Preserve spelling EXACTLY (e.g. "led-downlight", not "LED Downlight")
+6. COMPLETENESS
+ **DO NOT invent dimensions** that are not visible or inferable.
+ **Use defaults only when reasonable**:
+   - External wall height → 3.0 m
+   - Internal wall height → 2.7 m
+   - Wall thickness → 0.2 m
+   - Block type → "Standard Block"
+   - Plaster → "Both Sides"
+   - Electrical voltage → 230V
+   - Fixture quality → "standard"
+   - Timber grade/treatment → "structural" / "pressure-treated" for structural elements
+**Map extracted names to closest enum** (e.g., "toilet" → "water-closet", "LED light" → "led-downlight")
+**If a section has no data, return empty array** ('[]') or omit optional objects.
+**All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
+**Be consistent with your type system** — no arbitrary strings.
+- Follow the specified materials and types exactly.
+- If a reinforement item exists, make sure it's concrete item exists as well, and vice versa, no exceptions.
+- Base your analysis on what you can actually see in the drawing
+- Use external dimensions for perimeters
+- Do not include paint in any way or capacity anywhere in this extraction
+- Make sure to identify all wall sections (external and internal)
+- External works should be in the concreteStructures section
+- Use reasonable architectural standards for missing information
+- Return wall structure even if some dimensions are estimated
+- Prefer custom sizes when specific dimensions are visible
+- Pay special attention to dimension lines and labels
+- Estimate reasonably the equipment that would be used and days to be used
+- Use the provided equipment types and ids, if your findings dont exist on the provided list, add them on your own
+- Convert all measurements to meters (mm ÷ 1000)
+- Use the specific types provided
+- Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not change the spelling or characters
+- Be precise with wall dimension extraction
+- Calculate perimeters by summing all wall lengths
+- For internal walls, measure partition lengths
+- Do not leave any null items. If empty use reasonable estimates based on the plan and what would be expected
 
 Analyze this construction document and extract ALL available information about:
 
@@ -184,72 +253,6 @@ Analyze this construction document and extract ALL available information about:
   | "Y50";
 - ReinforcementType = "individual_bars" | "mesh";
 - FootingType = "isolated" | "strip" | "combined";
-- MESH_PROPERTIES: Record<
-    string,
-    { weightPerSqm: number; wireDiameter: number; spacing: number }
-  > = {
-    A98: {
-      weightPerSqm: 1.54,
-      wireDiameter: 5,
-      spacing: 200,
-    },
-    A142: {
-      weightPerSqm: 2.22,
-      wireDiameter: 6,
-      spacing: 200,
-    },
-    A193: {
-      weightPerSqm: 3.02,
-      wireDiameter: 7,
-      spacing: 200,
-    },
-    A252: {
-      weightPerSqm: 3.95,
-      wireDiameter: 8,
-      spacing: 200,
-    },
-    A393: {
-      weightPerSqm: 6.16,
-      wireDiameter: 10,
-      spacing: 200,
-    },
-    B196: {
-      weightPerSqm: 2.45,
-      wireDiameter: 6,
-      spacing: 100,
-    },
-    B283: {
-      weightPerSqm: 3.73,
-      wireDiameter: 7,
-      spacing: 100,
-    },
-    B385: {
-      weightPerSqm: 5.0,
-      wireDiameter: 8,
-      spacing: 100,
-    },
-    B503: {
-      weightPerSqm: 6.72,
-      wireDiameter: 9,
-      spacing: 100,
-    },
-    B785: {
-      weightPerSqm: 10.9,
-      wireDiameter: 11,
-      spacing: 100,
-    },
-    C283: {
-      weightPerSqm: 4.34,
-      wireDiameter: 7,
-      spacing: 100,
-    },
-    C385: {
-      weightPerSqm: 6.0,
-      wireDiameter: 8.5,
-      spacing: 100,
-    },
-  };
-
 - STANDARD_MESH_SHEETS = [
     { width: 2.4, length: 4.8 },
     { width: 2.4, length: 6.0 },
@@ -997,39 +1000,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     }
   ],
   }
-
-IMPORTANT: 
-1. **DO NOT invent dimensions** that are not visible or inferable.
-2. **Use defaults only when reasonable**:
-   - External wall height → 3.0 m
-   - Internal wall height → 2.7 m
-   - Wall thickness → 0.2 m
-   - Block type → "Standard Block"
-   - Plaster → "Both Sides"
-   - Electrical voltage → 230V
-   - Fixture quality → "standard"
-   - Timber grade/treatment → "structural" / "pressure-treated" for structural elements
-3. **Map extracted names to closest enum** (e.g., "toilet" → "water-closet", "LED light" → "led-downlight")
-4. **If a section has no data, return empty array** ('[]') or omit optional objects.
-5. **All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
-6. **Be consistent with your type system** — no arbitrary strings.
-- Base your analysis on what you can actually see in the drawing
-- Use external dimensions for perimeters
-- Make sure to identify all wall sections (external and internal)
-- External works should be in the concreteStructures section
-- Use reasonable architectural standards for missing information
-- Return wall structure even if some dimensions are estimated
-- Prefer custom sizes when specific dimensions are visible
-- Pay special attention to dimension lines and labels
-- Estimate reasonably the equipment that would be used and days to be used
-- Use the provided equipment types and ids, if your findings dont exist on the provided list, add them on your own
-- Convert all measurements to meters (mm ÷ 1000)
-- Use the specific types provided
-- Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not change the spelling or characters
-- Be precise with wall dimension extraction
-- Calculate perimeters by summing all wall lengths
-- For internal walls, measure partition lengths
-- Do not leave any null items. If empty use reasonable estimates based on the plan and what would be expected
 `;
   }
 
@@ -1046,26 +1016,13 @@ IMPORTANT:
 
       // Map Gemini response to ExtractedPlan interface
       const extractedPlan: ExtractedPlan = {
-        floors: parsed.floors || 1,
+        ...parsed,
         projectInfo: {
           projectType: parsed.projectType || "residential",
           floors: parsed.floors || 1,
           totalArea: parsed.totalArea || 0,
           description: parsed.projectDescription || parsed.description || "",
         },
-        wallDimensions: parsed.wallDimensions,
-        wallSections: parsed.wallSections,
-        wallProperties: parsed.wallProperties,
-        foundationDetails: parsed.foundationDetails,
-        earthworks: parsed.earthworks,
-        equipment: parsed.equipment,
-        concreteStructures: parsed.concreteStructures,
-        reinforcement: parsed.reinforcement,
-        masonry: parsed.masonry,
-        roofing: parsed.roofing,
-        plumbing: parsed.plumbing,
-        electrical: parsed.electrical,
-        finishes: parsed.finishes,
       };
 
       return extractedPlan;

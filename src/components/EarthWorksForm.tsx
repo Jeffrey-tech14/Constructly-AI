@@ -37,6 +37,7 @@ interface EarthworksFormProps {
   setEarthworks: (earthworks: EarthworkItem[]) => void;
   excavationRates: any;
   setQuoteData?: (data: any) => void;
+  setQuote?: (updater: (prev: any) => any) => void;
   quote?;
 }
 
@@ -45,6 +46,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
   setEarthworks,
   excavationRates,
   setQuoteData,
+  setQuote,
   quote,
 }) => {
   // Get minimum depth based on excavation type
@@ -96,6 +98,19 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       ...prev,
       earthwork: earthworks,
     }));
+
+    // Also save earthwork total cost to quote if setQuote is provided
+    if (setQuote) {
+      const totalCost = earthworks.reduce(
+        (total, item) => total + calculatePrice(item),
+        0
+      );
+      setQuote((prev: any) => ({
+        ...prev,
+        earthwork_items: earthworks,
+        earthwork_total: totalCost,
+      }));
+    }
   }, [earthworks]);
 
   // Calculate price for an earthwork item

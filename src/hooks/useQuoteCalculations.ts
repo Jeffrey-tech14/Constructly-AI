@@ -98,6 +98,9 @@ export interface QuoteCalculation {
   qsSettings: any;
   external_works: any[];
   floors: number;
+
+  earthwork_items: any[];
+  earthwork_total: any[];
   status: string;
   concrete_rows: Array<{
     id: string;

@@ -156,7 +156,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       type: "foundation-excavation",
       length: "",
       width: "",
-      depth: "",
+      depth: "0.65",
       volume: "0",
       material: "soil",
       foundationType: "general",
@@ -233,7 +233,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Earthwork Type */}
                   <div className="space-y-2">
                     <Label htmlFor={`type-${earthwork.id}`}>
@@ -365,7 +365,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                 </div>
 
                 {/* Conditional Dimensions Based on Mode */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid mt-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {earthwork.areaSelectionMode === "DIRECT_AREA" ? (
                     <>
                       <div className="space-y-2">

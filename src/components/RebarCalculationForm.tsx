@@ -973,7 +973,9 @@ export default function RebarCalculatorForm({
                         <SelectItem value="slab">Slab</SelectItem>
                         <SelectItem value="beam">Beam</SelectItem>
                         <SelectItem value="column">Column</SelectItem>
-                        <SelectItem value="foundation">Foundation</SelectItem>
+                        <SelectItem value="raft-foundation">
+                          Foundation
+                        </SelectItem>
                         <SelectItem value="strip-footing">
                           Strip Footing
                         </SelectItem>
@@ -1126,9 +1128,6 @@ export default function RebarCalculatorForm({
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Choose how to input dimensions
-                      </p>
                     </div>
 
                     {row.areaSelectionMode === "LENGTH_WIDTH" && (

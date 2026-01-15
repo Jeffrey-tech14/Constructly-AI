@@ -35,7 +35,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { BOQItem, BOQSection } from "@/types/boq";
-import { supabase } from "@/integrations/supabase/client";
+import { generateBOQWithAI } from "@/utils/boqAIService";
 
 interface BOQBuilderProps {
   quoteData: any;
@@ -98,24 +98,10 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     setLastError(null);
 
     try {
-      const { data: newBOQ, error } = await supabase.functions.invoke(
-        "generate-boq-ai",
-        {
-          body: quoteData,
-        }
-      );
-      if (error) {
-        throw new Error(error.message || "API returned an error");
-      }
-
-      if (!newBOQ) {
-        throw new Error("No BOQ data generated");
-      }
-
-      const newSections = JSON.parse(newBOQ);
-      if (newSections.length > 0) {
-        setBoqSections(newSections);
-        onBOQUpdate(newSections);
+      const newBOQ = await generateBOQWithAI(quoteData);
+      if (newBOQ && newBOQ.length > 0) {
+        setBoqSections(newBOQ);
+        onBOQUpdate(newBOQ);
         setGenerationMethod("ai");
         setLastError(null);
       } else {

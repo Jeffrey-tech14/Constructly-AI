@@ -88,6 +88,42 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
     borderRadius: 4,
   },
+  materialCategoryHeaderRow: {
+    flexDirection: "row",
+    backgroundColor: "#2563EB",
+    padding: 8,
+    marginTop: 10,
+    marginBottom: 2,
+  },
+  materialCategoryHeaderText: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    flex: 1,
+  },
+  categoryTotalRow: {
+    flexDirection: "row",
+    marginTop: 4,
+    marginBottom: 8,
+    fontWeight: "bold",
+    fontSize: 10,
+    backgroundColor: "#EFF6FF",
+    padding: 6,
+    borderTop: "1pt solid #BFDBFE",
+    borderRadius: 4,
+  },
+  categoryTotalLabel: {
+    width: "80%",
+    textAlign: "right",
+    paddingRight: 8,
+    color: "#1E40AF",
+  },
+  categoryTotalValue: {
+    width: "20%",
+    textAlign: "right",
+    color: "#1E40AF",
+    fontWeight: "bold",
+  },
   materialSource: {
     fontSize: 8,
     color: "#6B7280",
@@ -832,77 +868,77 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       return acc;
     }, {} as Record<string, ConsolidatedMaterial[]>);
     const materialsTotal = materials.reduce((sum, m) => sum + m.amount, 0);
-    return Object.entries(materialsByCategory).flatMap(
-      ([category, categoryMaterials]) => {
-        const itemChunks = chunkArray(categoryMaterials, 18);
-        return itemChunks.map((chunk, chunkIndex) => (
-          <Page
-            key={`materials-${category}-${chunkIndex}`}
-            size="A4"
-            style={styles.page}
-          >
-            <CompanyHeader />
-            <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
-            <Text style={styles.materialCategoryHeader}>
-              {category.toUpperCase()}
+
+    // Render all materials in a single page with one consolidated table
+    return (
+      <Page size="A4" style={styles.page}>
+        <CompanyHeader />
+        <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
+
+        <View style={styles.materialScheduleTable}>
+          {/* Master header for all items */}
+          <View style={styles.materialScheduleHeaderRow}>
+            <Text style={styles.materialScheduleColHeaderItem}>Item</Text>
+            <Text style={styles.materialScheduleColHeaderDescription}>
+              Description
             </Text>
+            <Text style={styles.materialScheduleColHeaderUnit}>Unit</Text>
+            <Text style={styles.materialScheduleColHeaderQty}>Qty</Text>
+            <Text style={styles.materialScheduleColHeaderRate}>Rate</Text>
+            <Text style={styles.materialScheduleColHeaderAmount}>Amount</Text>
+          </View>
 
-            <View style={styles.materialScheduleTable}>
-              <View style={styles.materialScheduleHeaderRow}>
-                <Text style={styles.materialScheduleColHeaderItem}>Item</Text>
-                <Text style={styles.materialScheduleColHeaderDescription}>
-                  Description
+          {/* Render all items grouped by category */}
+          {Object.entries(materialsByCategory).flatMap(
+            ([category, categoryMaterials], categoryIndex) => [
+              // Category header
+              <View
+                key={`category-header-${category}`}
+                style={styles.materialCategoryHeaderRow}
+              >
+                <Text style={styles.materialCategoryHeaderText}>
+                  {category.toUpperCase()}
                 </Text>
-                <Text style={styles.materialScheduleColHeaderUnit}>Unit</Text>
-                <Text style={styles.materialScheduleColHeaderQty}>Qty</Text>
-                <Text style={styles.materialScheduleColHeaderRate}>Rate</Text>
-                <Text style={styles.materialScheduleColHeaderAmount}>
-                  Amount
+              </View>,
+              // Category items
+              ...categoryMaterials.map((material, index) =>
+                renderMaterialRow(material)
+              ),
+              // Category subtotal
+              <View
+                key={`category-total-${category}`}
+                style={styles.categoryTotalRow}
+              >
+                <Text style={styles.categoryTotalLabel}>
+                  Subtotal - {category}:
                 </Text>
-              </View>
+                <Text style={styles.categoryTotalValue}>
+                  {formatCurrency(
+                    categoryMaterials.reduce(
+                      (sum, m) => sum + (m.amount || 0),
+                      0
+                    )
+                  )}
+                </Text>
+              </View>,
+            ]
+          )}
+        </View>
 
-              {chunk.map((material, index) => renderMaterialRow(material))}
+        {/* Grand total */}
+        <View style={styles.grandTotalRow}>
+          <Text style={styles.grandTotalLabel}>TOTAL MATERIALS COST:</Text>
+          <Text style={styles.grandTotalValue}>
+            {formatCurrency(materialsTotal)}
+          </Text>
+        </View>
 
-              {chunkIndex === itemChunks.length - 1 && (
-                <View style={styles.sectionTotalRow}>
-                  <Text style={styles.sectionTotalLabel}>
-                    Total for {category}:
-                  </Text>
-                  <Text style={styles.sectionTotalValue}>
-                    {formatCurrency(
-                      categoryMaterials.reduce(
-                        (sum, m) => sum + (m.amount || 0),
-                        0
-                      )
-                    )}
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {category ===
-              Object.keys(materialsByCategory)[
-                Object.keys(materialsByCategory).length - 1
-              ] &&
-              chunkIndex === itemChunks.length - 1 && (
-                <View style={styles.grandTotalRow}>
-                  <Text style={styles.grandTotalLabel}>
-                    TOTAL MATERIALS COST:
-                  </Text>
-                  <Text style={styles.grandTotalValue}>
-                    {formatCurrency(materialsTotal)}
-                  </Text>
-                </View>
-              )}
-
-            <View style={styles.boqFooter} fixed>
-              <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
-              <Text>{projectInfo.title}</Text>
-              <Text>{projectInfo.clientName}</Text>
-            </View>
-          </Page>
-        ));
-      }
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
     );
   };
   const calculateSectionTotal = (items: BOQItem[]): number => {

@@ -1,136 +1,131 @@
-# © 2025 Jeff. All rights reserved.
-# Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import sys
-import json
-import os
-import re
-import time
-from typing import Dict, Any, Optional
-from dotenv import load_dotenv
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { ExtractedPlan } from "@/contexts/PlanContext";
 
-load_dotenv()
+const getEnv = (key: string) => {
+  if (typeof process !== "undefined" && process.env?.[key]) {
+    return process.env[key];
+  }
+  if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
+    return import.meta.env[key];
+  }
+  return undefined;
+};
 
-# Configuration
-DEFAULT_HEIGHT = "2.7"
-DEFAULT_THICKNESS = "0.2"
-DEFAULT_BLOCK_TYPE = "Standard Block"
-DEFAULT_PLASTER = "Both Sides"
+export interface RoomData {
+  name: string;
+  area?: number;
+  height?: number;
+  materials?: {
+    walls?: string;
+    floor?: string;
+    ceiling?: string;
+  };
+}
 
-# Gemini API Configuration
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-GEMINI_ENABLED = bool(GEMINI_API_KEY)
-GEMINI_TIMEOUT = 300  # 5 minutes timeout
-GEMINI_MAX_RETRIES = 3
-GEMINI_RETRY_DELAY = 10  # seconds between retries (will be multiplied by attempt number)
-GEMINI_MODEL = "gemini-2.5-flash-lite"  # Faster, more efficient model
+class PlanParserService {
+  private genAI: GoogleGenerativeAI;
+  private model;
 
-def call_gemini(file_path: str, prompt: str) -> Optional[Dict[str, Any]]:
-    """Call Gemini API with retry logic and timeout handling"""
-    if not GEMINI_ENABLED:
-        raise RuntimeError("Gemini API key not found. Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable.")
-    
-    try:
-        import google.generativeai as genai
-    except ImportError as e:
-        raise RuntimeError(f"Google Generative AI library not installed: {e}")
-    
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-    
-    # Read file once
-    print(f"📤 Processing file: {os.path.basename(file_path)}", file=sys.stderr)
-    with open(file_path, 'rb') as f:
-        file_data = f.read()
-    
-    # Get file extension and set MIME type
-    ext = os.path.splitext(file_path)[1].lower()
-    mime_type = {
-        '.pdf': 'application/pdf',
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.png': 'image/png'
-    }.get(ext, 'application/octet-stream')
-    
-    # Create file parts for the model
-    file_part = {
-        "mime_type": mime_type,
-        "data": file_data
+  constructor() {
+    const apiKey = getEnv("VITE_GEMINI_API_KEY");
+    if (!apiKey) {
+      throw new Error("VITE_GEMINI_API_KEY environment variable is not set");
     }
-    
-    # Retry logic
-    last_error = None
-    for attempt in range(GEMINI_MAX_RETRIES + 1):
-        try:
-            genai.configure(api_key=GEMINI_API_KEY)
-            
-            # Use the fastest available model
-            model_name = GEMINI_MODEL
-            if attempt == 0:
-                print(f"🔄 Using model: {model_name}", file=sys.stderr)
-            else:
-                print(f"🔄 Retry attempt {attempt}/{GEMINI_MAX_RETRIES} with model: {model_name}", file=sys.stderr)
-            
-            model = genai.GenerativeModel(model_name)
-            
-            print(f"⏳ Waiting for Gemini response...", file=sys.stderr)
-            
-            # Generate content with file data
-            response = model.generate_content([prompt, file_part])
-            
-            if response and response.text:
-                cleaned = response.text.strip().replace('```json', '').replace('```', '').strip()
-                
-                # Try to parse JSON
-                try:
-                    result = json.loads(cleaned)
-                    print("✅ Successfully parsed Gemini response", file=sys.stderr)
-                    return result
-                except json.JSONDecodeError:
-                    # Try to extract JSON from text
-                    m = re.search(r'\{.*\}', cleaned, re.DOTALL)
-                    if m:
-                        try:
-                            result = json.loads(m.group())
-                            print("✅ Successfully extracted JSON from response", file=sys.stderr)
-                            return result
-                        except Exception:
-                            pass
-                    raise RuntimeError("Gemini returned non-JSON response")
-            else:
-                raise RuntimeError("Gemini returned empty response")
-                
-        except (TimeoutError, Exception) as e:
-            last_error = e
-            error_type = type(e).__name__
-            error_str = str(e).lower()
-            
-            # Log full error details
-            print(f"🔍 Exception type: {error_type}", file=sys.stderr)
-            print(f"🔍 Full error: {str(e)}", file=sys.stderr)
-            
-            # Check if it's a timeout/deadline error (handles google.api_core.exceptions.DeadlineExceeded)
-            is_timeout = any(keyword in error_str for keyword in ['timeout', 'deadline', '504', 'deadlineexceeded', 'resource exhausted'])
-            is_timeout = is_timeout or error_type in ['DeadlineExceeded', 'ServerError', 'ServiceUnavailable']
-            
-            print(f"🔍 Is timeout: {is_timeout} (attempt {attempt + 1}/{GEMINI_MAX_RETRIES + 1})", file=sys.stderr)
-            
-            if attempt < GEMINI_MAX_RETRIES and is_timeout:
-                wait_time = GEMINI_RETRY_DELAY * (attempt + 1)  # Exponential backoff
-                print(f"⚠️  Timeout/Deadline error on attempt {attempt + 1}. Retrying in {wait_time}s...", file=sys.stderr)
-                time.sleep(wait_time)
-                continue
-            elif is_timeout:
-                raise RuntimeError(f"Gemini API timeout after {attempt + 1} attempts: {e}")
-            else:
-                raise RuntimeError(f"Gemini API call failed: {e}")
-    
-    # If we get here, all retries failed
-    raise RuntimeError(f"Gemini API failed after {GEMINI_MAX_RETRIES + 1} attempts: {last_error}")
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  }
 
-def analyze_with_gemini(file_path: str) -> Dict[str, Any]:
-    """Analyze construction document using Gemini only"""
-    GEMINI_PROMPT = """
+  /**
+   * Parse a construction plan file using Gemini Vision API
+   * Supports PDF, images (JPG, PNG)
+   */
+  async parsePlanFile(file: File): Promise<ExtractedPlan> {
+    try {
+      const base64Data = await this.fileToBase64(file);
+      const mimeType = this.getMimeType(file.name);
+
+      const response = await this.model.generateContent([
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType,
+          },
+        },
+        {
+          text: this.getAnalysisPrompt(),
+        },
+      ]);
+
+      const responseText = response.response.text();
+      const parsedData = this.extractJsonFromResponse(responseText);
+
+      return parsedData;
+    } catch (error) {
+      console.error("Plan parsing error:", error);
+      throw new Error(
+        `Failed to parse plan: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  /**
+   * Parse a plan from a URL (remote file)
+   */
+  async parsePlanFromUrl(url: string): Promise<ExtractedPlan> {
+    try {
+      const response = await this.model.generateContent([
+        {
+          text: `Analyze this construction plan image from URL: ${url}\n\n${this.getAnalysisPrompt()}`,
+        },
+      ]);
+
+      const responseText = response.response.text();
+      const parsedData = this.extractJsonFromResponse(responseText);
+
+      return parsedData;
+    } catch (error) {
+      console.error("Plan URL parsing error:", error);
+      throw new Error(
+        `Failed to parse plan from URL: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private getMimeType(filename: string): string {
+    const ext = filename.toLowerCase().split(".").pop();
+    const mimeTypes: { [key: string]: string } = {
+      pdf: "application/pdf",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      gif: "image/gif",
+      webp: "image/webp",
+    };
+    return mimeTypes[ext || ""] || "application/octet-stream";
+  }
+
+  private getAnalysisPrompt(): string {
+    return `
 You are an expert architectural AI analyzing construction drawings and plans with extreme attention to detail.
 (Keep output EXACTLY as JSON matching the requested schema. If no walls detected, respond with {"error":"No walls found"}.)
 
@@ -1015,7 +1010,7 @@ IMPORTANT:
    - Fixture quality → "standard"
    - Timber grade/treatment → "structural" / "pressure-treated" for structural elements
 3. **Map extracted names to closest enum** (e.g., "toilet" → "water-closet", "LED light" → "led-downlight")
-4. **If a section has no data, return empty array** (`[]`) or omit optional objects.
+4. **If a section has no data, return empty array** ('[]') or omit optional objects.
 5. **All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
 6. **Be consistent with your type system** — no arbitrary strings.
 - Base your analysis on what you can actually see in the drawing
@@ -1035,60 +1030,54 @@ IMPORTANT:
 - Calculate perimeters by summing all wall lengths
 - For internal walls, measure partition lengths
 - Do not leave any null items. If empty use reasonable estimates based on the plan and what would be expected
-"""
+`;
+  }
 
-    result = call_gemini(file_path, GEMINI_PROMPT)
-    
-    if not isinstance(result, dict):
-        raise RuntimeError("Gemini returned invalid response format")
-    
-    if "error" in result:
-        return result
-    
-    if "wallDimensions" not in result or "wallProperties" not in result:
-        raise RuntimeError("Gemini response missing 'wallDimensions' or 'wallProperties' fields")
-    
-    if not result.get("wallDimensions"):
-        return {"error": "No wall dimensions found in analysis"}
-    
-    return result
+  private extractJsonFromResponse(text: string): ExtractedPlan {
+    try {
+      // Try to find JSON in the response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("No JSON found in response");
+      }
 
-def parse_file(file_path: str) -> Dict[str, Any]:
-    """Parse file using Gemini only - no fallbacks"""
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-    
-    # Validate file type
-    ext = os.path.splitext(file_path)[1].lower()
-    supported_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
-    
-    if ext not in supported_extensions:
-        raise ValueError(f"Unsupported file type: {ext}. Supported types: {', '.join(supported_extensions)}")
-    
-    print(f"🔍 Beginning Gemini analysis: {file_path}", file=sys.stderr)
-    
-    try:
-        result = analyze_with_gemini(file_path)
-        result["analysis_method"] = "gemini_ai"
-        return result
-    except Exception as e:
-        # Re-raise with clear error message
-        raise RuntimeError(f"Gemini analysis failed: {str(e)}")
+      const jsonStr = jsonMatch[0];
+      const parsed = JSON.parse(jsonStr);
 
-# CLI Entrypoint
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print(json.dumps({"error": "Usage: python parser.py <file_path>"}))
-        sys.exit(1)
-    
-    file_path = sys.argv[1]
-    
-    try:
-        result = parse_file(file_path)
-        print(json.dumps(result, indent=2))
-        sys.exit(0)
-    except Exception as e:
-        error_result = {"error": str(e)}
-        print(json.dumps(error_result, indent=2))
-        print(f"❌ ERROR: {e}", file=sys.stderr)
-        sys.exit(1)
+      // Map Gemini response to ExtractedPlan interface
+      const extractedPlan: ExtractedPlan = {
+        floors: parsed.floors || 1,
+        projectInfo: {
+          projectType: parsed.projectType || "residential",
+          floors: parsed.floors || 1,
+          totalArea: parsed.totalArea || 0,
+          description: parsed.projectDescription || parsed.description || "",
+        },
+        wallDimensions: parsed.wallDimensions,
+        wallSections: parsed.wallSections,
+        wallProperties: parsed.wallProperties,
+        foundationDetails: parsed.foundationDetails,
+        earthworks: parsed.earthworks,
+        equipment: parsed.equipment,
+        concreteStructures: parsed.concreteStructures,
+        reinforcement: parsed.reinforcement,
+        masonry: parsed.masonry,
+        roofing: parsed.roofing,
+        plumbing: parsed.plumbing,
+        electrical: parsed.electrical,
+        finishes: parsed.finishes,
+      };
+
+      return extractedPlan;
+    } catch (error) {
+      console.error("JSON extraction error:", error);
+      throw new Error(
+        `Failed to parse plan response: ${
+          error instanceof Error ? error.message : "Invalid JSON"
+        }`
+      );
+    }
+  }
+}
+
+export const planParserService = new PlanParserService();

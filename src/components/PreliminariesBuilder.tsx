@@ -26,7 +26,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { generatePreliminariesWithGemini } from "@/utils/preliminariesAIService";
 
 interface PrelimItem {
   itemNo: string;
@@ -100,20 +100,7 @@ const PreliminariesBuilder = ({
     setLastError(null);
 
     try {
-      const { data: aiSections, error } = await supabase.functions.invoke(
-        "generate-preliminaries",
-        {
-          body: { quoteData },
-        }
-      );
-
-      if (error) {
-        throw new Error(error.message || "API returned an error");
-      }
-
-      if (!aiSections) {
-        throw new Error("No preliminaries data generated");
-      }
+      const aiSections = await generatePreliminariesWithGemini(quoteData);
 
       // Merge AI sections with existing user sections
       const mergedSections = mergeSectionsWithAI(sections, aiSections);

@@ -48,6 +48,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dimensions, WallProperties } from "@/hooks/useMasonryCalculatorNew";
 import { WallSection } from "@/hooks/useMasonryCalculatorNew";
+import { planParserService } from "@/services/planParserService";
 
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
@@ -273,48 +274,34 @@ const UploadPlan = () => {
     setError: Function,
     setCurrentStep: Function
   ): Promise<ParsedPlan> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(
-      "https://constructly-backend.onrender.com/api/plan/upload",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    try {
+      const parsedData = await planParserService.parsePlanFile(file);
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Analysis failed: ${res.status} - ${errorText}`);
+      // Transform the parsed data to match ParsedPlan interface
+      const result: ParsedPlan = {
+        floors: parsedData.floors || 1,
+        file_name: file.name,
+        uploaded_at: new Date().toISOString(),
+        wallDimensions: parsedData.wallDimensions,
+        wallSections: parsedData.wallSections,
+        wallProperties: parsedData.wallProperties,
+        note: parsedData.notes,
+      };
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Analysis failed";
+      console.error("Plan analysis error:", error);
+
+      setError({
+        message: errorMessage,
+        type: "analysis",
+        retryable: true,
+      });
+
+      throw new Error(errorMessage);
     }
-
-    const result = await res.json();
-    if (result.note) {
-      const noteText = result.note.toString().toLowerCase();
-      const errorKeywords = [
-        "error",
-        "failed",
-        "invalid",
-        "missing",
-        "unable",
-        "issue",
-        "exception",
-      ];
-      const containsError = errorKeywords.some((word) =>
-        noteText.includes(word)
-      );
-      if (containsError) {
-        setError({
-          message: result.note,
-          type: "analysis",
-          retryable: false,
-        });
-        setCurrentStep("error");
-        throw new Error(`Server reported issue: ${result.note}`);
-      }
-    }
-
-    return result;
   };
 
   const uploadAndSave = async (file: File): Promise<string> => {
@@ -549,7 +536,6 @@ const UploadPlan = () => {
   };
 
   const getErrorIcon = () => {
-    console.log(error);
     switch (error?.type) {
       case "network":
         return <AlertCircle className="w-6 h-6" />;

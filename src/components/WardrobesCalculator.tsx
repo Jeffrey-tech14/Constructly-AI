@@ -21,6 +21,7 @@ export interface WardrobeItem {
   id: string;
   name: string;
   quotationType: "lump-sum" | "detailed"; // Lump-sum or detailed breakdown
+  usesLumpSum: boolean; // Tracker for whether lump-sum or detailed pricing is being used
   // Lump-sum fields
   lumpSumAmount?: number;
   // Detailed fields
@@ -62,6 +63,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
       id: `wardrobe-${Date.now()}`,
       name: "New Wardrobe",
       quotationType: "lump-sum",
+      usesLumpSum: true, // Initialize tracker to true since default is lump-sum
       lumpSumAmount: 0,
       numBoards: "0",
       numHinges: "0",
@@ -89,8 +91,9 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
         if (w.id === id) {
           const updated = { ...w, [field]: value };
 
-          // Calculate total price
+          // Calculate total price and update lumpSum tracker
           if (field === "quotationType") {
+            updated.usesLumpSum = value === "lump-sum";
             if (value === "lump-sum") {
               updated.totalPrice = updated.lumpSumAmount || 0;
             } else {

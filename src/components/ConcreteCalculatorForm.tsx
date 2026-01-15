@@ -1815,13 +1815,14 @@ export default function ConcreteCalculatorForm({
             key={row.id}
             className="p-4 border dark:border-white/20 border-primary/40 rounded-lg space-y-2"
           >
+            <Input
+              type="text"
+              value={row.name}
+              onChange={(e) => updateRow(row.id, "name", e.target.value)}
+              placeholder="Name (e.g. Slab 1)"
+              className="font-semibold text-lg mb-2"
+            />
             <div className="grid sm:grid-cols-4 gap-2">
-              <Input
-                type="text"
-                value={row.name}
-                onChange={(e) => updateRow(row.id, "name", e.target.value)}
-                placeholder="Name (e.g. Slab 1)"
-              />
               <Select
                 value={row.element}
                 onValueChange={(value) =>
@@ -1889,33 +1890,35 @@ export default function ConcreteCalculatorForm({
                 </SelectContent>
               </Select>
 
+              {row.element !== "slab" && (
+                <div className="grid gap-2 mb-2">
+                  <Select
+                    value={row.areaSelectionMode || "LENGTH_WIDTH"}
+                    onValueChange={(value) =>
+                      updateRow(
+                        row.id,
+                        "areaSelectionMode",
+                        value as "LENGTH_WIDTH" | "DIRECT_AREA"
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Dimension mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LENGTH_WIDTH">
+                        Length × Width
+                      </SelectItem>
+                      <SelectItem value="DIRECT_AREA">Direct Area</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <Button onClick={() => removeRow(row.id)} variant="destructive">
                 <Trash className="w-4 h-4" />
               </Button>
             </div>
-
-            {row.element !== "slab" && (
-              <div className="grid sm:grid-cols-2 gap-2 mb-2">
-                <Select
-                  value={row.areaSelectionMode || "LENGTH_WIDTH"}
-                  onValueChange={(value) =>
-                    updateRow(
-                      row.id,
-                      "areaSelectionMode",
-                      value as "LENGTH_WIDTH" | "DIRECT_AREA"
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Dimension mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="LENGTH_WIDTH">Length × Width</SelectItem>
-                    <SelectItem value="DIRECT_AREA">Direct Area</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="grid sm:grid-cols-4 gap-2">
               {row.element === "slab" ? (

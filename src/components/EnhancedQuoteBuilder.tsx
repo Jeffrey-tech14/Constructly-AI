@@ -250,7 +250,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     },
     wallSections: [],
     wallProperties: {
-      blockType: "Standard Block (400×200×200mm)",
+      blockType: "Standard Block",
       thickness: 0.2,
       plaster: "Both Sides",
     },
@@ -328,7 +328,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         },
         wallSections: quote.wallSections || [],
         wallProperties: quote.wallProperties || {
-          blockType: "Standard Block (400×200×200mm)",
+          blockType: "Standard Block",
           thickness: 0.2,
           plaster: "Both Sides",
         },
@@ -479,7 +479,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             windows: section.windows || [],
           })) || [],
         wallProperties: extractedPlan.wallProperties || {
-          blockType: "Standard Block (400×200×200mm)",
+          blockType: "Standard Block",
           thickness: 0.2,
           plaster: "Both Sides",
         },

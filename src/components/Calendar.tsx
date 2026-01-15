@@ -309,12 +309,12 @@ const Calendar = () => {
                         flex flex-col items-center justify-center
                         ${
                           !isCurrentMonth
-                            ? "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400"
+                            ? "bg-slate-50 dark:glass border-slate-100 dark:border-slate-800 text-slate-400"
                             : isSelected
-                            ? "bg-blue-500 border-blue-600 text-white shadow-md scale-105"
+                            ? "bg-primary border-blue-600 text-white shadow-md scale-105"
                             : isTodayDate
                             ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white shadow-sm"
-                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
+                            : "bg-white dark:bg-blue-900/10 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
                         }
                       `}
                     >

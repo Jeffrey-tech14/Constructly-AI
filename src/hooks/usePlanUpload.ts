@@ -5,6 +5,9 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import { planParserService } from "@/services/planParserService";
+import { ExtractedPlan } from "@/contexts/PlanContext";
+
 export interface PlanAnalysis {
   floors: number;
 }
@@ -59,25 +62,37 @@ export const usePlanUpload = () => {
       setUploading(false);
     }
   };
-  const analyzePlan = async (url: string): Promise<PlanAnalysis | null> => {
+  const analyzePlan = async (
+    fileOrUrl: File | string
+  ): Promise<ExtractedPlan | null> => {
     setAnalyzing(true);
     try {
-      const response = await fetch(
-        "http://192.168.0.100:8000/api/plan/upload",
-        {
-          method: "POST",
-          body: JSON.stringify({ file_url: url }),
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      if (!response.ok) throw new Error("Failed to analyze plan");
-      const result = await response.json();
+      let result: ExtractedPlan;
+
+      if (fileOrUrl instanceof File) {
+        // If it's a File object, use parsePlanFile
+        result = await planParserService.parsePlanFile(fileOrUrl);
+      } else {
+        // If it's a URL string, use parsePlanFromUrl
+        result = await planParserService.parsePlanFromUrl(fileOrUrl);
+      }
+
+      toast({
+        title: "Plan Analyzed",
+        description: `Plan analyzed successfully. Found ${
+          result.floors || 1
+        } floor(s).`,
+      });
+
       return result;
     } catch (error) {
       console.error("Error analyzing plan:", error);
       toast({
         title: "Analysis Error",
-        description: "Failed to analyze plan. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to analyze plan. Please try again.",
         variant: "destructive",
       });
       return null;

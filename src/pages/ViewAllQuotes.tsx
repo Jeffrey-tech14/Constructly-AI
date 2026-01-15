@@ -48,8 +48,10 @@ import {
   Pen,
   Target,
   Loader2,
+  Download,
 } from "lucide-react";
 import { QuoteExportDialog } from "@/components/QuoteExportDialog";
+import { exportQuote } from "@/utils/exportUtils";
 const ViewAllQuotes = () => {
   const { fetchQuotes, quotes, loading, deleteQuote } = useQuotes();
   const { profile, user } = useAuth();
@@ -62,6 +64,9 @@ const ViewAllQuotes = () => {
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [selectedQuoteForExport, setSelectedQuoteForExport] =
     useState<any>(null);
+  const [exportingPdfQuoteId, setExportingPdfQuoteId] = useState<string | null>(
+    null
+  );
   const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
   const [quotesRefreshKey, setQuotesRefreshKey] = useState(0);
 
@@ -144,6 +149,48 @@ const ViewAllQuotes = () => {
       setDeletingQuote(null);
     }
   };
+
+  const handleDirectPdfExport = async (quote: any) => {
+    setExportingPdfQuoteId(quote.id);
+    try {
+      const success = await exportQuote({
+        format: "pdf",
+        audience: "contractor",
+        quote,
+        projectInfo: {
+          title: quote.title,
+          date: new Date().toLocaleDateString(),
+          clientName: quote.client_name,
+          clientEmail: quote.client_email,
+          location: quote.location,
+          projectType: quote.project_type,
+          houseType: quote.house_type,
+          region: quote.region,
+          floors: quote.floors,
+          companyName,
+          logoUrl: profile.avatar_url,
+        },
+      });
+
+      toast({
+        title: success ? "PDF Generated" : "Error",
+        description: success
+          ? "Your PDF has been downloaded"
+          : "Failed to generate PDF",
+        variant: success ? "default" : "destructive",
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setExportingPdfQuoteId(null);
+    }
+  };
+
   const contractorName =
     profile?.name ||
     user?.user_metadata?.full_name ||
@@ -614,33 +661,46 @@ const ViewAllQuotes = () => {
                         </Dialog>
                       )}
 
-                      <Dialog>
-                        <DialogTitle></DialogTitle>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            onClick={() => setSelectedQuoteForExport(quote)}
-                            className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
-                          >
-                            <FileText className="w-4 h-4 mr-2 text-white" />
-                            Generate BOQ
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          {selectedQuoteForExport && (
-                            <QuoteExportDialog
-                              open={!!selectedQuoteForExport}
-                              onOpenChange={(open) => {
-                                if (!open) setSelectedQuoteForExport(null);
-                              }}
-                              quote={selectedQuoteForExport}
-                              contractorName={contractorName}
-                              companyName={companyName}
-                              logoUrl={profile.avatar_url}
-                            />
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                      {selectedQuoteForExport && (
+                        <QuoteExportDialog
+                          open={!!selectedQuoteForExport}
+                          onOpenChange={(open) => {
+                            if (!open) setSelectedQuoteForExport(null);
+                          }}
+                          quote={selectedQuoteForExport}
+                          contractorName={contractorName}
+                          companyName={companyName}
+                          logoUrl={profile.avatar_url}
+                        />
+                      )}
+
+                      <Button
+                        size="sm"
+                        onClick={() => handleDirectPdfExport(quote)}
+                        disabled={exportingPdfQuoteId === quote.id}
+                        className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
+                      >
+                        {exportingPdfQuoteId === quote.id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2 text-white" />
+                            Export PDF
+                          </>
+                        )}
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        onClick={() => setSelectedQuoteForExport(quote)}
+                        className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
+                      >
+                        <FileText className="w-4 h-4 mr-2 text-white" />
+                        Generate BOQ
+                      </Button>
 
                       {profile.tier !== "Free" && (
                         <Button

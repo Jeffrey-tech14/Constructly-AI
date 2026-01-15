@@ -47,6 +47,14 @@ export const QuoteExportDialog = ({
   );
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const handleOpenChange = (newOpen: boolean) => {
+    // Prevent closing dialog if processing is ongoing
+    if (!newOpen && isProcessing) {
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   const handleExport = async () => {
     setIsProcessing(true);
     try {
@@ -92,7 +100,12 @@ export const QuoteExportDialog = ({
   };
 
   return (
-    <div className="space-y-6">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Export Quote</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
       {isProcessing ? (
         <div className="flex flex-col items-center justify-center space-y-3 bg-green-50 dark:bg-green-900 border border-green-400 rounded-lg p-4">
           <Clock className="w-8 h-8 text-green-600 dark:text-green-300 animate-spin" />
@@ -200,6 +213,8 @@ export const QuoteExportDialog = ({
           </div>
         </>
       )}
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -446,7 +446,6 @@ export const useQuoteCalculations = () => {
             };
 
       const calculatePreliminariesTotal = (): number => {
-        if (!Array.isArray(preliminaries)) return 0;
         return preliminaries.reduce((total, prelim) => {
           return (
             total +
@@ -594,7 +593,7 @@ export const useQuoteCalculations = () => {
         materialPrices: materials,
         labor: [
           {
-            type: "calculated",
+            type: percentageSettings.labour ? "calculated" : "fixed",
             percentage: percentageSettings.labour,
             cost: laborCost,
           },

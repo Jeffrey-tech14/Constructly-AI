@@ -38,37 +38,43 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
   try {
     const { format, audience, quote, projectInfo, logoUrl } = options;
     let materialSchedule: any[] = [];
-    if (format !== "pdf") {
-      if (
-        quote?.concrete_materials ||
-        quote?.rebar_calculations ||
-        quote?.boq_data
-      ) {
-        try {
-          const rawSchedule: MaterialSchedule =
-            await AdvancedMaterialExtractor.extractWithGemini(quote);
-          materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-            Object.values(rawSchedule).flat()
-          );
-        } catch (error) {
-          console.warn(
-            "AI extraction failed, falling back to local extraction:",
-            error
-          );
-          try {
-            const rawSchedule = AdvancedMaterialExtractor.extractLocally(quote);
-            materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-              Object.values(rawSchedule).flat()
-            );
-          } catch (localError) {
-            console.error("Local extraction also failed:", localError);
-          }
-        }
-      } else {
-        if (Array.isArray(quote?.materialSchedule)) {
-          materialSchedule = quote.materialSchedule;
-        } else {
-        }
+    const hasMaterialData =
+      quote?.concrete_materials || quote?.rebar_calculations || quote?.boq_data;
+
+    // For PDF format, require successful Gemini extraction if material data exists
+    if (format === "pdf" && hasMaterialData) {
+      try {
+        const rawSchedule: MaterialSchedule =
+          await AdvancedMaterialExtractor.extractWithGemini(quote);
+        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+          Object.values(rawSchedule).flat()
+        );
+      } catch (error) {
+        console.error("Gemini extraction failed for PDF export:", error);
+        throw new Error(
+          `Material extraction failed: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+      }
+    } else if (format !== "pdf" && hasMaterialData) {
+      // For non-PDF formats, try Gemini but fall back to local extraction
+      try {
+        const rawSchedule: MaterialSchedule =
+          await AdvancedMaterialExtractor.extractWithGemini(quote);
+        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+          Object.values(rawSchedule).flat()
+        );
+      } catch (error) {
+        console.warn(
+          "AI extraction failed, falling back to local extraction:",
+          error
+        );
+      }
+    } else {
+      // No material data, use existing schedule if available
+      if (Array.isArray(quote?.materialSchedule)) {
+        materialSchedule = quote.materialSchedule;
       }
     }
     const enrichedQuote = {
@@ -77,33 +83,65 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
     };
     switch (format) {
       case "pdf":
-        return await exportBOQPDF(
-          quote.boq_data,
-          {
-            ...projectInfo,
-          },
-          quote.preliminaries,
-          quote,
-          audience === "client"
-        );
+        try {
+          const result = await exportBOQPDF(
+            quote.boq_data,
+            {
+              ...projectInfo,
+            },
+            quote.preliminaries,
+            quote,
+            audience === "client"
+          );
+          if (!result) {
+            throw new Error("PDF generation returned false");
+          }
+          return true;
+        } catch (pdfError) {
+          console.error("PDF export failed:", pdfError);
+          throw new Error(
+            `PDF export failed: ${
+              pdfError instanceof Error ? pdfError.message : String(pdfError)
+            }`
+          );
+        }
       case "excel":
-        await generateQuoteExcel({
-          quote: enrichedQuote,
-          isClientExport: audience === "client",
-        });
-        return true;
+        try {
+          await generateQuoteExcel({
+            quote: enrichedQuote,
+            isClientExport: audience === "client",
+          });
+          return true;
+        } catch (excelError) {
+          console.error("Excel export failed:", excelError);
+          throw new Error(
+            `Excel export failed: ${
+              excelError instanceof Error
+                ? excelError.message
+                : String(excelError)
+            }`
+          );
+        }
       case "docx":
-        await generateQuoteDOCX({
-          quote: enrichedQuote,
-          projectInfo: {
-            ...projectInfo,
-          },
-          isClientExport: audience === "client",
-        });
-        return true;
+        try {
+          await generateQuoteDOCX({
+            quote: enrichedQuote,
+            projectInfo: {
+              ...projectInfo,
+            },
+            isClientExport: audience === "client",
+          });
+          return true;
+        } catch (docxError) {
+          console.error("DOCX export failed:", docxError);
+          throw new Error(
+            `DOCX export failed: ${
+              docxError instanceof Error ? docxError.message : String(docxError)
+            }`
+          );
+        }
       default:
-        console.warn("Unknown export format:", format);
-        return false;
+        throw new Error(`Unknown export format: ${format}`);
     }
   } catch (error) {
     console.error("Error exporting document:", error);

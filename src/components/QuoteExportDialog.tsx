@@ -46,17 +46,11 @@ export const QuoteExportDialog = ({
     "pdf"
   );
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleOpenChange = (newOpen: boolean) => {
-    // Prevent closing dialog if processing is ongoing
-    if (!newOpen && isProcessing) {
-      return;
-    }
-    onOpenChange(newOpen);
-  };
+  const [error, setError] = useState<string | null>(null);
 
   const handleExport = async () => {
     setIsProcessing(true);
+    setError(null);
     try {
       const success = await exportQuote({
         format: exportFormat,
@@ -77,36 +71,76 @@ export const QuoteExportDialog = ({
         },
       });
 
+      if (!success) {
+        setError(
+          "Something went wrong while generating the document. Please try again later."
+        );
+        toast({
+          title: "Error generating document",
+          description: "Please try again",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       toast({
-        title: success
-          ? "Document generated successfully"
-          : "Error generating document",
-        description: success
-          ? "Your file has been downloaded"
-          : "Please try again",
-        variant: success ? "default" : "destructive",
+        title: "Document generated successfully",
+        description: "Your file has been downloaded",
+        variant: "default",
       });
+      setIsProcessing(false);
+      onOpenChange(false);
     } catch (err) {
       console.error(err);
+      setError(
+        "Something went wrong while generating the document. Please try again later."
+      );
       toast({
         title: "Error generating document",
         description: "Please try again",
         variant: "destructive",
       });
-    } finally {
       setIsProcessing(false);
-      onOpenChange(false);
     }
   };
 
+  const handleRetry = () => {
+    setError(null);
+    handleExport();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Export Quote</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-6">
-      {isProcessing ? (
+    <div className="space-y-6">
+      {error ? (
+        <div className="flex flex-col items-center justify-center space-y-4 bg-red-50 dark:bg-red-900 border border-red-400 rounded-lg p-4">
+          <div className="text-red-600 dark:text-red-300">
+            <svg
+              className="w-8 h-8 mx-auto"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <p className="text-red-700 dark:text-red-200 font-semibold text-center text-lg">
+            Something Went Wrong
+          </p>
+          <p className="text-red-600 dark:text-red-300 text-sm text-center">
+            {error}
+          </p>
+          <Button
+            onClick={handleRetry}
+            className="w-full text-white bg-red-600 hover:bg-red-700 flex items-center justify-center space-x-2"
+          >
+            <span>Try Again</span>
+          </Button>
+        </div>
+      ) : isProcessing ? (
         <div className="flex flex-col items-center justify-center space-y-3 bg-green-50 dark:bg-green-900 border border-green-400 rounded-lg p-4">
           <Clock className="w-8 h-8 text-green-600 dark:text-green-300 animate-spin" />
           <p className="text-green-700 dark:text-green-400 font-semibold text-center text-lg">
@@ -213,8 +247,6 @@ export const QuoteExportDialog = ({
           </div>
         </>
       )}
-        </div>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 };

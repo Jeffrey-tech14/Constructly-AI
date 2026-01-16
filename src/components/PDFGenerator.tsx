@@ -661,13 +661,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     let allMaterials: CategorizedMaterial[] = [];
     if (materialSchedule && Array.isArray(materialSchedule)) {
       allMaterials = materialSchedule;
-    } else {
-      const mockQuote = {
-        boqData: boqData,
-      };
-      const schedule = AdvancedMaterialExtractor.extractLocally(mockQuote);
-      allMaterials = Object.values(schedule).flat();
-    }
+    } 
     return MaterialConsolidator.consolidateAllMaterials(allMaterials);
   }, [boqData, materialSchedule]);
   const calculateEquipmentTotal = useMemo(

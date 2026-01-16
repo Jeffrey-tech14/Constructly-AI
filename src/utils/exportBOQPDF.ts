@@ -44,10 +44,7 @@ const exportBOQPDF = async (
           "AI extraction failed, falling back to local extraction:",
           error
         );
-        const rawSchedule = AdvancedMaterialExtractor.extractLocally(quote);
-        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-          Object.values(rawSchedule).flat()
-        );
+        throw new Error("Material extraction failed for PDF export");
       }
     }
     const pdfReactElement = React.createElement(PDFGeneratorComponent, {

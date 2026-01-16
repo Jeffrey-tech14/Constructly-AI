@@ -155,8 +155,7 @@ You MUST recompute UNTIL ALL CONDITIONS ARE TRUE:
    amount === quantity × rate  (NO rounding, NO approximation)
 
 2. Total material cost MUST EXACTLY MATCH:
-   materials_cost +
-   materialProfits
+   materials_cost (from quote summary)
 
 3. DO NOT include:
    laborCost,

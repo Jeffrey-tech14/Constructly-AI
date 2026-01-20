@@ -188,7 +188,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   ];
   const [currentStep, setCurrentStep] = useState(1);
   const [calculation, setCalculation] = useState<CalculationResult | null>(
-    null
+    null,
   );
   const [subContractors, setServices] = useState<any[]>([]);
   const location = useLocation();
@@ -229,8 +229,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       const rate = userRate
         ? Number(userRate.price)
         : service.price != null
-        ? Number(service.price)
-        : 0;
+          ? Number(service.price)
+          : 0;
       return {
         ...service,
         price: rate,
@@ -411,10 +411,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     ];
     const merged = allRegions.map((region) => {
       const base = baseRates.find(
-        (r) => r.region.toLowerCase() === region.toLowerCase()
+        (r) => r.region.toLowerCase() === region.toLowerCase(),
       );
       const userRate = overrides?.find(
-        (o) => o.region.toLowerCase() === region.toLowerCase()
+        (o) => o.region.toLowerCase() === region.toLowerCase(),
       );
       return {
         id: profile.id,
@@ -432,7 +432,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     const rateForRegion = transportRates.find(
       (r) =>
         r.region.toString().toLowerCase().trim() ===
-        region.toString().toLowerCase().trim()
+        region.toString().toLowerCase().trim(),
     );
     const defaultTransportRate = { cost_per_km: 50, base_cost: 500 };
     if (!rateForRegion) {
@@ -522,7 +522,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               },
               staircaseDetails: structure.staircaseDetails,
               tankDetails: structure.tankDetails,
-            })
+            }),
           ) || prev.concrete_rows,
 
         equipment:
@@ -539,7 +539,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 equipmentRates.find((eq) => eq.id === item.id)?.rate_per_unit ||
                 0,
               usage_quantity: item.usage_quantity || 1,
-            })
+            }),
           ) || prev.equipment,
 
         // Reinforcement
@@ -814,9 +814,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
     const merged = baseMaterials.map((material) => {
       const userRate = overrides?.find(
-        (o) => o.material_id === material.id && o.region === userRegion
+        (o) => o.material_id === material.id && o.region === userRegion,
       );
-      const price = userRate ? userRate.price : material.price ?? 0;
+      const price = userRate ? userRate.price : (material.price ?? 0);
       const multiplier =
         regionalMultipliers.find((r) => r.region === userRegion)?.multiplier ||
         1;
@@ -904,13 +904,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
   const updatePercentageField = (
     field: keyof Percentage,
-    value: number | string
+    value: number | string,
   ) => {
     setQuoteData((prev) => {
       const updatedPercentages =
         prev.percentages.length > 0
           ? prev.percentages.map((p, i) =>
-              i === 0 ? { ...p, [field]: value } : p
+              i === 0 ? { ...p, [field]: value } : p,
             )
           : [
               {
@@ -1090,7 +1090,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plumbing_calculations: quoteData.plumbing_calculations,
           finishes_calculations: quoteData.finishes_calculations,
           additional_services_cost: Math.round(
-            calculation.selected_services_cost
+            calculation.selected_services_cost,
           ),
           total_amount: Math.round(calculation.total_amount),
           masonry_materials: quoteData.masonry_materials,
@@ -1163,7 +1163,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           roof_structures: roofStructure,
           earthwork: earthwork,
           additional_services_cost: Math.round(
-            calculation.selected_services_cost
+            calculation.selected_services_cost,
           ),
           equipment_costs: Math.round(calculation.equipment_cost),
           total_amount: Math.round(calculation.total_amount),
@@ -1616,10 +1616,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((equipment) => {
                     const isChecked = quoteData.equipment.some(
-                      (eq) => eq.equipment_type_id === equipment.id
+                      (eq) => eq.equipment_type_id === equipment.id,
                     );
                     const equipmentItem = quoteData.equipment.find(
-                      (eq) => eq.equipment_type_id === equipment.id
+                      (eq) => eq.equipment_type_id === equipment.id,
                     );
                     return (
                       <Card key={equipment.id} className="p-6">
@@ -1653,7 +1653,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       ...prev,
                                       equipment: prev.equipment.filter(
                                         (eq) =>
-                                          eq.equipment_type_id !== equipment.id
+                                          eq.equipment_type_id !== equipment.id,
                                       ),
                                     }));
                                   }
@@ -1701,7 +1701,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   usage_quantity: quantity,
                                                   total_cost: quantity * rate,
                                                 }
-                                              : eq
+                                              : eq,
                                           ),
                                         }));
                                       }}
@@ -1731,7 +1731,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                       ...eq,
                                                       usage_unit: value,
                                                     }
-                                                  : eq
+                                                  : eq,
                                             ),
                                           }));
                                         }}
@@ -1791,7 +1791,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                 rate_per_unit: rate,
                                                 total_cost: quantity * rate,
                                               }
-                                            : eq
+                                            : eq,
                                         ),
                                       }));
                                     }}
@@ -1838,14 +1838,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   })}
                 {customEquipment
                   .sort((a, b) =>
-                    a.equipment_name.localeCompare(b.equipment_name)
+                    a.equipment_name.localeCompare(b.equipment_name),
                   )
                   .map((customEq) => {
                     const isChecked = quoteData.equipment.some(
-                      (eq) => eq.equipment_type_id === customEq.id
+                      (eq) => eq.equipment_type_id === customEq.id,
                     );
                     const equipmentItem = quoteData.equipment.find(
-                      (eq) => eq.equipment_type_id === customEq.id
+                      (eq) => eq.equipment_type_id === customEq.id,
                     );
                     return (
                       <Card
@@ -1881,7 +1881,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       ...prev,
                                       equipment: prev.equipment.filter(
                                         (eq) =>
-                                          eq.equipment_type_id !== customEq.id
+                                          eq.equipment_type_id !== customEq.id,
                                       ),
                                     }));
                                   }
@@ -1931,7 +1931,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   usage_quantity: quantity,
                                                   total_cost: quantity * rate,
                                                 }
-                                              : eq
+                                              : eq,
                                           ),
                                         }));
                                       }}
@@ -1961,7 +1961,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                       ...eq,
                                                       usage_unit: value,
                                                     }
-                                                  : eq
+                                                  : eq,
                                             ),
                                           }));
                                         }}
@@ -2021,7 +2021,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                 rate_per_unit: rate,
                                                 total_cost: quantity * rate,
                                               }
-                                            : eq
+                                            : eq,
                                         ),
                                       }));
                                     }}
@@ -2070,11 +2070,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   .filter(
                     (eq) =>
                       !equipmentRates.some(
-                        (e) => e.id === eq.equipment_type_id
+                        (e) => e.id === eq.equipment_type_id,
                       ) &&
                       !customEquipment.some(
-                        (ce) => ce.id === eq.equipment_type_id
-                      )
+                        (ce) => ce.id === eq.equipment_type_id,
+                      ),
                   )
                   .map((eq) => {
                     const totalCost =
@@ -2104,7 +2104,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       item.equipment_type_id ===
                                       eq.equipment_type_id
                                         ? { ...item, name: e.target.value }
-                                        : item
+                                        : item,
                                     ),
                                   }))
                                 }
@@ -2122,7 +2122,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   equipment: prev.equipment.filter(
                                     (item) =>
                                       item.equipment_type_id !==
-                                      eq.equipment_type_id
+                                      eq.equipment_type_id,
                                   ),
                                 }))
                               }
@@ -2158,7 +2158,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                             usage_quantity: quantity,
                                             total_cost: quantity * rate,
                                           }
-                                        : item
+                                        : item,
                                     ),
                                   }));
                                 }}
@@ -2181,7 +2181,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                       item.equipment_type_id ===
                                       eq.equipment_type_id
                                         ? { ...item, usage_unit: value }
-                                        : item
+                                        : item,
                                     ),
                                   }));
                                 }}
@@ -2226,7 +2226,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                           rate_per_unit: rate,
                                           total_cost: quantity * rate,
                                         }
-                                      : item
+                                      : item,
                                   ),
                                 }));
                               }}
@@ -2249,7 +2249,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
-                                }
+                                },
                               )}`}
                               className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
                             />
@@ -2261,7 +2261,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
-                                }
+                                },
                               )}
                               /{eq.usage_unit || "unit"}
                             </p>
@@ -2331,7 +2331,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
                     const isChecked = quoteData.services.some(
-                      (s) => s.id === service.id
+                      (s) => s.id === service.id,
                     );
                     return (
                       <Card key={service.id} className="p-4">
@@ -2359,7 +2359,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   setQuoteData((prev) => ({
                                     ...prev,
                                     services: prev.services.filter(
-                                      (s) => s.id !== service.id
+                                      (s) => s.id !== service.id,
                                     ),
                                   }));
                                 }
@@ -2394,7 +2394,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               <Select
                                 value={
                                   quoteData.services.find(
-                                    (s) => s.id === service.id
+                                    (s) => s.id === service.id,
                                   )?.payment_plan || "full"
                                 }
                                 onValueChange={(value: "interval" | "full") =>
@@ -2411,7 +2411,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                 : (serv.price || 0) *
                                                   (serv.days || 1),
                                           }
-                                        : serv
+                                        : serv,
                                     ),
                                   }))
                                 }
@@ -2433,7 +2433,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             <div>
                               <Label htmlFor={`serviceCost-${service.id}`}>
                                 {quoteData.services.find(
-                                  (s) => s.id === service.id
+                                  (s) => s.id === service.id,
                                 )?.payment_plan === "full"
                                   ? "Total Cost"
                                   : "Rate per Unit"}
@@ -2444,18 +2444,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 min="0"
                                 value={
                                   quoteData.services.find(
-                                    (s) => s.id === service.id
+                                    (s) => s.id === service.id,
                                   )?.payment_plan === "full"
                                     ? quoteData.services.find(
-                                        (s) => s.id === service.id
+                                        (s) => s.id === service.id,
                                       )?.total || service.price
                                     : quoteData.services.find(
-                                        (s) => s.id === service.id
+                                        (s) => s.id === service.id,
                                       )?.price || service.price
                                 }
                                 placeholder={
                                   quoteData.services.find(
-                                    (s) => s.id === service.id
+                                    (s) => s.id === service.id,
                                   )?.payment_plan === "full"
                                     ? "Total cost"
                                     : "Rate per unit"
@@ -2479,7 +2479,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   0
                                                 : serv.price,
                                           }
-                                        : serv
+                                        : serv,
                                     ),
                                   }))
                                 }
@@ -2495,7 +2495,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     <Select
                                       value={
                                         quoteData.services.find(
-                                          (s) => s.id === service.id
+                                          (s) => s.id === service.id,
                                         )?.unit || "day"
                                       }
                                       onValueChange={(e) =>
@@ -2507,7 +2507,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   ...serv,
                                                   unit: e,
                                                 }
-                                              : serv
+                                              : serv,
                                           ),
                                         }))
                                       }
@@ -2541,7 +2541,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   <Label htmlFor={`serviceDays-${service.id}`}>
                                     Number of{" "}
                                     {quoteData.services.find(
-                                      (s) => s.id === service.id
+                                      (s) => s.id === service.id,
                                     )?.unit || "days"}
                                   </Label>
                                   <Input
@@ -2550,7 +2550,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     min="1"
                                     value={
                                       quoteData.services.find(
-                                        (s) => s.id === service.id
+                                        (s) => s.id === service.id,
                                       )?.days || ""
                                     }
                                     placeholder="e.g., 5"
@@ -2568,7 +2568,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   (parseInt(e.target.value) ||
                                                     0),
                                               }
-                                            : serv
+                                            : serv,
                                         ),
                                       }))
                                     }
@@ -2599,7 +2599,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 services: prev.services.map((s) =>
                                   s.id === service.id
                                     ? { ...s, name: e.target.value }
-                                    : s
+                                    : s,
                                 ),
                               }))
                             }
@@ -2615,7 +2615,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 services: prev.services.map((s) =>
                                   s.id === service.id
                                     ? { ...s, category: e.target.value }
-                                    : s
+                                    : s,
                                 ),
                               }))
                             }
@@ -2632,7 +2632,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   services: prev.services.map((s) =>
                                     s.id === service.id
                                       ? { ...s, description: e.target.value }
-                                      : s
+                                      : s,
                                   ),
                                 }))
                               }
@@ -2656,7 +2656,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                             ? s.total || s.price
                                             : (s.price || 0) * (s.days || 1),
                                       }
-                                    : s
+                                    : s,
                                 ),
                               }))
                             }
@@ -2702,7 +2702,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                             ? val
                                             : s.price,
                                       }
-                                    : s
+                                    : s,
                                 ),
                               }));
                             }}
@@ -2719,7 +2719,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                     services: prev.services.map((s) =>
                                       s.id === service.id
                                         ? { ...s, unit: value }
-                                        : s
+                                        : s,
                                     ),
                                   }));
                                 }}
@@ -2756,7 +2756,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                               (s.price || 0) *
                                               (parseInt(e.target.value) || 0),
                                           }
-                                        : s
+                                        : s,
                                     ),
                                   }))
                                 }
@@ -2771,7 +2771,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               setQuoteData((prev) => ({
                                 ...prev,
                                 services: prev.services.filter(
-                                  (s) => s.id !== service.id
+                                  (s) => s.id !== service.id,
                                 ),
                               }))
                             }
@@ -2858,7 +2858,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((service) => {
                     const isChecked = quoteData.subcontractors.some(
-                      (s) => s.id === service.id
+                      (s) => s.id === service.id,
                     );
                     return (
                       <Card
@@ -2886,7 +2886,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   setQuoteData((prev) => ({
                                     ...prev,
                                     subcontractors: prev.subcontractors.filter(
-                                      (s) => s.id !== service.id
+                                      (s) => s.id !== service.id,
                                     ),
                                   }));
                                 }
@@ -2911,7 +2911,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             <Select
                               value={
                                 quoteData.subcontractors.find(
-                                  (s) => s.id === service.id
+                                  (s) => s.id === service.id,
                                 )?.subcontractor_payment_plan || "full"
                               }
                               onValueChange={(value: "daily" | "full") =>
@@ -2932,7 +2932,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                 ? sub.price
                                                 : sub.total || sub.price,
                                           }
-                                        : sub
+                                        : sub,
                                   ),
                                 }))
                               }
@@ -2961,18 +2961,18 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               min="0"
                               value={
                                 quoteData.subcontractors.find(
-                                  (s) => s.id === service.id
+                                  (s) => s.id === service.id,
                                 )?.subcontractor_payment_plan === "full"
                                   ? quoteData.subcontractors.find(
-                                      (s) => s.id === service.id
+                                      (s) => s.id === service.id,
                                     )?.total || service.price
                                   : quoteData.subcontractors.find(
-                                      (s) => s.id === service.id
+                                      (s) => s.id === service.id,
                                     )?.price || service.price
                               }
                               placeholder={
                                 quoteData.subcontractors.find(
-                                  (s) => s.id === service.id
+                                  (s) => s.id === service.id,
                                 )?.subcontractor_payment_plan === "full"
                                   ? "Total cost"
                                   : "Daily rate"
@@ -2998,14 +2998,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                   0
                                                 : sub.price,
                                           }
-                                        : sub
+                                        : sub,
                                   ),
                                 }))
                               }
                               className=""
                             />
                             {quoteData.subcontractors.find(
-                              (s) => s.id === service.id
+                              (s) => s.id === service.id,
                             )?.subcontractor_payment_plan === "daily" && (
                               <>
                                 <Label
@@ -3020,7 +3020,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                   min="1"
                                   value={
                                     quoteData.subcontractors.find(
-                                      (s) => s.id === service.id
+                                      (s) => s.id === service.id,
                                     )?.days || ""
                                   }
                                   placeholder="e.g., 5"
@@ -3035,7 +3035,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                                 days:
                                                   parseInt(e.target.value) || 0,
                                               }
-                                            : sub
+                                            : sub,
                                       ),
                                     }))
                                   }
@@ -3067,7 +3067,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                 subcontractors: prev.subcontractors.map((s) =>
                                   s.id === sub.id
                                     ? { ...s, name: e.target.value }
-                                    : s
+                                    : s,
                                 ),
                               }))
                             }
@@ -3094,7 +3094,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                             ? s.price || s.total
                                             : s.price,
                                       }
-                                    : s
+                                    : s,
                                 ),
                               }))
                             }
@@ -3141,7 +3141,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                                             ? val
                                             : s.price,
                                       }
-                                    : s
+                                    : s,
                                 ),
                               }));
                             }}
@@ -3156,13 +3156,14 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               onChange={(e) =>
                                 setQuoteData((prev) => ({
                                   ...prev,
-                                  subcontractors: prev.subcontractors.map((s) =>
-                                    s.id === sub.id
-                                      ? {
-                                          ...s,
-                                          days: parseInt(e.target.value) || 0,
-                                        }
-                                      : s
+                                  subcontractors: prev.subcontractors.map(
+                                    (s) =>
+                                      s.id === sub.id
+                                        ? {
+                                            ...s,
+                                            days: parseInt(e.target.value) || 0,
+                                          }
+                                        : s,
                                   ),
                                 }))
                               }
@@ -3176,7 +3177,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                               setQuoteData((prev) => ({
                                 ...prev,
                                 subcontractors: prev.subcontractors.filter(
-                                  (s) => s.id !== sub.id
+                                  (s) => s.id !== sub.id,
                                 ),
                               }))
                             }

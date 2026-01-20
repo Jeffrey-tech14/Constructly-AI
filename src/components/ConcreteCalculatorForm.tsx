@@ -74,7 +74,7 @@ export default function ConcreteCalculatorForm({
         qsSettings: newSettings,
       }));
     },
-    [setQuote]
+    [setQuote],
   );
 
   useEffect(() => {
@@ -148,6 +148,13 @@ export default function ConcreteCalculatorForm({
 
   const [rows, setRows] = useState<ConcreteRow[]>([]);
 
+  // Load existing concrete rows from quote on mount or when quote changes
+  useEffect(() => {
+    if (quote?.concrete_rows && Array.isArray(quote.concrete_rows) && quote.concrete_rows.length > 0) {
+      setRows(quote.concrete_rows);
+    }
+  }, [quote?.concrete_rows]);
+
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const DEBOUNCE_MS = 500;
 
@@ -163,7 +170,7 @@ export default function ConcreteCalculatorForm({
         });
       }, DEBOUNCE_MS);
     },
-    [setQuote]
+    [setQuote],
   );
 
   /**
@@ -233,24 +240,24 @@ export default function ConcreteCalculatorForm({
         return next;
       });
     },
-    [pushRowsDebounced]
+    [pushRowsDebounced],
   );
 
   const updateRow = useCallback(
     <K extends keyof ConcreteRow>(
       id: string,
       key: K,
-      value: ConcreteRow[K]
+      value: ConcreteRow[K],
     ) => {
       setRows((prev) => {
         const next = prev.map((r) =>
-          r.id === id ? { ...r, [key]: value } : r
+          r.id === id ? { ...r, [key]: value } : r,
         );
         pushRowsDebounced(next);
         return next;
       });
     },
-    [pushRowsDebounced]
+    [pushRowsDebounced],
   );
 
   const addRow = useCallback(() => {
@@ -274,7 +281,7 @@ export default function ConcreteCalculatorForm({
   useEffect(() => {
     const timer = setTimeout(() => {
       const hasFoundationRow = quote.concrete_rows?.some(
-        (row: ConcreteRow) => row.element === "raft-foundation"
+        (row: ConcreteRow) => row.element === "raft-foundation",
       );
       const hasFoundationDetails = quote.foundationDetails?.totalPerimeter;
 
@@ -294,7 +301,7 @@ export default function ConcreteCalculatorForm({
         return next;
       });
     },
-    [setQuote]
+    [setQuote],
   );
 
   const fetchMaterials = useCallback(async () => {
@@ -316,10 +323,10 @@ export default function ConcreteCalculatorForm({
     const merged =
       baseMaterials?.map((material) => {
         const userRate = overrides?.find(
-          (o) => o.material_id === material.id && o.region === userRegion
+          (o) => o.material_id === material.id && o.region === userRegion,
         );
         const materialP = (material.price || 0) * multiplier;
-        const price = userRate ? userRate.price : materialP ?? 0;
+        const price = userRate ? userRate.price : (materialP ?? 0);
         return {
           ...material,
           price,
@@ -344,29 +351,29 @@ export default function ConcreteCalculatorForm({
   const sandMat = materials.find((m) => m.name?.toLowerCase() === "sand");
   const ballastMat = materials.find((m) => m.name?.toLowerCase() === "ballast");
   const aggregateMat = materials.find(
-    (m) => m.name?.toLowerCase() === "aggregate"
+    (m) => m.name?.toLowerCase() === "aggregate",
   );
   const formworkMat = materials.find(
-    (m) => m.name?.toLowerCase() === "formwork"
+    (m) => m.name?.toLowerCase() === "formwork",
   );
   const waterMat = materials.find((m) => m.name?.toLowerCase() === "water");
   const dpcMat = materials.find(
     (m) =>
       m.name?.toLowerCase().includes("dpc") ||
-      m.name?.toLowerCase().includes("damp")
+      m.name?.toLowerCase().includes("damp"),
   );
   const polytheneMat = materials.find(
     (m) =>
       m.name?.toLowerCase().includes("polythene") ||
-      m.name?.toLowerCase().includes("dpm")
+      m.name?.toLowerCase().includes("dpm"),
   );
   const waterproofingMat = materials.find(
     (m) =>
       m.name?.toLowerCase().includes("waterproof") ||
-      m.name?.toLowerCase().includes("bituminous")
+      m.name?.toLowerCase().includes("bituminous"),
   );
   const gravelMat = materials.find((m) =>
-    m.name?.toLowerCase().includes("gravel")
+    m.name?.toLowerCase().includes("gravel"),
   );
 
   const foundationMasonryType =
@@ -385,7 +392,7 @@ export default function ConcreteCalculatorForm({
 
   const foundationBlockMat = foundationBlockPrice.getMaterialPrice(
     "Bricks",
-    foundationMasonryType
+    foundationMasonryType,
   );
 
   const addFoundationStep = useCallback(
@@ -412,7 +419,7 @@ export default function ConcreteCalculatorForm({
         return next;
       });
     },
-    [pushRowsDebounced]
+    [pushRowsDebounced],
   );
 
   const updateFoundationStep = useCallback(
@@ -420,13 +427,13 @@ export default function ConcreteCalculatorForm({
       rowId: string,
       stepId: string,
       field: keyof FoundationStep,
-      value: string
+      value: string,
     ) => {
       setRows((prev) => {
         const next = prev.map((row) => {
           if (row.id === rowId) {
             const updatedSteps = row.foundationSteps?.map((step) =>
-              step.id === stepId ? { ...step, [field]: value } : step
+              step.id === stepId ? { ...step, [field]: value } : step,
             );
             return { ...row, foundationSteps: updatedSteps };
           }
@@ -436,7 +443,7 @@ export default function ConcreteCalculatorForm({
         return next;
       });
     },
-    [pushRowsDebounced]
+    [pushRowsDebounced],
   );
 
   const removeFoundationStep = useCallback(
@@ -445,7 +452,7 @@ export default function ConcreteCalculatorForm({
         const next = prev.map((row) => {
           if (row.id === rowId) {
             const filteredSteps = row.foundationSteps?.filter(
-              (step) => step.id !== stepId
+              (step) => step.id !== stepId,
             );
             return { ...row, foundationSteps: filteredSteps };
           }
@@ -455,7 +462,7 @@ export default function ConcreteCalculatorForm({
         return next;
       });
     },
-    [pushRowsDebounced]
+    [pushRowsDebounced],
   );
 
   const handleElementChange = useCallback(
@@ -484,7 +491,7 @@ export default function ConcreteCalculatorForm({
         updateRow(id, "soakawayDetails", undefined);
       }
     },
-    [updateRow]
+    [updateRow],
   );
 
   const initializeSpecializedDetails = useCallback(
@@ -538,7 +545,7 @@ export default function ConcreteCalculatorForm({
         });
       }
     },
-    [updateRow]
+    [updateRow],
   );
 
   const renderSpecializedFields = (row: ConcreteRow) => {
@@ -1257,7 +1264,7 @@ export default function ConcreteCalculatorForm({
                     row.id,
                     step.id,
                     "offset",
-                    e.target.value
+                    e.target.value,
                   )
                 }
                 placeholder="Offset (m)"
@@ -1484,7 +1491,7 @@ export default function ConcreteCalculatorForm({
           quantity: r.aggregateVolume || 0,
           unit_price: aggregateMat?.price || 0,
           total_price: Math.round(
-            (r.aggregateVolume || 0) * (aggregateMat?.price || 0)
+            (r.aggregateVolume || 0) * (aggregateMat?.price || 0),
           ),
         },
       ];
@@ -1597,7 +1604,7 @@ export default function ConcreteCalculatorForm({
         quantity: totals.cement + (totals.mortarCementBags || 0),
         unit_price: cementMat.price,
         total_price: Math.round(
-          (totals.cement + (totals.mortarCementBags || 0)) * cementMat.price
+          (totals.cement + (totals.mortarCementBags || 0)) * cementMat.price,
         ),
       },
       {
@@ -1606,7 +1613,7 @@ export default function ConcreteCalculatorForm({
         quantity: totals.sand + (totals.mortarSandM3 || 0),
         unit_price: sandMat.price,
         total_price: Math.round(
-          (totals.sand + (totals.mortarSandM3 || 0)) * sandMat.price
+          (totals.sand + (totals.mortarSandM3 || 0)) * sandMat.price,
         ),
       },
       {
@@ -1629,7 +1636,7 @@ export default function ConcreteCalculatorForm({
         quantity: totals.aggregateVolume || 0,
         unit_price: aggregateMat?.price || 0,
         total_price: Math.round(
-          (totals.aggregateVolume || 0) * (aggregateMat?.price || 0)
+          (totals.aggregateVolume || 0) * (aggregateMat?.price || 0),
         ),
       },
       ...(!qsSettings.clientProvidesWater
@@ -1898,7 +1905,7 @@ export default function ConcreteCalculatorForm({
                       updateRow(
                         row.id,
                         "areaSelectionMode",
-                        value as "LENGTH_WIDTH" | "DIRECT_AREA"
+                        value as "LENGTH_WIDTH" | "DIRECT_AREA",
                       )
                     }
                   >
@@ -2049,7 +2056,7 @@ export default function ConcreteCalculatorForm({
                         updateRow(
                           row.id,
                           "isSteppedFoundation",
-                          checked === true
+                          checked === true,
                         )
                       }
                       className="w-4 h-4"
@@ -2181,7 +2188,7 @@ export default function ConcreteCalculatorForm({
                           updateRow(
                             row.id,
                             "masonryBlockDimensions",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Block Dimensions (LxWxH in m)"
@@ -2193,7 +2200,7 @@ export default function ConcreteCalculatorForm({
                           updateRow(
                             row.id,
                             "masonryWallThickness",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder="Wall Thickness (m, e.g., 0.2)"
@@ -2299,7 +2306,7 @@ export default function ConcreteCalculatorForm({
                         <p>
                           <b>Bed Cost:</b> Ksh{" "}
                           {Math.round(
-                            result.bedVolume * calculateConcreteRateForRow(row)
+                            result.bedVolume * calculateConcreteRateForRow(row),
                           ).toLocaleString()}
                         </p>
                       </div>
@@ -2321,7 +2328,7 @@ export default function ConcreteCalculatorForm({
                         <p>
                           <b>Aggregate Cost:</b> Ksh{" "}
                           {Math.round(
-                            result.aggregateVolume * (aggregateMat?.price || 0)
+                            result.aggregateVolume * (aggregateMat?.price || 0),
                           ).toLocaleString()}
                         </p>
                       </div>
@@ -2362,7 +2369,7 @@ export default function ConcreteCalculatorForm({
                     <b>
                       Ksh{" "}
                       {Math.round(
-                        result.grossCementBags * (cementMat?.price || 0)
+                        result.grossCementBags * (cementMat?.price || 0),
                       ).toLocaleString()}
                     </b>
                   </p>
@@ -2372,7 +2379,7 @@ export default function ConcreteCalculatorForm({
                     <b>
                       Ksh{" "}
                       {Math.round(
-                        result.grossSandM3 * (sandMat?.price || 0)
+                        result.grossSandM3 * (sandMat?.price || 0),
                       ).toLocaleString()}
                     </b>
                   </p>
@@ -2382,7 +2389,7 @@ export default function ConcreteCalculatorForm({
                     <b>
                       Ksh{" "}
                       {Math.round(
-                        result.grossStoneM3 * (ballastMat?.price || 0)
+                        result.grossStoneM3 * (ballastMat?.price || 0),
                       ).toLocaleString()}
                     </b>
                   </p>
@@ -2391,7 +2398,7 @@ export default function ConcreteCalculatorForm({
                     <b>
                       Ksh{" "}
                       {Math.round(
-                        result.formworkM2 * (formworkMat?.price || 0)
+                        result.formworkM2 * (formworkMat?.price || 0),
                       ).toLocaleString()}
                     </b>
                   </p>
@@ -2427,13 +2434,13 @@ export default function ConcreteCalculatorForm({
                         {Math.ceil(result.netTotalBlocks || 0).toLocaleString()}{" "}
                         units (net) →{" "}
                         {Math.ceil(
-                          result.grossTotalBlocks || 0
+                          result.grossTotalBlocks || 0,
                         ).toLocaleString()}{" "}
                         units (gross) —{" "}
                         <b>
                           Ksh{" "}
                           {Math.round(
-                            result.grossTotalBlocks * (foundationBlockMat || 0)
+                            result.grossTotalBlocks * (foundationBlockMat || 0),
                           ).toLocaleString()}
                         </b>
                       </p>
@@ -2446,7 +2453,7 @@ export default function ConcreteCalculatorForm({
                           Ksh{" "}
                           {Math.round(
                             result.grossMortarCementBags *
-                              (cementMat?.price || 0)
+                              (cementMat?.price || 0),
                           ).toLocaleString()}
                         </b>
                       </p>
@@ -2457,7 +2464,7 @@ export default function ConcreteCalculatorForm({
                         <b>
                           Ksh{" "}
                           {Math.round(
-                            result.grossMortarSandM3 * (sandMat?.price || 0)
+                            result.grossMortarSandM3 * (sandMat?.price || 0),
                           ).toLocaleString()}
                         </b>
                       </p>
@@ -2504,7 +2511,7 @@ export default function ConcreteCalculatorForm({
           <b>
             Ksh{" "}
             {Math.round(
-              totals?.cement * (cementMat?.price || 0)
+              totals?.cement * (cementMat?.price || 0),
             ).toLocaleString()}
           </b>
         </p>
@@ -2520,7 +2527,7 @@ export default function ConcreteCalculatorForm({
           <b>
             Ksh{" "}
             {Math.round(
-              totals.stone * (ballastMat?.price || 0)
+              totals.stone * (ballastMat?.price || 0),
             ).toLocaleString()}
           </b>
         </p>
@@ -2529,7 +2536,7 @@ export default function ConcreteCalculatorForm({
           <b>
             Ksh{" "}
             {Math.round(
-              totals.formworkM2 * (formworkMat?.price || 0)
+              totals.formworkM2 * (formworkMat?.price || 0),
             ).toLocaleString()}
           </b>
         </p>
@@ -2549,7 +2556,7 @@ export default function ConcreteCalculatorForm({
               <b>
                 Ksh{" "}
                 {Math.round(
-                  totals.totalBlocks * (foundationBlockMat || 0)
+                  totals.totalBlocks * (foundationBlockMat || 0),
                 ).toLocaleString()}
               </b>
             </p>
@@ -2559,7 +2566,7 @@ export default function ConcreteCalculatorForm({
               <b>
                 Ksh{" "}
                 {Math.round(
-                  totals.mortarCementBags * (cementMat?.price || 0)
+                  totals.mortarCementBags * (cementMat?.price || 0),
                 ).toLocaleString()}
               </b>
             </p>
@@ -2568,7 +2575,7 @@ export default function ConcreteCalculatorForm({
               <b>
                 Ksh{" "}
                 {Math.round(
-                  totals.mortarSandM3 * (sandMat?.price || 0)
+                  totals.mortarSandM3 * (sandMat?.price || 0),
                 ).toLocaleString()}
               </b>
             </p>

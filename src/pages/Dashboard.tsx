@@ -91,33 +91,33 @@ const Dashboard = () => {
 
       const totalQuotesValue = quotes.reduce(
         (sum, quote) => sum + (quote.total_amount || 0),
-        0
+        0,
       );
       const completedProjects = quotes.filter(
-        (quote) => quote.status === "completed"
+        (quote) => quote.status === "completed",
       ).length;
       const activeProjects = quotes.filter((quote) =>
-        ["started", "in_progress"].includes(quote.status)
+        ["started", "in_progress"].includes(quote.status),
       ).length;
       const pendingQuotes = quotes.filter(
-        (quote) => quote.status === "draft"
+        (quote) => quote.status === "draft",
       ).length;
       const upcomingEvents = events
         .filter((event) => new Date(event.event_date) >= new Date())
         .sort(
           (a, b) =>
-            new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+            new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
         )
         .slice(0, 3);
       const recentQuotes = quotes
         .sort(
           (a, b) =>
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
         )
         .slice(0, 5);
       const allQuotes = quotes.sort(
         (a, b) =>
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
       );
       setDashboardData({
         totalQuotesValue,
@@ -273,18 +273,18 @@ const Dashboard = () => {
         >
           <TabsList
             className={`grid w-full ${
-              profile.tier === "Professional"
+              profile.tier === "Enterprise"
                 ? "grid-cols-3"
                 : profile.tier === "Free"
-                ? "grid-cols-1"
-                : "grid-cols-2"
+                  ? "grid-cols-1"
+                  : "grid-cols-2"
             } mb-6`}
           >
             <TabsTrigger value="overview" className="flex items-center">
               <BarChart className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
-            {profile.tier === "Professional" && (
+            {profile.tier === "Enterprise" && (
               <TabsTrigger value="reports" className="flex items-center">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Reports
@@ -384,7 +384,7 @@ const Dashboard = () => {
                                 <div className="text-xs text-muted-foreground">
                                   {format(
                                     new Date(event.event_date),
-                                    "MMM d, yyyy"
+                                    "MMM d, yyyy",
                                   )}
                                   {event.event_time &&
                                     ` at ${event.event_time}`}
@@ -447,7 +447,7 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
-          {profile.tier === "Professional" && (
+          {profile.tier === "Enterprise" && (
             <TabsContent value="reports">
               <Reports />
             </TabsContent>

@@ -1,0 +1,179 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HashRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { useState, useEffect } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import QuoteBuilder from "./pages/QuoteBuilder";
+import ViewAllQuotes from "./pages/ViewAllQuotes";
+import AdminDashboard from "./pages/AdminDashboard";
+import Variables from "./pages/Variables";
+import NotFound from "./pages/NotFound";
+import UploadPlan from "./pages/UploadPage";
+import Auth from "./pages/Auth";
+import UpdatePassword from "./pages/auth/update-password"; // ✅ NEW IMPORT
+import PaymentPage from "./pages/PaymentPage";
+import PaymentAction from "./components/PaymentDialog";
+import WhoItsFor from "./pages/WhoItsFor";
+import HowItWorksPage from "./pages/HowItWorks";
+import Features from "./pages/Features";
+import Pricing from "./pages/Pricing";
+import PaymentOptions from "./pages/PaymentOptions";
+import Testimonials from "./pages/Testimonials";
+import FAQ from "./pages/FAQ";
+
+const queryClient = new QueryClient();
+
+// Inner component that can detect theme changes
+const AppContent = () => {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // Check initial theme
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    };
+
+    checkTheme();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400 relative">
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          backgroundImage: `
+          linear-gradient(to right, ${
+            isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.07)"
+          } 1px, transparent 1px),
+          linear-gradient(to bottom, ${
+            isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.06)"
+          } 1px, transparent 1px)
+        `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+      <div className="relative z-10">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/who-its-for" element={<Features />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/features" element={<WhoItsFor />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/payment-options" element={<PaymentOptions />} />
+          <Route path="/testimonials" element={<Testimonials />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/auth" element={<Auth />} />
+          {/* ✅ NEW ROUTE: Password reset callback */}
+          <Route path="/auth/update-password" element={<UpdatePassword />} />
+          <Route
+            path="payment"
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payments/action"
+            element={
+              <ProtectedRoute>
+                <PaymentAction />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upload/plan"
+            element={
+              <ProtectedRoute>
+                <UploadPlan />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotes/new"
+            element={
+              <ProtectedRoute>
+                <QuoteBuilder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotes/all"
+            element={
+              <ProtectedRoute>
+                <ViewAllQuotes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/variables"
+            element={
+              <ProtectedRoute>
+                <Variables />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </div>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AppContent />
+      </TooltipProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
+);
+
+export default App;

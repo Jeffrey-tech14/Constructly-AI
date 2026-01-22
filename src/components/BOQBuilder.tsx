@@ -131,7 +131,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     sectionIndex: number,
     itemIndex: number,
     field: string,
-    value: any
+    value: any,
   ) => {
     const newSections = [...boqSections];
     const item = newSections[sectionIndex].items[itemIndex];
@@ -311,12 +311,12 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
               generationMethod === "existing"
                 ? "bg-green-100 text-green-800"
                 : generationMethod === "ai"
-                ? "bg-green-100 text-green-800"
-                : generationMethod === "local"
-                ? "bg-blue-100 text-blue-800"
-                : generationMethod === "mock"
-                ? "bg-amber-100 text-amber-800"
-                : "bg-gray-100 text-gray-800"
+                  ? "bg-green-100 text-green-800"
+                  : generationMethod === "local"
+                    ? "bg-blue-100 text-blue-800"
+                    : generationMethod === "mock"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-gray-100 text-gray-800"
             }`}
           >
             {generationMethod === "ai" || generationMethod === "existing" ? (
@@ -385,7 +385,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                               sectionIndex,
                               itemIndex,
                               "description",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                         />
@@ -438,7 +438,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                               sectionIndex,
                               itemIndex,
                               "quantity",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="w-20"
@@ -460,7 +460,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                               sectionIndex,
                               itemIndex,
                               "rate",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="w-24"
@@ -514,7 +514,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                   <TableCell className="font-bold">
                     KSh{" "}
                     {calculateSectionTotal(
-                      section.items || []
+                      section.items || [],
                     ).toLocaleString()}
                   </TableCell>
                   <TableCell></TableCell>

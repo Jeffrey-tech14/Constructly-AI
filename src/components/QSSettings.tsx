@@ -37,6 +37,7 @@ interface FinancialModes {
   profit: "percentage" | "fixed";
   contingency: "percentage" | "fixed";
   permit_cost: "percentage" | "fixed";
+  unknowns_contingency: "percentage" | "fixed";
 }
 
 export default function QSSettings({
@@ -55,7 +56,8 @@ export default function QSSettings({
         profit: "percentage",
         contingency: "percentage",
         permit_cost: "percentage",
-      }
+        unknowns_contingency: "percentage",
+      },
   );
 
   const [localSettings, setLocalSettings] = useState<MasonryQSSettings>(() => ({
@@ -92,15 +94,17 @@ export default function QSSettings({
     wasteRemovalRate: 800,
     concreteMixRatio: "1:2:4",
     concreteWaterCementRatio: 0.5,
-    lintelRebarSize: "Y12",
-    verticalRebarSize: "Y12",
-    bedJointRebarSize: "Y8",
+    lintelRebarSize: "D12",
+    verticalRebarSize: "D12",
+    bedJointRebarSize: "D8",
     // Include financial fixed values
     labour_fixed: quoteData.qsSettings?.labour_fixed || 0,
     overhead_fixed: quoteData.qsSettings?.overhead_fixed || 0,
     profit_fixed: quoteData.qsSettings?.profit_fixed || 0,
     contingency_fixed: quoteData.qsSettings?.contingency_fixed || 0,
     permit_cost_fixed: quoteData.qsSettings?.permit_cost_fixed || 0,
+    unknowns_contingency_fixed:
+      quoteData.qsSettings?.unknowns_contingency_fixed || 0,
     // Include financial modes
     financialModes: quoteData.qsSettings?.financialModes || {
       labour: "percentage",
@@ -108,6 +112,7 @@ export default function QSSettings({
       profit: "percentage",
       contingency: "percentage",
       permit_cost: "percentage",
+      unknowns_contingency: "percentage",
     },
     ...quoteData.qsSettings, // Spread existing settings to override defaults
   }));
@@ -165,20 +170,22 @@ export default function QSSettings({
       wasteRemovalRate: 800,
       concreteMixRatio: "1:2:4",
       concreteWaterCementRatio: 0.5,
-      lintelRebarSize: "Y12",
-      verticalRebarSize: "Y12",
-      bedJointRebarSize: "Y8",
+      lintelRebarSize: "D12",
+      verticalRebarSize: "D12",
+      bedJointRebarSize: "D8",
       labour_fixed: 0,
       overhead_fixed: 0,
       profit_fixed: 0,
       contingency_fixed: 0,
       permit_cost_fixed: 0,
+      unknowns_contingency_fixed: 0,
       financialModes: {
         labour: "percentage",
         overhead: "percentage",
         profit: "percentage",
         contingency: "percentage",
         permit_cost: "percentage",
+        unknowns_contingency: "percentage",
       },
     };
     setLocalSettings(defaultSettings);
@@ -219,7 +226,7 @@ export default function QSSettings({
 
   const handleModeChange = (
     field: keyof FinancialModes,
-    newMode: "percentage" | "fixed"
+    newMode: "percentage" | "fixed",
   ) => {
     const updatedModes = {
       ...financialModes,
@@ -364,8 +371,9 @@ export default function QSSettings({
               {renderInput("overhead", "Overhead")}
               {renderInput("profit", "Profit")}
               {renderInput("contingency", "Contingency")}
+              {renderInput("unknowns_contingency", "Unknowns Contingency")}
+              {renderInput("permit_cost", "Permit Cost")}
             </div>
-            {renderInput("permit_cost", "Permit Cost")}
           </CardContent>
         </Card>
       </div>
@@ -430,7 +438,7 @@ export default function QSSettings({
                   onChange={(e) =>
                     handleNumericChange(
                       "sandMoistureContentPercent",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 />
@@ -446,7 +454,7 @@ export default function QSSettings({
                   onChange={(e) =>
                     handleNumericChange(
                       "otherSiteWaterAllowanceLM3",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 />
@@ -462,7 +470,7 @@ export default function QSSettings({
                   onChange={(e) =>
                     handleNumericChange(
                       "curingWaterRateLM2PerDay",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 />
@@ -484,7 +492,7 @@ export default function QSSettings({
                   onChange={(e) =>
                     handleNumericChange(
                       "aggregateMoistureContentPercent",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 />
@@ -503,7 +511,7 @@ export default function QSSettings({
                   onChange={(e) =>
                     handleNumericChange(
                       "aggregateAbsorptionPercent",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 />
@@ -636,7 +644,7 @@ export default function QSSettings({
                   onChange={(e) =>
                     handleNumericChange(
                       "concreteWaterCementRatio",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                 />
@@ -656,12 +664,12 @@ export default function QSSettings({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Y8">Y8 (8mm)</SelectItem>
-                    <SelectItem value="Y10">Y10 (10mm)</SelectItem>
-                    <SelectItem value="Y12">Y12 (12mm)</SelectItem>
-                    <SelectItem value="Y16">Y16 (16mm)</SelectItem>
-                    <SelectItem value="Y20">Y20 (20mm)</SelectItem>
-                    <SelectItem value="Y25">Y25 (25mm)</SelectItem>
+                    <SelectItem value="D8">D8 (8mm)</SelectItem>
+                    <SelectItem value="D10">D10 (10mm)</SelectItem>
+                    <SelectItem value="D12">D12 (12mm)</SelectItem>
+                    <SelectItem value="D16">D16 (16mm)</SelectItem>
+                    <SelectItem value="D20">D20 (20mm)</SelectItem>
+                    <SelectItem value="D25">D25 (25mm)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -677,10 +685,10 @@ export default function QSSettings({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Y8">Y8 (8mm)</SelectItem>
-                    <SelectItem value="Y10">Y10 (10mm)</SelectItem>
-                    <SelectItem value="Y12">Y12 (12mm)</SelectItem>
-                    <SelectItem value="Y16">Y16 (16mm)</SelectItem>
+                    <SelectItem value="D8">D8 (8mm)</SelectItem>
+                    <SelectItem value="D10">D10 (10mm)</SelectItem>
+                    <SelectItem value="D12">D12 (12mm)</SelectItem>
+                    <SelectItem value="D16">D16 (16mm)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -698,8 +706,8 @@ export default function QSSettings({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Y8">Y8 (8mm)</SelectItem>
-                    <SelectItem value="Y10">Y10 (10mm)</SelectItem>
+                    <SelectItem value="D8">D8 (8mm)</SelectItem>
+                    <SelectItem value="D10">D10 (10mm)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -776,7 +784,7 @@ export default function QSSettings({
                 onChange={(e) =>
                   handleNumericChange(
                     "verticalReinforcementSpacing",
-                    e.target.value
+                    e.target.value,
                   )
                 }
               />

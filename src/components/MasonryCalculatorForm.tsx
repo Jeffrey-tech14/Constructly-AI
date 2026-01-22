@@ -71,7 +71,7 @@ interface MasonryCalculatorFormProps {
     userRegion: string,
     userOverride: any,
     materialBasePrices: any[],
-    regionalMultipliers: any[]
+    regionalMultipliers: any[],
   ) => any;
 }
 export default function MasonryCalculatorForm({
@@ -119,7 +119,7 @@ export default function MasonryCalculatorForm({
         qsSettings: newSettings,
       }));
     },
-    [setQuote]
+    [setQuote],
   );
 
   const handleMortarRatioChange = (value: string) => {
@@ -145,7 +145,9 @@ export default function MasonryCalculatorForm({
           <div>
             <span className="font-medium">Blocks:</span>{" "}
             {results.netBlocks?.toFixed(0) || 0} net →{" "}
-            {results.grossBlocks?.toFixed(0) || 0} gross pcs
+            {results.grossBlocks?.toFixed(0) || 0} gross pcs (
+            {results.netBlocksFeet?.toFixed(2) || 0} →{" "}
+            {results.grossBlocksFeet?.toFixed(2) || 0} ft)
           </div>
           <div>
             <span className="font-medium">Mortar:</span>{" "}
@@ -465,7 +467,7 @@ export default function MasonryCalculatorForm({
                       sectionIndex,
                       windowIndex,
                       field,
-                      value
+                      value,
                     );
                     calculateMasonry();
                   }}

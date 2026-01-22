@@ -150,7 +150,11 @@ export default function ConcreteCalculatorForm({
 
   // Load existing concrete rows from quote on mount or when quote changes
   useEffect(() => {
-    if (quote?.concrete_rows && Array.isArray(quote.concrete_rows) && quote.concrete_rows.length > 0) {
+    if (
+      quote?.concrete_rows &&
+      Array.isArray(quote.concrete_rows) &&
+      quote.concrete_rows.length > 0
+    ) {
       setRows(quote.concrete_rows);
     }
   }, [quote?.concrete_rows]);
@@ -374,6 +378,17 @@ export default function ConcreteCalculatorForm({
   );
   const gravelMat = materials.find((m) =>
     m.name?.toLowerCase().includes("gravel"),
+  );
+  const maramMat = materials.find(
+    (m) =>
+      m.name?.toLowerCase().includes("maram") ||
+      m.name?.toLowerCase().includes("binding"),
+  );
+  const compactionMat = materials.find((m) =>
+    m.name?.toLowerCase().includes("compaction"),
+  );
+  const backfillMat = materials.find((m) =>
+    m.name?.toLowerCase().includes("backfill"),
   );
 
   const foundationMasonryType =
@@ -1302,7 +1317,7 @@ export default function ConcreteCalculatorForm({
         <h4 className="font-semibold text-green-800 dark:text-green-200">
           {row.element === "slab"
             ? "Slab Waterproofing & Polythene"
-            : "Waterproofing & DPC Details"}
+            : "Waterproofing & DPM Details"}
         </h4>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -1318,7 +1333,7 @@ export default function ConcreteCalculatorForm({
                     })
                   }
                 />
-                <span className="ml-2">Include DPC</span>
+                <span className="ml-2">Include DPM</span>
               </Label>
             </div>
           )}
@@ -1401,6 +1416,7 @@ export default function ConcreteCalculatorForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="500g">500 Gauge (DPM)</SelectItem>
                 <SelectItem value="1000g">1000 Gauge</SelectItem>
                 <SelectItem value="1200g">1200 Gauge</SelectItem>
                 <SelectItem value="1500g">1500 Gauge</SelectItem>
@@ -1533,6 +1549,84 @@ export default function ConcreteCalculatorForm({
           quantity: r.gravelVolume || 0,
           unit_price: gravelMat?.price || 0,
           total_price: Math.round(r.gravelCost),
+        });
+      }
+
+      if (r.blindingCost && r.blindingCost > 0) {
+        rowItems.push({
+          rowId: r.id,
+          name: `Concrete Blinding 1:4:8 (${r.name})`,
+          quantity: r.blindingVolume || 0,
+          unit_price: r.blindingVolume ? r.blindingCost / r.blindingVolume : 0,
+          total_price: Math.round(r.blindingCost),
+        });
+      }
+
+      if (r.maramBlindingCost && r.maramBlindingCost > 0) {
+        const maramMaterial = materials.find((m) =>
+          m.name?.toLowerCase().includes("maram"),
+        );
+        rowItems.push({
+          rowId: r.id,
+          name: `Maram Blinding (${r.name})`,
+          quantity: r.maramBlindingVolume || 0,
+          unit_price: maramMaterial?.price || 0,
+          total_price: Math.round(r.maramBlindingCost),
+        });
+      }
+
+      if (r.compactionCost && r.compactionCost > 0) {
+        const compactionMaterial = materials.find((m) =>
+          m.name?.toLowerCase().includes("compaction"),
+        );
+        rowItems.push({
+          rowId: r.id,
+          name: `Compaction (${r.name})`,
+          quantity: r.compactionArea || 0,
+          unit_price: compactionMaterial?.price || 0,
+          total_price: Math.round(r.compactionCost),
+        });
+      }
+
+      if (r.returnFillCost && r.returnFillCost > 0) {
+        const fillMaterial = materials.find((m) =>
+          m.name?.toLowerCase().includes("backfill"),
+        );
+        rowItems.push({
+          rowId: r.id,
+          name: `Return Fill (${r.name})`,
+          quantity: r.returnFillVolume || 0,
+          unit_price: fillMaterial?.price || 0,
+          total_price: Math.round(r.returnFillCost),
+        });
+      }
+
+      if (r.backFillCost && r.backFillCost > 0) {
+        const fillMaterial = materials.find((m) =>
+          m.name?.toLowerCase().includes("backfill"),
+        );
+        rowItems.push({
+          rowId: r.id,
+          name: `Back Fill (${r.name})`,
+          quantity: r.backFillVolume || 0,
+          unit_price: fillMaterial?.price || 0,
+          total_price: Math.round(r.backFillCost),
+        });
+      }
+
+      if (r.blocksCost && r.blocksCost > 0) {
+        const blockMaterial = materials.find(
+          (m) =>
+            m.name?.toLowerCase().includes("block") ||
+            m.name?.toLowerCase().includes("brick"),
+        );
+        rowItems.push({
+          rowId: r.id,
+          name: `Blocks (${r.name})`,
+          quantity: r.blocksFeet || 0,
+          unit: "ft",
+          unit_price: blockMaterial?.price || 0,
+          total_price: Math.round(r.blocksCost),
         });
       }
 
@@ -2047,7 +2141,7 @@ export default function ConcreteCalculatorForm({
             {(row.element === "raft-foundation" ||
               row.element === "strip-footing") && (
               <div className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                {/* <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`stepped-${row.id}`}
@@ -2068,76 +2162,190 @@ export default function ConcreteCalculatorForm({
                       Stepped Foundation
                     </Label>
                   </div>
-                </div>
+                </div> */}
 
                 {renderSteppedFoundation(row)}
 
-                <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                {/* Blinding Section */}
+                <div className="space-y-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`bed-${row.id}`}
-                      checked={row.hasConcreteBed || false}
+                      id={`blinding-${row.id}`}
+                      checked={row.hasBlinding || false}
                       onCheckedChange={(checked) =>
-                        updateRow(row.id, "hasConcreteBed", checked === true)
+                        updateRow(row.id, "hasBlinding", checked === true)
                       }
                       className="w-4 h-4"
                     />
                     <Label
-                      htmlFor={`bed-${row.id}`}
+                      htmlFor={`blinding-${row.id}`}
                       className="text-sm font-medium cursor-pointer"
                     >
-                      Concrete Bed (Blinding)
+                      Concrete Blinding (1:4:8)
                     </Label>
                   </div>
 
-                  {row.hasConcreteBed && (
-                    <Input
-                      type="number"
-                      value={row.bedDepth || ""}
-                      onChange={(e) =>
-                        updateRow(row.id, "bedDepth", e.target.value)
-                      }
-                      placeholder="Concrete bed depth (m)"
-                      step="0.05"
-                      min="0.05"
-                      max="0.3"
-                    />
+                  {row.hasBlinding && (
+                    <div className="grid sm:grid-cols-3 gap-2 ml-6">
+                      <Input
+                        type="number"
+                        value={row.blindingDepth || "0.05"}
+                        onChange={(e) =>
+                          updateRow(row.id, "blindingDepth", e.target.value)
+                        }
+                        placeholder="Depth (m)"
+                        step="0.01"
+                        min="0.01"
+                        max="0.5"
+                      />
+                      <Select
+                        value={row.blindingMix || "1:4:8"}
+                        onValueChange={(value) =>
+                          updateRow(row.id, "blindingMix", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1:3:6">1:3:6</SelectItem>
+                          <SelectItem value="1:4:8">1:4:8</SelectItem>
+                          <SelectItem value="1:2:4">1:2:4</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                {/* Maram Blinding */}
+                <div className="space-y-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`aggregate-${row.id}`}
-                      checked={row.hasAggregateBed || false}
+                      id={`maram-${row.id}`}
+                      checked={row.hasMaramBlinding || false}
                       onCheckedChange={(checked) =>
-                        updateRow(row.id, "hasAggregateBed", checked === true)
+                        updateRow(row.id, "hasMaramBlinding", checked === true)
                       }
                       className="w-4 h-4"
                     />
                     <Label
-                      htmlFor={`aggregate-${row.id}`}
+                      htmlFor={`maram-${row.id}`}
                       className="text-sm font-medium cursor-pointer"
                     >
-                      Hardcore Backfill
+                      Maram Blinding
                     </Label>
                   </div>
 
-                  {row.hasAggregateBed && (
-                    <Input
-                      type="number"
-                      value={row.aggregateDepth || ""}
-                      onChange={(e) =>
-                        updateRow(row.id, "aggregateDepth", e.target.value)
-                      }
-                      placeholder={`Hardcore backfill depth (m) - Auto-filled: ${
-                        row.height || "0"
-                      } m`}
-                      step="0.05"
-                      min="0.05"
-                      max="0.3"
-                    />
+                  {row.hasMaramBlinding && (
+                    <div className="grid sm:grid-cols-1 gap-2 ml-6">
+                      <Input
+                        type="number"
+                        value={row.maramBlindingDepth || "0.05"}
+                        onChange={(e) =>
+                          updateRow(
+                            row.id,
+                            "maramBlindingDepth",
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Maram depth (m)"
+                        step="0.01"
+                        min="0.01"
+                        max="0.5"
+                      />
+                    </div>
                   )}
+                </div>
+
+                {/* Anti-termite Treatment */}
+                <div className="flex items-center space-x-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
+                  <Checkbox
+                    id={`termite-${row.id}`}
+                    checked={row.hasAntiTermiteTreatment || false}
+                    onCheckedChange={(checked) =>
+                      updateRow(
+                        row.id,
+                        "hasAntiTermiteTreatment",
+                        checked === true,
+                      )
+                    }
+                    className="w-4 h-4"
+                  />
+                  <Label
+                    htmlFor={`termite-${row.id}`}
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Anti-termite Treatment
+                  </Label>
+                </div>
+
+                {/* Return Fill & Back Fill */}
+                <div className="grid sm:grid-cols-2 gap-2">
+                  <div className="space-y-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`returnfill-${row.id}`}
+                        checked={row.hasReturnFill || false}
+                        onCheckedChange={(checked) =>
+                          updateRow(row.id, "hasReturnFill", checked === true)
+                        }
+                        className="w-4 h-4"
+                      />
+                      <Label
+                        htmlFor={`returnfill-${row.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        Return Fill
+                      </Label>
+                    </div>
+
+                    {row.hasReturnFill && (
+                      <Input
+                        type="number"
+                        value={row.returnFillDepth || ""}
+                        onChange={(e) =>
+                          updateRow(row.id, "returnFillDepth", e.target.value)
+                        }
+                        placeholder="Return fill depth (m)"
+                        step="0.05"
+                        min="0.05"
+                        max="1"
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`backfill-${row.id}`}
+                        checked={row.hasBackFill || false}
+                        onCheckedChange={(checked) =>
+                          updateRow(row.id, "hasBackFill", checked === true)
+                        }
+                        className="w-4 h-4"
+                      />
+                      <Label
+                        htmlFor={`backfill-${row.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        Back Fill
+                      </Label>
+                    </div>
+
+                    {row.hasBackFill && (
+                      <Input
+                        type="number"
+                        value={row.backFillDepth || ""}
+                        onChange={(e) =>
+                          updateRow(row.id, "backFillDepth", e.target.value)
+                        }
+                        placeholder="Back fill depth (m)"
+                        step="0.05"
+                        min="0.05"
+                        max="1"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
@@ -2170,14 +2378,8 @@ export default function ConcreteCalculatorForm({
                           <SelectValue placeholder="Block/Stone Type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Standard Block">
-                            Standard Block
-                          </SelectItem>
-                          <SelectItem value="Rubble Stone">
-                            Rubble Stone
-                          </SelectItem>
-                          <SelectItem value="Dressed Stone">
-                            Dressed Stone
+                          <SelectItem value="Standard Natural Block">
+                            Standard Natural Block
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -2436,7 +2638,7 @@ export default function ConcreteCalculatorForm({
                         {Math.ceil(
                           result.grossTotalBlocks || 0,
                         ).toLocaleString()}{" "}
-                        units (gross) —{" "}
+                        units (gross) — {result.blocksFeet?.toFixed(2)} ft —{" "}
                         <b>
                           Ksh{" "}
                           {Math.round(
@@ -2553,6 +2755,7 @@ export default function ConcreteCalculatorForm({
             <p>
               <b>Total {foundationMasonryType}:</b>{" "}
               {Math.ceil(totals.totalBlocks).toLocaleString()} units —{" "}
+              {totals.blocksFeet?.toFixed(2)} ft —{" "}
               <b>
                 Ksh{" "}
                 {Math.round(
@@ -2608,6 +2811,49 @@ export default function ConcreteCalculatorForm({
           <p>
             <b>Total Gravel:</b> {totals.gravelVolume?.toFixed(2)} m³ —{" "}
             <b>Ksh {Math.round(totals.gravelCost).toLocaleString()}</b>
+          </p>
+        )}
+
+        {totals.blindingCost > 0 && (
+          <p>
+            <b>Total Blinding (1:4:8):</b> {totals.blindingVolume?.toFixed(3)}{" "}
+            m³ — <b>Ksh {Math.round(totals.blindingCost).toLocaleString()}</b>
+          </p>
+        )}
+
+        {totals.maramBlindingCost > 0 && (
+          <p>
+            <b>Total Maram Blinding:</b>{" "}
+            {totals.maramBlindingVolume?.toFixed(3)} m³ —{" "}
+            <b>Ksh {Math.round(totals.maramBlindingCost).toLocaleString()}</b>
+          </p>
+        )}
+
+        {totals.compactionCost > 0 && (
+          <p>
+            <b>Total Compaction:</b> {totals.compactionArea?.toFixed(2)} m² —{" "}
+            <b>Ksh {Math.round(totals.compactionCost).toLocaleString()}</b>
+          </p>
+        )}
+
+        {totals.returnFillCost > 0 && (
+          <p>
+            <b>Total Return Fill:</b> {totals.returnFillVolume?.toFixed(3)} m³ —{" "}
+            <b>Ksh {Math.round(totals.returnFillCost).toLocaleString()}</b>
+          </p>
+        )}
+
+        {totals.backFillCost > 0 && (
+          <p>
+            <b>Total Back Fill:</b> {totals.backFillVolume?.toFixed(3)} m³ —{" "}
+            <b>Ksh {Math.round(totals.backFillCost).toLocaleString()}</b>
+          </p>
+        )}
+
+        {totals.blocksCost > 0 && (
+          <p>
+            <b>Total Blocks (by foot):</b> {totals.blocksFeet?.toFixed(2)} ft —{" "}
+            <b>Ksh {Math.round(totals.blocksCost).toLocaleString()}</b>
           </p>
         )}
 

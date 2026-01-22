@@ -122,6 +122,19 @@ export interface ConcreteRow {
   bedDepth?: string;
   hasAggregateBed?: boolean;
   aggregateDepth?: string;
+  hasBlinding?: boolean;
+  blindingDepth?: string;
+  blindingRatio?: string;
+  blindingMix?: string;
+  hasMaramBlinding?: boolean;
+  maramBlindingDepth?: string;
+  hasAntiTermiteTreatment?: boolean;
+  hasCompaction?: boolean;
+  compactionArea?: string;
+  hasReturnFill?: boolean;
+  returnFillDepth?: string;
+  hasBackFill?: boolean;
+  backFillDepth?: string;
   hasMasonryWall?: boolean;
   masonryBlockType?: string;
   masonryBlockDimensions?: string;
@@ -200,6 +213,8 @@ export interface ConcreteResult {
   netTotalBlocks?: number;
   netMortarCementBags?: number;
   netMortarSandM3?: number;
+  blocksFeet?: number;
+  blocksCost?: number;
   grossCementBags: number;
   grossSandM3: number;
   grossStoneM3: number;
@@ -225,6 +240,16 @@ export interface ConcreteResult {
   connectionDetails?: ConnectionDetails;
   gravelVolume?: number;
   gravelCost?: number;
+  blindingVolume?: number;
+  blindingCost?: number;
+  maramBlindingVolume?: number;
+  maramBlindingCost?: number;
+  compactionArea?: number;
+  compactionCost?: number;
+  returnFillVolume?: number;
+  returnFillCost?: number;
+  backFillVolume?: number;
+  backFillCost?: number;
 
   // Area selection fields - persisted from input
   areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
@@ -236,6 +261,7 @@ const SAND_DENSITY = 1600;
 const STONE_DENSITY = 1500;
 const CEMENT_BAG_KG = 50;
 const CEMENT_BAG_VOLUME_M3 = 0.035;
+const METERS_TO_FEET = 3.28084;
 const STANDARD_MIXES: {
   [key: string]: {
     cement: number;
@@ -282,7 +308,7 @@ export function parseCementWaterRatio(ratio: string): number {
 export function calculateConcreteMaterials(
   volumeM3: number,
   mix: string,
-  settings: MasonryQSSettings
+  settings: MasonryQSSettings,
 ): {
   cementBags: number;
   sandM3: number;
@@ -319,7 +345,7 @@ export function calculateWaterRequirements(
   sandMass: number,
   stoneMass: number,
   surfaceAreaM2: number,
-  totalConcreteVolume: number
+  totalConcreteVolume: number,
 ): {
   waterMixingL: number;
   waterCuringL: number;
@@ -359,7 +385,7 @@ export function calculateMasonryQuantities(
   wallHeight: number,
   wallThickness: number,
   blockDimensions: string,
-  settings: MasonryQSSettings
+  settings: MasonryQSSettings,
 ): {
   blocks: number;
   mortarVolume: number;
@@ -384,7 +410,7 @@ export function calculateMasonryQuantities(
 
 function calculateSteppedFoundationVolume(
   steps: FoundationStep[],
-  num: number
+  num: number,
 ): number {
   return steps.reduce((total, step) => {
     const len = parseFloat(step.length) || 0;
@@ -540,7 +566,7 @@ function calculateSurfaceArea(
   wid: number,
   hei: number,
   num: number,
-  staircaseDetails?
+  staircaseDetails?,
 ): number {
   switch (element) {
     case "slab":
@@ -594,7 +620,7 @@ export function calculateConcrete(
   row: ConcreteRow,
   materials: any[],
   settings: MasonryQSSettings,
-  quote
+  quote,
 ): ConcreteResult {
   const {
     length,
@@ -744,7 +770,7 @@ export function calculateConcrete(
         effectiveLen,
         effectiveWid,
         hei,
-        num
+        num,
       );
       formworkM2 = (2 * hei * effectiveLen + effectiveWid * effectiveLen) * num;
       break;
@@ -756,7 +782,7 @@ export function calculateConcrete(
         effectiveLen,
         effectiveWid,
         hei,
-        num
+        num,
       );
       formworkM2 = 2 * (effectiveLen + effectiveWid) * hei * num;
       break;
@@ -766,7 +792,7 @@ export function calculateConcrete(
       if (isSteppedFoundation && foundationSteps.length > 0) {
         steppedFoundationVolume = calculateSteppedFoundationVolume(
           foundationSteps,
-          num
+          num,
         );
         mainVolume = steppedFoundationVolume;
         surfaceAreaM2 = effectiveLen * effectiveWid * num;
@@ -783,7 +809,7 @@ export function calculateConcrete(
           effectiveLen,
           effectiveWid,
           hei,
-          num
+          num,
         );
         formworkM2 = 2 * (effectiveLen + effectiveWid) * hei * num;
       }
@@ -811,7 +837,7 @@ export function calculateConcrete(
     case "water-tank":
       if (undergroundTankDetails) {
         const tankQuantities = calculateUndergroundTankQuantities(
-          undergroundTankDetails
+          undergroundTankDetails,
         );
         mainVolume = tankQuantities.totalVolume * num;
         surfaceAreaM2 = tankQuantities.surfaceArea * num;
@@ -978,7 +1004,7 @@ export function calculateConcrete(
   if (
     hasMasonryWall &&
     wallHeightNum > 0 &&
-    ["raft-foundation", "retaining-wall"].includes(element)
+    ["raft-foundation", "retaining-wall", "strip-footing"].includes(element)
   ) {
     const wallLength = element === "raft-foundation" ? len * num : len;
     const masonry = calculateMasonryQuantities(
@@ -986,7 +1012,7 @@ export function calculateConcrete(
       wallHeightNum,
       wallThicknessNum,
       masonryBlockDimensions || "0.4x0.2x0.2",
-      settings
+      settings,
     );
     netTotalBlocks = masonry.blocks;
     const mortarVolume = masonry.mortarVolume;
@@ -1005,7 +1031,7 @@ export function calculateConcrete(
   const concreteMaterials = calculateConcreteMaterials(
     totalConcreteVolume,
     mix,
-    settings
+    settings,
   );
 
   const waterCalc = calculateWaterRequirements(
@@ -1015,11 +1041,11 @@ export function calculateConcrete(
     concreteMaterials.sandMass,
     concreteMaterials.stoneMass,
     surfaceAreaM2,
-    totalConcreteVolume
+    totalConcreteVolume,
   );
 
   const grossCementBags = Math.ceil(
-    concreteMaterials.cementBags * 1.54 * (1 + settings.wastageConcrete / 100)
+    concreteMaterials.cementBags * 1.54 * (1 + settings.wastageConcrete / 100),
   );
   const grossSandM3 =
     concreteMaterials.sandM3 * 1.54 * (1 + settings.wastageConcrete / 100);
@@ -1028,10 +1054,10 @@ export function calculateConcrete(
   const grossWaterRequiredL =
     waterCalc.totalWaterL * 1.54 * (1 + settings.wastageWater / 100);
   const grossTotalBlocks = Math.ceil(
-    netTotalBlocks * (1 + settings.wastageConcrete / 100)
+    netTotalBlocks * (1 + settings.wastageConcrete / 100),
   );
   const grossMortarCementBags = Math.ceil(
-    netMortarCementBags * (1 + settings.wastageConcrete / 100)
+    netMortarCementBags * (1 + settings.wastageConcrete / 100),
   );
   const grossMortarSandM3 =
     netMortarSandM3 * (1 + settings.wastageConcrete / 100);
@@ -1053,42 +1079,129 @@ export function calculateConcrete(
       const dpcWidth = parseFloat(waterproofing.dpcWidth || "0.225");
       dpcArea = len * dpcWidth * num;
       const dpcMaterial = materials.find((m) =>
-        m.name?.toLowerCase().includes("dpc")
+        m.name?.toLowerCase().includes("dpc"),
       )?.type;
-      dpcCost =
-        dpcArea *
-        (dpcMaterial[waterproofing.dpcMaterial || "Polyethylene"] || 0);
+      dpcCost = dpcArea * (dpcMaterial?.[waterproofing?.dpcMaterial] || 0);
     }
 
     // Polythene only for slab elements
     if (waterproofing.includesPolythene && row.element === "slab") {
       polytheneArea = len * wid * num;
       const polytheneMaterial = materials.find((m) =>
-        m.name?.toLowerCase().includes("polythene")
+        m.name?.toLowerCase().includes("polythene"),
       )?.type;
       const polythene_cost =
-        polytheneMaterial[waterproofing.polytheneGauge || "1000g"] || 0;
+        polytheneMaterial[waterproofing.polytheneGauge] || 0;
       polytheneCost = polytheneArea * (polythene_cost || 0);
     }
 
     if (waterproofing.includesWaterproofing) {
       waterproofingArea = surfaceAreaM2;
       const waterproofingMaterial = materials.find((m) =>
-        m.name?.toLowerCase().includes("waterproof")
+        m.name?.toLowerCase().includes("waterproof"),
       )?.type;
       waterproofingCost =
         waterproofingArea *
-        (waterproofingMaterial[
-          waterproofing.waterproofingType || "Bituminous Coating"
-        ] || 0);
+        (waterproofingMaterial[waterproofing.waterproofingType] || 0);
     }
   }
 
   if (gravelVolume > 0) {
     const gravelMaterial = materials.find((m) =>
-      m.name?.toLowerCase().includes("aggregate")
+      m.name?.toLowerCase().includes("aggregate"),
     );
     gravelCost = gravelVolume * (gravelMaterial?.price || 0);
+  }
+
+  // Blinding calculation (concrete blinding - usually 50mm at 1:4:8)
+  let blindingVolume = 0;
+  let blindingCost = 0;
+  if (row.hasBlinding && row.blindingDepth) {
+    const blindingDepth = parseFloat(row.blindingDepth) || 0;
+    blindingVolume = len * wid * blindingDepth * num;
+    // Calculate blinding materials based on 1:4:8 mix (or specified mix)
+    const blindingMix = row.blindingMix || "1:4:8";
+    const blindingMaterials = calculateConcreteMaterials(
+      blindingVolume,
+      blindingMix,
+      settings,
+    );
+    const blindingCement = materials.find(
+      (m) => m.name?.toLowerCase() === "cement",
+    );
+    const blindingSand = materials.find(
+      (m) => m.name?.toLowerCase() === "sand",
+    );
+    const blindingStone = materials.find(
+      (m) => m.name?.toLowerCase() === "ballast",
+    );
+    const blindingCementBags = Math.ceil(
+      blindingMaterials.cementBags * (1 + settings.wastageConcrete / 100),
+    );
+    const blindingSandM3 =
+      blindingMaterials.sandM3 * (1 + settings.wastageConcrete / 100);
+    const blindingStoneM3 =
+      blindingMaterials.stoneM3 * (1 + settings.wastageConcrete / 100);
+    blindingCost =
+      blindingCementBags * (blindingCement?.price || 0) +
+      blindingSandM3 * (blindingSand?.price || 0) +
+      blindingStoneM3 * (blindingStone?.price || 0);
+  }
+
+  // Maram blinding calculation
+  let maramBlindingVolume = 0;
+  let maramBlindingCost = 0;
+  if (row.hasMaramBlinding && row.maramBlindingDepth) {
+    const maramDepth = parseFloat(row.maramBlindingDepth) || 0;
+    maramBlindingVolume = len * wid * maramDepth * num;
+    // Maram (binding material) - typically sand and binding agent
+    const maramMaterial = materials.find(
+      (m) =>
+        m.name?.toLowerCase().includes("maram") ||
+        m.name?.toLowerCase().includes("binding"),
+    );
+    maramBlindingCost = maramBlindingVolume * (maramMaterial?.price || 0);
+  }
+
+  // Compaction calculation
+  let compactionArea = 0;
+  let compactionCost = 0;
+  if (row.hasCompaction) {
+    const compactionAreaInput =
+      parseFloat(row.compactionArea || "0") || len * wid * num;
+    compactionArea = compactionAreaInput;
+    const compactionMaterial = materials.find((m) =>
+      m.name?.toLowerCase().includes("compaction"),
+    );
+    compactionCost = compactionArea * (compactionMaterial?.price || 0);
+  }
+
+  // Return fill calculation
+  let returnFillVolume = 0;
+  let returnFillCost = 0;
+  if (row.hasReturnFill && row.returnFillDepth) {
+    const returnDepth = parseFloat(row.returnFillDepth) || 0;
+    returnFillVolume = len * wid * returnDepth * num;
+    const fillMaterial = materials.find(
+      (m) =>
+        m.name?.toLowerCase().includes("aggregate") ||
+        m.name?.toLowerCase().includes("backfill"),
+    );
+    returnFillCost = returnFillVolume * (fillMaterial?.price || 0);
+  }
+
+  // Back fill calculation
+  let backFillVolume = 0;
+  let backFillCost = 0;
+  if (row.hasBackFill && row.backFillDepth) {
+    const backDepth = parseFloat(row.backFillDepth) || 0;
+    backFillVolume = len * wid * backDepth * num;
+    const fillMaterial = materials.find(
+      (m) =>
+        m.name?.toLowerCase().includes("aggregate") ||
+        m.name?.toLowerCase().includes("backfill"),
+    );
+    backFillCost = backFillVolume * (fillMaterial?.price || 0);
   }
 
   const cement = materials.find((m) => m.name?.toLowerCase() === "cement");
@@ -1096,10 +1209,10 @@ export function calculateConcrete(
   const stone = materials.find((m) => m.name?.toLowerCase() === "ballast");
   const water = materials.find((m) => m.name?.toLowerCase() === "water");
   const formworkMat = materials.find(
-    (m) => m.name?.toLowerCase() === "formwork"
+    (m) => m.name?.toLowerCase() === "formwork",
   );
   const aggregate = materials.find(
-    (m) => m.name?.toLowerCase() === "aggregate"
+    (m) => m.name?.toLowerCase() === "aggregate",
   );
 
   const cementCost = grossCementBags * (cement?.price || 0);
@@ -1112,6 +1225,39 @@ export function calculateConcrete(
   const aggregateCost = aggregateVolume * (aggregate?.price || 0);
   const mortarCementCost = (grossMortarCementBags || 0) * (cement?.price || 0);
   const mortarSandCost = (grossMortarSandM3 || 0) * (sand?.price || 0);
+
+  // Block cost calculation - convert from per-foot pricing
+  let blocksFeet = 0;
+  let blocksCost = 0;
+  if (
+    hasMasonryWall &&
+    wallHeightNum > 0 &&
+    ["raft-foundation", "retaining-wall", "strip-footing"].includes(element)
+  ) {
+    // Get block dimensions from masonryBlockDimensions (e.g., "0.4x0.2x0.2")
+    const blockDims = masonryBlockDimensions?.split("x").map(parseFloat) || [
+      0.4, 0.2, 0.2,
+    ];
+    const blockLengthMeters = blockDims[0] || 0.4;
+    const blockLengthFeet = blockLengthMeters * METERS_TO_FEET;
+
+    // Calculate total linear feet of blocks: total blocks * block length in feet
+    blocksFeet = grossTotalBlocks * blockLengthFeet;
+
+    // Get block pricing material
+    const blockMaterial = materials.find(
+      (m) =>
+        m.name?.toLowerCase().includes("block") ||
+        m.name?.toLowerCase().includes("brick"),
+    );
+
+    // Price per foot
+    const blockPricePerFoot =
+      blockMaterial?.type?.find((m) =>
+        m.name?.toLowerCase().includes("Standard Natural Stone"),
+      ) || 0;
+    blocksCost = blocksFeet * blockPricePerFoot;
+  }
 
   const totalConcreteCost = cementCost + sandCost + waterCost + stoneCost;
 
@@ -1146,6 +1292,8 @@ export function calculateConcrete(
     netTotalBlocks,
     netMortarCementBags,
     netMortarSandM3,
+    blocksFeet,
+    blocksCost,
     grossCementBags,
     grossSandM3,
     grossStoneM3,
@@ -1166,7 +1314,13 @@ export function calculateConcrete(
       dpcCost +
       waterproofingCost +
       gravelCost +
-      mortarSandCost,
+      mortarSandCost +
+      blindingCost +
+      maramBlindingCost +
+      compactionCost +
+      returnFillCost +
+      backFillCost +
+      blocksCost,
     totalConcreteCost,
     unitRate,
 
@@ -1182,6 +1336,16 @@ export function calculateConcrete(
     connectionDetails: row.reinforcement?.connectionDetails,
     gravelVolume,
     gravelCost,
+    blindingVolume,
+    blindingCost,
+    maramBlindingVolume,
+    maramBlindingCost,
+    compactionArea,
+    compactionCost,
+    returnFillVolume,
+    returnFillCost,
+    backFillVolume,
+    backFillCost,
 
     // Area selection fields - persisted from input
     areaSelectionMode,
@@ -1203,7 +1367,7 @@ export function computeConcreteRatePerM3(
   length: number,
   width: number,
   height: number,
-  number: number = 1
+  number: number = 1,
 ): number {
   // Use the same calculations as calculateConcrete
   const volume = length * width * height * number;
@@ -1211,7 +1375,7 @@ export function computeConcreteRatePerM3(
 
   // Apply wastage with Math.ceil() to match calculateConcrete
   const grossCementBags = Math.ceil(
-    materials.cementBags * (1 + settings.wastageConcrete / 100)
+    materials.cementBags * (1 + settings.wastageConcrete / 100),
   );
   const grossSandM3 = materials.sandM3 * (1 + settings.wastageConcrete / 100);
   const grossStoneM3 = materials.stoneM3 * (1 + settings.wastageConcrete / 100);
@@ -1222,7 +1386,7 @@ export function computeConcreteRatePerM3(
     length,
     width,
     height,
-    number
+    number,
   );
   const waterCalc = calculateWaterRequirements(
     materials.cementMass,
@@ -1231,7 +1395,7 @@ export function computeConcreteRatePerM3(
     materials.sandMass,
     materials.stoneMass,
     surfaceArea,
-    volume
+    volume,
   );
 
   const grossWaterRequiredL =
@@ -1254,14 +1418,14 @@ export function useConcreteCalculator(
   rows: ConcreteRow[],
   materials: any[],
   settings: MasonryQSSettings,
-  quote
+  quote,
 ) {
   const [results, setResults] = useState<ConcreteResult[]>([]);
   const [totals, setTotals] = useState<any>({});
 
   useEffect(() => {
     const calculatedResults = rows.map((row) =>
-      calculateConcrete(row, materials, settings, quote)
+      calculateConcrete(row, materials, settings, quote),
     );
     setResults(calculatedResults);
   }, [rows, materials, settings, quote]);
@@ -1291,6 +1455,18 @@ export function useConcreteCalculator(
         acc.waterproofingCost += r.waterproofingCost || 0;
         acc.gravelVolume += r.gravelVolume || 0;
         acc.gravelCost += r.gravelCost || 0;
+        acc.blindingVolume += r.blindingVolume || 0;
+        acc.blindingCost += r.blindingCost || 0;
+        acc.maramBlindingVolume += r.maramBlindingVolume || 0;
+        acc.maramBlindingCost += r.maramBlindingCost || 0;
+        acc.compactionArea += r.compactionArea || 0;
+        acc.compactionCost += r.compactionCost || 0;
+        acc.returnFillVolume += r.returnFillVolume || 0;
+        acc.returnFillCost += r.returnFillCost || 0;
+        acc.backFillVolume += r.backFillVolume || 0;
+        acc.backFillCost += r.backFillCost || 0;
+        acc.blocksFeet += r.blocksFeet || 0;
+        acc.blocksCost += r.blocksCost || 0;
 
         return acc;
       },
@@ -1316,7 +1492,19 @@ export function useConcreteCalculator(
         waterproofingCost: 0,
         gravelVolume: 0,
         gravelCost: 0,
-      }
+        blindingVolume: 0,
+        blindingCost: 0,
+        maramBlindingVolume: 0,
+        maramBlindingCost: 0,
+        compactionArea: 0,
+        compactionCost: 0,
+        returnFillVolume: 0,
+        returnFillCost: 0,
+        backFillVolume: 0,
+        backFillCost: 0,
+        blocksFeet: 0,
+        blocksCost: 0,
+      },
     );
     setTotals(newTotals);
   }, [results]);
@@ -1328,7 +1516,7 @@ export function useConcreteCalculator(
       const stone = materials.find(
         (m) =>
           m.name?.toLowerCase() === "ballast" ||
-          m.name?.toLowerCase() === "stone"
+          m.name?.toLowerCase() === "stone",
       );
       const water = materials.find((m) => m.name?.toLowerCase() === "water");
 
@@ -1353,10 +1541,10 @@ export function useConcreteCalculator(
         len,
         wid,
         hei,
-        num
+        num,
       );
     },
-    [materials, settings]
+    [materials, settings],
   );
 
   return {

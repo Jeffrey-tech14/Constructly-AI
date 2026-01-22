@@ -61,7 +61,7 @@ export default function useUniversalFinishesCalculator(
   finishes: FinishElement[],
   materialPrices: any[],
   quote: any,
-  setQuoteData
+  setQuoteData,
 ) {
   const [calculations, setCalculations] = useState<FinishCalculation[]>([]);
   const [totals, setTotals] = useState<FinishesTotals>({
@@ -101,7 +101,7 @@ export default function useUniversalFinishesCalculator(
       const adjustedQuantity = quantity * (1 + wastagePercentage);
       return Math.ceil(adjustedQuantity * 100) / 100; // Round to 2 decimal places for area/linear, whole numbers for pieces
     },
-    []
+    [],
   );
 
   const calculateFinish = useCallback(
@@ -112,7 +112,7 @@ export default function useUniversalFinishesCalculator(
       // Apply wastage to quantity
       const adjustedQuantity = applyWastageToQuantity(
         finish.quantity,
-        wastagePercentage
+        wastagePercentage,
       );
       const wastageQuantity = adjustedQuantity - finish.quantity;
 
@@ -143,31 +143,31 @@ export default function useUniversalFinishesCalculator(
         },
       };
     },
-    [materialPrices, getWastagePercentage, applyWastageToQuantity]
+    [materialPrices, getWastagePercentage, applyWastageToQuantity],
   );
 
   const calculateAll = useCallback(() => {
-    // First, check if there are gypsum boards and add jointing compound
+    // First, check if there are gypsum boards and add Filler
     const gypsumBoard = finishes.find(
       (f) =>
-        f.category === "ceiling" && f.material.toLowerCase() === "gypsum board"
+        f.category === "ceiling" && f.material.toLowerCase() === "gypsum board",
     );
 
     let finishesToCalculate = [...finishes];
 
-    // If gypsum board exists, add jointing compound (1/3 of gypsum board quantity)
+    // If gypsum board exists, add Fillerpsum board quantity)
     if (gypsumBoard) {
-      const jointingCompoundId = `jointing-compound-${gypsumBoard.id}`;
+      const jointingCompoundId = `filler-${gypsumBoard.id}`;
       const existingJointingCompound = finishesToCalculate.find(
-        (f) => f.id === jointingCompoundId
+        (f) => f.id === jointingCompoundId,
       );
 
       if (!existingJointingCompound) {
-        // Add jointing compound as 1/3 of gypsum board quantity
+        // Add Filler as 1/3 of gypsum board quantity
         finishesToCalculate.push({
           id: jointingCompoundId,
           category: "ceiling",
-          material: "Jointing Compound",
+          material: "Filler",
           area: gypsumBoard.area,
           quantity: gypsumBoard.quantity / 3,
           unit: gypsumBoard.unit,
@@ -175,11 +175,11 @@ export default function useUniversalFinishesCalculator(
           specifications: gypsumBoard.specifications,
         });
       } else {
-        // Update existing jointing compound to be 1/3 of gypsum board
+        // Update existing Filler to be 1/3 of gypsum board
         finishesToCalculate = finishesToCalculate.map((f) =>
           f.id === jointingCompoundId
             ? { ...f, quantity: gypsumBoard.quantity / 3 }
-            : f
+            : f,
         );
       }
     }
@@ -222,7 +222,7 @@ export default function useUniversalFinishesCalculator(
           totalWastageQuantity: 0,
           totalWastageCost: 0,
         },
-      }
+      },
     );
 
     setTotals(newTotals);
@@ -258,7 +258,7 @@ function getFinishRate(finish: FinishElement, prices: any[]): number {
 
   // Find category in finishes JSON
   const category = prices.find(
-    (p: any) => p.name.toLowerCase() === categoryKey
+    (p: any) => p.name.toLowerCase() === categoryKey,
   );
   if (!category) return 0;
 
@@ -266,14 +266,14 @@ function getFinishRate(finish: FinishElement, prices: any[]): number {
   if (!category?.type?.materials) return 0;
   const matchedMaterial = Object.entries(category?.type?.materials).find(
     ([materialName]) =>
-      materialName.toLowerCase() === finish.material.toLowerCase()
+      materialName.toLowerCase() === finish.material.toLowerCase(),
   );
 
   if (!matchedMaterial) {
     // fallback if partial match
     const partialMatch = Object.entries(category?.type?.materials).find(
       ([materialName]) =>
-        materialName.toLowerCase().includes(finish.material.toLowerCase())
+        materialName.toLowerCase().includes(finish.material.toLowerCase()),
     );
     return partialMatch ? Number(partialMatch[1]) : 0;
   }

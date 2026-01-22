@@ -28,7 +28,7 @@ export interface EarthworkItem {
   areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
   area?: string; // Direct area input (m²) when using DIRECT_AREA mode
   // Foundation type fields
-  foundationType?: "strip" | "raft" | "pad" | "general";
+  foundationType?: "strip_footing" | "raft_foundation" | "general"; // For foundation excavation - type of foundation
   wallLocation?: "external" | "internal"; // For strip footing - whether it's external or internal walls
 }
 
@@ -54,6 +54,9 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
     if (type === "topsoil-removal") {
       return 0.15; // Topsoil removal minimum 0.15m
     }
+    if (type === "oversite-excavation") {
+      return 0.2; // Oversite excavation standard 200mm
+    }
     // Foundation excavation and others minimum 0.65m
     return 0.65;
   };
@@ -65,7 +68,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
     depth: string,
     area?: string,
     areaSelectionMode?: string,
-    type?: string
+    type?: string,
   ): string => {
     let d = parseFloat(depth) || 0;
     const minDepth = getMinimumDepth(type || "foundation-excavation");
@@ -88,7 +91,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
   // Get the earthwork rate price
   const getEarthworkRate = (): number => {
     const earthworkRate = excavationRates.find((m) =>
-      m.name?.toLowerCase().includes("earthwork")
+      m.name?.toLowerCase().includes("earthwork"),
     );
     return earthworkRate?.price || earthworkRate?.rate || 0;
   };
@@ -103,7 +106,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
     if (setQuote) {
       const totalCost = earthworks.reduce(
         (total, item) => total + calculatePrice(item),
-        0
+        0,
       );
       setQuote((prev: any) => ({
         ...prev,
@@ -112,6 +115,95 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       }));
     }
   }, [earthworks]);
+
+  // Auto-create foundation excavation items for strip footing on component mount or when house type changes
+  useEffect(() => {
+    // Only auto-create if earthworks is empty and we have quote data
+    if (
+      earthworks.length === 0 &&
+      quote &&
+      (quote.house_type.toLowerCase() === "bungalow" ||
+        quote.concrete_rows?.some((f: any) => f.element === "strip-footing"))
+    ) {
+      // Get wall dimensions from quote
+      const dims = quote.wallDimensions;
+      if (dims && dims.externalWallPerimiter && dims.internalWallPerimiter) {
+        const wallThickness = quote.wallProperties?.thickness || 0.2;
+        const excavationDepth = 0.65; // Standard excavation depth for strip footing
+        console.log(quote.total_area);
+
+        // Create internal wall foundation excavation item
+        const internalItem: EarthworkItem = {
+          id: `earthwork-internal-${Date.now()}`,
+          type: "foundation-excavation",
+          length: dims.internalWallPerimiter.toString(),
+          width: (wallThickness * 3).toString(),
+          depth: excavationDepth.toString(),
+          volume: calculateVolume(
+            dims.internalWallPerimiter.toString(),
+            (wallThickness * 3).toString(),
+            excavationDepth.toString(),
+            undefined,
+            "LENGTH_WIDTH",
+            "foundation-excavation",
+          ),
+          material: "soil",
+          foundationType: "strip_footing",
+          wallLocation: "internal",
+        };
+
+        // Create external wall foundation excavation item
+        const externalItem: EarthworkItem = {
+          id: `earthwork-external-${Date.now() + 1}`,
+          type: "foundation-excavation",
+          length: dims.externalWallPerimiter.toString(),
+          width: (wallThickness * 3).toString(),
+          depth: excavationDepth.toString(),
+          volume: calculateVolume(
+            dims.externalWallPerimiter.toString(),
+            (wallThickness * 3).toString(),
+            excavationDepth.toString(),
+            undefined,
+            "LENGTH_WIDTH",
+            "foundation-excavation",
+          ),
+          material: "soil",
+          foundationType: "strip_footing",
+          wallLocation: "external",
+        };
+
+        // Create topsoil excavation item for total area at 200mm depth
+        const topsoilItem: EarthworkItem = {
+          id: `earthwork-topsoil-${Date.now() + 2}`,
+          type: "topsoil-removal",
+          length: "0",
+          width: "0",
+          depth: "0.2",
+          volume: calculateVolume(
+            "0",
+            "0",
+            "0.2",
+            quote.total_area?.toString(),
+            "DIRECT_AREA",
+            "topsoil-removal",
+          ),
+          material: "soil",
+          area: quote.total_area?.toString(),
+          areaSelectionMode: "DIRECT_AREA",
+          foundationType: "general",
+        };
+        console.log(quote.total_area);
+
+        setEarthworks([internalItem, externalItem, topsoilItem]);
+      }
+    }
+  }, [
+    quote?.house_type,
+    quote?.total_area,
+    quote?.concrete_rows,
+    quote?.wallDimensions,
+    quote,
+  ]);
 
   // Calculate price for an earthwork item
   const calculatePrice = (item: EarthworkItem): number => {
@@ -129,7 +221,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
   const updateEarthwork = (
     id: string,
     field: keyof EarthworkItem,
-    value: string
+    value: string,
   ) => {
     setEarthworks(
       earthworks.map((item) => {
@@ -153,14 +245,14 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
               field === "depth" ? value : item.depth,
               field === "area" ? value : item.area,
               field === "areaSelectionMode" ? value : item.areaSelectionMode,
-              field === "type" ? value : item.type
+              field === "type" ? value : item.type,
             );
           }
 
           return updatedItem;
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -187,12 +279,15 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
 
   // Earthwork types and materials
   const earthworkTypes = [
+    { value: "site-clearance", label: "Site Clearance" },
+    { value: "oversite-excavation", label: "Oversite Excavation (200mm)" },
     { value: "foundation-excavation", label: "Foundation Excavation" },
     { value: "trench-excavation", label: "Trench Excavation" },
     { value: "bulk-excavation", label: "Bulk Excavation" },
     { value: "topsoil-removal", label: "Topsoil Removal" },
     { value: "site-leveling", label: "Site Leveling" },
     { value: "backfilling", label: "Backfilling" },
+    { value: "compaction", label: "Compaction" },
   ];
 
   const materials = [
@@ -204,9 +299,8 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
   ];
 
   const foundationTypes = [
-    { value: "strip", label: "Strip Footing" },
-    { value: "raft", label: "Raft Foundation" },
-    { value: "pad", label: "Pad Foundation" },
+    { value: "strip_footing", label: "Strip Footing" },
+    { value: "raft_foundation", label: "Raft Foundation" },
     { value: "general", label: "General/Other" },
   ];
 
@@ -323,7 +417,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                   </div>
 
                   {/* Wall Location - only show for strip footing */}
-                  {earthwork.foundationType === "strip" && (
+                  {earthwork.foundationType === "strip_footing" && (
                     <div className="space-y-2">
                       <Label htmlFor={`wall-location-${earthwork.id}`}>
                         Wall Location
@@ -362,7 +456,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                         updateEarthwork(
                           earthwork.id,
                           "areaSelectionMode",
-                          value
+                          value,
                         )
                       }
                     >
@@ -397,7 +491,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                             updateEarthwork(
                               earthwork.id,
                               "area",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="0.0"
@@ -421,7 +515,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                             updateEarthwork(
                               earthwork.id,
                               "length",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="0.0"
@@ -442,7 +536,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                             updateEarthwork(
                               earthwork.id,
                               "width",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           placeholder="0.0"
@@ -511,7 +605,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                         {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
-                        }
+                        },
                       )}
                       readOnly
                       className="bg-gray-100 dark:bg-gray-600 font-medium text-green-600 dark:text-green-400"
@@ -559,7 +653,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                     {earthworks
                       .reduce(
                         (total, item) => total + parseFloat(item.volume),
-                        0
+                        0,
                       )
                       .toFixed(3)}
                     m³

@@ -172,21 +172,21 @@ Analyze this construction document and extract ALL available information about:
   | "tank";
 - RebarSize =
   | "R6"
-  | "Y6"
-  | "Y8"
-  | "Y10"
-  | "Y12"
-  | "Y14"
-  | "Y16"
-  | "Y18"
-  | "Y20"
-  | "Y22"
-  | "Y25"
-  | "Y28"
-  | "Y32"
-  | "Y36"
-  | "Y40"
-  | "Y50";
+  | "D6"
+  | "D8"
+  | "D10"
+  | "D12"
+  | "D14"
+  | "D16"
+  | "D18"
+  | "D20"
+  | "D22"
+  | "D25"
+  | "D28"
+  | "D32"
+  | "D36"
+  | "D40"
+  | "D50";
 - ReinforcementType = "individual_bars" | "mesh";
 - FootingType = "isolated" | "strip" | "combined";
 - MESH_PROPERTIES: Record<
@@ -269,8 +269,59 @@ Analyze this construction document and extract ALL available information about:
   | "water"
   | "circular";
 - TankWallType = "walls" | "base" | "cover" | "all";
-- Be deifinate between the reinforcement types, eg either mesh or individual_bars
-- If you find both reinforecement types, create two individual entries for each with the correct 
+- RetainingWallType = "cantilever" | "gravity" | "counterfort";
+- Be definite between the reinforcement types, eg either mesh or individual_bars
+- If you find both reinforcement types, create two individual entries for each with the correct type
+
+### DETAILED REINFORCEMENT EXTRACTION BY ELEMENT TYPE:
+
+**For Strip Footings and Raft Foundations:**
+- Extract longitudinalBars: Main bars running along the length (string format: "D12" for bar size or "D12@150" for bar size and spacing)
+- Extract transverseBars: Distribution bars across width (string format)
+- Extract topReinforcement: Top layer reinforcement specification
+- Extract bottomReinforcement: Bottom layer reinforcement specification
+- footingType: Must be "strip", "isolated", or "combined"
+- Include mainBarSpacing, distributionBarSpacing in mm (e.g., "150", "200")
+
+**For Retaining Walls:**
+- retainingWallType: MUST be "cantilever", "gravity", or "counterfort"
+- heelLength: Length of heel in meters (e.g., "0.5")
+- toeLength: Length of toe in meters (e.g., "0.5")
+- Stem reinforcement:
+  - stemVerticalBarSize: Vertical bar size (e.g., "D12", "D10")
+  - stemHorizontalBarSize: Horizontal bar size (e.g., "D10", "D8")
+  - stemVerticalSpacing: Vertical bar spacing in mm (e.g., "150")
+  - stemHorizontalSpacing: Horizontal bar spacing in mm (e.g., "200")
+- Base reinforcement (same structure as footings): 
+  - baseMainBarSize, baseDistributionBarSize
+  - baseMainSpacing, baseDistributionSpacing
+
+**For Beams:**
+- mainBarsCount: Number of main bars (e.g., "4", "6")
+- distributionBarsCount: Number of distribution/shear reinforcement bars
+- stirrupSpacing: Stirrup spacing in mm (e.g., "100", "150", "200")
+- stirrupSize: Stirrup bar size (e.g., "D8", "D6")
+- mainBarSpacing: Spacing of main bars (if continuous layout)
+
+**For Columns:**
+- mainBarsCount: Number of longitudinal bars (e.g., "4", "6", "8", "12")
+- tieSpacing: Column tie/link spacing in mm (e.g., "150", "200", "250")
+- tieSize: Tie bar size (e.g., "D6", "D8", "D10")
+- mainBarSize: Longitudinal bar size
+- columnHeight: Height of column in meters
+
+**For Slabs:**
+- mainBarSize: Bottom layer main bars
+- distributionBarSize: Bottom layer distribution bars
+- mainBarSpacing: Main bar spacing in mm
+- distributionBarSpacing: Distribution bar spacing in mm
+- slabLayers: Number of reinforcement layers ("1" for single, "2" for double)
+- If slabLayers > 1, also provide top layer reinforcement (use topReinforcement field)
+
+**For Tanks:**
+- All basic fields PLUS tank-specific reinforcement (wall, base, cover separately)
+- Ensure corresponding concrete tank exists
+- Tank reinforcement may include vertical and horizontal directions
 
 **Equipment:**
 - Standard equipment types and their respective id = Bulldozer:15846932-db16-4a28-a477-2e4b2e1e42d5, Concrete Mixer:3203526d-fa51-4878-911b-477b2b909db5, Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b, Water Pump:598ca378-6eb3-451f-89ea-f45aa6ecece8, Crane: d4665c7d-6ace-474d-8282-e888b53e7b48, Compactoreb80f645-6450-4026-b007-064b5f15a72a, Excavator:ef8d17ca-581d-4703-b200-17395bbe1c51
@@ -495,7 +546,7 @@ Analyze this construction document and extract ALL available information about:
   gravelDepth?: string;
   includesPerforatedPipes: boolean;
 }
-- Rebar sizes follow standard notation (e.g., "Y10", "Y12")
+- Rebar sizes follow standard notation (e.g., "D10", "D12")
 - Mixes to follow ratios eg 1:2:4, 1:2:3
 - Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
 - Note that the provided file contains information about one building from different perspectives (e.g plan, section, elevation etc). Use all the information available to provide the most accurate dimensions and details
@@ -791,8 +842,8 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "mainBarsCount": "",
       "distributionBarsCount": "",
       "slabLayers": "",
-      "mainBarSize": "Y12",
-      "distributionBarSize": "Y10",
+      "mainBarSize": "D12",
+      "distributionBarSize": "D10",
       "stirrupSize": "",
       "tieSize": "",
       "stirrupSpacing": "",
@@ -815,16 +866,16 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "baseThickness": "0.2",
       "coverThickness": "0.15",
       "includeCover": true,
-      "wallVerticalBarSize": "Y12",
-      "wallHorizontalBarSize": "Y10",
+      "wallVerticalBarSize": "D12",
+      "wallHorizontalBarSize": "D10",
       "wallVerticalSpacing": "150",
       "wallHorizontalSpacing": "200",
-      "baseMainBarSize": "Y12",
-      "baseDistributionBarSize": "Y10",
+      "baseMainBarSize": "D12",
+      "baseDistributionBarSize": "D10",
       "baseMainSpacing": "150",
       "baseDistributionSpacing": "200",
-      "coverMainBarSize": "Y10",
-      "coverDistributionBarSize": "Y8",
+      "coverMainBarSize": "D10",
+      "coverDistributionBarSize": "D8",
       "coverMainSpacing": "200",
       "coverDistributionSpacing": "250"
     },

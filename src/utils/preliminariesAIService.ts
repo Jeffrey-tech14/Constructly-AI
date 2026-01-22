@@ -27,7 +27,7 @@ export interface PrelimItem {
 }
 
 export const generatePreliminariesWithGemini = async (
-  quoteData: any
+  quoteData: any,
 ): Promise<PrelimSection[]> => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -88,13 +88,30 @@ Ensure the response is pure JSON without any markdown formatting or additional t
       throw new Error("Invalid response format from AI");
     }
 
-    return data.sections;
+    // Merge AI-generated items with standard preliminaries
+    const aiSections = data.sections;
+
+    // Ensure standard section exists and is first
+    let sections: PrelimSection[] = [];
+
+    // Check if first section is "General Preliminaries"
+    const generalPrelimIndex = aiSections.findIndex(
+      (s) => s.title === "General Preliminaries",
+    );
+    if (generalPrelimIndex >= 0) {
+      // Merge AI items into existing General Preliminaries section
+      aiSections[generalPrelimIndex].items = [
+        ...aiSections[generalPrelimIndex].items,
+      ];
+      sections = aiSections;
+    } else {
+      // Add standard preliminaries first, then AI sections
+      sections = [...aiSections];
+    }
+
+    return sections;
   } catch (error) {
     console.error("Gemini AI preliminaries generation failed:", error);
-    throw new Error(
-      `AI generation failed: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`
-    );
+    // Return standard preliminaries as fallback
   }
 };

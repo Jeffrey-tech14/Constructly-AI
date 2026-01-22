@@ -32,23 +32,39 @@ class PlanParserService {
   /**
    * Parse a construction plan file using Gemini Vision API
    * Supports PDF, images (JPG, PNG)
+   * Optionally accepts a Bar Bending Schedule (BBS) file for rebar extraction
    */
-  async parsePlanFile(file: File): Promise<ExtractedPlan> {
+  async parsePlanFile(file: File, bbsFile?: File): Promise<ExtractedPlan> {
     try {
       const base64Data = await this.fileToBase64(file);
       const mimeType = this.getMimeType(file.name);
 
-      const response = await this.model.generateContent([
+      const contentParts: any[] = [
         {
           inlineData: {
             data: base64Data,
             mimeType: mimeType,
           },
         },
-        {
-          text: this.getAnalysisPrompt(),
-        },
-      ]);
+      ];
+
+      // If BBS file provided, add it to the content
+      if (bbsFile) {
+        const bbsBase64Data = await this.fileToBase64(bbsFile);
+        const bbsMimeType = this.getMimeType(bbsFile.name);
+        contentParts.push({
+          inlineData: {
+            data: bbsBase64Data,
+            mimeType: bbsMimeType,
+          },
+        });
+      }
+
+      contentParts.push({
+        text: this.getAnalysisPrompt(!!bbsFile),
+      });
+
+      const response = await this.model.generateContent(contentParts);
 
       const responseText = response.response.text();
       const parsedData = this.extractJsonFromResponse(responseText);
@@ -59,7 +75,7 @@ class PlanParserService {
       throw new Error(
         `Failed to parse plan: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     }
   }
@@ -84,7 +100,7 @@ class PlanParserService {
       throw new Error(
         `Failed to parse plan from URL: ${
           error instanceof Error ? error.message : "Unknown error"
-        }`
+        }`,
       );
     }
   }
@@ -115,7 +131,7 @@ class PlanParserService {
     return mimeTypes[ext || ""] || "application/octet-stream";
   }
 
-  private getAnalysisPrompt(): string {
+  private getAnalysisPrompt(hasBBSFile: boolean = false): string {
     return `
 You are an expert architectural AI analyzing construction drawings and plans with extreme attention to detail.
 (Keep output EXACTLY as JSON matching the requested schema. If no walls detected, respond with {"error":"No walls found"}.)
@@ -165,8 +181,8 @@ GLOBAL RULES (NON-NEGOTIABLE)
 6. COMPLETENESS
  **DO NOT invent dimensions** that are not visible or inferable.
  **Use defaults only when reasonable**:
-   - External wall height → 3.0 m
-   - Internal wall height → 2.7 m
+   - External wall height → 3.2 m
+   - Internal wall height → 2.9 m
    - Wall thickness → 0.2 m
    - Block type → "Standard Block"
    - Plaster → "Both Sides"
@@ -178,14 +194,11 @@ GLOBAL RULES (NON-NEGOTIABLE)
 **All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
 **Be consistent with your type system** — no arbitrary strings.
 - Follow the specified materials and types exactly.
-- If a reinforement item exists, make sure it's concrete item exists as well, and vice versa, no exceptions.
+- If a reinforement item exists, make sure it's concrete item exists as well, and vice versa with sole exception if we do not have a bar bending schedule.
 - Base your analysis on what you can actually see in the drawing
 - Use external dimensions for perimeters
 - Do not include paint in any way or capacity anywhere in this extraction
 - Make sure to identify all wall sections (external and internal)
-- External works should be in the concreteStructures section
-- Use reasonable architectural standards for missing information
-- Return wall structure even if some dimensions are estimated
 - Prefer custom sizes when specific dimensions are visible
 - Pay special attention to dimension lines and labels
 - Estimate reasonably the equipment that would be used and days to be used
@@ -194,10 +207,12 @@ GLOBAL RULES (NON-NEGOTIABLE)
 - Use the specific types provided
 - Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not change the spelling or characters
 - Be precise with wall dimension extraction
-- Calculate perimeters by summing all wall lengths
+- Calculate perimeters by summing all wall lengths if internal or external
+- For external walls, measure the full building footprint perimeter
 - For internal walls, measure partition lengths
-- Do not leave any null items. If empty use reasonable estimates based on the plan and what would be expected
-
+- If we have the bar bending schedule, do not add any other reinforcement that you may find on the drawings
+- For wall heights, measure from ground to slab/roof level, and add a foot on top of the wall height to accomodate ceilings and other things
+- Always extract the foundation in concrete structures always as strip-footing if house type is a bungalow, and make sure to have its reinforcement items if we do not have a bar bending schedule
 Analyze this construction document and extract ALL available information about:
 
 ### 🏗️ WALL STRUCTURE IDENTIFICATION:
@@ -236,21 +251,21 @@ Analyze this construction document and extract ALL available information about:
   | "tank";
 - RebarSize =
   | "R6"
-  | "Y6"
-  | "Y8"
-  | "Y10"
-  | "Y12"
-  | "Y14"
-  | "Y16"
-  | "Y18"
-  | "Y20"
-  | "Y22"
-  | "Y25"
-  | "Y28"
-  | "Y32"
-  | "Y36"
-  | "Y40"
-  | "Y50";
+  | "D6"
+  | "D8"
+  | "D10"
+  | "D12"
+  | "D14"
+  | "D16"
+  | "D18"
+  | "D20"
+  | "D22"
+  | "D25"
+  | "D28"
+  | "D32"
+  | "D36"
+  | "D40"
+  | "D50";
 - ReinforcementType = "individual_bars" | "mesh";
 - FootingType = "isolated" | "strip" | "combined";
 - STANDARD_MESH_SHEETS = [
@@ -267,11 +282,86 @@ Analyze this construction document and extract ALL available information about:
   | "water"
   | "circular";
 - TankWallType = "walls" | "base" | "cover" | "all";
+- RetainingWallType = "cantilever" | "gravity" | "counterfort";
+- Be definite between the reinforcement types, eg either mesh or individual_bars
+- If you find both reinforcement types, create two individual entries for each with the correct type
+
+### DETAILED REINFORCEMENT EXTRACTION BY ELEMENT TYPE:
+
+**For Strip Footings and Raft Foundations:**
+- Extract longitudinalBars: Main bars running along the length (string format: "D12" for bar size or "D12@150" for bar size and spacing)
+- Extract transverseBars: Distribution bars across width (string format)
+- Extract topReinforcement: Top layer reinforcement specification
+- Extract bottomReinforcement: Bottom layer reinforcement specification
+- footingType: Must be "strip", "isolated", or "combined"
+- Include mainBarSpacing, distributionBarSpacing in mm (e.g., "150", "200")
+
+**For Retaining Walls:**
+- retainingWallType: MUST be "cantilever", "gravity", or "counterfort"
+- heelLength: Length of heel in meters (e.g., "0.5")
+- toeLength: Length of toe in meters (e.g., "0.5")
+- Stem reinforcement:
+  - stemVerticalBarSize: Vertical bar size (e.g., "D12", "D10")
+  - stemHorizontalBarSize: Horizontal bar size (e.g., "D10", "D8")
+  - stemVerticalSpacing: Vertical bar spacing in mm (e.g., "150")
+  - stemHorizontalSpacing: Horizontal bar spacing in mm (e.g., "200")
+- Base reinforcement (same structure as footings):
+  - baseMainBarSize, baseDistributionBarSize
+  - baseMainSpacing, baseDistributionSpacing
+
+**For Beams:**
+- mainBarsCount: Number of main bars (e.g., "4", "6")
+- distributionBarsCount: Number of distribution/shear reinforcement bars
+- stirrupSpacing: Stirrup spacing in mm (e.g., "100", "150", "200")
+- stirrupSize: Stirrup bar size (e.g., "D8", "D6")
+- mainBarSpacing: Spacing of main bars (if continuous layout)
+
+**For Columns:**
+- mainBarsCount: Number of longitudinal bars (e.g., "4", "6", "8", "12")
+- tieSpacing: Column tie/link spacing in mm (e.g., "150", "200", "250")
+- tieSize: Tie bar size (e.g., "D6", "D8", "D10")
+- mainBarSize: Longitudinal bar size
+- columnHeight: Height of column in meters
+
+**For Slabs:**
+- mainBarSize: Bottom layer main bars
+- distributionBarSize: Bottom layer distribution bars
+- mainBarSpacing: Main bar spacing in mm
+- distributionBarSpacing: Distribution bar spacing in mm
+- slabLayers: Number of reinforcement layers ("1" for single, "2" for double)
+- If slabLayers > 1, also provide top layer reinforcement (use topReinforcement field)
+
+**For Tanks:**
+- All basic fields PLUS tank-specific reinforcement (wall, base, cover separately)
+- Ensure corresponding concrete tank exists
+- Tank reinforcement may include vertical and horizontal directions
 - Be deifinate between the reinforcement types, eg either mesh or individual_bars
 - If you find both reinforecement types, create two individual entries for each with the correct 
 
 **Equipment:**
 - Standard equipment types and their respective id = Bulldozer:15846932-db16-4a28-a477-2e4b2e1e42d5, Concrete Mixer:3203526d-fa51-4878-911b-477b2b909db5, Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b, Water Pump:598ca378-6eb3-451f-89ea-f45aa6ecece8, Crane: d4665c7d-6ace-474d-8282-e888b53e7b48, Compactoreb80f645-6450-4026-b007-064b5f15a72a, Excavator:ef8d17ca-581d-4703-b200-17395bbe1c51
+
+${
+  hasBBSFile
+    ? `**BAR BENDING SCHEDULE (BBS) EXTRACTION:**
+- If a Bar Bending Schedule file is provided, extract ALL bar bending details:
+- Bar types: D6, D8, D10, D12, D14, D16, D18, D20, D22, D25, D28, D32, D36, D40, D50
+- For each bar type found, identify:
+  - Bar length (in meters, convert from mm if needed)
+  - Total quantity of bars with that length
+  - Estimated weight per meter (if visible or calculable)
+- Group bars by type and length combination
+- Make sure to combine similar bars into single entries with total quantities
+- Set rebar_calculation_method to "bbs"
+- Look out for symbols that will inform you of the type of bar eg, ↀ16 or ∅16 will be D16. This applies to the the bbs and the reinforecement in general
+- Look out for measurements eg; 12mm, 8mm, etc these are the diameters of the needed bars, hence D12, D8, etc.
+- Return complete bar_schedule array with all extracted bars
+- Be precise and thorough, make usre you capture every detail you can find correctly so take the time to check`
+    : `**REBAR CALCULATION METHOD:**
+- Since no Bar Bending Schedule is provided, set rebar_calculation_method to "intensity-based"
+- This indicates that rebar calculations will be based on reinforcement intensity formulas
+- bar_schedule array should be empty [] when using intensity-based method`
+}
 
 **Roofing:**
 - Roof types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
@@ -493,7 +583,7 @@ Analyze this construction document and extract ALL available information about:
   gravelDepth?: string;
   includesPerforatedPipes: boolean;
 }
-- Rebar sizes follow standard notation (e.g., "Y10", "Y12")
+- Rebar sizes follow standard notation (e.g., "D10", "D12")
 - Mixes to follow ratios eg 1:2:4, 1:2:3
 - Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
 - Note that the provided file contains information about one building from different perspectives (e.g plan, section, elevation etc). Use all the information available to provide the most accurate dimensions and details
@@ -546,7 +636,9 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     "externalWallPerimiter": 50.5,
     "internalWallPerimiter": 35.2,
     "externalWallHeight": 3.0,
-    "internalWallHeight": 2.7
+    "internalWallHeight": 2.7,
+    "length": "5.0", // Length of the house
+    "width": "3.0", // Width of the house
   },
   "wallSections": [
     {
@@ -666,16 +758,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
   "projectName": string,
   "projectLocation": string,
   
-  "earthworks": [ {
-      "id": "excavation-01",
-      "type": "foundation-excavation",
-      "length": "15.5",
-      "width": "10.2", 
-      "depth": "1.2",
-      "volume": "189.72",
-      "material": "soil"
-    } 
-  ],
   "concreteStructures": [
     {
       id:string;
@@ -736,6 +818,9 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       soakawayDetails?: SoakawayDetails;
     }
   ],
+  ${
+    !hasBBSFile
+      ? `
   "reinforcement":[
     {
       id?: string;
@@ -789,8 +874,8 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "mainBarsCount": "",
       "distributionBarsCount": "",
       "slabLayers": "",
-      "mainBarSize": "Y12",
-      "distributionBarSize": "Y10",
+      "mainBarSize": "D12",
+      "distributionBarSize": "D10",
       "stirrupSize": "",
       "tieSize": "",
       "stirrupSpacing": "",
@@ -813,20 +898,23 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "baseThickness": "0.2",
       "coverThickness": "0.15",
       "includeCover": true,
-      "wallVerticalBarSize": "Y12",
-      "wallHorizontalBarSize": "Y10",
+      "wallVerticalBarSize": "D12",
+      "wallHorizontalBarSize": "D10",
       "wallVerticalSpacing": "150",
       "wallHorizontalSpacing": "200",
-      "baseMainBarSize": "Y12",
-      "baseDistributionBarSize": "Y10",
+      "baseMainBarSize": "D12",
+      "baseDistributionBarSize": "D10",
       "baseMainSpacing": "150",
       "baseDistributionSpacing": "200",
-      "coverMainBarSize": "Y10",
-      "coverDistributionBarSize": "Y8",
+      "coverMainBarSize": "D10",
+      "coverDistributionBarSize": "D8",
       "coverMainSpacing": "200",
       "coverDistributionSpacing": "250"
     },
   ],
+  `
+      : ``
+  }
   "equipment":{
     "equipmentData": {
       "standardEquipment": [
@@ -999,6 +1087,20 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "location": string
     }
   ],
+  ${
+    hasBBSFile
+      ? `"bar_schedule": [
+    {
+      "bar_type": "D6" | "D8" | "D10" | "D12" | "D14" | "D16" | "D18" | "D20" | "D22" | "D25" | "D28" | "D32" | "D36" | "D40" | "D50",
+      "bar_length": number, // in meters
+      "quantity": number, // total quantity for this bar type and length
+      "weight_per_meter"?: number, // optional: estimated weight per meter in kg
+      "total_weight"?: number // optional: total weight in kg
+    }
+  ],
+  "rebar_calculation_method": "bbs"`
+      : `"rebar_calculation_method": "intensity-based"`
+  }
   }
 `;
   }
@@ -1031,7 +1133,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       throw new Error(
         `Failed to parse plan response: ${
           error instanceof Error ? error.message : "Invalid JSON"
-        }`
+        }`,
       );
     }
   }

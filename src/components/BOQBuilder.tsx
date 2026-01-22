@@ -55,6 +55,9 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
   >("none");
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // Safe rendering - ensure boqSections is always an array
+  const safeSections = Array.isArray(boqSections) ? boqSections : [];
+
   // Safe array access helper
   const getSafeArray = (data: any): BOQSection[] => {
     if (!data) return [];
@@ -232,8 +235,12 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     }, 0);
   };
 
-  // Safe rendering - ensure boqSections is always an array
-  const safeSections = Array.isArray(boqSections) ? boqSections : [];
+  // Sync BOQ sections to quote whenever they change
+  useEffect(() => {
+    if (safeSections.length > 0) {
+      onBOQUpdate(safeSections);
+    }
+  }, [boqSections, onBOQUpdate]);
 
   if (isGenerating) {
     return (

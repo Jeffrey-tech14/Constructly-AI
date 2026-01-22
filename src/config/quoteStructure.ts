@@ -3,7 +3,7 @@
 
 /**
  * Quote Structure Organization - Construction Lifecycle Approach
- * 
+ *
  * This file defines the organizational structure for quotes following
  * a construction lifecycle approach (Substructure → Superstructure → Other)
  */
@@ -78,8 +78,21 @@ export interface QuoteElement {
 /**
  * Standard Quote Structure Configuration
  * This defines the default sections and ordering for construction quotes
+ * Order: Preliminaries → Substructure → Superstructure → Other
  */
 export const DEFAULT_QUOTE_STRUCTURE: QuoteSectionConfig[] = [
+  // ============ PRELIMINARIES ============
+  {
+    id: "preliminaries",
+    category: "substructure",
+    section: "preliminaries",
+    title: "Preliminaries",
+    description: "Site clearance, hording, sign board, temporary structures",
+    order: 0.9,
+    color: "bg-indigo-50",
+    icon: "Flag",
+  },
+
   // ============ SUBSTRUCTURE ============
   {
     id: "substructure",
@@ -95,7 +108,8 @@ export const DEFAULT_QUOTE_STRUCTURE: QuoteSectionConfig[] = [
     category: "substructure",
     section: "earthworks",
     title: "Earthworks & Excavation",
-    description: "Site preparation, excavation based on foundation type",
+    description:
+      "Site preparation, oversite excavation (200mm), foundation excavation based on type",
     order: 1.1,
     color: "bg-orange-50",
     icon: "Pickaxe",
@@ -116,7 +130,8 @@ export const DEFAULT_QUOTE_STRUCTURE: QuoteSectionConfig[] = [
     category: "substructure",
     section: "ground-floor-prep",
     title: "Ground Floor Preparation",
-    description: "Concrete bed, aggregate bed, ground slab",
+    description:
+      "Concrete blinding (50mm, 1:4:8), marram blinding, DPM 500 gauge, anti-termite treatment, hardcore backfill",
     order: 1.3,
     color: "bg-yellow-50",
     icon: "Layers",
@@ -178,8 +193,7 @@ export const DEFAULT_QUOTE_STRUCTURE: QuoteSectionConfig[] = [
     category: "superstructure",
     section: "internal-finishes",
     title: "Internal Finishes",
-    description:
-      "Wall finishes (plaster/tiling), flooring, ceiling, painting",
+    description: "Wall finishes (plaster/tiling), flooring, ceiling, painting",
     order: 2.4,
     color: "bg-rose-50",
     icon: "Palette",
@@ -210,8 +224,7 @@ export const DEFAULT_QUOTE_STRUCTURE: QuoteSectionConfig[] = [
     category: "furniture-fittings",
     section: "wardrobes-cabinets",
     title: "Wardrobes & Cabinets",
-    description:
-      "Wardrobes, kitchen cabinets - lump-sum or detailed breakdown",
+    description: "Wardrobes, kitchen cabinets - lump-sum or detailed breakdown",
     order: 3.1,
     color: "bg-lime-50",
     icon: "LayoutList",
@@ -321,7 +334,9 @@ export const DEFAULT_QUOTE_STRUCTURE: QuoteSectionConfig[] = [
 /**
  * Get the section configuration by ID
  */
-export function getSectionConfig(sectionId: string): QuoteSectionConfig | undefined {
+export function getSectionConfig(
+  sectionId: string,
+): QuoteSectionConfig | undefined {
   return DEFAULT_QUOTE_STRUCTURE.find((s) => s.id === sectionId);
 }
 
@@ -329,17 +344,20 @@ export function getSectionConfig(sectionId: string): QuoteSectionConfig | undefi
  * Get all sections for a category
  */
 export function getSectionsForCategory(
-  category: QuoteCategory
+  category: QuoteCategory,
 ): QuoteSectionConfig[] {
   return DEFAULT_QUOTE_STRUCTURE.filter((s) => s.category === category).sort(
-    (a, b) => a.order - b.order
+    (a, b) => a.order - b.order,
   );
 }
 
 /**
  * Get organized structure grouped by category
  */
-export function getOrganizedStructure(): Record<QuoteCategory, QuoteSectionConfig[]> {
+export function getOrganizedStructure(): Record<
+  QuoteCategory,
+  QuoteSectionConfig[]
+> {
   const categories: QuoteCategory[] = [
     "substructure",
     "superstructure",
@@ -354,17 +372,17 @@ export function getOrganizedStructure(): Record<QuoteCategory, QuoteSectionConfi
       acc[category] = getSectionsForCategory(category);
       return acc;
     },
-    {} as Record<QuoteCategory, QuoteSectionConfig[]>
+    {} as Record<QuoteCategory, QuoteSectionConfig[]>,
   );
 }
 
 /**
  * Example: Get excavation section
  * const earthworksSection = getSectionConfig('earthworks');
- * 
+ *
  * Example: Get all superstructure sections
  * const superSections = getSectionsForCategory('superstructure');
- * 
+ *
  * Example: Generate quote with new structure
  * const organized = getOrganizedStructure();
  * Object.entries(organized).forEach(([category, sections]) => {

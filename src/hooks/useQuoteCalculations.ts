@@ -58,6 +58,8 @@ export interface Percentage {
   overhead: number;
   profit: number;
   contingency: number;
+  unknown_contingency: number;
+  unknownContingencyMode: "percent" | "cash";
   labourMode: "percent" | "cash";
   overheadMode: "percent" | "cash";
   profitMode: "percent" | "cash";
@@ -173,11 +175,6 @@ export interface QuoteCalculation {
   rebar_calculations: any[];
   preliminaries: any[];
   earthwork: any[];
-  total_wall_area: number;
-  total_concrete_volume: number;
-  total_formwork_area: number;
-  total_rebar_weight: number;
-  total_plaster_volume: number;
   project_type: string;
   equipment_costs: number;
   additional_services_cost: number;
@@ -187,6 +184,7 @@ export interface QuoteCalculation {
   overhead_percentages: number;
   profit_percentages: number;
   contingency_percentages: number;
+  unknown_contingency_percentages: number;
   permit_cost: number;
   foundationDetails: {};
   wardrobes_cabinets?: any[];
@@ -209,6 +207,7 @@ export interface CalculationResult {
   subtotal: number;
   overhead_amount: number;
   profit_amount: number;
+  unknown_contingency_amount?: number;
   total_amount: number;
   materials_cost: number;
   preliminariesCost: number;
@@ -270,9 +269,9 @@ export const useQuoteCalculations = () => {
     const merged = baseMaterials.map((material) => {
       const userRegion = region || "Nairobi";
       const userRate = overrides?.find(
-        (o) => o.material_id === material.id && o.region === userRegion
+        (o) => o.material_id === material.id && o.region === userRegion,
       );
-      const price = userRate ? userRate.price : material.price ?? 0;
+      const price = userRate ? userRate.price : (material.price ?? 0);
       const multiplier =
         regionalMultipliers.find((r) => r.region === userRegion)?.multiplier ||
         1;
@@ -313,7 +312,7 @@ export const useQuoteCalculations = () => {
     if (overrideError) console.error("Overrides error:", overrideError);
     const merged = baseServices.map((service) => {
       const userRate = overrides?.find((o) => o.service_id === service.id);
-      const price = userRate ? userRate.price : service.price ?? 0;
+      const price = userRate ? userRate.price : (service.price ?? 0);
       return {
         ...service,
         price,
@@ -342,8 +341,8 @@ export const useQuoteCalculations = () => {
       const rate = userRate
         ? Number(userRate.price)
         : service.price != null
-        ? Number(service.price)
-        : 0;
+          ? Number(service.price)
+          : 0;
       return {
         ...service,
         price: rate,
@@ -372,17 +371,17 @@ export const useQuoteCalculations = () => {
 
     const merged = baseEquipment.map((equipment) => {
       const userRate = overrides?.find(
-        (o) => o.equipment_type_id === equipment.id
+        (o) => o.equipment_type_id === equipment.id,
       );
-      const rate = userRate ? userRate.total_cost : equipment.total_cost ?? 0;
+      const rate = userRate ? userRate.total_cost : (equipment.total_cost ?? 0);
       return {
         ...equipment,
         total_cost: rate,
         source: userRate
           ? "user"
           : equipment.total_cost != null
-          ? "base"
-          : "none",
+            ? "base"
+            : "none",
       };
     });
 
@@ -411,7 +410,7 @@ export const useQuoteCalculations = () => {
   }, [user, profile]);
 
   const calculateQuote = async (
-    params: QuoteCalculation
+    params: QuoteCalculation,
   ): Promise<CalculationResult> => {
     if (!user || !profile) throw new Error("User not authenticated");
     setLoading(true);
@@ -442,10 +441,12 @@ export const useQuoteCalculations = () => {
               overhead: params.overhead_percentages || 0,
               profit: params.profit_percentages || 0,
               contingency: params.contingency_percentages || 0,
+              unknown_contingency: params.unknown_contingency_percentages || 0,
               labourMode: "percent" as const,
               overheadMode: "percent" as const,
               profitMode: "percent" as const,
               contingencyMode: "percent" as const,
+              unknownContingencyMode: "percent" as const,
             };
 
       const calculatePreliminariesTotal = (): number => {
@@ -463,6 +464,7 @@ export const useQuoteCalculations = () => {
       const calculateMaterialTotals = (): number => {
         let total = 0;
         const boqItems = params.boqData || params.boq_data || [];
+        console.log(boqItems);
         if (boqItems) {
           boqItems.forEach((section) => {
             section.items.forEach((item) => {
@@ -551,7 +553,7 @@ export const useQuoteCalculations = () => {
       const overheadAmount =
         qsSettings?.financialModes?.overhead === "percentage"
           ? Math.round(
-              subtotalBeforeExtras * (percentageSettings.overhead / 100)
+              subtotalBeforeExtras * (percentageSettings.overhead / 100),
             )
           : qsSettings?.overhead_fixed || 0;
 
@@ -559,9 +561,16 @@ export const useQuoteCalculations = () => {
       const contingencyAmount =
         qsSettings?.financialModes?.contingency === "percentage"
           ? Math.round(
-              subtotalBeforeExtras * (percentageSettings.contingency / 100)
+              subtotalBeforeExtras * (percentageSettings.contingency / 100),
             )
           : qsSettings?.contingency_fixed || 0;
+      const unknownContingencyAmount =
+        qsSettings?.financialModes?.unknown_contingency === "percentage"
+          ? Math.round(
+              subtotalBeforeExtras *
+                (percentageSettings.unknown_contingency / 100),
+            )
+          : qsSettings?.unknown_contingency_amount || 0;
 
       // Calculate profit based on mode
       const profitAmount =
@@ -570,7 +579,10 @@ export const useQuoteCalculations = () => {
           : qsSettings?.profit_fixed || 0;
 
       const subtotalWithExtras =
-        subtotalBeforeExtras + overheadAmount + contingencyAmount;
+        subtotalBeforeExtras +
+        overheadAmount +
+        contingencyAmount +
+        unknownContingencyAmount;
       const totalAmount = Math.round(subtotalWithExtras + profitAmount);
 
       return {
@@ -591,6 +603,7 @@ export const useQuoteCalculations = () => {
         materials_cost: materials_cost,
         preliminariesCost: preliminariesCost,
         subcontractors: updatedSubcontractors,
+        unknown_contingency_amount: unknownContingencyAmount,
         qsSettings: qsSettings,
         percentages: [percentageSettings],
         materialPrices: materials,

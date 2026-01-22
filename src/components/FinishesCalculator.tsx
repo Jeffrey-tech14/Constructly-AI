@@ -71,7 +71,7 @@ const COMMON_MATERIALS = {
   ],
   ceiling: [
     "Gypsum Board",
-    "Jointing Compound",
+    "Filler",
     "PVC",
     "Acoustic Tiles",
     "Exposed Concrete",
@@ -117,7 +117,7 @@ export default function FinishesCalculator({
       finishes,
       materialPrices,
       quote,
-      setQuoteData
+      setQuoteData,
     );
 
   // Initialize painting calculator
@@ -136,7 +136,7 @@ export default function FinishesCalculator({
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<FinishCategory | "all">(
-    "all"
+    "all",
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
@@ -168,7 +168,7 @@ export default function FinishesCalculator({
         qsSettings: newSettings,
       }));
     },
-    [setQuoteData]
+    [setQuoteData],
   );
 
   // Filter calculations based on search and category
@@ -220,7 +220,7 @@ export default function FinishesCalculator({
     if (!editForm || !editingId) return;
 
     const updatedFinishes = finishes.map((finish) =>
-      finish.id === editingId ? editForm : finish
+      finish.id === editingId ? editForm : finish,
     );
 
     if (onFinishesUpdate) {
@@ -361,7 +361,7 @@ export default function FinishesCalculator({
                 <CardContent>
                   <div className="text-xl font-bold text-green-600">
                     {formatCurrency(
-                      quote.masonry_materials.grossPlasterCost || 0
+                      quote.masonry_materials.grossPlasterCost || 0,
                     )}
                   </div>
                   <p className="text-xs mt-1">Gross Cost</p>
@@ -615,7 +615,7 @@ export default function FinishesCalculator({
                             <SelectItem key={material} value={material}>
                               {material}
                             </SelectItem>
-                          )
+                          ),
                         )}
                       </SelectContent>
                     </Select>
@@ -644,7 +644,7 @@ export default function FinishesCalculator({
                       onChange={(e) =>
                         handleEditFormChange(
                           "quantity",
-                          parseFloat(e.target.value) || 0
+                          parseFloat(e.target.value) || 0,
                         )
                       }
                     />
@@ -721,7 +721,7 @@ export default function FinishesCalculator({
                             className={getCategoryColor(calc.category)}
                           >
                             {FINISH_CATEGORIES.find(
-                              (c) => c.value === calc.category
+                              (c) => c.value === calc.category,
                             )?.label || calc.category}
                           </Badge>
                         </TableCell>

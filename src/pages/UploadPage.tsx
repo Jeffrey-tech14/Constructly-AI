@@ -16,6 +16,7 @@ import {
   UploadCloud,
   FileText,
   CheckCircle,
+  CheckCircle2,
   Trash2,
   Loader2,
   Shield,
@@ -44,10 +45,18 @@ import { ExtractedPlan, usePlan } from "@/contexts/PlanContext";
 import { usePlanUpload } from "@/hooks/usePlanUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dimensions, WallProperties } from "@/hooks/useMasonryCalculatorNew";
 import { WallSection } from "@/hooks/useMasonryCalculatorNew";
+import { planParserService } from "@/services/planParserService";
 
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
@@ -109,6 +118,7 @@ const PreviewModal = ({
 
 const UploadPlan = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [bbsFile, setBbsFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -246,7 +256,7 @@ const UploadPlan = () => {
         const file = new File([blob], fileName, { type: blob.type });
         setPreviewUrl(URL.createObjectURL(file));
         setSelectedFile(file);
-        const data = await analyzePlan(file, setError, setCurrentStep);
+        const data = await analyzePlan(file, setError, setCurrentStep, bbsFile);
         setEditablePlan({
           ...data,
           file_url: fileUrl,
@@ -272,46 +282,47 @@ const UploadPlan = () => {
     file: File,
     setError: Function,
     setCurrentStep: Function,
-  ): Promise<ParsedPlan> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch("http://192.168.251.117:8000/api/plan/upload", {
-      method: "POST",
-      body: formData,
-    });
+    bbs?: File,
+  ): Promise<ExtractedPlan> => {
+    try {
+      const parsedData = await planParserService.parsePlanFile(file, bbs);
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Analysis failed: ${res.status} - ${errorText}`);
-    }
-
-    const result = await res.json();
-    if (result.note) {
-      const noteText = result.note.toString().toLowerCase();
-      const errorKeywords = [
-        "error",
-        "failed",
-        "invalid",
-        "missing",
-        "unable",
-        "issue",
-        "exception",
-      ];
-      const containsError = errorKeywords.some((word) =>
-        noteText.includes(word),
-      );
-      if (containsError) {
-        setError({
-          message: result.note,
-          type: "analysis",
-          retryable: false,
-        });
-        setCurrentStep("error");
-        throw new Error(`Server reported issue: ${result.note}`);
+      // Calculate build area from length and width with 300% multiplier
+      let calculatedBuildArea = parsedData.projectInfo?.totalArea || 0;
+      if (
+        parsedData.wallDimensions?.length &&
+        parsedData.wallDimensions?.width
+      ) {
+        const baseArea =
+          parsedData.wallDimensions.length * parsedData.wallDimensions.width;
+        calculatedBuildArea = baseArea * 3; // 300% multiplier
       }
-    }
 
-    return result;
+      // Transform the parsed data to match ParsedPlan interface
+      const result: ExtractedPlan = {
+        ...parsedData,
+        file_name: file.name,
+        uploaded_at: new Date().toISOString(),
+        projectInfo: {
+          ...parsedData.projectInfo,
+          totalArea: calculatedBuildArea,
+        },
+      };
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Analysis failed";
+      console.error("Plan analysis error:", error);
+
+      setError({
+        message: errorMessage,
+        type: "analysis",
+        retryable: true,
+      });
+
+      throw new Error(errorMessage);
+    }
   };
 
   const uploadAndSave = async (file: File): Promise<string> => {
@@ -371,7 +382,7 @@ const UploadPlan = () => {
       // Proceed with analysis
       try {
         setCurrentStep("analyzing");
-        const data = await analyzePlan(file, setError, setCurrentStep);
+        const data = await analyzePlan(file, setError, setCurrentStep, bbsFile);
 
         const processedPlan: ExtractedPlan = {
           ...data,
@@ -432,7 +443,6 @@ const UploadPlan = () => {
         type: "upload",
         retryable: true,
       });
-      setCurrentStep("error");
       return;
     }
 
@@ -442,7 +452,6 @@ const UploadPlan = () => {
         type: "upload",
         retryable: true,
       });
-      setCurrentStep("error");
       return;
     }
 
@@ -450,16 +459,88 @@ const UploadPlan = () => {
     setPreviewUrl(URL.createObjectURL(file));
     setConfidence(0);
     setError(null);
+    setCurrentStep("idle");
+
+    toast({
+      title: "Plan File Selected",
+      description: file.name,
+    });
+  };
+
+  const handleBBSFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const validExtensions = [
+      "pdf",
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "xlsx",
+      "csv",
+    ];
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "application/pdf",
+      "image/webp",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/csv",
+    ];
+
+    const isValidType =
+      validTypes.includes(file.type) || validExtensions.includes(fileExt || "");
+
+    if (!isValidType) {
+      toast({
+        title: "Invalid BBS Format",
+        description: "BBS must be PDF, image, or spreadsheet format",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "BBS file must be less than 20MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBbsFile(file);
+    toast({
+      title: "BBS Added",
+      description: `Bar Bending Schedule added: ${file.name}`,
+    });
+  };
+
+  const startAnalysis = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "No Plan File",
+        description: "Please select a plan file first",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      setCurrentStep("uploading");
       setCurrentStep("analyzing");
-      const data = await analyzePlan(file, setError, setCurrentStep);
+      const data = await analyzePlan(
+        selectedFile,
+        setError,
+        setCurrentStep,
+        bbsFile,
+      );
 
       const processedPlan: ExtractedPlan = {
         ...data,
         file_url: fileUrl,
-        file_name: file.name,
+        file_name: selectedFile.name,
         uploaded_at: new Date().toISOString(),
         wallDimensions: data.wallDimensions,
       };
@@ -468,6 +549,11 @@ const UploadPlan = () => {
       setConfidence(Math.min(80 + Math.random() * 20, 100));
       setCurrentStep("complete");
       setRetryCount(0);
+
+      toast({
+        title: "Analysis Complete",
+        description: "Plan extracted successfully",
+      });
     } catch (err) {
       console.error("Analysis error:", err);
       let errorType: "analysis" | "network" = "analysis";
@@ -499,6 +585,53 @@ const UploadPlan = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleConfirmationFieldsUpdate = (updates: {
+    houseType?: "bungalow" | "mansionate";
+    blockWidth?: string;
+    buildArea?: string;
+    groundFloorElevation?: string;
+  }) => {
+    if (!editablePlan) return;
+
+    const getDefaultFoundationType = (houseType: string): string => {
+      return houseType === "bungalow" ? "strip-foundation" : "raft-foundation";
+    };
+
+    const houseType = (updates.houseType ||
+      editablePlan.projectInfo?.houseType ||
+      "bungalow") as "bungalow" | "mansionate";
+
+    // Update the extracted plan with confirmation data
+    const updatedPlan: ExtractedPlan = {
+      ...editablePlan,
+      projectInfo: {
+        projectType: editablePlan.projectInfo?.projectType || "residential",
+        floors: editablePlan.projectInfo?.floors || 1,
+        totalArea: updates.buildArea
+          ? parseFloat(updates.buildArea)
+          : editablePlan.projectInfo?.totalArea || 0,
+        description: editablePlan.projectInfo?.description || "",
+        houseType,
+      },
+      wallProperties: {
+        ...editablePlan.wallProperties,
+        thickness: updates.blockWidth
+          ? parseFloat(updates.blockWidth) / 1000
+          : editablePlan.wallProperties?.thickness || 0.2,
+      },
+      foundationDetails: {
+        ...editablePlan.foundationDetails,
+        foundationType: getDefaultFoundationType(houseType),
+        groundFloorElevation: updates.groundFloorElevation
+          ? parseFloat(updates.groundFloorElevation)
+          : editablePlan.foundationDetails?.groundFloorElevation || 0,
+      },
+    };
+
+    setEditablePlan(updatedPlan);
+    setExtractedPlan(updatedPlan);
   };
 
   const handleDone = async () => {
@@ -968,7 +1101,7 @@ const UploadPlan = () => {
                                   Wall Dimensions
                                 </h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
                                     <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                       External Wall Perimeter (m)
                                     </Label>
@@ -999,7 +1132,7 @@ const UploadPlan = () => {
                                       className="bg-green-50 dark:bg-slate-700"
                                     />
                                   </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-green-200 dark:border-green-700">
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
                                     <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                       External Wall Height (m)
                                     </Label>
@@ -1030,7 +1163,7 @@ const UploadPlan = () => {
                                       className="bg-green-50 dark:bg-slate-700"
                                     />
                                   </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-700">
                                     <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                       Internal Wall Perimeter (m)
                                     </Label>
@@ -1061,7 +1194,7 @@ const UploadPlan = () => {
                                       className="bg-blue-50 dark:bg-slate-700"
                                     />
                                   </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-700">
+                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-700">
                                     <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                       Internal Wall Height (m)
                                     </Label>
@@ -1097,6 +1230,192 @@ const UploadPlan = () => {
                             </CardContent>
                           </Card>
                         )}
+
+                        {/* Inline Confirmation Fields */}
+                        {editablePlan && currentStep === "complete" && (
+                          <Card className="mb-8">
+                            <CardHeader className="rounded-t-lg">
+                              <CardTitle className="text-lg flex items-center">
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                Confirm Extracted Project Details
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-6">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-sm mb-2 block">
+                                    House Type
+                                  </Label>
+                                  <Select
+                                    value={
+                                      editablePlan.projectInfo?.houseType ||
+                                      "bungalow"
+                                    }
+                                    onValueChange={(value) => {
+                                      const houseType = value as
+                                        | "bungalow"
+                                        | "mansionate";
+                                      handleConfirmationFieldsUpdate({
+                                        houseType,
+                                      });
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select house type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="bungalow">
+                                        Bungalow
+                                      </SelectItem>
+                                      <SelectItem value="mansionate">
+                                        Mansionate
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label className="text-sm mb-2 block">
+                                    Block Width (mm)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    value={(editablePlan.wallProperties
+                                      ?.thickness
+                                      ? editablePlan.wallProperties.thickness *
+                                        1000
+                                      : 200
+                                    ).toString()}
+                                    onChange={(e) => {
+                                      handleConfirmationFieldsUpdate({
+                                        blockWidth: e.target.value,
+                                      });
+                                    }}
+                                    placeholder="e.g., 200"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm mb-2 block">
+                                    Build Area (m²)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    step="0.1"
+                                    value={
+                                      editablePlan.projectInfo?.totalArea || ""
+                                    }
+                                    onChange={(e) => {
+                                      handleConfirmationFieldsUpdate({
+                                        buildArea: e.target.value,
+                                      });
+                                    }}
+                                    placeholder="e.g., 100"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm mb-2 block">
+                                    Ground Floor Elevation (m)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    step="0.1"
+                                    value={
+                                      editablePlan.foundationDetails
+                                        ?.groundFloorElevation || ""
+                                    }
+                                    onChange={(e) => {
+                                      handleConfirmationFieldsUpdate({
+                                        groundFloorElevation: e.target.value,
+                                      });
+                                    }}
+                                    placeholder="e.g., 0.9"
+                                  />
+                                </div>
+                              </div>
+                              <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                  <span className="font-semibold">Note:</span>{" "}
+                                  These values have been extracted from your
+                                  plan. Please verify and correct them if needed
+                                  before proceeding.
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Bar Bending Schedule Results */}
+                        {editablePlan.bar_schedule &&
+                          editablePlan.bar_schedule.length > 0 && (
+                            <Card className="mb-8 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                              <CardHeader className="bg-blue-100 dark:bg-blue-900/30 rounded-t-lg">
+                                <CardTitle className="text-lg flex items-center text-blue-900 dark:text-blue-100">
+                                  <BarChart3 className="w-5 h-5 mr-2" />
+                                  Bar Bending Schedule (BBS)
+                                </CardTitle>
+                                <CardDescription className="text-blue-700 dark:text-blue-300 mt-2">
+                                  Rebar Calculation Method:{" "}
+                                  <span className="font-semibold">
+                                    {editablePlan.rebar_calculation_method ||
+                                      "intensity-based"}
+                                  </span>
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="pt-6">
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-sm">
+                                    <thead>
+                                      <tr className="border-b border-blue-300 dark:border-blue-700">
+                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                          Bar Type
+                                        </th>
+                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                          Length (m)
+                                        </th>
+                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                          Quantity
+                                        </th>
+                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                          Weight/m (kg)
+                                        </th>
+                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                          Total Weight (kg)
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {editablePlan.bar_schedule.map(
+                                        (bar, idx) => (
+                                          <tr
+                                            key={idx}
+                                            className="border-b border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                          >
+                                            <td className="p-2 text-blue-700 dark:text-blue-300 font-semibold">
+                                              {bar.bar_type}
+                                            </td>
+                                            <td className="p-2 text-slate-700 dark:text-slate-300">
+                                              {bar.bar_length.toFixed(2)}
+                                            </td>
+                                            <td className="p-2 text-slate-700 dark:text-slate-300">
+                                              {bar.quantity}
+                                            </td>
+                                            <td className="p-2 text-slate-700 dark:text-slate-300">
+                                              {bar.weight_per_meter?.toFixed(
+                                                2,
+                                              ) || "-"}
+                                            </td>
+                                            <td className="p-2 text-slate-700 dark:text-slate-300 font-semibold">
+                                              {bar.total_weight?.toFixed(2) ||
+                                                "-"}
+                                            </td>
+                                          </tr>
+                                        ),
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
 
                         <div className="space-y-6 mt-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1187,32 +1506,140 @@ const UploadPlan = () => {
                               </div>
                             </div>
                           ) : !selectedFile ? (
-                            <div>
-                              <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                                <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
-                                <p className="mb-4  text-slate-600 dark:text-slate-300">
-                                  Drag & drop your plan or click to upload
-                                </p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                  Supported formats: JPEG, PNG, PDF, WEBP (Max
-                                  10MB)
-                                </p>
+                            <div className="space-y-6">
+                              {/* Plan File Upload Section */}
+                              <div>
+                                <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
+                                  1️⃣ Upload Construction Plan
+                                </h3>
+                                <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-12 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
+                                  <UploadCloud className="w-16 h-16 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                                  <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                                    Drag & drop your plan or click to upload
+                                  </p>
+                                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                    Supported formats: JPEG, PNG, PDF, WEBP (Max
+                                    20MB)
+                                  </p>
 
-                                <Input
-                                  type="file"
-                                  accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
-                                  onChange={handleFileChange}
-                                  className="hidden"
-                                  id="fileUpload"
-                                />
+                                  <Input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    id="fileUpload"
+                                  />
 
-                                <Label
-                                  htmlFor="fileUpload"
-                                  className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
-                                >
-                                  📁 Select File
-                                </Label>
+                                  <Label
+                                    htmlFor="fileUpload"
+                                    className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                                  >
+                                    📁 Select Plan File
+                                  </Label>
+                                </div>
                               </div>
+
+                              {/* Plan File Status */}
+                              {selectedFile && (
+                                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                    <div>
+                                      <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                                        {selectedFile.name}
+                                      </p>
+                                      <p className="text-xs text-green-600 dark:text-green-400">
+                                        Plan file ready for analysis
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSelectedFile(null)}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X className="w-5 h-5" />
+                                  </Button>
+                                </div>
+                              )}
+
+                              {/* BBS File Upload Section (Optional) */}
+                              <div>
+                                <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
+                                  2️⃣ Upload Bar Bending Schedule (Optional)
+                                </h3>
+                                <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
+                                  <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
+                                  <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                                    Upload BBS for precise rebar calculations
+                                  </p>
+                                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                    Supported formats: PDF, Images, Spreadsheet
+                                    (Max 20MB)
+                                  </p>
+
+                                  <Input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                                    onChange={handleBBSFileChange}
+                                    className="hidden"
+                                    id="bbsFileUpload"
+                                  />
+
+                                  <Label
+                                    htmlFor="bbsFileUpload"
+                                    className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                                  >
+                                    📊 Select BBS File
+                                  </Label>
+                                </div>
+
+                                {/* BBS File Status */}
+                                {bbsFile && (
+                                  <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                                      <div>
+                                        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                                          {bbsFile.name}
+                                        </p>
+                                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                                          BBS file ready for analysis
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => setBbsFile(null)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <X className="w-5 h-5" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Start Analysis Button */}
+                              {selectedFile && (
+                                <Button
+                                  onClick={startAnalysis}
+                                  disabled={
+                                    (currentStep as string) === "analyzing"
+                                  }
+                                  className="w-full font-bold py-6 h-auto text-lg shadow-lg hover:shadow-xl transition-all"
+                                >
+                                  {(currentStep as string) === "analyzing" ? (
+                                    <>
+                                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                      Analyzing Plan...
+                                    </>
+                                  ) : (
+                                    <>🚀 Start Analysis</>
+                                  )}
+                                </Button>
+                              )}
 
                               {/* Show button to use existing file if available */}
                               {fileUrl && previewUrl && (
@@ -1246,7 +1673,7 @@ const UploadPlan = () => {
                             currentStep === "complete" ? (
                               <Button
                                 onClick={handleDone}
-                                disabled={currentStep !== "complete"}
+                                disabled={false}
                                 className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 shadow-lg transition-all"
                               >
                                 {currentStep !== "complete" ? (
@@ -1268,29 +1695,136 @@ const UploadPlan = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                    <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
-                    <p className="mb-4  text-slate-600 dark:text-slate-300">
-                      Drag & drop your plan or click to upload
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                      Supported formats: JPEG, PNG, PDF, WEBP (Max 10MB)
-                    </p>
+                  <div className="space-y-6">
+                    {/* Plan File Upload Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
+                        1️⃣ Upload Construction Plan
+                      </h3>
+                      <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-12 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
+                        <UploadCloud className="w-16 h-16 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                        <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                          Drag & drop your plan or click to upload
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                          Supported formats: JPEG, PNG, PDF, WEBP (Max 20MB)
+                        </p>
 
-                    <Input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="fileUpload"
-                    />
+                        <Input
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
+                          onChange={handleFileChange}
+                          className="hidden"
+                          id="fileUpload"
+                        />
 
-                    <Label
-                      htmlFor="fileUpload"
-                      className="cursor-pointer glass inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
-                    >
-                      📁 Select File
-                    </Label>
+                        <Label
+                          htmlFor="fileUpload"
+                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                        >
+                          📁 Select Plan File
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* Plan File Status */}
+                    {selectedFile && (
+                      <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                          <div>
+                            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              Plan file ready for analysis
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedFile(null)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* BBS File Upload Section (Optional) */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
+                        2️⃣ Upload Bar Bending Schedule (Optional)
+                      </h3>
+                      <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
+                        <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
+                        <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                          Upload BBS for precise rebar calculations
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                          Supported formats: PDF, Images, Spreadsheet (Max 20MB)
+                        </p>
+
+                        <Input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                          onChange={handleBBSFileChange}
+                          className="hidden"
+                          id="bbsFileUpload2"
+                        />
+
+                        <Label
+                          htmlFor="bbsFileUpload2"
+                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                        >
+                          📊 Select BBS File
+                        </Label>
+                      </div>
+
+                      {/* BBS File Status */}
+                      {bbsFile && (
+                        <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                            <div>
+                              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                                {bbsFile.name}
+                              </p>
+                              <p className="text-xs text-amber-600 dark:text-amber-400">
+                                BBS file ready for analysis
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setBbsFile(null)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-5 h-5" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Start Analysis Button */}
+                    {selectedFile && (
+                      <Button
+                        onClick={startAnalysis}
+                        disabled={(currentStep as string) === "analyzing"}
+                        className="w-full font-bold py-6 h-auto text-lg  shadow-lg hover:shadow-xl transition-all"
+                      >
+                        {(currentStep as string) === "analyzing" ? (
+                          <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Analyzing Plan...
+                          </>
+                        ) : (
+                          <>🚀 Start Analysis</>
+                        )}
+                      </Button>
+                    )}
 
                     {/* Show button to use existing file if available */}
                     {fileUrl && previewUrl && (

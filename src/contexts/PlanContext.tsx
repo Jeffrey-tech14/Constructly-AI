@@ -7,6 +7,7 @@ import {
   WallSection,
   WallProperties,
 } from "@/hooks/useMasonryCalculatorNew";
+import { RebarSize } from "@/hooks/useRebarCalculator";
 import React, { createContext, useContext, useState } from "react";
 
 export interface EquipmentSection {
@@ -88,6 +89,7 @@ export interface ExtractedPlan {
     floors: number;
     totalArea: number;
     description: string;
+    houseType?: "bungalow" | "mansionate";
   };
   wallDimensions?: Dimensions;
   wallSections?: WallSection[];
@@ -104,18 +106,8 @@ export interface ExtractedPlan {
     length: string;
     width: string;
     height: string;
+    groundFloorElevation?: number | string;
   };
-
-  // Existing structural elements
-  earthworks?: Array<{
-    id: string;
-    type: string;
-    length: string;
-    width: string;
-    depth: string;
-    volume: string;
-    material: string;
-  }>;
 
   equipment?: EquipmentSection;
 
@@ -299,6 +291,16 @@ export interface ExtractedPlan {
     specifications?: any;
   }>;
 
+  // Bar Bending Schedule (BBS)
+  bar_schedule?: Array<{
+    bar_type: string; // D6, D8, D10, D12, D14, D16, D18, D20, D22, D25, D28, D32, D36, D40, D50
+    bar_length: number; // in meters
+    quantity: number; // total quantity for this bar type and length
+    weight_per_meter?: number; // optional: weight per meter in kg
+    total_weight?: number; // optional: total weight in kg
+  }>;
+  rebar_calculation_method?: "bbs" | "intensity-based"; // defaults to "intensity-based"
+
   // Painting specifications (multi-layer painting system)
   painting?: PaintingSpecificationData[];
   paintingTotals?: PaintingTotalsData;
@@ -317,6 +319,7 @@ export interface ExtractedPlan {
   file_name?: string;
   uploaded_at?: string;
   houseType?: string;
+  totalArea?: number;
   projectType?: string;
   projectName?: string;
   projectLocation?: string;
@@ -333,7 +336,7 @@ export const PlanProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [extractedPlan, setExtractedPlan] = useState<ExtractedPlan | null>(
-    null
+    null,
   );
 
   const contextValue: PlanContextType = {

@@ -10,10 +10,12 @@ import React, {
 } from "react";
 import {
   useRebarCalculator,
+  useRebarPrices,
   CalcInput,
   ElementTypes,
   RebarSize,
   RebarRow,
+  BBSRow,
   createRebarSnapshot,
   RebarQSSettings,
   defaultRebarQSSettings,
@@ -27,6 +29,7 @@ import {
   SteelGrade,
   DEFAULT_STEEL_INTENSITIES,
   INTENSITY_BOUNDS,
+  REBAR_PROPERTIES,
 } from "@/hooks/useRebarCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,25 +64,25 @@ interface Props {
 
 const sizeOptions: RebarSize[] = [
   "R6",
-  "Y6",
-  "Y8",
-  "Y10",
-  "Y12",
-  "Y14",
-  "Y16",
-  "Y18",
-  "Y20",
-  "Y22",
-  "Y25",
-  "Y28",
-  "Y32",
-  "Y36",
-  "Y40",
-  "Y50",
+  "D6",
+  "D8",
+  "D10",
+  "D12",
+  "D14",
+  "D16",
+  "D18",
+  "D20",
+  "D22",
+  "D25",
+  "D28",
+  "D32",
+  "D36",
+  "D40",
+  "D50",
 ];
 const meshGrades = Object.keys(MESH_PROPERTIES);
 const meshSheetOptions = STANDARD_MESH_SHEETS.map(
-  (sheet) => `${sheet.width}m × ${sheet.length}m`
+  (sheet) => `${sheet.width}m × ${sheet.length}m`,
 );
 const tankTypes = ["septic", "underground", "overhead", "water", "circular"];
 const makeDefaultRow = (): RebarRow => ({
@@ -97,10 +100,10 @@ const makeDefaultRow = (): RebarRow => ({
   mainBarsCount: "",
   distributionBarsCount: "",
   slabLayers: "",
-  mainBarSize: "Y12",
-  distributionBarSize: "Y12",
-  stirrupSize: "Y8",
-  tieSize: "Y8",
+  mainBarSize: "D12",
+  distributionBarSize: "D12",
+  stirrupSize: "D8",
+  tieSize: "D8",
   category: "substructure",
   number: "1",
   // Mesh defaults
@@ -122,33 +125,43 @@ const makeDefaultRow = (): RebarRow => ({
   baseThickness: "0.2",
   coverThickness: "0.15",
   includeCover: true,
-  wallVerticalBarSize: "Y12",
-  wallHorizontalBarSize: "Y10",
+  wallVerticalBarSize: "D12",
+  wallHorizontalBarSize: "D10",
   wallVerticalSpacing: "150",
   wallHorizontalSpacing: "200",
-  baseMainBarSize: "Y12",
-  baseDistributionBarSize: "Y10",
+  baseMainBarSize: "D12",
+  baseDistributionBarSize: "D10",
   baseMainSpacing: "150",
   baseDistributionSpacing: "200",
-  coverMainBarSize: "Y10",
-  coverDistributionBarSize: "Y8",
+  coverMainBarSize: "D10",
+  coverDistributionBarSize: "D8",
   coverMainSpacing: "200",
   coverDistributionSpacing: "250",
   // Retaining wall specific defaults
   retainingWallType: "cantilever",
   heelLength: "0.5",
   toeLength: "0.5",
-  stemVerticalBarSize: "Y12",
-  stemHorizontalBarSize: "Y10",
+  stemVerticalBarSize: "D12",
+  stemHorizontalBarSize: "D10",
   stemVerticalSpacing: "150",
   stemHorizontalSpacing: "200",
+
+  steelIntensityKgPerM3: "80",
+});
+
+const makeDefaultBBSRow = (): BBSRow => ({
+  id: Math.random().toString(36).substr(2, 9),
+  bar_type: "D12",
+  bar_length: "12",
+  quantity: "1",
+  description: "",
 });
 
 function validateRow(row: RebarRow): string[] {
   const errs: string[] = [];
 
   // Check if using intensity-based mode
-  if (row.rebarCalculationMode === "INTENSITY_REBAR_MODE") {
+  if (row.rebarCalculationMode === "NORMAL_REBAR_MODE") {
     // Intensity mode validation
     const intensity = row.steelIntensityKgPerM3
       ? parseFloat(row.steelIntensityKgPerM3)
@@ -166,7 +179,7 @@ function validateRow(row: RebarRow): string[] {
       intensityVal > INTENSITY_BOUNDS.max
     ) {
       errs.push(
-        `Steel intensity should be between ${INTENSITY_BOUNDS.min}-${INTENSITY_BOUNDS.max} kg/m³ (current: ${intensityVal})`
+        `Steel intensity should be between ${INTENSITY_BOUNDS.min}-${INTENSITY_BOUNDS.max} kg/m³ (current: ${intensityVal})`,
       );
     }
 
@@ -288,7 +301,7 @@ function validateRow(row: RebarRow): string[] {
       row.element !== "strip-footing"
     ) {
       errs.push(
-        "Mesh reinforcement is only available for slabs and foundations"
+        "Mesh reinforcement is only available for slabs and foundations",
       );
     } else {
       if (!row.meshGrade) errs.push("Mesh grade is required");
@@ -310,9 +323,11 @@ export default function RebarCalculatorForm({
   onExport,
 }: Props) {
   const rows = quote?.rebar_rows || [];
+  const bbsRows = quote?.bar_schedule || [];
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const { profile } = useAuth();
   const [rowsState, setRowsState] = useState<RebarRow[]>(rows);
+  const [bbsRowsState, setBBSRowsState] = useState<BBSRow[]>(bbsRows);
 
   useEffect(() => {
     if (Array.isArray(quote?.rebar_rows)) {
@@ -322,7 +337,23 @@ export default function RebarCalculatorForm({
     }
   }, [quote?.rebar_rows]);
 
+  useEffect(() => {
+    if (Array.isArray(quote?.bar_schedule)) {
+      // Ensure all rows have unique IDs
+      const rowsWithIds = quote.bar_schedule.map((row: any) => ({
+        ...row,
+        id: row.id || Math.random().toString(36).substr(2, 9),
+      }));
+      setBBSRowsState(rowsWithIds);
+    } else {
+      setBBSRowsState([]);
+    }
+  }, [quote?.bar_schedule]);
+
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bbsDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const DEBOUNCE_MS = 500;
 
   const pushRowsDebounced = useCallback(
@@ -337,16 +368,32 @@ export default function RebarCalculatorForm({
         });
       }, DEBOUNCE_MS);
     },
-    [setQuote]
+    [setQuote],
+  );
+
+  const pushBBSRowsDebounced = useCallback(
+    (nextRows: BBSRow[]) => {
+      if (bbsDebounceTimerRef.current)
+        clearTimeout(bbsDebounceTimerRef.current);
+      bbsDebounceTimerRef.current = setTimeout(() => {
+        setQuote((prev: any) => {
+          const prevStr = JSON.stringify(prev?.bar_schedule ?? []);
+          const nextStr = JSON.stringify(nextRows);
+          if (prevStr === nextStr) return prev;
+          return { ...prev, bar_schedule: nextRows };
+        });
+      }, DEBOUNCE_MS);
+    },
+    [setQuote],
   );
 
   const [qsSettings, setQsSettings] = useState<RebarQSSettings>(
-    defaultRebarQSSettings
+    defaultRebarQSSettings,
   );
 
   const updateQSSetting = <K extends keyof RebarQSSettings>(
     key: K,
-    value: RebarQSSettings[K]
+    value: RebarQSSettings[K],
   ) => {
     setQsSettings((prev) => ({ ...prev, [key]: value }));
   };
@@ -354,13 +401,61 @@ export default function RebarCalculatorForm({
   const updateRow = <K extends keyof RebarRow>(
     id: string,
     key: K,
-    value: RebarRow[K]
+    value: RebarRow[K],
   ) => {
     setRowsState((prev) => {
       const next = prev.map((r) => (r.id === id ? { ...r, [key]: value } : r));
       pushRowsDebounced(next);
       return next;
     });
+  };
+
+  // BBS Row Management Functions
+  const updateBBSRow = <K extends keyof BBSRow>(
+    id: string,
+    key: K,
+    value: BBSRow[K],
+  ) => {
+    setBBSRowsState((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, [key]: value } : r));
+      pushBBSRowsDebounced(next);
+      return next;
+    });
+  };
+
+  const addBBSRow = () => {
+    const newRow = makeDefaultBBSRow();
+    setBBSRowsState((prev) => {
+      const next = [...prev, newRow];
+      pushBBSRowsDebounced(next);
+      return next;
+    });
+  };
+
+  const removeBBSRow = (id: string) => {
+    setBBSRowsState((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      pushBBSRowsDebounced(next);
+      return next;
+    });
+  };
+
+  /**
+   * Calculate BBS row weight and derived fields
+   */
+  const calculateBBSRowWeights = (row: BBSRow): BBSRow => {
+    const barType = row.bar_type as RebarSize;
+    const props = REBAR_PROPERTIES[barType];
+    if (!props) return row;
+
+    const barLength = parseFloat(String(row.bar_length || 0));
+    const quantity = parseFloat(String(row.quantity || 0));
+
+    return {
+      ...row,
+      weight_per_meter: props.weightKgPerM,
+      total_weight: props.weightKgPerM * barLength * quantity,
+    };
   };
 
   const addRow = () => {
@@ -380,24 +475,134 @@ export default function RebarCalculatorForm({
     });
   };
 
+  /**
+   * Map rebar element types to concrete element types
+   * Used for finding matching concrete rows for auto-fill
+   */
+  const mapRebarElementToConcrete = (rebarElement: ElementTypes): string => {
+    const mapping: Record<ElementTypes, string> = {
+      slab: "slab",
+      beam: "beam",
+      column: "column",
+      "raft-foundation": "raft-foundation",
+      "strip-footing": "strip-footing",
+      tank: "tank",
+      "retaining-wall": "retaining-wall",
+      "ring-beam": "ring-beam",
+    };
+    return mapping[rebarElement] || rebarElement;
+  };
+
+  /**
+   * Find concrete row matching the rebar element
+   */
+  const findMatchingConcreteRow = (elementType: ElementTypes): any => {
+    const concreteRows = quote?.concrete_rows || [];
+    const concreteElement = mapRebarElementToConcrete(elementType);
+    return concreteRows.find((row: any) => row.element === concreteElement);
+  };
+
+  /**
+   * Calculate concrete volume from dimensions
+   * Handles different element types
+   */
+  const calculateConcreteVolume = (
+    element: ElementTypes,
+    length?: string | number,
+    width?: string | number,
+    depth?: string | number,
+  ): number => {
+    const l = parseFloat(String(length || 0));
+    const w = parseFloat(String(width || 0));
+    const d = parseFloat(String(depth || 0));
+
+    if (l <= 0 || w <= 0 || d <= 0) return 0;
+
+    // Most elements: volume = length × width × depth
+    return l * w * d;
+  };
+
+  /**
+   * Auto-fill concrete volume when using intensity mode
+   * Finds matching concrete row and calculates volume
+   */
+  const autoFillConcreteVolume = useCallback(
+    (rowId: string, element: ElementTypes) => {
+      const concreteRow = findMatchingConcreteRow(element);
+
+      if (!concreteRow) {
+        console.log(`No matching concrete row found for element: ${element}`);
+        return;
+      }
+
+      // Calculate volume from concrete row dimensions
+      let volume = 0;
+
+      // Check if concrete row uses DIRECT_AREA mode or LENGTH_WIDTH mode
+      const isDirectArea = concreteRow.areaSelectionMode === "DIRECT_AREA";
+
+      if (isDirectArea) {
+        // If using direct area, calculate volume as: area × height/thickness
+        const area = parseFloat(String(concreteRow.area || 0));
+        const height = parseFloat(String(concreteRow.height || 0));
+        if (area > 0 && height > 0) {
+          volume = area * height;
+        }
+      } else {
+        // Otherwise use length × width × height/thickness
+        if (element === "strip-footing") {
+          // For strip footing: volume = length × width × depth
+          volume = calculateConcreteVolume(
+            element,
+            concreteRow.length,
+            concreteRow.width,
+            concreteRow.height,
+          );
+        } else if (element === "slab") {
+          // For slabs: volume = length × width × thickness
+          volume = calculateConcreteVolume(
+            element,
+            concreteRow.length,
+            concreteRow.width,
+            concreteRow.height,
+          );
+        } else if (element === "beam") {
+          // For beams: volume = length × width × height
+          volume = calculateConcreteVolume(
+            element,
+            concreteRow.length,
+            concreteRow.width,
+            concreteRow.height,
+          );
+        } else if (element === "raft-foundation") {
+          // For raft: volume = length × width × height
+          volume = calculateConcreteVolume(
+            element,
+            concreteRow.length,
+            concreteRow.width,
+            concreteRow.height,
+          );
+        }
+      }
+
+      // Auto-fill the concrete volume if we calculated a valid value
+      if (volume > 0) {
+        updateRow(rowId, "concreteVolumeM3", volume);
+      }
+    },
+    [quote?.concrete_rows],
+  );
+
   const { results, totals } = useRebarCalculator(
     rowsState,
     qsSettings,
-    profile?.location || "Nairobi"
+    profile?.location || "Nairobi",
   );
 
-  useEffect(() => {
-    if (results.length === 0) {
-      if (
-        Array.isArray(quote?.rebar_materials) &&
-        quote.rebar_materials.length
-      ) {
-        setQuote((prev: any) => ({ ...prev, rebar_materials: [] }));
-      }
-      return;
-    }
+  const prices = useRebarPrices(profile?.location || "Nairobi");
 
-    const lineItems = results.flatMap((r) => {
+  useEffect(() => {
+    const rebarItems = results.flatMap((r) => {
       if (r.reinforcementType === "mesh") {
         return [
           {
@@ -431,38 +636,60 @@ export default function RebarCalculatorForm({
       }
     });
 
-    const totalsRows = [
-      {
-        rowId: "totals",
-        name: "Total Reinforcement",
-        quantity: totals.totalWeightKg,
+    // Calculate BBS materials
+    const bbsItems = bbsRowsState.map((bbs) => {
+      const barType = bbs.bar_type as RebarSize;
+      const calculatedRow = calculateBBSRowWeights(bbs);
+      const totalWeight = calculatedRow.total_weight || 0;
+      const pricePerKg = prices.rebarPrices[barType] || 0;
+      const totalPrice = totalWeight * pricePerKg;
+
+      return {
+        rowId: bbs.id,
+        name: `Rebar (BBS) - ${bbs.bar_type} (${bbs.bar_length}m × ${bbs.quantity})`,
+        quantity: totalWeight,
         unit: "kg",
-        unit_price: 0,
-        total_price: totals.totalPrice,
-      },
-      ...(totals.bindingWireWeightKg > 0
-        ? [
+        unit_price: pricePerKg,
+        total_price: totalPrice,
+      };
+    });
+
+    const rebarTotals =
+      results.length === 0
+        ? []
+        : [
             {
               rowId: "totals",
-              name: "Total Binding Wire",
-              quantity: totals.bindingWireWeightKg,
+              name: "Total Reinforcement",
+              quantity: totals.totalWeightKg,
               unit: "kg",
               unit_price: 0,
-              total_price: totals.bindingWirePrice,
+              total_price: totals.totalPrice,
             },
-          ]
-        : []),
-      {
-        rowId: "totals",
-        name: "Reinforcement Works Total",
-        quantity: 1,
-        unit: "ls",
-        unit_price: 0,
-        total_price: totals.totalPrice + totals.bindingWirePrice,
-      },
-    ];
+            ...(totals.bindingWireWeightKg > 0
+              ? [
+                  {
+                    rowId: "totals",
+                    name: "Total Binding Wire",
+                    quantity: totals.bindingWireWeightKg,
+                    unit: "kg",
+                    unit_price: 0,
+                    total_price: totals.bindingWirePrice,
+                  },
+                ]
+              : []),
+            {
+              rowId: "totals",
+              name: "Reinforcement Works Total",
+              quantity: 1,
+              unit: "ls",
+              unit_price: 0,
+              total_price: totals.totalPrice + totals.bindingWirePrice,
+            },
+          ];
 
-    const nextItems = [...lineItems, ...totalsRows];
+    // Combine rebar and BBS items
+    const nextItems = [...rebarItems, ...bbsItems, ...rebarTotals];
     const currItems = Array.isArray(quote?.rebar_materials)
       ? quote.rebar_materials
       : [];
@@ -470,7 +697,14 @@ export default function RebarCalculatorForm({
     if (!same) {
       setQuote((prev: any) => ({ ...prev, rebar_materials: nextItems }));
     }
-  }, [results, totals, setQuote, quote?.rebar_materials]);
+  }, [
+    results,
+    totals,
+    bbsRowsState,
+    prices.rebarPrices,
+    setQuote,
+    quote?.rebar_materials,
+  ]);
 
   const exportJSON = () => {
     const snapshot = createRebarSnapshot(rowsState, qsSettings);
@@ -530,7 +764,7 @@ export default function RebarCalculatorForm({
           return { ...row, category: "substructure" };
         }
         return row;
-      })
+      }),
     );
   }, [rowsState]);
 
@@ -636,7 +870,7 @@ export default function RebarCalculatorForm({
                     onChange={(e) =>
                       updateQSSetting(
                         "wastagePercent",
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
                       )
                     }
                     className="border-amber-300 focus:border-amber-500"
@@ -663,7 +897,7 @@ export default function RebarCalculatorForm({
                     onChange={(e) =>
                       updateQSSetting(
                         "bindingWirePercent",
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
                       )
                     }
                     className="border-amber-300 focus:border-amber-500"
@@ -694,7 +928,7 @@ export default function RebarCalculatorForm({
                     onChange={(e) =>
                       updateQSSetting(
                         "standardBarLength",
-                        parseFloat(e.target.value) || 12
+                        parseFloat(e.target.value) || 12,
                       )
                     }
                     className="border-amber-300 focus:border-amber-500"
@@ -721,7 +955,7 @@ export default function RebarCalculatorForm({
                     onChange={(e) =>
                       updateQSSetting(
                         "lapLengthFactor",
-                        parseFloat(e.target.value) || 40
+                        parseFloat(e.target.value) || 40,
                       )
                     }
                     className="border-amber-300 focus:border-amber-500"
@@ -744,7 +978,7 @@ export default function RebarCalculatorForm({
                       onChange={(e) =>
                         updateQSSetting(
                           "slabCover",
-                          parseFloat(e.target.value) || 0.02
+                          parseFloat(e.target.value) || 0.02,
                         )
                       }
                     />
@@ -761,7 +995,7 @@ export default function RebarCalculatorForm({
                       onChange={(e) =>
                         updateQSSetting(
                           "beamCover",
-                          parseFloat(e.target.value) || 0.025
+                          parseFloat(e.target.value) || 0.025,
                         )
                       }
                     />
@@ -778,7 +1012,7 @@ export default function RebarCalculatorForm({
                       onChange={(e) =>
                         updateQSSetting(
                           "columnCover",
-                          parseFloat(e.target.value) || 0.025
+                          parseFloat(e.target.value) || 0.025,
                         )
                       }
                     />
@@ -797,7 +1031,7 @@ export default function RebarCalculatorForm({
                       onChange={(e) =>
                         updateQSSetting(
                           "foundationCover",
-                          parseFloat(e.target.value) || 0.04
+                          parseFloat(e.target.value) || 0.04,
                         )
                       }
                     />
@@ -825,7 +1059,7 @@ export default function RebarCalculatorForm({
                     onChange={(e) =>
                       updateQSSetting(
                         "meshWastagePercent",
-                        parseFloat(e.target.value) || 5
+                        parseFloat(e.target.value) || 5,
                       )
                     }
                     className="border-indigo-300 focus:border-indigo-500"
@@ -852,7 +1086,7 @@ export default function RebarCalculatorForm({
                     onChange={(e) =>
                       updateQSSetting(
                         "standardMeshLap",
-                        parseFloat(e.target.value) || 0.3
+                        parseFloat(e.target.value) || 0.3,
                       )
                     }
                     className="border-indigo-300 focus:border-indigo-500"
@@ -932,7 +1166,7 @@ export default function RebarCalculatorForm({
                     <Badge
                       variant="outline"
                       className={getReinforcementTypeColor(
-                        row.reinforcementType
+                        row.reinforcementType,
                       )}
                     >
                       {row.reinforcementType === "mesh"
@@ -962,9 +1196,14 @@ export default function RebarCalculatorForm({
                     <Label className="text-sm font-medium">Element Type</Label>
                     <Select
                       value={row.element}
-                      onValueChange={(v) =>
-                        updateRow(row.id, "element", v as ElementTypes)
-                      }
+                      onValueChange={(v) => {
+                        const element = v as ElementTypes;
+                        updateRow(row.id, "element", element);
+                        // Auto-fill concrete volume if using intensity mode
+                        if (row.rebarCalculationMode === "NORMAL_REBAR_MODE") {
+                          autoFillConcreteVolume(row.id, element);
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -974,11 +1213,12 @@ export default function RebarCalculatorForm({
                         <SelectItem value="beam">Beam</SelectItem>
                         <SelectItem value="column">Column</SelectItem>
                         <SelectItem value="raft-foundation">
-                          Foundation
+                          Raft Foundation
                         </SelectItem>
                         <SelectItem value="strip-footing">
                           Strip Footing
                         </SelectItem>
+                        <SelectItem value="ring-beam">Ring Beam</SelectItem>
                         <SelectItem value="tank">Tank</SelectItem>
                         <SelectItem value="retaining-wall">
                           Retaining Wall
@@ -997,7 +1237,7 @@ export default function RebarCalculatorForm({
                         updateRow(
                           row.id,
                           "reinforcementType",
-                          v as ReinforcementType
+                          v as ReinforcementType,
                         )
                       }
                     >
@@ -1019,23 +1259,24 @@ export default function RebarCalculatorForm({
                     </Label>
                     <Select
                       value={row.rebarCalculationMode || "DETAILED_REBAR_MODE"}
-                      onValueChange={(v) =>
-                        updateRow(
-                          row.id,
-                          "rebarCalculationMode",
-                          v as RebarCalculationMode
-                        )
-                      }
+                      onValueChange={(v) => {
+                        const mode = v as RebarCalculationMode;
+                        updateRow(row.id, "rebarCalculationMode", mode);
+                        // Auto-fill concrete volume when switching to intensity mode
+                        if (mode === "NORMAL_REBAR_MODE") {
+                          autoFillConcreteVolume(row.id, row.element);
+                        }
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="DETAILED_REBAR_MODE">
-                          Detailed (Bar Geometry)
+                          Detailed Bars
                         </SelectItem>
-                        <SelectItem value="INTENSITY_REBAR_MODE">
-                          Intensity (kg/m³)
+                        <SelectItem value="NORMAL_REBAR_MODE">
+                          Normal (kg/m³)
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -1112,7 +1353,7 @@ export default function RebarCalculatorForm({
                           updateRow(
                             row.id,
                             "areaSelectionMode",
-                            v as "LENGTH_WIDTH" | "DIRECT_AREA"
+                            v as "LENGTH_WIDTH" | "DIRECT_AREA",
                           )
                         }
                       >
@@ -1137,9 +1378,9 @@ export default function RebarCalculatorForm({
                             {row.element === "column"
                               ? "Height (m)"
                               : row.element === "beam" ||
-                                row.element === "strip-footing"
-                              ? "Length (m)"
-                              : "Length (m)"}
+                                  row.element === "strip-footing"
+                                ? "Length (m)"
+                                : "Length (m)"}
                           </Label>
                           <Input
                             type="number"
@@ -1207,7 +1448,7 @@ export default function RebarCalculatorForm({
                   </div>
                 )}
 
-                {row.rebarCalculationMode === "INTENSITY_REBAR_MODE" && (
+                {row.rebarCalculationMode === "NORMAL_REBAR_MODE" && (
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
@@ -1222,7 +1463,7 @@ export default function RebarCalculatorForm({
                           updateRow(
                             row.id,
                             "concreteVolumeM3",
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
                           )
                         }
                         placeholder="e.g., 10.5"
@@ -1246,7 +1487,7 @@ export default function RebarCalculatorForm({
                           updateRow(
                             row.id,
                             "steelIntensityKgPerM3",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         placeholder={`${
@@ -1300,7 +1541,7 @@ export default function RebarCalculatorForm({
                   </div>
                 )}
 
-                {row.rebarCalculationMode === "INTENSITY_REBAR_MODE" ? null : (
+                {row.rebarCalculationMode === "NORMAL_REBAR_MODE" ? null : (
                   <>
                     {row.reinforcementType === "mesh" && (
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
@@ -1379,7 +1620,7 @@ export default function RebarCalculatorForm({
                               updateRow(
                                 row.id,
                                 "areaSelectionMode",
-                                v as "LENGTH_WIDTH" | "DIRECT_AREA"
+                                v as "LENGTH_WIDTH" | "DIRECT_AREA",
                               )
                             }
                           >
@@ -1493,8 +1734,8 @@ export default function RebarCalculatorForm({
                               row.element === "slab"
                                 ? "bg-blue-100 dark:bg-blue-700 text-blue-700 dark:text-blue-50"
                                 : row.element === "raft-foundation"
-                                ? "bg-orange-100 dark:bg-orange-700 text-orange-700 dark:text-orange-50"
-                                : "bg-red-100 dark:bg-red-700 text-red-700 dark:text-red-50"
+                                  ? "bg-orange-100 dark:bg-orange-700 text-orange-700 dark:text-orange-50"
+                                  : "bg-red-100 dark:bg-red-700 text-red-700 dark:text-red-50"
                             } rounded-lg`}
                           >
                             <div className="space-y-2">
@@ -1509,7 +1750,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "mainBarSpacing",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="200"
@@ -1528,7 +1769,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "distributionBarSpacing",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="200"
@@ -1549,7 +1790,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "slabLayers",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="1"
@@ -1598,7 +1839,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "tankShape",
-                                      v as "rectangular" | "circular"
+                                      v as "rectangular" | "circular",
                                     )
                                   }
                                 >
@@ -1626,7 +1867,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "includeCover",
-                                      v === "yes"
+                                      v === "yes",
                                     )
                                   }
                                 >
@@ -1656,7 +1897,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "wallThickness",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="0.2"
@@ -1677,7 +1918,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseThickness",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="0.2"
@@ -1699,7 +1940,7 @@ export default function RebarCalculatorForm({
                                       updateRow(
                                         row.id,
                                         "coverThickness",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="0.15"
@@ -1721,7 +1962,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "wallVerticalBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -1748,7 +1989,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "wallHorizontalBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -1777,7 +2018,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "wallVerticalSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="150"
@@ -1797,7 +2038,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "wallHorizontalSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="200"
@@ -1818,7 +2059,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseMainBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -1845,7 +2086,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseDistributionBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -1874,7 +2115,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseMainSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="150"
@@ -1894,7 +2135,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseDistributionSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="200"
@@ -1916,7 +2157,7 @@ export default function RebarCalculatorForm({
                                       updateRow(
                                         row.id,
                                         "coverMainBarSize",
-                                        v as RebarSize
+                                        v as RebarSize,
                                       )
                                     }
                                   >
@@ -1943,7 +2184,7 @@ export default function RebarCalculatorForm({
                                       updateRow(
                                         row.id,
                                         "coverDistributionBarSize",
-                                        v as RebarSize
+                                        v as RebarSize,
                                       )
                                     }
                                   >
@@ -1972,7 +2213,7 @@ export default function RebarCalculatorForm({
                                       updateRow(
                                         row.id,
                                         "coverMainSpacing",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="200"
@@ -1992,7 +2233,7 @@ export default function RebarCalculatorForm({
                                       updateRow(
                                         row.id,
                                         "coverDistributionSpacing",
-                                        e.target.value
+                                        e.target.value,
                                       )
                                     }
                                     placeholder="250"
@@ -2018,7 +2259,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "retainingWallType",
-                                      v as RetainingWallType
+                                      v as RetainingWallType,
                                     )
                                   }
                                 >
@@ -2052,7 +2293,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "heelLength",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="border-orange-300"
@@ -2073,7 +2314,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "toeLength",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="border-orange-300"
@@ -2094,7 +2335,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "stemVerticalBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -2121,7 +2362,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "stemHorizontalBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -2150,7 +2391,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "stemVerticalSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="border-blue-300"
@@ -2170,7 +2411,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "stemHorizontalSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="border-blue-300"
@@ -2191,7 +2432,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseMainBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -2218,7 +2459,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseDistributionBarSize",
-                                      v as RebarSize
+                                      v as RebarSize,
                                     )
                                   }
                                 >
@@ -2247,7 +2488,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseMainSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="border-green-300"
@@ -2267,7 +2508,7 @@ export default function RebarCalculatorForm({
                                     updateRow(
                                       row.id,
                                       "baseDistributionSpacing",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   className="border-green-300"
@@ -2292,7 +2533,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "mainBarsCount",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="4"
@@ -2311,7 +2552,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "distributionBarsCount",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="2"
@@ -2330,7 +2571,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "stirrupSpacing",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="200"
@@ -2354,7 +2595,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "mainBarsCount",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="4"
@@ -2373,7 +2614,7 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "tieSpacing",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="250"
@@ -2393,11 +2634,119 @@ export default function RebarCalculatorForm({
                                   updateRow(
                                     row.id,
                                     "columnHeight",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="3.0"
                                 className="border-purple-200"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {row.element === "ring-beam" && (
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-lg">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                Main Bars Count
+                              </Label>
+                              <Input
+                                type="number"
+                                min="4"
+                                value={row.mainBarsCount}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "mainBarsCount",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="8"
+                                className="border-cyan-200"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                Main Bars Size
+                              </Label>
+                              <Select
+                                value={row.mainBarSize}
+                                onValueChange={(v) =>
+                                  updateRow(
+                                    row.id,
+                                    "mainBarSize",
+                                    v as RebarSize,
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="border-cyan-200">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[
+                                    "D6",
+                                    "D8",
+                                    "D10",
+                                    "D12",
+                                    "D14",
+                                    "D16",
+                                    "D18",
+                                    "D20",
+                                    "D22",
+                                    "D25",
+                                  ].map((size) => (
+                                    <SelectItem key={size} value={size}>
+                                      {size}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                Stirrup Size
+                              </Label>
+                              <Select
+                                value={row.stirrupSize || "D8"}
+                                onValueChange={(v) =>
+                                  updateRow(
+                                    row.id,
+                                    "stirrupSize",
+                                    v as RebarSize,
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="border-cyan-200">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {["D6", "D8", "D10", "D12", "D14", "D16"].map(
+                                    (size) => (
+                                      <SelectItem key={size} value={size}>
+                                        {size}
+                                      </SelectItem>
+                                    ),
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
+                                Stirrup Spacing (mm)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="50"
+                                value={row.stirrupSpacing}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.id,
+                                    "stirrupSpacing",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="200"
+                                className="border-cyan-200"
                               />
                             </div>
                           </div>
@@ -2461,7 +2810,7 @@ export default function RebarCalculatorForm({
                                   <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
                                     Ksh{" "}
                                     {Math.round(
-                                      result.meshTotalPrice || 0
+                                      result.meshTotalPrice || 0,
                                     ).toLocaleString()}
                                   </div>
                                 </div>
@@ -2500,7 +2849,7 @@ export default function RebarCalculatorForm({
                                     Ksh{" "}
                                     {Math.round(
                                       result.totalPrice +
-                                        result.bindingWirePrice
+                                        result.bindingWirePrice,
                                     ).toLocaleString()}
                                   </div>
                                 </div>
@@ -2520,7 +2869,7 @@ export default function RebarCalculatorForm({
                                     <div>
                                       Main Bars:{" "}
                                       {result.weightBreakdownKg.mainBars.toFixed(
-                                        1
+                                        1,
                                       )}
                                     </div>
                                   )}
@@ -2530,7 +2879,7 @@ export default function RebarCalculatorForm({
                                       <div>
                                         Distribution:{" "}
                                         {result.weightBreakdownKg.distributionBars.toFixed(
-                                          1
+                                          1,
                                         )}
                                       </div>
                                     ))}
@@ -2540,7 +2889,7 @@ export default function RebarCalculatorForm({
                                       <div>
                                         Stirrups:{" "}
                                         {result.weightBreakdownKg.stirrups.toFixed(
-                                          1
+                                          1,
                                         )}
                                       </div>
                                     ))}
@@ -2550,7 +2899,7 @@ export default function RebarCalculatorForm({
                                       <div>
                                         Ties:{" "}
                                         {result.weightBreakdownKg.ties.toFixed(
-                                          1
+                                          1,
                                         )}
                                       </div>
                                     ))}
@@ -2597,7 +2946,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Wall Vertical:{" "}
                                     {result.weightBreakdownKg.wallVerticalBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2607,7 +2956,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Wall Horizontal:{" "}
                                     {result.weightBreakdownKg.wallHorizontalBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2616,7 +2965,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Base Main:{" "}
                                     {result.weightBreakdownKg.baseMainBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2626,7 +2975,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Base Distribution:{" "}
                                     {result.weightBreakdownKg.baseDistributionBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2635,7 +2984,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Cover Main:{" "}
                                     {result.weightBreakdownKg.coverMainBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2645,7 +2994,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Cover Distribution:{" "}
                                     {result.weightBreakdownKg.coverDistributionBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2664,7 +3013,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Stem Vertical:{" "}
                                     {result.weightBreakdownKg.stemVerticalBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2674,7 +3023,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Stem Horizontal:{" "}
                                     {result.weightBreakdownKg.stemHorizontalBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2683,7 +3032,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Base Main:{" "}
                                     {result.weightBreakdownKg.baseMainBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2693,7 +3042,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Base Distribution:{" "}
                                     {result.weightBreakdownKg.baseDistributionBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2702,7 +3051,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Heel Main:{" "}
                                     {result.weightBreakdownKg.heelMainBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2712,7 +3061,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Heel Distribution:{" "}
                                     {result.weightBreakdownKg.heelDistributionBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2721,7 +3070,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Toe Main:{" "}
                                     {result.weightBreakdownKg.toeMainBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2731,7 +3080,7 @@ export default function RebarCalculatorForm({
                                   <div>
                                     Toe Distribution:{" "}
                                     {result.weightBreakdownKg.toeDistributionBars.toFixed(
-                                      1
+                                      1,
                                     )}{" "}
                                     kg
                                   </div>
@@ -2748,6 +3097,254 @@ export default function RebarCalculatorForm({
             </Card>
           );
         })}
+      </div>
+
+      {/* Bar Bending Schedule (BBS) Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Bar Bending Schedule (BBS)</h3>
+          <div className="flex gap-2 items-center">
+            <Button
+              onClick={addBBSRow}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add BBS Item
+            </Button>
+          </div>
+        </div>
+
+        {bbsRowsState.length === 0 ? (
+          <Card className="border-dashed border-2 border-indigo-300 bg-indigo-50 dark:bg-indigo-900/20">
+            <CardContent className="py-8 text-center">
+              <Calculator className="w-12 h-12 mx-auto mb-4 text-indigo-400" />
+              <h4 className="text-lg font-medium mb-2 text-indigo-900 dark:text-indigo-100">
+                No BBS items yet
+              </h4>
+              <p className="text-indigo-700 dark:text-indigo-300 mb-4">
+                Add rebar items from your bar bending schedule
+              </p>
+              <Button
+                onClick={addBBSRow}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add First BBS Item
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-indigo-200 bg-indigo-50 dark:bg-indigo-950/30">
+            <CardHeader className="bg-indigo-100 dark:bg-indigo-900/50">
+              <CardTitle className="text-indigo-900 dark:text-indigo-100">
+                Bar Bending Schedule Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {bbsRowsState.map((bbs) => {
+                  const calculated = calculateBBSRowWeights(bbs);
+                  const barProps = REBAR_PROPERTIES[bbs.bar_type as RebarSize];
+
+                  return (
+                    <Card
+                      key={bbs.id}
+                      className="border-l-4 border-l-indigo-500 bg-white dark:bg-slate-900"
+                    >
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Bar Type
+                            </Label>
+                            <Select
+                              value={bbs.bar_type}
+                              onValueChange={(v) =>
+                                updateBBSRow(bbs.id, "bar_type", v as RebarSize)
+                              }
+                            >
+                              <SelectTrigger className="border-indigo-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[
+                                  "D6",
+                                  "D8",
+                                  "D10",
+                                  "D12",
+                                  "D14",
+                                  "D16",
+                                  "D18",
+                                  "D20",
+                                  "D22",
+                                  "D25",
+                                  "D28",
+                                  "D32",
+                                  "D36",
+                                  "D40",
+                                  "D50",
+                                ].map((size) => (
+                                  <SelectItem key={size} value={size}>
+                                    {size} (Ø{size.substring(1)}mm)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Length (m)
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              value={bbs.bar_length}
+                              onChange={(e) =>
+                                updateBBSRow(
+                                  bbs.id,
+                                  "bar_length",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="e.g., 12"
+                              className="border-indigo-300"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Quantity
+                            </Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={bbs.quantity}
+                              onChange={(e) =>
+                                updateBBSRow(bbs.id, "quantity", e.target.value)
+                              }
+                              placeholder="e.g., 50"
+                              className="border-indigo-300"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Weight/m (kg)
+                            </Label>
+                            <div className="border rounded px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-sm font-semibold">
+                              {calculated.weight_per_meter?.toFixed(3) || "—"}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              Total Weight (kg)
+                            </Label>
+                            <div className="border rounded px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-sm font-bold text-indigo-900 dark:text-indigo-100">
+                              {calculated.total_weight?.toFixed(1) || "0"}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeBBSRow(bbs.id)}
+                              className="w-full"
+                            >
+                              <Trash className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {bbs.description && (
+                          <div className="mt-2 text-xs text-indigo-600 dark:text-indigo-300 italic">
+                            {bbs.description}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {bbsRowsState.length > 0 && (
+                  <Card className="bg-indigo-100 dark:bg-indigo-900/30 border-indigo-300">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div className="space-y-1">
+                          <div className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                            Total Items
+                          </div>
+                          <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                            {bbsRowsState.reduce(
+                              (sum, row) =>
+                                sum + parseFloat(String(row.quantity || 0)),
+                              0,
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                            Total Length (m)
+                          </div>
+                          <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                            {bbsRowsState
+                              .reduce(
+                                (sum, row) =>
+                                  sum +
+                                  parseFloat(String(row.bar_length || 0)) *
+                                    parseFloat(String(row.quantity || 0)),
+                                0,
+                              )
+                              .toFixed(1)}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                            Total Weight (kg)
+                          </div>
+                          <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                            {bbsRowsState
+                              .reduce(
+                                (sum, row) =>
+                                  sum +
+                                  (calculateBBSRowWeights(row).total_weight ||
+                                    0),
+                                0,
+                              )
+                              .toFixed(1)}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                            Total Price
+                          </div>
+                          <div className="text-lg font-bold text-indigo-900 dark:text-indigo-100">
+                            Ksh{" "}
+                            {Math.round(
+                              bbsRowsState.reduce((sum, row) => {
+                                const totalWeight =
+                                  calculateBBSRowWeights(row).total_weight || 0;
+                                const pricePerKg =
+                                  prices.rebarPrices[
+                                    row.bar_type as RebarSize
+                                  ] || 0;
+                                return sum + totalWeight * pricePerKg;
+                              }, 0),
+                            ).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

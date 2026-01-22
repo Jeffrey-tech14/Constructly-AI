@@ -10,6 +10,8 @@ export interface Quote {
     internalWallPerimiter: number;
     externalWallHeight: number;
     internalWallHeight: number;
+    length: number;
+    width: number;
   };
   wallSections?: Array<{
     type: "external" | "internal";
@@ -20,9 +22,6 @@ export interface Quote {
     blockType: string;
     thickness: number;
     plaster: "None" | "One Side" | "Both Sides";
-    customBlockLength?: number;
-    customBlockHeight?: number;
-    customBlockPrice?: number;
   };
   id: string;
   user_id: string;
@@ -130,10 +129,10 @@ export const useQuotes = () => {
         if (isInitialLoad) setIsInitialLoad(false);
       }
     },
-    [user, profile?.is_admin, quotes, isInitialLoad]
+    [user, profile?.is_admin, quotes, isInitialLoad],
   );
   const createQuote = async (
-    quoteData: Omit<Quote, "id" | "user_id" | "created_at" | "updated_at">
+    quoteData: Omit<Quote, "id" | "user_id" | "created_at" | "updated_at">,
   ) => {
     if (!user) throw new Error("User not authenticated");
     const { data, error } = await (supabase.from("quotes") as any)

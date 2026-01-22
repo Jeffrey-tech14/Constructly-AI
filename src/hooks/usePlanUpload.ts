@@ -63,15 +63,16 @@ export const usePlanUpload = () => {
     }
   };
   const analyzePlan = async (
-    fileOrUrl: File | string
+    fileOrUrl: File | string,
+    bbsFile?: File,
   ): Promise<ExtractedPlan | null> => {
     setAnalyzing(true);
     try {
       let result: ExtractedPlan;
 
       if (fileOrUrl instanceof File) {
-        // If it's a File object, use parsePlanFile
-        result = await planParserService.parsePlanFile(fileOrUrl);
+        // If it's a File object, use parsePlanFile with optional BBS file
+        result = await planParserService.parsePlanFile(fileOrUrl, bbsFile);
       } else {
         // If it's a URL string, use parsePlanFromUrl
         result = await planParserService.parsePlanFromUrl(fileOrUrl);
@@ -81,7 +82,7 @@ export const usePlanUpload = () => {
         title: "Plan Analyzed",
         description: `Plan analyzed successfully. Found ${
           result.floors || 1
-        } floor(s).`,
+        } floor(s). Rebar calculation method: ${result.rebar_calculation_method || "intensity-based"}.`,
       });
 
       return result;

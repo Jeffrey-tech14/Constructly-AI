@@ -53,6 +53,8 @@ export interface Dimensions {
   internalWallPerimiter: number;
   externalWallHeight: number;
   internalWallHeight: number;
+  length: number;
+  width: number;
 }
 
 // Wall section with doors/windows
@@ -134,12 +136,14 @@ export interface MasonryQSSettings {
   profit_fixed: number;
   contingency_fixed: number;
   permit_cost_fixed: number;
+  unknowns_contingency_fixed: number;
   financialModes: {
     labour: "percentage" | "fixed";
     overhead: "percentage" | "fixed";
     profit: "percentage" | "fixed";
     contingency: "percentage" | "fixed";
     permit_cost: "percentage" | "fixed";
+    unknowns_contingency: "percentage" | "fixed";
   };
   wastageWater: number;
   wastagePlumbing: number;
@@ -177,26 +181,27 @@ export interface MasonryQSSettings {
 
 export const REBAR_WEIGHTS: Record<RebarSize, number> = {
   R6: 0.222,
-  Y6: 0.222,
-  Y8: 0.395,
-  Y10: 0.617,
-  Y12: 0.888,
-  Y14: 1.21,
-  Y16: 1.579,
-  Y18: 2.0,
-  Y20: 2.466,
-  Y22: 2.98,
-  Y25: 3.855,
-  Y28: 4.834,
-  Y32: 6.313,
-  Y36: 8.0,
-  Y40: 9.864,
-  Y50: 15.41,
+  D6: 0.222,
+  D8: 0.395,
+  D10: 0.617,
+  D12: 0.888,
+  D14: 1.21,
+  D16: 1.579,
+  D18: 2.0,
+  D20: 2.466,
+  D22: 2.98,
+  D25: 3.855,
+  D28: 4.834,
+  D32: 6.313,
+  D36: 8.0,
+  D40: 9.864,
+  D50: 15.41,
 };
 
 interface CalculationTotals {
   netArea: number;
   netBlocks: number;
+  netBlocksFeet: number;
   netMortar: number;
   netPlaster: number;
   netCement: number;
@@ -208,6 +213,7 @@ interface CalculationTotals {
   netWindowFrames: number;
   grossArea: number;
   grossBlocks: number;
+  grossBlocksFeet: number;
   grossMortar: number;
   grossPlaster: number;
   grossCement: number;
@@ -298,7 +304,7 @@ interface UseMasonryCalculatorProps {
     userRegion: string,
     userOverride: any,
     materialBasePrices: any[],
-    regionalMultipliers: any[]
+    regionalMultipliers: any[],
   ) => any;
 }
 
@@ -317,11 +323,13 @@ export default function useMasonryCalculatorNew({
   const MORTAR_PER_SQM = 0.017;
   const SAND_DENSITY = 1600;
   const CEMENT_BAG_KG = 50;
+  const METERS_TO_FEET = 3.28084;
 
   // State
   const [results, setResults] = useState<CalculationTotals>({
     netArea: 0,
     netBlocks: 0,
+    netBlocksFeet: 0,
     netMortar: 0,
     netPlaster: 0,
     netCement: 0,
@@ -341,6 +349,7 @@ export default function useMasonryCalculatorNew({
     grossSealantLiters: 0,
     grossArea: 0,
     grossBlocks: 0,
+    grossBlocksFeet: 0,
     grossMortar: 0,
     grossPlaster: 0,
     grossCement: 0,
@@ -482,14 +491,14 @@ export default function useMasonryCalculatorNew({
         water: waterLiters,
       };
     },
-    [parseConcreteMixRatio]
+    [parseConcreteMixRatio],
   );
 
   const getRebarWeight = useCallback(
     (length: number, size: RebarSize): number => {
       return length * REBAR_WEIGHTS[size];
     },
-    []
+    [],
   );
 
   // ============ WALL DIMENSION VALIDATION ============
@@ -504,17 +513,17 @@ export default function useMasonryCalculatorNew({
         dims.internalWallHeight,
       ];
       return values.every(
-        (val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 1000
+        (val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 1000,
       );
     },
-    []
+    [],
   );
 
   // ============ WALL CALCULATIONS ============
 
   const calculateWallAreas = useCallback(
     (
-      dims: Dimensions | undefined
+      dims: Dimensions | undefined,
     ): { external: number; internal: number; total: number } => {
       if (!validateWallDimensions(dims)) {
         return { external: 0, internal: 0, total: 0 };
@@ -529,7 +538,7 @@ export default function useMasonryCalculatorNew({
         total: externalArea + internalArea,
       };
     },
-    [validateWallDimensions]
+    [validateWallDimensions],
   );
 
   const calculateOpeningsAreaFromSections = useCallback(
@@ -554,7 +563,7 @@ export default function useMasonryCalculatorNew({
       });
       return totalOpeningsArea;
     },
-    [parseSize]
+    [parseSize],
   );
 
   // ============ CENTER LINE METHOD FOR BRICK CALCULATION ============
@@ -579,7 +588,7 @@ export default function useMasonryCalculatorNew({
     (
       dims: Dimensions | undefined,
       sections: WallSection[] | undefined,
-      properties: WallProperties
+      properties: WallProperties,
     ): BrickCalculationResult[] => {
       if (!validateWallDimensions(dims)) return [];
 
@@ -724,7 +733,7 @@ export default function useMasonryCalculatorNew({
       qsSettings?.mortarJointThicknessM,
       validateWallDimensions,
       parseSize,
-    ]
+    ],
   );
 
   // ============ MATERIAL PRICES ============
@@ -733,24 +742,24 @@ export default function useMasonryCalculatorNew({
     (materialName: string, specificType?: string): number => {
       if (!materialBasePrices || materialBasePrices.length === 0) return 0;
       const material = materialBasePrices.find(
-        (m) => m.name && m.name.toLowerCase() === materialName.toLowerCase()
+        (m) => m.name && m.name.toLowerCase() === materialName.toLowerCase(),
       );
       if (!material) return 0;
       const userOverride = userMaterialPrices.find(
-        (p) => p.material_id === material.id && p.region === userRegion
+        (p) => p.material_id === material.id && p.region === userRegion,
       );
       const effectiveMaterial = getEffectiveMaterialPrice(
         material.id,
         userRegion,
         userOverride,
         materialBasePrices,
-        regionalMultipliers
+        regionalMultipliers,
       );
       if (!effectiveMaterial) return 0;
       if (effectiveMaterial.type && effectiveMaterial.type.length > 0) {
         const type = specificType
           ? effectiveMaterial.type.find(
-              (t: any) => t.name === specificType || t.type === specificType
+              (t: any) => t.name === specificType || t.type === specificType,
             )
           : effectiveMaterial.type[0];
         return type?.price_kes || 0;
@@ -763,19 +772,19 @@ export default function useMasonryCalculatorNew({
       userMaterialPrices,
       regionalMultipliers,
       getEffectiveMaterialPrice,
-    ]
+    ],
   );
 
   const getDPCPrice = useCallback(
     (dpcArea: number, dpcType: string = "Polyethylene"): number => {
       if (!materialBasePrices || materialBasePrices.length === 0) return 0;
       const dpcMaterial = materials.find((m) =>
-        m.name?.toLowerCase().includes("dpc")
+        m.name?.toLowerCase().includes("dpc"),
       )?.type;
       if (!dpcMaterial) return 0;
       return dpcArea * (dpcMaterial[dpcType] || 0);
     },
-    [materialBasePrices, materials]
+    [materialBasePrices, materials],
   );
 
   const fetchMaterials = useCallback(async () => {
@@ -795,7 +804,7 @@ export default function useMasonryCalculatorNew({
       baseMaterials?.map((material) => {
         const userRegionVal = profile?.location || "Nairobi";
         const userRate = overrides?.find(
-          (o) => o.material_id === material.id && o.region === userRegionVal
+          (o) => o.material_id === material.id && o.region === userRegionVal,
         );
         const multiplier =
           regionalMultipliers.find((r) => r.region === userRegionVal)
@@ -828,7 +837,7 @@ export default function useMasonryCalculatorNew({
         return 0;
       }
     },
-    [profile?.id]
+    [profile?.id],
   );
 
   // ============ WALL MANAGEMENT FUNCTIONS ============
@@ -861,7 +870,7 @@ export default function useMasonryCalculatorNew({
     setQuote((prev: any) => ({
       ...prev,
       wallSections: (prev.wallSections || []).filter(
-        (_: any, i: number) => i !== index
+        (_: any, i: number) => i !== index,
       ),
     }));
   };
@@ -906,7 +915,7 @@ export default function useMasonryCalculatorNew({
 
   const removeWindowFromSection = (
     sectionIndex: number,
-    windowIndex: number
+    windowIndex: number,
   ) => {
     setQuote((prev: any) => {
       const sections = [...(prev.wallSections || [])];
@@ -919,7 +928,7 @@ export default function useMasonryCalculatorNew({
     sectionIndex: number,
     doorIndex: number,
     field: string,
-    value: any
+    value: any,
   ) => {
     setQuote((prev: any) => {
       const sections = [...(prev.wallSections || [])];
@@ -940,7 +949,7 @@ export default function useMasonryCalculatorNew({
     sectionIndex: number,
     windowIndex: number,
     field: string,
-    value: any
+    value: any,
   ) => {
     setQuote((prev: any) => {
       const sections = [...(prev.wallSections || [])];
@@ -959,7 +968,7 @@ export default function useMasonryCalculatorNew({
 
   const updateWallSectionProperties = (
     sectionIndex: number,
-    properties: Partial<WallSection>
+    properties: Partial<WallSection>,
   ) => {
     setQuote((prev: any) => {
       const sections = [...(prev.wallSections || [])];
@@ -980,6 +989,7 @@ export default function useMasonryCalculatorNew({
     let totals: CalculationTotals = {
       netArea: 0,
       netBlocks: 0,
+      netBlocksFeet: 0,
       netMortar: 0,
       netPlaster: 0,
       netCement: 0,
@@ -999,6 +1009,7 @@ export default function useMasonryCalculatorNew({
       grossSealantLiters: 0,
       grossArea: 0,
       grossBlocks: 0,
+      grossBlocksFeet: 0,
       grossMortar: 0,
       grossPlaster: 0,
       grossCement: 0,
@@ -1073,7 +1084,7 @@ export default function useMasonryCalculatorNew({
     const brickCalcs = calculateBricksUsingCenterLineMethod(
       wallDimensions,
       wallSections,
-      wallProperties
+      wallProperties,
     );
 
     // Aggregate brick counts from all wall types
@@ -1088,7 +1099,7 @@ export default function useMasonryCalculatorNew({
       totalNetArea +=
         calc.grossArea -
         calculateOpeningsAreaFromSections(
-          wallSections?.filter((s) => s.type === calc.wallType)
+          wallSections?.filter((s) => s.type === calc.wallType),
         );
       totalGrossArea += calc.grossArea;
     });
@@ -1113,6 +1124,23 @@ export default function useMasonryCalculatorNew({
     const blockPrice =
       wallProperties.customBlockPrice ||
       getMaterialPrice("Bricks", blockTypeForCalculation);
+
+    // Calculate block dimensions in feet
+    const blockDef = blockTypes.find((b) => b.name === blockTypeForCalculation);
+    const blockLengthMeters = blockDef?.size?.length || 0.4;
+    const blockLengthFeet = blockLengthMeters * METERS_TO_FEET;
+
+    // Calculate total feet of blocks
+    const netBlocksFeet = netBlocks * blockLengthFeet;
+    const grossBlocksFeet =
+      (totalNetBlocks + totalGrossBlocks) *
+      (1 + qsSettings.wastageMasonry / 100) *
+      blockLengthFeet;
+
+    // Cost calculations using price per foot
+    const netBlocksCost = netBlocksFeet * blockPrice;
+    const grossBlocksCost = grossBlocksFeet * blockPrice;
+
     const waterPrice =
       materials.find((m) => m.name?.toLowerCase() === "water")?.price || 0;
 
@@ -1155,8 +1183,6 @@ export default function useMasonryCalculatorNew({
     const totalCementKg = mortarCementKg + plasterCementKg;
     const totalWater = totalCementKg * waterRatio;
 
-    // Cost calculations
-    const netBlocksCost = netBlocks * blockPrice;
     const netMortarCost =
       mortarCementBags * cementPrice + mortarSandVolume * sandPrice;
     const netPlasterCost =
@@ -1224,7 +1250,7 @@ export default function useMasonryCalculatorNew({
 
     // Wastage calculations
     const grossBlocks = Math.ceil(
-      netBlocks * (1 + qsSettings.wastageMasonry / 100)
+      netBlocks * (1 + qsSettings.wastageMasonry / 100),
     );
     const grossMortarCementBags =
       mortarCementBags * (1 + qsSettings.wastageMasonry / 100);
@@ -1242,7 +1268,6 @@ export default function useMasonryCalculatorNew({
       netPlasterCost +
       totalOpeningsCost +
       netWaterCost;
-    const grossBlocksCost = grossBlocks * blockPrice;
     const grossMortarCost =
       grossMortarCementBags * cementPrice + grossMortarSand * sandPrice;
     const grossPlasterCost =
@@ -1274,14 +1299,14 @@ export default function useMasonryCalculatorNew({
       const lintelMaterials = calculateConcreteMaterials(
         lintelConcrete,
         qsSettings.concreteMixRatio,
-        qsSettings.concreteWaterCementRatio
+        qsSettings.concreteWaterCementRatio,
       );
       const lintelCost =
         lintelMaterials.cementBags * cementPrice +
         lintelMaterials.sand * sandPrice;
       const lintelRebarWeight = getRebarWeight(
         totalLintelLength * 4,
-        qsSettings.lintelRebarSize
+        qsSettings.lintelRebarSize,
       );
       const lintelRebarCost =
         lintelRebarWeight * (rebarPrices[qsSettings.lintelRebarSize] || 0);
@@ -1289,13 +1314,13 @@ export default function useMasonryCalculatorNew({
 
       totals.netLintelsCost = Math.ceil(lintelCost);
       totals.grossLintelsCost = Math.ceil(
-        lintelCost * (1 + qsSettings.wastageMasonry / 100)
+        lintelCost * (1 + qsSettings.wastageMasonry / 100),
       );
       totals.netLintelRebar = lintelRebarWeight;
       totals.grossLintelRebar = lintelRebarWeight;
       totals.netLintelRebarCost = Math.ceil(lintelRebarCost);
       totals.grossLintelRebarCost = Math.ceil(
-        lintelRebarCost * (1 + qsSettings.wastageMasonry / 100)
+        lintelRebarCost * (1 + qsSettings.wastageMasonry / 100),
       );
     }
 
@@ -1306,24 +1331,24 @@ export default function useMasonryCalculatorNew({
         Number(wallDimensions.internalWallPerimiter);
       const height = Math.max(
         Number(wallDimensions.externalWallHeight),
-        Number(wallDimensions.internalWallHeight)
+        Number(wallDimensions.internalWallHeight),
       );
       const courses = Math.ceil(height / 0.2);
 
       const bedJointLength =
         perimeter * Math.ceil(courses / (qsSettings.reinforcementSpacing || 3));
       const verticalBars = Math.ceil(
-        perimeter / (qsSettings.verticalReinforcementSpacing || 1)
+        perimeter / (qsSettings.verticalReinforcementSpacing || 1),
       );
       const verticalLength = verticalBars * height;
 
       const bedJointWeight = getRebarWeight(
         bedJointLength,
-        qsSettings.bedJointRebarSize
+        qsSettings.bedJointRebarSize,
       );
       const verticalWeight = getRebarWeight(
         verticalLength,
-        qsSettings.verticalRebarSize
+        qsSettings.verticalRebarSize,
       );
       const totalRebarWeight = bedJointWeight + verticalWeight;
 
@@ -1336,7 +1361,7 @@ export default function useMasonryCalculatorNew({
       totals.grossWallRebar = totalRebarWeight;
       totals.netWallRebarCost = Math.ceil(rebarCost);
       totals.grossWallRebarCost = Math.ceil(
-        rebarCost * (1 + qsSettings.wastageMasonry / 100)
+        rebarCost * (1 + qsSettings.wastageMasonry / 100),
       );
     }
 
@@ -1349,7 +1374,7 @@ export default function useMasonryCalculatorNew({
       totals.grossDPCArea = dpcArea;
       totals.netDPCCost = Math.ceil(dpcCost);
       totals.grossDPCCost = Math.ceil(
-        dpcCost * (1 + qsSettings.wastageMasonry / 100)
+        dpcCost * (1 + qsSettings.wastageMasonry / 100),
       );
     }
 
@@ -1359,7 +1384,7 @@ export default function useMasonryCalculatorNew({
         Number(wallDimensions.externalWallPerimiter) +
         Number(wallDimensions.internalWallPerimiter);
       const joints = Math.ceil(
-        perimeter / (qsSettings.movementJointSpacing || 5)
+        perimeter / (qsSettings.movementJointSpacing || 5),
       );
       const sealantPrice = getMaterialPrice("Sealant", "Polyurethane");
       const sealantPriceTube = sealantPrice["600 ml sausage"] || 0;
@@ -1370,7 +1395,7 @@ export default function useMasonryCalculatorNew({
       totals.grossMovementJoints = joints;
       totals.netMovementJointsCost = Math.ceil(sealantCost);
       totals.grossMovementJointsCost = Math.ceil(
-        sealantCost * (1 + qsSettings.wastageMasonry / 100)
+        sealantCost * (1 + qsSettings.wastageMasonry / 100),
       );
     }
 
@@ -1384,7 +1409,7 @@ export default function useMasonryCalculatorNew({
       totals.grossScaffoldingArea = scaffoldingArea;
       totals.netScaffoldingCost = Math.ceil(scaffoldingCost);
       totals.grossScaffoldingCost = Math.ceil(
-        scaffoldingCost * (1 + qsSettings.wastageMasonry / 100)
+        scaffoldingCost * (1 + qsSettings.wastageMasonry / 100),
       );
     }
 
@@ -1396,7 +1421,7 @@ export default function useMasonryCalculatorNew({
           ? wallSections.reduce(
               (sum, s) =>
                 sum + (s.thickness || wallProperties.thickness || 0.2),
-              0
+              0,
             ) / wallSections.length
           : wallProperties.thickness || 0.2;
 
@@ -1407,7 +1432,7 @@ export default function useMasonryCalculatorNew({
       totals.grossWasteVolume = wasteVolume;
       totals.netWasteRemovalCost = Math.ceil(wasteCost);
       totals.grossWasteRemovalCost = Math.ceil(
-        wasteCost * (1 + qsSettings.wastageMasonry / 100)
+        wasteCost * (1 + qsSettings.wastageMasonry / 100),
       );
     }
 
@@ -1415,7 +1440,9 @@ export default function useMasonryCalculatorNew({
     totals.netArea = centerLineNetWallArea;
     totals.grossArea = centerLineGrossWallArea;
     totals.netBlocks = netBlocks;
+    totals.netBlocksFeet = netBlocksFeet;
     totals.grossBlocks = grossBlocks;
+    totals.grossBlocksFeet = grossBlocksFeet;
     totals.netMortar = netMortarVolume;
     totals.netPlaster = netPlasterArea;
     totals.netCement = totalCementKg;
@@ -1436,16 +1463,16 @@ export default function useMasonryCalculatorNew({
     totals.netDoorFrames = doorFramesCount;
     totals.netWindowFrames = windowFramesCount;
     totals.grossDoors = Math.ceil(
-      doorsCount * (1 + qsSettings.wastageMasonry / 100)
+      doorsCount * (1 + qsSettings.wastageMasonry / 100),
     );
     totals.grossWindows = Math.ceil(
-      windowsCount * (1 + qsSettings.wastageMasonry / 100)
+      windowsCount * (1 + qsSettings.wastageMasonry / 100),
     );
     totals.grossDoorFrames = Math.ceil(
-      doorFramesCount * (1 + qsSettings.wastageMasonry / 100)
+      doorFramesCount * (1 + qsSettings.wastageMasonry / 100),
     );
     totals.grossWindowFrames = Math.ceil(
-      windowFramesCount * (1 + qsSettings.wastageMasonry / 100)
+      windowFramesCount * (1 + qsSettings.wastageMasonry / 100),
     );
     totals.netBlocksCost = netBlocksCost;
     totals.grossBlocksCost = grossBlocksCost;
@@ -1558,21 +1585,21 @@ export default function useMasonryCalculatorNew({
       const prices: Record<string, number> = {};
       const rebarSizes: RebarSize[] = [
         "R6",
-        "Y6",
-        "Y8",
-        "Y10",
-        "Y12",
-        "Y14",
-        "Y16",
-        "Y18",
-        "Y20",
-        "Y22",
-        "Y25",
-        "Y28",
-        "Y32",
-        "Y36",
-        "Y40",
-        "Y50",
+        "D6",
+        "D8",
+        "D10",
+        "D12",
+        "D14",
+        "D16",
+        "D18",
+        "D20",
+        "D22",
+        "D25",
+        "D28",
+        "D32",
+        "D36",
+        "D40",
+        "D50",
       ];
       for (const size of rebarSizes) {
         prices[size] = await getRebarPrice(size);

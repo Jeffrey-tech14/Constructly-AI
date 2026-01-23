@@ -50,13 +50,36 @@ import { Dimensions, WallProperties } from "@/hooks/useMasonryCalculatorNew";
 import { WallSection } from "@/hooks/useMasonryCalculatorNew";
 import { planParserService } from "@/services/planParserService";
 
-// RISA Color Palette
-const RISA_BLUE = "#015B97";
-const RISA_LIGHT_BLUE = "#3288e6";
-const RISA_WHITE = "#ffffff";
-const RISA_DARK_TEXT = "#2D3748";
-const RISA_LIGHT_GRAY = "#F5F7FA";
-const RISA_MEDIUM_GRAY = "#E2E8F0";
+// --- GLOBAL STYLES (Matches Frontend) ---
+const GlobalStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    .font-technical { font-family: 'Outfit', sans-serif; }
+    
+    /* Sleek Scrollbar hide */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(229, 231, 235, 0.5);
+    }
+    .dark .glass-panel {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(30, 41, 59, 0.5);
+    }
+  `}</style>
+);
+
+// --- THEME CONSTANTS ---
+const THEME = {
+  NAVY: "#00356B",
+  ORANGE: "#D85C2C",
+  GREEN: "#86bc25",
+  LIGHT_BG: "#f8f9fa",
+  DARK_BG: "#0b1120"
+};
 
 const PreviewModal = ({
   fileUrl,
@@ -71,23 +94,23 @@ const PreviewModal = ({
     fileType.startsWith("image/") ||
     fileUrl.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|bmp)$/);
   return (
-    <div className="p-4 max-h-[80vh] w-full overflow-auto">
+    <div className="p-4 max-h-[80vh] w-full overflow-auto bg-gray-50 dark:bg-gray-900 rounded-xl">
       {isPDF ? (
         <iframe
           src={fileUrl}
-          className="w-full h-[70vh] rounded-lg border border-slate-200 dark:border-slate-600"
+          className="w-full h-[70vh] rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
           title="PDF Preview"
         />
       ) : isImage ? (
         <img
           src={fileUrl}
           alt="Plan preview"
-          className="max-w-full max-h-[70vh] mx-auto rounded-lg shadow-lg object-contain"
+          className="max-w-full max-h-[70vh] mx-auto rounded-lg shadow-md object-contain"
         />
       ) : (
-        <div className="text-center py-8">
-          <FileIcon className="w-16 h-16 mx-auto text-slate-400 mb-4" />
-          <p className="text-slate-600 dark:text-slate-300">
+        <div className="text-center py-12">
+          <FileIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500 font-medium">
             Preview not available for this file type
           </p>
         </div>
@@ -534,13 +557,13 @@ const UploadPlan = () => {
   const getErrorColor = () => {
     switch (error?.type) {
       case "network":
-        return "text-orange-500 dark:text-orange-200";
+        return "text-orange-600 dark:text-orange-200";
       case "analysis":
-        return "text-red-500 dark:text-red-200";
+        return "text-red-600 dark:text-red-200";
       case "save":
-        return "text-red-500 dark:text-red-200";
+        return "text-red-600 dark:text-red-200";
       default:
-        return "text-red-500 dark:text-red-200";
+        return "text-red-600 dark:text-red-200";
     }
   };
 
@@ -551,21 +574,21 @@ const UploadPlan = () => {
       switch (tier) {
         case "Free":
           return (
-            <Badge className="bg-green-100 text-green-800">
+            <Badge className="bg-gray-100 text-gray-800 border-0">
               <Shell className="w-3 h-3 mr-1" />
               Free
             </Badge>
           );
         case "Professional":
           return (
-            <Badge className="bg-purple-100 text-purple-800 ">
+            <Badge className="bg-[#86bc25]/10 text-[#5da40b] border-0">
               <Shield className="w-3 h-3 mr-1" />
               Professional
             </Badge>
           );
         case "Enterprise":
           return (
-            <Badge className="bg-blue-100 text-blue-800">
+            <Badge className="bg-[#00356B]/10 text-[#00356B] border-0">
               <Crown className="w-3 h-3 mr-1" />
               Enterprise
             </Badge>
@@ -576,25 +599,27 @@ const UploadPlan = () => {
     };
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="max-w-md w-full backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 transform hover:scale-105 transition-all duration-300">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b1120] font-technical">
+        <GlobalStyles />
+        <Card className="max-w-md w-full backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 shadow-2xl rounded-2xl border-none">
+          <CardHeader className="text-center pt-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-[#00356B] rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
               <Shield className="w-8 h-8" />
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+            <CardTitle className="text-2xl font-bold text-[#00356B] dark:text-white">
               Upgrade Required
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5 text-center">
-            <p className="text-slate-600 dark:text-slate-300 ">
+          <CardContent className="space-y-6 text-center pb-8">
+            <p className="text-gray-600 dark:text-gray-300">
               Upgrade to access AI-powered plan parsing and advanced features.
             </p>
-            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {getTierBadge(profile.tier)}
+            <div className="flex justify-center">
+               {getTierBadge(profile.tier)}
             </div>
             <Button
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg"
+              className="w-full text-white font-bold rounded-xl shadow-lg h-12"
+              style={{ backgroundColor: THEME.ORANGE }}
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -607,29 +632,32 @@ const UploadPlan = () => {
   }
 
   return (
-    <div className="min-h-screen animate-fade-in scrollbar-hide">
+    <div className="min-h-screen animate-fade-in scrollbar-hide bg-[#f8f9fa] dark:bg-[#0b1120] font-technical pb-20">
+      <GlobalStyles />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Header */}
+        
+        {/* --- Header Section --- */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex items-center justify-between mb-10"
+          className="flex flex-col items-center justify-center mb-10 text-center"
         >
-          <div className="text-center">
-            <div className="flex items-center sm:text-2xl text-xl font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white dark:from-white dark:via-white dark:to-white  bg-clip-text text-transparent">
-              <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-blue-700 dark:text-white dark:text-white" />
-              Upload & Analyze Plan
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-[#00356B] rounded-xl shadow-lg shadow-blue-900/20">
+               <UploadCloud className="w-6 h-6 text-white" />
             </div>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text mt-2">
-              AI-powered extraction of wall data, dimensions, doors, and windows
-              — instantly generate accurate construction estimates.
-            </p>
+            <h1 className="text-3xl font-extrabold text-[#00356B] dark:text-white tracking-tight">
+              Upload & Analyze Plan
+            </h1>
           </div>
-          <div className="w-10"></div>
+          <p className="text-gray-500 dark:text-gray-400 max-w-2xl font-medium">
+            AI-powered extraction of wall data, dimensions, doors, and windows
+            — instantly generate accurate construction estimates.
+          </p>
         </motion.div>
 
-        {/* Progress Steps */}
+        {/* --- Progress Steps --- */}
         {currentStep !== "idle" && currentStep !== "error" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -637,9 +665,9 @@ const UploadPlan = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-8"
           >
-            <Card className="">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-center mb-6">
+            <Card className="border-none shadow-sm bg-white dark:bg-[#151c2f]">
+              <CardContent className="p-8">
+                <div className="flex justify-between items-center mb-8 px-4">
                   {[
                     { label: "Uploading", icon: UploadCloud },
                     { label: "Analyzing", icon: BarChart3 },
@@ -658,29 +686,29 @@ const UploadPlan = () => {
                     return (
                       <div
                         key={idx}
-                        className="flex flex-col items-center space-y-3 flex-1"
+                        className="flex flex-col items-center space-y-3 flex-1 relative z-10"
                       >
                         <motion.div
                           whileHover={{ scale: 1.1 }}
-                          className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                          className={`w-14 h-14 rounded-full flex items-center justify-center font-bold transition-all duration-300 border-4 ${
                             isDone
-                              ? "bg-green-500 text-white shadow-lg"
+                              ? "bg-[#86bc25] border-[#86bc25] text-white shadow-lg shadow-green-200"
                               : isActive
-                              ? "bg-primary text-white shadow-lg animate-pulse"
-                              : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                              ? "bg-[#00356B] border-[#00356B] text-white shadow-lg shadow-blue-200 scale-110"
+                              : "bg-white border-gray-100 text-gray-300 dark:bg-gray-800 dark:border-gray-700"
                           }`}
                         >
                           {isDone ? (
                             <CheckCircle className="w-6 h-6" />
                           ) : (
-                            <IconComponent className="w-5 h-5" />
+                            <IconComponent className="w-6 h-6" />
                           )}
                         </motion.div>
                         <span
-                          className={`text-sm font-medium ${
+                          className={`text-sm font-bold tracking-wide ${
                             isActive || isDone
-                              ? "text-primary dark:text-blue-400"
-                              : "text-gray-500 dark:text-gray-400"
+                              ? "text-[#00356B] dark:text-white"
+                              : "text-gray-400 dark:text-gray-600"
                           }`}
                         >
                           {step.label}
@@ -689,9 +717,11 @@ const UploadPlan = () => {
                     );
                   })}
                 </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+                
+                {/* Progress Bar Container */}
+                <div className="relative w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
                   <motion.div
-                    className="h-2 rounded-full"
+                    className="h-full rounded-full bg-gradient-to-r from-[#00356B] to-[#004e9c]"
                     initial={{ width: "0%" }}
                     animate={{
                       width:
@@ -702,63 +732,48 @@ const UploadPlan = () => {
                           : "100%",
                     }}
                     transition={{ duration: 0.5 }}
-                    style={{ backgroundColor: RISA_BLUE }}
                   />
                 </div>
-                <motion.p
-                  className="text-center text-sm text-gray-600 dark:text-gray-300 mt-4"
+
+                <motion.div
+                  className="text-center mt-6 min-h-[24px]"
                   key={currentStep}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
                   {currentStep === "uploading" && (
-                    <span className="flex items-center justify-center gap-2">
-                      <UploadCloud className="w-4 h-4" />
+                    <span className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-300 font-medium">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#00356B]" />
                       Uploading your construction plan...
                     </span>
                   )}
                   {currentStep === "analyzing" && (
                     <span className="flex flex-col items-center justify-center gap-2">
-                      <div className="flex space-x-1 mb-2">
-                        {[0, 1, 2].map((i) => (
-                          <motion.div
-                            key={i}
-                            className="w-2 h-2 bg-blue-500 rounded-full"
-                            animate={{ scale: [1, 1.5, 1] }}
-                            transition={{
-                              duration: 1.2,
-                              repeat: Infinity,
-                              delay: i * 0.2,
-                              repeatType: "loop",
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <span className="flex items-center gap-2">
-                        <Zap className="w-4 h-4" />
-                        AI is analyzing your plan...
+                       <span className="flex items-center gap-2 text-[#00356B] dark:text-blue-300 font-bold">
+                        <Zap className="w-4 h-4 fill-[#00356B] dark:fill-blue-300" />
+                        AI is analyzing geometry...
                       </span>
                       {analysisTimeLeft !== null && (
-                        <span className="text-xs text-primary dark:text-blue-400 font-medium">
-                          Est. time: {analysisTimeLeft}s
+                        <span className="text-xs text-gray-400 font-medium">
+                          Estimated time: {analysisTimeLeft}s
                         </span>
                       )}
                     </span>
                   )}
                   {currentStep === "complete" && (
-                    <span className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
-                      <CheckCircle className="w-4 h-4" />
-                      Plan successfully parsed! Review and edit below.
+                    <span className="flex items-center justify-center gap-2 text-[#86bc25] font-bold">
+                      <CheckCircle className="w-5 h-5" />
+                      Plan successfully parsed! Review results below.
                     </span>
                   )}
-                </motion.p>
+                </motion.div>
               </CardContent>
             </Card>
           </motion.div>
         )}
 
-        {/* Error State */}
+        {/* --- Error State --- */}
         {currentStep === "error" && error && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -766,485 +781,277 @@ const UploadPlan = () => {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <Card>
+            <Card className="border-red-100 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4 mb-4">
                   <div
-                    className={`p-3 rounded-full bg-red-100 dark:bg-red-900 ${getErrorColor()}`}
+                    className={`p-3 rounded-full bg-white dark:bg-red-900/50 shadow-sm ${getErrorColor()}`}
                   >
                     {getErrorIcon()}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-red-800 dark:text-red-200">
+                    <h3 className="text-lg font-bold text-red-700 dark:text-red-200">
                       {error.type === "network"
                         ? "Connection Error"
                         : error.type === "analysis"
                         ? "Analysis Failed"
                         : "Save Error"}
                     </h3>
-                    <p className="text-red-600 dark:text-red-300">
+                    <p className="text-red-600/80 dark:text-red-300 text-sm mt-1">
                       {error.message}
                     </p>
                     {retryCount > 0 && (
-                      <p className="text-sm text-red-500 dark:text-red-400 mt-1">
+                      <p className="text-xs font-bold uppercase tracking-wider text-red-400 mt-2">
                         Attempt {retryCount} of {MAX_RETRIES}
                       </p>
                     )}
                   </div>
                 </div>
                 <div className="flex space-x-4 mt-6">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="flex-1"
-                  >
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
                     <Button
                       variant="outline"
                       onClick={handleRemoveFile}
-                      className="w-full border-red-200 text-red-600 hover:text-white hover:bg-red-700"
+                      className="w-full border-red-200 text-red-600 hover:text-white hover:bg-red-600 hover:border-red-600 h-11"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Remove File
+                      Remove & Start Over
                     </Button>
                   </motion.div>
                   {error.retryable && (
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex-1"
-                    >
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
                       <Button
                         onClick={handleRetry}
-                        variant="destructive"
-                        className="w-full"
+                        className="w-full bg-red-600 hover:bg-red-700 text-white h-11"
                         disabled={retryCount >= MAX_RETRIES}
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
-                        {retryCount >= MAX_RETRIES
-                          ? "Max Retries Reached"
-                          : "Try Again"}
+                        {retryCount >= MAX_RETRIES ? "Max Retries Reached" : "Try Again"}
                       </Button>
                     </motion.div>
                   )}
                 </div>
-                {retryCount >= MAX_RETRIES && (
-                  <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                    <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                      💡 <strong>Tip:</strong> Try uploading a clearer image or
-                      a different file format. Make sure your plan has clear
-                      room labels and dimensions.
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </motion.div>
         )}
 
+        {/* --- Main Content Area --- */}
         <div className="grid grid-cols-1 gap-8">
-          {/* Main Content */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-2 space-y-8"
           >
-            <Card className="text-center">
-              <CardHeader className="glass rounded-t-3xl">
-                <CardTitle className="sm:text-xl font-bold">
+            <Card className="text-center border-none shadow-sm bg-white dark:bg-[#151c2f] overflow-hidden">
+              <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 py-6">
+                <CardTitle className="text-lg font-bold text-[#00356B] dark:text-white">
                   Upload Your Floor Plan
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-8 p-8">
                 {(editablePlan && currentStep === "complete") ||
-                (fileUrl &&
-                  (currentStep === "analyzing" ||
-                    currentStep === "uploading")) ? (
-                  <div className="space-y-6 scrollbar-hide">
-                    <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                      <FileText className="sm:w-7 sm:h-7 text-green-500" />
-                      <p className="sm:text-lg font-semibold">
-                        {selectedFile?.name ||
-                          fileUrl.split("/").pop() ||
-                          "Uploaded Plan"}
-                      </p>
+                (fileUrl && (currentStep === "analyzing" || currentStep === "uploading")) ? (
+                  <div className="space-y-6">
+                    {/* File Info Bar */}
+                    <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                      <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-[#00356B] dark:text-blue-300">
+                         <FileText className="w-6 h-6" />
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                          <p className="font-bold text-gray-900 dark:text-white truncate">
+                            {selectedFile?.name || fileUrl.split("/").pop() || "Uploaded Plan"}
+                          </p>
+                          <p className="text-xs text-gray-500">Ready for processing</p>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={handleRemoveFile}
-                        className="ml-auto text-red-500 hover:text-red-700"
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                       >
-                        <Trash2 className="sm:w-6 sm:h-6" />
+                        <Trash2 className="w-5 h-5" />
                       </Button>
                     </div>
 
                     {previewUrl && (
-                      <Card className="border border-slate-200 dark:border-slate-600 overflow-hidden">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg flex items-center">
-                            <Eye className="w-5 h-5 mr-2 text-green-500" />
-                            Plan Preview
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4">
-                          <div
-                            className="w-full h-[700px] rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-600"
-                            onClick={() => setShowPreviewModal(true)}
-                          >
-                            <div className="h-full flex flex-col items-center justify-center p-4">
-                              <PreviewModal
+                      <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm relative group cursor-pointer" onClick={() => setShowPreviewModal(true)}>
+                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors z-10 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all bg-white/90 dark:bg-black/80 backdrop-blur px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                               Click to Preview
+                            </div>
+                         </div>
+                         <div className="bg-gray-100 dark:bg-gray-900 h-[400px] flex items-center justify-center p-4">
+                            <PreviewModal
                                 fileUrl={previewUrl}
                                 fileType={selectedFile?.type || "image/jpeg"}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                            />
+                         </div>
+                      </div>
                     )}
 
-                    {(currentStep === "analyzing" ||
-                      currentStep === "uploading") && (
+                    {(currentStep === "analyzing" || currentStep === "uploading") && (
                       <div className="text-center py-8">
-                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-500 mb-4" />
-                        <p className="text-slate-600 dark:text-slate-300">
-                          {currentStep === "uploading"
-                            ? "Uploading..."
-                            : "Analyzing plan..."}
+                        <Loader2 className="w-10 h-10 mx-auto animate-spin text-[#00356B] mb-4" />
+                        <p className="text-gray-600 dark:text-gray-300 font-medium">
+                          {currentStep === "uploading" ? "Uploading..." : "Analyzing plan structure..."}
                         </p>
                       </div>
                     )}
 
                     {currentStep === "complete" && editablePlan && (
-                      <div className="scrollbar-hide">
-                        <div className="flex items-center justify-between mb-6">
-                          <h3 className="sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
-                            <span className="bg-blue-100 dark:bg-primary p-2 rounded-full mr-3">
-                              <FileText className="sm:w-5 sm:h-5 text-primary dark:text-blue-300" />
-                            </span>
-                            Edit Extracted Plan
+                      <div>
+                        <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+                          <h3 className="text-lg font-bold text-[#00356B] dark:text-white flex items-center">
+                            <Zap className="w-5 h-5 mr-2 text-[#D85C2C]" />
+                            Extraction Results
                           </h3>
+                          <Badge className="bg-green-100 text-green-700 border-0">High Confidence</Badge>
                         </div>
 
                         {/* Extracted Wall Structure Results */}
                         {editablePlan.wallDimensions && (
-                          <Card className="mb-8 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-                            <CardHeader className="bg-green-100 dark:bg-green-900/30 rounded-t-lg">
-                              <CardTitle className="text-lg flex items-center text-green-900 dark:text-green-100">
-                                <BarChart3 className="w-5 h-5 mr-2" />
-                                Wall Structure Extraction Results
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-6 space-y-6">
-                              {/* Wall Dimensions */}
-                              <div>
-                                <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
-                                  <Ruler className="w-4 h-4 mr-2" />
-                                  Wall Dimensions
-                                </h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="p-4 glass rounded-3xl border border-green-200 dark:border-green-700">
-                                    <Label className="text-sm block mb-2">
-                                      External Wall Perimeter (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.externalWallPerimiter || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  externalWallPerimiter:
-                                                    parseFloat(
-                                                      e.target.value
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="p-4 glass rounded-3xl border border-green-200 dark:border-green-700">
-                                    <Label className="text-sm block mb-2">
-                                      External Wall Height (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.externalWallHeight || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  externalWallHeight:
-                                                    parseFloat(
-                                                      e.target.value
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="p-4 glass rounded-3xl border border-blue-200 dark:border-blue-700">
-                                    <Label className="text-sm block mb-2">
-                                      Internal Wall Perimeter (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.internalWallPerimiter || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  internalWallPerimiter:
-                                                    parseFloat(
-                                                      e.target.value
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <div className="p-4 glass rounded-3xl border border-blue-200 dark:border-blue-700">
-                                    <Label className="text-sm block mb-2">
-                                      Internal Wall Height (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.internalWallHeight || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  internalWallHeight:
-                                                    parseFloat(
-                                                      e.target.value
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
-
-                        <div className="space-y-6 mt-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <Label className="">Floors</Label>
-                              <Input
-                                type="number"
-                                min="1"
-                                value={editablePlan.floors}
-                                onChange={(e) =>
-                                  setEditablePlan((prev) =>
-                                    prev
-                                      ? {
-                                          ...prev,
-                                          floors: parseInt(e.target.value) || 1,
-                                        }
-                                      : prev
-                                  )
-                                }
-                                className="mt-1 "
-                              />
+                          <div className="mb-8 bg-[#86bc25]/5 rounded-2xl border border-[#86bc25]/20 overflow-hidden">
+                            <div className="bg-[#86bc25]/10 px-6 py-4 flex items-center gap-2">
+                               <Ruler className="w-5 h-5 text-[#5da40b]" />
+                               <h4 className="font-bold text-[#5da40b]">Wall Dimensions</h4>
                             </div>
-                            <div>
-                              <Label className="">File Name</Label>
-                              <Input
-                                value={editablePlan.file_name || ""}
-                                onChange={(e) =>
-                                  setEditablePlan((prev) =>
-                                    prev
-                                      ? { ...prev, file_name: e.target.value }
-                                      : prev
-                                  )
-                                }
-                                className="mt-1  "
-                              />
-                            </div>
-                          </div>
-                          {fileUrl ? (
-                            <div className="space-y-6">
-                              <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                                <LucideFileText className="w-10 h-10 text-green-500" />
-                                <p className="text-xl font-semibold truncate flex-1">
-                                  {fileUrl.split("/").pop() || "Uploaded Plan"}
-                                </p>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={handleRemoveFile}
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <Trash2 className="w-6 h-6" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    downloadFile(
-                                      fileUrl,
-                                      fileUrl.split("/").pop() ||
-                                        "Uploaded Plan"
+                            
+                            <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">External Perimeter (m)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  className="bg-white border-gray-200 focus:border-[#86bc25] focus:ring-[#86bc25] h-11 font-medium"
+                                  value={editablePlan.wallDimensions?.externalWallPerimiter || 0}
+                                  onChange={(e) =>
+                                    setEditablePlan((prev) =>
+                                      prev && prev.wallDimensions
+                                        ? { ...prev, wallDimensions: { ...prev.wallDimensions, externalWallPerimiter: parseFloat(e.target.value) || 0 } }
+                                        : prev
                                     )
                                   }
-                                  className=""
-                                >
-                                  <HardDriveDownload className="w-6 h-6" />
-                                </Button>
-                              </div>
-                              <div className="flex space-x-4">
-                                <Button
-                                  variant="outline"
-                                  onClick={() =>
-                                    navigate("/quotes/new", {
-                                      state: { quoteData },
-                                    })
-                                  }
-                                  className="flex-1 text-slate-700 dark:text-slate-200  h-14"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  onClick={handleRetry}
-                                  variant="secondary"
-                                  className="text-slate-700 dark:text-slate-200  h-14"
-                                >
-                                  <RefreshCw className="w-6 h-6 mr-2" />
-                                  Retry Analysis
-                                </Button>
-                              </div>
-                            </div>
-                          ) : !selectedFile ? (
-                            <div>
-                              <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                                <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
-                                <p className="mb-4  text-slate-600 dark:text-slate-300">
-                                  Drag & drop your plan or click to upload
-                                </p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                  Supported formats: JPEG, PNG, PDF, WEBP (Max
-                                  10MB)
-                                </p>
-
-                                <Input
-                                  type="file"
-                                  accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
-                                  onChange={handleFileChange}
-                                  className="hidden"
-                                  id="fileUpload"
                                 />
-
-                                <Label
-                                  htmlFor="fileUpload"
-                                  className="cursor-pointer glass-button inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
-                                >
-                                  📁 Select File
-                                </Label>
                               </div>
-
-                              {/* Show button to use existing file if available */}
-                              {fileUrl && previewUrl && (
-                                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                    Or use your existing plan file
-                                  </p>
-                                  <Button
-                                    onClick={handleUseExistingFile}
-                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
-                                  >
-                                    <Eye className="w-5 h-5 mr-2" />
-                                    Use Existing Plan File
-                                  </Button>
-                                </div>
-                              )}
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">External Height (m)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  className="bg-white border-gray-200 focus:border-[#86bc25] focus:ring-[#86bc25] h-11 font-medium"
+                                  value={editablePlan.wallDimensions?.externalWallHeight || 0}
+                                  onChange={(e) =>
+                                    setEditablePlan((prev) =>
+                                      prev && prev.wallDimensions
+                                        ? { ...prev, wallDimensions: { ...prev.wallDimensions, externalWallHeight: parseFloat(e.target.value) || 0 } }
+                                        : prev
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Internal Perimeter (m)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  className="bg-white border-gray-200 focus:border-[#00356B] focus:ring-[#00356B] h-11 font-medium"
+                                  value={editablePlan.wallDimensions?.internalWallPerimiter || 0}
+                                  onChange={(e) =>
+                                    setEditablePlan((prev) =>
+                                      prev && prev.wallDimensions
+                                        ? { ...prev, wallDimensions: { ...prev.wallDimensions, internalWallPerimiter: parseFloat(e.target.value) || 0 } }
+                                        : prev
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Internal Height (m)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  className="bg-white border-gray-200 focus:border-[#00356B] focus:ring-[#00356B] h-11 font-medium"
+                                  value={editablePlan.wallDimensions?.internalWallHeight || 0}
+                                  onChange={(e) =>
+                                    setEditablePlan((prev) =>
+                                      prev && prev.wallDimensions
+                                        ? { ...prev, wallDimensions: { ...prev.wallDimensions, internalWallHeight: parseFloat(e.target.value) || 0 } }
+                                        : prev
+                                    )
+                                  }
+                                />
+                              </div>
                             </div>
-                          ) : null}
+                          </div>
+                        )}
 
-                          <div className="flex space-x-4 pt-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-6 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-gray-100 dark:border-gray-700">
+                          <div>
+                            <Label className="font-bold text-gray-700 dark:text-gray-300">Total Floors</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              className="mt-2 h-11 border-gray-200"
+                              value={editablePlan.floors}
+                              onChange={(e) =>
+                                setEditablePlan((prev) =>
+                                  prev ? { ...prev, floors: parseInt(e.target.value) || 1 } : prev
+                                )
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label className="font-bold text-gray-700 dark:text-gray-300">Plan Name</Label>
+                            <Input
+                              className="mt-2 h-11 border-gray-200"
+                              value={editablePlan.file_name || ""}
+                              onChange={(e) =>
+                                setEditablePlan((prev) =>
+                                  prev ? { ...prev, file_name: e.target.value } : prev
+                                )
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {/* Action Buttons for Completion */}
+                        <div className="flex space-x-4 pt-8">
                             <Button
                               variant="outline"
                               onClick={() => navigate("/quotes/new")}
-                              className="flex-1 dark:hover:bg-primary hover:bg-blue-700 hover:text-white h-14"
+                              className="flex-1 h-12 border-gray-200 text-gray-600 hover:bg-gray-50 font-medium"
                             >
                               Cancel
                             </Button>
-
-                            {editablePlan &&
-                            selectedFile &&
-                            currentStep === "complete" ? (
-                              <Button
+                            <Button
                                 onClick={handleDone}
-                                disabled={currentStep !== "complete"}
-                                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 shadow-lg transition-all"
-                              >
-                                {currentStep !== "complete" ? (
-                                  <>
-                                    <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                                    Processing...
-                                  </>
-                                ) : (
-                                  <>
-                                    <LucideThumbsUp className="w-6 h-6 mr-3" />
-                                    Done
-                                  </>
-                                )}
-                              </Button>
-                            ) : null}
-                          </div>
+                                className="flex-1 h-12 text-white font-bold shadow-lg hover:shadow-xl transition-all"
+                                style={{ backgroundColor: THEME.NAVY }}
+                            >
+                                <LucideThumbsUp className="w-5 h-5 mr-2" />
+                                Save & Continue
+                            </Button>
                         </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-16 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                    <UploadCloud className="w-20 h-20 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
-                    <p className="mb-4  text-slate-600 dark:text-slate-300">
-                      Drag & drop your plan or click to upload
+                  // EMPTY STATE / DRAG & DROP
+                  <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-3xl p-16 text-center transition-all hover:border-[#00356B] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 group">
+                    <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                       <UploadCloud className="w-10 h-10 text-[#00356B] dark:text-blue-300" />
+                    </div>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      Drag & drop plan file here
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                      Supported formats: JPEG, PNG, PDF, WEBP (Max 10MB)
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
+                      Supports JPEG, PNG, PDF, WEBP (Max 20MB). We'll automatically analyze geometry.
                     </p>
 
                     <Input
@@ -1257,23 +1064,21 @@ const UploadPlan = () => {
 
                     <Label
                       htmlFor="fileUpload"
-                      className="cursor-pointer glass inline-flex items-center px-6 py-3 rounded-3xl   transition-all"
+                      className="cursor-pointer inline-flex items-center px-8 py-4 rounded-full text-white font-bold shadow-lg hover:shadow-xl hover:translate-y-[-2px] transition-all"
+                      style={{ backgroundColor: THEME.ORANGE }}
                     >
-                      📁 Select File
+                      Browse Files
                     </Label>
 
-                    {/* Show button to use existing file if available */}
                     {fileUrl && previewUrl && (
-                      <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                          Or use your existing plan file
-                        </p>
+                      <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-800">
                         <Button
                           onClick={handleUseExistingFile}
-                          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
+                          variant="outline"
+                          className="w-full sm:w-auto h-12 border-[#00356B] text-[#00356B] hover:bg-[#00356B] hover:text-white font-bold"
                         >
                           <Eye className="w-5 h-5 mr-2" />
-                          Use Existing Plan File
+                          Use Previously Uploaded Plan
                         </Button>
                       </div>
                     )}
@@ -1285,37 +1090,40 @@ const UploadPlan = () => {
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal Overlay */}
       <AnimatePresence>
         {showPreviewModal && previewUrl && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowPreviewModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-white dark:bg-gray-800 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold">Plan Preview</h3>
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Plan Preview</h3>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowPreviewModal(false)}
+                  className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
-              <PreviewModal
-                fileUrl={previewUrl}
-                fileType={selectedFile?.type || "image/jpeg"}
-              />
+              <div className="p-4 bg-gray-100 dark:bg-gray-900">
+                <PreviewModal
+                  fileUrl={previewUrl}
+                  fileType={selectedFile?.type || "image/jpeg"}
+                />
+              </div>
             </motion.div>
           </motion.div>
         )}

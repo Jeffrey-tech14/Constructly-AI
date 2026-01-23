@@ -50,6 +50,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { QuoteExportDialog } from "@/components/QuoteExportDialog";
+
 const ViewAllQuotes = () => {
   const { fetchQuotes, quotes, loading, deleteQuote } = useQuotes();
   const { profile, user } = useAuth();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,7 +14,6 @@ import Calculator from "@/components/Calculator";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Wrench,
   User,
   LogOut,
   Moon,
@@ -22,20 +21,12 @@ import {
   Shield,
   Crown,
   Calculator as CalculatorIcon,
-  Plus,
   BarChart,
   Settings,
   Eye,
   Menu,
   X,
-  Star,
-  ThumbsUp,
-  Shell,
-  Building,
   Building2,
-  DoorOpen,
-  DraftingCompass,
-  Pickaxe,
   ChevronDown,
   Settings2,
   AlertCircle,
@@ -54,8 +45,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import { Avatar, AvatarImage } from "./ui/avatar";
-import { AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
+
+// --- Global Styles: Loads the 'Outfit' font to match Frontend ---
+const GlobalStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    .font-technical { font-family: 'Outfit', sans-serif; }
+    
+    /* Smooth transition for theme colors */
+    .nav-transition { transition: all 0.3s ease-in-out; }
+  `}</style>
+);
+
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -64,6 +66,13 @@ const Navbar = () => {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSubAlert, setShowSubAlert] = useState(true);
+
+  // --- THEME CONSTANTS (Matched to Frontend) ---
+  const THEME = {
+    NAVY: "#00356B",
+    ORANGE: "#D85C2C",
+    GREEN: "#86bc25",
+  };
 
   const handleSignOut = async () => {
     setTimeout(async () => {
@@ -74,25 +83,21 @@ const Navbar = () => {
       navigate("/");
     });
   };
+
   const isActive = (path: string) => location.pathname === path;
+
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart },
     { path: "/quotes/new", label: "New Quote", icon: Building2 },
     { path: "/quotes/all", label: "All Quotes", icon: Eye },
     { path: "/variables", label: "Settings", icon: Settings },
   ];
+
   if (location.pathname === "/" || location.pathname === "/auth") {
     return null;
   }
 
-  const THEME = {
-    PRIMARY: "#002d5c",
-    ACCENT: "#86bc25",
-    TEXT_DARK: "#001226",
-    LOGO_DARK: "#002855",
-    LOGO_LIGHT: "#0077B6",
-  };
-
+  // --- LOGO COMPONENT (Updated Colors) ---
   const JTechAILogo = () => (
     <svg
       width="135"
@@ -100,55 +105,20 @@ const Navbar = () => {
       viewBox="0 0 135 36"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className="hover:opacity-90 transition-opacity"
     >
-      <path
-        d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK} />
-      <path
-        d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT} />
-      <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT} />
-      <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5" />
-      <text
-        x="45"
-        y="24"
-        fontFamily="Segoe UI"
-        fontWeight="800"
-        fontSize="22"
-        fill={THEME.LOGO_DARK}
-      >
-        JTech
-      </text>
-      <text
-        x="108"
-        y="24"
-        fontFamily="Segoe UI"
-        fontWeight="800"
-        fontSize="22"
-        fill={THEME.LOGO_LIGHT}
-      >
-        AI
-      </text>
+      <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={theme === 'dark' ? '#fff' : THEME.NAVY} />
+      <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.ORANGE} />
+      <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.ORANGE} />
+      <path d="M22.5 15.75V20.25" stroke={THEME.ORANGE} strokeWidth="1.5" />
+      <text x="45" y="24" fontFamily="Outfit" fontWeight="800" fontSize="22" fill={theme === 'dark' ? '#fff' : THEME.NAVY}>JTech</text>
+      <text x="108" y="24" fontFamily="Outfit" fontWeight="800" fontSize="22" fill={THEME.GREEN}>AI</text>
     </svg>
   );
 
@@ -168,26 +138,27 @@ const Navbar = () => {
 
   const getTierBadge = (tier: string | undefined) => {
     const t = tier || "Free";
+    // Updated Badge Styles to match Frontend Palette
     switch (t) {
       case "Free":
         return (
-          <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100">
-            <Home className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Free</span>
+          <Badge className="text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 border-0 font-technical">
+            <Home className="w-3 h-3 mr-1" />
+            <span className="hidden md:flex">Free</span>
           </Badge>
         );
       case "Professional":
         return (
-          <Badge className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-100">
-            <Shield className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Professional</span>
+          <Badge className="text-xs bg-[#86bc25]/10 text-[#5da40b] hover:bg-[#86bc25]/20 border-0 font-technical">
+            <Shield className="w-3 h-3 mr-1" />
+            <span className="hidden md:flex">Professional</span>
           </Badge>
         );
       case "Enterprise":
         return (
-          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <Crown className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Enterprise</span>
+          <Badge className="text-xs bg-[#00356B]/10 text-[#00356B] hover:bg-[#00356B]/20 border-0 font-technical dark:text-blue-200 dark:bg-blue-900/30">
+            <Crown className="w-3 h-3 mr-1" />
+            <span className="hidden md:flex">Enterprise</span>
           </Badge>
         );
       default:
@@ -197,67 +168,74 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed sticky top-0 z-50 glass border-b shadow-sm">
-        <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-1">
+      <GlobalStyles />
+      {/* Sleek Glass Background matching Frontend */}
+      <nav className="fixed top-0 w-full z-50 bg-white/95 dark:bg-[#0b1120]/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 font-technical shadow-sm transition-all duration-300">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-[88px]"> {/* Frontend Height */}
+            
+            <div className="flex items-center space-x-1 cursor-pointer" onClick={() => navigate("/dashboard")}>
               <JTechAILogo />
             </div>
 
             {user && (
               <div className="hidden md:flex ml-auto items-center space-x-1">
-                {navItems.map((item, index) => {
+                {navItems.map((item) => {
                   const Icon = item.icon;
+                  const active = isActive(item.path);
+                  
                   return (
                     <motion.div
                       key={item.path}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                      }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     >
                       <Button
                         onClick={() => navigate(item.path)}
-                        variant={isActive(item.path) ? "default" : "ghost"}
-                        className={`relative font-medium transition-colors duration-500 ${
-                          isActive(item.path)
-                            ? " text-white shadow-lg"
-                            : " dark:text-gray-300"
-                        } px-4`}
+                        variant="ghost"
+                        // Custom styles to override shadcn default and enforce theme colors
+                        className={`relative h-10 px-4 font-medium transition-all duration-300 rounded-md
+                          ${active 
+                            ? "text-white shadow-md" 
+                            : "text-[#00356B] dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-[#D85C2C]"
+                          }
+                        `}
+                        style={{
+                           backgroundColor: active ? THEME.NAVY : 'transparent',
+                        }}
                       >
-                        <Icon className="w-4 h-4" />
-                        <span className="hidden ml-2 xl:inline">
-                          {item.label}
-                        </span>
+                        <Icon className={`w-4 h-4 mr-2 ${active ? "text-[#86bc25]" : "currentColor"}`} />
+                        <span className="hidden xl:inline">{item.label}</span>
                       </Button>
                     </motion.div>
                   );
                 })}
+
+                <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2" />
+
                 <Button
                   variant="ghost"
                   onClick={() => setIsCalculatorOpen(true)}
-                  className="card-hover"
+                  className="text-[#00356B] dark:text-gray-300 hover:text-[#D85C2C] hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors"
                 >
-                  <CalculatorIcon className="w-4 h-4" />
+                  <CalculatorIcon className="w-5 h-5" />
                 </Button>
 
-                <Badge className="bg-transparent hidden md:flex  hover:bg-transparent">
+                <div className="hidden md:flex ml-1">
                   {getTierBadge(profile?.tier)}
-                </Badge>
+                </div>
               </div>
             )}
 
             <div className="flex items-center ml-auto space-x-2">
               <div
-                className={`flex h-6 w-6 items-center hidden md:flex justify-center rounded-full ${
+                className={`flex h-8 w-8 items-center hidden md:flex justify-center rounded-full transition-colors ${
                   profile?.tier === "Free"
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-gray-100 text-gray-600"
                     : profile?.tier === "Enterprise"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-purple-100 text-purple-700"
+                    ? "bg-[#00356B]/10 text-[#00356B] dark:text-blue-200"
+                    : "bg-[#86bc25]/10 text-[#5da40b]"
                 }`}
               >
                 {getTierImage(profile?.tier)}
@@ -267,12 +245,12 @@ const Navbar = () => {
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="card-hover"
+                className="rounded-full text-[#00356B] dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 {theme === "dark" ? (
-                  <Sun className="w-4 h-4" />
+                  <Sun className="w-5 h-5" />
                 ) : (
-                  <Moon className="w-4 h-4" />
+                  <Moon className="w-5 h-5" />
                 )}
               </Button>
 
@@ -281,130 +259,105 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="md:hidden"
+                    className="md:hidden text-[#00356B]"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   >
                     {isMobileMenuOpen ? (
-                      <X className="w-4 h-4" />
+                      <X className="w-6 h-6" />
                     ) : (
-                      <Menu className="w-4 h-4" />
+                      <Menu className="w-6 h-6" />
                     )}
                   </Button>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <motion.div>
-                        <Button variant="ghost" className=" rounded-xl">
-                          <Avatar className="w-6 h-6 items-center">
-                            <AvatarImage
-                              src={profile?.avatar_url || undefined}
-                            />
-                            <AvatarFallback className="text-2xl">
-                              <User className="w-4 h-4"></User>
+                        <Button variant="ghost" className="pl-2 pr-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                          <Avatar className="w-8 h-8 border-2 border-white shadow-sm">
+                            <AvatarImage src={profile?.avatar_url || undefined} />
+                            <AvatarFallback className="bg-[#00356B] text-white">
+                              <User className="w-4 h-4" />
                             </AvatarFallback>
                           </Avatar>
-                          <span className="hidden md:flex max-w-32 truncate">
-                            {profile?.name || user.email}
-                          </span>
-                          <ChevronDown className="w-3 h-3 ml-1 opacity-60" />
+                          <ChevronDown className="w-4 h-4 ml-1 text-[#00356B] dark:text-gray-400 opacity-70" />
                         </Button>
                       </motion.div>
                     </DropdownMenuTrigger>
+                    
                     <DropdownMenuContent
                       align="end"
-                      className="w-64 border border-gray-200 dark:border-gray-700 shadow-xl glass rounded-xl p-2"
+                      className="w-64 mt-2 p-2 border border-gray-100 dark:border-gray-800 shadow-xl rounded-xl font-technical bg-white dark:bg-[#0b1120]"
                     >
-                      <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
-                        <p className="font-semibold text-gray-900 dark:text-white truncate">
+                      <div className="px-3 py-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-2 border border-gray-100 dark:border-gray-700">
+                        <p className="font-bold text-[#00356B] dark:text-white truncate text-[15px]">
                           {profile?.name || user.email}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                           {user.email}
                         </p>
-                        <div className="mt-2">
-                          {getTierBadge(profile?.tier)}
+                        <div className="mt-2 flex items-center gap-2">
+                           {getTierBadge(profile?.tier)}
                         </div>
                       </div>
 
                       <DropdownMenuItem
                         onClick={() => navigate("/profile")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
+                        className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer text-gray-600 dark:text-gray-300 hover:text-[#00356B] hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all focus:bg-blue-50"
                       >
-                        <div className="rounded-lg bg-blue-100 dark:bg-primary/30 items-center">
-                          <Avatar className="w-8 h-8 items-center justify-center text-center">
-                            <AvatarImage
-                              src={profile?.avatar_url || undefined}
-                            />
-                            <AvatarFallback className="items-center justify-center text-center">
-                              <User className="w-4 h-4 justify-center text-center text-primary dark:text-blue-400"></User>
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
+                         <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-[#00356B] dark:text-blue-300">
+                           <User className="w-4 h-4" />
+                         </div>
                         <div>
                           <p className="font-medium">Profile</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Manage your account
-                          </p>
+                          <p className="text-xs text-gray-400">Manage your account</p>
                         </div>
                       </DropdownMenuItem>
 
                       {profile?.is_admin && (
                         <DropdownMenuItem
                           onClick={() => navigate("/admin")}
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                          className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer text-gray-600 dark:text-gray-300 hover:text-[#00356B] hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all focus:bg-blue-50"
                         >
-                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-primary/30">
-                            <Settings2 className="w-4 h-4 text-primary dark:text-blue-400" />
+                          <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 text-[#00356B] dark:text-blue-300">
+                            <Settings2 className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="font-medium">Admin Dashboard</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              System administration
-                            </p>
+                            <p className="font-medium">Admin</p>
+                            <p className="text-xs text-gray-400">System administration</p>
                           </div>
                         </DropdownMenuItem>
                       )}
 
-                      <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-gray-700" />
+                      <DropdownMenuSeparator className="my-1 bg-gray-100 dark:bg-gray-800" />
 
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <div className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-red-600 hover:bg-red-200 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-colors duration-200">
-                            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                              <LogOut className="w-4 h-4" />
+                          <div className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer text-[#D85C2C] hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-all group">
+                            <div className="p-1.5 rounded-md bg-red-50 dark:bg-red-900/20 text-[#D85C2C] group-hover:bg-red-100">
+                               <LogOut className="w-4 h-4" />
                             </div>
                             <div>
-                              <p className="font-medium">Sign Out</p>
-                              <p className="text-xs text-red-500 dark:text-red-400">
-                                End your session
-                              </p>
+                                <p className="font-medium">Sign Out</p>
+                                <p className="text-xs text-red-400/80">End your session</p>
                             </div>
                           </div>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                        <AlertDialogContent className="font-technical border-gray-100 shadow-2xl rounded-2xl bg-white dark:bg-[#0b1120]">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                              <LogOut className="w-5 h-5 text-red-500" />
-                              Confirm Sign Out
+                            <AlertDialogTitle className="text-[#00356B] dark:text-white flex items-center gap-2">
+                                <LogOut className="w-5 h-5 text-[#D85C2C]" />
+                                Confirm Sign Out
                             </AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
-                              Are you sure you want to sign out as{" "}
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                {profile?.name || user.email}
-                              </span>
-                              ? You will need to sign in again to access your
-                              account.
+                            <AlertDialogDescription>
+                              Are you sure you want to sign out as <span className="font-bold text-[#00356B] dark:text-blue-200">{profile?.name || user.email}</span>?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-lg border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleSignOut}
-                              className="bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-200"
+                            <AlertDialogCancel className="rounded-full border-gray-200 hover:bg-gray-50">Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                                onClick={handleSignOut} 
+                                className="bg-[#D85C2C] hover:bg-[#b84520] rounded-full text-white"
                             >
-                              <LogOut className="w-4 h-4 mr-2" />
                               Sign Out
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -415,34 +368,37 @@ const Navbar = () => {
                 </>
               ) : (
                 <Button
-                  className="text-white"
                   asChild
                   onClick={() => navigate("/auth")}
+                  className="bg-[#00356B] hover:bg-[#002a54] text-white font-bold rounded-full px-6 font-technical"
                 >
-                  Sign In
+                   <span>Sign In</span>
                 </Button>
               )}
             </div>
           </div>
 
+          {/* Mobile Menu Content */}
           {user && isMobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border animate-slide-down">
+            <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800 animate-slide-down font-technical">
               <div className="flex flex-col space-y-2">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Button
                       key={item.path}
-                      variant={isActive(item.path) ? "default" : "ghost"}
-                      className={`justify-start ${
-                        isActive(item.path) ? "bg-primary text-white" : ""
+                      variant="ghost"
+                      className={`justify-start w-full ${
+                        isActive(item.path) 
+                        ? "bg-[#00356B] text-white" 
+                        : "text-[#00356B] dark:text-gray-300 hover:bg-gray-50 hover:text-[#D85C2C]"
                       }`}
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         navigate(item.path);
                       }}
                     >
-                      <Icon className="w-4 h-4 mr-2" />
+                      <Icon className={`w-4 h-4 mr-3 ${isActive(item.path) ? "text-[#86bc25]" : "currentColor"}`} />
                       {item.label}
                     </Button>
                   );
@@ -453,15 +409,17 @@ const Navbar = () => {
                     setIsCalculatorOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="justify-start"
+                  className="justify-start w-full text-[#00356B] dark:text-gray-300 hover:bg-gray-50 hover:text-[#D85C2C]"
                 >
-                  <CalculatorIcon className="w-4 h-4 mr-2" />
+                  <CalculatorIcon className="w-4 h-4 mr-3" />
                   Calculator
                 </Button>
               </div>
             </div>
           )}
         </div>
+
+        {/* Subscription Alert - Styled with Frontend Colors */}
         {user &&
           profile?.subscription_status !== "active" &&
           showSubAlert &&
@@ -470,59 +428,39 @@ const Navbar = () => {
 
             const statusConfig = {
               expired: {
-                bg: "bg-yellow-50 dark:bg-yellow-900/30",
-                border: "border-yellow-200 dark:border-yellow-700",
-                text: "text-yellow-800 dark:text-yellow-200",
-                icon: (
-                  <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-300" />
-                ),
-                message:
-                  "Your subscription has expired. Please renew to continue using premium features.",
+                bg: "bg-red-50 dark:bg-red-900/30",
+                text: "text-red-800 dark:text-red-200",
+                icon: <AlertCircle className="w-4 h-4 text-[#D85C2C]" />,
+                message: "Your subscription has expired. Please renew to continue using premium features.",
               },
               cancelled: {
                 bg: "bg-red-50 dark:bg-red-900/30",
-                border: "border-red-200 dark:border-red-700",
                 text: "text-red-800 dark:text-red-200",
-                icon: (
-                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-300" />
-                ),
-                message:
-                  "Your subscription was cancelled. Update your plan to regain access.",
+                icon: <XCircle className="w-4 h-4 text-[#D85C2C]" />,
+                message: "Your subscription was cancelled. Update your plan to regain access.",
               },
               inactive: {
                 bg: "bg-gray-50 dark:bg-gray-900/30",
-                border: "border-gray-200 dark:border-gray-700",
                 text: "text-gray-800 dark:text-gray-200",
-                icon: (
-                  <AlertCircle className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                ),
-                message:
-                  "Your subscription is inactive. Please reactivate your plan.",
+                icon: <AlertCircle className="w-4 h-4 text-gray-600" />,
+                message: "Your subscription is inactive. Please reactivate your plan.",
               },
               pending: {
                 bg: "bg-blue-50 dark:bg-blue-900/30",
-                border: "border-blue-200 dark:border-blue-700",
                 text: "text-blue-800 dark:text-blue-200",
-                icon: (
-                  <AlertCircle className="w-4 h-4 text-primary dark:text-blue-300" />
-                ),
-                message:
-                  "Your subscription is pending confirmation. It will activate once payment is verified.",
+                icon: <AlertCircle className="w-4 h-4 text-[#00356B]" />,
+                message: "Your subscription is pending confirmation. It will activate once payment is verified.",
               },
             }[status] || {
-              bg: "bg-neutral-50 dark:bg-neutral-900/30",
-              border: "border-neutral-200 dark:border-neutral-700",
-              text: "text-neutral-800 dark:text-neutral-200",
-              icon: (
-                <AlertCircle className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
-              ),
-              message:
-                "Your subscription status is unknown. Please check your billing details.",
+              bg: "bg-gray-50 dark:bg-gray-900/30",
+              text: "text-gray-800 dark:text-gray-200",
+              icon: <AlertCircle className="w-4 h-4 text-gray-600" />,
+              message: "Your subscription status is unknown. Please check your billing details.",
             };
 
             return (
               <div
-                className={`w-full ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text} py-2 px-4 flex items-center justify-between text-sm animate-slide-down`}
+                className={`w-full ${statusConfig.bg} ${statusConfig.text} py-2 px-4 flex items-center justify-between text-xs font-medium font-technical animate-slide-down border-t border-gray-100 dark:border-gray-800`}
               >
                 <div className="flex items-center space-x-2">
                   {statusConfig.icon}
@@ -538,6 +476,10 @@ const Navbar = () => {
             );
           })()}
       </nav>
+      
+      {/* Spacer to prevent content from hiding behind fixed nav */}
+      <div className="h-[88px]" />
+
       <Calculator
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}

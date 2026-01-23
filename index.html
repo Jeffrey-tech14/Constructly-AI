@@ -1,6 +1,3 @@
-<!-- © 2025 Jeff. All rights reserved.
-Unauthorized copying, distribution, or modification of this file is strictly prohibited. -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,7 +5,7 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
 
     <link
       rel="icon"
-      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 36"><path d="M19.28 11.25H12.85V15.75H19.28V11.25Z" fill="%23001226"/><path d="M19.28 20.25H12.85V24.75H19.28V20.25Z" fill="%23001226"/><path d="M9.64 6.75H25.71V2.25H9.64V6.75Z" fill="%23001226"/><path d="M9.64 29.25H25.71V24.75H9.64V29.25Z" fill="%23001226"/><path d="M6.42 11.25H0V24.75H6.42V11.25Z" fill="%23001226"/><path d="M32.14 11.25H25.71V24.75H32.14V11.25Z" fill="%23001226"/><path d="M38.57 15.75H32.14V20.25H38.57V15.75Z" fill="%23001226"/><circle cx="22.5" cy="13.5" r="2.25" fill="%230077B6"/><circle cx="22.5" cy="22.5" r="2.25" fill="%230077B6"/><path d="M22.5 15.75V20.25" stroke="%230077B6" stroke-width="1.5"/></svg>'
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 36"><path d="M19.28 11.25H12.85V15.75H19.28V11.25Z" fill="%2300356B"/><path d="M19.28 20.25H12.85V24.75H19.28V20.25Z" fill="%2300356B"/><path d="M9.64 6.75H25.71V2.25H9.64V6.75Z" fill="%2300356B"/><path d="M9.64 29.25H25.71V24.75H9.64V29.25Z" fill="%2300356B"/><path d="M6.42 11.25H0V24.75H6.42V11.25Z" fill="%2300356B"/><path d="M32.14 11.25H25.71V24.75H32.14V11.25Z" fill="%2300356B"/><path d="M38.57 15.75H32.14V20.25H38.57V15.75Z" fill="%2300356B"/><circle cx="22.5" cy="13.5" r="2.25" fill="%23D85C2C"/><circle cx="22.5" cy="22.5" r="2.25" fill="%23D85C2C"/><path d="M22.5 15.75V20.25" stroke="%23D85C2C" stroke-width="1.5"/></svg>'
       type="image/svg+xml"
     />
     <meta name="google" content="notranslate" />
@@ -36,7 +33,7 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     <meta name="twitter:image" content="/logo.png" />
 
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap"
       rel="stylesheet"
     />
 
@@ -44,7 +41,8 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
       /* Critical CSS for the Loading Screen */
       body {
         margin: 0;
-        background-color: #f5f7fa;
+        /* Updated to clean white background */
+        background-color: #ffffff;
         font-family: "Outfit", sans-serif;
       }
       .app-loader {
@@ -57,7 +55,8 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
         justify-content: center;
         align-items: center;
         z-index: 9999;
-        background-color: #f5f7fa;
+        /* Updated to clean white background */
+        background-color: #ffffff;
         transition: opacity 0.5s ease-out;
       }
       .logo-pulse {
@@ -76,7 +75,6 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
       }
     </style>
 
-    <!-- Paystack Payment Script -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
   </head>
 
@@ -93,46 +91,49 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
           >
             <path
               d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
-              fill="#001226"
+              fill="#00356B"
             />
             <path
               d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
-              fill="#001226"
+              fill="#00356B"
             />
-            <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill="#001226" />
+            <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill="#00356B" />
             <path
               d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
-              fill="#001226"
+              fill="#00356B"
             />
-            <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill="#001226" />
+            <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill="#00356B" />
             <path
               d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
-              fill="#001226"
+              fill="#00356B"
             />
             <path
               d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
-              fill="#001226"
+              fill="#00356B"
             />
-            <circle cx="22.5" cy="13.5" r="2.25" fill="#0077B6" />
-            <circle cx="22.5" cy="22.5" r="2.25" fill="#0077B6" />
-            <path d="M22.5 15.75V20.25" stroke="#0077B6" stroke-width="1.5" />
+            
+            <circle cx="22.5" cy="13.5" r="2.25" fill="#D85C2C" />
+            <circle cx="22.5" cy="22.5" r="2.25" fill="#D85C2C" />
+            <path d="M22.5 15.75V20.25" stroke="#D85C2C" stroke-width="1.5" />
+            
             <text
               x="45"
               y="24"
               font-family="Outfit, sans-serif"
               font-weight="bold"
               font-size="22"
-              fill="#001226"
+              fill="#00356B"
             >
               JTech
             </text>
+            
             <text
               x="108"
               y="24"
               font-family="Outfit, sans-serif"
               font-weight="bold"
               font-size="22"
-              fill="#0077B6"
+              fill="#D85C2C"
             >
               AI
             </text>

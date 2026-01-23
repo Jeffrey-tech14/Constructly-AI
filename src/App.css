@@ -1,8 +1,19 @@
+/* App.css (or the file you sent) */
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /* CHANGED: Removed max-width and padding to allow full-width hero sections */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  
+  /* CHANGED: Align text left by default (professional standard), center only when needed */
+  text-align: left;
+  
+  /* Ensure global font and background match the theme */
+  font-family: 'Outfit', sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
 }
 
 .logo {
@@ -11,11 +22,15 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  /* CHANGED: Hover glow is now your Brand Primary Blue */
+  filter: drop-shadow(0 0 2em hsl(var(--primary) / 0.5));
 }
+
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  /* CHANGED: React logo hover is now your Brand Secondary Orange */
+  filter: drop-shadow(0 0 2em hsl(var(--secondary) / 0.5));
 }
 
 @keyframes logo-spin {
@@ -35,8 +50,15 @@
 
 .card {
   padding: 2em;
+  /* CHANGED: Use theme card colors and rounding */
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-soft);
 }
 
 .read-the-docs {
-  color: #888;
+  /* CHANGED: Use theme muted color */
+  color: hsl(var(--muted-foreground));
 }

@@ -60,77 +60,97 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
   return (
     <div id="who-its-for" className="bg-white antialiased text-[#1a1a1a]">
       {/* SECTION 1: TECHNICAL HERO / KNOWLEDGE BASE */}
-      <section className="bg-gradient-to-b from-white to-[#f8f9fa]">
-        <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-stretch">
-          <div className="p-8 md:p-12 lg:p-16 lg:w-[45%] flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="bg-[#00356B] text-white text-[9px] font-bold px-2 py-0.5 tracking-tighter uppercase rounded">
+      <section className="bg-gradient-to-b from-white to-[#f8f9fa] overflow-hidden">
+        {/* CHANGED: Removed 'flex-col', used 'flex-row' to force side-by-side on all screens. Added 'items-center' for vertical alignment. */}
+        <div className="max-w-[1200px] mx-auto flex flex-row items-center">
+          
+          {/* LEFT COLUMN (TEXT) */}
+          {/* CHANGED: Width is now 45% on all screens. Padding reduces to 'p-4' on mobile. */}
+          <div className="w-[45%] p-4 md:p-12 lg:p-16 flex flex-col justify-center">
+            <div className="flex items-center gap-2 mb-3 md:mb-6">
+              <span className="bg-[#00356B] text-white text-[7px] md:text-[9px] font-bold px-2 py-0.5 tracking-tighter uppercase rounded">
                 V 4.2.0
               </span>
-              <span className="text-[#00356B] text-[9px] font-bold uppercase tracking-[2px]">
+              <span className="text-[#00356B] text-[7px] md:text-[9px] font-bold uppercase tracking-[2px]">
                 Process Documentation
               </span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-light text-[#00356B] mb-6 leading-[1.2] tracking-tight">
+            
+            {/* CHANGED: Text size scales down (text-lg) on small screens */}
+            <h1 className="text-xl md:text-3xl lg:text-4xl font-light text-[#00356B] mb-3 md:mb-6 leading-[1.2] tracking-tight">
               Automated <span className="font-bold">Quantity Takeoff</span>
               <br />& Costing Pipeline
             </h1>
-            <p className="text-[13px] text-gray-600 leading-relaxed mb-8 max-w-md font-medium">
+            
+            <p className="text-[10px] md:text-[13px] text-gray-600 leading-relaxed mb-4 md:mb-8 max-w-md font-medium">
               Our system transforms construction plans (PDF, DWG) into precise
               quantities and cost data in four automated, highly efficient
               phases.
             </p>
+            
             <div>
               <button
                 onClick={goToWorkflowDetails}
-                className="w-fit flex items-center gap-2 bg-[#D85C2C] text-white px-6 py-3 text-[10px] font-black uppercase tracking-[1.5px] hover:bg-[#b84520] transition-colors rounded-md shadow-sm"
+                // CHANGED: Button padding and text size reduced for small screens
+                className="w-fit flex items-center gap-2 bg-[#D85C2C] text-white px-3 py-2 md:px-6 md:py-3 text-[8px] md:text-[10px] font-black uppercase tracking-[1.5px] hover:bg-[#b84520] transition-colors rounded-md shadow-sm"
               >
                 Access Workflow Details{" "}
-                <ChevronRight className="w-3 h-3" strokeWidth={2} />
+                <ChevronRight className="w-2 h-2 md:w-3 md:h-3" strokeWidth={2} />
               </button>
             </div>
           </div>
 
-          <div className="lg:w-[55%] relative flex items-center justify-center p-8 md:p-12 lg:p-16 overflow-hidden">
+          {/* RIGHT COLUMN (IMAGE) */}
+          {/* CHANGED: Width is now 55% on all screens. Reduced padding significantly on mobile. */}
+          <div className="w-[55%] relative flex items-center justify-center p-2 md:p-12 lg:p-16">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="relative w-full max-w-lg overflow-hidden z-10 rounded-xl shadow-lg"
+              // CHANGED: Removed max-w-lg constraint so it fits fluidly in the 55% width
+              className="relative w-full overflow-hidden z-10 rounded-lg md:rounded-xl shadow-lg"
             >
-              <div className="h-8 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-3 select-none">
+              {/* Window Header */}
+              <div className="h-4 md:h-8 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-2 md:px-3 select-none">
                 <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-[#ff5f57] rounded-full" />
-                  <div className="w-3 h-3 bg-[#febc2e] rounded-full" />
-                  <div className="w-3 h-3 bg-[#28c840] rounded-full" />
+                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#ff5f57] rounded-full" />
+                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#febc2e] rounded-full" />
+                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#28c840] rounded-full" />
                 </div>
-                <div className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5" strokeWidth={1.8} />{" "}
-                  AI-Takeoff_Client.exe
+                {/* Hide title on very small screens if needed, or scale text */}
+                <div className="text-[6px] md:text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1 md:gap-2">
+                  <Activity className="w-2 h-2 md:w-3.5 md:h-3.5" strokeWidth={1.8} />{" "}
+                  <span className="truncate">AI-Takeoff_Client.exe</span>
                 </div>
-                <div className="w-6" />
+                <div className="w-4 md:w-6" />
               </div>
 
+              {/* Image Content */}
               <div className="relative aspect-video bg-black">
                 <img
                   src="https://gegosoft.com/wp-content/uploads/2023/03/boq_software_for_construction_projects.jpg"
                   alt="Digital Construction Blueprints Analysis"
                   className="w-full h-full object-cover"
                 />
+                
+                {/* Overlay UI elements - Scaled down for mobile */}
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute top-3 left-3 w-3 h-3 border-t border-l border-white/40" />
                   <div className="absolute top-3 right-3 w-3 h-3 border-t border-r border-white/40" />
                   <div className="absolute bottom-3 left-3 w-3 h-3 border-b border-l border-white/40" />
                   <div className="absolute bottom-3 right-3 w-3 h-3 border-b border-r border-white/40" />
                 </div>
-                <div className="absolute bottom-3 left-3 bg-black/80 border border-white/10 px-2.5 py-1 flex items-center gap-2 rounded">
-                  <div className="flex items-center gap-1 text-[9px] font-mono text-[#86bc25] font-bold tracking-wider">
-                    <div className="w-1.5 h-1.5 bg-[#86bc25] rounded-full animate-pulse" />
-                    AI ANALYSIS
+                
+                {/* Floating Badge */}
+                <div className="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-black/80 border border-white/10 px-1.5 py-0.5 md:px-2.5 md:py-1 flex items-center gap-2 rounded">
+                  <div className="flex items-center gap-1 text-[6px] md:text-[9px] font-mono text-[#86bc25] font-bold tracking-wider">
+                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-[#86bc25] rounded-full animate-pulse" />
+                    <span className="hidden md:inline">AI ANALYSIS</span>
+                    <span className="md:hidden">AI</span>
                   </div>
-                  <div className="w-[1px] h-2.5 bg-white/20" />
-                  <div className="text-[9px] font-mono text-white/70 tracking-wider">
-                    Plan: A-01-Foundation
+                  <div className="w-[1px] h-1.5 md:h-2.5 bg-white/20" />
+                  <div className="text-[6px] md:text-[9px] font-mono text-white/70 tracking-wider truncate max-w-[50px] md:max-w-none">
+                    Plan: A-01
                   </div>
                 </div>
               </div>

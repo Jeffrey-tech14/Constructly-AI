@@ -257,6 +257,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       width: 0,
     },
     wallSections: [],
+    bbs_file_url: "",
     wallProperties: {
       blockType: "Standard Block",
       thickness: 0.2,
@@ -459,6 +460,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         title: extractedPlan.projectName || "",
         total_area: extractedPlan.projectInfo.totalArea,
         plan_file_url: extractedPlan.file_url || "",
+        bbs_file_url: extractedPlan.bbs_file_url || "",
 
         // Wall dimensions and properties (new structure)
         wallDimensions: extractedPlan.wallDimensions || {
@@ -550,79 +552,80 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
         rebar_calculation_method: "bbs",
 
-        // Reinforcement
-        rebar_rows: extractedPlan.reinforcement?.map(
-          (rebar: any, index: number) => ({
-            id: rebar.id || `rebar-${index}`,
-            element: rebar.element,
-            name: rebar.name,
-            length: rebar.length,
-            width: rebar.width,
-            depth: rebar.depth,
-            columnHeight: rebar.columnHeight || "",
-            mainBarSpacing: rebar.mainBarSpacing || "200",
-            distributionBarSpacing: rebar.distributionBarSpacing || "200",
-            mainBarsCount: rebar.mainBarsCount || "",
-            distributionBarsCount: rebar.distributionBarsCount || "",
-            slabLayers: rebar.slabLayers || "1",
-            mainBarSize: rebar.mainBarSize || "D12",
-            distributionBarSize: rebar.distributionBarSize || "D12",
-            stirrupSize: rebar.stirrupSize || "D8",
-            tieSize: rebar.tieSize || "D8",
-            stirrupSpacing: rebar.stirrupSpacing || "200",
-            tieSpacing: rebar.tieSpacing || "250",
-            category: rebar.category || "superstructure",
-            number: rebar.number || "1",
+        // Reinforcement - Only add if BBS file is NOT available
+        // If BBS file exists, skip reinforcement items and use bar_schedule instead
+        rebar_rows: extractedPlan.bbs_file_url
+          ? []
+          : extractedPlan.reinforcement?.map((rebar: any, index: number) => ({
+              id: rebar.id || `rebar-${index}`,
+              element: rebar.element,
+              name: rebar.name,
+              length: rebar.length,
+              width: rebar.width,
+              depth: rebar.depth,
+              columnHeight: rebar.columnHeight || "",
+              mainBarSpacing: rebar.mainBarSpacing || "200",
+              distributionBarSpacing: rebar.distributionBarSpacing || "200",
+              mainBarsCount: rebar.mainBarsCount || "",
+              distributionBarsCount: rebar.distributionBarsCount || "",
+              slabLayers: rebar.slabLayers || "1",
+              mainBarSize: rebar.mainBarSize || "D12",
+              distributionBarSize: rebar.distributionBarSize || "D12",
+              stirrupSize: rebar.stirrupSize || "D8",
+              tieSize: rebar.tieSize || "D8",
+              stirrupSpacing: rebar.stirrupSpacing || "200",
+              tieSpacing: rebar.tieSpacing || "250",
+              category: rebar.category || "superstructure",
+              number: rebar.number || "1",
 
-            // Reinforcement type and mesh fields
-            reinforcementType: rebar.reinforcementType || "individual_bars",
-            meshGrade: rebar.meshGrade || "A142",
-            meshSheetWidth: rebar.meshSheetWidth || "2.4",
-            meshSheetLength: rebar.meshSheetLength || "4.8",
-            meshLapLength: rebar.meshLapLength || "0.3",
+              // Reinforcement type and mesh fields
+              reinforcementType: rebar.reinforcementType || "individual_bars",
+              meshGrade: rebar.meshGrade || "A142",
+              meshSheetWidth: rebar.meshSheetWidth || "2.4",
+              meshSheetLength: rebar.meshSheetLength || "4.8",
+              meshLapLength: rebar.meshLapLength || "0.3",
 
-            // Footing-specific fields
-            footingType: rebar.footingType || "strip",
-            longitudinalBars: rebar.longitudinalBars || "",
-            transverseBars: rebar.transverseBars || "",
-            topReinforcement: rebar.topReinforcement || "",
-            bottomReinforcement: rebar.bottomReinforcement || "",
+              // Footing-specific fields
+              footingType: rebar.footingType || "strip",
+              longitudinalBars: rebar.longitudinalBars || "",
+              transverseBars: rebar.transverseBars || "",
+              topReinforcement: rebar.topReinforcement || "",
+              bottomReinforcement: rebar.bottomReinforcement || "",
 
-            // Tank-specific fields
-            tankType: rebar.tankType || "septic",
-            tankShape: rebar.tankShape || "rectangular",
-            wallThickness: rebar.wallThickness || "0.2",
-            baseThickness: rebar.baseThickness || "0.15",
-            coverThickness: rebar.coverThickness || "0.125",
-            includeCover: rebar.includeCover ?? true,
+              // Tank-specific fields
+              tankType: rebar.tankType || "septic",
+              tankShape: rebar.tankShape || "rectangular",
+              wallThickness: rebar.wallThickness || "0.2",
+              baseThickness: rebar.baseThickness || "0.15",
+              coverThickness: rebar.coverThickness || "0.125",
+              includeCover: rebar.includeCover ?? true,
 
-            // Wall reinforcement
-            wallVerticalBarSize: rebar.wallVerticalBarSize || "D10",
-            wallHorizontalBarSize: rebar.wallHorizontalBarSize || "D10",
-            wallVerticalSpacing: rebar.wallVerticalSpacing || "150",
-            wallHorizontalSpacing: rebar.wallHorizontalSpacing || "150",
+              // Wall reinforcement
+              wallVerticalBarSize: rebar.wallVerticalBarSize || "D10",
+              wallHorizontalBarSize: rebar.wallHorizontalBarSize || "D10",
+              wallVerticalSpacing: rebar.wallVerticalSpacing || "150",
+              wallHorizontalSpacing: rebar.wallHorizontalSpacing || "150",
 
-            // Base reinforcement
-            baseMainBarSize: rebar.baseMainBarSize || "D10",
-            baseDistributionBarSize: rebar.baseDistributionBarSize || "D10",
-            baseMainSpacing: rebar.baseMainSpacing || "150",
-            baseDistributionSpacing: rebar.baseDistributionSpacing || "150",
+              // Base reinforcement
+              baseMainBarSize: rebar.baseMainBarSize || "D10",
+              baseDistributionBarSize: rebar.baseDistributionBarSize || "D10",
+              baseMainSpacing: rebar.baseMainSpacing || "150",
+              baseDistributionSpacing: rebar.baseDistributionSpacing || "150",
 
-            // Cover reinforcement
-            coverMainBarSize: rebar.coverMainBarSize || "D10",
-            coverDistributionBarSize: rebar.coverDistributionBarSize || "D10",
-            coverMainSpacing: rebar.coverMainSpacing || "150",
-            coverDistributionSpacing: rebar.coverDistributionSpacing || "150",
+              // Cover reinforcement
+              coverMainBarSize: rebar.coverMainBarSize || "D10",
+              coverDistributionBarSize: rebar.coverDistributionBarSize || "D10",
+              coverMainSpacing: rebar.coverMainSpacing || "150",
+              coverDistributionSpacing: rebar.coverDistributionSpacing || "150",
 
-            retainingWallType: rebar.retainingWallType || "cantilever",
-            heelLength: rebar.heelLength || "0.5",
-            toeLength: rebar.toeLength || "0.5",
-            stemVerticalBarSize: rebar.stemVerticalBarSize || "D10",
-            stemHorizontalBarSize: rebar.stemHorizontalBarSize || "D10",
-            stemVerticalSpacing: rebar.stemVerticalSpacing || "150",
-            stemHorizontalSpacing: rebar.stemHorizontalSpacing || "200",
-          }),
-        ),
+              retainingWallType: rebar.retainingWallType || "cantilever",
+              heelLength: rebar.heelLength || "0.5",
+              toeLength: rebar.toeLength || "0.5",
+              stemVerticalBarSize: rebar.stemVerticalBarSize || "D10",
+              stemHorizontalBarSize: rebar.stemHorizontalBarSize || "D10",
+              stemVerticalSpacing: rebar.stemVerticalSpacing || "150",
+              stemHorizontalSpacing: rebar.stemHorizontalSpacing || "200",
+            })) || prev.rebar_rows,
 
         // Masonry
         masonry_materials:
@@ -1072,6 +1075,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           electrical_calculations: quoteData.electrical_calculations,
           roofing_calculations: quoteData.roofing_calculations,
           plumbing_calculations: quoteData.plumbing_calculations,
+          bbs_file_url: quoteData.bbs_file_url,
           finishes_calculations: quoteData.finishes_calculations,
           additional_services_cost: Math.round(
             calculation.selected_services_cost,
@@ -1145,6 +1149,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           labor_cost: Math.round(calculation.labor_cost),
           qsSettings: calculation.qsSettings,
           electrical_systems: electricalSystems,
+          bbs_file_url: quoteData.bbs_file_url,
           plumbing_systems: plumbingSystems,
           finishes: finishes,
           roof_structures: roofStructure,

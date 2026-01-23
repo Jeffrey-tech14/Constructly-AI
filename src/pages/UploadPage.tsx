@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { ExtractedPlan, usePlan } from "@/contexts/PlanContext";
 import { usePlanUpload } from "@/hooks/usePlanUpload";
+import { useBBSUpload } from "@/hooks/useBBSUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -119,6 +120,7 @@ const PreviewModal = ({
 const UploadPlan = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [bbsFile, setBbsFile] = useState<File | null>(null);
+  const [bbsFileUrl, setBBSFileUrl] = useState<string | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -143,6 +145,11 @@ const UploadPlan = () => {
   const location = useLocation();
   const { quoteData } = location.state || {};
   const { uploadPlan, deletePlan, fileUrlExists } = usePlanUpload();
+  const {
+    uploadBBS,
+    deleteBBS,
+    fileUrlExists: bbsFileUrlExists,
+  } = useBBSUpload();
   const { toast } = useToast();
   const MAX_RETRIES = 3;
 
@@ -156,6 +163,14 @@ const UploadPlan = () => {
         title: "Plan File Loaded",
         description:
           "Existing plan file found. You can re-scan or upload a new one.",
+      });
+    }
+    if (quoteData?.bbs_file_url) {
+      setBBSFileUrl(quoteData.bbs_file_url);
+      toast({
+        title: "BBS File Loaded",
+        description:
+          "Existing BBS file found. You can replace it or use the existing one.",
       });
     }
   }, [quoteData]);
@@ -237,6 +252,46 @@ const UploadPlan = () => {
     setEditablePlan(null);
     setError(null);
     setRetryCount(0);
+  };
+
+  const handleRemoveBBSFile = async () => {
+    if (bbsFileUrl && quoteData?.id) {
+      await deleteBBS(bbsFileUrl);
+      await supabase
+        .from("quotes")
+        .update({ bbs_file_url: null })
+        .eq("id", quoteData.id);
+      setBBSFileUrl(null);
+      setBbsFile(null);
+      toast({
+        title: "BBS removed",
+        description: "The BBS file has been deleted from storage.",
+      });
+    }
+  };
+
+  const uploadAndSaveBBS = async (file: File): Promise<string> => {
+    // Check if quote already has a valid BBS file URL - if so, reuse it
+    if (quoteData?.bbs_file_url) {
+      const urlExists = await bbsFileUrlExists(quoteData.bbs_file_url);
+      if (urlExists) {
+        toast({
+          title: "BBS File Reused",
+          description: "Using existing BBS file from storage",
+        });
+        return quoteData.bbs_file_url;
+      }
+    }
+
+    // File doesn't exist or is invalid, upload new one
+    const fileUrl = await uploadBBS(file);
+    if (fileUrl) {
+      await supabase
+        .from("quotes")
+        .update({ bbs_file_url: fileUrl })
+        .eq("id", quoteData.id);
+    }
+    return fileUrl;
   };
 
   const handleRetry = async () => {
@@ -640,12 +695,19 @@ const UploadPlan = () => {
     try {
       setCurrentStep("uploading");
       toast({
-        title: "Uploading plan",
+        title: "Uploading plan and BBS",
         description: "Please wait",
       });
 
       const fileUrl = await uploadAndSave(selectedFile);
       setFileUrl(fileUrl);
+
+      // Upload BBS file if it exists
+      let uploadedBBSUrl = bbsFileUrl; // Use existing if available
+      if (bbsFile) {
+        uploadedBBSUrl = await uploadAndSaveBBS(bbsFile);
+        setBBSFileUrl(uploadedBBSUrl);
+      }
 
       const finalPlan: ExtractedPlan = {
         ...editablePlan,
@@ -1569,33 +1631,102 @@ const UploadPlan = () => {
                                 <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
                                   2️⃣ Upload Bar Bending Schedule (Optional)
                                 </h3>
-                                <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
-                                  <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
-                                  <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                                    Upload BBS for precise rebar calculations
-                                  </p>
-                                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                                    Supported formats: PDF, Images, Spreadsheet
-                                    (Max 20MB)
-                                  </p>
 
-                                  <Input
-                                    type="file"
-                                    accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
-                                    onChange={handleBBSFileChange}
-                                    className="hidden"
-                                    id="bbsFileUpload"
-                                  />
+                                {/* Existing BBS File Display */}
+                                {bbsFileUrl && (
+                                  <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                                        <div>
+                                          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                                            {bbsFileUrl.split("/").pop() ||
+                                              "BBS File"}
+                                          </p>
+                                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                                            Existing BBS file ready for use
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() =>
+                                            downloadFile(
+                                              bbsFileUrl,
+                                              bbsFileUrl.split("/").pop() ||
+                                                "BBS File",
+                                            )
+                                          }
+                                          className="text-amber-600 hover:text-amber-700 dark:text-amber-400"
+                                        >
+                                          <HardDriveDownload className="w-5 h-5" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={handleRemoveBBSFile}
+                                          className="text-red-500 hover:text-red-700"
+                                        >
+                                          <Trash2 className="w-5 h-5" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
 
-                                  <Label
-                                    htmlFor="bbsFileUpload"
-                                    className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
-                                  >
-                                    📊 Select BBS File
-                                  </Label>
-                                </div>
+                                {/* New BBS File Upload */}
+                                {!bbsFileUrl ? (
+                                  <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
+                                    <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
+                                    <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                                      Upload BBS for precise rebar calculations
+                                    </p>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                      Supported formats: PDF, Images,
+                                      Spreadsheet (Max 20MB)
+                                    </p>
 
-                                {/* BBS File Status */}
+                                    <Input
+                                      type="file"
+                                      accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                                      onChange={handleBBSFileChange}
+                                      className="hidden"
+                                      id="bbsFileUpload"
+                                    />
+
+                                    <Label
+                                      htmlFor="bbsFileUpload"
+                                      className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                                    >
+                                      📊 Select BBS File
+                                    </Label>
+                                  </div>
+                                ) : (
+                                  <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-8 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
+                                    <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-4">
+                                      Or upload a new BBS file to replace the
+                                      existing one
+                                    </p>
+                                    <Input
+                                      type="file"
+                                      accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                                      onChange={handleBBSFileChange}
+                                      className="hidden"
+                                      id="bbsFileUpload"
+                                    />
+
+                                    <Label
+                                      htmlFor="bbsFileUpload"
+                                      className="cursor-pointer glass-button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm font-semibold"
+                                    >
+                                      📊 Replace BBS File
+                                    </Label>
+                                  </div>
+                                )}
+
+                                {/* New BBS File Status */}
                                 {bbsFile && (
                                   <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -1605,7 +1736,7 @@ const UploadPlan = () => {
                                           {bbsFile.name}
                                         </p>
                                         <p className="text-xs text-amber-600 dark:text-amber-400">
-                                          BBS file ready for analysis
+                                          New BBS file ready to upload
                                         </p>
                                       </div>
                                     </div>

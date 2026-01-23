@@ -706,6 +706,35 @@ export default function RebarCalculatorForm({
     quote?.rebar_materials,
   ]);
 
+  /**
+   * Sync rebar_calculations from results whenever calculations change
+   * This ensures calculations are up-to-date when rows are added/deleted/modified
+   */
+  useEffect(() => {
+    const nextCalculations = results.map((r) => ({
+      id: r.id,
+      name: r.name,
+      element: r.element,
+      reinforcementType: r.reinforcementType,
+      primaryBarSize: r.mainBarSize,
+      totalWeightKg: r.totalWeightKg,
+      bindingWireWeightKg: r.bindingWireWeightKg,
+      pricePerKg: r.pricePerKg,
+      totalPrice: r.totalPrice,
+      bindingWirePrice: r.bindingWirePrice,
+      rate: r.pricePerKg,
+    }));
+
+    const currCalculations = Array.isArray(quote?.rebar_calculations)
+      ? quote.rebar_calculations
+      : [];
+    const same =
+      JSON.stringify(currCalculations) === JSON.stringify(nextCalculations);
+    if (!same) {
+      setQuote((prev: any) => ({ ...prev, rebar_calculations: nextCalculations }));
+    }
+  }, [results, setQuote, quote?.rebar_calculations]);
+
   const exportJSON = () => {
     const snapshot = createRebarSnapshot(rowsState, qsSettings);
     const json = JSON.stringify(snapshot, null, 2);

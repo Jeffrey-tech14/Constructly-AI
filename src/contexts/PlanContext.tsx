@@ -318,6 +318,7 @@ export interface ExtractedPlan {
   file_url?: string;
   file_name?: string;
   uploaded_at?: string;
+  bbs_file_url?: string;
   houseType?: string;
   totalArea?: number;
   projectType?: string;

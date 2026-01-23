@@ -26,3 +26,4 @@ release-build/
 *.njsproj
 *.sln
 *.sw?
+.env

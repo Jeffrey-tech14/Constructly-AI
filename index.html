@@ -1,7 +1,7 @@
 <!-- © 2025 Jeff. All rights reserved.
 Unauthorized copying, distribution, or modification of this file is strictly prohibited. -->
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -41,37 +41,88 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     />
 
     <style>
-      /* Critical CSS for the Loading Screen */
       body {
         margin: 0;
         background-color: #f5f7fa;
         font-family: "Outfit", sans-serif;
       }
+
       .app-loader {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 9999;
         background-color: #f5f7fa;
         transition: opacity 0.5s ease-out;
+        gap: 24px;
       }
+
+      /* Construction ring (machinery vibe) */
+      .construction-ring {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        border: 3px dashed rgba(0, 119, 182, 0.35);
+        animation: spin 6s linear infinite;
+        position: absolute;
+      }
+
+      /* Logo animation */
       .logo-pulse {
-        animation: pulse-opacity 2s infinite ease-in-out;
+        animation: bounce-pulse 2.8s infinite ease-in-out;
+        z-index: 2;
       }
-      @keyframes pulse-opacity {
+
+      /* Progress bar */
+      .progress-bar {
+        width: 220px;
+        height: 6px;
+        background: #dde3ea;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 40%;
+        background: linear-gradient(90deg, #0077b6, #0096c7, #0077b6);
+        animation: load-slide 1.8s infinite ease-in-out;
+      }
+
+      /* Animations */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes bounce-pulse {
         0%,
         100% {
+          transform: translateY(0) scale(1);
           opacity: 1;
-          transform: scale(1);
         }
         50% {
-          opacity: 0.8;
-          transform: scale(1.02);
+          transform: translateY(-6px) scale(1.02);
+          opacity: 0.9;
+        }
+      }
+
+      @keyframes load-slide {
+        0% {
+          transform: translateX(-100%);
+        }
+        50% {
+          transform: translateX(60%);
+        }
+        100% {
+          transform: translateX(200%);
         }
       }
     </style>
@@ -80,6 +131,8 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
   <body lang="en" class="transition-colors duration-500">
     <div id="root">
       <div class="app-loader">
+        <div class="construction-ring"></div>
+
         <div class="logo-pulse">
           <svg
             width="180"
@@ -134,6 +187,9 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
               AI
             </text>
           </svg>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
         </div>
       </div>
     </div>

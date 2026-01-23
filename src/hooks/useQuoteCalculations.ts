@@ -464,7 +464,6 @@ export const useQuoteCalculations = () => {
       const calculateMaterialTotals = (): number => {
         let total = 0;
         const boqItems = params.boqData || params.boq_data || [];
-        console.log(boqItems);
         if (boqItems) {
           boqItems.forEach((section) => {
             section.items.forEach((item) => {

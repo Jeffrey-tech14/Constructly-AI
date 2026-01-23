@@ -441,6 +441,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       rateForRegion.base_cost
     );
   })();
+  useEffect(() => {
+    setQuoteData((prev) => ({ ...prev, transport_costs: transportCost }));
+  }, [transportCost]);
 
   useEffect(() => {
     if (user && profile !== null) {
@@ -1010,16 +1013,17 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         house_type: quoteData.house_type,
         preliminaries: preliminaries,
         labor_percentages:
-          parseFloat(quoteData.percentages[0].labour.toString()) || 0,
+          parseFloat(quoteData.percentages[0]?.labour.toString()) || 0,
         overhead_percentages:
-          parseFloat(quoteData.percentages[0].overhead.toString()) || 0,
+          parseFloat(quoteData.percentages[0]?.overhead.toString()) || 0,
         profit_percentages:
-          parseFloat(quoteData.percentages[0].profit.toString()) || 0,
+          parseFloat(quoteData.percentages[0]?.profit.toString()) || 0,
         contingency_percentages:
-          parseFloat(quoteData.percentages[0].contingency.toString()) || 0,
+          parseFloat(quoteData.percentages[0]?.contingency.toString()) || 0,
         unknown_contingency_percentages:
-          parseFloat(quoteData.percentages[0].unknown_contingency.toString()) ||
-          0,
+          parseFloat(
+            quoteData.percentages[0]?.unknown_contingency?.toString(),
+          ) || 0,
         permit_cost: parseFloat(quoteData.permit_cost.toString()) || 0,
       });
       setCalculation(result);
@@ -1033,6 +1037,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         description: "Failed to calculate quote -  " + error,
         variant: "destructive",
       });
+      console.error("Calculation error:", error);
     }
   };
 
@@ -1555,7 +1560,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               value={superstructureTab}
               onValueChange={setSuperstructureTab}
             >
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-4 mb-3">
                 <TabsTrigger value="masonry">Houses & Materials</TabsTrigger>
                 <TabsTrigger value="plumbing">Plumbing</TabsTrigger>
                 <TabsTrigger value="roofing">Roofing</TabsTrigger>

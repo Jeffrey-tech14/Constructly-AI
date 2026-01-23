@@ -15,6 +15,7 @@ import { usePaystackPayment } from "react-paystack";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getEnv } from "@/utils/envConfig";
 
 export default function PaymentAction() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,23 +32,22 @@ export default function PaymentAction() {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const navigate = useNavigate();
 
-  const getEnv = (key: string) => {
-    if (typeof process !== "undefined" && process.env?.[key])
-      return process.env[key];
-    if (typeof import.meta !== "undefined" && import.meta.env?.[key])
-      return import.meta.env[key];
-    return undefined;
-  };
   // Plan mapping - update these with your actual Paystack plan codes
   const planCodes = {
     Professional:
-      getEnv("VITE_PAYSTACK_PLAN_INTERMEDIATE") || "PLAN_enterprise_monthly",
+      getEnv("NEXT_PAYSTACK_PLAN_INTERMEDIATE") ||
+      getEnv("VITE_PAYSTACK_PLAN_INTERMEDIATE") ||
+      "PLAN_enterprise_monthly",
     Enterprise:
-      getEnv("VITE_PAYSTACK_PLAN_PROFESSIONAL") || "PLAN_professional_monthly",
+      getEnv("NEXT_PAYSTACK_PLAN_PROFESSIONAL") ||
+      getEnv("VITE_PAYSTACK_PLAN_PROFESSIONAL") ||
+      "PLAN_professional_monthly",
   };
 
-  const PAYSTACK_PUBLIC_KEY = getEnv("VITE_PAYSTACK_PUBLIC_KEY");
-  const PAYSTACK_SECRET_KEY = getEnv("VITE_PAYSTACK_SECRET_KEY");
+  const PAYSTACK_PUBLIC_KEY =
+    getEnv("NEXT_PAYSTACK_PUBLIC_KEY") || getEnv("VITE_PAYSTACK_PUBLIC_KEY");
+  const PAYSTACK_SECRET_KEY =
+    getEnv("NEXT_PAYSTACK_SECRET_KEY") || getEnv("VITE_PAYSTACK_SECRET_KEY");
 
   // Fetch current subscription on component mount
   useEffect(() => {
@@ -144,7 +144,7 @@ export default function PaymentAction() {
           plan_code: planCodes[plan],
           subscription_type: "monthly",
           next_billing_date: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
           ).toISOString(),
         })
         .select()
@@ -187,7 +187,7 @@ export default function PaymentAction() {
         try {
           await cancelPaystackSubscriptionWithRetry(
             currentSubscription.subscription_code,
-            currentSubscription.email_token
+            currentSubscription.email_token,
           );
           paystackCancellationSuccess = true;
         } catch (paystackError) {}
@@ -211,7 +211,7 @@ export default function PaymentAction() {
       if (subError) {
         console.error("Error updating subscriptions:", subError);
         throw new Error(
-          `Failed to update subscription status: ${subError.message}`
+          `Failed to update subscription status: ${subError.message}`,
         );
       }
 
@@ -228,7 +228,7 @@ export default function PaymentAction() {
       if (profileError) {
         console.error("Error updating profile:", profileError);
         throw new Error(
-          `Failed to update user profile: ${profileError.message}`
+          `Failed to update user profile: ${profileError.message}`,
         );
       }
 
@@ -267,7 +267,7 @@ export default function PaymentAction() {
   async function cancelPaystackSubscriptionWithRetry(
     subscriptionCode: string,
     email: string,
-    maxRetries = 2
+    maxRetries = 2,
   ) {
     let lastError;
 
@@ -277,7 +277,7 @@ export default function PaymentAction() {
           "cancel-subscription",
           {
             body: { subscriptionCode, emailToken: email },
-          }
+          },
         );
 
         if (error) {
@@ -369,7 +369,7 @@ export default function PaymentAction() {
           updated_at: new Date().toISOString(),
           current_period_start: new Date().toISOString(),
           current_period_end: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
           ).toISOString(),
         })
         .eq("transaction_id", reference.reference);
@@ -390,7 +390,7 @@ export default function PaymentAction() {
         "create-subscription",
         {
           body: { reference: reference.reference, plan_code: planCodes[plan] },
-        }
+        },
       );
 
       if (error || !data.success)

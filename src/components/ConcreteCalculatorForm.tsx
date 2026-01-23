@@ -393,7 +393,7 @@ export default function ConcreteCalculatorForm({
 
   const foundationMasonryType =
     rows.find((r) => r.masonryBlockType?.toLocaleLowerCase())
-      ?.masonryBlockType || "Standard Block";
+      ?.masonryBlockType || "Standard Natural Block";
 
   const foundationBlockPrice = useMasonryCalculatorNew({
     setQuote,
@@ -2759,7 +2759,7 @@ export default function ConcreteCalculatorForm({
               <b>
                 Ksh{" "}
                 {Math.round(
-                  totals.totalBlocks * (foundationBlockMat || 0),
+                  totals.blocksFeet * (foundationBlockMat || 0),
                 ).toLocaleString()}
               </b>
             </p>

@@ -56,10 +56,10 @@ const AppContent = () => {
         style={{
           backgroundImage: `
           linear-gradient(to right, ${
-            isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.07)"
+            isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.04)"
           } 1px, transparent 1px),
           linear-gradient(to bottom, ${
-            isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.06)"
+            isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.02)"
           } 1px, transparent 1px)
         `,
           backgroundSize: "40px 40px",

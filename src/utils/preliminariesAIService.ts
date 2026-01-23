@@ -1,17 +1,10 @@
 // utils/preliminariesAIService.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getEnv } from "@/utils/envConfig";
 
-const getEnv = (key: string) => {
-  if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key];
-  }
-  if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
-    return import.meta.env[key];
-  }
-  return undefined;
-};
-
-const genAI = new GoogleGenerativeAI(getEnv("VITE_GEMINI_API_KEY"));
+const genAI = new GoogleGenerativeAI(
+  getEnv("NEXT_GEMINI_API_KEY") || getEnv("VITE_GEMINI_API_KEY"),
+);
 
 export interface PrelimSection {
   title: string;

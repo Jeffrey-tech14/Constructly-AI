@@ -47,17 +47,12 @@ export interface GeminiMaterialResponse {
     categories: Record<string, number>;
   };
 }
+
+import { getEnv } from "@/utils/envConfig";
+
 class GeminiService {
-  getEnv = (key: string) => {
-    if (typeof process !== "undefined" && process.env?.[key]) {
-      return process.env[key];
-    }
-    if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
-      return import.meta.env[key];
-    }
-    return undefined;
-  };
-  private apiKey = this.getEnv("VITE_GEMINI_API_KEY");
+  private apiKey =
+    getEnv("NEXT_GEMINI_API_KEY") || getEnv("VITE_GEMINI_API_KEY");
   private baseUrl =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
   async analyzeMaterials(quoteData: any): Promise<GeminiMaterialResponse> {

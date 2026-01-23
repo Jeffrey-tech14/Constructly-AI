@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Circle,
   CircleCheck,
+  ChevronDown,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,19 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
   wallDimensions,
 }) => {
   const [showDefaultPrompt, setShowDefaultPrompt] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    location: true,
+    preparations: false,
+    finishing: false,
+  });
+
+  // Toggle section expansion
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   // Show prompt for new paintings with valid wall dimensions
   useEffect(() => {
@@ -122,71 +136,95 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
         </Alert>
       )}
 
-      {/* Card 1: Location & Area */}
+      {/* Card 1: Location & Area - Collapsible */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="mb-4">
+        <div
+          onClick={() => toggleSection("location")}
+          className="p-6 cursor-pointer hover:bg-white/10 rounded-3xl transition-colors"
+        >
+          <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold flex items-center gap-2">
               {isLocationComplete ? (
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
               ) : (
                 <Circle className="w-5 h-5" />
               )}
               Location & Area
             </h3>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform duration-200 ${
+                expandedSections.location ? "" : "-rotate-90"
+              }`}
+            />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label
-                htmlFor={`location-${painting.id}`}
-                className="text-xs font-semibold"
-              >
-                Location Name
-              </Label>
-              <Input
-                id={`location-${painting.id}`}
-                type="text"
-                value={painting.location}
-                onChange={(e) => onUpdate({ location: e.target.value })}
-                placeholder="Enter location"
-                className="mt-2"
-              />
+        </div>
+
+        {expandedSections.location && (
+          <CardContent className="pb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label
+                  htmlFor={`location-${painting.id}`}
+                  className="text-xs font-semibold"
+                >
+                  Location Name
+                </Label>
+                <Input
+                  id={`location-${painting.id}`}
+                  type="text"
+                  value={painting.location}
+                  onChange={(e) => onUpdate({ location: e.target.value })}
+                  placeholder="Enter location"
+                  className="mt-2"
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor={`area-${painting.id}`}
+                  className="text-xs font-semibold"
+                >
+                  Surface Area (m²)
+                </Label>
+                <Input
+                  id={`area-${painting.id}`}
+                  type="number"
+                  value={painting.surfaceArea}
+                  onChange={(e) =>
+                    onUpdate({ surfaceArea: parseFloat(e.target.value) || 0 })
+                  }
+                  step={0.1}
+                  placeholder="Enter area"
+                  className="mt-2"
+                />
+              </div>
             </div>
-            <div>
-              <Label
-                htmlFor={`area-${painting.id}`}
-                className="text-xs font-semibold"
-              >
-                Surface Area (m²)
-              </Label>
-              <Input
-                id={`area-${painting.id}`}
-                type="number"
-                value={painting.surfaceArea}
-                onChange={(e) =>
-                  onUpdate({ surfaceArea: parseFloat(e.target.value) || 0 })
-                }
-                step={0.1}
-                placeholder="Enter area"
-                className="mt-2"
-              />
-            </div>
-          </div>
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
-      {/* Card 3: Optional Layers */}
+      {/* Card 3: Optional Layers - Collapsible */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="mb-6">
+        <div
+          onClick={() => toggleSection("preparations")}
+          className="p-6 cursor-pointer hover:bg-white/10 rounded-3xl  transition-colors"
+        >
+          <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold flex items-center gap-2">
               <CircleCheck className="w-5 h-5" />
               Preparations
             </h3>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform duration-200 ${
+                expandedSections.preparations ? "" : "-rotate-90"
+              }`}
+            />
           </div>
-          <div className="space-y-6">
-            {/* Skimming */}
-            <Card className="p-4 border">
+        </div>
+
+        {expandedSections.preparations && (
+          <CardContent className="pb-6">
+            <div className="space-y-6">
+              {/* Skimming */}
               <div className="flex items-center gap-2">
                 <Checkbox
                   id={`skimming-${painting.id}`}
@@ -271,10 +309,8 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                   </div>
                 </div>
               )}
-            </Card>
 
-            {/* Undercoat */}
-            <Card className="p-4 border">
+              {/* Undercoat */}
               <div className="flex items-center gap-2">
                 <Checkbox
                   id={`undercoat-${painting.id}`}
@@ -322,156 +358,172 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                   />
                 </div>
               )}
-            </Card>
-          </div>
-        </CardContent>
+            </div>
+          </CardContent>
+        )}
       </Card>
 
-      {/* Card 2: Finishing Paint */}
+      {/* Card 2: Finishing Paint - Collapsible */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="mb-4">
+        <div
+          onClick={() => toggleSection("finishing")}
+          className="p-6 cursor-pointer hover:bg-white/10 rounded-3xl transition-colors"
+        >
+          <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold flex items-center gap-2">
               {isFinishingComplete ? (
-                <CheckCircle2 className="w-5 h-5" />
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
               ) : (
                 <Circle className="w-5 h-5" />
               )}
               Finishing Paint
             </h3>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform duration-200 ${
+                expandedSections.finishing ? "" : "-rotate-90"
+              }`}
+            />
           </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label
-                  htmlFor={`category-${painting.id}`}
-                  className="text-xs font-semibold"
-                >
-                  Paint Type
-                </Label>
-                <Select
-                  value={painting.finishingPaint.category}
-                  onValueChange={(value) => {
-                    const newCategory = value as PaintCategory;
-                    const newSubtype =
-                      PAINT_SUBTYPES_BY_CATEGORY[newCategory][0].value;
-                    onUpdate({
-                      finishingPaint: {
-                        ...painting.finishingPaint,
-                        category: newCategory,
-                        subtype: newSubtype,
-                      },
-                    });
-                  }}
-                >
-                  <SelectTrigger
-                    id={`category-${painting.id}`}
-                    className="mt-2"
+        </div>
+
+        {expandedSections.finishing && (
+          <CardContent className="pb-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label
+                    htmlFor={`category-${painting.id}`}
+                    className="text-xs font-semibold"
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="emulsion">
-                      Emulsion (Water-Based)
-                    </SelectItem>
-                    <SelectItem value="enamel">Enamel (Oil-Based)</SelectItem>
-                  </SelectContent>
-                </Select>
+                    Paint Type
+                  </Label>
+                  <Select
+                    value={painting.finishingPaint.category}
+                    onValueChange={(value) => {
+                      const newCategory = value as PaintCategory;
+                      const newSubtype =
+                        PAINT_SUBTYPES_BY_CATEGORY[newCategory][0].value;
+                      onUpdate({
+                        finishingPaint: {
+                          ...painting.finishingPaint,
+                          category: newCategory,
+                          subtype: newSubtype,
+                        },
+                      });
+                    }}
+                  >
+                    <SelectTrigger
+                      id={`category-${painting.id}`}
+                      className="mt-2"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="emulsion">
+                        Emulsion (Water-Based)
+                      </SelectItem>
+                      <SelectItem value="enamel">Enamel (Oil-Based)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label
+                    htmlFor={`subtype-${painting.id}`}
+                    className="text-xs font-semibold"
+                  >
+                    Finish Level
+                  </Label>
+                  <Select
+                    value={painting.finishingPaint.subtype}
+                    onValueChange={(value) =>
+                      onUpdate({
+                        finishingPaint: {
+                          ...painting.finishingPaint,
+                          subtype: value as any,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      id={`subtype-${painting.id}`}
+                      className="mt-2"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAINT_SUBTYPES_BY_CATEGORY[
+                        painting.finishingPaint.category
+                      ].map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div>
-                <Label
-                  htmlFor={`subtype-${painting.id}`}
-                  className="text-xs font-semibold"
-                >
-                  Finish Level
-                </Label>
-                <Select
-                  value={painting.finishingPaint.subtype}
-                  onValueChange={(value) =>
-                    onUpdate({
-                      finishingPaint: {
-                        ...painting.finishingPaint,
-                        subtype: value as any,
-                      },
-                    })
-                  }
-                >
-                  <SelectTrigger id={`subtype-${painting.id}`} className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAINT_SUBTYPES_BY_CATEGORY[
-                      painting.finishingPaint.category
-                    ].map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label
+                    htmlFor={`coats-${painting.id}`}
+                    className="text-xs font-semibold"
+                  >
+                    Number of Coats
+                  </Label>
+                  <Select
+                    value={painting.finishingPaint.coats.toString()}
+                    onValueChange={(value) =>
+                      onUpdate({
+                        finishingPaint: {
+                          ...painting.finishingPaint,
+                          coats: parseInt(value),
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger id={`coats-${painting.id}`} className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5].map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num} Coat{num > 1 ? "s" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label
+                    htmlFor={`coverage-${painting.id}`}
+                    className="text-xs font-semibold"
+                  >
+                    Coverage (m²/L)
+                  </Label>
+                  <Input
+                    id={`coverage-${painting.id}`}
+                    type="number"
+                    value={painting.finishingPaint.coverage}
+                    onChange={(e) =>
+                      onUpdate({
+                        finishingPaint: {
+                          ...painting.finishingPaint,
+                          coverage: parseFloat(e.target.value) || 10,
+                        },
+                      })
+                    }
+                    step={0.1}
+                    placeholder="10"
+                    className="mt-2"
+                  />
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label
-                  htmlFor={`coats-${painting.id}`}
-                  className="text-xs font-semibold"
-                >
-                  Number of Coats
-                </Label>
-                <Select
-                  value={painting.finishingPaint.coats.toString()}
-                  onValueChange={(value) =>
-                    onUpdate({
-                      finishingPaint: {
-                        ...painting.finishingPaint,
-                        coats: parseInt(value),
-                      },
-                    })
-                  }
-                >
-                  <SelectTrigger id={`coats-${painting.id}`} className="mt-2">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <SelectItem key={num} value={num.toString()}>
-                        {num} Coat{num > 1 ? "s" : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label
-                  htmlFor={`coverage-${painting.id}`}
-                  className="text-xs font-semibold"
-                >
-                  Coverage (m²/L)
-                </Label>
-                <Input
-                  id={`coverage-${painting.id}`}
-                  type="number"
-                  value={painting.finishingPaint.coverage}
-                  onChange={(e) =>
-                    onUpdate({
-                      finishingPaint: {
-                        ...painting.finishingPaint,
-                        coverage: parseFloat(e.target.value) || 10,
-                      },
-                    })
-                  }
-                  step={0.1}
-                  placeholder="10"
-                  className="mt-2"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
       {/* Summary Section */}
@@ -488,7 +540,7 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                   <div className="text-xs mt-1">
                     Ksh
                     {painting.calculations.skimming.totalCostWithWastage.toFixed(
-                      2
+                      2,
                     )}
                   </div>
                 </div>
@@ -503,7 +555,7 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                   <div className="text-xs mt-1">
                     Ksh
                     {painting.calculations.undercoat.totalCostWithWastage.toFixed(
-                      2
+                      2,
                     )}
                   </div>
                 </div>
@@ -518,7 +570,7 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                   <div className="text-xs mt-1">
                     Ksh
                     {painting.calculations.finishing.totalCostWithWastage.toFixed(
-                      2
+                      2,
                     )}
                   </div>
                 </div>

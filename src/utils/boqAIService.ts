@@ -1,24 +1,13 @@
 // services/boqAIService.ts
 import { BOQItem, BOQSection } from "@/types/boq";
 import { generateProfessionalBOQ } from "@/utils/boqMappers";
-
-// Configuration - Use Next.js public environment variables
-
-const getEnv = (key: string) => {
-  if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key];
-  }
-  if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
-    return import.meta.env[key];
-  }
-  return undefined;
-};
+import { getEnv } from "@/utils/envConfig";
 
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 export const generateBOQWithAI = async (
-  quoteData: any
+  quoteData: any,
 ): Promise<BOQSection[]> => {
   try {
     // Try AI generation first
@@ -37,7 +26,7 @@ export const generateBOQWithAI = async (
 };
 
 const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
-  const apiKey = getEnv("VITE_GEMINI_API_KEY");
+  const apiKey = getEnv("NEXT_GEMINI_API_KEY") || getEnv("VITE_GEMINI_API_KEY");
 
   // If no API key, simulate AI failure to trigger fallback
   if (!apiKey) {
@@ -70,7 +59,7 @@ const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
       const errorText = await response.text();
       console.error("Gemini API response not OK:", response.status, errorText);
       throw new Error(
-        `Gemini API error: ${response.status} ${response.statusText}`
+        `Gemini API error: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -89,7 +78,7 @@ const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
     throw new Error(
       `API call failed: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 };
@@ -251,7 +240,7 @@ const parseAIResponse = (responseText: string): BOQSection[] => {
     throw new Error(
       `Invalid AI response format: ${
         error instanceof Error ? error.message : "Unknown parsing error"
-      }`
+      }`,
     );
   }
 };
@@ -276,7 +265,7 @@ const isValidBOQ = (sections: BOQSection[]): boolean => {
     return section.items.every((item) => {
       if (!item.description || typeof item.description !== "string") {
         console.warn(
-          "BOQ validation failed: Missing or invalid item description"
+          "BOQ validation failed: Missing or invalid item description",
         );
         return false;
       }

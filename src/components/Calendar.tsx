@@ -39,7 +39,7 @@ const Calendar = () => {
   const { events, createEvent, deleteEvent, loading } = useCalendarEvents();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
+    new Date(),
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -100,7 +100,7 @@ const Calendar = () => {
   const previousMonth = new Date(
     currentMonth.getFullYear(),
     currentMonth.getMonth(),
-    0
+    0,
   );
   const previousMonthEnd = endOfMonth(previousMonth);
   const daysToShow = [];
@@ -110,8 +110,8 @@ const Calendar = () => {
       new Date(
         previousMonthEnd.getFullYear(),
         previousMonthEnd.getMonth(),
-        previousMonthEnd.getDate() - i
-      )
+        previousMonthEnd.getDate() - i,
+      ),
     );
   }
   daysToShow.push(...daysInMonth);
@@ -120,7 +120,7 @@ const Calendar = () => {
   const remainingDays = 42 - daysToShow.length;
   for (let i = 1; i <= remainingDays; i++) {
     daysToShow.push(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i)
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, i),
     );
   }
 
@@ -128,7 +128,7 @@ const Calendar = () => {
     return events.filter(
       (event) =>
         format(new Date(event.event_date), "yyyy-MM-dd") ===
-        format(date, "yyyy-MM-dd")
+        format(date, "yyyy-MM-dd"),
     ).length;
   };
 
@@ -136,7 +136,7 @@ const Calendar = () => {
     .filter((event) => new Date(event.event_date) >= new Date())
     .sort(
       (a, b) =>
-        new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+        new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
     )
     .slice(0, 5);
 
@@ -144,7 +144,7 @@ const Calendar = () => {
     ? events.filter(
         (event) =>
           format(new Date(event.event_date), "yyyy-MM-dd") ===
-          format(selectedDate, "yyyy-MM-dd")
+          format(selectedDate, "yyyy-MM-dd"),
       )
     : [];
 
@@ -245,8 +245,8 @@ const Calendar = () => {
                       setCurrentMonth(
                         new Date(
                           currentMonth.getFullYear(),
-                          currentMonth.getMonth() - 1
-                        )
+                          currentMonth.getMonth() - 1,
+                        ),
                       )
                     }
                   >
@@ -259,8 +259,8 @@ const Calendar = () => {
                       setCurrentMonth(
                         new Date(
                           currentMonth.getFullYear(),
-                          currentMonth.getMonth() + 1
-                        )
+                          currentMonth.getMonth() + 1,
+                        ),
                       )
                     }
                   >
@@ -311,10 +311,10 @@ const Calendar = () => {
                           !isCurrentMonth
                             ? "bg-slate-50 dark:glass border-slate-100 dark:border-slate-800 text-slate-400"
                             : isSelected
-                            ? "bg-primary border-blue-600 text-white shadow-md scale-105"
-                            : isTodayDate
-                            ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white shadow-sm"
-                            : "bg-white dark:bg-blue-900/10 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
+                              ? "bg-primary border-blue-600 text-white shadow-md scale-105"
+                              : isTodayDate
+                                ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white shadow-sm"
+                                : "bg-white dark:bg-blue-900/10 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
                         }
                       `}
                     >
@@ -355,7 +355,7 @@ const Calendar = () => {
                 {eventsForSelectedDate.map((event) => (
                   <div
                     key={event.id}
-                    className="p-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-r-lg hover:shadow-md transition-shadow"
+                    className="p-4  bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:shadow-md transition-shadow"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -415,7 +415,7 @@ const Calendar = () => {
                   {upcomingEvents.map((event) => (
                     <div
                       key={event.id}
-                      className="p-3 border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-r-lg hover:shadow-md transition-shadow"
+                      className="p-3  bg-green-50 dark:bg-green-900/20 rounded-lg hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">

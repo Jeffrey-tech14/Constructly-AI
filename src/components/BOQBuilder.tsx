@@ -247,7 +247,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       <div className="flex flex-col justify-center items-center p-8 space-y-4">
         <RefreshCw className="w-8 h-8 animate-spin text-primary" />
         <div className="text-center">
-          <div className="font-semibold">Generating Professional BOQ</div>
+          <div className="font-semibold">Generating BOQ</div>
         </div>
       </div>
     );

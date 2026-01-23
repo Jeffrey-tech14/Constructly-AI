@@ -208,7 +208,7 @@ const Dashboard = () => {
             </div>
             <Button
               onClick={() => setShowCalculator(true)}
-              className="text-sm px-5 py-4 rounded-xl sm:mt-0 mt-4 shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
+              className="text-sm px-5 py-4 sm:mt-0 mt-4 shadow-lg bg-primary animate-bounce-gentle hover:shadow-2xl transition-transform duration-300 text-white"
             >
               ⚡Quick Calculator
             </Button>

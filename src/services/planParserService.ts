@@ -3,25 +3,19 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ExtractedPlan } from "@/contexts/PlanContext";
-
-const getEnv = (key: string) => {
-  if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key];
-  }
-  if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
-    return import.meta.env[key];
-  }
-  return undefined;
-};
+import { getEnv } from "@/utils/envConfig";
 
 class PlanParserService {
   private genAI: GoogleGenerativeAI;
   private model;
 
   constructor() {
-    const apiKey = getEnv("VITE_GEMINI_API_KEY");
+    const apiKey =
+      getEnv("NEXT_GEMINI_API_KEY") || getEnv("VITE_GEMINI_API_KEY");
     if (!apiKey) {
-      throw new Error("VITE_GEMINI_API_KEY environment variable is not set");
+      throw new Error(
+        "Missing Gemini API key. Set NEXT_PUBLIC_GEMINI_API_KEY (Next.js) OR VITE_GEMINI_API_KEY (Vite).",
+      );
     }
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({

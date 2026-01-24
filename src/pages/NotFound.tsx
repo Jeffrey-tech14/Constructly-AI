@@ -9,13 +9,8 @@ import { Home, ArrowRight, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const NotFound = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  if (!user) {
-    navigate("/auth");
-  }
 
   useEffect(() => {
     console.error(

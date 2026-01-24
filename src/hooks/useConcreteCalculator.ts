@@ -135,12 +135,7 @@ export interface ConcreteRow {
   returnFillDepth?: string;
   hasBackFill?: boolean;
   backFillDepth?: string;
-  hasMasonryWall?: boolean;
-  masonryBlockType?: string;
-  masonryBlockDimensions?: string;
-  masonryWallThickness?: string;
-  masonryWallHeight?: string;
-  masonryWallPerimeter?: number;
+
   foundationType?: string;
   clientProvidesWater?: boolean;
   cementWaterRatio?: string;
@@ -200,9 +195,7 @@ export interface ConcreteResult {
   bedArea?: number;
   aggregateVolume?: number;
   aggregateArea?: number;
-  totalBlocks?: number;
-  masonryMortarCementBags?: number;
-  masonryMortarSandM3?: number;
+
   waterRequired?: number;
   waterCost?: number;
   cementWaterRatio?: number;
@@ -210,18 +203,12 @@ export interface ConcreteResult {
   netSandM3: number;
   netStoneM3: number;
   netWaterRequiredL: number;
-  netTotalBlocks?: number;
-  netMortarCementBags?: number;
-  netMortarSandM3?: number;
-  blocksFeet?: number;
+
   blocksCost?: number;
   grossCementBags: number;
   grossSandM3: number;
   grossStoneM3: number;
   grossWaterRequiredL: number;
-  grossTotalBlocks?: number;
-  grossMortarCementBags?: number;
-  grossMortarSandM3?: number;
   waterMixingL: number;
   waterCuringL: number;
   waterOtherL: number;
@@ -246,6 +233,8 @@ export interface ConcreteResult {
   maramBlindingCost?: number;
   compactionArea?: number;
   compactionCost?: number;
+  antiTermiteTreatmentArea?: number;
+  antiTermiteTreatmentCost?: number;
   returnFillVolume?: number;
   returnFillCost?: number;
   backFillVolume?: number;
@@ -274,7 +263,7 @@ const STANDARD_MIXES: {
   "1:3:6": { cement: 1, sand: 3, stone: 6 },
   "1:4:8": { cement: 1, sand: 4, stone: 8 },
 };
-const MASONRY_MORTAR_MIX = { cement: 1, sand: 4 };
+
 const MORTAR_DRY_VOLUME_FACTOR = 1.3;
 const STANDARD_BLOCK_SIZE = { length: 0.4, height: 0.2, thickness: 0.2 };
 const BRICK_SIZE = { length: 0.225, height: 0.075, thickness: 0.1125 };
@@ -635,12 +624,6 @@ export function calculateConcrete(
     bedDepth,
     hasAggregateBed,
     aggregateDepth,
-    hasMasonryWall,
-    masonryBlockDimensions,
-    masonryWallThickness,
-    masonryWallHeight,
-    masonryWallPerimeter,
-    masonryBlockType,
     cementWaterRatio = settings.cementWaterRatio,
     staircaseDetails,
     tankDetails,
@@ -663,8 +646,6 @@ export function calculateConcrete(
   const num = parseInt(number) || 1;
   const bedDepthNum = parseFloat(bedDepth) || 0;
   const aggregateDepthNum = parseFloat(aggregateDepth) || 0;
-  const wallThicknessNum = parseFloat(masonryWallThickness) || 0.2;
-  const wallHeightNum = parseFloat(masonryWallHeight) || 0;
 
   // Handle area selection mode for non-slab elements
   let effectiveLen = len;
@@ -997,36 +978,6 @@ export function calculateConcrete(
     }
   }
 
-  let netTotalBlocks = 0;
-  let netMortarCementBags = 0;
-  let netMortarSandM3 = 0;
-
-  if (
-    hasMasonryWall &&
-    wallHeightNum > 0 &&
-    ["raft-foundation", "retaining-wall", "strip-footing"].includes(element)
-  ) {
-    const wallLength = element === "raft-foundation" ? len * num : len;
-    const masonry = calculateMasonryQuantities(
-      wallLength,
-      wallHeightNum,
-      wallThicknessNum,
-      masonryBlockDimensions || "0.4x0.2x0.2",
-      settings,
-    );
-    netTotalBlocks = masonry.blocks;
-    const mortarVolume = masonry.mortarVolume;
-    const dryMortarVolume = mortarVolume * MORTAR_DRY_VOLUME_FACTOR;
-    const mortar_ratio = parseMortarRatio(quote.mortar_ratio);
-    const totalMortarParts = mortar_ratio.cement + mortar_ratio.sand;
-    const mortarCementVolume =
-      (mortar_ratio.cement / totalMortarParts) * dryMortarVolume;
-    const mortarSandVolume =
-      (mortar_ratio.sand / totalMortarParts) * dryMortarVolume;
-    netMortarCementBags = mortarCementVolume / CEMENT_BAG_VOLUME_M3;
-    netMortarSandM3 = mortarSandVolume;
-  }
-
   const totalConcreteVolume = mainVolume + bedVolume;
   const concreteMaterials = calculateConcreteMaterials(
     totalConcreteVolume,
@@ -1053,15 +1004,6 @@ export function calculateConcrete(
     concreteMaterials.stoneM3 * 1.54 * (1 + settings.wastageConcrete / 100);
   const grossWaterRequiredL =
     waterCalc.totalWaterL * 1.54 * (1 + settings.wastageWater / 100);
-  const grossTotalBlocks = Math.ceil(
-    netTotalBlocks * (1 + settings.wastageConcrete / 100),
-  );
-  const grossMortarCementBags = Math.ceil(
-    netMortarCementBags * (1 + settings.wastageConcrete / 100),
-  );
-  const grossMortarSandM3 =
-    netMortarSandM3 * (1 + settings.wastageConcrete / 100);
-
   let dpcArea = 0;
   let dpcCost = 0;
   let polytheneArea = 0;
@@ -1176,6 +1118,20 @@ export function calculateConcrete(
     compactionCost = compactionArea * (compactionMaterial?.price || 0);
   }
 
+  // Anti-termite treatment calculation
+  let antiTermiteTreatmentArea = 0;
+  let antiTermiteTreatmentCost = 0;
+  if (row.hasAntiTermiteTreatment) {
+    antiTermiteTreatmentArea = len * wid * num;
+    const antiTermiteMaterial = materials.find(
+      (m) =>
+        m.name?.toLowerCase().includes("anti-termite") ||
+        m.name?.toLowerCase().includes("termite"),
+    );
+    antiTermiteTreatmentCost =
+      antiTermiteTreatmentArea * (antiTermiteMaterial?.price || 0);
+  }
+
   // Return fill calculation
   let returnFillVolume = 0;
   let returnFillCost = 0;
@@ -1223,41 +1179,8 @@ export function calculateConcrete(
     : (grossWaterRequiredL / 1000) * (water?.price || 0);
   const formworkCost = formworkM2 * (formworkMat?.price || 0);
   const aggregateCost = aggregateVolume * (aggregate?.price || 0);
-  const mortarCementCost = (grossMortarCementBags || 0) * (cement?.price || 0);
-  const mortarSandCost = (grossMortarSandM3 || 0) * (sand?.price || 0);
 
   // Block cost calculation - convert from per-foot pricing
-  let blocksFeet = 0;
-  let blocksCost = 0;
-  if (
-    hasMasonryWall &&
-    wallHeightNum > 0 &&
-    ["raft-foundation", "retaining-wall", "strip-footing"].includes(element)
-  ) {
-    // Get block dimensions from masonryBlockDimensions (e.g., "0.4x0.2x0.2")
-    const blockDims = masonryBlockDimensions?.split("x").map(parseFloat) || [
-      0.4, 0.2, 0.2,
-    ];
-    const blockLengthMeters = blockDims[0] || 0.4;
-    const blockLengthFeet = blockLengthMeters * METERS_TO_FEET;
-
-    // Calculate total linear feet of blocks: total blocks * block length in feet
-    blocksFeet = grossTotalBlocks * blockLengthFeet;
-
-    // Get block pricing material
-    const blockMaterial = materials.find(
-      (m) =>
-        m.name?.toLowerCase().includes("block") ||
-        m.name?.toLowerCase().includes("brick"),
-    );
-
-    // Price per foot
-    const blockPricePerFoot =
-      blockMaterial?.type?.find((m) =>
-        m.name?.toLowerCase().includes("Standard Natural Stone"),
-      ) || 0;
-    blocksCost = blocksFeet * blockPricePerFoot;
-  }
 
   const totalConcreteCost = cementCost + sandCost + waterCost + stoneCost;
 
@@ -1279,9 +1202,6 @@ export function calculateConcrete(
     bedArea,
     aggregateVolume,
     aggregateArea,
-    totalBlocks: grossTotalBlocks,
-    masonryMortarCementBags: grossMortarCementBags,
-    masonryMortarSandM3: grossMortarSandM3,
     waterRequired: grossWaterRequiredL,
     waterCost,
     cementWaterRatio: parseCementWaterRatio(cementWaterRatio),
@@ -1289,18 +1209,11 @@ export function calculateConcrete(
     netSandM3: concreteMaterials.sandM3,
     netStoneM3: concreteMaterials.stoneM3,
     netWaterRequiredL: waterCalc.totalWaterL,
-    netTotalBlocks,
-    netMortarCementBags,
-    netMortarSandM3,
-    blocksFeet,
-    blocksCost,
+
     grossCementBags,
     grossSandM3,
     grossStoneM3,
     grossWaterRequiredL,
-    grossTotalBlocks,
-    grossMortarCementBags,
-    grossMortarSandM3,
     waterMixingL: waterCalc.waterMixingL,
     waterCuringL: waterCalc.waterCuringL,
     waterOtherL: waterCalc.waterOtherL,
@@ -1309,18 +1222,16 @@ export function calculateConcrete(
       totalConcreteCost +
       formworkCost +
       aggregateCost +
-      mortarCementCost +
       polytheneCost +
       dpcCost +
       waterproofingCost +
       gravelCost +
-      mortarSandCost +
       blindingCost +
       maramBlindingCost +
       compactionCost +
+      antiTermiteTreatmentCost +
       returnFillCost +
-      backFillCost +
-      blocksCost,
+      backFillCost,
     totalConcreteCost,
     unitRate,
 
@@ -1342,6 +1253,8 @@ export function calculateConcrete(
     maramBlindingCost,
     compactionArea,
     compactionCost,
+    antiTermiteTreatmentArea,
+    antiTermiteTreatmentCost,
     returnFillVolume,
     returnFillCost,
     backFillVolume,
@@ -1437,13 +1350,10 @@ export function useConcreteCalculator(
         acc.cement += r.grossCementBags;
         acc.sand += r.grossSandM3;
         acc.stone += r.grossStoneM3;
-        acc.mortarCementBags += r.grossMortarCementBags || 0;
         acc.formworkM2 += r.formworkM2;
         acc.waterRequired += r.grossWaterRequiredL;
         acc.waterCost += r.waterCost || 0;
-        acc.mortarSandM3 += r.grossMortarSandM3 || 0;
         acc.aggregateVolume += r.aggregateVolume || 0;
-        acc.totalBlocks += r.grossTotalBlocks || 0;
         acc.materialCost += r.materialCost;
         acc.totalCost += r.totalConcreteCost;
 
@@ -1461,12 +1371,12 @@ export function useConcreteCalculator(
         acc.maramBlindingCost += r.maramBlindingCost || 0;
         acc.compactionArea += r.compactionArea || 0;
         acc.compactionCost += r.compactionCost || 0;
+        acc.antiTermiteTreatmentArea += r.antiTermiteTreatmentArea || 0;
+        acc.antiTermiteTreatmentCost += r.antiTermiteTreatmentCost || 0;
         acc.returnFillVolume += r.returnFillVolume || 0;
         acc.returnFillCost += r.returnFillCost || 0;
         acc.backFillVolume += r.backFillVolume || 0;
         acc.backFillCost += r.backFillCost || 0;
-        acc.blocksFeet += r.blocksFeet || 0;
-        acc.blocksCost += r.blocksCost || 0;
 
         return acc;
       },
@@ -1498,12 +1408,12 @@ export function useConcreteCalculator(
         maramBlindingCost: 0,
         compactionArea: 0,
         compactionCost: 0,
+        antiTermiteTreatmentArea: 0,
+        antiTermiteTreatmentCost: 0,
         returnFillVolume: 0,
         returnFillCost: 0,
         backFillVolume: 0,
         backFillCost: 0,
-        blocksFeet: 0,
-        blocksCost: 0,
       },
     );
     setTotals(newTotals);

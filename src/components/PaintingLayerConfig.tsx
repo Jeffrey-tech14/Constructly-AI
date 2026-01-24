@@ -43,7 +43,6 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
   onDelete,
   wallDimensions,
 }) => {
-  const [showDefaultPrompt, setShowDefaultPrompt] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     location: true,
     preparations: false,
@@ -58,41 +57,6 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
     }));
   };
 
-  // Show prompt for new paintings with valid wall dimensions
-  useEffect(() => {
-    if (
-      !painting.location &&
-      wallDimensions?.internalWallPerimiter &&
-      wallDimensions?.internalWallHeight
-    ) {
-      const internalPerimeter =
-        parseFloat(wallDimensions.internalWallPerimiter) || 0;
-      const internalHeight = parseFloat(wallDimensions.internalWallHeight) || 0;
-
-      if (internalPerimeter > 0 && internalHeight > 0) {
-        setShowDefaultPrompt(true);
-      }
-    }
-  }, [painting.location, wallDimensions]);
-
-  // Handle default painting creation from walls
-  const handleCreateDefault = () => {
-    const defaultPainting =
-      createDefaultPaintingFromInternalWalls(wallDimensions);
-    if (defaultPainting) {
-      onUpdate({
-        surfaceArea: defaultPainting.surfaceArea,
-        location: defaultPainting.location,
-      });
-    }
-    setShowDefaultPrompt(false);
-  };
-
-  const internalPerimeter =
-    parseFloat(wallDimensions?.internalWallPerimiter) || 0;
-  const internalHeight = parseFloat(wallDimensions?.internalWallHeight) || 0;
-  const internalArea = internalPerimeter * internalHeight * 2;
-
   // Check step completion
   const isLocationComplete = !!(painting.location && painting.surfaceArea > 0);
   const isFinishingComplete = !!(
@@ -101,41 +65,6 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Default Creation Prompt */}
-      {showDefaultPrompt && (
-        <Alert className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <div className="font-semibold mb-2">
-              Create default painting from internal walls?
-            </div>
-            <div className="text-sm mb-4">
-              Internal wall surface area:{" "}
-              <strong>
-                {(
-                  (parseFloat(wallDimensions?.internalWallPerimiter) || 0) *
-                  (parseFloat(wallDimensions?.internalWallHeight) || 0) *
-                  2
-                ).toFixed(2)}{" "}
-                m²
-              </strong>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={handleCreateDefault}>
-                Yes, Create Default
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowDefaultPrompt(false)}
-              >
-                Skip for Now
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Card 1: Location & Area - Collapsible */}
       <Card>
         <div

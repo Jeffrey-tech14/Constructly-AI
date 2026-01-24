@@ -39,11 +39,43 @@ export interface GeminiMaterialAnalysis {
   alternatives?: string[];
   preparationSteps?: string[];
 }
+
+// Hierarchical work item structure
+export interface WorkItemMaterial {
+  description: string;
+  quantity: number;
+  unit: string;
+  rate: number;
+  amount: number;
+  materialType:
+    | "primary"
+    | "secondary"
+    | "preparatory"
+    | "finishing"
+    | "protective"
+    | "joint"
+    | "auxiliary";
+  notes?: string;
+}
+
+export interface WorkItem {
+  workNumber?: string;
+  workDescription: string;
+  workQuantity: number;
+  workUnit: string;
+  materials: WorkItemMaterial[];
+  subtotal: number;
+}
+
 export interface GeminiMaterialResponse {
   materials: GeminiMaterialAnalysis[];
+  workItems?: WorkItem[];
   summary: {
     totalMaterials: number;
     totalCost: number;
+    totalWorkItems?: number;
+    contingency?: number;
+    grandTotal?: number;
     categories: Record<string, number>;
   };
 }
@@ -107,14 +139,20 @@ EXECUTION PHASES (INTERNAL – DO NOT OUTPUT)
 You MUST internally execute these phases IN ORDER.
 Only Phase 5 is returned.
 
-PHASE 1 — MATERIAL EXTRACTION
+PHASE 1 — MATERIAL EXTRACTION & WORK ITEM ORGANIZATION
 - Extract EVERY individual material explicitly or implicitly present in the data.
-- Do NOT fabricate.
-- Do NOT omit.
+- Group materials by their associated WORK ITEMS (if identifiable).
+- A work item is a distinct construction activity/element (e.g., "Foundation Preparation", "Concrete Slab", "Brick Masonry Wall").
+- For each work item, extract:
+  - workDescription (what the work is)
+  - workQuantity (if measurable, e.g., quantity of floors, areas)
+  - workUnit (e.g., "No.", "m²", "m³")
+  - materials[] (all materials required for this work item)
+- Do NOT fabricate work items - only use what's inferable from the quote data.
+- Do NOT include labour, subcontractors, preliminaries, services, or overhead items.
 - Composite materials are FORBIDDEN.
   - Do NOT output: concrete, mortar, plaster, screed, grout, etc.
   - ONLY output their atomic components if explicitly inferable.
-- Do NOT include labour, subcontractors, preliminaries, services, or overhead items.
 - Cement MUST appear only once across the entire output.
 - If qsSettings.clientProvidesWater = true → EXCLUDE water entirely.
 - If an item has both itemized and lump-sum representations → USE THE LUMP-SUM ONLY.
@@ -122,45 +160,32 @@ PHASE 1 — MATERIAL EXTRACTION
 - Use gross values when available, otherwise net values.
 - Use materialPrices ONLY to fill missing rates for materials that already exist in the data.
 
-PHASE 2 — DE-DUPLICATION
-- If two materials share the EXACT SAME description → MERGE into one entry.
+PHASE 2 — DE-DUPLICATION (WITHIN WORK ITEMS)
+- If two materials within the SAME work item share the EXACT SAME description → MERGE into one entry.
 - Summed quantity MUST be mathematically valid.
 - Rate MUST remain unchanged.
 - Resulting amount MUST equal quantity × rate exactly.
 
 PHASE 3 — CLASSIFICATION
 Every material MUST be assigned:
-- category (Kenyan construction standards)
-- element ∈ {foundation, wall, floor, roof, ceiling, finish}
-- materialType ∈ EXACT ENUM BELOW
-
-materialType ENUM (COPY EXACTLY — NO VARIATIONS):
-- "primary"
-- "secondary"
-- "preparatory"
-- "finishing"
-- "protective"
-- "joint"
-- "auxiliary"
+- materialType ∈ {primary, secondary, preparatory, finishing, protective, joint, auxiliary}
 
 PHASE 4 — COST RECONCILIATION (ZERO TOLERANCE)
 You MUST recompute UNTIL ALL CONDITIONS ARE TRUE:
 
-1. For EVERY material:
+1. For EVERY material within every work item:
    amount === quantity × rate  (NO rounding, NO approximation)
 
-2. Total material cost MUST EXACTLY MATCH:
-   materials_cost (from quote summary)
+2. For every work item:
+   subtotal = sum(materials.amount)
 
-3. DO NOT include:
-   laborCost,
-   subcontractorRates,
-   preliminariesCost,
-   overheadAmount,
-   contingencyAmount,
-   subcontractorProfit
+3. Total material cost MUST EXACTLY MATCH:
+   sum(workItems.subtotal) + contingency = summary.totalCost
 
-4. sum(materials.amount) MUST equal summary.totalCost TO THE LAST DECIMAL PLACE
+4. Contingency MUST be calculated as 5% of subtotal (before contingency)
+
+5. DO NOT include:
+   laborCost, subcontractorRates, preliminariesCost, overheadAmount, subcontractorProfit
 
 If ANY mismatch exists → RESTART FROM PHASE 1.
 
@@ -195,30 +220,42 @@ The last character MUST be '}'
       "amount": number,
       "confidence": number,
       "materialType": "primary|secondary|preparatory|finishing|protective|joint|auxiliary",
-      "relationships": [
-        {
-          "relatedMaterial": "string",
-          "relationType": "requires|dependsOn|precedes|follows|alternative",
-          "description": "string"
-        }
-      ],
-      "requirements": [
-        {
-          "type": "environmental|structural|aesthetic|performance",
-          "description": "string"
-        }
-      ],
+      "relationships": [],
+      "requirements": [],
       "applicationContext": "string",
       "suggestedCategory": "string (optional)",
       "notes": "string (optional)",
-      "variations": ["string"],
-      "alternatives": ["string"],
-      "preparationSteps": ["string"]
+      "variations": [],
+      "alternatives": [],
+      "preparationSteps": []
+    }
+  ],
+  "workItems": [
+    {
+      "workNumber": "WI-001",
+      "workDescription": "string",
+      "workQuantity": number,
+      "workUnit": "string",
+      "materials": [
+        {
+          "description": "string",
+          "quantity": number,
+          "unit": "string",
+          "rate": number,
+          "amount": number,
+          "materialType": "primary|secondary|preparatory|finishing|protective|joint|auxiliary",
+          "notes": "string (optional)"
+        }
+      ],
+      "subtotal": number
     }
   ],
   "summary": {
     "totalMaterials": number,
     "totalCost": number,
+    "totalWorkItems": number,
+    "contingency": number,
+    "grandTotal": number,
     "categories": { "string": number }
   }
 }
@@ -230,10 +267,12 @@ FINAL VALIDATION (MANDATORY)
 Before returning output, you MUST verify:
 
 - materials.length === summary.totalMaterials
+- workItems.length === summary.totalWorkItems
 - EVERY material.amount === material.quantity × material.rate
-- sum(materials.amount) === summary.totalCost
+- EVERY workItem has subtotal = sum(materials.amount)
+- sum(workItems.subtotal) + contingency = summary.totalCost
 - NO forbidden composite materials exist
-- NO duplicated descriptions exist
+- NO duplicated descriptions within a work item exist
 - ALL enum values match EXACTLY
 
 If ANY check fails → recompute until ALL checks pass.
@@ -242,7 +281,7 @@ If ANY check fails → recompute until ALL checks pass.
 PROJECT DATA (AUTHORITATIVE SOURCE)
 ══════════════════════════════════════════════
 
-${JSON.stringify(quoteData, null, 2)}
+\${JSON.stringify(quoteData, null, 2)}
 
 `;
   }

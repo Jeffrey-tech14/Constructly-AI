@@ -2,177 +2,114 @@
 import { PlayCircle, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import NavbarSection from "@/components/sections/NavbarSection";
 
-// JTech Engineering Theme Colors
+// Updated theme using your brand colors
 const THEME = {
-  NAVY_BG: "#000B29",
-  HERO_BTN_GREEN: "#86bc25",
-  HERO_ACCENT_BLUE: "#00356B",
+  HERO_BG: "#000B29", // Keep dark for contrast
+  OVERLAY: "rgba(0, 11, 41, 0.65)", // Slightly lighter for better text legibility
+  BRAND_BLUE: "#0067b1",
+  ACCENT_GREEN: "#43b02a",
+  TEXT_LIGHT: "#f0f9ff",
 };
 
 const openDemoVideo = () => {
   window.open("/Demo1.mp4", "_blank");
 };
 
-// ✅ ANIMATED JTech AI LOGO (AI "BOOTING" STYLE)
-const AnimatedJTechLogo = () => (
-  <div className="relative w-64 h-16 mx-auto lg:mx-0 mb-8">
-    {/* Static base */}
-    <svg
-      width="135"
-      height="36"
-      viewBox="0 0 135 36"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="absolute inset-0"
-    >
-      <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill="#00356B" />
-      <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill="#00356B" />
-      <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill="#00356B" />
-      <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill="#00356B" />
-      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill="#00356B" />
-      <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill="#00356B" />
-      <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill="#00356B" />
-      <circle cx="22.5" cy="13.5" r="2.25" fill="#0077B6" />
-      <circle cx="22.5" cy="22.5" r="2.25" fill="#0077B6" />
-      <path d="M22.5 15.75V20.25" stroke="#0077B6" strokeWidth="1.5" />
-      <text
-        x="45"
-        y="24"
-        fontFamily="Segoe UI"
-        fontWeight="800"
-        fontSize="22"
-        fill="#00356B"
-      >
-        JTech
-      </text>
-      <text
-        x="108"
-        y="24"
-        fontFamily="Segoe UI"
-        fontWeight="800"
-        fontSize="22"
-        fill="#0077B6"
-      >
-        AI
-      </text>
-    </svg>
-
-    {/* 🔹 ANIMATED PULSING NODES */}
-    <div className="absolute top-3 left-[21px] w-1.5 h-1.5 rounded-full bg-[#86bc25] animate-pulse-node"></div>
-    <div className="absolute top-8 left-[21px] w-1.5 h-1.5 rounded-full bg-[#86bc25] animate-pulse-node delay-300"></div>
-
-    {/* 🔸 SCANNING LINE (AI "ANALYZING") */}
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-0.5 bg-[#86bc25]/30 animate-scan-line"></div>
-    </div>
-  </div>
-);
-
-const Hero = ({ scrollTo, demoOpen, setDemoOpen }: any) => {
+const Hero = ({ scrollTo }: any) => {
   const navigate = useNavigate();
 
   return (
-    <div className="antialiased text-white selection:bg-[#86bc25] selection:text-white bg-[#000B29] relative">
-      {/* ✅ GLOBAL ANIMATION STYLES */}
+    <div className="antialiased text-white selection:bg-[#43b02a] selection:text-white bg-[#000B29] relative">
       <style>{`
         @keyframes scan-line {
-          0% { top: 0%; opacity: 0.7; }
+          0% { top: 0%; opacity: 0.6; }
           50% { opacity: 1; }
-          100% { top: 100%; opacity: 0.4; }
+          100% { top: 100%; opacity: 0.3; }
         }
         @keyframes pulse-node {
           0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.8); opacity: 0.5; }
+          50% { transform: scale(1.6); opacity: 0.6; }
         }
         .animate-scan-line {
-          animation: scan-line 3s infinite ease-in-out;
+          animation: scan-line 3.5s infinite ease-in-out;
         }
         .animate-pulse-node {
-          animation: pulse-node 2s infinite ease-in-out;
+          animation: pulse-node 2.2s infinite ease-in-out;
         }
       `}</style>
 
-      <NavbarSection scrollTo={scrollTo} setDemoOpen={setDemoOpen} />
-
-      <section className="relative min-h-screen w-full  overflow-hidden flex items-center pt-16 lg:pt-0 border-b border-white/10">
+      <section className="relative h-auto min-h-[550px] lg:h-[80vh] w-full overflow-hidden flex items-center pt-20 pb-16 lg:py-0 border-b border-white/10">
+        {/* Background Image + Overlay */}
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
-            alt="Construction professionals"
+            alt="Construction professionals reviewing blueprints"
             className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
           />
-          <div className="absolute inset-0 bg-[#000B29]/85 mix-blend-multiply"></div>
           <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
-            }}
+            className="absolute inset-0"
+            style={{ backgroundColor: THEME.OVERLAY }}
           ></div>
         </div>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="w-full lg:w-[60%] pt-6 text-center lg:text-left">
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full lg:w-[65%] text-center lg:text-left mx-auto lg:mx-0">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              {/* ✅ SHRUNK TEXT & UNIQUE LOGO */}
-              <AnimatedJTechLogo />
-
-              {/* Tagline - slightly smaller */}
-              <p
-                className="text-[9px] font-bold tracking-[0.25em] uppercase mb-3 opacity-90"
-                style={{ color: THEME.HERO_BTN_GREEN }}
-              >
+              <p className="text-[9px] font-bold tracking-[0.3em] uppercase mb-3 lg:mb-4 text-[#43b02a]">
                 THE SOLUTION
               </p>
 
-              {/* Headline - tighter size */}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-light leading-tight mb-4 tracking-tight text-white">
-                GENERATE ACCURATE QUOTES <br />
-                <span className="font-black">IN MINUTES.</span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-light leading-tight mb-4 lg:mb-5 tracking-tight text-white">
+                Generate Accurate Quotes
+                <br />
+                <span className="font-light">In Minutes.</span>
               </h1>
 
-              {/* Description - smaller, lighter */}
-              <p className="text-xs text-blue-100/80 max-w-lg mx-auto lg:mx-0 mb-5 leading-relaxed font-light">
-                Generate and edit accurate quotes. Connect workflows, validate
-                costs, and generate automated takeoffs with 99.9% precision.
+              <p className="text-sm text-white/90 max-w-lg mx-auto lg:mx-0 mb-6 leading-relaxed font-medium">
+                Generate and edit precise quotes. Connect workflows, validate
+                costs, and produce automated takeoffs with 99.9% accuracy.
               </p>
 
-              {/* Divider - thinner */}
-              <div className="w-10 h-[1.5px] bg-[#86bc25] mx-auto lg:mx-0 mb-6 opacity-80"></div>
+              <div className="w-12 h-0.5 bg-[#43b02a] mb-6 mx-auto lg:mx-0 opacity-90"></div>
 
-              {/* CTA Buttons - slightly smaller padding */}
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                 <motion.button
-                  whileHover={{ y: -2 }}
+                  whileHover={{
+                    y: -3,
+                    boxShadow: "0 6px 16px rgba(67, 176, 42, 0.4)",
+                  }}
                   whileTap={{ scale: 0.98 }}
                   onClick={openDemoVideo}
-                  className="bg-[#86bc25] text-white text-[11px] font-bold uppercase tracking-wider px-5 py-2.5 rounded-sm flex items-center justify-center gap-2 shadow-md hover:bg-[#75a620] transition-all"
+                  className="bg-[#43b02a] text-white text-[11px] font-black uppercase tracking-wider px-7 py-3 rounded-full flex items-center justify-center gap-2 shadow-md hover:bg-[#3a9a25] transition-all duration-300"
                 >
-                  <PlayCircle className="w-3.5 h-3.5" />
+                  <PlayCircle className="w-4 h-4" />
                   Watch Demo
                 </motion.button>
 
                 <motion.button
-                  whileHover={{ y: -2 }}
+                  whileHover={{
+                    y: -3,
+                    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                  }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate("/auth?mode=signup")}
-                  className="bg-white text-[#00356B] text-[11px] font-bold uppercase tracking-wider px-5 py-2.5 rounded-sm flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+                  className="bg-white text-[#0067b1] text-[11px] font-black uppercase tracking-wider px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors duration-300 shadow-md"
                 >
                   Get Started
-                  <ChevronRight className="w-3.5 h-3.5 text-[#86bc25]" />
+                  <ChevronRight className="w-4 h-4 text-[#43b02a]" />
                 </motion.button>
               </div>
 
-              {/* Trust badge - smaller */}
-              <p className="text-[9px] text-white/60 uppercase tracking-widest font-bold">
-                Trusted by 500+ Top Firms
+              <p className="text-[10px] text-white/70 uppercase tracking-widest font-semibold">
+                Trusted by 500+ Top Construction Firms
               </p>
             </motion.div>
           </div>

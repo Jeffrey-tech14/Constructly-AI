@@ -38,7 +38,11 @@ import usePaintingCalculator, {
   createDefaultPaintingFromInternalWalls,
 } from "@/hooks/usePaintingCalculator";
 import PaintingLayerConfig from "@/components/PaintingLayerConfig";
-import { PaintingSpecification } from "@/types/painting";
+import {
+  PaintingSpecification,
+  DEFAULT_PAINTING_CONFIG,
+  DEFAULT_COVERAGE_RATES,
+} from "@/types/painting";
 import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
 
 interface FinishesCalculatorProps {
@@ -140,25 +144,101 @@ export default function FinishesCalculator({
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
+  const [hasInitializedPaintings, setHasInitializedPaintings] = useState(false);
 
-  // Auto-create default painting from internal walls
+  // Auto-create interior and exterior walls paintings
   useEffect(() => {
     if (
-      paintings.length === 0 &&
+      !hasInitializedPaintings &&
       wallDimensions?.internalWallPerimiter &&
       wallDimensions?.internalWallHeight &&
-      !readonly
+      wallDimensions?.externalWallPerimiter &&
+      wallDimensions?.externalWallHeight &&
+      !readonly &&
+      setQuoteData
     ) {
       const internalPerimeter =
         parseFloat(wallDimensions.internalWallPerimiter) || 0;
       const internalHeight = parseFloat(wallDimensions.internalWallHeight) || 0;
+      const externalPerimeter =
+        parseFloat(wallDimensions.externalWallPerimiter) || 0;
+      const externalHeight = parseFloat(wallDimensions.externalWallHeight) || 0;
 
-      if (internalPerimeter > 0 && internalHeight > 0) {
-        // Create empty painting that will trigger the default prompt
-        addPainting(0, "");
+      if (
+        internalPerimeter > 0 &&
+        internalHeight > 0 &&
+        externalPerimeter > 0 &&
+        externalHeight > 0
+      ) {
+        const internalArea = internalPerimeter * internalHeight * 2;
+        const externalArea = externalPerimeter * externalHeight;
+
+        // Create both paintings directly in quote data
+        const interiorPainting: PaintingSpecification = {
+          id: `painting-interior-${Date.now()}`,
+          surfaceArea: internalArea,
+          location: "Interior Walls",
+          skimming: {
+            enabled: DEFAULT_PAINTING_CONFIG.skimming.enabled,
+            coats: DEFAULT_PAINTING_CONFIG.skimming.coats,
+            coverage: DEFAULT_COVERAGE_RATES.skimming,
+          },
+          undercoat: {
+            enabled: DEFAULT_PAINTING_CONFIG.undercoat.enabled,
+            coverage: DEFAULT_COVERAGE_RATES.undercoat,
+          },
+          finishingPaint: {
+            category: DEFAULT_PAINTING_CONFIG.finishingPaint.category,
+            subtype: DEFAULT_PAINTING_CONFIG.finishingPaint.subtype,
+            coats: DEFAULT_PAINTING_CONFIG.finishingPaint.coats,
+            coverage: DEFAULT_COVERAGE_RATES.finishPaint,
+          },
+          calculations: {
+            skimming: null,
+            undercoat: null,
+            finishing: null,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const exteriorPainting: PaintingSpecification = {
+          id: `painting-exterior-${Date.now()}`,
+          surfaceArea: externalArea,
+          location: "Exterior Walls",
+          skimming: {
+            enabled: DEFAULT_PAINTING_CONFIG.skimming.enabled,
+            coats: DEFAULT_PAINTING_CONFIG.skimming.coats,
+            coverage: DEFAULT_COVERAGE_RATES.skimming,
+          },
+          undercoat: {
+            enabled: DEFAULT_PAINTING_CONFIG.undercoat.enabled,
+            coverage: DEFAULT_COVERAGE_RATES.undercoat,
+          },
+          finishingPaint: {
+            category: DEFAULT_PAINTING_CONFIG.finishingPaint.category,
+            subtype: DEFAULT_PAINTING_CONFIG.finishingPaint.subtype,
+            coats: DEFAULT_PAINTING_CONFIG.finishingPaint.coats,
+            coverage: DEFAULT_COVERAGE_RATES.finishPaint,
+          },
+          calculations: {
+            skimming: null,
+            undercoat: null,
+            finishing: null,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setQuoteData((prev: any) => ({
+          ...prev,
+          paintings_specifications: [interiorPainting, exteriorPainting],
+        }));
+
+        setHasInitializedPaintings(true);
       }
     }
-  }, [wallDimensions, paintings.length, readonly, addPainting]);
+  }, [wallDimensions, readonly, setQuoteData, hasInitializedPaintings]);
 
   const qsSettings = quote?.qsSettings as MasonryQSSettings;
   const onSettingsChange = useCallback(

@@ -16,9 +16,6 @@ interface Profile {
   company?: string;
   phone?: string;
   location?: string;
-  tier: string;
-  subscription_status?: string;
-  quotes_used: number;
   total_projects: number;
   completed_projects: number;
   total_revenue: number;
@@ -36,14 +33,14 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
   signIn: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{
     error: any;
   }>;
   signUp: (
     email: string,
     password: string,
-    name?: string
+    name?: string,
   ) => Promise<{
     error: any;
   }>;
@@ -73,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const timeoutPromise = new Promise<{
         error: Error;
       }>((_, reject) =>
-        setTimeout(() => reject(new Error("Profile fetch timeout")), 30000)
+        setTimeout(() => reject(new Error("Profile fetch timeout")), 30000),
       );
       const query = supabase
         .from("profiles")
@@ -81,10 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq("id", userId)
         .single();
       const result = await Promise.race([
-        query.then((res) => ({ type: "success", res } as const)),
+        query.then((res) => ({ type: "success", res }) as const),
         timeoutPromise
-          .then(() => ({ type: "timeout" } as const))
-          .catch((err) => ({ type: "error", err } as const)),
+          .then(() => ({ type: "timeout" }) as const)
+          .catch((err) => ({ type: "error", err }) as const),
       ]);
       if (result.type === "timeout") {
         throw new Error("Profile fetch timed out");
@@ -171,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         (payload) => {
           fetchProfile(user.id);
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -256,7 +253,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshProfile,
       updateProfile,
     }),
-    [user, profile, loading, authReady]
+    [user, profile, loading, authReady],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -285,12 +285,28 @@ const UploadPlan = () => {
 
     // File doesn't exist or is invalid, upload new one
     const fileUrl = await uploadBBS(file);
-    if (fileUrl) {
-      await supabase
-        .from("quotes")
-        .update({ bbs_file_url: fileUrl })
-        .eq("id", quoteData.id);
+    if (!fileUrl) {
+      throw new Error("Failed to upload BBS file");
     }
+
+    // Update database with the file URL
+    const { error } = await supabase
+      .from("quotes")
+      .update({ bbs_file_url: fileUrl })
+      .eq("id", quoteData.id);
+
+    setEditablePlan((prev) => ({
+      ...prev,
+      bbs_file_url: fileUrl,
+    }));
+
+    if (error) {
+      console.error("Database update error for BBS:", error);
+      throw new Error(
+        `Failed to save BBS file URL to database: ${error.message}`,
+      );
+    }
+
     return fileUrl;
   };
 
@@ -395,12 +411,21 @@ const UploadPlan = () => {
 
     // File doesn't exist or is invalid, upload new one
     const fileUrl = await uploadPlan(file);
-    if (fileUrl) {
-      await supabase
-        .from("quotes")
-        .update({ plan_file_url: fileUrl })
-        .eq("id", quoteData.id);
+    if (!fileUrl) {
+      throw new Error("Failed to upload plan file");
     }
+
+    // Update database with the file URL
+    const { error } = await supabase
+      .from("quotes")
+      .update({ plan_file_url: fileUrl })
+      .eq("id", quoteData.id);
+
+    if (error) {
+      console.error("Database update error:", error);
+      throw new Error(`Failed to save file URL to database: ${error.message}`);
+    }
+
     return fileUrl;
   };
 
@@ -644,14 +669,14 @@ const UploadPlan = () => {
 
   const handleConfirmationFieldsUpdate = (updates: {
     houseType?: "bungalow" | "mansionate";
-    blockWidth?: string;
+    foundationType?: string;
     buildArea?: string;
     groundFloorElevation?: string;
   }) => {
     if (!editablePlan) return;
 
     const getDefaultFoundationType = (houseType: string): string => {
-      return houseType === "bungalow" ? "strip-foundation" : "raft-foundation";
+      return houseType === "bungalow" ? "strip-footing" : "raft-foundation";
     };
 
     const houseType = (updates.houseType ||
@@ -672,13 +697,11 @@ const UploadPlan = () => {
       },
       wallProperties: {
         ...editablePlan.wallProperties,
-        thickness: updates.blockWidth
-          ? parseFloat(updates.blockWidth) / 1000
-          : editablePlan.wallProperties?.thickness || 0.2,
       },
       foundationDetails: {
         ...editablePlan.foundationDetails,
-        foundationType: getDefaultFoundationType(houseType),
+        foundationType:
+          updates.foundationType || getDefaultFoundationType(houseType),
         groundFloorElevation: updates.groundFloorElevation
           ? parseFloat(updates.groundFloorElevation)
           : editablePlan.foundationDetails?.groundFloorElevation || 0,
@@ -766,66 +789,6 @@ const UploadPlan = () => {
   };
 
   if (!user) navigate("/auth");
-
-  if (profile?.tier === "Free") {
-    const getTierBadge = (tier: string) => {
-      switch (tier) {
-        case "Free":
-          return (
-            <Badge className="bg-green-100 text-green-800">
-              <Shell className="w-3 h-3 mr-1" />
-              Free
-            </Badge>
-          );
-        case "Professional":
-          return (
-            <Badge className="bg-purple-100 text-purple-800 ">
-              <Shield className="w-3 h-3 mr-1" />
-              Professional
-            </Badge>
-          );
-        case "Enterprise":
-          return (
-            <Badge className="bg-blue-100 text-blue-800">
-              <Crown className="w-3 h-3 mr-1" />
-              Enterprise
-            </Badge>
-          );
-        default:
-          return <Badge>{tier}</Badge>;
-      }
-    };
-
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="max-w-md w-full backdrop-blur-sm bg-white/90 dark:bg-slate-800/90 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 transform hover:scale-105 transition-all duration-300">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg">
-              <Shield className="w-8 h-8" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-              Upgrade Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5 text-center">
-            <p className="text-slate-600 dark:text-slate-300 ">
-              Upgrade to access AI-powered plan parsing and advanced features.
-            </p>
-            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              {getTierBadge(profile.tier)}
-            </div>
-            <Button
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg"
-              onClick={() => navigate("/dashboard")}
-            >
-              <LayoutDashboard className="w-4 h-4 mr-2" />
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen animate-fade-in scrollbar-hide">
@@ -1337,19 +1300,98 @@ const UploadPlan = () => {
                                 </div>
                                 <div>
                                   <Label className="text-sm mb-2 block">
-                                    Block Width (mm)
+                                    Foundation Type
+                                  </Label>
+                                  <Select
+                                    value={
+                                      editablePlan.foundationDetails
+                                        ?.foundationType
+                                    }
+                                    onValueChange={(value) => {
+                                      handleConfirmationFieldsUpdate({
+                                        foundationType: value,
+                                      });
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select foundation type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="strip-footing">
+                                        Strip Foundation
+                                      </SelectItem>
+                                      <SelectItem value="raft-foundation">
+                                        Raft Foundation
+                                      </SelectItem>
+                                      <SelectItem value="pad-foundation">
+                                        Pad Foundation
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label className="text-sm mb-2 block">
+                                    External Wall Thickness (mm)
                                   </Label>
                                   <Input
                                     type="number"
-                                    value={(editablePlan.wallProperties
-                                      ?.thickness
-                                      ? editablePlan.wallProperties.thickness *
-                                        1000
-                                      : 200
-                                    ).toString()}
+                                    value={
+                                      editablePlan.wallSections.find(
+                                        (s) => s.type === "external",
+                                      )?.thickness! * 1000
+                                    }
                                     onChange={(e) => {
-                                      handleConfirmationFieldsUpdate({
-                                        blockWidth: e.target.value,
+                                      setEditablePlan((prev) => {
+                                        if (!prev) return prev;
+                                        const updatedSections =
+                                          prev.wallSections?.map((section) =>
+                                            section.type === "external"
+                                              ? {
+                                                  ...section,
+                                                  thickness:
+                                                    parseFloat(e.target.value) /
+                                                    1000,
+                                                }
+                                              : section,
+                                          ) || [];
+                                        return {
+                                          ...prev,
+                                          wallSections: updatedSections,
+                                        };
+                                      });
+                                    }}
+                                    placeholder="e.g., 200"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="text-sm mb-2 block">
+                                    Internal Wall Thickness (mm)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    value={
+                                      editablePlan.wallSections.find(
+                                        (s) => s.type === "internal",
+                                      )?.thickness! * 1000
+                                    }
+                                    onChange={(e) => {
+                                      setEditablePlan((prev) => {
+                                        if (!prev) return prev;
+                                        const updatedSections =
+                                          prev.wallSections?.map((section) =>
+                                            section.type === "internal"
+                                              ? {
+                                                  ...section,
+                                                  thickness:
+                                                    parseFloat(e.target.value) /
+                                                    1000,
+                                                }
+                                              : section,
+                                          ) || [];
+                                        return {
+                                          ...prev,
+                                          wallSections: updatedSections,
+                                        };
                                       });
                                     }}
                                     placeholder="e.g., 200"
@@ -1375,11 +1417,11 @@ const UploadPlan = () => {
                                 </div>
                                 <div>
                                   <Label className="text-sm mb-2 block">
-                                    Ground Floor Elevation (m)
+                                    Ground Floor Elevation (mm)
                                   </Label>
                                   <Input
                                     type="number"
-                                    step="0.1"
+                                    step="50"
                                     value={
                                       editablePlan.foundationDetails
                                         ?.groundFloorElevation || ""
@@ -1389,7 +1431,7 @@ const UploadPlan = () => {
                                         groundFloorElevation: e.target.value,
                                       });
                                     }}
-                                    placeholder="e.g., 0.9"
+                                    placeholder="e.g., 150"
                                   />
                                 </div>
                               </div>

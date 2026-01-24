@@ -65,7 +65,7 @@ export default function PaymentOptionsSection() {
     <>
       <motion.section
         id="payment-options"
-        className="py-20 px-6 bg-[#f9fafb] font-engineering text-[#333] border-t border-gray-200"
+        className="py-20 px-6 bg-[#f9fafb] font-engineering text-[#333]"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}

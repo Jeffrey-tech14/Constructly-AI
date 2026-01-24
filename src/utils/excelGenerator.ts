@@ -2,6 +2,8 @@
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import * as XLSX from "xlsx";
+import { WorkItem } from "@/services/geminiService";
+
 interface ExcelExportOptions {
   quote: any;
   isClientExport?: boolean;
@@ -68,7 +70,7 @@ export const generateQuoteExcel = async ({
     summaryData.push(
       ["Overhead", quote.overhead_amount],
       ["Contingency", quote.contingency_amount],
-      ["Profit", quote.profit_amount]
+      ["Profit", quote.profit_amount],
     );
   } else {
     summaryData.push(["Profit", "Included in total"]);
@@ -117,8 +119,93 @@ export const generateQuoteExcel = async ({
     });
   }
   if (!isClientExport) {
+    const workItems = quote.workItems;
     const materials = extractMaterialsFromQuote(quote);
-    if (materials && materials.length > 0) {
+
+    // If work items exist, export hierarchical structure
+    if (workItems && workItems.length > 0) {
+      const materialsData = [
+        ["MATERIALS SCHEDULE - BY WORK ITEMS"],
+        [
+          "Work Item #",
+          "Work Description",
+          "Material Description",
+          "Unit",
+          "Quantity",
+          "Rate",
+          "Amount",
+        ],
+      ];
+
+      let workItemsTotal = 0;
+
+      workItems.forEach((workItem: WorkItem, wiIndex: number) => {
+        const wiNumber = `WI-${String(wiIndex + 1).padStart(3, "0")}`;
+        const materials = workItem.materials || [];
+
+        materials.forEach((material: any, materialIndex: number) => {
+          materialsData.push([
+            materialIndex === 0 ? wiNumber : "", // Only show WI number for first material
+            materialIndex === 0 ? workItem.workDescription : "",
+            material.description,
+            material.unit,
+            formatQuantity(material.quantity),
+            formatCurrency(material.rate),
+            formatCurrency(material.amount),
+          ]);
+        });
+
+        // Work item subtotal
+        materialsData.push([
+          "",
+          `Subtotal - ${workItem.workDescription}`,
+          "",
+          "",
+          "",
+          "",
+          formatCurrency(workItem.subtotal || 0),
+        ]);
+
+        workItemsTotal += workItem.subtotal || 0;
+      });
+
+      // Contingency
+      const contingency = workItemsTotal * 0.05;
+      const grandTotal = workItemsTotal + contingency;
+
+      materialsData.push(["", "", "", "", "", "", ""]);
+      materialsData.push([
+        "",
+        "Contingency (5%)",
+        "",
+        "",
+        "",
+        "",
+        formatCurrency(contingency),
+      ]);
+      materialsData.push([
+        "",
+        "GRAND TOTAL (inc. Contingency)",
+        "",
+        "",
+        "",
+        "",
+        formatCurrency(grandTotal),
+      ]);
+
+      const materialsWs = XLSX.utils.aoa_to_sheet(materialsData);
+      (materialsWs as any)["!cols"] = [
+        { wch: 12 },
+        { wch: 30 },
+        { wch: 35 },
+        { wch: 10 },
+        { wch: 12 },
+        { wch: 14 },
+        { wch: 16 },
+      ];
+      XLSX.utils.book_append_sheet(wb, materialsWs, "Materials");
+    } else if (materials && materials.length > 0) {
+      // Fallback to flat materials
       const materialsData = [
         ["MATERIALS SCHEDULE"],
         ["Item", "Description", "Unit", "Quantity", "Rate", "Amount"],
@@ -135,7 +222,7 @@ export const generateQuoteExcel = async ({
       });
       const materialsTotal = materials.reduce(
         (sum: number, m: any) => sum + m.amount,
-        0
+        0,
       );
       materialsData.push([
         "",

@@ -15,37 +15,34 @@ interface PageSectionsProps {
   scrollTo: (id: string) => void; // ✅ Required for scroll functionality
 }
 
-export const PageSections = ({ 
-  tiers, 
-  tiersLoading, 
+export const PageSections = ({
+  tiers,
+  tiersLoading,
   tiersError,
-  scrollTo // ✅ Destructured
+  scrollTo, // ✅ Destructured
 }: PageSectionsProps) => {
   return (
     <>
       {/* ✅ Pass scrollTo to WhoItsForSection so its buttons work */}
       <WhoItsForSection scrollTo={scrollTo} />
-      
+
       {/* HowItWorks is a scroll target (id="how-it-works"), no prop needed */}
       <HowItWorks />
-      
+
       {/* ✅ Pass scrollTo to FeaturesSection for its buttons */}
       <FeaturesSection scrollTo={scrollTo} />
-      
+
       <PricingSection
         tiers={tiers}
         tiersLoading={tiersLoading}
         tiersError={tiersError}
       />
-      
+
       <PaymentOptionsSection />
       <TestimonialsSection />
-      
+
       {/* FaqSection should have id="faq" — assumed correct */}
       <FaqSection />
-      
-      {/* ✅ Pass scrollTo to CTABanner so button scrolls to #contact */}
-      <CTABanner scrollTo={scrollTo} />
     </>
   );
 };

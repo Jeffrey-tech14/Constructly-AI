@@ -271,31 +271,19 @@ const Dashboard = () => {
           onValueChange={setActiveTab}
           className="animate-fade-in mt-5"
         >
-          <TabsList
-            className={`grid w-full ${
-              profile.tier === "Enterprise"
-                ? "grid-cols-3"
-                : profile.tier === "Free"
-                  ? "grid-cols-1"
-                  : "grid-cols-2"
-            } mb-6`}
-          >
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="overview" className="flex items-center">
               <BarChart className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
-            {profile.tier === "Enterprise" && (
-              <TabsTrigger value="reports" className="flex items-center">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Reports
-              </TabsTrigger>
-            )}
-            {profile.tier !== "Free" && (
-              <TabsTrigger value="calendar" className="flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                Calendar
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="report" className="flex items-center">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Reports
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center">
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              Calendar
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 animate-fade-in">
@@ -327,15 +315,13 @@ const Dashboard = () => {
                             </p>
                           </div>
                           <div className="flex">
-                            {profile.tier !== "Free" && (
-                              <Badge className={getStatusColor(quote.status)}>
-                                {quote.status.charAt(0).toUpperCase() +
-                                  quote.status.slice(1).replace("_", " ")}
-                              </Badge>
-                            )}
+                            <Badge className={getStatusColor(quote.status)}>
+                              {quote.status.charAt(0).toUpperCase() +
+                                quote.status.slice(1).replace("_", " ")}
+                            </Badge>
                             <Button
                               className="ml-3 bg-primary hover:bg-primary/90 hover:text-white text-white hover:dark:bg-primary/60 dark:bg-primary/20"
-                              onClick={() => navigate("/quotes/all")}
+                              onClick={() => navigate(`/quotes/${quote.id}`)}
                               variant="outline"
                               size="sm"
                             >
@@ -360,48 +346,43 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <div>
-                {profile.tier !== "Free" && (
-                  <div className="space-y-6 mb-5">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Clock className="w-5 h-5 mr-2" />
-                          Upcoming Events
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {dashboardData.upcomingEvents.length > 0 ? (
-                          <div className="space-y-3">
-                            {dashboardData.upcomingEvents.map((event) => (
-                              <div
-                                key={event.id}
-                                className="p-3 border-t dark:border-white/20 rounded"
-                              >
-                                <div className="font-medium text-sm">
-                                  {event.title}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {format(
-                                    new Date(event.event_date),
-                                    "MMM d, yyyy",
-                                  )}
-                                  {event.event_time &&
-                                    ` at ${event.event_time}`}
-                                </div>
-                              </div>
-                            ))}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Clock className="w-5 h-5 mr-2" />
+                      Upcoming Events
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {dashboardData.upcomingEvents.length > 0 ? (
+                      <div className="space-y-3">
+                        {dashboardData.upcomingEvents.map((event) => (
+                          <div
+                            key={event.id}
+                            className="p-3 border-t dark:border-white/20 rounded"
+                          >
+                            <div className="font-medium text-sm">
+                              {event.title}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {format(
+                                new Date(event.event_date),
+                                "MMM d, yyyy",
+                              )}
+                              {event.event_time && ` at ${event.event_time}`}
+                            </div>
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            No upcoming events
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-                {/* Quick Actions */}
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No upcoming events
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
                     <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
@@ -447,16 +428,13 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
-          {profile.tier === "Enterprise" && (
-            <TabsContent value="reports">
-              <Reports />
-            </TabsContent>
-          )}
-          {profile.tier !== "Free" && (
-            <TabsContent value="calendar">
-              <Calendar />
-            </TabsContent>
-          )}
+          <TabsContent value="report">
+            <Reports />
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <Calendar />
+          </TabsContent>
         </Tabs>
 
         <Calculator

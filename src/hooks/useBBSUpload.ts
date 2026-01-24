@@ -31,27 +31,39 @@ export const useBBSUpload = () => {
     try {
       const fileExt = file.name.split(".").pop();
       const uniqueName = `${uuidv4()}.${fileExt}`;
+
+
       const { data, error } = await supabase.storage
         .from("bbs")
         .upload(uniqueName, file, {
           cacheControl: "3600",
           upsert: false,
         });
-      if (error) throw error;
+
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
+      }
+
+
       const { data: publicUrlData } = supabase.storage
         .from("bbs")
         .getPublicUrl(uniqueName);
+
       const publicUrl = publicUrlData.publicUrl;
+      
       toast({
         title: "BBS Uploaded",
         description: "Bar Bending Schedule file uploaded successfully",
       });
+
       return publicUrl;
     } catch (error) {
       console.error("Error uploading BBS:", error);
       toast({
         title: "Upload Error",
-        description: "Failed to upload BBS file",
+        description:
+          error instanceof Error ? error.message : "Failed to upload BBS file",
         variant: "destructive",
       });
       return null;

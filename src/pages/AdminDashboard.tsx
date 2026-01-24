@@ -23,7 +23,6 @@ import {
   EquipmentTypesDialog,
 } from "@/components/AdminConfigDialogs";
 import QuotesTab from "../components/QuotesTab";
-import TiersTab from "../components/TiersTab";
 import {
   BarChart,
   Bar,
@@ -32,9 +31,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 import {
   Users,
@@ -71,13 +67,11 @@ interface UserProfile {
   id: string;
   name: string;
   email: string;
-  tier: string;
-  quotes_used: number;
-  total_projects: number;
-  total_revenue: number;
   created_at: string;
   is_admin: boolean;
   avatar_url: string;
+  quotes_used?: number;
+  total_projects?: number;
 }
 
 interface DashboardStats {
@@ -85,7 +79,8 @@ interface DashboardStats {
   totalRevenue: number;
   totalQuotes: number;
   activeProjects: number;
-  subscriptionRevenue: number;
+  paidQuotesRevenue: number;
+  totalPaidQuotes: number;
 }
 
 const AdminDashboard = () => {
@@ -100,11 +95,11 @@ const AdminDashboard = () => {
     totalRevenue: 0,
     totalQuotes: 0,
     activeProjects: 0,
-    subscriptionRevenue: 0,
+    paidQuotesRevenue: 0,
+    totalPaidQuotes: 0,
   });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTier, setSelectedTier] = useState("all");
   const [refreshKey, setRefreshKey] = useState(0);
 
   const triggerRefresh = () => setRefreshKey((prev) => prev + 1);
@@ -118,7 +113,7 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [usersRes, quotesRes, tiersRes] = await Promise.all([
+      const [usersRes, quotesRes, paymentsRes] = await Promise.all([
         supabase
           .from("profiles")
           .select("*")
@@ -127,42 +122,54 @@ const AdminDashboard = () => {
           .from("quotes")
           .select("*")
           .order("created_at", { ascending: false }),
-        supabase.from("tiers").select("name, price"),
+        supabase
+          .from("quote_payments")
+          .select("*")
+          .eq("payment_status", "completed"),
       ]);
 
       const usersData = usersRes.data || [];
       const quotesData = quotesRes.data || [];
-      const tiersData = tiersRes.data || [];
+      const paymentsData = paymentsRes.data || [];
 
-      const tierPrices = tiersData.reduce((acc, tier) => {
-        acc[tier.name] = tier.price;
-        return acc;
-      }, {} as Record<string, number>);
+      // Calculate per-user quote and project stats
+      const usersWithStats = usersData.map((user) => {
+        const userQuotes = quotesData.filter((q) => q.user_id === user.id);
+        const userProjects = userQuotes.filter((q) =>
+          ["started", "in_progress"].includes(q.status),
+        );
 
-      const totalUsers = usersData.length;
+        return {
+          ...user,
+          quotes_used: userQuotes.length,
+          total_projects: userProjects.length,
+        };
+      });
+
+      const totalUsers = usersWithStats.length;
       const activeQuotes = quotesData.filter((q) => q.status !== "draft");
       const totalRevenue = activeQuotes.reduce(
         (sum, quote) => sum + (quote.profit_amount || 0),
-        0
+        0,
       );
       const totalQuotes = quotesData.length;
       const activeProjects = quotesData.filter((q) =>
-        ["started", "in_progress"].includes(q.status)
+        ["started", "in_progress"].includes(q.status),
       ).length;
 
-      const subscriptionRevenue = usersData.reduce((sum, user) => {
-        const tier = user.tier || "Free";
-        return sum + (tierPrices[tier] || 0);
-      }, 0);
+      // Paid quotes revenue: 1000 KSH per paid quote
+      const totalPaidQuotes = paymentsData.length;
+      const paidQuotesRevenue = totalPaidQuotes * 1000;
 
-      setUsers(usersData);
+      setUsers(usersWithStats);
       setQuotes(quotesData);
       setStats({
         totalUsers,
         totalRevenue,
         totalQuotes,
         activeProjects,
-        subscriptionRevenue,
+        paidQuotesRevenue,
+        totalPaidQuotes,
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -179,7 +186,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchDashboardData();
 
-    // 🔥 Real-time subscriptions for profiles, quotes, and tiers
+    // 🔥 Real-time subscriptions for profiles, quotes, and payments
     const profilesChannel = supabase
       .channel("profiles-changes")
       .on(
@@ -187,7 +194,7 @@ const AdminDashboard = () => {
         { event: "*", schema: "public", table: "profiles" },
         (payload) => {
           fetchDashboardData();
-        }
+        },
       )
       .subscribe();
 
@@ -198,54 +205,27 @@ const AdminDashboard = () => {
         { event: "*", schema: "public", table: "quotes" },
         (payload) => {
           fetchDashboardData();
-        }
+        },
       )
       .subscribe();
 
-    const tiersChannel = supabase
-      .channel("tiers-changes")
+    const paymentsChannel = supabase
+      .channel("payments-changes")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tiers" },
+        { event: "*", schema: "public", table: "quote_payments" },
         (payload) => {
           fetchDashboardData();
-        }
+        },
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(quotesChannel);
-      supabase.removeChannel(tiersChannel);
+      supabase.removeChannel(paymentsChannel);
     };
   }, []);
-
-  const updateUserTier = async (userId: string, newTier: string) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ tier: newTier })
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, tier: newTier } : u))
-      );
-      triggerRefresh();
-      fetchDashboardData();
-      toast({
-        title: "Success",
-        description: "User tier updated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update user tier",
-        variant: "destructive",
-      });
-    }
-  };
 
   const toggleAdminStatus = async (userId: string, isAdmin: boolean) => {
     try {
@@ -257,7 +237,7 @@ const AdminDashboard = () => {
       if (error) throw error;
 
       setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, is_admin: !isAdmin } : u))
+        prev.map((u) => (u.id === userId ? { ...u, is_admin: !isAdmin } : u)),
       );
       triggerRefresh();
       fetchDashboardData();
@@ -276,9 +256,8 @@ const AdminDashboard = () => {
 
   const filteredUsers = users.filter(
     (user) =>
-      (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (selectedTier === "all" || user.tier.toLowerCase() === selectedTier)
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Chart data
@@ -313,16 +292,6 @@ const AdminDashboard = () => {
     }
   });
 
-  const tierData = users.reduce((acc, user) => {
-    const existing = acc.find((item) => item.name === user.tier);
-    if (existing) {
-      existing.value += 1;
-    } else {
-      acc.push({ name: user.tier, value: 1 });
-    }
-    return acc;
-  }, [] as any[]);
-
   const formatCurrency = (value: number) => {
     if (value >= 1_000_000) {
       return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
@@ -336,34 +305,6 @@ const AdminDashboard = () => {
   if (!user) {
     navigate("/auth");
   }
-
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case "Free":
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            <Shell className="w-3 h-3 mr-1" />
-            Free
-          </Badge>
-        );
-      case "Professional":
-        return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 ">
-            <Shield className="w-3 h-3 mr-1" />
-            Professional
-          </Badge>
-        );
-      case "Enterprise":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <Crown className="w-3 h-3 mr-1" />
-            Enterprise
-          </Badge>
-        );
-      default:
-        return <Badge>{tier}</Badge>;
-    }
-  };
 
   if (!profile?.is_admin) {
     return (
@@ -439,16 +380,16 @@ const AdminDashboard = () => {
           <Card className="gradient-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Subscription Revenue
+                Paid Quotes Revenue
               </CardTitle>
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="sm:text-2xl text-lg font-bold">
-                KSh {formatCurrency(stats.subscriptionRevenue)}
+                KSh {formatCurrency(stats.paidQuotesRevenue)}
               </div>
               <p className="text-xs text-muted-foreground">
-                Monthly subscriptions
+                {stats.totalPaidQuotes} completed payments
               </p>
             </CardContent>
           </Card>
@@ -486,11 +427,10 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="system">Settings</TabsTrigger>
             <TabsTrigger value="quotes">Quotes</TabsTrigger>
-            <TabsTrigger value="tiers">Tiers</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -511,17 +451,6 @@ const AdminDashboard = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Select value={selectedTier} onValueChange={setSelectedTier}>
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder="Filter by tier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Tiers</SelectItem>
-                      <SelectItem value="free">Free</SelectItem>
-                      <SelectItem value="enterprise">Enterprise</SelectItem>
-                      <SelectItem value="professional">Professional</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {/* Users Table */}
@@ -579,13 +508,6 @@ const AdminDashboard = () => {
                               </p>
 
                               <div className="flex flex-wrap items-center gap-2 md:gap-4">
-                                <Badge
-                                  variant="secondary"
-                                  className="text-xs md:text-sm bg-transparent text-inherit border-transparent hover:bg-transparent hover:text-inherit hover:border-transparent focus:bg-transparent focus:text-inherit focus:border-transparent active:bg-transparent active:text-inherit active:border-transparent"
-                                >
-                                  {getTierBadge(user.tier)}
-                                </Badge>
-
                                 <span className="text-xs text-muted-foreground">
                                   {user.quotes_used} quotes •{" "}
                                   {user.total_projects} projects
@@ -596,37 +518,6 @@ const AdminDashboard = () => {
 
                           {/* Actions Section */}
                           <div className="flex items-center justify-start ml-5 md:justify-normal space-x-2">
-                            <Select
-                              value={user.tier}
-                              onValueChange={(value) =>
-                                updateUserTier(user.id, value)
-                              }
-                            >
-                              <SelectTrigger className=" md:w-32 text-xs md:text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem
-                                  value="Free"
-                                  className="text-xs md:text-sm"
-                                >
-                                  Free
-                                </SelectItem>
-                                <SelectItem
-                                  value="Professional"
-                                  className="text-xs md:text-sm"
-                                >
-                                  Professional
-                                </SelectItem>
-                                <SelectItem
-                                  value="Enterprise"
-                                  className="text-xs md:text-sm"
-                                >
-                                  Enterprise
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -658,10 +549,6 @@ const AdminDashboard = () => {
                                     </>
                                   )}
                                 </DropdownMenuItem>
-                                {/* <DropdownMenuItem className="text-red-600">
-                                <Ban className="w-4 h-4 mr-2" />
-                                Suspend User
-                              </DropdownMenuItem> */}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -725,10 +612,6 @@ const AdminDashboard = () => {
             <QuotesTab refreshKey={refreshKey} />
           </TabsContent>
 
-          <TabsContent value="tiers" className="space-y-6">
-            <TiersTab refreshKey={refreshKey} />
-          </TabsContent>
-
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {quotes.length > 0 && (
@@ -761,38 +644,6 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               )}
-
-              <Card className="gradient-card">
-                <CardHeader>
-                  <CardTitle>User Tier Distribution</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={tierData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {tierData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={
-                              ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"][
-                                index % 4
-                              ]
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>

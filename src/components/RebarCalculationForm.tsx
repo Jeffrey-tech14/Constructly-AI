@@ -697,15 +697,7 @@ export default function RebarCalculatorForm({
     if (!same) {
       setQuote((prev: any) => ({ ...prev, rebar_materials: nextItems }));
     }
-  }, [
-    results,
-    totals,
-    bbsRowsState,
-    prices.rebarPrices,
-    setQuote,
-    quote?.rebar_materials,
-  ]);
-
+  }, [results, totals, bbsRowsState, prices, setQuote, quote?.rebar_materials]);
   /**
    * Sync rebar_calculations from results whenever calculations change
    * This ensures calculations are up-to-date when rows are added/deleted/modified
@@ -731,7 +723,10 @@ export default function RebarCalculatorForm({
     const same =
       JSON.stringify(currCalculations) === JSON.stringify(nextCalculations);
     if (!same) {
-      setQuote((prev: any) => ({ ...prev, rebar_calculations: nextCalculations }));
+      setQuote((prev: any) => ({
+        ...prev,
+        rebar_calculations: nextCalculations,
+      }));
     }
   }, [results, setQuote, quote?.rebar_calculations]);
 

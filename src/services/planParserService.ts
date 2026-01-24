@@ -613,15 +613,51 @@ ${
 - Do not assume any dimensions, only extract what is visible on the drawings
 - Make sure you get the correct areas for the finishes, eg painting area should be wall area minus openings area (doors and windows)
 
-### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS: 
+### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS:
+
+**FOUNDATION MEASUREMENT DEFINITIONS (CRITICAL):**
+- **Excavation Depth**: The depth being dug into the ground, measured from ground level to the bottom of the foundation trench (depth of the hole).
+- **Foundation Height**: Measured from the very bottom of the foundation trench to the very top of the ground floor slab. This is the TOTAL foundation dimension (from bottom to top of slab).
+- **Strip Footing Height**: The height of the strip footing element itself (NOT the total depth from excavation). This is just the footing component.
+- **Foundation Wall Height**: Calculated as = Foundation Height - Strip Footing Height + Elevation - Ground Floor Slab Thickness. This is the height of the foundation wall/plinth only.
+- **Ground Floor Slab Thickness**: The thickness of the ground floor slab (typically 0.15m).
+
+**FOUNDATION TYPE SELECTION:**
+- User will select from: "strip-footing", "raft-foundation", or "pad-foundation"
+- Extract which type is visible in the drawings
+
+**FOUNDATION WALL/PLINTH (Now separate from other concrete):**
+- This is a CONCRETE element (concreteStructures) named "Foundation Wall" or "Plinth Wall"
+- Element type: "foundation-wall" (or map to appropriate concrete element type)
+- Material used: identify the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone)
+- Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m)
+- Extract the **MASONRY WALL HEIGHT** (foundation wall height as calculated above)
+- Include corresponding REINFORCEMENT entry for foundation wall
+
+**WALL THICKNESS DISTINCTION:**
+- External walls: measure thickness separately from internal walls
+- Internal walls: measure thickness separately from external walls
+- Display both in results, not combined
+
 # - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 
-# - Identify the specified **FOUNDATION TYPE** (e.g., Strip Footing, Raft). 
 # - All concrete elements will need their reinforcement counterparts extracted as well.
 # - Identify the material used for the foundation wall/plinth level, specifically the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone). 
 # - Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m). 
-# - Extract the approximate **MASONRY WALL HEIGHT** from the top of the footing to the slab level (e.g., 1.0m).
-
-### 📤 OUTPUT REQUIREMENTS:
+# ### 🧱 FOUNDATION WALLING DETAILS:
+Foundation walling refers to the masonry walls built on top of the foundation (above the strip footing or raft). Extract:
+- **Wall Type**: "external" or "internal" (external walls are perimeter walls, internal walls are partition walls)
+- **Block Dimensions**: Standard block sizes in format "LxHxT" (Length x Height x Thickness in meters):
+  - "0.2x0.2x0.2" (Large Block: 200×200×200mm)
+  - "0.15x0.2x0.15" (Standard Block: 150×200×150mm)
+  - "0.1x0.2x0.1" (Small Block: 100×200×100mm)
+  - "0.4x0.2x0.2" (Standard Natural Block: 400×200×200mm)
+- **Block Thickness** (wall thickness in mm): 100, 150, 200, 250, or 300
+- **Wall Length** (meters): Total length of the wall section
+- **Wall Height** (meters): Height from foundation top to slab level
+- **Number of Walls**: Count of identical walls (e.g., 4 external walls may have 2 different lengths)
+- **Mortar Ratio**: Cement to sand ratio - "1:3", "1:4", "1:5", or "1:6"
+- Create separate entries for external and internal walls with different characteristics
+- Use perimeter dimensions and extracted heights for calculation
 Only use the materials specified above strictly.
 Return ONLY valid JSON with this structure. Use reasonable estimates if exact dimensions aren't visible.
 
@@ -736,14 +772,36 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
   "foundationDetails": { 
     "foundationType": "Strip Footing", 
     "totalPerimeter": 50.5, // Total length of all exterior foundation walls in meters 
-    "masonryType": "Standard Block" | "Large Block" | "Small Block", // e.g., "Standard Block", "Rubble Stone" 
     "wallThickness": "0.200", // Thickness of the block/stone wall in meters
     "wallHeight": "1.0", // Height of the block/stone wall in meters 
     "blockDimensions": "0.400 x 0.200 x 0.200" // L x W x H in meters (optional) 
     "height": "1.0" // Depth or height of the foundation
     "length": "5.0" // Length of the foundation
     "width"" "6.0" //Width of the foundation
-  } 
+    "groundFloorElevation": "0.3" // Elevation from ground level to top of slab
+  },
+  "foundationWalling": [
+    {
+      "id": "fwall-external-01",
+      "type": "external",
+      "blockDimensions": "0.2x0.2x0.2",
+      "blockThickness": "200",
+      "wallLength": "12.5",
+      "wallHeight": "1.0",
+      "numberOfWalls": 2,
+      "mortarRatio": "1:4"
+    },
+    {
+      "id": "fwall-internal-01",
+      "type": "internal",
+      "blockDimensions": "0.15x0.2x0.15",
+      "blockThickness": "150",
+      "wallLength": "8.0",
+      "wallHeight": "1.0",
+      "numberOfWalls": 1,
+      "mortarRatio": "1:4"
+    }
+  ], 
   "projectType": "residential" | "commercial" | "industrial" | "institutional",
   "floors": number,
   "totalArea": number,
@@ -1111,7 +1169,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       const parsed = JSON.parse(jsonStr);
 
       // Map Gemini response to ExtractedPlan interface
-      const extractedPlan: ExtractedPlan = {
+      let extractedPlan: ExtractedPlan = {
         ...parsed,
         projectInfo: {
           projectType: parsed.projectType || "residential",
@@ -1121,6 +1179,9 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         },
       };
 
+      // Calculate foundation wall heights from concrete structures
+      extractedPlan = this.calculateFoundationWallHeights(extractedPlan);
+
       return extractedPlan;
     } catch (error) {
       console.error("JSON extraction error:", error);
@@ -1129,6 +1190,113 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
           error instanceof Error ? error.message : "Invalid JSON"
         }`,
       );
+    }
+  }
+
+  /**
+   * Calculate foundation wall heights by:
+   * wallHeight = excavationDepth - stripFootingHeight - groundFloorSlabThickness
+   * Ensures both external and internal walls exist
+   */
+  private calculateFoundationWallHeights(
+    extractedPlan: ExtractedPlan,
+  ): ExtractedPlan {
+    try {
+      // Extract key dimensions from concrete structures
+      const concreteStructures = extractedPlan.concreteStructures || [];
+
+      // Find excavation depth (from foundation details or deepest concrete element)
+      const excavationDepth =
+        parseFloat(extractedPlan.foundationDetails?.height || "0") || 0;
+
+      // Find strip footing height by element type
+      const stripFooting = concreteStructures.find(
+        (c) => c.element?.toLowerCase() === "strip-footing",
+      );
+      const stripFootingHeight = stripFooting
+        ? parseFloat(stripFooting.height || "0")
+        : 0;
+
+      // Find ground floor slab thickness by name
+      const groundFloorSlab = concreteStructures.find(
+        (c) =>
+          c.name?.toLowerCase().includes("ground floor") &&
+          c.name?.toLowerCase().includes("slab"),
+      );
+      const groundFloorSlabThickness = groundFloorSlab
+        ? parseFloat(groundFloorSlab.height || "0.15")
+        : 0.15; // Default 150mm if not found
+
+      // Calculate foundation wall height
+      const calculatedWallHeight =
+        excavationDepth - stripFootingHeight - groundFloorSlabThickness;
+
+      // Get wall lengths from wall dimensions
+      const wallDimensions = extractedPlan?.wallDimensions;
+      const externalWallLength = (
+        wallDimensions?.externalWallPerimiter || "0"
+      ).toString();
+      const internalWallLength = (
+        wallDimensions?.internalWallPerimiter || "0"
+      ).toString();
+
+      // Ensure both external and internal walls exist
+      let foundationWalls = extractedPlan.foundationWalling || [];
+      const hasExternal = foundationWalls.some((w) => w.type === "external");
+      const hasInternal = foundationWalls.some((w) => w.type === "internal");
+
+      // Add missing external wall if not present
+      if (!hasExternal) {
+        foundationWalls.push({
+          id: "fwall-external-default",
+          type: "external",
+          blockType: "Standard Natural Block",
+          blockDimensions: "0.2x0.2x0.2",
+          blockThickness: "200",
+          wallLength: externalWallLength,
+          wallHeight:
+            calculatedWallHeight > 0 ? calculatedWallHeight.toString() : "1.0",
+          numberOfWalls: 1,
+          mortarRatio: "1:4",
+        });
+      }
+
+      // Add missing internal wall if not present
+      if (!hasInternal) {
+        foundationWalls.push({
+          id: "fwall-internal-default",
+          type: "internal",
+          blockType: "Standard Natural Block",
+          blockDimensions: "0.15x0.2x0.15",
+          blockThickness: "150",
+          wallLength: internalWallLength,
+          wallHeight:
+            calculatedWallHeight > 0 ? calculatedWallHeight.toString() : "1.0",
+          numberOfWalls: 1,
+          mortarRatio: "1:4",
+        });
+      }
+
+      // Update foundation walls with calculated height and wall lengths
+      extractedPlan.foundationWalling = foundationWalls.map((wall) => ({
+        ...wall,
+        wallHeight:
+          calculatedWallHeight > 0
+            ? calculatedWallHeight.toString()
+            : wall.wallHeight || "1.0", // Fallback to extracted value if calculation fails
+        wallLength:
+          wall.type === "external"
+            ? externalWallLength
+            : wall.type === "internal"
+              ? internalWallLength
+              : wall.wallLength,
+      }));
+
+      return extractedPlan;
+    } catch (error) {
+      console.error("Foundation wall height calculation error:", error);
+      // Return original plan if calculation fails
+      return extractedPlan;
     }
   }
 }

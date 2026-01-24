@@ -23,7 +23,8 @@ import UploadPlan from "./pages/UploadPage";
 import Auth from "./pages/Auth";
 import UpdatePassword from "./pages/auth/update-password"; // ✅ NEW IMPORT
 import PaymentPage from "./pages/PaymentPage";
-import PaymentAction from "./components/PaymentDialog";
+import QuotePaymentPage from "./pages/QuotePaymentPage";
+import QuoteDetailsPage from "./pages/QuoteDetailsPage";
 
 const queryClient = new QueryClient();
 
@@ -82,10 +83,10 @@ const AppContent = () => {
           />
 
           <Route
-            path="/payments/action"
+            path="/payments/quote"
             element={
               <ProtectedRoute>
-                <PaymentAction />
+                <QuotePaymentPage />
               </ProtectedRoute>
             }
           />
@@ -126,6 +127,14 @@ const AppContent = () => {
             element={
               <ProtectedRoute>
                 <ViewAllQuotes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotes/:quoteId"
+            element={
+              <ProtectedRoute>
+                <QuoteDetailsPage />
               </ProtectedRoute>
             }
           />

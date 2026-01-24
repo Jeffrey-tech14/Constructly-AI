@@ -119,12 +119,6 @@ export interface QuoteCalculation {
     bedDepth: string;
     hasAggregateBed: boolean;
     aggregateDepth: string;
-    hasMasonryWall: boolean;
-    masonryBlockType?: string;
-    masonryBlockDimensions?: string;
-    masonryWallThickness?: string;
-    masonryWallHeight?: string;
-    masonryWallPerimeter?: string;
     foundationType?: string;
     clientProvidesWater: boolean;
     cementWaterRatio: string;
@@ -187,6 +181,16 @@ export interface QuoteCalculation {
   unknown_contingency_percentages: number;
   permit_cost: number;
   foundationDetails: {};
+  foundationWalls?: Array<{
+    id: string;
+    type: "external" | "internal";
+    blockDimensions: string;
+    blockThickness: string;
+    wallLength: string;
+    wallHeight: string;
+    numberOfWalls: number;
+    mortarRatio: string;
+  }>;
   wardrobes_cabinets?: any[];
   paintings_specifications?: any[];
   paintings_totals?: any;
@@ -294,6 +298,7 @@ export const useQuoteCalculations = () => {
       result: custom.price_per_unit * multiplier,
       category: custom.category || "Custom",
       description: custom.description,
+      type: custom.type,
       source: "custom",
     }));
 
@@ -347,6 +352,10 @@ export const useQuoteCalculations = () => {
         ...service,
         price: rate,
         unit: service.unit ?? "unit",
+        name: service.name,
+        subcontractor_payment_plan: "full",
+        total: 0,
+        days: 0,
         source: userRate ? "user" : service.price != null ? "base" : "none",
       };
     });

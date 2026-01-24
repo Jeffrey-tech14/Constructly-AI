@@ -24,6 +24,7 @@ export interface EarthworkItem {
   depth: string;
   volume: string;
   material: string;
+  cost?: number; // Total cost for this item
   // Area selection fields - choose between direct area input or length x width
   areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
   area?: string; // Direct area input (m²) when using DIRECT_AREA mode
@@ -133,61 +134,67 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
         console.log(quote.total_area);
 
         // Create internal wall foundation excavation item
+        const internalVolume = calculateVolume(
+          dims.internalWallPerimiter.toString(),
+          (wallThickness * 3).toString(),
+          excavationDepth.toString(),
+          undefined,
+          "LENGTH_WIDTH",
+          "foundation-excavation",
+        );
         const internalItem: EarthworkItem = {
           id: `earthwork-internal-${Date.now()}`,
           type: "foundation-excavation",
           length: dims.internalWallPerimiter.toString(),
           width: (wallThickness * 3).toString(),
           depth: excavationDepth.toString(),
-          volume: calculateVolume(
-            dims.internalWallPerimiter.toString(),
-            (wallThickness * 3).toString(),
-            excavationDepth.toString(),
-            undefined,
-            "LENGTH_WIDTH",
-            "foundation-excavation",
-          ),
+          volume: internalVolume,
           material: "soil",
+          cost: parseFloat(internalVolume) * getEarthworkRate(),
           foundationType: "strip_footing",
           wallLocation: "internal",
         };
 
         // Create external wall foundation excavation item
+        const externalVolume = calculateVolume(
+          dims.externalWallPerimiter.toString(),
+          (wallThickness * 3).toString(),
+          excavationDepth.toString(),
+          undefined,
+          "LENGTH_WIDTH",
+          "foundation-excavation",
+        );
         const externalItem: EarthworkItem = {
           id: `earthwork-external-${Date.now() + 1}`,
           type: "foundation-excavation",
           length: dims.externalWallPerimiter.toString(),
           width: (wallThickness * 3).toString(),
           depth: excavationDepth.toString(),
-          volume: calculateVolume(
-            dims.externalWallPerimiter.toString(),
-            (wallThickness * 3).toString(),
-            excavationDepth.toString(),
-            undefined,
-            "LENGTH_WIDTH",
-            "foundation-excavation",
-          ),
+          volume: externalVolume,
           material: "soil",
+          cost: parseFloat(externalVolume) * getEarthworkRate(),
           foundationType: "strip_footing",
           wallLocation: "external",
         };
 
         // Create topsoil excavation item for total area at 200mm depth
+        const topsoilVolume = calculateVolume(
+          "0",
+          "0",
+          "0.2",
+          quote.total_area?.toString(),
+          "DIRECT_AREA",
+          "topsoil-removal",
+        );
         const topsoilItem: EarthworkItem = {
           id: `earthwork-topsoil-${Date.now() + 2}`,
           type: "topsoil-removal",
           length: "0",
           width: "0",
           depth: "0.2",
-          volume: calculateVolume(
-            "0",
-            "0",
-            "0.2",
-            quote.total_area?.toString(),
-            "DIRECT_AREA",
-            "topsoil-removal",
-          ),
+          volume: topsoilVolume,
           material: "soil",
+          cost: parseFloat(topsoilVolume) * getEarthworkRate(),
           area: quote.total_area?.toString(),
           areaSelectionMode: "DIRECT_AREA",
           foundationType: "general",
@@ -247,6 +254,9 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
               field === "areaSelectionMode" ? value : item.areaSelectionMode,
               field === "type" ? value : item.type,
             );
+            // Update cost when volume changes
+            updatedItem.cost =
+              parseFloat(updatedItem.volume) * getEarthworkRate();
           }
 
           return updatedItem;
@@ -266,6 +276,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       depth: "0.65",
       volume: "0",
       material: "soil",
+      cost: 0,
       foundationType: "general",
       wallLocation: "external",
     };
@@ -600,13 +611,10 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                     <Input
                       id={`total-${earthwork.id}`}
                       type="text"
-                      value={calculatePrice(earthwork).toLocaleString(
-                        undefined,
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        },
-                      )}
+                      value={(earthwork.cost || 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                       readOnly
                       className="bg-gray-100 dark:bg-gray-600 font-medium text-green-600 dark:text-green-400"
                     />
@@ -622,7 +630,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                       maximumFractionDigits: 2,
                     })}
                     /m³ = KES{" "}
-                    {calculatePrice(earthwork).toLocaleString(undefined, {
+                    {(earthwork.cost || 0).toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
@@ -662,10 +670,12 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                 <div className="text-right">
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     KES{" "}
-                    {calculateTotalPrice().toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {earthworks
+                      .reduce((total, item) => total + (item.cost || 0), 0)
+                      .toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                   </p>
                 </div>
               </div>

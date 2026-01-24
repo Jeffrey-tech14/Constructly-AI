@@ -25,6 +25,8 @@ import {
   Packer,
 } from "docx";
 import { saveAs } from "file-saver";
+import { WorkItem } from "@/services/geminiService";
+
 interface DOCXExportOptions {
   quote: any;
   projectInfo: any;
@@ -251,7 +253,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
             ],
           }),
         ],
-      })
+      }),
     );
   }
   if (projectInfo.region) {
@@ -284,7 +286,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
             ],
           }),
         ],
-      })
+      }),
     );
   }
   if (projectInfo.floors) {
@@ -317,7 +319,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
             ],
           }),
         ],
-      })
+      }),
     );
   }
   if (projectInfo.consultant) {
@@ -350,7 +352,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
             ],
           }),
         ],
-      })
+      }),
     );
   }
   if (projectInfo.contractor) {
@@ -383,7 +385,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
             ],
           }),
         ],
-      })
+      }),
     );
   }
   rows.push(
@@ -415,7 +417,7 @@ const createProjectInfoSection = (projectInfo: any): Table => {
           ],
         }),
       ],
-    })
+    }),
   );
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -644,12 +646,12 @@ const createMaterialsScheduleTable = (materials: any[]): Table => {
             ],
           }),
         ],
-      })
+      }),
     );
   });
   const totalAmount = materials.reduce(
     (sum, material) => sum + (material.amount || 0),
-    0
+    0,
   );
   rows.push(
     new TableRow({
@@ -673,7 +675,7 @@ const createMaterialsScheduleTable = (materials: any[]): Table => {
           shading: { fill: "F3F4F6" },
         }),
       ],
-    })
+    }),
   );
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -686,6 +688,359 @@ const createMaterialsScheduleTable = (materials: any[]): Table => {
     rows,
   });
 };
+
+const createHierarchicalMaterialsScheduleTable = (
+  workItems: WorkItem[],
+): Table => {
+  if (!workItems || workItems.length === 0) {
+    return new Table({
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "No materials data available",
+                      bold: true,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+
+  const rows: TableRow[] = [
+    // Master header
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "ITEM",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 5, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "DESCRIPTION",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+            }),
+          ],
+          width: { size: 30, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "UNIT",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 12, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "QTY",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "RATE (KSh)",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 13, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "AMOUNT (KSh)",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 13, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+      ],
+    }),
+  ];
+
+  let workItemsTotal = 0;
+
+  // Add work items
+  workItems.forEach((workItem, wiIndex) => {
+    const wiNumber = `WI-${String(wiIndex + 1).padStart(3, "0")}`;
+
+    // Work item header row
+    rows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: wiNumber,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            columnSpan: 2,
+            shading: { fill: "F3F4F6" },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: workItem.workDescription,
+                    bold: true,
+                  }),
+                ],
+              }),
+            ],
+            columnSpan: 4,
+            shading: { fill: "F3F4F6" },
+          }),
+        ],
+      }),
+    );
+
+    // Materials for this work item
+    (workItem.materials || []).forEach((material, materialIndex) => {
+      rows.push(
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: String(materialIndex + 1),
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: material.description || "",
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: material.unit || "",
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: formatQuantity(material.quantity),
+                    }),
+                  ],
+                  alignment: AlignmentType.CENTER,
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: formatCurrency(material.rate),
+                    }),
+                  ],
+                  alignment: AlignmentType.RIGHT,
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: formatCurrency(
+                        material.amount || material.quantity * material.rate,
+                      ),
+                    }),
+                  ],
+                  alignment: AlignmentType.RIGHT,
+                }),
+              ],
+            }),
+          ],
+        }),
+      );
+    });
+
+    // Work item subtotal
+    const subtotal = workItem.subtotal || 0;
+    workItemsTotal += subtotal;
+
+    rows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({ text: "" })],
+            columnSpan: 5,
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `Subtotal: ${formatCurrency(subtotal)}`,
+                    bold: true,
+                  }),
+                ],
+                alignment: AlignmentType.RIGHT,
+              }),
+            ],
+            shading: { fill: "F3F4F6" },
+          }),
+        ],
+      }),
+    );
+  });
+
+  // Contingency (5%)
+  const contingency = workItemsTotal * 0.05;
+  const grandTotal = workItemsTotal + contingency;
+
+  rows.push(
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: "" })],
+          columnSpan: 5,
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `Contingency (5%): ${formatCurrency(contingency)}`,
+                  bold: true,
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+            }),
+          ],
+          shading: { fill: "F3F4F6" },
+        }),
+      ],
+    }),
+  );
+
+  // Grand total
+  rows.push(
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: "" })],
+          columnSpan: 5,
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `GRAND TOTAL: ${formatCurrency(grandTotal)}`,
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+            }),
+          ],
+          shading: { fill: "1E40AF" },
+        }),
+      ],
+    }),
+  );
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+    },
+    rows,
+  });
+};
+
 let preliminariesTotal = 0;
 const createPreliminariesTable = (preliminariesData: any[]): Table => {
   if (!preliminariesData || preliminariesData.length === 0) {
@@ -788,7 +1143,7 @@ const createPreliminariesTable = (preliminariesData: any[]): Table => {
                   shading: { fill: "F3F4F6" },
                 }),
               ],
-            })
+            }),
           );
         } else {
           preliminariesTotal += item.amount || 0;
@@ -831,7 +1186,7 @@ const createPreliminariesTable = (preliminariesData: any[]): Table => {
                   ],
                 }),
               ],
-            })
+            }),
           );
         }
       });
@@ -850,7 +1205,7 @@ const createPreliminariesTable = (preliminariesData: any[]): Table => {
               children: [
                 new TextRun({
                   text: `TOTAL FOR PRELIMINARIES: ${formatCurrency(
-                    preliminariesTotal
+                    preliminariesTotal,
                   )}`,
                   bold: true,
                 }),
@@ -861,7 +1216,7 @@ const createPreliminariesTable = (preliminariesData: any[]): Table => {
           shading: { fill: "F3F4F6" },
         }),
       ],
-    })
+    }),
   );
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1021,7 +1376,7 @@ const createBOQTable = (section: any): Table => {
               shading: { fill: "F3F4F6" },
             }),
           ],
-        })
+        }),
       );
     } else {
       rows.push(
@@ -1099,7 +1454,7 @@ const createBOQTable = (section: any): Table => {
               ],
             }),
           ],
-        })
+        }),
       );
     }
   });
@@ -1130,7 +1485,7 @@ const createBOQTable = (section: any): Table => {
           shading: { fill: "F3F4F6" },
         }),
       ],
-    })
+    }),
   );
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1145,7 +1500,7 @@ const createBOQTable = (section: any): Table => {
 };
 const createCostBreakdownTable = (
   quote: any,
-  isClientExport: boolean
+  isClientExport: boolean,
 ): Table => {
   const rows: TableRow[] = [
     new TableRow({
@@ -1523,7 +1878,7 @@ const createCostBreakdownTable = (
             ],
           }),
         ],
-      })
+      }),
     );
   }
   rows.push(
@@ -1559,7 +1914,7 @@ const createCostBreakdownTable = (
           ],
         }),
       ],
-    })
+    }),
   );
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1606,11 +1961,12 @@ export const generateQuoteDOCX = async ({
   isClientExport = false,
 }: DOCXExportOptions) => {
   const materials = extractMaterialsFromQuote(quote);
+  const workItems = quote.workItems;
   const boqData = quote.boq_data || [];
   const preliminariesData = quote.preliminaries || [];
   const nonEmptySections = boqData.filter(
     (section: any) =>
-      section.items && Array.isArray(section.items) && section.items.length > 0
+      section.items && Array.isArray(section.items) && section.items.length > 0,
   );
   const doc = new Document({
     styles: {
@@ -1730,7 +2086,9 @@ export const generateQuoteDOCX = async ({
             children: [new PageBreak()],
           }),
           createSectionTitle("MATERIALS SCHEDULE"),
-          createMaterialsScheduleTable(materials),
+          workItems && workItems.length > 0
+            ? createHierarchicalMaterialsScheduleTable(workItems)
+            : createMaterialsScheduleTable(materials),
           new Paragraph({
             children: [new PageBreak()],
           }),

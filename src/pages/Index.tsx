@@ -4,17 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Hero from "@/components/Hero";
-import { PageSections } from "@/components/PageSections";
-import PageFooter from "@/components/PageFooter";
+import WhoItsForSection from "@/components/sections/WhoItsForSection";
+import TestimonialsSection from "@/components/sections/TestimonialsSection";
+import PublicLayout from "@/components/PublicLayout";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [darkMode, setDarkMode] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
-  const [tiers, setTiers] = useState([]);
-  const [tiersLoading, setTiersLoading] = useState(true);
-  const [tiersError, setTiersError] = useState(null);
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -35,34 +33,6 @@ const Index = () => {
     if (user) navigate("/dashboard");
   }, [user, navigate]);
 
-  // Fetch pricing tiers from Supabase
-  useEffect(() => {
-    let cancelled = false;
-    const fetchTiers = async () => {
-      setTiersLoading(true);
-      setTiersError(null);
-      const { data, error } = await supabase
-        .from("tiers")
-        .select("*")
-        .order("id", { ascending: true });
-
-      if (!cancelled) {
-        if (error) {
-          setTiersError(error.message || "Failed to load pricing tiers.");
-          setTiers([]);
-        } else {
-          setTiers(Array.isArray(data) ? data : []);
-        }
-        setTiersLoading(false);
-      }
-    };
-
-    fetchTiers();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // Smooth scroll helper
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
@@ -72,7 +42,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen text-gray-900 transition-colors duration-300 dark:text-gray-100">
+    <PublicLayout>
       <style>{`
         .video-container {
           position: relative;
@@ -100,25 +70,14 @@ const Index = () => {
       `}</style>
 
       {/* Hero Section */}
-      <Hero
-        scrollTo={scrollTo}
-        demoOpen={demoOpen}
-        setDemoOpen={setDemoOpen}
-      />
+      <Hero scrollTo={scrollTo} demoOpen={demoOpen} setDemoOpen={setDemoOpen} />
 
-      {/* ✅ FIXED: Removed navigate={navigate} — PageSections doesn't use it */}
-      <PageSections
-        tiers={tiers}
-        tiersLoading={tiersLoading}
-        tiersError={tiersError}
-        scrollTo={scrollTo}
-      />
+      {/* Who It's For Section */}
+      <WhoItsForSection scrollTo={scrollTo} />
 
-      {/* Footer */}
-      <PageFooter
-        scrollTo={scrollTo}
-      />
-    </div>
+      {/* Testimonials Section */}
+      <TestimonialsSection />
+    </PublicLayout>
   );
 };
 

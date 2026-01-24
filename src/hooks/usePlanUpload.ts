@@ -34,27 +34,37 @@ export const usePlanUpload = () => {
     try {
       const fileExt = file.name.split(".").pop();
       const uniqueName = `${uuidv4()}.${fileExt}`;
+
       const { data, error } = await supabase.storage
         .from("plans")
         .upload(uniqueName, file, {
           cacheControl: "3600",
           upsert: false,
         });
-      if (error) throw error;
+
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
+      }
+
       const { data: publicUrlData } = supabase.storage
         .from("plans")
         .getPublicUrl(uniqueName);
+
       const publicUrl = publicUrlData.publicUrl;
+
       toast({
         title: "Plan Uploaded",
         description: "Plan file uploaded successfully",
       });
+
       return publicUrl;
     } catch (error) {
       console.error("Error uploading plan:", error);
       toast({
         title: "Upload Error",
-        description: "Failed to upload plan file",
+        description:
+          error instanceof Error ? error.message : "Failed to upload plan file",
         variant: "destructive",
       });
       return null;

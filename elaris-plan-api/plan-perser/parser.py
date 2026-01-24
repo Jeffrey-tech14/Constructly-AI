@@ -590,6 +590,21 @@ Analyze this construction document and extract ALL available information about:
 # - Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m). 
 # - Extract the approximate **MASONRY WALL HEIGHT** from the top of the footing to the slab level (e.g., 1.0m).
 
+### 🧱 FOUNDATION WALLING DETAILS:
+Foundation walling refers to the masonry walls built on top of the foundation (above the strip footing or raft). Extract:
+- **Wall Type**: "external" or "internal" (external walls are perimeter walls, internal walls are partition walls)
+- **Block Dimensions**: Standard block sizes in format "LxHxT" (Length x Height x Thickness in meters):
+  - "0.2x0.2x0.2" (Large Block: 200×200×200mm)
+  - "0.15x0.2x0.15" (Standard Block: 150×200×150mm)
+  - "0.1x0.2x0.1" (Small Block: 100×200×100mm)
+- **Block Thickness** (wall thickness in mm): 100, 150, 200, 250, or 300
+- **Wall Length** (meters): Total length of the wall section
+- **Wall Height** (meters): Height from foundation top to slab level
+- **Number of Walls**: Count of identical walls (e.g., 4 external walls may have 2 different lengths)
+- **Mortar Ratio**: Cement to sand ratio - "1:3", "1:4", "1:5", or "1:6"
+- Create separate entries for external and internal walls with different characteristics
+- Use perimeter dimensions and extracted heights for calculation
+
 ### 📤 OUTPUT REQUIREMENTS:
 Only use the materials specified above strictly.
 Return ONLY valid JSON with this structure. Use reasonable estimates if exact dimensions aren't visible.
@@ -710,7 +725,29 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     "height": "1.0" // Depth or height of the foundation
     "length": "5.0" // Length of the foundation
     "width"" "6.0" //Width of the foundation
-  } 
+  },
+  "foundationWalling": [
+    {
+      "id": "fwall-external-01",
+      "type": "external",
+      "blockDimensions": "0.2x0.2x0.2",
+      "blockThickness": "200",
+      "wallLength": "12.5",
+      "wallHeight": "1.0",
+      "numberOfWalls": 2,
+      "mortarRatio": "1:4"
+    },
+    {
+      "id": "fwall-internal-01",
+      "type": "internal",
+      "blockDimensions": "0.15x0.2x0.15",
+      "blockThickness": "150",
+      "wallLength": "8.0",
+      "wallHeight": "1.0",
+      "numberOfWalls": 1,
+      "mortarRatio": "1:4"
+    }
+  ], 
   "projectType": "residential" | "commercial" | "industrial" | "institutional",
   "floors": number,
   "totalArea": number,

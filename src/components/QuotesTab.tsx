@@ -25,13 +25,14 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Badge } from "./ui/badge";
 
 const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -222,7 +223,8 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
           {filteredQuotes.map((quote) => (
             <Card
               key={quote.id}
-              className="border rounded-lg p-4 m-2 space-y-2"
+              className="border rounded-lg p-4 m-2 space-y-2 cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/quotes/${quote.id}`)}
             >
               <div className="flex justify-between items-center">
                 <div>

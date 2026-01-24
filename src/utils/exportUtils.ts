@@ -9,6 +9,7 @@ import {
   MaterialSchedule,
 } from "@/utils/advancedMaterialExtractor";
 import { MaterialConsolidator } from "@/utils/materialConsolidator";
+import { geminiService } from "@/services/geminiService";
 export interface ExportOptions {
   format: "pdf" | "excel" | "docx";
   audience: "client" | "contractor";
@@ -38,38 +39,42 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
   try {
     const { format, audience, quote, projectInfo, logoUrl } = options;
     let materialSchedule: any[] = [];
+    let workItems: any[] = [];
     const hasMaterialData =
       quote?.concrete_materials || quote?.rebar_calculations || quote?.boq_data;
 
-    // For PDF format, require successful Gemini extraction if material data exists
-    if (format === "pdf" && hasMaterialData) {
+    // Extract both flat materials and hierarchical work items
+    if (hasMaterialData) {
       try {
-        const rawSchedule: MaterialSchedule =
-          await AdvancedMaterialExtractor.extractWithGemini(quote);
-        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-          Object.values(rawSchedule).flat()
-        );
+        const geminiResponse = await geminiService.analyzeMaterials(quote);
+
+        // Extract flat materials
+        if (geminiResponse?.materials) {
+          materialSchedule = MaterialConsolidator.consolidateAllMaterials(
+            geminiResponse.materials as any,
+          );
+        }
+
+        // Extract hierarchical work items
+        if (geminiResponse?.workItems && geminiResponse.workItems.length > 0) {
+          workItems = geminiResponse.workItems;
+        }
       } catch (error) {
-        console.error("Gemini extraction failed for PDF export:", error);
-        throw new Error(
-          `Material extraction failed: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
-      }
-    } else if (format !== "pdf" && hasMaterialData) {
-      // For non-PDF formats, try Gemini but fall back to local extraction
-      try {
-        const rawSchedule: MaterialSchedule =
-          await AdvancedMaterialExtractor.extractWithGemini(quote);
-        materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-          Object.values(rawSchedule).flat()
-        );
-      } catch (error) {
-        console.warn(
-          "AI extraction failed, falling back to local extraction:",
-          error
-        );
+        if (format === "pdf") {
+          // For PDF, fail if extraction doesn't work
+          console.error("Gemini extraction failed for PDF export:", error);
+          throw new Error(
+            `Material extraction failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+        } else {
+          // For other formats, warn but continue
+          console.warn(
+            "AI extraction failed, falling back to local extraction:",
+            error,
+          );
+        }
       }
     } else {
       // No material data, use existing schedule if available
@@ -77,9 +82,11 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
         materialSchedule = quote.materialSchedule;
       }
     }
+
     const enrichedQuote = {
       ...quote,
       materialSchedule,
+      workItems,
     };
     switch (format) {
       case "pdf":
@@ -91,7 +98,7 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
             },
             quote.preliminaries,
             quote,
-            audience === "client"
+            audience === "client",
           );
           if (!result) {
             throw new Error("PDF generation returned false");
@@ -102,7 +109,7 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
           throw new Error(
             `PDF export failed: ${
               pdfError instanceof Error ? pdfError.message : String(pdfError)
-            }`
+            }`,
           );
         }
       case "excel":
@@ -119,7 +126,7 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
               excelError instanceof Error
                 ? excelError.message
                 : String(excelError)
-            }`
+            }`,
           );
         }
       case "docx":
@@ -137,7 +144,7 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
           throw new Error(
             `DOCX export failed: ${
               docxError instanceof Error ? docxError.message : String(docxError)
-            }`
+            }`,
           );
         }
       default:

@@ -298,67 +298,8 @@ export default function QSSettings({
           </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:space-y-0 space-y-6 md:grid-cols-2 ">
+      <div className="grid grid-cols-1  ">
         <Card className="md:mr-2 mr-0">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-              <Building className="w-5 h-5" />
-              House Specifications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label
-                htmlFor="houseType"
-                className="text-gray-900 dark:text-white"
-              >
-                House Type *
-              </Label>
-              <Select
-                required
-                value={quoteData.house_type}
-                onValueChange={(value) =>
-                  setQuoteData((prev) => ({
-                    ...prev,
-                    house_type: value,
-                  }))
-                }
-              >
-                <SelectTrigger className="">
-                  <SelectValue placeholder="Select house type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {houseTypes.map((region) => (
-                    <SelectItem key={region.value} value={region.value}>
-                      {region.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="floors" className="text-gray-900 dark:text-white">
-                Floors *
-              </Label>
-              <Input
-                id="floors"
-                placeholder="Number of floors"
-                type="number"
-                min="0"
-                value={quoteData.floors}
-                required
-                onChange={(e) => {
-                  setQuoteData((prev) => ({
-                    ...prev,
-                    floors: parseFloat(e.target.value),
-                  }));
-                }}
-                className=""
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="md:ml-2 ml-0">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
               <DollarSign className="w-5 h-5" />
@@ -371,7 +312,10 @@ export default function QSSettings({
               {renderInput("overhead", "Overhead")}
               {renderInput("profit", "Profit")}
               {renderInput("contingency", "Contingency")}
-              {renderInput("unknowns_contingency", "Unknowns Contingency")}
+              {renderInput(
+                "unknowns_contingency",
+                "Unknowns Contingency (Optional)",
+              )}
               {renderInput("permit_cost", "Permit Cost")}
             </div>
           </CardContent>

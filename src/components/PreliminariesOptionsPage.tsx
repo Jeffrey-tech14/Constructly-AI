@@ -20,6 +20,8 @@ export interface PreliminaryOption {
   unit: string;
   isApplicable: boolean;
   totalCost: number;
+  area?: number; // For site clearance
+  rate?: number; // For site clearance
 }
 
 interface PreliminariesOptionsPageProps {
@@ -38,6 +40,13 @@ const PreliminariesOptionsPage = ({
     quoteData?.project_type.toLowerCase() === "commercial" ||
     quoteData?.floors > 3;
   const isLowRise = houseType === "bungalow" || houseType === "mansionette";
+
+  // Site clearance specific state
+  const [siteClearanceArea, setSiteClearanceArea] = useState(
+    quoteData?.total_area || 100,
+  );
+  const [siteClearanceRate, setSiteClearanceRate] = useState(1000);
+
   // Initialize preliminaries from quoteData or create defaults
   const [preliminaries, setPreleminaries] = useState<PreliminaryOption[]>(
     () => {
@@ -48,16 +57,23 @@ const PreliminariesOptionsPage = ({
         return quoteData.preliminaryOptions;
       }
 
+      // Site clearance rate per m² (default: 1000 KES per m²)
+      const clearanceRate = 1000;
+      const clearanceArea = quoteData?.total_area || 100;
+      const clearanceCost = clearanceRate * clearanceArea;
+
       return [
         {
           id: "site-clearance",
           name: "Site Clearance",
-          description: "Clearing and preparing the site for construction",
-          price: 50000,
+          description: `Area: ${clearanceArea}m² | Rate: KES ${clearanceRate.toLocaleString()}/m² = KES ${clearanceCost.toLocaleString()}`,
+          price: clearanceCost,
           quantity: 1,
           unit: "lump sum",
           isApplicable: true,
-          totalCost: 50000,
+          totalCost: clearanceCost,
+          area: clearanceArea,
+          rate: clearanceRate,
         },
         {
           id: "sign-board",
@@ -70,14 +86,24 @@ const PreliminariesOptionsPage = ({
           totalCost: 15000,
         },
         {
-          id: "hording-nets",
-          name: "Hording (Site Fencing) & Nets",
-          description: "Site boundary fencing and safety nets",
-          price: 75000,
+          id: "hoarding",
+          name: "Hoarding",
+          description: "Site boundary fencing",
+          price: 50000,
           quantity: 1,
           unit: "lump sum",
           isApplicable: !isLowRise,
-          totalCost: isLowRise ? 0 : 75000,
+          totalCost: isLowRise ? 0 : 50000,
+        },
+        {
+          id: "nets",
+          name: "Safety Nets",
+          description: "Safety nets for site protection",
+          price: 25000,
+          quantity: 1,
+          unit: "lump sum",
+          isApplicable: !isLowRise,
+          totalCost: isLowRise ? 0 : 25000,
         },
         {
           id: "fall-prevention",
@@ -100,7 +126,8 @@ const PreliminariesOptionsPage = ({
         let isApplicable = prel.isApplicable;
         let totalCost = prel.totalCost;
 
-        if (prel.id === "hording-nets") {
+        // Update hoarding and nets applicability
+        if (prel.id === "hoarding" || prel.id === "nets") {
           isApplicable = !isLowRise;
           totalCost = !isLowRise ? prel.price * prel.quantity : 0;
         } else if (prel.id === "fall-prevention") {
@@ -117,10 +144,29 @@ const PreliminariesOptionsPage = ({
     );
   }, [houseType, isHighRise, isLowRise]);
 
+  // Update site clearance when area or rate changes
+  useEffect(() => {
+    const siteClearanceCost = siteClearanceArea * siteClearanceRate;
+    setPreleminaries((prev) =>
+      prev.map((prel) =>
+        prel.id === "site-clearance"
+          ? {
+              ...prel,
+              price: siteClearanceCost,
+              totalCost: siteClearanceCost,
+              description: `Area: ${siteClearanceArea}m² | Rate: KES ${siteClearanceRate.toLocaleString()}/m² = KES ${siteClearanceCost.toLocaleString()}`,
+              area: siteClearanceArea,
+              rate: siteClearanceRate,
+            }
+          : prel,
+      ),
+    );
+  }, [siteClearanceArea, siteClearanceRate]);
+
   useEffect(() => {
     const selectedPrelimaries = preliminaries.filter((p) => p.isApplicable);
     onPreliminaryUpdate(selectedPrelimaries);
-  }, [preliminaries, onPreliminaryUpdate]);
+  }, [preliminaries]);
 
   const togglePreliminary = (id: string) => {
     setPreleminaries((prev) =>
@@ -170,7 +216,7 @@ const PreliminariesOptionsPage = ({
       .reduce((sum, prel) => sum + prel.totalCost, 0);
 
   const getApplicabilityNote = (prelId: string) => {
-    if (prelId === "hording-nets" && isLowRise) {
+    if ((prelId === "hoarding" || prelId === "nets") && isLowRise) {
       return "Not applicable for bungalow/mansion";
     }
     if (prelId === "fall-prevention" && !isHighRise) {
@@ -284,52 +330,103 @@ const PreliminariesOptionsPage = ({
 
               {preliminary.isApplicable && !isDisabled && (
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label
-                        htmlFor={`price-${preliminary.id}`}
-                        className="text-xs"
-                      >
-                        Unit Price (KES)
-                      </Label>
-                      <Input
-                        id={`price-${preliminary.id}`}
-                        type="number"
-                        min="0"
-                        step="1000"
-                        value={preliminary.price}
-                        onChange={(e) =>
-                          updatePrice(
-                            preliminary.id,
-                            parseFloat(e.target.value) || 0,
-                          )
-                        }
-                        className="mt-1"
-                      />
+                  {/* Site Clearance specific inputs */}
+                  {preliminary.id === "site-clearance" && (
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div>
+                        <Label
+                          htmlFor="site-clearance-area"
+                          className="text-xs"
+                        >
+                          Area (m²)
+                        </Label>
+                        <Input
+                          id="site-clearance-area"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={siteClearanceArea}
+                          onChange={(e) =>
+                            setSiteClearanceArea(
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="site-clearance-rate"
+                          className="text-xs"
+                        >
+                          Rate (KES/m²)
+                        </Label>
+                        <Input
+                          id="site-clearance-rate"
+                          type="number"
+                          min="0"
+                          step="100"
+                          value={siteClearanceRate}
+                          onChange={(e) =>
+                            setSiteClearanceRate(
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label
-                        htmlFor={`quantity-${preliminary.id}`}
-                        className="text-xs"
-                      >
-                        Quantity
-                      </Label>
-                      <Input
-                        id={`quantity-${preliminary.id}`}
-                        type="number"
-                        min="0"
-                        step="0.1"
-                        value={preliminary.quantity}
-                        onChange={(e) =>
-                          updateQuantity(
-                            preliminary.id,
-                            parseFloat(e.target.value) || 0,
-                          )
-                        }
-                        className="mt-1"
-                      />
+                  )}
+
+                  {/* Standard inputs for other items */}
+                  {preliminary.id !== "site-clearance" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label
+                          htmlFor={`price-${preliminary.id}`}
+                          className="text-xs"
+                        >
+                          Unit Price (KES)
+                        </Label>
+                        <Input
+                          id={`price-${preliminary.id}`}
+                          type="number"
+                          min="0"
+                          step="1000"
+                          value={preliminary.price}
+                          onChange={(e) =>
+                            updatePrice(
+                              preliminary.id,
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor={`quantity-${preliminary.id}`}
+                          className="text-xs"
+                        >
+                          Quantity
+                        </Label>
+                        <Input
+                          id={`quantity-${preliminary.id}`}
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={preliminary.quantity}
+                          onChange={(e) =>
+                            updateQuantity(
+                              preliminary.id,
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center">

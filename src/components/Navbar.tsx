@@ -243,26 +243,10 @@ const Navbar = () => {
                 >
                   <CalculatorIcon className="w-4 h-4" />
                 </Button>
-
-                <Badge className="bg-transparent hidden md:flex  hover:bg-transparent">
-                  {getTierBadge(profile?.tier)}
-                </Badge>
               </div>
             )}
 
             <div className="flex items-center ml-auto space-x-2">
-              <div
-                className={`flex h-6 w-6 items-center hidden md:flex justify-center rounded-full ${
-                  profile?.tier === "Free"
-                    ? "bg-green-100 text-green-700"
-                    : profile?.tier === "Enterprise"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-purple-100 text-purple-700"
-                }`}
-              >
-                {getTierImage(profile?.tier)}
-              </div>
-
               <Button
                 variant="ghost"
                 size="sm"
@@ -321,9 +305,6 @@ const Navbar = () => {
                         <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                           {user.email}
                         </p>
-                        <div className="mt-2">
-                          {getTierBadge(profile?.tier)}
-                        </div>
                       </div>
 
                       <DropdownMenuItem
@@ -462,81 +443,6 @@ const Navbar = () => {
             </div>
           )}
         </div>
-        {user &&
-          profile?.subscription_status !== "active" &&
-          showSubAlert &&
-          (() => {
-            const status = profile?.subscription_status?.toLowerCase();
-
-            const statusConfig = {
-              expired: {
-                bg: "bg-yellow-50 dark:bg-yellow-900/30",
-                border: "border-yellow-200 dark:border-yellow-700",
-                text: "text-yellow-800 dark:text-yellow-200",
-                icon: (
-                  <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-300" />
-                ),
-                message:
-                  "Your subscription has expired. Please renew to continue using premium features.",
-              },
-              cancelled: {
-                bg: "bg-red-50 dark:bg-red-900/30",
-                border: "border-red-200 dark:border-red-700",
-                text: "text-red-800 dark:text-red-200",
-                icon: (
-                  <XCircle className="w-4 h-4 text-red-600 dark:text-red-300" />
-                ),
-                message:
-                  "Your subscription was cancelled. Update your plan to regain access.",
-              },
-              inactive: {
-                bg: "bg-gray-50 dark:bg-gray-900/30",
-                border: "border-gray-200 dark:border-gray-700",
-                text: "text-gray-800 dark:text-gray-200",
-                icon: (
-                  <AlertCircle className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                ),
-                message:
-                  "Your subscription is inactive. Please reactivate your plan.",
-              },
-              pending: {
-                bg: "bg-blue-50 dark:bg-blue-900/30",
-                border: "border-blue-200 dark:border-blue-700",
-                text: "text-blue-800 dark:text-blue-200",
-                icon: (
-                  <AlertCircle className="w-4 h-4 text-primary dark:text-blue-300" />
-                ),
-                message:
-                  "Your subscription is pending confirmation. It will activate once payment is verified.",
-              },
-            }[status] || {
-              bg: "bg-neutral-50 dark:bg-neutral-900/30",
-              border: "border-neutral-200 dark:border-neutral-700",
-              text: "text-neutral-800 dark:text-neutral-200",
-              icon: (
-                <AlertCircle className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
-              ),
-              message:
-                "Your subscription status is unknown. Please check your billing details.",
-            };
-
-            return (
-              <div
-                className={`w-full ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text} py-2 px-4 flex items-center justify-between text-sm animate-slide-down`}
-              >
-                <div className="flex items-center space-x-2">
-                  {statusConfig.icon}
-                  <span>{statusConfig.message}</span>
-                </div>
-                <button
-                  onClick={() => setShowSubAlert(false)}
-                  className="hover:opacity-70 transition"
-                >
-                  <XCircle className="w-4 h-4" />
-                </button>
-              </div>
-            );
-          })()}
       </nav>
       <Calculator
         isOpen={isCalculatorOpen}

@@ -109,6 +109,18 @@ export interface ExtractedPlan {
     groundFloorElevation?: number | string;
   };
 
+  foundationWalling?: Array<{
+    id: string;
+    type: "external" | "internal";
+    blockType: string;
+    blockDimensions: string;
+    blockThickness: string;
+    wallLength: string;
+    wallHeight: string;
+    numberOfWalls: number;
+    mortarRatio: string;
+  }>;
+
   equipment?: EquipmentSection;
 
   concreteStructures?: Array<{

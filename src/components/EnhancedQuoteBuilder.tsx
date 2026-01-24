@@ -88,7 +88,9 @@ import useMasonryCalculatorNew, {
   MasonryQSSettings,
 } from "@/hooks/useMasonryCalculatorNew";
 import ConcreteCalculatorForm from "./ConcreteCalculatorForm";
+import FoundationWallingCalculator from "./FoundationWallingCalculator";
 import { useDynamicPricing } from "@/hooks/useDynamicPricing";
+import { quotePaymentService } from "@/services/quotePaymentService";
 import BOQBuilder from "./BOQBuilder";
 import {
   Table,
@@ -203,22 +205,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
 
-  const fetchLimit = async () => {
-    if (!profile?.tier) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("tiers")
-      .select("quotes_limit")
-      .eq("name", profile.tier)
-      .single();
-    if (error) {
-      console.error("Error fetching tier limit:", error);
-      setLimit(0);
-    } else {
-      setLimit(data?.quotes_limit || 0);
-    }
-    setLoading(false);
-  };
+  // Tier limit checking removed - now using per-quote payment model
+  // Each quote requires a 1000 KSH payment for access
 
   const fetchRates = async () => {
     const { data: baseServices, error: baseError } = await supabase
@@ -257,6 +245,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       width: 0,
     },
     wallSections: [],
+    rebar_calculation_method: "intensity-based",
     bbs_file_url: "",
     wallProperties: {
       blockType: "Standard Block",
@@ -276,6 +265,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     qsSettings: [] as MasonryQSSettings[],
     boq_data: [],
     foundationDetails: [],
+    foundationWalls: [],
     subcontractors: [],
     concrete_rows: [],
     rebar_rows: [],
@@ -380,7 +370,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
   useEffect(() => {
     fetchRates();
-    fetchLimit();
     fetchMaterials();
   }, [user]);
   const [transportRates, setTransportRates] = useState<UserTransportRate[]>([]);
@@ -489,6 +478,19 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           plaster: "Both Sides",
         },
 
+        // Foundation Walling
+        foundationWalls:
+          extractedPlan.foundationWalling?.map((wall: any, index: number) => ({
+            id: wall.id || `fwall-${index}`,
+            type: wall.type || "external",
+            blockDimensions: wall.blockDimensions || "0.2x0.2x0.2",
+            blockThickness: wall.blockThickness || "200",
+            wallLength: wall.wallLength || "0",
+            wallHeight: wall.wallHeight || "1.0",
+            numberOfWalls: wall.numberOfWalls || 1,
+            mortarRatio: wall.mortarRatio || "1:4",
+          })) || prev.foundationWalls,
+
         // Concrete structures
         concrete_rows:
           extractedPlan.concreteStructures?.map(
@@ -509,12 +511,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               bedDepth: structure.bedDepth || "0.1",
               hasAggregateBed: structure.hasAggregateBed || false,
               aggregateDepth: structure.aggregateDepth || "0.15",
-              hasMasonryWall: structure.hasMasonryWall || false,
-              masonryBlockType: structure.masonryBlockType,
-              masonryBlockDimensions: structure.masonryBlockDimensions,
-              masonryWallThickness: structure.masonryWallThickness,
-              masonryWallHeight: structure.masonryWallHeight,
-              masonryWallPerimeter: structure.masonryWallPerimeter,
               foundationType: structure.foundationType,
               clientProvidesWater: structure.clientProvidesWater || false,
               cementWaterRatio: structure.cementWaterRatio || "0.5",
@@ -972,6 +968,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         qsSettings: quoteData.qsSettings,
         boq_data: quoteData.boq_data,
         foundationDetails: quoteData.foundationDetails,
+        foundationWalls: quoteData.foundationWalls,
         floors: quoteData.floors,
         mortar_ratio: quoteData.mortar_ratio,
         concrete_mix_ratio: quoteData.concrete_mix_ratio,
@@ -1046,9 +1043,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       console.error("calculation is empty " + calculation);
       return;
     }
+    let newQuote;
     if (quoteData.id) {
       try {
-        await updateQuote(quoteData.id, {
+        newQuote = await updateQuote(quoteData.id, {
           id: quoteData.id,
           title: quoteData.title,
           client_name: quoteData.client_name,
@@ -1058,6 +1056,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           wallDimensions: quoteData.wallDimensions,
           wallSections: quoteData.wallSections,
           wallProperties: quoteData.wallProperties,
+          foundationWalls: quoteData.foundationWalls,
           project_type: quoteData.project_type,
           custom_specs: quoteData.custom_specs || null,
           status: quoteData.status,
@@ -1097,6 +1096,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           contingency_amount: calculation.contingency_amount,
           permit_cost: calculation.permit_cost,
           concrete_mix_ratio: quoteData.concrete_mix_ratio,
+          rebar_calculation_method: quoteData.rebar_calculation_method,
           plaster_thickness: quoteData.plaster_thickness,
           profit_amount: calculation.profit_amount,
           subcontractors: quoteData.subcontractors,
@@ -1124,7 +1124,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       }
     } else {
       try {
-        await createQuote({
+        newQuote = await createQuote({
           title: quoteData.title,
           id: quoteData.id,
           client_name: quoteData.client_name,
@@ -1141,6 +1141,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           transport_costs: calculation.transport_cost,
           total_area: quoteData.total_area,
           boq_data: boqData,
+          rebar_calculation_method: quoteData.rebar_calculation_method,
           preliminaries: preliminaries,
           electrical_calculations: quoteData.electrical_calculations,
           roofing_calculations: quoteData.roofing_calculations,
@@ -1187,9 +1188,25 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           paintings_specifications: quoteData.paintings_specifications || [],
           paintings_totals: quoteData.paintings_totals || null,
         });
+
+        // Create payment record for the new quote
+        if (newQuote && profile?.id) {
+          try {
+            await quotePaymentService.createQuotePayment(
+              newQuote.id,
+              profile.id,
+              1000,
+            );
+          } catch (paymentError) {
+            console.error("Error creating payment record:", paymentError);
+            // Continue anyway - payment record can be created later
+          }
+        }
+
         toast({
           title: "Quote Saved",
-          description: "Quote has been saved successfully",
+          description:
+            "Quote saved! You can pay 1000 KSH to access it anytime.",
         });
         navigate("/quotes/all");
       } catch (error) {
@@ -1458,36 +1475,34 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               </div>
 
               {/* Upload Plan Button at Bottom */}
-              {profile?.tier !== "Free" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  className="mt-8"
-                >
-                  <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
-                    <CardContent className="p-6 text-center">
-                      <UploadCloud className="w-12 h-12 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                        Upload Construction Plans
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4">
-                        Upload your construction plans for automatic room
-                        detection and measurements
-                      </p>
-                      <Button
-                        onClick={() =>
-                          navigate("/upload/plan", { state: { quoteData } })
-                        }
-                        className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                      >
-                        <UploadCloud className="w-4 h-4 mr-2" />
-                        Upload Plan
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8"
+              >
+                <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+                  <CardContent className="p-6 text-center">
+                    <UploadCloud className="w-12 h-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                      Upload Construction Plans
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      Upload your construction plans for automatic room
+                      detection and measurements
+                    </p>
+                    <Button
+                      onClick={() =>
+                        navigate("/upload/plan", { state: { quoteData } })
+                      }
+                      className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      <UploadCloud className="w-4 h-4 mr-2" />
+                      Upload Plan
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
           </div>
         );
@@ -1515,9 +1530,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return (
           <div className="space-y-6">
             <Tabs value={substructureTab} onValueChange={setSubstructureTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="earthworks">Earthworks</TabsTrigger>
                 <TabsTrigger value="concrete">Concrete</TabsTrigger>
+                <TabsTrigger value="foundation-walling">
+                  Foundation Walling
+                </TabsTrigger>
                 <TabsTrigger value="rebar">Rebar</TabsTrigger>
               </TabsList>
 
@@ -1542,8 +1560,23 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 />
               </TabsContent>
 
+              <TabsContent value="foundation-walling" className="space-y-4">
+                <FoundationWallingCalculator
+                  quote={quoteData}
+                  onUpdate={(walls) => {
+                    setQuoteData((prev) => ({
+                      ...prev,
+                      foundationWalls: walls,
+                    }));
+                  }}
+                  materials={materials}
+                />
+              </TabsContent>
+
               <TabsContent value="rebar" className="space-y-4">
-                <h3 className="text-xl font-bold mb-3">Rebar Calculator</h3>
+                <h3 className="text-xl font-bold mb-3">
+                  Reinforcement Calculator
+                </h3>
                 <RebarCalculatorForm
                   quote={quoteData}
                   setQuote={setQuoteData}
@@ -3668,35 +3701,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }
   };
 
-  if (limit !== null && profile?.quotes_used >= limit) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 max-w-md w-full">
-          <CardContent className="text-center p-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-              <Hand className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-            <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">
-              Quote Limit Reached
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Please upgrade your plan to access more quote allocations.
-            </p>
-            <div className="mb-6">{getTierBadge(profile.tier)}</div>
-            <div>
-              <Button
-                onClick={() => navigate("/payment")}
-                className="w-full rounded-full font-semibold"
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                Upgrade Plan
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Payment-based access model - no tier limit blocking needed
+  // Users can create unlimited quotes and pay 1000 KSH per quote for access
 
   return (
     <div className="min-h-screen animate-fade-in transition-colors duration-500">

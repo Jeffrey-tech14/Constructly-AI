@@ -48,8 +48,11 @@ import {
   Pen,
   Target,
   Loader2,
+  CreditCard,
+  Lock,
 } from "lucide-react";
 import { QuoteExportDialog } from "@/components/QuoteExportDialog";
+import { quotePaymentService } from "@/services/quotePaymentService";
 const ViewAllQuotes = () => {
   const { fetchQuotes, quotes, loading, deleteQuote } = useQuotes();
   const { profile, user } = useAuth();
@@ -64,6 +67,9 @@ const ViewAllQuotes = () => {
     useState<any>(null);
   const [deletingQuote, setDeletingQuote] = useState<string | null>(null);
   const [quotesRefreshKey, setQuotesRefreshKey] = useState(0);
+  const [paymentStatuses, setPaymentStatuses] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     return () => {
@@ -91,8 +97,28 @@ const ViewAllQuotes = () => {
   useEffect(() => {
     if (user && profile !== null && isMountedRef.current) {
       fetchQuotes();
+      // Load payment statuses for all quotes
+      loadPaymentStatuses();
     }
-  }, [fetchQuotes, user, profile, quotesRefreshKey]);
+  }, [fetchQuotes, user, profile, quotesRefreshKey, location]);
+
+  const loadPaymentStatuses = async () => {
+    if (!quotes.length) return;
+    const statuses: Record<string, boolean> = {};
+    for (const quote of quotes) {
+      try {
+        const isPaid = await quotePaymentService.isQuotePaid(quote.id);
+        statuses[quote.id] = isPaid;
+      } catch (error) {
+        console.error(
+          `Error checking payment status for quote ${quote.id}:`,
+          error,
+        );
+        statuses[quote.id] = false;
+      }
+    }
+    setPaymentStatuses(statuses);
+  };
 
   const [filteredQuotes, setFilteredQuotes] = useState<any[]>([]);
 
@@ -115,7 +141,7 @@ const ViewAllQuotes = () => {
       .sort(
         (a, b) =>
           new Date(b?.updated_at || 0).getTime() -
-          new Date(a?.updated_at || 0).getTime()
+          new Date(a?.updated_at || 0).getTime(),
       );
     if (isMountedRef.current) {
       setFilteredQuotes(result);
@@ -281,17 +307,25 @@ const ViewAllQuotes = () => {
                         </div>
                       </div>
                       <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
-                        {profile.tier !== "Free" && (
-                          <Badge className={getStatusColor(quote.status)}>
-                            {quote.status.charAt(0).toUpperCase() +
-                              quote.status.slice(1).replace("_", " ")}
+                        <Badge className={getStatusColor(quote.status)}>
+                          {quote.status.charAt(0).toUpperCase() +
+                            quote.status.slice(1).replace("_", " ")}
+                        </Badge>
+                        {paymentStatuses[quote.id] ? (
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                            ✓ Paid
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Unpaid
                           </Badge>
                         )}
                         <div className="text-right">
                           <div className="sm:text-2xl text-lg font-bold text-primary dark:text-white">
                             KSh{" "}
                             {formatCurrency(
-                              quote.total_amount
+                              quote.total_amount,
                             ).toLocaleString()}
                           </div>
                         </div>
@@ -308,7 +342,7 @@ const ViewAllQuotes = () => {
                           <div className="text-lg font-semibold text-green-600">
                             KSh{" "}
                             {formatCurrency(
-                              quote.materials_cost
+                              quote.materials_cost,
                             ).toLocaleString()}
                           </div>
                         </CardContent>
@@ -332,7 +366,7 @@ const ViewAllQuotes = () => {
                           <div className="text-lg font-semibold text-purple-600">
                             KSh{" "}
                             {formatCurrency(
-                              quote.additional_services_cost
+                              quote.additional_services_cost,
                             ).toLocaleString()}
                           </div>
                         </CardContent>
@@ -353,243 +387,19 @@ const ViewAllQuotes = () => {
                     )}
 
                     <div className="flex flex-wrap gap-3">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 sm:flex-none"
-                            onClick={() => setSelectedQuote(quote)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Details
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <Building2 className="w-5 h-5" />
-                              Quote Details - {quote.title}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="text-white">
-                                <strong>Client:</strong> {quote.client_name}
-                              </div>
-                              <div className="text-white">
-                                <strong>Email:</strong>{" "}
-                                {quote.client_email || "Not provided"}
-                              </div>
-                              <div className="text-white">
-                                <strong>Location:</strong> {quote.location}
-                              </div>
-                              <div className="text-white">
-                                <strong>Region:</strong> {quote.region}
-                              </div>
-                              <div className="text-white">
-                                <strong>Project Type:</strong>{" "}
-                                {quote.project_type}
-                              </div>
-                              {profile.tier !== "Free" && (
-                                <div>
-                                  <strong className="text-white">
-                                    Status:
-                                  </strong>
-                                  <Badge
-                                    className={`ml-2 ${getStatusColor(
-                                      quote.status
-                                    )}`}
-                                  >
-                                    {quote.status.charAt(0).toUpperCase() +
-                                      quote.status.slice(1).replace("_", " ")}
-                                  </Badge>
-                                </div>
-                              )}
-                            </div>
+                      {paymentStatuses[quote.id] && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => navigate(`/quotes/${quote.id}`)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
+                      )}
 
-                            {quote.masonry_materials &&
-                              quote.masonry_materials.length > 0 && (
-                                <div>
-                                  <h4 className="font-semibold mb-3 text-white">
-                                    Materials
-                                  </h4>
-                                  <div className="space-y-2">
-                                    {quote.masonry_materials.map(
-                                      (material: any, index: number) => (
-                                        <div
-                                          key={index}
-                                          className="flex justify-between items-center p-3 rounded"
-                                        >
-                                          <div>
-                                            <span className="font-medium text-white">
-                                              {material.name}
-                                            </span>
-                                            <span className="text-white ml-2 text-white/70">
-                                              ({material.quantity}{" "}
-                                              {material.unit})
-                                            </span>
-                                          </div>
-                                          <span className="font-semibold text-white">
-                                            KSh{" "}
-                                            {formatCurrency(
-                                              material.total_price || 0
-                                            ).toLocaleString()}
-                                          </span>
-                                        </div>
-                                      )
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                            {quote.equipment && quote.equipment.length > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Equipment costs</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(quote.equipment_costs) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.transport_costs > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Transport costs</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh {formatCurrency(quote.transport_costs)}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.additional_services_cost > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Additonal services</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(
-                                      quote.additional_services_cost
-                                    )}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.addons_cost > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Subcontractor costs</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh {formatCurrency(quote.addons_cost) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.materials_cost > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Materials</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(quote.materials_cost) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.permit_cost > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Permit costs</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh {formatCurrency(quote.permit_cost) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.overhead_amount > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Overhead amount</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(quote.overhead_amount) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.contingency_amount > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Contingency</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(quote.contingency_amount) ||
-                                      0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.labor_cost > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Labour</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh {formatCurrency(quote.labor_cost) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.profit_amount > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Profit</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(quote.profit_amount) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                            {quote.total_amount > 0 && (
-                              <div className="flex justify-between">
-                                <p className="text-white">
-                                  <strong>Total</strong>
-                                </p>
-                                <p className="text-white">
-                                  <strong>
-                                    KSh{" "}
-                                    {formatCurrency(quote.total_amount) || 0}
-                                  </strong>
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      {profile.tier !== "Free" && (
+                      {paymentStatuses[quote.id] && (
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
@@ -614,42 +424,63 @@ const ViewAllQuotes = () => {
                         </Dialog>
                       )}
 
-                      <Dialog
-                        onOpenChange={(open) => {
-                          if (!open) setSelectedQuoteForExport(null);
-                        }}
-                      >
-                        <DialogTitle></DialogTitle>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            onClick={() => setSelectedQuoteForExport(quote)}
-                            className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
-                          >
-                            <FileText className="w-4 h-4 mr-2 text-white" />
-                            Generate BOQ
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent
-                          onPointerDownOutside={(e) => e.preventDefault()}
-                          onEscapeKeyDown={(e) => e.preventDefault()}
+                      {!paymentStatuses[quote.id] && (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            navigate("/payments/quote", {
+                              state: {
+                                quoteId: quote.id,
+                                quoteTitle: quote.title,
+                                amount: 1000,
+                              },
+                            })
+                          }
+                          className="text-white flex-1 sm:flex-none bg-gradient-to-r from-[#D85C2C] to-[#C94820] hover:from-[#C94820] hover:to-[#B83B1A]"
                         >
-                          {selectedQuoteForExport && (
-                            <QuoteExportDialog
-                              open={!!selectedQuoteForExport}
-                              onOpenChange={(open) => {
-                                if (!open) setSelectedQuoteForExport(null);
-                              }}
-                              quote={selectedQuoteForExport}
-                              contractorName={contractorName}
-                              companyName={companyName}
-                              logoUrl={profile.avatar_url}
-                            />
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                          <CreditCard className="w-4 h-4 mr-2 text-white" />
+                          Pay 1000 KSH
+                        </Button>
+                      )}
 
-                      {profile.tier !== "Free" && (
+                      {paymentStatuses[quote.id] && (
+                        <Dialog
+                          onOpenChange={(open) => {
+                            if (!open) setSelectedQuoteForExport(null);
+                          }}
+                        >
+                          <DialogTitle></DialogTitle>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              onClick={() => setSelectedQuoteForExport(quote)}
+                              className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
+                            >
+                              <FileText className="w-4 h-4 mr-2 text-white" />
+                              Generate BOQ
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent
+                            onPointerDownOutside={(e) => e.preventDefault()}
+                            onEscapeKeyDown={(e) => e.preventDefault()}
+                          >
+                            {selectedQuoteForExport && (
+                              <QuoteExportDialog
+                                open={!!selectedQuoteForExport}
+                                onOpenChange={(open) => {
+                                  if (!open) setSelectedQuoteForExport(null);
+                                }}
+                                quote={selectedQuoteForExport}
+                                contractorName={contractorName}
+                                companyName={companyName}
+                                logoUrl={profile.avatar_url}
+                              />
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      )}
+
+                      {paymentStatuses[quote.id] && (
                         <Button
                           size="sm"
                           onClick={() =>

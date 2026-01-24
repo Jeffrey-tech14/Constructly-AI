@@ -121,14 +121,6 @@ const Profile = () => {
     return value.toString();
   };
 
-  const [tierLimits, setTierLimits] = useState<{
-    [key: string]: {
-      price: number;
-      limit: number;
-      features: string[];
-    };
-  }>({});
-
   const [stats, setStats] = useState({
     total_projects: 0,
     completed_projects: 0,
@@ -158,11 +150,11 @@ const Profile = () => {
     }
     const total_projects = data.length;
     const completed_projects = data.filter(
-      (q) => q.status === "completed"
+      (q) => q.status === "completed",
     ).length;
     const total_revenue = data.reduce(
       (sum, q) => sum + (q.profit_amount || 0),
-      0
+      0,
     );
     const completionRate =
       total_projects > 0 ? (completed_projects / total_projects) * 100 : 0;
@@ -174,27 +166,8 @@ const Profile = () => {
     };
   };
 
-  useEffect(() => {
-    const fetchTiers = async () => {
-      const { data, error } = await supabase.from("tiers").select("*");
-      if (error) {
-        console.error("Failed to fetch tiers:", error);
-        return;
-      }
-      const limits = data.reduce((acc: any, tier: any) => {
-        acc[tier.name] = {
-          limit: tier.quotes_limit,
-          price: tier.price,
-          features: tier.features || [],
-        };
-        return acc;
-      }, {});
-      setTierLimits(limits);
-    };
-    fetchTiers();
-  }, [location.key]);
-
-  const tierData = tierLimits[profile.tier as keyof typeof tierLimits] || null;
+  // Tier-based pricing removed - now using per-quote payments
+  // Users pay 1000 KSH per quote for access
 
   const handleSave = async () => {
     try {
@@ -213,48 +186,6 @@ const Profile = () => {
       console.error("Error updating avatar:", error);
     }
   };
-
-  const getTierImage = (tier: string) => {
-    switch (tier) {
-      case "Free":
-        return <Shell className="w-6 h-6" />;
-      case "Professional":
-        return <Shield className="w-6 h-6" />;
-      case "Enterprise":
-        return <Crown className="w-6 h-6" />;
-      default:
-        return <span className="text-sm font-medium">{tier}</span>;
-    }
-  };
-
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case "Free":
-        return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            Free
-          </Badge>
-        );
-      case "Professional":
-        return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
-            Professional
-          </Badge>
-        );
-      case "Enterprise":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            Enterprise
-          </Badge>
-        );
-      default:
-        return <Badge>{tier}</Badge>;
-    }
-  };
-
-  const quotaUsagePercentage = tierData
-    ? (profile.quotes_used / tierData.limit) * 100
-    : 0;
 
   const projectCompletionRate =
     stats.total_projects > 0
@@ -409,7 +340,7 @@ const Profile = () => {
               </CardContent>
             </Card>
 
-            {profile.tier !== "Free" && stats.total_projects > 0 && (
+            {stats.total_projects > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -465,8 +396,8 @@ const Profile = () => {
                           projectCompletionRate >= 75
                             ? "bg-green-500"
                             : projectCompletionRate >= 50
-                            ? "bg-blue-500"
-                            : "bg-red-500"
+                              ? "bg-blue-500"
+                              : "bg-red-500"
                         }`}
                         style={{ width: `${projectCompletionRate}%` }}
                       ></div>
@@ -481,86 +412,46 @@ const Profile = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex flex-col items-center">
-                  <span className="text-lg font-semibold">Current Plan</span>
-                  <div className="flex items-center space-x-3 my-2">
-                    <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-full ${
-                        profile.tier === "Free"
-                          ? "bg-green-100 text-green-700"
-                          : profile.tier === "Enterprise"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-purple-100 text-purple-700"
-                      }`}
-                    >
-                      {getTierImage(profile.tier)}
-                    </div>
-                  </div>
-                  {profile.tier}
+                  <span className="text-lg font-semibold">Pricing</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                      {profile.tier === "Free"
-                        ? "Free"
-                        : `KSh ${tierData?.price?.toLocaleString() || "0"}`}
+                <div className="space-y-4 text-center">
+                  <div className="p-6 bg-gradient-to-r from-[#00356B]/5 to-[#D85C2C]/5 rounded-lg">
+                    <p className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent mb-2">
+                      1,000 KSH
                     </p>
-                    <p className="text-sm text-muted-foreground">per month</p>
+                    <p className="text-lg text-gray-700 dark:text-gray-300 mb-4">
+                      per quote
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      One-time payment to unlock full access to each quote
+                      including BOQ generation, progress tracking, and exports.
+                    </p>
                   </div>
 
-                  {profile.tier !== "Professional" && tierData && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Quotes Used</span>
-                        <span>
-                          {profile.quotes_used ?? 0}/{tierData.limit}
-                        </span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            quotaUsagePercentage >= 75
-                              ? "bg-red-500"
-                              : quotaUsagePercentage >= 50
-                              ? "bg-blue-500"
-                              : "bg-green-500"
-                          }`}
-                          style={{ width: `${quotaUsagePercentage}%` }}
-                        ></div>
-                      </div>
-                      {quotaUsagePercentage >= 75 && (
-                        <p className="text-sm text-red-600">
-                          Running low on quotes!
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-md">Features:</h4>
-                    {tierData &&
-                    Array.isArray(tierData.features) &&
-                    tierData.features.length > 0 ? (
-                      <ul className="space-y-1">
-                        {tierData.features.map((feature, idx) => (
-                          <li key={idx} className="flex text-sm items-center">
-                            <CheckCircle className="w-4 h-4 dark:text-green-500 text-green-700 mr-2 flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No features available
-                      </p>
-                    )}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-md">What you get:</h4>
+                    <ul className="space-y-2 text-left">
+                      {[
+                        "Quote details & progress tracking",
+                        "BOQ generation (PDF, Excel, Word)",
+                        "Edit quote information",
+                        "Material schedules & exports",
+                        "No subscription required",
+                      ].map((feature, idx) => (
+                        <li key={idx} className="flex items-center text-sm">
+                          <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 mr-3 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />
@@ -590,14 +481,6 @@ const Profile = () => {
                   </span>
                   <span className="text-gray-900 dark:text-white">
                     {profile.is_admin ? "Administrator" : "User"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Quotes used:
-                  </span>
-                  <span className="text-gray-900 dark:text-white">
-                    {profile.quotes_used}
                   </span>
                 </div>
               </CardContent>

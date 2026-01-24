@@ -19,6 +19,7 @@ export type Database = {
       subcontractor_prices: {
         Row: {
           created_at: string | null;
+          name: string;
           price: number;
           id: string;
           unit: string | null;
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string | null;
           price: number;
           id?: string;
+          name?: string;
           unit?: string | null;
           service_id?: string | null;
           region: string;
@@ -43,6 +45,7 @@ export type Database = {
           id?: string;
           service_id?: string | null;
           unit?: string | null;
+          name?: string;
           region?: string;
           updated_at?: string | null;
           user_id?: string | null;
@@ -234,7 +237,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       client_reviews: {
@@ -275,7 +278,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "quotes";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       equipment_types: {
@@ -341,7 +344,7 @@ export type Database = {
           id: string;
           name: string;
           unit: string;
-          type: string[] | null;
+          type: Json | null;
           size: string | null;
           updated_at: string | null;
         };
@@ -353,7 +356,7 @@ export type Database = {
           id?: string;
           name: string;
           size?: string | null;
-          type?: string[] | null;
+          type?: Json | null;
           unit?: string;
           updated_at?: string | null;
         };
@@ -365,7 +368,7 @@ export type Database = {
           id?: string;
           size?: string | null;
           name?: string;
-          type?: string[] | null;
+          type?: Json | null;
           unit?: string;
           updated_at?: string | null;
         };
@@ -529,7 +532,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       quotes: {
@@ -550,8 +553,10 @@ export type Database = {
           house_height: number | null;
           house_length: number | null;
           house_type: string | null;
+          payment_status: string | null;
           house_width: number | null;
           id: string;
+          bbs_file_url: string | null;
           labor: Json | null;
           labor_cost: number;
           location: string;
@@ -587,7 +592,9 @@ export type Database = {
           created_at?: string;
           custom_specs?: string | null;
           distance_km?: number | null;
+          payment_status?: string | null;
           equipment_costs?: number | null;
+          bbs_file_url?: string | null;
           floors?: number | null;
           house_height?: number | null;
           profit_amount?: number;
@@ -629,7 +636,9 @@ export type Database = {
           created_at?: string;
           custom_specs?: string | null;
           distance_km?: number | null;
+          bbs_file_url?: string | null;
           equipment_costs?: number | null;
+          payment_status?: string | null;
           profit_amount?: number;
           floors?: number | null;
           house_height?: number | null;
@@ -660,6 +669,63 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [];
+      };
+      quote_payments: {
+        Row: {
+          id: string;
+          quote_id: string;
+          user_id: string;
+          amount_ksh: number;
+          payment_status: "pending" | "processing" | "completed" | "failed";
+          payment_reference: string | null;
+          transaction_id: string | null;
+          payment_method: string | null;
+          created_at: string;
+          completed_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          quote_id: string;
+          user_id: string;
+          amount_ksh?: number;
+          payment_status?: "pending" | "processing" | "completed" | "failed";
+          payment_reference?: string | null;
+          transaction_id?: string | null;
+          payment_method?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          quote_id?: string;
+          user_id?: string;
+          amount_ksh?: number;
+          payment_status?: "pending" | "processing" | "completed" | "failed";
+          payment_reference?: string | null;
+          transaction_id?: string | null;
+          payment_method?: string | null;
+          created_at?: string;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quote_payments_quote_id_fkey";
+            columns: ["quote_id"];
+            isOneToOne: true;
+            referencedRelation: "quotes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_payments_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       regional_multipliers: {
         Row: {
@@ -728,7 +794,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_equipment_rates: {
@@ -773,7 +839,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_labor_overrides: {
@@ -818,7 +884,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_material_prices: {
@@ -866,7 +932,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_service_overrides: {
@@ -911,7 +977,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_service_rates: {
@@ -953,7 +1019,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_transport_rates: {
@@ -991,7 +1057,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_equipment: {
@@ -1032,7 +1098,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
       user_materials: {
@@ -1079,7 +1145,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          }
+          },
         ];
       };
     };
@@ -1128,7 +1194,7 @@ export type Tables<
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1139,14 +1205,14 @@ export type Tables<
     ? R
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R;
-    }
-    ? R
-    : never
-  : never;
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -1157,7 +1223,7 @@ export type TablesInsert<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1167,12 +1233,12 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Insert: infer I;
-    }
-    ? I
-    : never
-  : never;
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -1183,7 +1249,7 @@ export type TablesUpdate<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -1193,12 +1259,12 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Update: infer U;
-    }
-    ? U
-    : never
-  : never;
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
@@ -1209,14 +1275,14 @@ export type Enums<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never;
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
@@ -1227,14 +1293,14 @@ export type CompositeTypes<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never;
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
 export const Constants = {
   public: {
     Enums: {},

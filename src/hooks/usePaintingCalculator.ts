@@ -50,7 +50,7 @@ function getFinishesWastagePercentage(quote: any): number {
  * Returns null if internal wall dimensions are missing or invalid
  */
 export function createDefaultPaintingFromInternalWalls(
-  wallDimensions: any
+  wallDimensions: any,
 ): PaintingSpecification | null {
   if (
     !wallDimensions ||
@@ -135,8 +135,8 @@ export default function usePaintingCalculator({
         painting,
         DEFAULT_COVERAGE_RATES,
         paintingPrices,
-        finishesWastage
-      )
+        finishesWastage,
+      ),
     );
 
     setPaintings(calculated);
@@ -205,7 +205,7 @@ export default function usePaintingCalculator({
         newPainting,
         DEFAULT_COVERAGE_RATES,
         paintingPrices,
-        finishesWastage
+        finishesWastage,
       );
 
       const updated = [...paintings, calculated];
@@ -217,7 +217,63 @@ export default function usePaintingCalculator({
 
       return calculated;
     },
-    [paintings, paintingPrices, finishesWastage, onPaintingsChange]
+    [paintings, paintingPrices, finishesWastage, onPaintingsChange],
+  );
+
+  /**
+   * Create multiple painting specifications at once
+   */
+  const addMultiplePaintings = useCallback(
+    (paintingsToAdd: Array<{ surfaceArea: number; location?: string }>) => {
+      const newPaintings = paintingsToAdd.map((config) => {
+        const newPainting: PaintingSpecification = {
+          id: `painting-${Date.now()}-${Math.random()}`,
+          surfaceArea: config.surfaceArea,
+          location: config.location,
+          skimming: {
+            enabled: DEFAULT_PAINTING_CONFIG.skimming.enabled,
+            coats: DEFAULT_PAINTING_CONFIG.skimming.coats,
+            coverage: DEFAULT_COVERAGE_RATES.skimming,
+          },
+          undercoat: {
+            enabled: DEFAULT_PAINTING_CONFIG.undercoat.enabled,
+            coverage: DEFAULT_COVERAGE_RATES.undercoat,
+          },
+          finishingPaint: {
+            category: DEFAULT_PAINTING_CONFIG.finishingPaint.category,
+            subtype: DEFAULT_PAINTING_CONFIG.finishingPaint.subtype,
+            coats: DEFAULT_PAINTING_CONFIG.finishingPaint.coats,
+            coverage: DEFAULT_COVERAGE_RATES.finishPaint,
+          },
+          calculations: {
+            skimming: null,
+            undercoat: null,
+            finishing: null,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        return calculatePaintingLayers(
+          newPainting,
+          DEFAULT_COVERAGE_RATES,
+          paintingPrices,
+          finishesWastage,
+        );
+      });
+
+      const updated = [...paintings, ...newPaintings];
+      setPaintings(updated);
+      const newTotals = calculatePaintingTotals(updated);
+      setTotals(newTotals);
+
+      if (onPaintingsChange) {
+        onPaintingsChange(updated);
+      }
+
+      return newPaintings;
+    },
+    [paintings, paintingPrices, finishesWastage, onPaintingsChange],
   );
 
   /**
@@ -238,7 +294,7 @@ export default function usePaintingCalculator({
           merged,
           DEFAULT_COVERAGE_RATES,
           paintingPrices,
-          finishesWastage
+          finishesWastage,
         );
       });
 
@@ -250,7 +306,7 @@ export default function usePaintingCalculator({
         onPaintingsChange(updated);
       }
     },
-    [paintings, paintingPrices, finishesWastage, onPaintingsChange]
+    [paintings, paintingPrices, finishesWastage, onPaintingsChange],
   );
 
   /**
@@ -267,7 +323,7 @@ export default function usePaintingCalculator({
         onPaintingsChange(updated);
       }
     },
-    [paintings, onPaintingsChange]
+    [paintings, onPaintingsChange],
   );
 
   /**
@@ -279,7 +335,7 @@ export default function usePaintingCalculator({
         skimming: { enabled, coats, coverage: DEFAULT_COVERAGE_RATES.skimming },
       });
     },
-    [updatePainting]
+    [updatePainting],
   );
 
   /**
@@ -291,7 +347,7 @@ export default function usePaintingCalculator({
         undercoat: { enabled, coverage: DEFAULT_COVERAGE_RATES.undercoat },
       });
     },
-    [updatePainting]
+    [updatePainting],
   );
 
   /**
@@ -308,7 +364,7 @@ export default function usePaintingCalculator({
         },
       });
     },
-    [updatePainting]
+    [updatePainting],
   );
 
   /**
@@ -318,13 +374,14 @@ export default function usePaintingCalculator({
     (id: string): PaintingSpecification | undefined => {
       return paintings.find((p) => p.id === id);
     },
-    [paintings]
+    [paintings],
   );
 
   return {
     paintings,
     totals,
     addPainting,
+    addMultiplePaintings,
     updatePainting,
     updateSkimming,
     updateUndercoat,

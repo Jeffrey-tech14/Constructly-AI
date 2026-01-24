@@ -19,6 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Download, Clock, MapPin, User, Building2 } from "lucide-react";
 import { exportQuote } from "@/utils/exportUtils";
+import { exportMaterialSchedulePDF } from "@/utils/exportMaterialSchedulePDF";
 import { useToast } from "@/hooks/use-toast";
 
 interface QuoteExportDialogProps {
@@ -40,23 +41,20 @@ export const QuoteExportDialog = ({
 }: QuoteExportDialogProps) => {
   const { toast } = useToast();
   const [exportType, setExportType] = useState<"client" | "contractor">(
-    "contractor"
+    "contractor",
   );
-  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "docx">(
-    "pdf"
-  );
+  const [exportFormat, setExportFormat] = useState<
+    "pdf" | "excel" | "docx" | "material-schedule"
+  >("pdf");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleExport = async () => {
+  const handleExportMaterialSchedule = async () => {
     setIsProcessing(true);
     setError(null);
     try {
-      const success = await exportQuote({
-        format: exportFormat,
-        audience: exportType,
-        quote,
-        projectInfo: {
+      const success = await exportMaterialSchedulePDF(
+        {
           title: quote.title,
           date: new Date().toLocaleDateString(),
           clientName: quote.client_name,
@@ -69,11 +67,12 @@ export const QuoteExportDialog = ({
           companyName,
           logoUrl,
         },
-      });
+        quote,
+      );
 
       if (!success) {
         setError(
-          "Something went wrong while generating the document. Please try again later."
+          "Something went wrong while generating the document. Please try again later.",
         );
         toast({
           title: "Error generating document",
@@ -94,7 +93,68 @@ export const QuoteExportDialog = ({
     } catch (err) {
       console.error(err);
       setError(
-        "Something went wrong while generating the document. Please try again later."
+        "Something went wrong while generating the document. Please try again later.",
+      );
+      toast({
+        title: "Error generating document",
+        description: "Please try again",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (exportFormat === "material-schedule") {
+      return handleExportMaterialSchedule();
+    }
+
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const success = await exportQuote({
+        format: exportFormat as "pdf" | "excel" | "docx",
+        audience: exportType,
+        quote,
+        projectInfo: {
+          title: quote.title,
+          date: new Date().toLocaleDateString(),
+          clientName: quote.client_name,
+          clientEmail: quote.client_email,
+          location: quote.location,
+          projectType: quote.project_type,
+          houseType: quote.house_type,
+          region: quote.region,
+          floors: quote.floors,
+          companyName,
+          logoUrl,
+        },
+      });
+
+      if (!success) {
+        setError(
+          "Something went wrong while generating the document. Please try again later.",
+        );
+        toast({
+          title: "Error generating document",
+          description: "Please try again",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
+      toast({
+        title: "Document generated successfully",
+        description: "Your file has been downloaded",
+        variant: "default",
+      });
+      setIsProcessing(false);
+      onOpenChange(false);
+    } catch (err) {
+      console.error(err);
+      setError(
+        "Something went wrong while generating the document. Please try again later.",
       );
       toast({
         title: "Error generating document",
@@ -193,7 +253,7 @@ export const QuoteExportDialog = ({
                   setExportType(value)
                 }
                 value={exportType}
-                disabled={isProcessing}
+                disabled={isProcessing || exportFormat === "material-schedule"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select export type" />
@@ -206,17 +266,21 @@ export const QuoteExportDialog = ({
                 </SelectContent>
               </Select>
               <p className="text-gray-300 text-sm mt-1">
-                {exportType === "client"
-                  ? "Simplified version without cost breakdowns"
-                  : "Detailed version with all cost calculations"}
+                {exportFormat === "material-schedule"
+                  ? "N/A for Material Schedule export"
+                  : exportType === "client"
+                    ? "Simplified version without cost breakdowns"
+                    : "Detailed version with all cost calculations"}
               </p>
             </div>
 
             <div>
               <Label className="text-white">File Format</Label>
               <Select
-                onValueChange={(value: "pdf" | "excel" | "docx") =>
-                  setExportFormat(value)
+                onValueChange={(value) =>
+                  setExportFormat(
+                    value as "pdf" | "excel" | "docx" | "material-schedule",
+                  )
                 }
                 value={exportFormat}
                 disabled={isProcessing}
@@ -225,11 +289,21 @@ export const QuoteExportDialog = ({
                   <SelectValue placeholder="Select file type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="excel">Excel (.xlsx)</SelectItem>
-                  <SelectItem value="docx">Docx (.docx)</SelectItem>
+                  <SelectItem value="pdf">PDF - Full BOQ</SelectItem>
+                  <SelectItem value="excel">
+                    Excel (.xlsx) - Full BOQ
+                  </SelectItem>
+                  <SelectItem value="docx">Docx (.docx) - Full BOQ</SelectItem>
+                  <SelectItem value="material-schedule">
+                    📋 Material Schedule (PDF Only)
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-gray-300 text-sm mt-1">
+                {exportFormat === "material-schedule"
+                  ? "Standalone material schedule with hierarchical work items"
+                  : "Full bill of quantities with all sections"}
+              </p>
             </div>
 
             <Button
@@ -241,7 +315,9 @@ export const QuoteExportDialog = ({
               <span>
                 {isProcessing
                   ? "Generating..."
-                  : `Download ${exportFormat.toUpperCase()}`}
+                  : exportFormat === "material-schedule"
+                    ? "Download Material Schedule"
+                    : `Download ${exportFormat.toUpperCase()}`}
               </span>
             </Button>
           </div>

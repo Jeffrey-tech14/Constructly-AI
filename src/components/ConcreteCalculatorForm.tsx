@@ -97,14 +97,7 @@ export default function ConcreteCalculatorForm({
       mix: "",
       category: "substructure",
       number: "1",
-      hasMasonryWall: false,
       foundationType: quote.foundationDetails?.foundationType,
-      masonryBlockType: quote.foundationDetails?.masonryBlockType || "",
-      masonryBlockDimensions:
-        quote.foundationDetails?.masonryBlockDimensions || "",
-      masonryWallThickness: quote.foundationDetails?.masonryWallThickness || "",
-      masonryWallHeight: quote.foundationDetails?.masonryWallHeight || "",
-      masonryWallPerimeter: quote.foundationDetails?.totalPerimeter || "",
       isSteppedFoundation: false,
       foundationSteps: [],
       waterproofing: {
@@ -127,13 +120,7 @@ export default function ConcreteCalculatorForm({
       mix: "",
       category: "superstructure",
       number: "1",
-      hasMasonryWall: false,
       foundationType: "",
-      masonryBlockType: "",
-      masonryBlockDimensions: "",
-      masonryWallThickness: "",
-      masonryWallHeight: "",
-      masonryWallPerimeter: 0,
       isSteppedFoundation: false,
       foundationSteps: [],
       waterproofing: {
@@ -195,12 +182,6 @@ export default function ConcreteCalculatorForm({
           rowUpdated = true;
         }
 
-        // Auto-fill masonry wall height from foundation height
-        if (row.hasMasonryWall && !row.masonryWallHeight) {
-          updatedRow.masonryWallHeight = foundationHeight.toString();
-          rowUpdated = true;
-        }
-
         if (rowUpdated) {
           updated = true;
         }
@@ -229,11 +210,6 @@ export default function ConcreteCalculatorForm({
             // If aggregate bed is enabled, sync its height
             if (r.hasAggregateBed) {
               updated.aggregateDepth = newHeight;
-            }
-
-            // If masonry wall is enabled, sync its height
-            if (r.hasMasonryWall) {
-              updated.masonryWallHeight = newHeight;
             }
 
             return updated;
@@ -391,25 +367,6 @@ export default function ConcreteCalculatorForm({
     m.name?.toLowerCase().includes("backfill"),
   );
 
-  const foundationMasonryType =
-    rows.find((r) => r.masonryBlockType?.toLocaleLowerCase())
-      ?.masonryBlockType || "Standard Natural Block";
-
-  const foundationBlockPrice = useMasonryCalculatorNew({
-    setQuote,
-    quote,
-    materialBasePrices,
-    userMaterialPrices,
-    regionalMultipliers,
-    userRegion,
-    getEffectiveMaterialPrice,
-  });
-
-  const foundationBlockMat = foundationBlockPrice.getMaterialPrice(
-    "Bricks",
-    foundationMasonryType,
-  );
-
   const addFoundationStep = useCallback(
     (rowId: string) => {
       const newStep: FoundationStep = {
@@ -497,7 +454,6 @@ export default function ConcreteCalculatorForm({
       if (element !== "raft-foundation" && element !== "strip-footing") {
         updateRow(id, "hasConcreteBed", false);
         updateRow(id, "hasAggregateBed", false);
-        updateRow(id, "hasMasonryWall", false);
         updateRow(id, "isSteppedFoundation", false);
         updateRow(id, "foundationSteps", []);
       }
@@ -1470,7 +1426,6 @@ export default function ConcreteCalculatorForm({
       return;
     }
 
-    const masonryPrice = foundationBlockMat;
     const lineItems = results.flatMap((r) => {
       const rowItems: any[] = [
         {
@@ -1614,22 +1569,6 @@ export default function ConcreteCalculatorForm({
         });
       }
 
-      if (r.blocksCost && r.blocksCost > 0) {
-        const blockMaterial = materials.find(
-          (m) =>
-            m.name?.toLowerCase().includes("block") ||
-            m.name?.toLowerCase().includes("brick"),
-        );
-        rowItems.push({
-          rowId: r.id,
-          name: `Blocks (${r.name})`,
-          quantity: r.blocksFeet || 0,
-          unit: "ft",
-          unit_price: blockMaterial?.price || 0,
-          total_price: Math.round(r.blocksCost),
-        });
-      }
-
       if (!qsSettings.clientProvidesWater) {
         rowItems.push({
           rowId: r.id,
@@ -1637,23 +1576,6 @@ export default function ConcreteCalculatorForm({
           quantity: r.grossWaterRequiredL,
           unit_price: waterMat?.price || 0,
           total_price: (r.grossWaterRequiredL / 1000) * (waterMat?.price || 0),
-        });
-      }
-
-      if (r.grossMortarCementBags && r.grossMortarCementBags > 0) {
-        rowItems.push({
-          rowId: r.id,
-          name: `${r.name} - Mortar Cement`,
-          quantity: r.grossMortarCementBags,
-          unit_price: cementMat.price,
-          total_price: Math.round(r.grossMortarCementBags * cementMat.price),
-        });
-        rowItems.push({
-          rowId: r.id,
-          name: `${r.name} - Mortar Sand`,
-          quantity: r.grossMortarSandM3 || 0,
-          unit_price: sandMat.price,
-          total_price: Math.round((r.grossMortarSandM3 || 0) * sandMat.price),
         });
       }
 
@@ -1675,11 +1597,7 @@ export default function ConcreteCalculatorForm({
         });
       }
 
-      const totalRowCost =
-        r.totalConcreteCost +
-        (r.grossTotalBlocks && r.grossTotalBlocks > 0
-          ? Math.round(r.grossTotalBlocks * masonryPrice)
-          : 0);
+      const totalRowCost = r.totalConcreteCost;
 
       rowItems.push({
         rowId: r.id,
@@ -1741,17 +1659,6 @@ export default function ConcreteCalculatorForm({
               quantity: totals.waterRequired,
               unit_price: waterMat?.price || 0,
               total_price: Math.round(totals.waterCost),
-            },
-          ]
-        : []),
-      ...(masonryPrice && totals.totalBlocks > 0
-        ? [
-            {
-              rowId: "totals",
-              name: `Total ${foundationMasonryType}`,
-              quantity: totals.totalBlocks,
-              unit_price: masonryPrice,
-              total_price: Math.round(totals.totalBlocks * masonryPrice),
             },
           ]
         : []),
@@ -1847,8 +1754,6 @@ export default function ConcreteCalculatorForm({
     quote?.concrete_materials,
     rows,
     qsSettings,
-    foundationBlockMat,
-    foundationMasonryType,
   ]);
 
   useEffect(() => {
@@ -2347,83 +2252,6 @@ export default function ConcreteCalculatorForm({
                     )}
                   </div>
                 </div>
-
-                <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`masonry-${row.id}`}
-                      checked={row.hasMasonryWall || false}
-                      onCheckedChange={(checked) =>
-                        updateRow(row.id, "hasMasonryWall", checked === true)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label
-                      htmlFor={`masonry-${row.id}`}
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Masonry Wall
-                    </Label>
-                  </div>
-
-                  {row.hasMasonryWall && (
-                    <>
-                      <Select
-                        value={row.masonryBlockType}
-                        onValueChange={(value) =>
-                          updateRow(row.id, "masonryBlockType", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Block/Stone Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Standard Natural Block">
-                            Standard Natural Block
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        type="text"
-                        value={row.masonryBlockDimensions || "0.4x0.2x0.2"}
-                        onChange={(e) =>
-                          updateRow(
-                            row.id,
-                            "masonryBlockDimensions",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="Block Dimensions (LxWxH in m)"
-                      />
-                      <Input
-                        type="number"
-                        value={row.masonryWallThickness || ""}
-                        onChange={(e) =>
-                          updateRow(
-                            row.id,
-                            "masonryWallThickness",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="Wall Thickness (m, e.g., 0.2)"
-                        step="0.05"
-                        min="0.1"
-                      />
-                      <Input
-                        type="number"
-                        value={row.masonryWallHeight || ""}
-                        onChange={(e) =>
-                          updateRow(row.id, "masonryWallHeight", e.target.value)
-                        }
-                        placeholder={`Wall Height (m) - Auto-filled: ${
-                          row.height || "0"
-                        } m`}
-                        step="0.1"
-                        min="0.1"
-                      />
-                    </>
-                  )}
-                </div>
               </div>
             )}
 
@@ -2535,27 +2363,6 @@ export default function ConcreteCalculatorForm({
                         </p>
                       </div>
                     )}
-
-                    {result.grossTotalBlocks > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Masonry Wall Workings:
-                        </h4>
-                        <p>
-                          <b>Blocks/Stones:</b>{" "}
-                          {Math.ceil(result.grossTotalBlocks).toLocaleString()}{" "}
-                          units
-                        </p>
-                        <p>
-                          <b>Mortar Cement:</b>{" "}
-                          {result.grossMortarCementBags?.toFixed(1)} bags
-                        </p>
-                        <p>
-                          <b>Mortar Sand:</b>{" "}
-                          {result.grossMortarSandM3?.toFixed(2)} m³
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -2628,50 +2435,6 @@ export default function ConcreteCalculatorForm({
                       {result.waterAggregateAdjustmentL?.toFixed(0)} L
                     </p>
                   </div>
-
-                  {result.grossTotalBlocks > 0 && (
-                    <>
-                      <p>
-                        <b>{row.masonryBlockType || "Blocks"}:</b>{" "}
-                        {Math.ceil(result.netTotalBlocks || 0).toLocaleString()}{" "}
-                        units (net) →{" "}
-                        {Math.ceil(
-                          result.grossTotalBlocks || 0,
-                        ).toLocaleString()}{" "}
-                        units (gross) — {result.blocksFeet?.toFixed(2)} ft —{" "}
-                        <b>
-                          Ksh{" "}
-                          {Math.round(
-                            result.grossTotalBlocks * (foundationBlockMat || 0),
-                          ).toLocaleString()}
-                        </b>
-                      </p>
-                      <p>
-                        <b>Mortar Cement:</b>{" "}
-                        {result.netMortarCementBags?.toFixed(1)} bags (net) →{" "}
-                        {result.grossMortarCementBags?.toFixed(1)} bags (gross)
-                        —{" "}
-                        <b>
-                          Ksh{" "}
-                          {Math.round(
-                            result.grossMortarCementBags *
-                              (cementMat?.price || 0),
-                          ).toLocaleString()}
-                        </b>
-                      </p>
-                      <p>
-                        <b>Mortar Sand:</b> {result.netMortarSandM3?.toFixed(2)}{" "}
-                        m³ (net) → {result.grossMortarSandM3?.toFixed(2)} m³
-                        (gross) —{" "}
-                        <b>
-                          Ksh{" "}
-                          {Math.round(
-                            result.grossMortarSandM3 * (sandMat?.price || 0),
-                          ).toLocaleString()}
-                        </b>
-                      </p>
-                    </>
-                  )}
 
                   {result.gravelVolume > 0 && (
                     <p>
@@ -2748,41 +2511,6 @@ export default function ConcreteCalculatorForm({
             <b>Total Water:</b> {totals.waterRequired?.toFixed(0)} liters —{" "}
             <b>Ksh {Math.round(totals.waterCost || 0).toLocaleString()}</b>
           </p>
-        )}
-
-        {totals.totalBlocks > 0 && (
-          <>
-            <p>
-              <b>Total {foundationMasonryType}:</b>{" "}
-              {Math.ceil(totals.totalBlocks).toLocaleString()} units —{" "}
-              {totals.blocksFeet?.toFixed(2)} ft —{" "}
-              <b>
-                Ksh{" "}
-                {Math.round(
-                  totals.blocksFeet * (foundationBlockMat || 0),
-                ).toLocaleString()}
-              </b>
-            </p>
-            <p>
-              <b>Total Mortar Cement:</b> {totals.mortarCementBags?.toFixed(1)}{" "}
-              bags —{" "}
-              <b>
-                Ksh{" "}
-                {Math.round(
-                  totals.mortarCementBags * (cementMat?.price || 0),
-                ).toLocaleString()}
-              </b>
-            </p>
-            <p>
-              <b>Total Mortar Sand:</b> {totals.mortarSandM3?.toFixed(2)} m³ —{" "}
-              <b>
-                Ksh{" "}
-                {Math.round(
-                  totals.mortarSandM3 * (sandMat?.price || 0),
-                ).toLocaleString()}
-              </b>
-            </p>
-          </>
         )}
 
         {totals.dpcCost > 0 && (

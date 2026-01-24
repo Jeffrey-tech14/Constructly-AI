@@ -1,115 +1,218 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Home, ArrowLeft, FileQuestion, Zap } from "lucide-react";
+import { Home, ArrowRight, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const NotFound = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Preserved Logic
   if (!user) {
     navigate("/auth");
   }
 
+  useEffect(() => {
+    console.error(
+      "404 Error: User attempted to access non-existent route:",
+      location.pathname,
+    );
+  }, [location.pathname]);
+
+  const floatingVariants = {
+    animate: {
+      y: [0, 30, 0],
+      rotate: [0, 5, -5, 0],
+    },
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="w-full max-w-2xl">
-        {/* Main Card */}
-        <div className="glass-card backdrop-blur-sm rounded-lg border-t-4 border-[#86bc25] shadow-2xl overflow-hidden relative">
-          {/* Animated Header */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 border-b border-gray-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Zap className="w-5 h-5 text-[#86bc25]" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">
-                System Alert
-              </span>
-            </div>
-            <div className="flex gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-green-400" />
-              <div className="w-2 h-2 rounded-full bg-yellow-400" />
-              <div className="w-2 h-2 rounded-full bg-red-400" />
-            </div>
-          </div>
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{ y: [0, 40, 0], x: [0, 30, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 right-20 w-96 h-96 bg-[#B8860B]/5 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ y: [0, -40, 0], x: [0, -30, 0] }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            delay: 1,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-20 left-20 w-96 h-96 bg-[#00356B]/5 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ y: [0, 25, 0], x: [0, -20, 0] }}
+          transition={{
+            duration: 16,
+            repeat: Infinity,
+            delay: 2,
+            ease: "easeInOut",
+          }}
+          className="absolute top-1/2 left-1/3 w-72 h-72 bg-[#86bc25]/5 rounded-full blur-3xl"
+        />
+      </div>
 
-          <div className="p-8 sm:p-12 text-center">
-            {/* 404 Display */}
-            <div className="mb-8 relative h-32 flex items-center justify-center">
-              <h1 className="text-9xl font-black text-[#00356B]/5 tracking-tighter select-none absolute">
-                404
-              </h1>
-              <FileQuestion className="w-24 h-24 text-[#86bc25] drop-shadow-lg relative z-10" />
-            </div>
+      <div className="w-full max-w-2xl relative z-10">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-center"
+        >
+          {/* 404 Text with Floating Animation */}
+          <motion.div
+            variants={floatingVariants}
+            animate="animate"
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="mb-8"
+          >
+            <motion.h1
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, type: "spring", stiffness: 80 }}
+              className="text-8xl sm:text-9xl font-black bg-gradient-to-r from-[#B8860B] via-[#D4A574] to-[#B8860B] dark:from-[#D4A574] dark:via-[#B8860B] dark:to-[#D4A574] bg-clip-text text-transparent drop-shadow-lg"
+            >
+              404
+            </motion.h1>
+          </motion.div>
 
-            {/* Main Heading */}
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#00356B] dark:text-[#86bc25] mb-2 uppercase tracking-wide">
-              Module Not Found
+          {/* Error Message */}
+          <motion.div variants={itemVariants} className="mb-8">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#00356B] dark:text-white mb-4">
+              Page Lost on the Construction Site
             </h2>
-
-            {/* Subtitle */}
-            <div className="h-1 w-20 bg-gradient-to-r from-[#86bc25] to-[#00356B] mx-auto mb-6 rounded-full" />
-
-            {/* Description Text */}
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto leading-relaxed font-medium">
-              The resource requested{" "}
-              <span className="text-[#00356B] dark:text-[#86bc25] font-bold">
-                [ID: NULL]
-              </span>{" "}
-              does not exist in the directory or has been relocated to a secure
-              archive.
+            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+              It seems like you've wandered off the project blueprint! The page
+              you're looking for has disappeared into the blueprint archive.
             </p>
+          </motion.div>
 
-            {/* Status Cards */}
-            <div className="grid grid-cols-3 gap-3 mb-8">
-              {["Error", "Status", "Code"].map((label) => (
-                <div
-                  key={label}
-                  className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 p-3 rounded border border-slate-200 dark:border-slate-600"
-                >
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
-                    {label}
-                  </div>
-                  <div className="text-lg font-bold text-[#86bc25]">
-                    {label === "Error"
-                      ? "404"
-                      : label === "Status"
-                      ? "∅"
-                      : "ERR"}
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Search Icon with Rotation */}
+          <motion.div
+            variants={itemVariants}
+            className="flex justify-center mb-12"
+          >
+            <motion.div
+              animate={{ rotate: [0, -15, 15, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shadow-lg"
+            >
+              <Search className="w-8 h-8 text-[#B8860B] dark:text-[#D4A574]" />
+            </motion.div>
+          </motion.div>
 
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-slate-600 to-transparent mb-8" />
+          {/* Support Text */}
+          <motion.p
+            variants={itemVariants}
+            className="text-slate-600 dark:text-slate-400 mb-10 font-medium text-base"
+          >
+            Don't worry! Use the links below to get back on track
+          </motion.p>
 
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Buttons */}
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={() => navigate("/")}
-                className="w-full sm:w-auto bg-gradient-to-r from-[#86bc25] to-[#75a620] hover:from-[#75a620] hover:to-[#6a9218] text-white rounded-lg h-12 px-8 shadow-lg font-semibold"
+                className="w-full sm:w-auto bg-[#B8860B] hover:bg-[#A67C00] text-white rounded-full h-12 px-8 font-semibold shadow-lg transition-all group"
               >
-                <Home className="w-5 h-5 mr-2" />
-                <span className="text-sm font-bold uppercase tracking-wider">
-                  Return to Dashboard
-                </span>
+                <Home className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+                Back to Home
               </Button>
+            </motion.div>
 
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
+                onClick={() => navigate("/quotes/new")}
                 variant="outline"
-                onClick={() => window.history.back()}
-                className="w-full sm:w-auto rounded-lg h-12 px-8 border-2 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-[#00356B] dark:hover:text-[#86bc25] hover:border-[#86bc25] dark:hover:border-[#86bc25] font-semibold"
+                className="w-full sm:w-auto text-[#00356B] dark:text-[#86bc25] border-2 border-slate-300 dark:border-slate-600 hover:border-[#B8860B] dark:hover:border-[#B8860B] hover:bg-[#B8860B]/10 rounded-full h-12 px-8 font-semibold transition-all group"
               >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                <span className="text-sm font-bold uppercase tracking-wider">
-                  Go Back
-                </span>
+                Explore Projects
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
+            </motion.div>
+          </motion.div>
+
+          {/* Footer Links Card */}
+          <motion.div
+            variants={itemVariants}
+            className="glass-card rounded-2xl p-6 sm:p-8 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+          >
+            <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium">
+              Need help finding something?
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/help")}
+                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574] font-semibold transition-colors"
+              >
+                Browse Documentation →
+              </motion.button>
+              <span className="text-slate-300 dark:text-slate-600 hidden sm:block">
+                •
+              </span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/support")}
+                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574] font-semibold transition-colors"
+              >
+                Contact Support →
+              </motion.button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+
+          {/* Scroll Indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="mt-12 flex justify-center"
+          >
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-slate-400 dark:text-slate-600 text-sm font-light"
+            >
+              ↓
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

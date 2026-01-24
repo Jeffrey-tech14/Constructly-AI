@@ -22,6 +22,7 @@ import {
   ConsolidatedMaterial,
   MaterialConsolidator,
 } from "@/utils/materialConsolidator";
+import { WorkItem } from "@/services/geminiService";
 import { Target } from "lucide-react";
 Font.register({
   family: "Outfit",
@@ -585,6 +586,7 @@ interface PDFGeneratorProps {
   labour: number;
   permits: number;
   isClientExport?: boolean;
+  workItems?: WorkItem[];
 }
 interface EquipmentItem {
   name: string;
@@ -649,6 +651,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   labour = 0,
   permits = 0,
   isClientExport = false,
+  workItems,
 }) => {
   const nonEmptySections = useMemo(() => {
     return boqData?.filter((section) => {
@@ -661,38 +664,41 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     let allMaterials: CategorizedMaterial[] = [];
     if (materialSchedule && Array.isArray(materialSchedule)) {
       allMaterials = materialSchedule;
-    } 
+    }
     return MaterialConsolidator.consolidateAllMaterials(allMaterials);
   }, [boqData, materialSchedule]);
   const calculateEquipmentTotal = useMemo(
     () => equipmentItems.reduce((sum, item) => sum + item.total_cost, 0),
-    [equipmentItems]
+    [equipmentItems],
   );
   const calculateServicesTotal = useMemo(
     () => additionalServices.reduce((sum, service) => sum + service.price, 0),
-    [additionalServices]
+    [additionalServices],
   );
   const calculateSubcontractorsTotal = useMemo(
     () => subcontractors.reduce((sum, sub) => sum + sub.total, 0),
-    [subcontractors]
+    [subcontractors],
   );
   const calculateAddonsTotal = useMemo(
     () => addons.reduce((sum, addon) => sum + addon.price, 0),
-    [addons]
+    [addons],
   );
   const calculateMaterialsTotal = useMemo(() => {
     if (calculationSummary?.materials_cost) {
       return calculationSummary.materials_cost;
     }
   }, [calculationSummary]);
-  const materialsByCategory = materialSchedule.reduce((acc, material) => {
-    const category = material.category || "Uncategorized";
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(material);
-    return acc;
-  }, {} as Record<string, ConsolidatedMaterial[]>);
+  const materialsByCategory = (materialSchedule || []).reduce(
+    (acc, material) => {
+      const category = material.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(material);
+      return acc;
+    },
+    {} as Record<string, ConsolidatedMaterial[]>,
+  );
   const renderAdditionalCostDetails = () => {
     return (
       <View style={styles.section}>
@@ -828,39 +834,42 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       </Page>
     );
   };
-  const renderMaterialRow = (material: ConsolidatedMaterial) => (
-    <View style={styles.materialScheduleRow}>
-      <Text style={styles.materialScheduleColItem}>{material.itemNo}</Text>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.materialScheduleColDescription}>
-          {material.description}
-        </Text>
-        {material.category && (
-          <Text style={styles.materialSource}>From: {material.category}</Text>
-        )}
-      </View>
-      <Text style={styles.materialScheduleColUnit}>{material.unit}</Text>
-      <Text style={styles.materialScheduleColQty}>
-        {material.quantity.toFixed(2)}
-      </Text>
-      <Text style={styles.materialScheduleColRate}>
-        {material.rate?.toLocaleString()}
-      </Text>
-      <Text style={styles.materialScheduleColAmount}>
-        {material.amount?.toLocaleString()}
-      </Text>
-    </View>
-  );
+  // const renderMaterialRow = (material: ConsolidatedMaterial) => (
+  //   <View style={styles.materialScheduleRow}>
+  //     <Text style={styles.materialScheduleColItem}>{material.itemNo}</Text>
+  //     <View style={{ flex: 1 }}>
+  //       <Text style={styles.materialScheduleColDescription}>
+  //         {material.description}
+  //       </Text>
+  //       {material.category && (
+  //         <Text style={styles.materialSource}>From: {material.category}</Text>
+  //       )}
+  //     </View>
+  //     <Text style={styles.materialScheduleColUnit}>{material.unit}</Text>
+  //     <Text style={styles.materialScheduleColQty}>
+  //       {material.quantity.toFixed(2)}
+  //     </Text>
+  //     <Text style={styles.materialScheduleColRate}>
+  //       {material.rate?.toLocaleString()}
+  //     </Text>
+  //     <Text style={styles.materialScheduleColAmount}>
+  //       {material.amount?.toLocaleString()}
+  //     </Text>
+  //   </View>
+  // );
   const renderConsolidatedMaterials = (materials: ConsolidatedMaterial[]) => {
     if (materials.length === 0) return null;
-    const materialsByCategory = materials.reduce((acc, material) => {
-      const category = material.category || "Uncategorized";
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(material);
-      return acc;
-    }, {} as Record<string, ConsolidatedMaterial[]>);
+    const materialsByCategory = materials.reduce(
+      (acc, material) => {
+        const category = material.category || "Uncategorized";
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(material);
+        return acc;
+      },
+      {} as Record<string, ConsolidatedMaterial[]>,
+    );
     const materialsTotal = materials.reduce((sum, m) => sum + m.amount, 0);
 
     // Render all materials in a single page with one consolidated table
@@ -896,7 +905,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               </View>,
               // Category items
               ...categoryMaterials.map((material, index) =>
-                renderMaterialRow(material)
+                renderMaterialRow(material),
               ),
               // Category subtotal
               <View
@@ -910,12 +919,12 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   {formatCurrency(
                     categoryMaterials.reduce(
                       (sum, m) => sum + (m.amount || 0),
-                      0
-                    )
+                      0,
+                    ),
                   )}
                 </Text>
               </View>,
-            ]
+            ],
           )}
         </View>
 
@@ -935,6 +944,165 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       </Page>
     );
   };
+
+  const renderWorkItemMaterialRow = (material: any, itemNumber: number) => {
+    return (
+      <View style={styles.tableRow} key={`work-material-${itemNumber}`}>
+        <Text style={[styles.tableCol, { width: "5%" }]}>{itemNumber}</Text>
+        <Text style={[styles.tableColDescription, { width: "30%" }]}>
+          {material.description}
+        </Text>
+        <Text style={[styles.tableCol, { width: "12%" }]}>{material.unit}</Text>
+        <Text style={[styles.tableCol, { width: "10%" }]}>
+          {formatQuantity(material.quantity)}
+        </Text>
+        <Text style={[styles.tableCol, { width: "13%" }]}>
+          {formatCurrency(material.rate)}
+        </Text>
+        <Text style={[styles.tableColAmount, { width: "13%" }]}>
+          {formatCurrency(material.amount || material.quantity * material.rate)}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderHierarchicalMaterials = (items: WorkItem[]) => {
+    if (!items || items.length === 0) return null;
+
+    const workItemsTotal = items.reduce(
+      (sum, wi) => sum + (wi.subtotal || 0),
+      0,
+    );
+    const contingency = workItemsTotal * 0.05;
+    const grandTotal = workItemsTotal + contingency;
+
+    return (
+      <Page size="A4" style={styles.page}>
+        <CompanyHeader />
+        <Text style={styles.materialScheduleTitle}>MATERIAL SCHEDULE</Text>
+
+        <View style={styles.materialScheduleTable}>
+          {/* Master header */}
+          <View style={styles.materialScheduleHeaderRow}>
+            <Text
+              style={[styles.materialScheduleColHeaderItem, { width: "5%" }]}
+            >
+              Item
+            </Text>
+            <Text
+              style={[
+                styles.materialScheduleColHeaderDescription,
+                { width: "30%" },
+              ]}
+            >
+              Description
+            </Text>
+            <Text
+              style={[styles.materialScheduleColHeaderUnit, { width: "12%" }]}
+            >
+              Unit
+            </Text>
+            <Text
+              style={[styles.materialScheduleColHeaderQty, { width: "10%" }]}
+            >
+              Qty
+            </Text>
+            <Text
+              style={[styles.materialScheduleColHeaderRate, { width: "13%" }]}
+            >
+              Rate (KSh)
+            </Text>
+            <Text
+              style={[styles.materialScheduleColHeaderAmount, { width: "13%" }]}
+            >
+              Amount (KSh)
+            </Text>
+          </View>
+
+          {/* Render work items with nested materials */}
+          {items.flatMap((workItem, workItemIndex) => {
+            const itemNumber = workItemIndex + 1;
+            return [
+              // Work item header
+              <View
+                key={`work-item-header-${workItemIndex}`}
+                style={styles.materialCategoryHeaderRow}
+              >
+                <Text style={styles.materialCategoryHeaderText}>
+                  WI-{String(itemNumber).padStart(3, "0")}:{" "}
+                  {workItem.workDescription}
+                </Text>
+              </View>,
+              // Work item materials
+              ...(workItem.materials || []).map((material, materialIndex) =>
+                renderWorkItemMaterialRow(material, materialIndex + 1),
+              ),
+              // Work item subtotal
+              <View
+                key={`work-item-total-${workItemIndex}`}
+                style={styles.categoryTotalRow}
+              >
+                <Text style={styles.categoryTotalLabel}>
+                  Subtotal - {workItem.workDescription}:
+                </Text>
+                <Text style={styles.categoryTotalValue}>
+                  {formatCurrency(workItem.subtotal || 0)}
+                </Text>
+              </View>,
+            ];
+          })}
+
+          {/* Contingency row */}
+          <View style={styles.categoryTotalRow}>
+            <Text style={styles.categoryTotalLabel}>Contingency (5%):</Text>
+            <Text style={styles.categoryTotalValue}>
+              {formatCurrency(contingency)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Grand total */}
+        <View style={styles.grandTotalRow}>
+          <Text style={styles.grandTotalLabel}>
+            GRAND TOTAL (inc. Contingency):
+          </Text>
+          <Text style={styles.grandTotalValue}>
+            {formatCurrency(grandTotal)}
+          </Text>
+        </View>
+
+        <View style={styles.boqFooter} fixed>
+          <Text render={({ pageNumber }) => `Page ${pageNumber}`} />
+          <Text>{projectInfo.title}</Text>
+          <Text>{projectInfo.clientName}</Text>
+        </View>
+      </Page>
+    );
+  };
+
+  const renderMaterialRow = (material: ConsolidatedMaterial) => {
+    return (
+      <View style={styles.tableRow} key={`material-${material.itemNo}`}>
+        <Text style={[styles.tableCol, { width: "12%" }]}>
+          {material.itemNo}
+        </Text>
+        <Text style={[styles.tableColDescription, { width: "48%" }]}>
+          {material.description}
+        </Text>
+        <Text style={[styles.tableCol, { width: "8%" }]}>{material.unit}</Text>
+        <Text style={[styles.tableCol, { width: "10%" }]}>
+          {formatQuantity(material.quantity)}
+        </Text>
+        <Text style={[styles.tableCol, { width: "11%" }]}>
+          {formatCurrency(material.rate)}
+        </Text>
+        <Text style={[styles.tableColAmount, { width: "11%" }]}>
+          {formatCurrency(material.amount)}
+        </Text>
+      </View>
+    );
+  };
+
   const calculateSectionTotal = (items: BOQItem[]): number => {
     return items.reduce((total, item) => {
       if (item.isHeader) return total;
@@ -955,7 +1123,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   };
   const preliminariesTotal = useMemo(
     () => calculatePreliminariesTotal(),
-    [preliminariesData]
+    [preliminariesData],
   );
   const calculateComprehensiveTotal = useMemo(() => {
     const baseTotal =
@@ -1045,7 +1213,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             </Text>
             <Text style={[styles.tableColAmount, { width: "30%" }]}>
               {formatCurrency(
-                equipment.reduce((sum, item) => sum + item.total_cost, 0)
+                equipment.reduce((sum, item) => sum + item.total_cost, 0),
               )}
             </Text>
           </View>
@@ -1083,7 +1251,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             </Text>
             <Text style={[styles.tableColAmount, { width: "30%" }]}>
               {formatCurrency(
-                services.reduce((sum, service) => sum + service.price, 0)
+                services.reduce((sum, service) => sum + service.price, 0),
               )}
             </Text>
           </View>
@@ -1135,7 +1303,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             </Text>
             <Text style={[styles.tableColAmount, { width: "20%" }]}>
               {formatCurrency(
-                subcontractors.reduce((sum, sub) => sum + sub.total, 0)
+                subcontractors.reduce((sum, sub) => sum + sub.total, 0),
               )}
             </Text>
           </View>
@@ -1171,7 +1339,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
             </Text>
             <Text style={[styles.tableColAmount, { width: "30%" }]}>
               {formatCurrency(
-                addons.reduce((sum, addon) => sum + addon.price, 0)
+                addons.reduce((sum, addon) => sum + addon.price, 0),
               )}
             </Text>
           </View>
@@ -1663,7 +1831,9 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
       })}
 
       {consolidatedMaterials.length > 0 &&
-        renderConsolidatedMaterials(consolidatedMaterials)}
+        (workItems && workItems.length > 0
+          ? renderHierarchicalMaterials(workItems)
+          : renderConsolidatedMaterials(consolidatedMaterials))}
 
       {renderSubcontractorsPage(subcontractors)}
 
@@ -1695,7 +1865,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                 </Text>
                 <Text style={[styles.tableColAmount, { width: "30%" }]}>
                   {formatCurrency(
-                    consolidatedMaterials.reduce((sum, m) => sum + m.amount, 0)
+                    consolidatedMaterials.reduce((sum, m) => sum + m.amount, 0),
                   )}
                 </Text>
               </View>
@@ -1708,7 +1878,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                 </Text>
                 <Text style={[styles.tableColAmount, { width: "30%" }]}>
                   {formatCurrency(
-                    subcontractors.reduce((sum, sub) => sum + sub.total, 0)
+                    subcontractors.reduce((sum, sub) => sum + sub.total, 0),
                   )}
                 </Text>
               </View>
@@ -1723,9 +1893,9 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   preliminariesTotal +
                     consolidatedMaterials.reduce(
                       (sum, m) => sum + m.amount,
-                      0
+                      0,
                     ) +
-                    subcontractors.reduce((sum, sub) => sum + sub.total, 0)
+                    subcontractors.reduce((sum, sub) => sum + sub.total, 0),
                 )}
               </Text>
             </View>
@@ -1833,13 +2003,13 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                     preliminariesTotal +
                       consolidatedMaterials.reduce(
                         (sum, m) => sum + m.amount,
-                        0
+                        0,
                       ) +
                       subcontractors.reduce((sum, sub) => sum + sub.total, 0) +
                       profit +
                       overhead_amount +
                       contingency_amount +
-                      labour
+                      labour,
                 )}
               </Text>
             </View>

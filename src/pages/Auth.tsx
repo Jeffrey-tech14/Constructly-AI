@@ -113,13 +113,13 @@ const Auth = () => {
       <div
         className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative"
         style={{
-          backgroundImage: `url('https://images.strang-inc.com/wp-content/uploads/2023/08/16105404/AdobeStock_618471334-1024x574.jpeg')`,
+          backgroundImage: `url('https://t4.ftcdn.net/jpg/03/57/34/39/360_F_357343965_u58BFcRrziBVMqgt6liwPHJKcIjHsPnc.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="absolute inset-0 bg-black/40 "></div>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
 
         <div className="relative bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-[850px] min-h-[600px] md:min-h-[520px] z-10">
           {/* SIGN UP FORM */}

@@ -142,7 +142,7 @@ export default function ElectricalCalculator({
     electricalSystems,
     materialPrices,
     quote,
-    setQuoteData
+    setQuoteData,
   );
   const qsSettings = quote.qsSettings as MasonryQSSettings;
   const onSettingsChange = useCallback(
@@ -152,21 +152,21 @@ export default function ElectricalCalculator({
         qsSettings: newSettings,
       }));
     },
-    [setQuoteData]
+    [setQuoteData],
   );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<ElectricalSystemType | "all">(
-    "all"
+    "all",
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ElectricalSystem | null>(null);
   const [useElectricalLumpsum, setUseElectricalLumpsum] = useState(
     quote?.electrical?.useLumpsum === true ||
-      quote?.electrical_lumpsum_mode === true
+      quote?.electrical_lumpsum_mode === true,
   );
   const [electricalLumpsumAmount, setElectricalLumpsumAmount] = useState(
-    quote?.electrical?.amount || quote?.electrical_lumpsum_amount || 0
+    quote?.electrical?.amount || quote?.electrical_lumpsum_amount || 0,
   );
 
   const filteredCalculations = useMemo(() => {
@@ -220,7 +220,7 @@ export default function ElectricalCalculator({
     if (!editForm || !editingId) return;
 
     const updatedSystems = electricalSystems.map((system) =>
-      system.id === editingId ? editForm : system
+      system.id === editingId ? editForm : system,
     );
 
     if (onElectricalSystemsUpdate) {
@@ -235,7 +235,7 @@ export default function ElectricalCalculator({
       return;
 
     const updatedSystems = electricalSystems.filter(
-      (system) => system.id !== id
+      (system) => system.id !== id,
     );
     if (onElectricalSystemsUpdate) {
       onElectricalSystemsUpdate(updatedSystems);
@@ -260,14 +260,14 @@ export default function ElectricalCalculator({
       installationMethod: "concealed" as InstallationMethod,
     };
     setEditForm((prev) =>
-      prev ? { ...prev, cables: [...prev.cables, newCable] } : null
+      prev ? { ...prev, cables: [...prev.cables, newCable] } : null,
     );
   };
 
   const updateCable = (cableId: string, field: string, value: any) => {
     if (!editForm) return;
     const updatedCables = editForm.cables.map((cable) =>
-      cable.id === cableId ? { ...cable, [field]: value } : cable
+      cable.id === cableId ? { ...cable, [field]: value } : cable,
     );
     setEditForm((prev) => (prev ? { ...prev, cables: updatedCables } : null));
   };
@@ -275,7 +275,7 @@ export default function ElectricalCalculator({
   const removeCable = (cableId: string) => {
     if (!editForm) return;
     const updatedCables = editForm.cables.filter(
-      (cable) => cable.id !== cableId
+      (cable) => cable.id !== cableId,
     );
     setEditForm((prev) => (prev ? { ...prev, cables: updatedCables } : null));
   };
@@ -293,14 +293,14 @@ export default function ElectricalCalculator({
       mounting: "flush" as const,
     };
     setEditForm((prev) =>
-      prev ? { ...prev, outlets: [...prev.outlets, newOutlet] } : null
+      prev ? { ...prev, outlets: [...prev.outlets, newOutlet] } : null,
     );
   };
 
   const updateOutlet = (outletId: string, field: string, value: any) => {
     if (!editForm) return;
     const updatedOutlets = editForm.outlets.map((outlet) =>
-      outlet.id === outletId ? { ...outlet, [field]: value } : outlet
+      outlet.id === outletId ? { ...outlet, [field]: value } : outlet,
     );
     setEditForm((prev) => (prev ? { ...prev, outlets: updatedOutlets } : null));
   };
@@ -308,7 +308,7 @@ export default function ElectricalCalculator({
   const removeOutlet = (outletId: string) => {
     if (!editForm) return;
     const updatedOutlets = editForm.outlets.filter(
-      (outlet) => outlet.id !== outletId
+      (outlet) => outlet.id !== outletId,
     );
     setEditForm((prev) => (prev ? { ...prev, outlets: updatedOutlets } : null));
   };
@@ -326,27 +326,27 @@ export default function ElectricalCalculator({
       emergency: false,
     };
     setEditForm((prev) =>
-      prev ? { ...prev, lighting: [...prev.lighting, newLighting] } : null
+      prev ? { ...prev, lighting: [...prev.lighting, newLighting] } : null,
     );
   };
 
   const updateLighting = (lightingId: string, field: string, value: any) => {
     if (!editForm) return;
     const updatedLighting = editForm.lighting.map((light) =>
-      light.id === lightingId ? { ...light, [field]: value } : light
+      light.id === lightingId ? { ...light, [field]: value } : light,
     );
     setEditForm((prev) =>
-      prev ? { ...prev, lighting: updatedLighting } : null
+      prev ? { ...prev, lighting: updatedLighting } : null,
     );
   };
 
   const removeLighting = (lightingId: string) => {
     if (!editForm) return;
     const updatedLighting = editForm.lighting.filter(
-      (light) => light.id !== lightingId
+      (light) => light.id !== lightingId,
     );
     setEditForm((prev) =>
-      prev ? { ...prev, lighting: updatedLighting } : null
+      prev ? { ...prev, lighting: updatedLighting } : null,
     );
   };
 
@@ -363,27 +363,27 @@ export default function ElectricalCalculator({
     setEditForm((prev) =>
       prev
         ? { ...prev, distributionBoards: [...prev.distributionBoards, newDB] }
-        : null
+        : null,
     );
   };
 
   const updateDistributionBoard = (dbId: string, field: string, value: any) => {
     if (!editForm) return;
     const updatedDBs = editForm.distributionBoards.map((db) =>
-      db.id === dbId ? { ...db, [field]: value } : db
+      db.id === dbId ? { ...db, [field]: value } : db,
     );
     setEditForm((prev) =>
-      prev ? { ...prev, distributionBoards: updatedDBs } : null
+      prev ? { ...prev, distributionBoards: updatedDBs } : null,
     );
   };
 
   const removeDistributionBoard = (dbId: string) => {
     if (!editForm) return;
     const updatedDBs = editForm.distributionBoards.filter(
-      (db) => db.id !== dbId
+      (db) => db.id !== dbId,
     );
     setEditForm((prev) =>
-      prev ? { ...prev, distributionBoards: updatedDBs } : null
+      prev ? { ...prev, distributionBoards: updatedDBs } : null,
     );
   };
 
@@ -775,7 +775,7 @@ export default function ElectricalCalculator({
                                   updateCable(
                                     cable.id,
                                     "size",
-                                    parseFloat(value)
+                                    parseFloat(value),
                                   )
                                 }
                               >
@@ -803,7 +803,7 @@ export default function ElectricalCalculator({
                                   updateCable(
                                     cable.id,
                                     "length",
-                                    parseFloat(e.target.value) || 0
+                                    parseFloat(e.target.value) || 0,
                                   )
                                 }
                               />
@@ -819,7 +819,7 @@ export default function ElectricalCalculator({
                                   updateCable(
                                     cable.id,
                                     "quantity",
-                                    parseInt(e.target.value) || 1
+                                    parseInt(e.target.value) || 1,
                                   )
                                 }
                               />
@@ -833,7 +833,7 @@ export default function ElectricalCalculator({
                                   updateCable(
                                     cable.id,
                                     "installationMethod",
-                                    value
+                                    value,
                                   )
                                 }
                               >
@@ -916,7 +916,7 @@ export default function ElectricalCalculator({
                                   updateOutlet(
                                     outlet.id,
                                     "gang",
-                                    parseInt(value)
+                                    parseInt(value),
                                   )
                                 }
                               >
@@ -944,7 +944,7 @@ export default function ElectricalCalculator({
                                   updateOutlet(
                                     outlet.id,
                                     "rating",
-                                    parseInt(value)
+                                    parseInt(value),
                                   )
                                 }
                               >
@@ -972,7 +972,7 @@ export default function ElectricalCalculator({
                                   updateOutlet(
                                     outlet.id,
                                     "location",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="e.g., Living Room"
@@ -989,7 +989,7 @@ export default function ElectricalCalculator({
                                   updateOutlet(
                                     outlet.id,
                                     "count",
-                                    parseInt(e.target.value) || 1
+                                    parseInt(e.target.value) || 1,
                                   )
                                 }
                               />
@@ -1064,7 +1064,7 @@ export default function ElectricalCalculator({
                                   updateLighting(
                                     light.id,
                                     "wattage",
-                                    parseInt(value)
+                                    parseInt(value),
                                   )
                                 }
                               >
@@ -1113,7 +1113,7 @@ export default function ElectricalCalculator({
                                   updateLighting(
                                     light.id,
                                     "location",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="e.g., Kitchen"
@@ -1130,7 +1130,7 @@ export default function ElectricalCalculator({
                                   updateLighting(
                                     light.id,
                                     "count",
-                                    parseInt(e.target.value) || 1
+                                    parseInt(e.target.value) || 1,
                                   )
                                 }
                               />
@@ -1145,7 +1145,7 @@ export default function ElectricalCalculator({
                                     updateLighting(
                                       light.id,
                                       "emergency",
-                                      checked === true
+                                      checked === true,
                                     )
                                   }
                                 />
@@ -1188,7 +1188,7 @@ export default function ElectricalCalculator({
                         {editForm.distributionBoards.map((db) => (
                           <div
                             key={db.id}
-                            className="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 border rounded-lg bg-slate-50 dark:bg-slate-900"
+                            className="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 border rounded-3xl"
                           >
                             <div>
                               <Label>Type</Label>
@@ -1218,7 +1218,7 @@ export default function ElectricalCalculator({
                                   updateDistributionBoard(
                                     db.id,
                                     "rating",
-                                    parseInt(value)
+                                    parseInt(value),
                                   )
                                 }
                               >
@@ -1246,7 +1246,7 @@ export default function ElectricalCalculator({
                                   updateDistributionBoard(
                                     db.id,
                                     "circuits",
-                                    parseInt(value)
+                                    parseInt(value),
                                   )
                                 }
                               >
@@ -1274,7 +1274,7 @@ export default function ElectricalCalculator({
                                   updateDistributionBoard(
                                     db.id,
                                     "mounting",
-                                    value
+                                    value,
                                   )
                                 }
                               >
@@ -1366,7 +1366,7 @@ export default function ElectricalCalculator({
                               className={getSystemColor(calc.systemType)}
                             >
                               {SYSTEM_TYPES.find(
-                                (t) => t.value === calc.systemType
+                                (t) => t.value === calc.systemType,
                               )?.label || calc.systemType}
                             </Badge>
                           </TableCell>
@@ -1393,19 +1393,19 @@ export default function ElectricalCalculator({
                               <span>
                                 Cable:{" "}
                                 {formatEfficiency(
-                                  calc.efficiency.cableUtilization
+                                  calc.efficiency.cableUtilization,
                                 )}
                               </span>
                               <span>
                                 Circuit:{" "}
                                 {formatEfficiency(
-                                  calc.efficiency.circuitEfficiency
+                                  calc.efficiency.circuitEfficiency,
                                 )}
                               </span>
                               <span>
                                 Energy:{" "}
                                 {formatEfficiency(
-                                  calc.efficiency.energyEfficiency
+                                  calc.efficiency.energyEfficiency,
                                 )}
                               </span>
                             </div>

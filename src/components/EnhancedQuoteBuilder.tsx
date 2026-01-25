@@ -244,6 +244,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       length: 0,
       width: 0,
     },
+    plan_file_url: "",
     wallSections: [],
     rebar_calculation_method: "intensity-based",
     bbs_file_url: "",
@@ -450,6 +451,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         project_type: extractedPlan.projectType || "",
         location: extractedPlan.projectLocation || "",
         title: extractedPlan.projectName || "",
+        client_name: extractedPlan.clientName || "",
         total_area: extractedPlan.projectInfo.totalArea,
         plan_file_url: extractedPlan.file_url || "",
         bbs_file_url: extractedPlan.bbs_file_url || "",
@@ -477,6 +479,22 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           thickness: 0.2,
           plaster: "Both Sides",
         },
+
+        // Foundation Details
+        foundationDetails:
+          extractedPlan.foundationDetails?.map(
+            (foundation: any, index: number) => ({
+              id: foundation.id || `foundation-${index}`,
+              type: foundation.foundationType || "strip-footing",
+              width: foundation.width || "0.4",
+              height: foundation.height || "0.6",
+              length: foundation.length || "0",
+              wallThickness: foundation.wallThickness || "0.2",
+              wallHeight: foundation.wallHeight || "1.0",
+              groundFloorElevation: foundation.groundFloorElevation || "0",
+              masonryType: foundation.masonryType || "Standard Block",
+            }),
+          ) || prev.foundationDetails,
 
         // Foundation Walling
         foundationWalls:
@@ -886,8 +904,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     },
   ];
 
-  const LOCAL_QUOTE_KEY = "jtech_quote_data";
-
   const updatePercentageField = (
     field: keyof Percentage,
     value: number | string,
@@ -1071,6 +1087,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           rebar_rows: quoteData.rebar_rows,
           boq_data: boqData,
           qsSettings: calculation.qsSettings,
+          plan_file_url: quoteData.plan_file_url,
           total_area: quoteData.total_area,
           rebar_calculations: quoteData.rebar_calculations,
           labor_cost: Math.round(calculation.labor_cost),
@@ -1144,6 +1161,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           house_type: quoteData.house_type,
           transport_costs: calculation.transport_cost,
           total_area: quoteData.total_area,
+          plan_file_url: quoteData.plan_file_url,
           boq_data: boqData,
           rebar_calculation_method: quoteData.rebar_calculation_method,
           preliminaries: preliminaries,
@@ -1540,7 +1558,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 <TabsTrigger value="foundation-walling">
                   Foundation Walling
                 </TabsTrigger>
-                <TabsTrigger value="rebar">Rebar</TabsTrigger>
+                <TabsTrigger value="rebar">Reinforcement</TabsTrigger>
               </TabsList>
 
               <TabsContent value="earthworks" className="space-y-4">
@@ -1598,7 +1616,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               onValueChange={setSuperstructureTab}
             >
               <TabsList className="grid w-full grid-cols-4 mb-3">
-                <TabsTrigger value="masonry">Houses & Materials</TabsTrigger>
+                <TabsTrigger value="masonry">Masonry</TabsTrigger>
                 <TabsTrigger value="plumbing">Plumbing</TabsTrigger>
                 <TabsTrigger value="roofing">Roofing</TabsTrigger>
                 <TabsTrigger value="electrical">Electricals</TabsTrigger>
@@ -3726,7 +3744,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             setDirection={setDirection}
             handleCalculate={handleCalculate}
           />
-          <Progress value={(currentStep / 10) * 100} className="w-full" />
         </div>
 
         <div key={`step-${currentStep}`}>
@@ -3763,7 +3780,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          {currentStep < 14 && (
+          {currentStep < 10 && (
             <>
               <Button
                 onClick={nextStep}
@@ -3794,6 +3811,34 @@ export function Stepper({
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to get a gradient color based on progress
+  const getProgressColor = (stepId: number) => {
+    const totalSteps = steps.length;
+    const completionRatio = (stepId - 1) / (totalSteps - 1);
+
+    // Primary color: #015B97 (RISA_BLUE)
+    // Interpolate from primary to lighter shade (light mode) or darker shade (dark mode)
+    // Using HSL for easier manipulation
+
+    if (stepId <= currentStep) {
+      // Primary: hsl(207, 95%, 29%) - #015B97
+      // Light mode: lighter shade, Dark mode: similar but adjusted
+      const startHue = 207;
+      const startSat = 95;
+      const startLight = 29;
+
+      // End color: lighter in light mode, adjusted in dark mode
+      const endLight = 55; // lighter shade for light mode
+
+      // Interpolate between the two lightness values
+      const currentLight =
+        startLight + (endLight - startLight) * completionRatio;
+
+      return `hsl(${startHue}, ${startSat}%, ${currentLight}%)`;
+    }
+    return undefined;
+  };
+
   // Center current step when it changes
   useEffect(() => {
     const activeStep = document.getElementById(`step-${currentStep}`);
@@ -3817,8 +3862,18 @@ export function Stepper({
     }
   };
 
+  // Calculate gradient for progress bar
+  const progressGradient = steps
+    .map((step) => {
+      const color = getProgressColor(step.id);
+      const percentage = ((step.id - 1) / (steps.length - 1)) * 100;
+      return color ? `${color} ${percentage}%` : null;
+    })
+    .filter(Boolean)
+    .join(", ");
+
   return (
-    <div className="relative mt-2 mb-4">
+    <div className="relative mt-2 mb-4 space-y-3">
       {/* Left chevron */}
       <button
         onClick={() => scroll("left")}
@@ -3834,6 +3889,8 @@ export function Stepper({
         {steps.map((step) => {
           const newStep = step.id;
           const isActive = currentStep >= step.id;
+          const progressColor = getProgressColor(step.id);
+
           return (
             <div
               key={step.id}
@@ -3843,24 +3900,26 @@ export function Stepper({
                 setCurrentStep(newStep);
                 if (newStep === 13) handleCalculate();
               }}
-              className={`flex items-center cursor-pointer flex-shrink-0 transition-all ${
+              className={`flex items-center cursor-pointer flex-shrink-0 transition-all duration-500 ${
                 step.id < steps.length ? "flex-1" : ""
               }`}
             >
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-                  isActive
-                    ? "bg-primary border-primary text-white"
-                    : "border-gray-300 text-gray-400"
-                }`}
+                className="flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-500 flex-shrink-0"
+                style={{
+                  backgroundColor: isActive ? progressColor : "transparent",
+                  borderColor: isActive ? progressColor : "#d1d5db",
+                  color: isActive ? "white" : "#9ca3af",
+                }}
               >
                 {step.icon}
               </div>
               <div className="hidden xl:inline">
                 <p
-                  className={`ml-2 mr-2 text-sm font-medium ${
-                    isActive ? "text-primary dark:text-white" : "text-gray-400"
-                  }`}
+                  className="ml-2 mr-2 text-sm font-medium transition-all duration-500"
+                  style={{
+                    color: isActive ? progressColor : "#9ca3af",
+                  }}
                 >
                   {step.name}
                 </p>
@@ -3868,6 +3927,17 @@ export function Stepper({
             </div>
           );
         })}
+      </div>
+
+      {/* Progress bar with gradient */}
+      <div className="mx-8 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
+            background: `linear-gradient(90deg, ${progressGradient})`,
+          }}
+        />
       </div>
 
       {/* Right chevron */}

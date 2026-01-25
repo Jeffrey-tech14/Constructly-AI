@@ -153,7 +153,6 @@ export const useFoundationWallingCalculator = (quote: any) => {
       Array.isArray(quote.foundationWalls) &&
       quote.foundationWalls.length > 0
     ) {
-      console.log(quote.foundationWalls);
       return quote.foundationWalls.map((wall: any) => ({
         id: wall.id || `wall-${Date.now()}-${Math.random()}`,
         type: wall.type || "external",

@@ -50,7 +50,7 @@ class QuotePaymentService {
         .from("quote_payments")
         .select("*")
         .eq("quote_id", quoteId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
         console.warn("Payment status query error:", error);

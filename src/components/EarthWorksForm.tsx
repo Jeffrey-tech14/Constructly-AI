@@ -130,8 +130,8 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       const dims = quote.wallDimensions;
       if (dims && dims.externalWallPerimiter && dims.internalWallPerimiter) {
         const wallThickness = quote.wallProperties?.thickness || 0.2;
-        const excavationDepth = 0.65; // Standard excavation depth for strip footing
-        console.log(quote.total_area);
+        const excavationDepth =
+          parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65; // Use foundation details height
 
         // Create internal wall foundation excavation item
         const internalVolume = calculateVolume(
@@ -199,7 +199,6 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
           areaSelectionMode: "DIRECT_AREA",
           foundationType: "general",
         };
-        console.log(quote.total_area);
 
         setEarthworks([internalItem, externalItem, topsoilItem]);
       }

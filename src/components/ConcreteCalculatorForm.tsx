@@ -91,13 +91,13 @@ export default function ConcreteCalculatorForm({
       id,
       name: `Element ${id}`,
       element: "raft-foundation",
-      length: quote.foundationDetails?.length || "",
-      width: quote.foundationDetails?.width || "",
-      height: quote.foundationDetails?.height || "",
+      length: quote.foundationDetails?.[0].length || "",
+      width: quote.foundationDetails?.[0].width || "",
+      height: quote.foundationDetails?.[0].height || "",
       mix: "",
       category: "substructure",
       number: "1",
-      foundationType: quote.foundationDetails?.foundationType,
+      foundationType: quote.foundationDetails?.[0].foundationType,
       isSteppedFoundation: false,
       foundationSteps: [],
       waterproofing: {
@@ -263,7 +263,7 @@ export default function ConcreteCalculatorForm({
       const hasFoundationRow = quote.concrete_rows?.some(
         (row: ConcreteRow) => row.element === "raft-foundation",
       );
-      const hasFoundationDetails = quote.foundationDetails?.totalPerimeter;
+      const hasFoundationDetails = quote.foundationDetails?.[0].totalPerimeter;
 
       if (hasFoundationDetails && !hasFoundationRow) {
         addFoundationRow();
@@ -2305,64 +2305,6 @@ export default function ConcreteCalculatorForm({
                       — Ksh{" "}
                       {Math.round(result.gravelCost || 0).toLocaleString()}
                     </p>
-                  </div>
-                )}
-
-                {(result.element === "raft-foundation" ||
-                  result.element === "strip-footing") && (
-                  <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-800/40 rounded-md">
-                    <h4 className="font-semibold mb-2">Foundation Workings:</h4>
-
-                    {result.steppedFoundationVolume > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Stepped Foundation Volume:{" "}
-                          {result.steppedFoundationVolume.toFixed(2)} m³
-                        </h4>
-                      </div>
-                    )}
-
-                    {result.bedVolume > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Concrete Bed Workings:
-                        </h4>
-                        <p>
-                          <b>Bed Area:</b> {result.bedArea?.toFixed(2)} m²
-                        </p>
-                        <p>
-                          <b>Bed Volume:</b> {result.bedVolume?.toFixed(2)} m³
-                        </p>
-                        <p>
-                          <b>Bed Cost:</b> Ksh{" "}
-                          {Math.round(
-                            result.bedVolume * calculateConcreteRateForRow(row),
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-
-                    {result.aggregateVolume > 0 && (
-                      <div className="mt-2">
-                        <h4 className="font-semibold">
-                          Aggregate Bed Workings:
-                        </h4>
-                        <p>
-                          <b>Aggregate Area:</b>{" "}
-                          {result.aggregateArea?.toFixed(2)} m²
-                        </p>
-                        <p>
-                          <b>Aggregate Volume:</b>{" "}
-                          {result.aggregateVolume?.toFixed(2)} m³
-                        </p>
-                        <p>
-                          <b>Aggregate Cost:</b> Ksh{" "}
-                          {Math.round(
-                            result.aggregateVolume * (aggregateMat?.price || 0),
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
 

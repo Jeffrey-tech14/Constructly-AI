@@ -217,7 +217,7 @@ const PreliminariesOptionsPage = ({
 
   const getApplicabilityNote = (prelId: string) => {
     if ((prelId === "hoarding" || prelId === "nets") && isLowRise) {
-      return "Not applicable for bungalow/mansion";
+      return "Not applicable for bungalow/mansionette";
     }
     if (prelId === "fall-prevention" && !isHighRise) {
       return "Only applicable for high-rise buildings";
@@ -254,7 +254,7 @@ const PreliminariesOptionsPage = ({
                 </p>
                 <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                   Site fencing and fall prevention requirements have been
-                  disabled for bungalow/mansion projects
+                  disabled for bungalow/mansionette projects
                 </p>
               </div>
             </div>

@@ -53,7 +53,14 @@ export default function FoundationWallingCalculator({
 
   // Auto-create foundation walls from quote data on component mount
   useEffect(() => {
+    // Return if already initialized to prevent infinite loops
     if (hasInitializedRef.current) return;
+
+    // Skip if foundation walls already exist in quote
+    if (quote?.foundationWalling && quote.foundationWalling.length > 0) {
+      hasInitializedRef.current = true;
+      return;
+    }
 
     const wallDimensions = quote?.wallDimensions;
     if (!wallDimensions) return;
@@ -67,41 +74,8 @@ export default function FoundationWallingCalculator({
 
     // Skip if no perimeters
     if (externalPerimeter <= 0 && internalPerimeter <= 0) {
-      hasInitializedRef.current = true;
       return;
     }
-
-    // Calculate wall heights based on concrete structures (same logic as planParserService)
-    const concreteStructures = quote?.concreteStructures || [];
-
-    // Find excavation depth (from foundation details)
-    const excavationDepth =
-      parseFloat(quote?.foundationDetails?.height || "0") || 0;
-
-    // Find strip footing height by element type
-    const stripFooting = concreteStructures.find(
-      (c: any) => c.element?.toLowerCase() === "strip-footing",
-    );
-    const stripFootingHeight = stripFooting
-      ? parseFloat(stripFooting.height || "0")
-      : 0;
-
-    // Find ground floor slab thickness
-    const groundFloorSlab = concreteStructures.find(
-      (c: any) =>
-        c.name?.toLowerCase().includes("ground floor") &&
-        c.name?.toLowerCase().includes("slab"),
-    );
-    const groundFloorSlabThickness = groundFloorSlab
-      ? parseFloat(groundFloorSlab.height || "0.15")
-      : 0.15;
-
-    // Calculate foundation wall height:
-    // wallHeight = excavationDepth - stripFootingHeight - groundFloorSlabThickness
-    const calculatedHeight =
-      excavationDepth - stripFootingHeight - groundFloorSlabThickness;
-    const foundationWallHeight =
-      calculatedHeight > 0 ? calculatedHeight.toFixed(2) : "1.0";
 
     // Create external wall with actual data
     if (externalPerimeter > 0) {
@@ -113,12 +87,13 @@ export default function FoundationWallingCalculator({
       addWall("internal");
     }
 
+    // Mark as initialized only after creating walls
     hasInitializedRef.current = true;
-  }, [quote, addWall]);
+  }, []);
 
   // Update walls with calculated data after they're created
   useEffect(() => {
-    if (!hasInitializedRef.current || walls.length === 0) return;
+    if (walls.length === 0) return;
 
     const wallDimensions = quote?.wallDimensions;
     if (!wallDimensions) return;
@@ -131,9 +106,9 @@ export default function FoundationWallingCalculator({
     );
 
     // Calculate wall height
-    const concreteStructures = quote?.concreteStructures || [];
+    const concreteStructures = quote?.concrete_rows || [];
     const excavationDepth =
-      parseFloat(quote?.foundationDetails?.height || "0") || 0;
+      parseFloat(quote?.foundationDetails?.[0]?.height || "0") || 100;
     const stripFooting = concreteStructures.find(
       (c: any) => c.element?.toLowerCase() === "strip-footing",
     );
@@ -481,7 +456,7 @@ export default function FoundationWallingCalculator({
 
                           {/* Cost Display */}
                           {blockPricePerFoot > 0 && (
-                            <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded border border-amber-200 dark:border-amber-700">
+                            <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-3xl border border-amber-200 dark:border-amber-700">
                               <div className="flex justify-between items-center">
                                 <div>
                                   <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -577,7 +552,7 @@ export default function FoundationWallingCalculator({
 
           {/* Cost Display */}
           {blockPricePerFoot > 0 && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded border border-amber-200 dark:border-amber-700 mb-4">
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-3xl border border-amber-200 dark:border-amber-700 mb-4">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Standard Natural Stone Cost
               </p>

@@ -327,7 +327,19 @@ const UploadPlan = () => {
         const file = new File([blob], fileName, { type: blob.type });
         setPreviewUrl(URL.createObjectURL(file));
         setSelectedFile(file);
-        const data = await analyzePlan(file, setError, setCurrentStep, bbsFile);
+
+        // Use BBS file from state, or fetch from URL if available
+        let bbsFileToUse = bbsFile;
+        if (!bbsFileToUse && bbsFileUrl) {
+          bbsFileToUse = await getBBSFileFromUrl();
+        }
+
+        const data = await analyzePlan(
+          file,
+          setError,
+          setCurrentStep,
+          bbsFileToUse,
+        );
         setEditablePlan({
           ...data,
           file_url: fileUrl,
@@ -462,7 +474,19 @@ const UploadPlan = () => {
       // Proceed with analysis
       try {
         setCurrentStep("analyzing");
-        const data = await analyzePlan(file, setError, setCurrentStep, bbsFile);
+
+        // Use BBS file from state, or fetch from URL if available
+        let bbsFileToUse = bbsFile;
+        if (!bbsFileToUse && bbsFileUrl) {
+          bbsFileToUse = await getBBSFileFromUrl();
+        }
+
+        const data = await analyzePlan(
+          file,
+          setError,
+          setCurrentStep,
+          bbsFileToUse,
+        );
 
         const processedPlan: ExtractedPlan = {
           ...data,
@@ -598,6 +622,28 @@ const UploadPlan = () => {
     });
   };
 
+  // Helper function to fetch and convert BBS file URL to File object
+  const getBBSFileFromUrl = async (): Promise<File | null> => {
+    if (!bbsFileUrl) return null;
+
+    try {
+      const response = await fetch(bbsFileUrl);
+      if (!response.ok) throw new Error("Failed to fetch BBS file");
+
+      const filename = bbsFileUrl.split("/").pop() || `bbs-${Date.now()}.pdf`;
+      const blob = await response.blob();
+
+      const file = new File([blob], filename, {
+        type: blob.type || "application/octet-stream",
+      });
+
+      return file;
+    } catch (error) {
+      console.error("Error fetching BBS file from URL:", error);
+      return null;
+    }
+  };
+
   const startAnalysis = async () => {
     if (!selectedFile) {
       toast({
@@ -610,11 +656,18 @@ const UploadPlan = () => {
 
     try {
       setCurrentStep("analyzing");
+
+      // Use BBS file from state, or fetch from URL if available
+      let bbsFileToUse = bbsFile;
+      if (!bbsFileToUse && bbsFileUrl) {
+        bbsFileToUse = await getBBSFileFromUrl();
+      }
+
       const data = await analyzePlan(
         selectedFile,
         setError,
         setCurrentStep,
-        bbsFile,
+        bbsFileToUse,
       );
 
       const processedPlan: ExtractedPlan = {
@@ -698,14 +751,17 @@ const UploadPlan = () => {
       wallProperties: {
         ...editablePlan.wallProperties,
       },
-      foundationDetails: {
-        ...editablePlan.foundationDetails,
-        foundationType:
-          updates.foundationType || getDefaultFoundationType(houseType),
-        groundFloorElevation: updates.groundFloorElevation
-          ? parseFloat(updates.groundFloorElevation)
-          : editablePlan.foundationDetails?.groundFloorElevation || 0,
-      },
+      foundationDetails: [
+        {
+          ...(editablePlan.foundationDetails?.[0] || {}),
+          foundationType:
+            updates.foundationType?.toString() ||
+            getDefaultFoundationType(houseType),
+          groundFloorElevation: updates.groundFloorElevation
+            ? parseFloat(updates.groundFloorElevation)
+            : editablePlan.foundationDetails?.[0]?.groundFloorElevation || 0,
+        },
+      ],
     };
 
     setEditablePlan(updatedPlan);
@@ -735,6 +791,7 @@ const UploadPlan = () => {
       const finalPlan: ExtractedPlan = {
         ...editablePlan,
         file_url: fileUrl,
+        bbs_file_url: uploadedBBSUrl || undefined,
         uploaded_at: new Date().toISOString(),
         file_name: selectedFile.name,
       };
@@ -1062,20 +1119,118 @@ const UploadPlan = () => {
                       </Button>
                     </div>
 
+                    {(currentStep === "analyzing" ||
+                      currentStep === "uploading") && (
+                      <div className="text-center py-16">
+                        {currentStep === "uploading" ? (
+                          <div>
+                            <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-500 mb-4" />
+                            <p className="text-slate-600 dark:text-slate-300">
+                              Uploading...
+                            </p>
+                          </div>
+                        ) : (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="space-y-6"
+                          >
+                            {/* Floating Icon Container */}
+                            <motion.div
+                              animate={{
+                                y: [0, 30, 0],
+                                rotate: [0, 5, -5, 0],
+                              }}
+                              transition={{
+                                duration: 6,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                              className="flex justify-center"
+                            >
+                              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-green-400 dark:from-blue-500 dark:to-green-500 flex items-center justify-center shadow-lg">
+                                <BarChart3 className="w-10 h-10 text-white animate-pulse" />
+                                {/* Decorative rings */}
+                                <motion.div
+                                  className="absolute inset-0 rounded-full border-2 border-blue-400 dark:border-blue-500"
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut",
+                                  }}
+                                  style={{ opacity: 0.5 }}
+                                />
+                                <motion.div
+                                  className="absolute inset-0 rounded-full border-2 border-green-400 dark:border-green-500"
+                                  animate={{ scale: [1.2, 1, 1.2] }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut",
+                                    delay: 0.5,
+                                  }}
+                                  style={{ opacity: 0.3 }}
+                                />
+                              </div>
+                            </motion.div>
+
+                            {/* Text with typewriter effect */}
+                            <div className="space-y-3">
+                              <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                                Analyzing your plan...
+                              </p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                Our AI is dimensions and structural details
+                              </p>
+                            </div>
+
+                            {/* Animated dots */}
+                            <div className="flex justify-center gap-2 pt-2">
+                              {[0, 1, 2].map((i) => (
+                                <motion.div
+                                  key={i}
+                                  className="w-2.5 h-2.5 bg-blue-500 rounded-full"
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{
+                                    duration: 1,
+                                    repeat: Infinity,
+                                    delay: i * 0.2,
+                                    repeatType: "loop",
+                                  }}
+                                />
+                              ))}
+                            </div>
+
+                            {analysisTimeLeft !== null && (
+                              <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-xs text-slate-500 dark:text-slate-400 font-medium"
+                              >
+                                Est. time: {analysisTimeLeft}s remaining
+                              </motion.p>
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+
                     {previewUrl && (
-                      <Card className="border border-slate-200 dark:border-slate-600 overflow-hidden">
+                      <Card className="border p-1 border-slate-200 dark:border-slate-600 overflow-hidden">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg flex items-center">
                             <Eye className="w-5 h-5 mr-2 text-green-500" />
                             Plan Preview
                           </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4">
+                        <CardContent className="p-0">
                           <div
                             className="w-full h-[700px] rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-600"
                             onClick={() => setShowPreviewModal(true)}
                           >
-                            <div className="h-full flex flex-col items-center justify-center p-4">
+                            <div className="h-full flex flex-col items-center justify-center">
                               <PreviewModal
                                 fileUrl={previewUrl}
                                 fileType={selectedFile?.type || "image/jpeg"}
@@ -1084,18 +1239,6 @@ const UploadPlan = () => {
                           </div>
                         </CardContent>
                       </Card>
-                    )}
-
-                    {(currentStep === "analyzing" ||
-                      currentStep === "uploading") && (
-                      <div className="text-center py-8">
-                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-500 mb-4" />
-                        <p className="text-slate-600 dark:text-slate-300">
-                          {currentStep === "uploading"
-                            ? "Uploading..."
-                            : "Analyzing plan..."}
-                        </p>
-                      </div>
                     )}
 
                     {currentStep === "complete" && editablePlan && (
@@ -1304,8 +1447,8 @@ const UploadPlan = () => {
                                   </Label>
                                   <Select
                                     value={
-                                      editablePlan.foundationDetails
-                                        ?.foundationType
+                                      editablePlan.foundationDetails?.[0]
+                                        ?.foundationType || ""
                                     }
                                     onValueChange={(value) => {
                                       handleConfirmationFieldsUpdate({
@@ -1336,24 +1479,35 @@ const UploadPlan = () => {
                                   <Input
                                     type="number"
                                     value={
-                                      editablePlan.wallSections.find(
+                                      (editablePlan.wallSections?.find(
                                         (s) => s.type === "external",
-                                      )?.thickness! * 1000
+                                      )?.thickness ?? 0) * 1000
                                     }
                                     onChange={(e) => {
+                                      const newThickness =
+                                        parseFloat(e.target.value) / 1000;
                                       setEditablePlan((prev) => {
                                         if (!prev) return prev;
-                                        const updatedSections =
-                                          prev.wallSections?.map((section) =>
-                                            section.type === "external"
-                                              ? {
-                                                  ...section,
-                                                  thickness:
-                                                    parseFloat(e.target.value) /
-                                                    1000,
-                                                }
-                                              : section,
-                                          ) || [];
+                                        const existingIndex =
+                                          prev.wallSections?.findIndex(
+                                            (s) => s.type === "external",
+                                          ) ?? -1;
+                                        let updatedSections = prev.wallSections
+                                          ? [...prev.wallSections]
+                                          : [];
+
+                                        if (existingIndex >= 0) {
+                                          updatedSections[existingIndex] = {
+                                            ...updatedSections[existingIndex],
+                                            thickness: newThickness,
+                                          };
+                                        } else {
+                                          updatedSections.push({
+                                            id: `wall-external-${Date.now()}`,
+                                            type: "external",
+                                            thickness: newThickness,
+                                          } as any);
+                                        }
                                         return {
                                           ...prev,
                                           wallSections: updatedSections,
@@ -1370,24 +1524,35 @@ const UploadPlan = () => {
                                   <Input
                                     type="number"
                                     value={
-                                      editablePlan.wallSections.find(
+                                      (editablePlan.wallSections?.find(
                                         (s) => s.type === "internal",
-                                      )?.thickness! * 1000
+                                      )?.thickness ?? 0) * 1000
                                     }
                                     onChange={(e) => {
+                                      const newThickness =
+                                        parseFloat(e.target.value) / 1000;
                                       setEditablePlan((prev) => {
                                         if (!prev) return prev;
-                                        const updatedSections =
-                                          prev.wallSections?.map((section) =>
-                                            section.type === "internal"
-                                              ? {
-                                                  ...section,
-                                                  thickness:
-                                                    parseFloat(e.target.value) /
-                                                    1000,
-                                                }
-                                              : section,
-                                          ) || [];
+                                        const existingIndex =
+                                          prev.wallSections?.findIndex(
+                                            (s) => s.type === "internal",
+                                          ) ?? -1;
+                                        let updatedSections = prev.wallSections
+                                          ? [...prev.wallSections]
+                                          : [];
+
+                                        if (existingIndex >= 0) {
+                                          updatedSections[existingIndex] = {
+                                            ...updatedSections[existingIndex],
+                                            thickness: newThickness,
+                                          };
+                                        } else {
+                                          updatedSections.push({
+                                            id: `wall-internal-${Date.now()}`,
+                                            type: "internal",
+                                            thickness: newThickness,
+                                          } as any);
+                                        }
                                         return {
                                           ...prev,
                                           wallSections: updatedSections,
@@ -1417,13 +1582,13 @@ const UploadPlan = () => {
                                 </div>
                                 <div>
                                   <Label className="text-sm mb-2 block">
-                                    Ground Floor Elevation (mm)
+                                    Ground Floor Elevation (m)
                                   </Label>
                                   <Input
                                     type="number"
-                                    step="50"
+                                    step="0.001"
                                     value={
-                                      editablePlan.foundationDetails
+                                      editablePlan.foundationDetails?.[0]
                                         ?.groundFloorElevation || ""
                                     }
                                     onChange={(e) => {

@@ -139,6 +139,9 @@ STRICT REQUIREMENTS:
 - Do not include wastage percentages 
 - If equipment is linked to a trade (e.g. “Mixer for concrete works”) → add it. Only skip general equipment (e.g. “Site generator”, "Water Pump")
 - If items ARE NOT similar even by one attribute, do not merge them, keep them separate
+- For items with zero quantity, set rate and amount to 0
+- Create header items in each section containing similar items in the section
+- Put similar items under the same header in the sections
 
 OUTPUT FORMAT (STRICT JSON):
 [

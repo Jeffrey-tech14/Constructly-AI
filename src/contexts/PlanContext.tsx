@@ -96,18 +96,18 @@ export interface ExtractedPlan {
   wallProperties?: WallProperties;
   floors: number;
 
-  foundationDetails?: {
+  foundationDetails?: Array<{
     foundationType: string;
-    totalPerimeter: number;
-    masonryType: string;
-    wallThickness: string;
-    wallHeight: string;
+    totalPerimeter?: number;
+    masonryType?: string;
+    wallThickness?: string;
+    wallHeight?: string;
     blockDimensions?: string;
-    length: string;
-    width: string;
-    height: string;
+    length?: string;
+    width?: string;
+    height?: string;
     groundFloorElevation?: number | string;
-  };
+  }>;
 
   foundationWalling?: Array<{
     id: string;
@@ -336,6 +336,7 @@ export interface ExtractedPlan {
   projectType?: string;
   projectName?: string;
   projectLocation?: string;
+  clientName?: string;
 }
 
 interface PlanContextType {

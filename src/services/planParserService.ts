@@ -656,6 +656,7 @@ Foundation walling refers to the masonry walls built on top of the foundation (a
 - **Wall Height** (meters): Height from foundation top to slab level
 - **Number of Walls**: Count of identical walls (e.g., 4 external walls may have 2 different lengths)
 - **Mortar Ratio**: Cement to sand ratio - "1:3", "1:4", "1:5", or "1:6"
+- Always make sure to fill in the foundation details object with all the required fields 
 - Create separate entries for external and internal walls with different characteristics
 - Use perimeter dimensions and extracted heights for calculation
 Only use the materials specified above strictly.
@@ -769,17 +770,17 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     "plaster": "Both Sides"
   },
   "floors": 1,
-  "foundationDetails": { 
+  "foundationDetails": [{ 
     "foundationType": "Strip Footing", 
     "totalPerimeter": 50.5, // Total length of all exterior foundation walls in meters 
     "wallThickness": "0.200", // Thickness of the block/stone wall in meters
     "wallHeight": "1.0", // Height of the block/stone wall in meters 
     "blockDimensions": "0.400 x 0.200 x 0.200" // L x W x H in meters (optional) 
-    "height": "1.0" // Depth or height of the foundation
+    "height": "1.0" // Height from the bottom of the footing to the top of the ground floor slab
     "length": "5.0" // Length of the foundation
     "width"" "6.0" //Width of the foundation
     "groundFloorElevation": "0.3" // Elevation from ground level to top of slab
-  },
+  }],
   "foundationWalling": [
     {
       "id": "fwall-external-01",
@@ -807,6 +808,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
   "totalArea": number,
   "houseType": "bungalow" | "mansionate",
   "description": string
+  "clientName": string,
   "projectName": string,
   "projectLocation": string,
   
@@ -1207,7 +1209,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
 
       // Find excavation depth (from foundation details or deepest concrete element)
       const excavationDepth =
-        parseFloat(extractedPlan.foundationDetails?.height || "0") || 0;
+        parseFloat(extractedPlan.foundationDetails?.[0].height || "0") || 0;
 
       // Find strip footing height by element type
       const stripFooting = concreteStructures.find(

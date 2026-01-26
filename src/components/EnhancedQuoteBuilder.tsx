@@ -559,7 +559,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           ) || prev.equipment,
 
         bar_schedule:
-          extractedPlan.bar_schedule.map((item) => ({
+          extractedPlan.bar_schedule?.map((item) => ({
             bar_type: item.bar_type,
             bar_length: item.bar_length, // in meters
             quantity: item.quantity, // total quantity for this bar type and length
@@ -1683,11 +1683,20 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <div className="space-y-6">
             <Tabs value={finishesTab} onValueChange={setFinishesTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="finishes">Finishes</TabsTrigger>
                 <TabsTrigger value="wardrobes">
                   Wardrobes & Cabinets
                 </TabsTrigger>
+                <TabsTrigger value="finishes">Finishes</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="wardrobes" className="space-y-4">
+                <WardrobesCalculator
+                  wardrobes={wardrobes}
+                  setWardrobes={setWardrobes}
+                  setQuoteData={setQuoteData}
+                  quote={quoteData}
+                />
+              </TabsContent>
 
               <TabsContent value="finishes" className="space-y-4">
                 <FinishesCalculator
@@ -1697,15 +1706,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   setQuoteData={setQuoteData}
                   quote={quoteData}
                   wallDimensions={quoteData.wallDimensions}
-                />
-              </TabsContent>
-
-              <TabsContent value="wardrobes" className="space-y-4">
-                <WardrobesCalculator
-                  wardrobes={wardrobes}
-                  setWardrobes={setWardrobes}
-                  setQuoteData={setQuoteData}
-                  quote={quoteData}
                 />
               </TabsContent>
             </Tabs>

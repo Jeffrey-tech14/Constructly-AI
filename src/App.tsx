@@ -25,12 +25,16 @@ import UpdatePassword from "./pages/auth/update-password"; // ✅ NEW IMPORT
 import PaymentPage from "./pages/PaymentPage";
 import QuotePaymentPage from "./pages/QuotePaymentPage";
 import QuoteDetailsPage from "./pages/QuoteDetailsPage";
+import ErrorBoundary from "./components/ErrorBoundary";
+import ErrorPage from "./pages/ErrorPage";
+import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
 const queryClient = new QueryClient();
 
 // Inner component that can detect theme changes
 const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     // Check initial theme
@@ -49,6 +53,17 @@ const AppContent = () => {
 
     return () => observer.disconnect();
   }, []);
+
+  // If no internet connection, show offline error page (after all hooks)
+  if (!isOnline) {
+    return (
+      <ErrorPage
+        statusCode={503}
+        message="No Internet Connection"
+        description="You appear to be offline. Please check your internet connection and try again."
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400 relative">
@@ -163,13 +178,15 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppContent />
+        </TooltipProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </QueryClientProvider>
 );
 

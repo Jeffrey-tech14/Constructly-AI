@@ -566,7 +566,7 @@ export default function RebarCalculatorForm({
             concreteRow.width,
             concreteRow.height,
           );
-        } else if (element === "beam") {
+        } else if (element === "beam" || element === "ring-beam") {
           // For beams: volume = length × width × height
           volume = calculateConcreteVolume(
             element,
@@ -1299,9 +1299,7 @@ export default function RebarCalculatorForm({
                         <SelectItem value="DETAILED_REBAR_MODE">
                           Detailed Bars
                         </SelectItem>
-                        <SelectItem value="NORMAL_REBAR_MODE">
-                          Normal (kg/m³)
-                        </SelectItem>
+                        <SelectItem value="NORMAL_REBAR_MODE">kg/m³</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

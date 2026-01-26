@@ -130,16 +130,6 @@ PHASE 3 — CLASSIFICATION
 Every material MUST be assigned:
 - category (Kenyan construction standards)
 - element ∈ {foundation, wall, floor, roof, ceiling, finish}
-- materialType ∈ EXACT ENUM BELOW
-
-materialType ENUM (COPY EXACTLY — NO VARIATIONS):
-- "primary"
-- "secondary"
-- "preparatory"
-- "finishing"
-- "protective"
-- "joint"
-- "auxiliary"
 
 PHASE 4 — COST RECONCILIATION (ZERO TOLERANCE)
 You MUST recompute UNTIL ALL CONDITIONS ARE TRUE:

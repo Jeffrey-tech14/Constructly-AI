@@ -182,21 +182,135 @@ export default function MasonryCalculatorForm({
               </div>
             </>
           )}
+          {qsSettings.includesRingBeams && (
+            <>
+              <div>
+                <span className="font-medium">Ring Beam Rebar:</span>{" "}
+                {results.netRingBeamRebar?.toFixed(1) || 0} net →{" "}
+                {results.grossRingBeamRebar?.toFixed(1) || 0} gross kg
+              </div>
+              <div>
+                <span className="font-medium">Ring Beam Cost:</span> Ksh{" "}
+                {results.netRingBeamsCost?.toLocaleString() || 0} net → Ksh{" "}
+                {results.grossRingBeamsCost?.toLocaleString() || 0} gross
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 m-2">
-        <div>
-          <Label htmlFor="mortar-ratio">Mortar Ratio (Cement:Sand)</Label>
-          <Input
-            id="mortar-ratio"
-            type="text"
-            value={quote.mortarRatio || "1:4"}
-            onChange={(e) => handleMortarRatioChange(e.target.value)}
-            placeholder="e.g., 1:4"
-          />
-        </div>
+      {/* Breakdown Section */}
+      <div className="space-y-4 m-2">
+        {/* Lintels Breakdown */}
+        {qsSettings.includesLintels &&
+          (results.netLintelsCost > 0 || results.grossLintelsCost > 0) && (
+            <Card className="border">
+              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-b rounded-t-lg">
+                <h4 className="font-semibold text-amber-900 dark:text-amber-100">
+                  Lintel Beam Breakdown
+                </h4>
+              </div>
+              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Rebar (kg):
+                    </span>
+                    <span className="font-medium">
+                      {results.netLintelRebar?.toFixed(1) || 0} net →{" "}
+                      {results.grossLintelRebar?.toFixed(1) || 0} gross
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Concrete (m³):
+                    </span>
+                    <span className="font-medium">
+                      {results.netLintelConcrete?.toFixed(3) || 0} net →{" "}
+                      {results.grossLintelConcrete?.toFixed(3) || 0} gross
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Rebar Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netLintelRebarCost?.toLocaleString() || 0} →{" "}
+                      {results.grossLintelRebarCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Material Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netLintelsCost?.toLocaleString() || 0} →{" "}
+                      {results.grossLintelsCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
 
+        {/* Ring Beams Breakdown */}
+        {qsSettings.includesRingBeams &&
+          (results.netRingBeamsCost > 0 || results.grossRingBeamsCost > 0) && (
+            <Card className="border">
+              <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border-b rounded-t-lg">
+                <h4 className="font-semibold text-cyan-900 dark:text-cyan-100">
+                  Ring Beam Breakdown
+                </h4>
+              </div>
+              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Rebar (kg):
+                    </span>
+                    <span className="font-medium">
+                      {results.netRingBeamRebar?.toFixed(1) || 0} net →{" "}
+                      {results.grossRingBeamRebar?.toFixed(1) || 0} gross
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Concrete (m³):
+                    </span>
+                    <span className="font-medium">
+                      {results.netRingBeamConcrete?.toFixed(3) || 0} net →{" "}
+                      {results.grossRingBeamConcrete?.toFixed(3) || 0} gross
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Rebar Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netRingBeamRebarCost?.toLocaleString() || 0}{" "}
+                      → {results.grossRingBeamRebarCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Material Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netRingBeamsCost?.toLocaleString() || 0} →{" "}
+                      {results.grossRingBeamsCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 m-2">
         <div>
           <Label htmlFor="wastage">Wastage (%)</Label>
           <Input
@@ -211,20 +325,6 @@ export default function MasonryCalculatorForm({
             }
             placeholder="e.g., 5"
           />
-        </div>
-
-        <div>
-          <Label htmlFor="joint-thickness">Joint Thickness (m)</Label>
-          <Input
-            id="joint-thickness"
-            type="number"
-            step="0.001"
-            min="0.005"
-            max="0.02"
-            value={quote.jointThickness || 0.01}
-            onChange={(e) => handleJointThicknessChange(e.target.value)}
-          />
-          <span className="text-xs text-gray-500">Typical: 0.01m (10mm)</span>
         </div>
       </div>
 
@@ -538,7 +638,7 @@ function WallSectionComponent({
       }`}
     >
       <div
-        className={`p-4 ${
+        className={`p-4 rounded-t-3xl ${
           section.type === "external"
             ? "bg-blue-50 dark:bg-blue-900/20"
             : "bg-orange-50 dark:bg-orange-900/20"
@@ -575,7 +675,15 @@ function WallSectionComponent({
               <Select
                 value={section.blockType || ""}
                 onValueChange={(value) => {
-                  onUpdateProperties({ blockType: value });
+                  const selectedBlock = blockTypes.find(
+                    (b) => b.name === value,
+                  );
+                  const updates: Partial<WallSection> = { blockType: value };
+                  // Auto-update thickness when block type changes
+                  if (selectedBlock && selectedBlock.size) {
+                    updates.thickness = selectedBlock.size.thickness;
+                  }
+                  onUpdateProperties(updates);
                 }}
               >
                 <SelectTrigger>
@@ -592,22 +700,27 @@ function WallSectionComponent({
             </div>
             <div>
               <Label className="text-sm">Block Thickness (m)</Label>
-              <Select
-                value={section.thickness?.toString() || ""}
-                onValueChange={(value) => {
-                  onUpdateProperties({ thickness: parseFloat(value) });
+              <Input
+                type="number"
+                step="0.01"
+                value={section.thickness || ""}
+                onChange={(e) => {
+                  const thickness = parseFloat(e.target.value);
+                  const updates: Partial<WallSection> = { thickness };
+                  // Auto-update block type when thickness changes
+                  const matchingBlock = blockTypes.find(
+                    (b) => b.size && b.size.thickness === thickness,
+                  );
+                  if (matchingBlock) {
+                    updates.blockType = matchingBlock.name;
+                  } else {
+                    // Set to Custom if no matching block type
+                    updates.blockType = "Custom";
+                  }
+                  onUpdateProperties(updates);
                 }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Thickness" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0.1">Half Block (0.1m)</SelectItem>
-                  <SelectItem value="0.2">Standard (0.2m)</SelectItem>
-                  <SelectItem value="0.23">Cavity (0.23m)</SelectItem>
-                  <SelectItem value="0.3">Double (0.3m)</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="e.g., 0.2"
+              />
             </div>
           </div>
 
@@ -756,7 +869,7 @@ function DoorWindowItem({
   frameTypes,
 }: DoorWindowItemProps) {
   return (
-    <div className="p-3 border rounded-lg bg-gray-50 dark:glass space-y-3">
+    <div className="p-3 border rounded-lg bg-gray-50 dark:bg-transparent space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
         <Select
           value={item.sizeType}

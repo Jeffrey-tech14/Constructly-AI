@@ -82,7 +82,7 @@ import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { ElementTypes } from "@/hooks/useRebarCalculator";
+import { ElementTypes, RebarSize } from "@/hooks/useRebarCalculator";
 import RebarCalculatorForm from "./RebarCalculationForm";
 import useMasonryCalculatorNew, {
   MasonryQSSettings,
@@ -193,7 +193,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [substructureTab, setSubstructureTab] = useState("earthworks");
   const [superstructureTab, setSuperstructureTab] = useState("masonry");
-  const [finishesTab, setFinishesTab] = useState("finishes");
+  const [finishesTab, setFinishesTab] = useState("wardrobes");
   const [extrasTab, setExtrasTab] = useState("equipment");
   const [calculation, setCalculation] = useState<CalculationResult | null>(
     null,
@@ -558,6 +558,39 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             }),
           ) || prev.equipment,
 
+        // Ring Beams - Merge into QS Settings (map over array)
+        qsSettings: Array.isArray(prev?.qsSettings)
+          ? prev.qsSettings.map((settings: MasonryQSSettings) => ({
+              ...settings,
+              includesRingBeams:
+                (extractedPlan.ringBeams &&
+                  extractedPlan.ringBeams.length > 0) ||
+                settings.includesRingBeams ||
+                false,
+              ringBeamWidth: extractedPlan.ringBeams?.[0]?.width
+                ? parseFloat(extractedPlan.ringBeams[0].width)
+                : (settings.ringBeamWidth ?? 0.2),
+              ringBeamDepth: extractedPlan.ringBeams?.[0]?.depth
+                ? parseFloat(extractedPlan.ringBeams[0].depth)
+                : (settings.ringBeamDepth ?? 0.15),
+              ringBeamRebarSize:
+                (extractedPlan.ringBeams?.[0]?.mainBarSize as RebarSize) ||
+                settings.ringBeamRebarSize ||
+                ("D12" as RebarSize),
+              ringBeamMainBarsCount: extractedPlan.ringBeams?.[0]?.mainBarsCount
+                ? parseInt(extractedPlan.ringBeams[0].mainBarsCount)
+                : (settings.ringBeamMainBarsCount ?? 8),
+              ringBeamStirrupSize:
+                (extractedPlan.ringBeams?.[0]?.stirrupSize as RebarSize) ||
+                settings.ringBeamStirrupSize ||
+                ("D8" as RebarSize),
+              ringBeamStirrupSpacing: extractedPlan.ringBeams?.[0]
+                ?.stirrupSpacing
+                ? parseInt(extractedPlan.ringBeams[0].stirrupSpacing)
+                : (settings.ringBeamStirrupSpacing ?? 200),
+            }))
+          : prev.qsSettings || [],
+
         bar_schedule:
           extractedPlan.bar_schedule?.map((item) => ({
             bar_type: item.bar_type,
@@ -594,6 +627,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               tieSpacing: rebar.tieSpacing || "250",
               category: rebar.category || "superstructure",
               number: rebar.number || "1",
+              rebarCalculationMode:
+                rebar.rebarCalculationMode || "NORMAL_REBAR_MODE",
 
               // Reinforcement type and mesh fields
               reinforcementType: rebar.reinforcementType || "individual_bars",
@@ -1618,8 +1653,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               <TabsList className="grid w-full grid-cols-4 mb-3">
                 <TabsTrigger value="masonry">Masonry</TabsTrigger>
                 <TabsTrigger value="plumbing">Plumbing</TabsTrigger>
-                <TabsTrigger value="roofing">Roofing</TabsTrigger>
                 <TabsTrigger value="electrical">Electricals</TabsTrigger>
+                <TabsTrigger value="roofing">Roofing</TabsTrigger>
               </TabsList>
 
               <TabsContent value="masonry" className="space-y-4">
@@ -3930,7 +3965,7 @@ export function Stepper({
       </div>
 
       {/* Progress bar with gradient */}
-      <div className="mx-8 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="mx-8 h-1.5 bg-secondary rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{

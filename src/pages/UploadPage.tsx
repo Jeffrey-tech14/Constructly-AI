@@ -1098,7 +1098,7 @@ const UploadPlan = () => {
               </CardHeader>
               <CardContent className="space-y-8 p-8">
                 {(editablePlan && currentStep === "complete") ||
-                (fileUrl &&
+                ((fileUrl || selectedFile) &&
                   (currentStep === "analyzing" ||
                     currentStep === "uploading")) ? (
                   <div className="space-y-6 scrollbar-hide">
@@ -1182,7 +1182,8 @@ const UploadPlan = () => {
                                 Analyzing your plan...
                               </p>
                               <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Our AI is dimensions and structural details
+                                Jtech is analyzing dimensions and structural
+                                details
                               </p>
                             </div>
 

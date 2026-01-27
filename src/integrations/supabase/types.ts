@@ -344,7 +344,7 @@ export type Database = {
           id: string;
           name: string;
           unit: string;
-          type: Json | null;
+          type: string[] | null;
           size: string | null;
           updated_at: string | null;
         };
@@ -356,7 +356,7 @@ export type Database = {
           id?: string;
           name: string;
           size?: string | null;
-          type?: Json | null;
+          type?: string[] | null;
           unit?: string;
           updated_at?: string | null;
         };
@@ -368,7 +368,7 @@ export type Database = {
           id?: string;
           size?: string | null;
           name?: string;
-          type?: Json | null;
+          type?: string[] | null;
           unit?: string;
           updated_at?: string | null;
         };

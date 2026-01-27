@@ -15,8 +15,7 @@ export type ElementTypes =
   | "raft-foundation"
   | "strip-footing"
   | "retaining-wall"
-  | "tank"
-  | "ring-beam";
+  | "tank";
 export type RebarSize =
   | "R6"
   | "D6"
@@ -198,7 +197,6 @@ export const DEFAULT_STEEL_INTENSITIES: Record<ElementTypes, number> = {
   "raft-foundation": 90,
   "retaining-wall": 110,
   tank: 100,
-  "ring-beam": 110,
 };
 
 // Intensity bounds for validation
@@ -1296,17 +1294,6 @@ function getBendingInstructions(
       }
       break;
 
-    case "ring-beam":
-      if (barType === "main") {
-        return "Bent in a circle/ring shape, continuous loop with lap joint";
-      }
-      if (barType === "stirrup") {
-        return `Bend to circular links/hoops with 135° hooks, minimum bend radius ${
-          diameter * 4
-        }mm`;
-      }
-      break;
-
     case "column":
       if (barType === "main") {
         return "Straight bar - no bending required for vertical reinforcement";
@@ -1339,13 +1326,6 @@ function getBendingDiagram(
         return "U-shape with dimensions: width = (beam width - 2×cover), height = (beam depth - 2×cover)";
       }
       break;
-
-    case "ring-beam":
-      if (barType === "stirrup") {
-        return "Circular hoops/links with diameter = (ring diameter - 2×cover)";
-      }
-      break;
-
     case "column":
       if (barType === "tie") {
         return "Rectangle with dimensions: width = (column width - 2×cover), depth = (column depth - 2×cover)";
@@ -1893,10 +1873,6 @@ function validateCodeCompliance(
         minRatio = limits.minBeamReinforcement;
         maxRatio = limits.maxBeamReinforcement;
         break;
-      case "ring-beam":
-        minRatio = limits.minBeamReinforcement;
-        maxRatio = limits.maxBeamReinforcement;
-        break;
       case "column":
         minRatio = limits.minColumnReinforcement;
         maxRatio = limits.maxColumnReinforcement;
@@ -1942,21 +1918,17 @@ function validateCodeCompliance(
       ? settings.slabCover * 1000
       : input.element === "beam"
         ? settings.beamCover * 1000
-        : input.element === "ring-beam"
-          ? settings.beamCover * 1000
-          : input.element === "column"
-            ? settings.columnCover * 1000
-            : settings.foundationCover * 1000;
+        : input.element === "column"
+          ? settings.columnCover * 1000
+          : settings.foundationCover * 1000;
   const minCover =
     input.element === "slab"
       ? limits.minSlabCover
       : input.element === "beam"
         ? limits.minBeamCover
-        : input.element === "ring-beam"
-          ? limits.minBeamCover
-          : input.element === "column"
-            ? limits.minColumnCover
-            : limits.minFoundationCover;
+        : input.element === "column"
+          ? limits.minColumnCover
+          : limits.minFoundationCover;
   if (currentCover < minCover) {
     warnings.push(
       `Concrete cover (${currentCover}mm) is less than minimum (${minCover}mm)`,
@@ -2995,69 +2967,6 @@ export function calculateRebar(
     );
     tiesLength = tiesCount * tieLength * count;
     totalBars += tiesCount * count;
-  }
-
-  if (element === "ring-beam" && effectiveL > 0 && W > 0 && D > 0) {
-    // Ring beam is essentially a beam that forms a circle/ring
-    // Main bars form the primary ring reinforcement
-    // Stirrups provide transverse reinforcement
-
-    const crossSection = W * D;
-    let mainCalc;
-    const userMainCount = safeParseInt(mainBarsCount, 0);
-
-    // For ring beam, mainBarsCount represents number of bars around the perimeter
-    if (userMainCount > 0) {
-      mainBarsCountResult = userMainCount;
-      const area = mainBarsCountResult * REBAR_PROPERTIES[mainBarSize]?.areaMm2;
-      mainCalc = {
-        barCount: mainBarsCountResult,
-        requiredArea: 0,
-        providedArea: area,
-        actualRatio: area / (crossSection * 1000000),
-      };
-    } else {
-      // Default to a reasonable number for ring beams if not specified
-      mainBarsCountResult = 8;
-      const area = mainBarsCountResult * REBAR_PROPERTIES[mainBarSize]?.areaMm2;
-      mainCalc = {
-        barCount: mainBarsCountResult,
-        requiredArea: 0,
-        providedArea: area,
-        actualRatio: area / (crossSection * 1000000),
-      };
-    }
-
-    requiredSteelAreaMm2 = mainCalc.requiredArea;
-    providedSteelAreaMm2 = mainCalc.providedArea;
-    reinforcementRatio = mainCalc.actualRatio;
-
-    // Main bars length is the circumference of the ring
-    const circumference = Math.PI * effectiveL; // Using length as diameter
-    const clearPerimeter = Math.max(0, circumference);
-    const reqMainLength = clearPerimeter + devLengthMain; // Single lap at one point
-    const mainBarOpt = calculateOptimizedBars(
-      reqMainLength,
-      settings.standardBarLength,
-      lapLength,
-    );
-    mainBarsLength = mainBarsCountResult * mainBarOpt.totalLength * count;
-    totalBars += mainBarsCountResult * mainBarOpt.barsNeeded * count;
-
-    // Stirrups/ties form links around the ring
-    stirrupsCount = Math.max(
-      2,
-      Math.floor(circumference / Math.max(stirrupSpacingM, 0.001)) + 1,
-    );
-    const linkRadius = Math.max(0, effectiveL / 2 - cover);
-    const linkCircumference = Math.PI * 2 * linkRadius;
-    const linkBendDeduction = calculateBendDeduction(stirrupSize, 1); // Circular, one bend point
-    const linkLength = Math.max(
-      0,
-      linkCircumference + devLengthDist - linkBendDeduction,
-    );
-    stirrupsLength = stirrupsCount * linkLength * count;
-    totalBars += stirrupsCount * count;
   }
 
   if (

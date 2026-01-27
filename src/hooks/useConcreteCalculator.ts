@@ -13,7 +13,6 @@ export type ElementType =
   | "septic-tank"
   | "underground-tank"
   | "staircase"
-  | "ring-beam"
   | "strip-footing"
   | "raft-foundation"
   | "pile-cap"
@@ -563,7 +562,6 @@ function calculateSurfaceArea(
     case "paving":
       return len * wid * num;
     case "beam":
-    case "ring-beam":
       return (2 * (len * hei) + len * wid) * num;
     case "column":
       return 2 * (len + wid) * hei * num;
@@ -744,7 +742,6 @@ export function calculateConcrete(
       break;
 
     case "beam":
-    case "ring-beam":
       mainVolume = effectiveLen * effectiveWid * hei * num;
       surfaceAreaM2 = calculateSurfaceArea(
         element,
@@ -1078,12 +1075,14 @@ export function calculateConcrete(
       (m) => m.name?.toLowerCase() === "ballast",
     );
     const blindingCementBags = Math.ceil(
-      blindingMaterials.cementBags * (1 + settings.wastageConcrete / 100),
+      blindingMaterials.cementBags *
+        1.54 *
+        (1 + settings.wastageConcrete / 100),
     );
     const blindingSandM3 =
-      blindingMaterials.sandM3 * (1 + settings.wastageConcrete / 100);
+      blindingMaterials.sandM3 * 1.54 * (1 + settings.wastageConcrete / 100);
     const blindingStoneM3 =
-      blindingMaterials.stoneM3 * (1 + settings.wastageConcrete / 100);
+      blindingMaterials.stoneM3 * 1.54 * (1 + settings.wastageConcrete / 100);
     blindingCost =
       blindingCementBags * (blindingCement?.price || 0) +
       blindingSandM3 * (blindingSand?.price || 0) +
@@ -1288,10 +1287,12 @@ export function computeConcreteRatePerM3(
 
   // Apply wastage with Math.ceil() to match calculateConcrete
   const grossCementBags = Math.ceil(
-    materials.cementBags * (1 + settings.wastageConcrete / 100),
+    materials.cementBags * 1.54 * (1 + settings.wastageConcrete / 100),
   );
-  const grossSandM3 = materials.sandM3 * (1 + settings.wastageConcrete / 100);
-  const grossStoneM3 = materials.stoneM3 * (1 + settings.wastageConcrete / 100);
+  const grossSandM3 =
+    materials.sandM3 * 1.54 * (1 + settings.wastageConcrete / 100);
+  const grossStoneM3 =
+    materials.stoneM3 * 1.54 * (1 + settings.wastageConcrete / 100);
 
   // Calculate water
   const surfaceArea = calculateSurfaceArea(

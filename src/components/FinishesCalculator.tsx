@@ -537,9 +537,13 @@ export default function FinishesCalculator({
                   </div>
                 </div>
                 <div className="p-3 rounded-3xl">
-                  <div className="text-xs font-bold ">With Wastage (10%)</div>
+                  <div className="text-xs font-bold ">With Wastage</div>
                   <div className="text-lg font-bold ">
-                    {(paintingTotals.totalLitres * 1.1).toFixed(2)} L
+                    {(
+                      paintingTotals.totalLitres *
+                      (1 + (qsSettings?.wastageFinishes ?? 10) / 100)
+                    ).toFixed(2)}{" "}
+                    L
                   </div>
                 </div>
                 <div className="p-3 rounded-3xl">

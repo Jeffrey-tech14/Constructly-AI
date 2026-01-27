@@ -35,7 +35,7 @@ export interface EarthworkItem {
 
 interface EarthworksFormProps {
   earthworks: EarthworkItem[];
-  setEarthworks: (earthworks: EarthworkItem[]) => void;
+  setEarthworks: (earthworks: EarthworkItem[] | ((prev: EarthworkItem[]) => EarthworkItem[])) => void;
   excavationRates: any;
   setQuoteData?: (data: any) => void;
   setQuote?: (updater: (prev: any) => any) => void;
@@ -129,14 +129,19 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       // Get wall dimensions from quote
       const dims = quote.wallDimensions;
       if (dims && dims.externalWallPerimiter && dims.internalWallPerimiter) {
-        const wallThickness = quote.wallProperties?.thickness || 0.2;
+        const internalWallThickness =
+          quote.wallSections?.find((s: any) => s.type === "internal")
+            ?.thickness || 0.2;
+        const externalWallThickness =
+          quote.wallSections?.find((s: any) => s.type === "external")
+            ?.thickness || 0.2;
         const excavationDepth =
           parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65; // Use foundation details height
 
         // Create internal wall foundation excavation item
         const internalVolume = calculateVolume(
           dims.internalWallPerimiter.toString(),
-          (wallThickness * 3).toString(),
+          (internalWallThickness * 3).toString(),
           excavationDepth.toString(),
           undefined,
           "LENGTH_WIDTH",
@@ -146,7 +151,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
           id: `earthwork-internal-${Date.now()}`,
           type: "foundation-excavation",
           length: dims.internalWallPerimiter.toString(),
-          width: (wallThickness * 3).toString(),
+          width: (internalWallThickness * 3).toString(),
           depth: excavationDepth.toString(),
           volume: internalVolume,
           material: "soil",
@@ -158,7 +163,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
         // Create external wall foundation excavation item
         const externalVolume = calculateVolume(
           dims.externalWallPerimiter.toString(),
-          (wallThickness * 3).toString(),
+          (externalWallThickness * 3).toString(),
           excavationDepth.toString(),
           undefined,
           "LENGTH_WIDTH",
@@ -168,7 +173,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
           id: `earthwork-external-${Date.now() + 1}`,
           type: "foundation-excavation",
           length: dims.externalWallPerimiter.toString(),
-          width: (wallThickness * 3).toString(),
+          width: (externalWallThickness * 3).toString(),
           depth: excavationDepth.toString(),
           volume: externalVolume,
           material: "soil",
@@ -209,6 +214,110 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
     quote?.concrete_rows,
     quote?.wallDimensions,
     quote,
+  ]);
+
+  // Update existing internal/external wall items when wall dimensions or thickness change
+  useEffect(() => {
+    if (
+      earthworks.length > 0 &&
+      quote &&
+      quote.wallDimensions &&
+      quote.wallDimensions.externalWallPerimiter &&
+      quote.wallDimensions.internalWallPerimiter
+    ) {
+      const dims = quote.wallDimensions;
+      const internalWallThickness =
+        quote.wallSections?.find((s: any) => s.type === "internal")
+          ?.thickness || 0.2;
+      const externalWallThickness =
+        quote.wallSections?.find((s: any) => s.type === "external")
+          ?.thickness || 0.2;
+      const excavationDepth =
+        parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
+
+      setEarthworks((prev: EarthworkItem[]) => {
+        const updated = [...prev];
+
+        // Find and update internal wall item
+        const internalIdx = updated.findIndex(
+          (e) =>
+            e.foundationType === "strip_footing" &&
+            e.wallLocation === "internal",
+        );
+        if (internalIdx >= 0) {
+          const internalVolume = calculateVolume(
+            dims.internalWallPerimiter.toString(),
+            (internalWallThickness * 3).toString(),
+            excavationDepth.toString(),
+            undefined,
+            "LENGTH_WIDTH",
+            "foundation-excavation",
+          );
+          updated[internalIdx] = {
+            ...updated[internalIdx],
+            length: dims.internalWallPerimiter.toString(),
+            width: (internalWallThickness * 3).toString(),
+            depth: excavationDepth.toString(),
+            volume: internalVolume,
+            cost: parseFloat(internalVolume) * getEarthworkRate(),
+          };
+        }
+
+        // Find and update external wall item
+        const externalIdx = updated.findIndex(
+          (e) =>
+            e.foundationType === "strip_footing" &&
+            e.wallLocation === "external",
+        );
+        if (externalIdx >= 0) {
+          const externalVolume = calculateVolume(
+            dims.externalWallPerimiter.toString(),
+            (externalWallThickness * 3).toString(),
+            excavationDepth.toString(),
+            undefined,
+            "LENGTH_WIDTH",
+            "foundation-excavation",
+          );
+          updated[externalIdx] = {
+            ...updated[externalIdx],
+            length: dims.externalWallPerimiter.toString(),
+            width: (externalWallThickness * 3).toString(),
+            depth: excavationDepth.toString(),
+            volume: externalVolume,
+            cost: parseFloat(externalVolume) * getEarthworkRate(),
+          };
+        }
+
+        // Find and update topsoil item
+        const topsoilIdx = updated.findIndex(
+          (e) => e.type === "topsoil-removal",
+        );
+        if (topsoilIdx >= 0) {
+          const topsoilVolume = calculateVolume(
+            "0",
+            "0",
+            "0.2",
+            quote.total_area?.toString(),
+            "DIRECT_AREA",
+            "topsoil-removal",
+          );
+          updated[topsoilIdx] = {
+            ...updated[topsoilIdx],
+            area: quote.total_area?.toString(),
+            volume: topsoilVolume,
+            cost: parseFloat(topsoilVolume) * getEarthworkRate(),
+          };
+        }
+
+        return updated;
+      });
+    }
+  }, [
+    quote?.wallDimensions?.externalWallPerimiter,
+    quote?.wallDimensions?.internalWallPerimiter,
+    quote?.wallSection,
+    quote?.foundationDetails?.[0]?.height,
+    quote?.total_area,
   ]);
 
   // Calculate price for an earthwork item
@@ -518,7 +627,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                         <Input
                           id={`length-${earthwork.id}`}
                           type="number"
-                          step="0.1"
+                          step="0.01"
                           min="0"
                           value={earthwork.length}
                           onChange={(e) =>
@@ -539,7 +648,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                         <Input
                           id={`width-${earthwork.id}`}
                           type="number"
-                          step="0.1"
+                          step="0.01"
                           min="0"
                           value={earthwork.width}
                           onChange={(e) =>
@@ -560,7 +669,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                     <Input
                       id={`depth-${earthwork.id}`}
                       type="number"
-                      step="0.1"
+                      step="0.01"
                       min="0"
                       value={earthwork.depth}
                       onChange={(e) =>
@@ -585,7 +694,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid mt-3 grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Price Calculation */}
                   <div className="space-y-2">
                     <Label htmlFor={`price-${earthwork.id}`}>

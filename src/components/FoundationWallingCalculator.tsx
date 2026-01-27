@@ -105,6 +105,14 @@ export default function FoundationWallingCalculator({
       wallDimensions.internalWallPerimiter || "0",
     );
 
+    // Get wall thickness from wallSection data
+    const internalWallThickness =
+      quote.wallSections?.find((s: any) => s.type === "internal")?.thickness ||
+      0.15;
+    const externalWallThickness =
+      quote.wallSections?.find((s: any) => s.type === "external")?.thickness ||
+      0.2;
+
     // Calculate wall height
     const concreteStructures = quote?.concrete_rows || [];
     const excavationDepth =
@@ -131,30 +139,26 @@ export default function FoundationWallingCalculator({
 
     // Update external wall
     const externalWall = walls.find((w) => w.type === "external");
-    if (
-      externalWall &&
-      externalPerimeter > 0 &&
-      parseFloat(externalWall.wallLength) !== externalPerimeter
-    ) {
+    if (externalWall && externalPerimeter > 0) {
+      const externalThicknessMm = Math.round(externalWallThickness * 1000);
       updateWall(externalWall.id, {
         wallLength: externalPerimeter.toFixed(2).toString(),
         wallHeight: foundationWallHeight,
+        blockThickness: externalThicknessMm.toString(),
       });
     }
 
     // Update internal wall
     const internalWall = walls.find((w) => w.type === "internal");
-    if (
-      internalWall &&
-      internalPerimeter > 0 &&
-      parseFloat(internalWall.wallLength) !== internalPerimeter
-    ) {
+    if (internalWall && internalPerimeter > 0) {
+      const internalThicknessMm = Math.round(internalWallThickness * 1000);
       updateWall(internalWall.id, {
         wallLength: internalPerimeter.toFixed(2).toString(),
         wallHeight: foundationWallHeight,
+        blockThickness: internalThicknessMm.toString(),
       });
     }
-  }, [walls, quote, updateWall]);
+  }, [walls.length]);
 
   // Get Standard Natural Stone price per foot
   const blockMaterial = materials?.find(
@@ -311,28 +315,40 @@ export default function FoundationWallingCalculator({
 
                           <div>
                             <Label htmlFor={`${wall.id}-thickness`}>
-                              Block Thickness
+                              Block Thickness (mm)
                             </Label>
-                            <Select
+                            <Input
+                              id={`${wall.id}-thickness`}
+                              type="number"
+                              min="50"
+                              step="10"
                               value={wall.blockThickness}
-                              onValueChange={(value) =>
-                                updateWall(wall.id, { blockThickness: value })
-                              }
-                            >
-                              <SelectTrigger
-                                id={`${wall.id}-thickness`}
-                                className="mt-1"
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {blockThicknessOptions.map((opt) => (
-                                  <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              onChange={(e) => {
+                                const thickness = e.target.value;
+                                const updates: any = {
+                                  blockThickness: thickness,
+                                };
+                                // Auto-update block dimensions when thickness changes
+                                const thicknessMm = parseFloat(thickness);
+                                const thicknessM = thicknessMm / 1000;
+
+                                // Find matching block dimensions
+                                const matchingDimension =
+                                  blockDimensionOptions.find((opt) => {
+                                    const parts = opt.value.split("x");
+                                    return parseFloat(parts[2]) === thicknessM;
+                                  });
+
+                                if (matchingDimension) {
+                                  updates.blockDimensions =
+                                    matchingDimension.value;
+                                }
+
+                                updateWall(wall.id, updates);
+                              }}
+                              className="mt-1"
+                              placeholder="e.g., 200"
+                            />
                           </div>
 
                           <div>
@@ -341,11 +357,18 @@ export default function FoundationWallingCalculator({
                             </Label>
                             <Select
                               value={wall.blockDimensions}
-                              onValueChange={(value) =>
-                                updateWall(wall.id, {
-                                  blockDimensions: value,
-                                })
-                              }
+                              onValueChange={(value) => {
+                                const updates: any = { blockDimensions: value };
+                                // Auto-update thickness when block dimensions change
+                                const parts = value.split("x");
+                                const thicknessM = parseFloat(parts[2]);
+                                const thicknessMm = Math.round(
+                                  thicknessM * 1000,
+                                );
+                                updates.blockThickness = thicknessMm.toString();
+
+                                updateWall(wall.id, updates);
+                              }}
                             >
                               <SelectTrigger
                                 id={`${wall.id}-dimensions`}

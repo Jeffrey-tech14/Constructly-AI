@@ -127,86 +127,292 @@ class PlanParserService {
 
   private getAnalysisPrompt(hasBBSFile: boolean = false): string {
     return `
-You are an expert architectural AI analyzing construction drawings and plans with extreme attention to detail.
-(Keep output EXACTLY as JSON matching the requested schema. If no walls detected, respond with {"error":"No walls found"}.)
-SYSTEM ROLE
-You are a deterministic architectural data extraction engine.
-You do NOT explain.
-You do NOT narrate.
-You do NOT invent.
-You do NOT rename enums.
-You do NOT output anything except valid JSON.
+You are an expert architectural data extraction engine analyzing construction drawings and plans.
 
+OUTPUT RULE:
+Return VALID JSON ONLY matching the provided schema.
+If no walls are detected, return exactly:
+{"error":"No walls found"}
+
+You are deterministic.
+You do not explain.
+You do not narrate.
+You do not invent.
+You do not rename enums.
 Any deviation invalidates the result.
 
 ════════════════════════════════════
-GLOBAL RULES (NON-NEGOTIABLE)
+GLOBAL NON-NEGOTIABLE RULES
 ════════════════════════════════════
 
-1. OUTPUT MUST BE VALID JSON ONLY
-   - First character: {
-   - Last character: }
-   - No markdown
-   - No comments
-   - No trailing commas
-   - No explanatory text
+OUTPUT FORMAT
 
-2. SCHEMA LOCK
-   - Field names MUST match exactly
-   - Enum values MUST match exactly
-   - Arrays must be [] if empty
-   - Optional objects may be omitted, never null
+Output must be valid JSON
 
-3. SOURCE OF TRUTH
-   - Extract ONLY what is visible, labelled, or inferable from the drawings
-   - Do NOT hallucinate dimensions
-   - Defaults are allowed ONLY where explicitly permitted
+First character: {
 
-4. UNIT NORMALIZATION
-   - Lengths → meters
-   - Areas → m²
-   - mm ÷ 1000
-   - Do NOT mix units
+Last character: }
 
-5. ENUM DISCIPLINE
-   - If a value does not exist in the provided enums → map to closest valid enum
-   - NEVER invent new enum values
-   - Preserve spelling EXACTLY (e.g. "led-downlight", not "LED Downlight")
-6. COMPLETENESS
- **DO NOT invent dimensions** that are not visible or inferable.
- **Use defaults only when reasonable**:
-   - External wall height → 3.2 m
-   - Internal wall height → 2.9 m
-   - Wall thickness → 0.2 m
-   - Block type → "Standard Block"
-   - Plaster → "Both Sides"
-   - Electrical voltage → 230V
-   - Fixture quality → "standard"
-   - Timber grade/treatment → "structural" / "pressure-treated" for structural elements
-**Map extracted names to closest enum** (e.g., "toilet" → "water-closet", "LED light" → "led-downlight")
-**If a section has no data, return empty array** ('[]') or omit optional objects.
-**All numeric measurements in meters or as specified** (e.g., diameter in mm, area in m²).
-**Be consistent with your type system** — no arbitrary strings.
-- Follow the specified materials and types exactly.
-- If a reinforement item exists, make sure it's concrete item exists as well, and vice versa with sole exception if we do not have a bar bending schedule.
-- Base your analysis on what you can actually see in the drawing
-- Use external dimensions for perimeters
-- Do not include paint in any way or capacity anywhere in this extraction
-- Make sure to identify all wall sections (external and internal)
-- Prefer custom sizes when specific dimensions are visible
-- Pay special attention to dimension lines and labels
-- Estimate reasonably the equipment that would be used and days to be used
-- Use the provided equipment types and ids, if your findings dont exist on the provided list, add them on your own
-- Convert all measurements to meters (mm ÷ 1000)
-- Use the specific types provided
-- Use the variables provided as is: eg led-downlight, water-closet, etc. should stay as they are in the output, do not change the spelling or characters
-- Be precise with wall dimension extraction
-- Calculate perimeters by summing all wall lengths if internal or external
-- For external walls, measure the full building footprint perimeter
-- For internal walls, measure partition lengths
-- If we have the bar bending schedule, do not add any other reinforcement that you may find on the drawings
-- For wall heights, measure from ground to slab/roof level, and add a foot on top of the wall height to accomodate ceilings and other things
-- Always extract the foundation in concrete structures always as strip-footing if house type is a bungalow, and make sure to have its reinforcement items if we do not have a bar bending schedule
+No markdown
+
+No comments
+
+No trailing commas
+
+No explanatory text
+
+SCHEMA & ENUM LOCK
+
+Field names must match schema exactly
+
+Enum values must match exactly
+
+Never invent enums
+
+Map extracted labels to closest valid enum
+
+Example: "toilet" → "water-closet"
+
+Example: "LED light" → "led-downlight"
+
+Preserve enum spelling exactly
+
+SOURCE OF TRUTH
+
+Extract ONLY what is visible, labelled, or inferable from drawings
+
+Do NOT hallucinate dimensions
+
+Do NOT assume missing data
+
+Defaults are allowed ONLY where explicitly stated
+
+UNIT NORMALIZATION
+
+Lengths → meters
+
+Areas → m²
+
+Diameters → mm
+
+Convert mm ÷ 1000
+
+Never mix units
+
+DEFAULTS (ONLY IF DATA IS NOT SHOWN)
+
+External wall height → 3.2 m
+
+Internal wall height → 2.9 m
+
+Wall thickness → 0.2 m
+
+Block type → "Standard Block"
+
+Plaster → "Both Sides"
+
+Electrical voltage → 230V
+
+Fixture quality → "standard"
+
+Timber: "structural", "pressure-treated"
+
+COMPLETENESS & CONSISTENCY
+
+Empty sections → []
+
+Optional objects → omit (never null)
+
+Numeric values only (no strings for numbers)
+
+Be consistent with types
+
+Do not include paint anywhere
+
+Do not include varandah slabs or porch slabs anywhere in this analysis
+════════════════════════════════════
+WALL EXTRACTION (CRITICAL)
+════════════════════════════════════
+
+Identify ALL walls
+
+Exactly TWO wall sections only:
+
+"external"
+
+"internal"
+
+One object per wall type (no duplicates)
+
+MEASUREMENTS
+
+External wall perimeter = full building footprint
+
+Internal wall perimeter = sum of all partition walls
+
+Use external dimension lines where available
+
+Prefer labelled dimensions over inferred ones
+
+HEIGHTS
+
+Measure from ground to slab/roof level
+
+Add 0.3 m allowance above slab for ceilings
+
+THICKNESS
+
+Extract external and internal thickness separately
+
+════════════════════════════════════
+DOORS & WINDOWS (WITHIN WALLS)
+════════════════════════════════════
+
+Detect all doors and windows
+
+Use schedules or symbols if present
+
+Count totals per wall section
+
+Identify frame types
+
+Identify whether opening is internal or external
+
+Allowed sizes only:
+standardDoorSizes =
+["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"]
+
+standardWindowSizes =
+["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"]
+
+════════════════════════════════════
+FOUNDATION EXTRACTION (MANDATORY)
+════════════════════════════════════
+
+If structure is concrete → foundation MUST exist.
+If there is no defined height, use 0.65 m as default.
+
+Foundation type (extract from drawing):
+
+"strip-footing"
+
+"raft-foundation"
+
+"pad-foundation"
+
+If bungalow and concrete → default to "strip-footing"
+
+FOUNDATION DEFINITIONS
+
+Excavation Depth: ground → bottom of trench
+
+Foundation Height: trench bottom - strip footing height(if present) → top of slab
+
+Strip Footing Height: footing element only
+
+Ground Floor Slab Thickness: typically 0.15 m
+
+Foundation Wall Height =
+Foundation Height − Strip Footing Height − Slab Thickness
+
+If no clear foundation height → use 0.65 m
+
+FOUNDATION WALL / PLINTH
+
+Extract as a concreteStructure
+
+Name: "Foundation Wall" or "Plinth Wall"
+
+Element type: "foundation-wall"
+
+Identify masonry type (block / rubble stone)
+
+Extract wall thickness and height
+
+MUST have corresponding reinforcement
+
+════════════════════════════════════
+REINFORCEMENT & CONCRETE RULE
+════════════════════════════════════
+
+Concrete item ↔ reinforcement item must BOTH exist
+
+Exception: Bar Bending Schedule present → do not duplicate
+
+Rebar sizes: "D10", "D12", "D16", etc
+Default calculation should be kg/m3 not individual bars
+Ground floor is always BRC A98 as default
+Do not include oversite concrete or any form of blinding
+For bungalows, we only have ground floor slab and strip footing foundation elements only
+The width of strip footings is always 3 times the wall thickness unless otherwise specified
+
+Concrete grades:
+
+C25 → "1:2:4"
+
+C20 → "1:2:3"
+
+════════════════════════════════════
+FOUNDATION WALLING (MASONRY ABOVE FOOTING)
+════════════════════════════════════
+
+Extract separately for:
+
+external
+
+internal
+
+Block sizes (LxHxT in meters):
+
+"0.2x0.2x0.2"
+
+"0.15x0.2x0.15"
+
+"0.1x0.2x0.1"
+
+"0.4x0.2x0.2"
+
+Block thickness (mm only):
+100, 150, 200, 250, 300
+
+Mortar ratios:
+"1:3", "1:4", "1:5", "1:6"
+
+════════════════════════════════════
+RING BEAMS (ONLY IF SHOWN)
+════════════════════════════════════
+
+Extract ONLY if explicitly drawn or labelled
+
+Perimeter usually equals external wall perimeter
+
+Width usually equals wall thickness
+
+Typical depth: 0.15–0.25 m
+
+Reinforcement (if visible):
+
+mainBarSize
+
+mainBarsCount
+
+stirrupSize
+
+stirrupSpacing (mm)
+
+Multiple ring beams → multiple entries
+
+════════════════════════════════════
+FINAL RULE
+════════════════════════════════════
+
+The drawing may include plans, sections, and elevations of the SAME building.
+Use ALL views to resolve dimensions accurately.
+Never guess.
+Never invent.
+Never explain.
+
+Return JSON only.
 Analyze this construction document and extract ALL available information about:
 
 ### 🏗️ WALL STRUCTURE IDENTIFICATION:
@@ -280,6 +486,29 @@ Analyze this construction document and extract ALL available information about:
 - Be definite between the reinforcement types, eg either mesh or individual_bars
 - If you find both reinforcement types, create two individual entries for each with the correct type
 
+${
+  hasBBSFile
+    ? `**BAR BENDING SCHEDULE (BBS) EXTRACTION:**
+- If a Bar Bending Schedule file is provided, extract ALL bar bending details:
+- Bar types: D6, D8, D10, D12, D14, D16, D18, D20, D22, D25, D28, D32, D36, D40, D50
+- For each bar type found, identify:
+  - Bar length (in meters, convert from mm if needed)
+  - Total quantity of bars with that length
+  - Estimated weight per meter (if visible or calculable)
+- Group bars by type and length combination
+- Make sure to combine similar bars into single entries with total quantities
+- Set rebar_calculation_method to "bbs"
+- Look out for symbols that will inform you of the type of bar eg, ↀ16 or ∅16 will be D16. This applies to the the bbs and the reinforecement in general
+- Look out for measurements eg; 12mm, 8mm, etc these are the diameters of the needed bars, hence D12, D8, etc.
+- Return complete bar_schedule array with all extracted bars
+- Be precise and thorough, make usre you capture every detail you can find correctly so take the time to check`
+    : `**REBAR CALCULATION METHOD:**
+- Since no Bar Bending Schedule is provided, set rebar_calculation_method to "intensity-based"
+- This indicates that rebar calculations will be based on reinforcement intensity formulas
+- bar_schedule array should be empty [] when using intensity-based method`
+}
+
+
 ### DETAILED REINFORCEMENT EXTRACTION BY ELEMENT TYPE:
 
 **For Strip Footings and Raft Foundations:**
@@ -334,28 +563,6 @@ Analyze this construction document and extract ALL available information about:
 
 **Equipment:**
 - Standard equipment types and their respective id = Bulldozer:15846932-db16-4a28-a477-2e4b2e1e42d5, Concrete Mixer:3203526d-fa51-4878-911b-477b2b909db5, Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b, Water Pump:598ca378-6eb3-451f-89ea-f45aa6ecece8, Crane: d4665c7d-6ace-474d-8282-e888b53e7b48, Compactoreb80f645-6450-4026-b007-064b5f15a72a, Excavator:ef8d17ca-581d-4703-b200-17395bbe1c51
-
-${
-  hasBBSFile
-    ? `**BAR BENDING SCHEDULE (BBS) EXTRACTION:**
-- If a Bar Bending Schedule file is provided, extract ALL bar bending details:
-- Bar types: D6, D8, D10, D12, D14, D16, D18, D20, D22, D25, D28, D32, D36, D40, D50
-- For each bar type found, identify:
-  - Bar length (in meters, convert from mm if needed)
-  - Total quantity of bars with that length
-  - Estimated weight per meter (if visible or calculable)
-- Group bars by type and length combination
-- Make sure to combine similar bars into single entries with total quantities
-- Set rebar_calculation_method to "bbs"
-- Look out for symbols that will inform you of the type of bar eg, ↀ16 or ∅16 will be D16. This applies to the the bbs and the reinforecement in general
-- Look out for measurements eg; 12mm, 8mm, etc these are the diameters of the needed bars, hence D12, D8, etc.
-- Return complete bar_schedule array with all extracted bars
-- Be precise and thorough, make usre you capture every detail you can find correctly so take the time to check`
-    : `**REBAR CALCULATION METHOD:**
-- Since no Bar Bending Schedule is provided, set rebar_calculation_method to "intensity-based"
-- This indicates that rebar calculations will be based on reinforcement intensity formulas
-- bar_schedule array should be empty [] when using intensity-based method`
-}
 
 **Roofing:**
 - Roof types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
@@ -506,7 +713,7 @@ ${
 **Concrete & Structure:**
 - Category = "substructure" | "superstructure";
 - If we have a concrete item, ensure there is a corresponding reinforcement item extracted as well, and vice versa
-- ElementType = "slab"| "beam"| "column"| "septic-tank"| "underground-tank"| "staircase"| "ring-beam"| "strip-footing"| "raft-foundation"| "pile-cap"|"water-tank"
+- ElementType = "slab"| "beam"| "column"| "septic-tank"| "underground-tank"| "staircase"| "strip-footing"| "raft-foundation"| "pile-cap"|"water-tank"
   | "ramp"| "retaining-wall"| "culvert"| "swimming-pool"| "paving"| "kerb"| "drainage-channel"| "manhole"| "inspection-chamber"|"soak-pit"| "soakaway";
 
 - FoundationStep {
@@ -577,88 +784,7 @@ ${
   gravelDepth?: string;
   includesPerforatedPipes: boolean;
 }
-- Rebar sizes follow standard notation (e.g., "D10", "D12")
-- Mixes to follow ratios eg 1:2:4, 1:2:3
-- Notations C25 or C20 e.t.c, to be changed into their corresponding mixes for C:S:B(cement, sand, ballast)
-- Note that the provided file contains information about one building from different perspectives (e.g plan, section, elevation etc). Use all the information available to provide the most accurate dimensions and details
-- Ensure accuracy on measuring the wall perimeters and heights
-- If you create a concrete item, make sure there is a corresponding reinforcement item extracted as well, and vice versa
 
-### 📐 WALL DIMENSION EXTRACTION:
-- Calculate EXTERNAL WALL PERIMETER: sum of all exterior wall lengths in meters
-- Calculate INTERNAL WALL PERIMETER: sum of all interior partition wall lengths in meters
-- Extract EXTERNAL WALL HEIGHT: distance from ground to roof level in meters
-- Extract INTERNAL WALL HEIGHT: distance from ground to roof level for interior walls in meters
-- Look for dimension lines, labels, or grid references on the plan
-- Use external dimensions marked on the drawing
-- Convert all measurements to meters (mm values should be divided by 1000)
-- Pay attention to dimension strings and annotation
-
-### 🚪 DOOR & WINDOW SPECIFICATIONS IN WALLS:
-- Identify all doors: types, sizes, frame types, and counts
-- Identify all windows: glass types, sizes, frame types, and counts
-- Look for door/window schedules or symbols (like DOO-001, WD-012, etc.)
-- Note whether openings are in external or internal walls
-- We can only have two inputs for wall sections: "external" and "internal", we cannot have multiple wall sections of the same type, only one wall section with all its doors and windows listed
-- Count the total number of each type per wall section
-- standardDoorSizes = ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"]
-- standardWindowSizes = ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"]
-
-### 🏗️ CONSTRUCTION DETAILS:
-- Note wall thicknesses if specified
-- Identify floor levels (single story, multi-story)
-- Look for any construction notes or specifications
-- Note any special features like fireplaces, built-in cabinets, etc.
-- If a room cannot be plasters for whatever reason, mark as "None"
-- Do not assume any dimensions, only extract what is visible on the drawings
-- Make sure you get the correct areas for the finishes, eg painting area should be wall area minus openings area (doors and windows)
-
-### 🏗️ FOUNDATION AND CONSTRUCTION DETAILS:
-
-**FOUNDATION MEASUREMENT DEFINITIONS (CRITICAL):**
-- **Excavation Depth**: The depth being dug into the ground, measured from ground level to the bottom of the foundation trench (depth of the hole).
-- **Foundation Height**: Measured from the very bottom of the foundation trench to the very top of the ground floor slab. This is the TOTAL foundation dimension (from bottom to top of slab).
-- **Strip Footing Height**: The height of the strip footing element itself (NOT the total depth from excavation). This is just the footing component.
-- **Foundation Wall Height**: Calculated as = Foundation Height - Strip Footing Height + Elevation - Ground Floor Slab Thickness. This is the height of the foundation wall/plinth only.
-- **Ground Floor Slab Thickness**: The thickness of the ground floor slab (typically 0.15m).
-
-**FOUNDATION TYPE SELECTION:**
-- User will select from: "strip-footing", "raft-foundation", or "pad-foundation"
-- Extract which type is visible in the drawings
-
-**FOUNDATION WALL/PLINTH (Now separate from other concrete):**
-- This is a CONCRETE element (concreteStructures) named "Foundation Wall" or "Plinth Wall"
-- Element type: "foundation-wall" (or map to appropriate concrete element type)
-- Material used: identify the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone)
-- Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m)
-- Extract the **MASONRY WALL HEIGHT** (foundation wall height as calculated above)
-- Include corresponding REINFORCEMENT entry for foundation wall
-
-**WALL THICKNESS DISTINCTION:**
-- External walls: measure thickness separately from internal walls
-- Internal walls: measure thickness separately from external walls
-- Display both in results, not combined
-
-# - Determine the **TOTAL EXTERNAL PERIMETER** of the building footprint in meters. 
-# - All concrete elements will need their reinforcement counterparts extracted as well.
-# - Identify the material used for the foundation wall/plinth level, specifically the **MASONRY TYPE** (e.g., Block Wall, Rubble Stone). 
-# - Extract the **MASONRY WALL THICKNESS** (e.g., 0.2m). 
-# ### 🧱 FOUNDATION WALLING DETAILS:
-Foundation walling refers to the masonry walls built on top of the foundation (above the strip footing or raft). Extract:
-- **Wall Type**: "external" or "internal" (external walls are perimeter walls, internal walls are partition walls)
-- **Block Dimensions**: Standard block sizes in format "LxHxT" (Length x Height x Thickness in meters):
-  - "0.2x0.2x0.2" (Large Block: 200×200×200mm)
-  - "0.15x0.2x0.15" (Standard Block: 150×200×150mm)
-  - "0.1x0.2x0.1" (Small Block: 100×200×100mm)
-  - "0.4x0.2x0.2" (Standard Natural Block: 400×200×200mm)
-- **Block Thickness** (wall thickness in mm): 100, 150, 200, 250, or 300
-- **Wall Length** (meters): Total length of the wall section
-- **Wall Height** (meters): Height from foundation top to slab level
-- **Number of Walls**: Count of identical walls (e.g., 4 external walls may have 2 different lengths)
-- **Mortar Ratio**: Cement to sand ratio - "1:3", "1:4", "1:5", or "1:6"
-- Always make sure to fill in the foundation details object with all the required fields 
-- Create separate entries for external and internal walls with different characteristics
-- Use perimeter dimensions and extracted heights for calculation
 Only use the materials specified above strictly.
 Return ONLY valid JSON with this structure. Use reasonable estimates if exact dimensions aren't visible.
 
@@ -802,10 +928,24 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "numberOfWalls": 1,
       "mortarRatio": "1:4"
     }
-  ], 
+  ],
+  "ringBeams": [
+    {
+      "id": string,
+      "name": string,
+      "perimeter": string, // Total perimeter of ring beam in meters (usually external wall perimeter)
+      "width": string, // Width of ring beam in meters (typically 0.2m to 0.3m)
+      "depth": string, // Depth of ring beam in meters (typically 0.15m to 0.2m)
+      "concrete_mix": string, // Concrete mix ratio e.g., "1:2:4" for C25
+      "mainBarSize"?: string, // Main reinforcement bar size (e.g., "D12", "D16")
+      "mainBarsCount"?: string, // Number of main bars (e.g., "8", "10", "12")
+      "stirrupSize"?: string, // Stirrup bar size (e.g., "D8", "D10")
+      "stirrupSpacing"?: string // Stirrup spacing in mm (e.g., "200", "250")
+    }
+  ],
   "projectType": "residential" | "commercial" | "industrial" | "institutional",
   "floors": number,
-  "totalArea": number,
+  "totalArea": number, //Area covered by the house L x W then multiply by 200%
   "houseType": "bungalow" | "mansionate",
   "description": string
   "clientName": string,
@@ -898,6 +1038,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       category?: Category;
       number?: string;
       reinforcementType?: ReinforcementType;
+      rebarCalculationMode: "NORMAL_REBAR_MODE"; //default is NORMAL_REBAR_MODE always
       meshGrade?: string;
       meshSheetWidth?: string;
       meshSheetLength?: string;

@@ -4,7 +4,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback } from "react";
 import { useMaterialPrices } from "./useMaterialPrices";
-import { RebarSize } from "./useRebarCalculator";
+import { RebarSize, REBAR_PROPERTIES } from "./useRebarCalculator";
 import { Material } from "./useQuoteCalculations";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -162,8 +162,11 @@ export interface MasonryQSSettings {
   includesScaffolding: boolean;
   includesMovementJoints: boolean;
   includesWasteRemoval: boolean;
+  includesRingBeams?: boolean;
   lintelDepth: number;
   lintelWidth: number;
+  ringBeamDepth?: number;
+  ringBeamWidth?: number;
   reinforcementSpacing: number;
   verticalReinforcementSpacing: number;
   DPCWidth: number;
@@ -175,6 +178,12 @@ export interface MasonryQSSettings {
   lintelRebarSize: RebarSize;
   verticalRebarSize: RebarSize;
   bedJointRebarSize: RebarSize;
+  ringBeamRebarSize?: RebarSize;
+  ringBeamMainBarsCount?: number;
+  ringBeamStirrupSize?: RebarSize;
+  ringBeamStirrupSpacing?: number;
+  developmentLengthFactor?: number;
+  lapLengthFactor?: number;
   mortarRatio?: string;
   plaster_ratio?: string;
 }
@@ -269,6 +278,16 @@ interface CalculationTotals {
   grossLintelRebar: number;
   netLintelRebarCost: number;
   grossLintelRebarCost: number;
+  netLintelConcrete?: number;
+  grossLintelConcrete?: number;
+  netRingBeamsCost?: number;
+  grossRingBeamsCost?: number;
+  netRingBeamRebar?: number;
+  grossRingBeamRebar?: number;
+  netRingBeamRebarCost?: number;
+  grossRingBeamRebarCost?: number;
+  netRingBeamConcrete?: number;
+  grossRingBeamConcrete?: number;
   netWallRebar: number;
   grossWallRebar: number;
   netWallRebarCost: number;
@@ -397,6 +416,16 @@ export default function useMasonryCalculatorNew({
     grossLintelRebar: 0,
     netLintelRebarCost: 0,
     grossLintelRebarCost: 0,
+    netLintelConcrete: 0,
+    grossLintelConcrete: 0,
+    netRingBeamsCost: 0,
+    grossRingBeamsCost: 0,
+    netRingBeamRebar: 0,
+    grossRingBeamRebar: 0,
+    netRingBeamRebarCost: 0,
+    grossRingBeamRebarCost: 0,
+    netRingBeamConcrete: 0,
+    grossRingBeamConcrete: 0,
     netWallRebar: 0,
     grossWallRebar: 0,
     netWallRebarCost: 0,
@@ -432,22 +461,41 @@ export default function useMasonryCalculatorNew({
   const blockTypes = [
     {
       id: 1,
-      name: "Standard Block",
-      size: { length: 0.4, height: 0.2, thickness: 0.2 },
-      volume: 0.016,
+      name: "Large Block",
+      dimensions_m: {
+        length: 0.2,
+        height: 0.2,
+        thickness: 0.2,
+      },
     },
     {
       id: 2,
-      name: "Half Block",
-      size: { length: 0.4, height: 0.2, thickness: 0.1 },
-      volume: 0.008,
+      name: "Standard Block",
+      dimensions_m: {
+        length: 0.15,
+        height: 0.2,
+        thickness: 0.15,
+      },
     },
     {
       id: 3,
-      name: "Brick",
-      size: { length: 0.225, height: 0.075, thickness: 0.1125 },
-      volume: 0.0019,
+      name: "Small Block",
+      dimensions_m: {
+        length: 0.1,
+        height: 0.2,
+        thickness: 0.1,
+      },
     },
+    {
+      id: 4,
+      name: "Standard Natural Block",
+      dimensions_m: {
+        length: 0.15,
+        height: 0.2,
+        thickness: 0.15,
+      },
+    },
+
     { id: 4, name: "Custom", size: null, volume: 0 },
   ];
 
@@ -478,12 +526,12 @@ export default function useMasonryCalculatorNew({
     (volume: number, mixRatio: string, waterCementRatio: number) => {
       const ratio = parseConcreteMixRatio(mixRatio);
       const totalParts = ratio.cement + ratio.sand + ratio.ballast;
-      const cementVolume = (ratio.cement / totalParts) * volume;
-      const sandVolume = (ratio.sand / totalParts) * volume;
-      const ballastVolume = (ratio.ballast / totalParts) * volume;
+      const cementVolume = (ratio.cement / totalParts) * volume * 1.54;
+      const sandVolume = (ratio.sand / totalParts) * volume * 1.54;
+      const ballastVolume = (ratio.ballast / totalParts) * volume * 1.54;
       const cementBags = cementVolume / 0.035;
       const cementWeight = cementBags * 50;
-      const waterLiters = cementWeight * waterCementRatio;
+      const waterLiters = cementWeight * waterCementRatio * 1.54;
       return {
         cementBags,
         sand: sandVolume,
@@ -1057,6 +1105,16 @@ export default function useMasonryCalculatorNew({
       grossLintelRebar: 0,
       netLintelRebarCost: 0,
       grossLintelRebarCost: 0,
+      netLintelConcrete: 0,
+      grossLintelConcrete: 0,
+      netRingBeamsCost: 0,
+      grossRingBeamsCost: 0,
+      netRingBeamRebar: 0,
+      grossRingBeamRebar: 0,
+      netRingBeamRebarCost: 0,
+      grossRingBeamRebarCost: 0,
+      netRingBeamConcrete: 0,
+      grossRingBeamConcrete: 0,
       netWallRebar: 0,
       grossWallRebar: 0,
       netWallRebarCost: 0,
@@ -1144,8 +1202,8 @@ export default function useMasonryCalculatorNew({
     const waterPrice =
       materials.find((m) => m.name?.toLowerCase() === "water")?.price || 0;
 
-    const mortarRatio = quote?.mortarRatio || "1:4";
-    const netMortarVolume = centerLineNetWallArea * MORTAR_PER_SQM;
+    const mortarRatio = qsSettings?.mortarRatio || "1:4";
+    const netMortarVolume = centerLineNetWallArea * MORTAR_PER_SQM * 1.33;
 
     // Mortar materials calculation
     const mortarRatioParts = mortarRatio.split(":").map((p) => parseFloat(p));
@@ -1166,7 +1224,7 @@ export default function useMasonryCalculatorNew({
       netPlasterArea = centerLineNetWallArea * 2;
     }
 
-    const plasterVolume = netPlasterArea * PLASTER_THICKNESS;
+    const plasterVolume = netPlasterArea * PLASTER_THICKNESS * 1.33;
     const plasterRatioParts = (qsSettings.plaster_ratio || mortarRatio)
       .split(":")
       .map((p) => parseFloat(p));
@@ -1322,6 +1380,95 @@ export default function useMasonryCalculatorNew({
       totals.grossLintelRebarCost = Math.ceil(
         lintelRebarCost * (1 + qsSettings.wastageMasonry / 100),
       );
+      totals.netLintelConcrete = lintelConcrete;
+      totals.grossLintelConcrete =
+        lintelConcrete * (1 + qsSettings.wastageMasonry / 100);
+    }
+
+    // Ring Beams
+    if (qsSettings.includesRingBeams && wallDimensions.externalWallPerimiter) {
+      const ringBeamPerimeter = Number(wallDimensions.externalWallPerimiter);
+      const ringBeamWidth =
+        qsSettings.ringBeamWidth || qsSettings.lintelWidth || 0.2;
+      const ringBeamDepth =
+        qsSettings.ringBeamDepth || qsSettings.lintelDepth || 0.15;
+
+      const ringBeamConcrete =
+        ringBeamPerimeter * ringBeamWidth * ringBeamDepth;
+      const ringBeamMaterials = calculateConcreteMaterials(
+        ringBeamConcrete,
+        qsSettings.concreteMixRatio,
+        qsSettings.concreteWaterCementRatio,
+      );
+      const ringBeamCost =
+        ringBeamMaterials.cementBags * cementPrice +
+        ringBeamMaterials.sand * sandPrice;
+
+      // Ring beam main reinforcement with development and lap lengths
+      const ringBeamMainBarsCount = qsSettings.ringBeamMainBarsCount || 8;
+      const ringBeamMainRebarSize =
+        qsSettings.ringBeamRebarSize || qsSettings.lintelRebarSize;
+
+      // Calculate development and lap lengths for ring beam (using QS Settings factors)
+      const devLengthFactor = qsSettings.developmentLengthFactor ?? 40;
+      const lapLengthFactor = qsSettings.lapLengthFactor ?? 50;
+      const developmentLength =
+        devLengthFactor *
+        (REBAR_PROPERTIES[ringBeamMainRebarSize]?.diameterMm / 1000 || 0.012);
+      const lapLength =
+        lapLengthFactor *
+        (REBAR_PROPERTIES[ringBeamMainRebarSize]?.diameterMm / 1000 || 0.012);
+
+      // Ring beam circumference with development length (single lap at one point)
+      const circumference = ringBeamPerimeter;
+      const mainBarLength = circumference + developmentLength;
+
+      // Calculate optimized bars (accounting for standard bar length and lap)
+      const standardBarLength = 12; // Standard bar length in meters
+      const effectiveBarLength = standardBarLength - lapLength;
+      const mainBarsNeeded = Math.ceil(mainBarLength / effectiveBarLength);
+      const totalMainBarLength = mainBarsNeeded * standardBarLength;
+
+      const ringBeamMainRebarWeight = getRebarWeight(
+        ringBeamMainBarsCount * totalMainBarLength,
+        ringBeamMainRebarSize,
+      );
+
+      // Ring beam stirrups as circular links
+      const stirrupSpacing = (qsSettings.ringBeamStirrupSpacing || 200) / 1000; // Convert mm to m
+      const numberOfStirrups = Math.ceil(circumference / stirrupSpacing);
+      const stirrupBarSize = qsSettings.ringBeamStirrupSize || "D8";
+
+      // Stirrup link dimensions (forms a closed loop around the cross-section)
+      const stirrupBendDeduction =
+        2 * (REBAR_PROPERTIES[stirrupBarSize]?.diameterMm / 1000 || 0.008);
+      const stirrupLength =
+        2 * (ringBeamWidth + ringBeamDepth) - stirrupBendDeduction;
+
+      const ringBeamStirrupRebarWeight = getRebarWeight(
+        numberOfStirrups * stirrupLength,
+        stirrupBarSize,
+      );
+
+      const totalRingBeamRebarWeight =
+        ringBeamMainRebarWeight + ringBeamStirrupRebarWeight;
+      const ringBeamRebarCost =
+        totalRingBeamRebarWeight * (rebarPrices[ringBeamMainRebarSize] || 0);
+      professionalCost += ringBeamCost + ringBeamRebarCost;
+
+      totals.netRingBeamsCost = Math.ceil(ringBeamCost);
+      totals.grossRingBeamsCost = Math.ceil(
+        ringBeamCost * (1 + qsSettings.wastageMasonry / 100),
+      );
+      totals.netRingBeamRebar = totalRingBeamRebarWeight;
+      totals.grossRingBeamRebar = totalRingBeamRebarWeight;
+      totals.netRingBeamRebarCost = Math.ceil(ringBeamRebarCost);
+      totals.grossRingBeamRebarCost = Math.ceil(
+        ringBeamRebarCost * (1 + qsSettings.wastageMasonry / 100),
+      );
+      totals.netRingBeamConcrete = ringBeamConcrete;
+      totals.grossRingBeamConcrete =
+        ringBeamConcrete * (1 + qsSettings.wastageMasonry / 100);
     }
 
     // Wall reinforcement

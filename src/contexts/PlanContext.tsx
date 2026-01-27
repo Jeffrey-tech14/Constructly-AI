@@ -1,13 +1,21 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
+import { Category } from "@/hooks/useConcreteCalculator";
 import { Door, Window } from "@/hooks/useMasonryCalculatorNew";
 import {
   Dimensions,
   WallSection,
   WallProperties,
 } from "@/hooks/useMasonryCalculatorNew";
-import { RebarSize } from "@/hooks/useRebarCalculator";
+import {
+  ElementTypes,
+  FootingType,
+  RebarCalculationMode,
+  RebarSize,
+  ReinforcementType,
+  RetainingWallType,
+} from "@/hooks/useRebarCalculator";
 import React, { createContext, useContext, useState } from "react";
 
 export interface EquipmentSection {
@@ -121,6 +129,19 @@ export interface ExtractedPlan {
     mortarRatio: string;
   }>;
 
+  ringBeams?: Array<{
+    id: string;
+    name: string;
+    perimeter: string;
+    width: string;
+    depth: string;
+    concrete_mix: string;
+    mainBarSize?: string;
+    mainBarsCount?: string;
+    stirrupSize?: string;
+    stirrupSpacing?: string;
+  }>;
+
   equipment?: EquipmentSection;
 
   concreteStructures?: Array<{
@@ -169,16 +190,44 @@ export interface ExtractedPlan {
   }>;
 
   reinforcement?: Array<{
-    id: string;
-    element: string;
+    id?: string;
+    element: ElementTypes;
     name: string;
     length: string;
     width: string;
     depth: string;
-    mainBarSize: string;
-    mainBarSpacing: string;
-    distributionBarSize?: string;
+    columnHeight?: string;
+    mainBarSpacing?: string;
     distributionBarSpacing?: string;
+    mainBarsCount?: string;
+    distributionBarsCount?: string;
+    slabLayers?: string;
+    mainBarSize?: RebarSize;
+    distributionBarSize?: RebarSize;
+    stirrupSize?: RebarSize;
+    tieSize?: RebarSize;
+    stirrupSpacing?: string;
+    tieSpacing?: string;
+    category?: Category;
+    number?: string;
+    reinforcementType?: ReinforcementType;
+    rebarCalculationMode: RebarCalculationMode; //default is NORMAL_REBAR_MODE always
+    meshGrade?: string;
+    meshSheetWidth?: string;
+    meshSheetLength?: string;
+    meshLapLength?: string;
+    footingType?: FootingType;
+    longitudinalBars?: string;
+    transverseBars?: string;
+    topReinforcement?: string;
+    bottomReinforcement?: string;
+    retainingWallType?: RetainingWallType;
+    heelLength?: string;
+    toeLength?: string;
+    stemVerticalBarSize?: RebarSize;
+    stemHorizontalBarSize?: RebarSize;
+    stemVerticalSpacing?: string;
+    stemHorizontalSpacing?: string;
   }>;
 
   masonry?: Array<{

@@ -78,6 +78,9 @@ export default function QSSettings({
     curingWaterRateLM2PerDay: 5,
     curingDays: 3,
     mortarJointThicknessM: 0.01,
+    mortarRatio: "1:4",
+    plaster_ratio: "1:4",
+    includesRingBeams: false,
     includesLintels: true,
     includesReinforcement: false,
     includesDPC: true,
@@ -96,6 +99,9 @@ export default function QSSettings({
     concreteWaterCementRatio: 0.5,
     lintelRebarSize: "D12",
     verticalRebarSize: "D12",
+    ringBeamMainBarsCount: 8,
+    ringBeamStirrupSize: "D8" as RebarSize,
+    ringBeamStirrupSpacing: 200,
     bedJointRebarSize: "D8",
     // Include financial fixed values
     labour_fixed: quoteData.qsSettings?.labour_fixed || 0,
@@ -154,6 +160,10 @@ export default function QSSettings({
       curingWaterRateLM2PerDay: 5,
       curingDays: 3,
       mortarJointThicknessM: 0.01,
+      mortarRatio: "1:4",
+      plaster_ratio: "1:4",
+      includesRingBeams: false,
+
       includesLintels: true,
       includesReinforcement: false,
       includesDPC: true,
@@ -559,7 +569,7 @@ export default function QSSettings({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="concrete-mix-ratio">
                   Concrete Mix Ratio (C:S:B)
@@ -656,6 +666,235 @@ export default function QSSettings({
                 </Select>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Masonry Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Masonry Settings</CardTitle>
+          <CardDescription>
+            Configure mortar ratios and masonry details
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="mortar-ratio">Mortar Ratio (Cement:Sand)</Label>
+                <Select
+                  value={localSettings.mortarRatio || "1:4"}
+                  onValueChange={(value) => handleChange("mortarRatio", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1:3">1:3</SelectItem>
+                    <SelectItem value="1:4">1:4</SelectItem>
+                    <SelectItem value="1:5">1:5 </SelectItem>
+                    <SelectItem value="1:6">1:6</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="plaster-ratio">
+                  Plaster Ratio (Cement:Sand)
+                </Label>
+                <Select
+                  value={localSettings.plaster_ratio || "1:4"}
+                  onValueChange={(value) =>
+                    handleChange("plaster_ratio", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1:3">1:3</SelectItem>
+                    <SelectItem value="1:4">1:4</SelectItem>
+                    <SelectItem value="1:5">1:5 </SelectItem>
+                    <SelectItem value="1:6">1:6</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="mortar-joint-thickness">
+                  Mortar Joint Thickness (m)
+                </Label>
+                <Input
+                  id="mortar-joint-thickness"
+                  type="number"
+                  step="0.001"
+                  min="0.005"
+                  max="0.02"
+                  value={localSettings.mortarJointThicknessM}
+                  onChange={(e) =>
+                    handleNumericChange("mortarJointThicknessM", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Ring Beams Include Toggle */}
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="includes-ring-beams"
+                checked={localSettings.includesRingBeams || false}
+                onCheckedChange={(checked) =>
+                  handleChange("includesRingBeams", checked)
+                }
+              />
+              <Label
+                htmlFor="includes-ring-beams"
+                className="font-medium cursor-pointer"
+              >
+                Include Ring Beams
+              </Label>
+            </div>
+
+            {/* Ring Beam Reinforcement Settings */}
+            {localSettings.includesRingBeams && (
+              <div className="pt-4 border-t">
+                <h4 className="font-semibold text-sm mb-3">
+                  Ring Beam Reinforcement
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="ring-beam-main-bars">Main Bars Count</Label>
+                    <Input
+                      id="ring-beam-main-bars"
+                      type="number"
+                      min="4"
+                      step="1"
+                      value={localSettings.ringBeamMainBarsCount || 8}
+                      onChange={(e) =>
+                        handleNumericChange(
+                          "ringBeamMainBarsCount",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-rebar-size">Main Bar Size</Label>
+                    <Select
+                      value={localSettings.ringBeamRebarSize || "D12"}
+                      onValueChange={(value) =>
+                        handleChange("ringBeamRebarSize", value as RebarSize)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          "D6",
+                          "D8",
+                          "D10",
+                          "D12",
+                          "D14",
+                          "D16",
+                          "D18",
+                          "D20",
+                          "D22",
+                          "D25",
+                        ].map((size) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-stirrup-size">Stirrup Size</Label>
+                    <Select
+                      value={localSettings.ringBeamStirrupSize || "D8"}
+                      onValueChange={(value) =>
+                        handleChange("ringBeamStirrupSize", value as RebarSize)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["D6", "D8", "D10", "D12", "D14", "D16"].map(
+                          (size) => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-stirrup-spacing">
+                      Stirrup Spacing (mm)
+                    </Label>
+                    <Input
+                      id="ring-beam-stirrup-spacing"
+                      type="number"
+                      min="50"
+                      step="10"
+                      value={localSettings.ringBeamStirrupSpacing || 200}
+                      onChange={(e) =>
+                        handleNumericChange(
+                          "ringBeamStirrupSpacing",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+                {/* Development and Lap Length Factors */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="dev-length-factor">
+                      Development Length Factor (× bar diameter)
+                    </Label>
+                    <Input
+                      id="dev-length-factor"
+                      type="number"
+                      min="20"
+                      step="1"
+                      value={localSettings.developmentLengthFactor ?? 40}
+                      onChange={(e) =>
+                        handleNumericChange(
+                          "developmentLengthFactor",
+                          e.target.value,
+                        )
+                      }
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Default: 40 (min: 20)
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="lap-length-factor">
+                      Lap Length Factor (× bar diameter)
+                    </Label>
+                    <Input
+                      id="lap-length-factor"
+                      type="number"
+                      min="30"
+                      step="1"
+                      value={localSettings.lapLengthFactor ?? 50}
+                      onChange={(e) =>
+                        handleNumericChange("lapLengthFactor", e.target.value)
+                      }
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Default: 50 (min: 30)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

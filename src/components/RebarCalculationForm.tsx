@@ -149,6 +149,16 @@ const makeDefaultRow = (): RebarRow => ({
   steelIntensityKgPerM3: "80",
 });
 
+// Create a ground floor slab row with BRC A98 mesh as default
+const makeGroundFloorRow = (name: string = "Ground Floor Slab"): RebarRow => ({
+  ...makeDefaultRow(),
+  name,
+  element: "slab",
+  category: "substructure",
+  reinforcementType: "mesh",
+  meshGrade: "A98", // Default BRC mesh for ground floor
+});
+
 const makeDefaultBBSRow = (): BBSRow => ({
   id: Math.random().toString(36).substr(2, 9),
   bar_type: "D12",
@@ -331,7 +341,19 @@ export default function RebarCalculatorForm({
 
   useEffect(() => {
     if (Array.isArray(quote?.rebar_rows)) {
-      setRowsState(quote.rebar_rows);
+      // Set BRC A98 for ground floor slabs by default
+      const processedRows = quote.rebar_rows.map((row) => {
+        if (
+          row.name?.toLowerCase().includes("ground floor") &&
+          row.element === "slab" &&
+          row.reinforcementType === "mesh" &&
+          !row.meshGrade
+        ) {
+          return { ...row, meshGrade: "A98" };
+        }
+        return row;
+      });
+      setRowsState(processedRows);
     } else {
       setRowsState([]);
     }
@@ -488,7 +510,6 @@ export default function RebarCalculatorForm({
       "strip-footing": "strip-footing",
       tank: "tank",
       "retaining-wall": "retaining-wall",
-      "ring-beam": "ring-beam",
     };
     return mapping[rebarElement] || rebarElement;
   };
@@ -566,7 +587,7 @@ export default function RebarCalculatorForm({
             concreteRow.width,
             concreteRow.height,
           );
-        } else if (element === "beam" || element === "ring-beam") {
+        } else if (element === "beam") {
           // For beams: volume = length × width × height
           volume = calculateConcreteVolume(
             element,
@@ -592,6 +613,19 @@ export default function RebarCalculatorForm({
     },
     [quote?.concrete_rows],
   );
+
+  // Auto-fill concrete volume whenever a row is in NORMAL_REBAR_MODE
+  useEffect(() => {
+    rowsState.forEach((row) => {
+      if (row.rebarCalculationMode === "NORMAL_REBAR_MODE") {
+        autoFillConcreteVolume(row.id, row.element);
+      }
+    });
+  }, [
+    rowsState.length,
+    rowsState.map((r) => r.element).join(","),
+    rowsState.map((r) => r.rebarCalculationMode).join(","),
+  ]);
 
   const { results, totals } = useRebarCalculator(
     rowsState,
@@ -791,6 +825,21 @@ export default function RebarCalculatorForm({
       }),
     );
   }, [rowsState]);
+
+  // Auto-switch calculation mode to detailed bars when mesh is selected
+  useEffect(() => {
+    setRowsState((prev) =>
+      prev.map((row) => {
+        if (
+          row.reinforcementType === "mesh" &&
+          row.rebarCalculationMode !== "DETAILED_REBAR_MODE"
+        ) {
+          return { ...row, rebarCalculationMode: "DETAILED_REBAR_MODE" };
+        }
+        return row;
+      }),
+    );
+  }, [rowsState.map((r) => r.reinforcementType).join(",")]);
 
   return (
     <div className="space-y-6">
@@ -1242,7 +1291,6 @@ export default function RebarCalculatorForm({
                         <SelectItem value="strip-footing">
                           Strip Footing
                         </SelectItem>
-                        <SelectItem value="ring-beam">Ring Beam</SelectItem>
                         <SelectItem value="tank">Tank</SelectItem>
                         <SelectItem value="retaining-wall">
                           Retaining Wall
@@ -1340,107 +1388,111 @@ export default function RebarCalculatorForm({
                   </div>
                 </div>
 
-                {row.reinforcementType === "individual_bars" && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Main Bar Size
-                      </Label>
-                      <Select
-                        value={row.mainBarSize}
-                        onValueChange={(v) =>
-                          updateRow(row.id, "mainBarSize", v as RebarSize)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {sizeOptions.map((size) => (
-                            <SelectItem key={size} value={size}>
-                              {size} (Ø{size.substring(1)}mm)
+                {row.reinforcementType === "individual_bars" &&
+                  row.rebarCalculationMode === "DETAILED_REBAR_MODE" && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Main Bar Size
+                        </Label>
+                        <Select
+                          value={row.mainBarSize}
+                          onValueChange={(v) =>
+                            updateRow(row.id, "mainBarSize", v as RebarSize)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sizeOptions.map((size) => (
+                              <SelectItem key={size} value={size}>
+                                {size} (Ø{size.substring(1)}mm)
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Dimension Mode
+                        </Label>
+                        <Select
+                          value={row.areaSelectionMode || "LENGTH_WIDTH"}
+                          onValueChange={(v) =>
+                            updateRow(
+                              row.id,
+                              "areaSelectionMode",
+                              v as "LENGTH_WIDTH" | "DIRECT_AREA",
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="LENGTH_WIDTH">
+                              Length × Width
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                            <SelectItem value="DIRECT_AREA">
+                              Direct Area
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">
-                        Dimension Mode
-                      </Label>
-                      <Select
-                        value={row.areaSelectionMode || "LENGTH_WIDTH"}
-                        onValueChange={(v) =>
-                          updateRow(
-                            row.id,
-                            "areaSelectionMode",
-                            v as "LENGTH_WIDTH" | "DIRECT_AREA",
-                          )
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="LENGTH_WIDTH">
-                            Length × Width
-                          </SelectItem>
-                          <SelectItem value="DIRECT_AREA">
-                            Direct Area
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      {row.areaSelectionMode === "LENGTH_WIDTH" && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                              {row.element === "column"
+                                ? "Height (m)"
+                                : row.element === "beam" ||
+                                    row.element === "strip-footing"
+                                  ? "Length (m)"
+                                  : "Length (m)"}
+                            </Label>
+                            <Input
+                              type="number"
+                              min="0.1"
+                              step="0.1"
+                              value={row.length}
+                              onChange={(e) =>
+                                updateRow(row.id, "length", e.target.value)
+                              }
+                              placeholder="e.g., 5.0"
+                            />
+                          </div>
+                        </>
+                      )}
 
-                    {row.areaSelectionMode === "LENGTH_WIDTH" && (
-                      <>
+                      {row.areaSelectionMode === "DIRECT_AREA" && (
                         <div className="space-y-2">
                           <Label className="text-sm font-medium">
-                            {row.element === "column"
-                              ? "Height (m)"
-                              : row.element === "beam" ||
-                                  row.element === "strip-footing"
-                                ? "Length (m)"
-                                : "Length (m)"}
+                            Area (m²)
                           </Label>
                           <Input
                             type="number"
                             min="0.1"
                             step="0.1"
-                            value={row.length}
+                            value={row.area}
                             onChange={(e) =>
-                              updateRow(row.id, "length", e.target.value)
+                              updateRow(row.id, "area", e.target.value)
                             }
                             placeholder="e.g., 5.0"
                           />
+                          <p className="text-xs text-blue-600 dark:text-blue-300">
+                            Direct area input
+                          </p>
                         </div>
-                      </>
-                    )}
-
-                    {row.areaSelectionMode === "DIRECT_AREA" && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">Area (m²)</Label>
-                        <Input
-                          type="number"
-                          min="0.1"
-                          step="0.1"
-                          value={row.area}
-                          onChange={(e) =>
-                            updateRow(row.id, "area", e.target.value)
-                          }
-                          placeholder="e.g., 5.0"
-                        />
-                        <p className="text-xs text-blue-600 dark:text-blue-300">
-                          Direct area input
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
 
                 {row.reinforcementType === "individual_bars" &&
-                  row.areaSelectionMode === "LENGTH_WIDTH" && (
+                  row.areaSelectionMode === "LENGTH_WIDTH" &&
+                  row.rebarCalculationMode !== "NORMAL_REBAR_MODE" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">
@@ -1504,7 +1556,10 @@ export default function RebarCalculatorForm({
                         min={INTENSITY_BOUNDS.min}
                         max={INTENSITY_BOUNDS.max}
                         step="5"
-                        value={row.steelIntensityKgPerM3 || ""}
+                        value={
+                          row.steelIntensityKgPerM3 ||
+                          DEFAULT_STEEL_INTENSITIES[row.element]
+                        }
                         onChange={(e) =>
                           updateRow(
                             row.id,
@@ -1538,9 +1593,6 @@ export default function RebarCalculatorForm({
                           <SelectItem value="special">Special Grade</SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-amber-600 dark:text-amber-300">
-                        For pricing only
-                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -2661,114 +2713,6 @@ export default function RebarCalculatorForm({
                                 }
                                 placeholder="3.0"
                                 className="border-purple-200"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {row.element === "ring-beam" && (
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-lg">
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                                Main Bars Count
-                              </Label>
-                              <Input
-                                type="number"
-                                min="4"
-                                value={row.mainBarsCount}
-                                onChange={(e) =>
-                                  updateRow(
-                                    row.id,
-                                    "mainBarsCount",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="8"
-                                className="border-cyan-200"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                                Main Bars Size
-                              </Label>
-                              <Select
-                                value={row.mainBarSize}
-                                onValueChange={(v) =>
-                                  updateRow(
-                                    row.id,
-                                    "mainBarSize",
-                                    v as RebarSize,
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="border-cyan-200">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {[
-                                    "D6",
-                                    "D8",
-                                    "D10",
-                                    "D12",
-                                    "D14",
-                                    "D16",
-                                    "D18",
-                                    "D20",
-                                    "D22",
-                                    "D25",
-                                  ].map((size) => (
-                                    <SelectItem key={size} value={size}>
-                                      {size}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                                Stirrup Size
-                              </Label>
-                              <Select
-                                value={row.stirrupSize || "D8"}
-                                onValueChange={(v) =>
-                                  updateRow(
-                                    row.id,
-                                    "stirrupSize",
-                                    v as RebarSize,
-                                  )
-                                }
-                              >
-                                <SelectTrigger className="border-cyan-200">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {["D6", "D8", "D10", "D12", "D14", "D16"].map(
-                                    (size) => (
-                                      <SelectItem key={size} value={size}>
-                                        {size}
-                                      </SelectItem>
-                                    ),
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium text-cyan-700 dark:text-cyan-50">
-                                Stirrup Spacing (mm)
-                              </Label>
-                              <Input
-                                type="number"
-                                min="50"
-                                value={row.stirrupSpacing}
-                                onChange={(e) =>
-                                  updateRow(
-                                    row.id,
-                                    "stirrupSpacing",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="200"
-                                className="border-cyan-200"
                               />
                             </div>
                           </div>

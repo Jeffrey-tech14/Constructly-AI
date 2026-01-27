@@ -1269,63 +1269,23 @@ export default function ConcreteCalculatorForm({
     const shouldShowPolythene = row.element === "slab";
 
     return (
-      <div className="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-md">
-        <h4 className="font-semibold text-green-800 dark:text-green-200">
-          {row.element === "slab"
-            ? "Slab Waterproofing & Polythene"
-            : "Waterproofing & DPM Details"}
-        </h4>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          {shouldShowDPC && (
-            <div className="flex items-center space-x-2">
-              <Label className="text-sm font-medium flex items-center space-x-2">
-                <Checkbox
-                  checked={row.waterproofing?.includesDPC || false}
-                  onCheckedChange={(checked) =>
-                    updateRow(row.id, "waterproofing", {
-                      ...row.waterproofing,
-                      includesDPC: checked === true,
-                    })
-                  }
-                />
-                <span className="ml-2">Include DPM</span>
-              </Label>
-            </div>
-          )}
-
-          {shouldShowPolythene && (
-            <div className="flex items-center space-x-2">
-              <Label className="text-sm font-medium flex items-center space-x-2">
-                <Checkbox
-                  checked={row.waterproofing?.includesPolythene || false}
-                  onCheckedChange={(checked) =>
-                    updateRow(row.id, "waterproofing", {
-                      ...row.waterproofing,
-                      includesPolythene: checked === true,
-                    })
-                  }
-                />
-                <span className="ml-2">Include Polythene Sheet</span>
-              </Label>
-            </div>
-          )}
-
+      <div className="space-y-7 p-3">
+        {shouldShowDPC && (
           <div className="flex items-center space-x-2">
             <Label className="text-sm font-medium flex items-center space-x-2">
               <Checkbox
-                checked={row.waterproofing?.includesWaterproofing || false}
+                checked={row.waterproofing?.includesDPC || false}
                 onCheckedChange={(checked) =>
                   updateRow(row.id, "waterproofing", {
                     ...row.waterproofing,
-                    includesWaterproofing: checked === true,
+                    includesDPC: checked === true,
                   })
                 }
               />
-              <span className="ml-2">Include Waterproofing</span>
+              <span className="ml-2">Include DPM</span>
             </Label>
           </div>
-        </div>
+        )}
 
         {row.waterproofing?.includesDPC && shouldShowDPC && (
           <div className="grid sm:grid-cols-3 gap-2">
@@ -1356,6 +1316,22 @@ export default function ConcreteCalculatorForm({
           </div>
         )}
 
+        {shouldShowPolythene && (
+          <div className="flex items-center space-x-2">
+            <Label className="text-sm font-medium flex items-center space-x-2">
+              <Checkbox
+                checked={row.waterproofing?.includesPolythene || false}
+                onCheckedChange={(checked) =>
+                  updateRow(row.id, "waterproofing", {
+                    ...row.waterproofing,
+                    includesPolythene: checked === true,
+                  })
+                }
+              />
+              <span className="ml-2">Include Polythene Sheet</span>
+            </Label>
+          </div>
+        )}
         {row.waterproofing?.includesPolythene && shouldShowPolythene && (
           <div className="space-y-2">
             <Label className="text-sm font-medium">Polythene Gauge</Label>
@@ -1380,6 +1356,21 @@ export default function ConcreteCalculatorForm({
             </Select>
           </div>
         )}
+
+        <div className="flex items-center space-x-2">
+          <Label className="text-sm font-medium flex items-center space-x-2">
+            <Checkbox
+              checked={row.waterproofing?.includesWaterproofing || false}
+              onCheckedChange={(checked) =>
+                updateRow(row.id, "waterproofing", {
+                  ...row.waterproofing,
+                  includesWaterproofing: checked === true,
+                })
+              }
+            />
+            <span className="ml-2">Include Waterproofing</span>
+          </Label>
+        </div>
 
         {row.waterproofing?.includesWaterproofing && (
           <div className="space-y-2">
@@ -1523,7 +1514,7 @@ export default function ConcreteCalculatorForm({
         );
         rowItems.push({
           rowId: r.id,
-          name: `Maram Blinding (${r.name})`,
+          name: `Murram Blinding (${r.name})`,
           quantity: r.maramBlindingVolume || 0,
           unit_price: maramMaterial?.price || 0,
           total_price: Math.round(r.maramBlindingCost),
@@ -1843,7 +1834,6 @@ export default function ConcreteCalculatorForm({
                   <SelectItem value="slab">Slab</SelectItem>
                   <SelectItem value="beam">Beam</SelectItem>
                   <SelectItem value="column">Column</SelectItem>
-                  <SelectItem value="ring-beam">Ring Beam</SelectItem>
                   <SelectItem value="staircase">Staircase</SelectItem>
                   <SelectItem value="ramp">Ramp</SelectItem>
                   <SelectItem value="paving">Paving</SelectItem>
@@ -2043,36 +2033,11 @@ export default function ConcreteCalculatorForm({
 
             {renderWaterproofing(row)}
 
-            {(row.element === "raft-foundation" ||
-              row.element === "strip-footing") && (
+            {/* Blinding, Maram & Backfill - Only for Slabs */}
+            {row.element === "slab" && (
               <div className="space-y-4">
-                {/* <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`stepped-${row.id}`}
-                      checked={row.isSteppedFoundation || false}
-                      onCheckedChange={(checked) =>
-                        updateRow(
-                          row.id,
-                          "isSteppedFoundation",
-                          checked === true,
-                        )
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label
-                      htmlFor={`stepped-${row.id}`}
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Stepped Foundation
-                    </Label>
-                  </div>
-                </div> */}
-
-                {renderSteppedFoundation(row)}
-
                 {/* Blinding Section */}
-                <div className="space-y-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                <div className="space-y-2 p-3 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`blinding-${row.id}`}
@@ -2122,8 +2087,8 @@ export default function ConcreteCalculatorForm({
                   )}
                 </div>
 
-                {/* Maram Blinding */}
-                <div className="space-y-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md">
+                {/* Murram Blinding */}
+                <div className="space-y-2 p-3 rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`maram-${row.id}`}
@@ -2137,7 +2102,7 @@ export default function ConcreteCalculatorForm({
                       htmlFor={`maram-${row.id}`}
                       className="text-sm font-medium cursor-pointer"
                     >
-                      Maram Blinding
+                      Murram Blinding
                     </Label>
                   </div>
 
@@ -2162,8 +2127,72 @@ export default function ConcreteCalculatorForm({
                   )}
                 </div>
 
+                {/* Back Fill */}
+                <div className="space-y-2 p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`backfill-${row.id}`}
+                      checked={row.hasBackFill || false}
+                      onCheckedChange={(checked) =>
+                        updateRow(row.id, "hasBackFill", checked === true)
+                      }
+                      className="w-4 h-4"
+                    />
+                    <Label
+                      htmlFor={`backfill-${row.id}`}
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Hardcore Backfill
+                    </Label>
+                  </div>
+
+                  {row.hasBackFill && (
+                    <Input
+                      type="number"
+                      value={row.backFillDepth || ""}
+                      onChange={(e) =>
+                        updateRow(row.id, "backFillDepth", e.target.value)
+                      }
+                      placeholder="Back fill depth (m)"
+                      step="0.05"
+                      min="0.05"
+                      max="1"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(row.element === "raft-foundation" ||
+              row.element === "strip-footing") && (
+              <div className="space-y-4">
+                {/* <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`stepped-${row.id}`}
+                      checked={row.isSteppedFoundation || false}
+                      onCheckedChange={(checked) =>
+                        updateRow(
+                          row.id,
+                          "isSteppedFoundation",
+                          checked === true,
+                        )
+                      }
+                      className="w-4 h-4"
+                    />
+                    <Label
+                      htmlFor={`stepped-${row.id}`}
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Stepped Foundation
+                    </Label>
+                  </div>
+                </div> */}
+
+                {renderSteppedFoundation(row)}
+
                 {/* Anti-termite Treatment */}
-                <div className="flex items-center space-x-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-md">
+                <div className="flex items-center space-x-2 p-2 rounded-md">
                   <Checkbox
                     id={`termite-${row.id}`}
                     checked={row.hasAntiTermiteTreatment || false}
@@ -2184,73 +2213,38 @@ export default function ConcreteCalculatorForm({
                   </Label>
                 </div>
 
-                {/* Return Fill & Back Fill */}
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <div className="space-y-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`returnfill-${row.id}`}
-                        checked={row.hasReturnFill || false}
-                        onCheckedChange={(checked) =>
-                          updateRow(row.id, "hasReturnFill", checked === true)
-                        }
-                        className="w-4 h-4"
-                      />
-                      <Label
-                        htmlFor={`returnfill-${row.id}`}
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        Return Fill
-                      </Label>
-                    </div>
-
-                    {row.hasReturnFill && (
-                      <Input
-                        type="number"
-                        value={row.returnFillDepth || ""}
-                        onChange={(e) =>
-                          updateRow(row.id, "returnFillDepth", e.target.value)
-                        }
-                        placeholder="Return fill depth (m)"
-                        step="0.05"
-                        min="0.05"
-                        max="1"
-                      />
-                    )}
+                {/* Return Fill */}
+                <div className="space-y-2 p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`returnfill-${row.id}`}
+                      checked={row.hasReturnFill || false}
+                      onCheckedChange={(checked) =>
+                        updateRow(row.id, "hasReturnFill", checked === true)
+                      }
+                      className="w-4 h-4"
+                    />
+                    <Label
+                      htmlFor={`returnfill-${row.id}`}
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Return Fill
+                    </Label>
                   </div>
 
-                  <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`backfill-${row.id}`}
-                        checked={row.hasBackFill || false}
-                        onCheckedChange={(checked) =>
-                          updateRow(row.id, "hasBackFill", checked === true)
-                        }
-                        className="w-4 h-4"
-                      />
-                      <Label
-                        htmlFor={`backfill-${row.id}`}
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        Back Fill
-                      </Label>
-                    </div>
-
-                    {row.hasBackFill && (
-                      <Input
-                        type="number"
-                        value={row.backFillDepth || ""}
-                        onChange={(e) =>
-                          updateRow(row.id, "backFillDepth", e.target.value)
-                        }
-                        placeholder="Back fill depth (m)"
-                        step="0.05"
-                        min="0.05"
-                        max="1"
-                      />
-                    )}
-                  </div>
+                  {row.hasReturnFill && (
+                    <Input
+                      type="number"
+                      value={row.returnFillDepth || ""}
+                      onChange={(e) =>
+                        updateRow(row.id, "returnFillDepth", e.target.value)
+                      }
+                      placeholder="Return fill depth (m)"
+                      step="0.05"
+                      min="0.05"
+                      max="1"
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -2493,7 +2487,7 @@ export default function ConcreteCalculatorForm({
 
         {totals.maramBlindingCost > 0 && (
           <p>
-            <b>Total Maram Blinding:</b>{" "}
+            <b>Total Murram Blinding:</b>{" "}
             {totals.maramBlindingVolume?.toFixed(3)} m³ —{" "}
             <b>Ksh {Math.round(totals.maramBlindingCost).toLocaleString()}</b>
           </p>
@@ -2515,8 +2509,8 @@ export default function ConcreteCalculatorForm({
 
         {totals.backFillCost > 0 && (
           <p>
-            <b>Total Back Fill:</b> {totals.backFillVolume?.toFixed(3)} m³ —{" "}
-            <b>Ksh {Math.round(totals.backFillCost).toLocaleString()}</b>
+            <b>Total Hardcore Backfill:</b> {totals.backFillVolume?.toFixed(3)}{" "}
+            m³ — <b>Ksh {Math.round(totals.backFillCost).toLocaleString()}</b>
           </p>
         )}
 

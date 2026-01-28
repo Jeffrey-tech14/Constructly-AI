@@ -177,6 +177,9 @@ export interface ConcreteRow {
   // Area selection fields - choose between direct area input or length x width
   areaSelectionMode?: "LENGTH_WIDTH" | "DIRECT_AREA"; // "LENGTH_WIDTH" or "DIRECT_AREA"
   area?: string; // Direct area input (m²) when using DIRECT_AREA mode
+
+  // Wall type for strip footings (external or internal)
+  wallType?: "external" | "internal"; // External or internal wall - for strip footings
 }
 
 export interface ConcreteResult {
@@ -636,14 +639,41 @@ export function calculateConcrete(
     verandahArea,
     areaSelectionMode,
     area,
+    wallType,
   } = row;
 
   const len = parseFloat(length) || 0;
-  const wid = parseFloat(width) || 0;
+  let wid = parseFloat(width) || 0;
   const hei = parseFloat(height) || 0;
   const num = parseInt(number) || 1;
   const bedDepthNum = parseFloat(bedDepth) || 0;
   const aggregateDepthNum = parseFloat(aggregateDepth) || 0;
+
+  // For strip footings, determine wall thickness from wall type using block type mapping
+  if (element === "strip-footing" && wallType) {
+    // Map block type to dimensions
+    const blockDimensionsMap: { [key: string]: string } = {
+      "Large Block": "0.2x0.2x0.2",
+      "Standard Block": "0.15x0.2x0.15",
+      "Small Block": "0.1x0.2x0.1",
+    };
+
+    const walls = quote?.wallSections || [];
+    const relevantWall = walls.find((w: any) => w.type === wallType);
+    if (relevantWall) {
+      // Get block dimensions from blockType mapping
+      const blockType = relevantWall.blockType || "Standard Block";
+      const blockDimensions = blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+
+      // Extract thickness from blockDimensions "LxHxT" format
+      const dims =
+        blockDimensions.split("x").map((d) => parseFloat(d.trim())) || [];
+      if (dims.length >= 3 && dims[2] > 0) {
+        // Footing width is typically 3 times the wall thickness
+        wid = dims[2] * 3;
+      }
+    }
+  }
 
   // Handle area selection mode for non-slab elements
   let effectiveLen = len;
@@ -1036,12 +1066,16 @@ export function calculateConcrete(
 
     if (waterproofing.includesWaterproofing) {
       waterproofingArea = surfaceAreaM2;
-      const waterproofingMaterial = materials.find((m) =>
-        m.name?.toLowerCase().includes("waterproof"),
+      const waterproofingMaterial = materials?.find((m) =>
+        m.name?.toLowerCase()?.includes("waterproof"),
       )?.type;
-      waterproofingCost =
-        waterproofingArea *
-        (waterproofingMaterial[waterproofing.waterproofingType] || 0);
+      if (waterproofingMaterial) {
+        waterproofingCost =
+          waterproofingArea *
+          (waterproofingMaterial[waterproofing.waterproofingType] || 0);
+      } else {
+        waterproofingCost = 0;
+      }
     }
   }
 

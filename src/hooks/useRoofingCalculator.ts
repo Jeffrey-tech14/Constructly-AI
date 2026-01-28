@@ -52,16 +52,30 @@ export type FlashingType = "Galvanized Steel" | "Aluminum" | "Copper" | "PVC";
 export type FasciaType = "PVC" | "Painted Wood" | "Aluminum" | "Composite";
 export type SoffitType = "PVC" | "Aluminum" | "Composite";
 
+export type TimberComponentType =
+  | "raft"
+  | "wall-plate"
+  | "fascia-board"
+  | "purlins"
+  | "timber-battens"
+  | "kingpost-tiebeam";
+
+// Unit per m² rates for each timber component (kg/m²)
+export interface TimberUnitRates {
+  raft: number; // kg/m²
+  "wall-plate": number; // kg/m²
+  "fascia-board": number; // kg/m²
+  purlins: number; // kg/m²
+  "timber-battens": number; // kg/m²
+  "kingpost-tiebeam": number; // kg/m²
+}
+
 export interface RoofTimber {
   id: string;
-  type: string;
-  size: TimberSize;
-  spacing: number; // spacing in mm
+  type: TimberComponentType;
+  unitRate: number; // kg/m² for this component
   grade: string;
   treatment: string;
-  quantity: number;
-  length: number; // meters
-  unit: "m" | "pcs";
 }
 
 export interface RoofCovering {
@@ -95,20 +109,25 @@ export interface RoofStructure {
   name: string;
   type: RoofType;
   material: RoofMaterial;
-  area: number; // m²
+  area: number; // m² - roof area for unit rate calculations
   pitch: number; // degrees
-  length: number; // meters
-  width: number; // meters
+  pitchRatio?: string; // e.g., "6:12" format (auto-calculated)
+  ridgeHeight?: number; // meters from eaves to ridge (auto-calculated)
+  length: number; // meters (building length)
+  width: number; // meters (building width/span)
   eavesOverhang: number; // meters
-  ridgeLength?: number; // meters
+  orientation?: "north" | "south" | "east" | "west"; // roof aspect/direction
+  ridgeLength?: number; // meters (auto-calculated based on type)
+  hipLength?: number; // meters for hip roofs (auto-calculated)
+  valleyLength?: number; // meters for valley roofs (auto-calculated)
   covering: RoofCovering;
   grade?: string;
   treatment?: string;
-  timbers: RoofTimber[];
+  timbers: RoofTimber[]; // Now using unit-per-m² approach
   accessories?: RoofAccessories;
   // Lump-sum options
-  isLumpSum?: boolean; // Whether this roof uses lump-sum pricing
-  lumpSumAmount?: number; // Fixed lump-sum price for the entire roof
+  isLumpSum?: boolean;
+  lumpSumAmount?: number;
 }
 
 export interface RoofingCalculation {
@@ -117,8 +136,15 @@ export interface RoofingCalculation {
   type: RoofType;
   material: RoofMaterial;
   area: number;
-  totalTimberVolume: number;
+  totalTimberWeightKg: number; // Total timber weight in kg (based on unit rates × area)
   coveringArea: number;
+  timberBreakdown: Array<{
+    type: TimberComponentType;
+    unitRate: number; // kg/m²
+    totalWeight: number; // kg (unit rate × area)
+    grade: string;
+    treatment: string;
+  }>;
   materialCost: number;
   materialCostWithWastage: number;
   totalCost: number;
@@ -145,9 +171,9 @@ export interface RoofingCalculation {
     percentage: number;
     adjustedQuantities: {
       timbers: Array<{
-        id: string;
-        originalQuantity: number;
-        adjustedQuantity: number;
+        type: TimberComponentType;
+        originalWeight: number;
+        adjustedWeight: number;
         wastageAmount: number;
       }>;
       accessories: {
@@ -197,7 +223,7 @@ export default function useRoofingCalculator(
   roofStructures: RoofStructure[],
   materialPrices: any,
   quote: any,
-  setQuoteData
+  setQuoteData,
 ) {
   const [calculations, setCalculations] = useState<RoofingCalculation[]>([]);
   const [totals, setTotals] = useState<RoofingTotals>({
@@ -251,7 +277,133 @@ export default function useRoofingCalculator(
       const adjustedQuantity = quantity * (1 + wastagePercentage);
       return Math.ceil(adjustedQuantity);
     },
-    []
+    [],
+  );
+
+  // Calculate ridge height from pitch and span
+  const calculateRidgeHeight = useCallback(
+    (pitchDegrees: number, span: number): number => {
+      const pitchRadians = (pitchDegrees * Math.PI) / 180;
+      return (span / 2) * Math.tan(pitchRadians);
+    },
+    [],
+  );
+
+  // Calculate pitch ratio from pitch angle (e.g., "6:12")
+  const calculatePitchRatio = useCallback((pitchDegrees: number): string => {
+    // Standard pitch ratio is rise:run where run is always 12 inches
+    // rise = 12 × tan(pitch angle in radians)
+    const pitchRadians = (pitchDegrees * Math.PI) / 180;
+    const rise = Math.round(12 * Math.tan(pitchRadians) * 100) / 100;
+    return `${rise}:12`;
+  }, []);
+
+  // Calculate ridge length based on roof type
+  const calculateRidgeLength = useCallback(
+    (
+      roofType: RoofType,
+      length: number,
+      width: number,
+      pitch: number,
+    ): number => {
+      const pitchRadians = (pitch * Math.PI) / 180;
+      const risePerUnit = Math.tan(pitchRadians);
+
+      switch (roofType) {
+        case "gable":
+        case "butterfly":
+          // Ridge runs full length of building
+          return length;
+
+        case "hip":
+        case "mansard":
+          // Ridge is shortened by the hip distance
+          // Hip distance = (width/2) / cos(pitch)
+          const hipOffset = width / 2 / Math.cos(pitchRadians);
+          // Ridge length is approximately length - 2 * hip offset factor
+          return Math.max(0, length - width);
+
+        case "skillion":
+          // Single slope - minimal ridge
+          return 0;
+
+        case "pitched":
+          // Default to gable-like behavior
+          return length;
+
+        case "flat":
+          // No ridge
+          return 0;
+
+        default:
+          return length;
+      }
+    },
+    [],
+  );
+
+  // Calculate hip length for hip roofs
+  const calculateHipLength = useCallback(
+    (roofType: RoofType, width: number, pitch: number): number => {
+      if (roofType !== "hip" && roofType !== "mansard") return 0;
+
+      const pitchRadians = (pitch * Math.PI) / 180;
+      const rise = (width / 2) * Math.tan(pitchRadians);
+
+      // Hip length = √((width/2)² + rise²)
+      return Math.sqrt(Math.pow(width / 2, 2) + Math.pow(rise, 2));
+    },
+    [],
+  );
+
+  // Calculate valley length for valley roofs
+  const calculateValleyLength = useCallback(
+    (roofType: RoofType, width: number, pitch: number): number => {
+      if (roofType !== "butterfly") return 0;
+
+      // Valley length is similar to hip length calculation
+      const pitchRadians = (pitch * Math.PI) / 180;
+      const rise = (width / 2) * Math.tan(pitchRadians);
+
+      return Math.sqrt(Math.pow(width / 2, 2) + Math.pow(rise, 2));
+    },
+    [],
+  );
+
+  // Enrich roof structure with calculated values
+  const enrichRoofStructure = useCallback(
+    (roof: RoofStructure): RoofStructure => {
+      const ridgeHeight = calculateRidgeHeight(roof.pitch, roof.width);
+      const pitchRatio = calculatePitchRatio(roof.pitch);
+      const ridgeLength = calculateRidgeLength(
+        roof.type,
+        roof.length,
+        roof.width,
+        roof.pitch,
+      );
+      const hipLength = calculateHipLength(roof.type, roof.width, roof.pitch);
+      const valleyLength = calculateValleyLength(
+        roof.type,
+        roof.width,
+        roof.pitch,
+      );
+
+      return {
+        ...roof,
+        ridgeHeight,
+        pitchRatio,
+        ridgeLength,
+        hipLength,
+        valleyLength,
+      };
+    },
+    [
+      calculateRidgeHeight,
+      calculatePitchRatio,
+      calculateRidgeLength,
+      calculateHipLength,
+      calculateValleyLength,
+    ],
   );
 
   // Calculate timber cross-sectional area in m²
@@ -277,7 +429,7 @@ export default function useRoofingCalculator(
         // Helper function to find material by name
         const findMaterialByName = (name: string) => {
           return materialPrices.find((item) =>
-            item.name?.toLowerCase().includes(name.toLowerCase())
+            item.name?.toLowerCase().includes(name.toLowerCase()),
           );
         };
 
@@ -290,7 +442,7 @@ export default function useRoofingCalculator(
             const timberType = timberMaterial.type.find(
               (t: any) =>
                 t.size === attributes?.size ||
-                t.name?.toLowerCase().includes(attributes?.size?.toLowerCase())
+                t.name?.toLowerCase().includes(attributes?.size?.toLowerCase()),
             );
             return timberType?.price || timberMaterial.price || 0;
 
@@ -302,7 +454,7 @@ export default function useRoofingCalculator(
             const coveringType = roofMaterial.type.find(
               (c: any) =>
                 c.type === type ||
-                c.name?.toLowerCase().includes(type?.toLowerCase())
+                c.name?.toLowerCase().includes(type?.toLowerCase()),
             );
             return coveringType?.price || roofMaterial.price || 0;
 
@@ -317,7 +469,7 @@ export default function useRoofingCalculator(
             const underlaymentType = underlaymentMaterial.type.find(
               (u: any) =>
                 u.type === type ||
-                u.name?.toLowerCase().includes(type?.toLowerCase())
+                u.name?.toLowerCase().includes(type?.toLowerCase()),
             );
             return underlaymentType?.price || underlaymentMaterial.price || 0;
 
@@ -332,7 +484,7 @@ export default function useRoofingCalculator(
             const insulationType = insulationMaterial.type.find(
               (i: any) =>
                 i.type === type ||
-                i.name?.toLowerCase().includes(type?.toLowerCase())
+                i.name?.toLowerCase().includes(type?.toLowerCase()),
             );
             return insulationType?.price || insulationMaterial.price || 0;
 
@@ -353,49 +505,56 @@ export default function useRoofingCalculator(
               case "gutters":
                 const gutters = accessoryTypes.gutters || [];
                 const gutter = gutters.find(
-                  (g: any) => g.type === attributes || g.material === attributes
+                  (g: any) =>
+                    g.type === attributes || g.material === attributes,
                 );
                 return gutter?.price || gutters[0]?.price || 0;
 
               case "downpipes":
                 const downpipes = accessoryTypes.downpipes || [];
                 const downpipe = downpipes.find(
-                  (d: any) => d.type === attributes || d.material === attributes
+                  (d: any) =>
+                    d.type === attributes || d.material === attributes,
                 );
                 return downpipe?.price || downpipes[0]?.price || 0;
 
               case "flashings":
                 const flashings = accessoryTypes.flashings || [];
                 const flashing = flashings.find(
-                  (f: any) => f.material === attributes || f.type === attributes
+                  (f: any) =>
+                    f.material === attributes || f.type === attributes,
                 );
                 return flashing?.price || flashings[0]?.price || 0;
 
               case "fascia":
                 const fascia = accessoryTypes.fascia || [];
                 const fasciaItem = fascia.find(
-                  (f: any) => f.material === attributes || f.type === attributes
+                  (f: any) =>
+                    f.material === attributes || f.type === attributes,
                 );
                 return fasciaItem?.price || fascia[0]?.price || 0;
 
               case "soffit":
                 const soffit = accessoryTypes.soffit || [];
                 const soffitItem = soffit.find(
-                  (s: any) => s.material === attributes || s.type === attributes
+                  (s: any) =>
+                    s.material === attributes || s.type === attributes,
                 );
                 return soffitItem?.price || soffit[0]?.price || 0;
 
               case "ridgeCaps":
                 const ridgeCaps = accessoryTypes.ridgeCaps || [];
                 const ridgeCap = ridgeCaps.find(
-                  (r: any) => r.material === attributes || r.type === attributes
+                  (r: any) =>
+                    r.material === attributes || r.type === attributes,
                 );
                 return ridgeCap?.price || ridgeCaps[0]?.price || 0;
 
               case "valleyTrays":
                 const valleyTrays = accessoryTypes.valleyTrays || [];
                 const valleyTray = valleyTrays.find(
-                  (v: any) => v.material === attributes || v.type === attributes
+                  (v: any) =>
+                    v.material === attributes || v.type === attributes,
                 );
                 return valleyTray?.price || valleyTrays[0]?.price || 0;
 
@@ -411,7 +570,7 @@ export default function useRoofingCalculator(
         return 0;
       }
     },
-    [materialPrices]
+    [materialPrices],
   );
 
   // Calculate roof area with pitch factor
@@ -420,14 +579,95 @@ export default function useRoofingCalculator(
       const pitchFactor = 1 / Math.cos((pitch * Math.PI) / 180);
       return area * pitchFactor;
     },
-    []
+    [],
+  );
+
+  // Calculate timber weight using unit-per-m² system
+  const calculateTimberWeight = useCallback(
+    (
+      roof: RoofStructure,
+      wastagePercentage: number,
+    ): {
+      totalWeight: number;
+      breakdown: Array<{
+        type: TimberComponentType;
+        unitRate: number;
+        totalWeight: number;
+        grade: string;
+        treatment: string;
+      }>;
+      adjustedQuantities: Array<{
+        type: TimberComponentType;
+        originalWeight: number;
+        adjustedWeight: number;
+        wastageAmount: number;
+      }>;
+      materialCost: number;
+    } => {
+      const timberBreakdown = roof.timbers.map((timber) => {
+        // Calculate weight: area × unit rate (kg/m²)
+        const originalWeight = roof.area * timber.unitRate;
+
+        // Apply wastage to weight
+        const adjustedWeight = originalWeight * (1 + wastagePercentage);
+        const wastageAmount = adjustedWeight - originalWeight;
+
+        // Get price per kg for timber - use average timber price
+        const pricePerKg =
+          getMaterialPrice("timber", undefined, {
+            size: "100x50", // Use standard size for pricing
+          }) || 0; // Default fallback per m³, converted to per kg basis
+
+        const materialCost = adjustedWeight * (pricePerKg / 1000); // Convert m³ price to kg basis
+
+        return {
+          type: timber.type,
+          unitRate: timber.unitRate,
+          totalWeight: originalWeight,
+          grade: timber.grade,
+          treatment: timber.treatment,
+          originalWeight,
+          adjustedWeight,
+          wastageAmount,
+          materialCost,
+        };
+      });
+
+      const totalWeight = timberBreakdown.reduce(
+        (sum, calc) => sum + calc.totalWeight,
+        0,
+      );
+      const totalMaterialCost = timberBreakdown.reduce(
+        (sum, calc) => sum + calc.materialCost,
+        0,
+      );
+
+      return {
+        totalWeight,
+        breakdown: timberBreakdown.map((calc) => ({
+          type: calc.type,
+          unitRate: calc.unitRate,
+          totalWeight: calc.totalWeight,
+          grade: calc.grade,
+          treatment: calc.treatment,
+        })),
+        adjustedQuantities: timberBreakdown.map((calc) => ({
+          type: calc.type,
+          originalWeight: calc.originalWeight,
+          adjustedWeight: calc.adjustedWeight,
+          wastageAmount: calc.wastageAmount,
+        })),
+        materialCost: totalMaterialCost,
+      };
+    },
+    [getMaterialPrice],
   );
 
   // Calculate timber volume for a roof structure - NOW WITH WASTAGE
   const calculateTimberVolume = useCallback(
     (
       roof: RoofStructure,
-      wastagePercentage: number
+      wastagePercentage: number,
     ): {
       volume: number;
       adjustedQuantities: Array<{
@@ -438,39 +678,25 @@ export default function useRoofingCalculator(
       }>;
       materialCost: number;
     } => {
-      const timberCalculations = roof.timbers.map((timber) => {
-        const crossSection = parseTimberSize(timber.size);
-
-        // Apply wastage to quantity and round up
-        const adjustedQuantity = applyWastageToQuantity(
-          timber.quantity,
-          wastagePercentage
-        );
-        const wastageAmount = adjustedQuantity - timber.quantity;
-
-        const volume = crossSection * timber.length * adjustedQuantity;
-        const pricePerCubicMeter = getMaterialPrice("timber", undefined, {
-          size: timber.size,
-        });
-        const materialCost = volume * pricePerCubicMeter;
+      // For legacy support - not used in new unit-per-m² system
+      const timberCalculations = roof.timbers.map((timber, idx) => {
+        const adjustedQuantity = applyWastageToQuantity(1, wastagePercentage);
+        const wastageAmount = adjustedQuantity - 1;
+        const volume = (roof.area * timber.unitRate) / 1000; // Convert to volume approximation
 
         return {
           id: timber.id,
-          originalQuantity: timber.quantity,
+          originalQuantity: 1,
           adjustedQuantity,
           wastageAmount,
           volume,
-          materialCost,
+          materialCost: 0,
         };
       });
 
       const totalVolume = timberCalculations.reduce(
         (sum, calc) => sum + calc.volume,
-        0
-      );
-      const totalMaterialCost = timberCalculations.reduce(
-        (sum, calc) => sum + calc.materialCost,
-        0
+        0,
       );
 
       return {
@@ -481,10 +707,10 @@ export default function useRoofingCalculator(
           adjustedQuantity: calc.adjustedQuantity,
           wastageAmount: calc.wastageAmount,
         })),
-        materialCost: totalMaterialCost,
+        materialCost: 0,
       };
     },
-    [parseTimberSize, applyWastageToQuantity, getMaterialPrice]
+    [applyWastageToQuantity],
   );
 
   // Calculate covering area with wastage
@@ -492,7 +718,7 @@ export default function useRoofingCalculator(
     (roof: RoofStructure, wastagePercentage: number): number => {
       return roof.area * (1 + wastagePercentage);
     },
-    []
+    [],
   );
 
   // Apply wastage to breakdown
@@ -506,29 +732,40 @@ export default function useRoofingCalculator(
         underlayment: breakdown.underlayment * (1 + wastagePercentage),
       };
     },
-    []
+    [],
   );
 
   // Updated calculation section in useRoofingCalculator.ts
   const calculateRoofStructure = useCallback(
     (roof: RoofStructure): RoofingCalculation => {
+      // Enrich roof with calculated values
+      const enrichedRoof = enrichRoofStructure(roof);
       const wastagePercentage = getWastagePercentage();
 
-      // Calculate timber with wastage
-      const timberCalculation = calculateTimberVolume(roof, wastagePercentage);
-      const timberVolume = timberCalculation.volume;
-      const timberMaterialCost = timberCalculation.materialCost;
+      // Calculate timber using new unit-per-m² system
+      const timberWeightCalculation = calculateTimberWeight(
+        enrichedRoof,
+        wastagePercentage,
+      );
+      const timberTotalWeight = timberWeightCalculation.totalWeight;
+      const timberMaterialCost = timberWeightCalculation.materialCost;
+      const timberBreakdown = timberWeightCalculation.breakdown;
 
       // Calculate covering with wastage
-      const coveringArea = calculateCoveringArea(roof, wastagePercentage);
+      const coveringArea = calculateCoveringArea(
+        enrichedRoof,
+        wastagePercentage,
+      );
 
       // Calculate covering cost
-      const coveringPrice = getMaterialPrice("roofCovering", roof.material);
+      const coveringPrice = getMaterialPrice(
+        "roofCovering",
+        enrichedRoof.material,
+      );
       const coveringMaterialCost = coveringArea * coveringPrice;
 
       // Calculate covering labor cost
       const coveringLaborRate = 1200; // KES per m²
-      const coveringLaborCost = coveringArea * coveringLaborRate;
 
       // Calculate underlayment cost
       const underlaymentPrice = roof.covering.underlayment
@@ -537,16 +774,13 @@ export default function useRoofingCalculator(
       const underlaymentMaterialCost = roof.covering.underlayment
         ? roof.area * underlaymentPrice
         : 0;
-      const underlaymentLaborCost = roof.covering.underlayment
-        ? roof.area * 300 // KES per m²
-        : 0;
 
       // Calculate insulation cost
       let insulationMaterialCost = 0;
       if (roof.covering.insulation) {
         const insulationPrice = getMaterialPrice(
           "insulation",
-          roof.covering.insulation.type
+          roof.covering.insulation.type,
         );
         insulationMaterialCost =
           roof.area *
@@ -558,11 +792,11 @@ export default function useRoofingCalculator(
       const calculateAccessoryCost = (
         lengthOrCount: number,
         price: number,
-        wastagePercentage: number
+        wastagePercentage: number,
       ) => {
         const adjustedLength = applyWastageToQuantity(
           lengthOrCount,
-          wastagePercentage
+          wastagePercentage,
         );
         const wastageAmount = adjustedLength - lengthOrCount;
         const materialCost = adjustedLength * price;
@@ -580,9 +814,9 @@ export default function useRoofingCalculator(
         getMaterialPrice(
           "accesories",
           "gutters",
-          roof.accessories?.gutterType || "PVC"
+          roof.accessories?.gutterType || "PVC",
         ),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const downpipeCalculation = calculateAccessoryCost(
@@ -590,9 +824,9 @@ export default function useRoofingCalculator(
         getMaterialPrice(
           "accesories",
           "downpipes",
-          roof.accessories?.downpipeType || "PVC"
+          roof.accessories?.downpipeType || "PVC",
         ),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const flashingCalculation = calculateAccessoryCost(
@@ -600,9 +834,9 @@ export default function useRoofingCalculator(
         getMaterialPrice(
           "accesories",
           "flashings",
-          roof.accessories?.flashingType || "PVC"
+          roof.accessories?.flashingType || "PVC",
         ),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const fasciaCalculation = calculateAccessoryCost(
@@ -610,9 +844,9 @@ export default function useRoofingCalculator(
         getMaterialPrice(
           "accesories",
           "fascia",
-          roof.accessories?.fasciaType || "PVC"
+          roof.accessories?.fasciaType || "PVC",
         ),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const soffitCalculation = calculateAccessoryCost(
@@ -620,21 +854,21 @@ export default function useRoofingCalculator(
         getMaterialPrice(
           "accesories",
           "soffit",
-          roof.accessories?.soffitType || "PVC"
+          roof.accessories?.soffitType || "PVC",
         ),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const ridgeCapsCalculation = calculateAccessoryCost(
         roof.accessories?.ridgeCaps || 0,
         getMaterialPrice("accesories", "ridgeCaps", "Concrete"),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const valleyTraysCalculation = calculateAccessoryCost(
         roof.accessories?.valleyTrays || 0,
         getMaterialPrice("accesories", "valleyTrays", "Galvanized Steel"),
-        wastagePercentage
+        wastagePercentage,
       );
 
       const accessoriesMaterialCost =
@@ -660,17 +894,16 @@ export default function useRoofingCalculator(
       const totalCostWithWastage = totalCostWithoutWastage; // Already includes wastage in quantities
 
       // Calculate efficiency metrics
-      const theoreticalTimberVolume = roof.area * 0.05; // 50mm average thickness
       const materialUtilization =
-        theoreticalTimberVolume > 0
-          ? (timberVolume / theoreticalTimberVolume) * 100
+        timberTotalWeight > 0
+          ? (timberTotalWeight / (roof.area * 100)) * 100
           : 100;
 
       // Calculate wastage details
       const totalWastageItems =
-        timberCalculation.adjustedQuantities.reduce(
+        timberWeightCalculation.adjustedQuantities.reduce(
           (sum, timber) => sum + timber.wastageAmount,
-          0
+          0,
         ) +
         gutterCalculation.wastage +
         downpipeCalculation.wastage +
@@ -691,7 +924,7 @@ export default function useRoofingCalculator(
 
       const breakdownWithWastage = applyWastageToBreakdown(
         breakdown,
-        wastagePercentage
+        wastagePercentage,
       );
 
       return {
@@ -700,7 +933,8 @@ export default function useRoofingCalculator(
         type: roof.type,
         material: roof.material,
         area: roof.area,
-        totalTimberVolume: timberVolume,
+        totalTimberWeightKg: timberTotalWeight,
+        timberBreakdown: timberBreakdown,
         coveringArea,
         materialCost,
         materialCostWithWastage,
@@ -715,7 +949,7 @@ export default function useRoofingCalculator(
         wastage: {
           percentage: wastagePercentage,
           adjustedQuantities: {
-            timbers: timberCalculation.adjustedQuantities,
+            timbers: timberWeightCalculation.adjustedQuantities,
             accessories: {
               gutters: {
                 original: gutterCalculation.original,
@@ -760,12 +994,13 @@ export default function useRoofingCalculator(
     },
     [
       getWastagePercentage,
-      calculateTimberVolume,
+      calculateTimberWeight,
       calculateCoveringArea,
       getMaterialPrice,
       applyWastageToQuantity,
       applyWastageToBreakdown,
-    ]
+      enrichRoofStructure,
+    ],
   );
 
   // Calculate all roof structures
@@ -779,7 +1014,7 @@ export default function useRoofingCalculator(
     const newTotals = calculatedResults.reduce(
       (acc, curr) => ({
         totalArea: acc.totalArea + curr.area,
-        totalTimberVolume: acc.totalTimberVolume + curr.totalTimberVolume,
+        totalTimberVolume: acc.totalTimberVolume + curr.totalTimberWeightKg,
         totalCoveringArea: acc.totalCoveringArea + curr.coveringArea,
         totalMaterialCost: acc.totalMaterialCost + curr.materialCost,
         totalMaterialCostWithWastage:
@@ -817,8 +1052,8 @@ export default function useRoofingCalculator(
           totalAdjustedItems:
             acc.wastage.totalAdjustedItems +
             curr.wastage.adjustedQuantities.timbers.reduce(
-              (sum, timber) => sum + timber.adjustedQuantity,
-              0
+              (sum, timber) => sum + timber.adjustedWeight,
+              0,
             ) +
             curr.wastage.adjustedQuantities.accessories.gutters.adjusted +
             curr.wastage.adjustedQuantities.accessories.downpipes.adjusted +
@@ -858,7 +1093,7 @@ export default function useRoofingCalculator(
           totalAdjustedItems: 0,
           totalWastageItems: 0,
         },
-      }
+      },
     );
 
     setTotals(newTotals);
@@ -923,7 +1158,7 @@ export function estimateRoofArea(
   width: number,
   type: RoofType,
   pitch: number = 30,
-  eavesOverhang: number = 0.5
+  eavesOverhang: number = 0.5,
 ): number {
   const effectiveLength = length + eavesOverhang * 2;
   const effectiveWidth = width + eavesOverhang * 2;

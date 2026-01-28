@@ -372,9 +372,6 @@ Block sizes (LxHxT in meters):
 
 "0.4x0.2x0.2"
 
-Block thickness (mm only):
-100, 150, 200, 250, 300
-
 Mortar ratios:
 "1:3", "1:4", "1:5", "1:6"
 
@@ -912,7 +909,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "id": "fwall-external-01",
       "type": "external",
       "blockDimensions": "0.2x0.2x0.2",
-      "blockThickness": "200",
       "wallLength": "12.5",
       "wallHeight": "1.0",
       "numberOfWalls": 2,
@@ -922,7 +918,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "id": "fwall-internal-01",
       "type": "internal",
       "blockDimensions": "0.15x0.2x0.15",
-      "blockThickness": "150",
       "wallLength": "8.0",
       "wallHeight": "1.0",
       "numberOfWalls": 1,
@@ -1395,7 +1390,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
           type: "external",
           blockType: "Standard Natural Block",
           blockDimensions: "0.2x0.2x0.2",
-          blockThickness: "200",
           wallLength: externalWallLength,
           wallHeight:
             calculatedWallHeight > 0 ? calculatedWallHeight.toString() : "1.0",
@@ -1411,7 +1405,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
           type: "internal",
           blockType: "Standard Natural Block",
           blockDimensions: "0.15x0.2x0.15",
-          blockThickness: "150",
           wallLength: internalWallLength,
           wallHeight:
             calculatedWallHeight > 0 ? calculatedWallHeight.toString() : "1.0",

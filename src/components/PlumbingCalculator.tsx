@@ -112,7 +112,7 @@ export default function PlumbingCalculator({
     plumbingSystems,
     materialPrices,
     quote,
-    setQuoteData
+    setQuoteData,
   );
 
   const qsSettings = quote.qsSettings as MasonryQSSettings;
@@ -123,20 +123,20 @@ export default function PlumbingCalculator({
         qsSettings: newSettings,
       }));
     },
-    [setQuoteData]
+    [setQuoteData],
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<PlumbingSystemType | "all">(
-    "all"
+    "all",
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<PlumbingSystem | null>(null);
   const [usePlumbingLumpsum, setUsePlumbingLumpsum] = useState(
     quote?.plumbing?.useLumpsum === true ||
-      quote?.plumbing_lumpsum_mode === true
+      quote?.plumbing_lumpsum_mode === true,
   );
   const [plumbingLumpsumAmount, setPlumbingLumpsumAmount] = useState(
-    quote?.plumbing?.amount || quote?.plumbing_lumpsum_amount || 0
+    quote?.plumbing?.amount || quote?.plumbing_lumpsum_amount || 0,
   );
 
   useEffect(() => {
@@ -188,7 +188,7 @@ export default function PlumbingCalculator({
     if (!editForm || !editingId) return;
 
     const updatedSystems = plumbingSystems.map((system) =>
-      system.id === editingId ? editForm : system
+      system.id === editingId ? editForm : system,
     );
 
     if (onPlumbingSystemsUpdate) {
@@ -223,14 +223,14 @@ export default function PlumbingCalculator({
       quantity: 1,
     };
     setEditForm((prev) =>
-      prev ? { ...prev, pipes: [...prev.pipes, newPipe] } : null
+      prev ? { ...prev, pipes: [...prev.pipes, newPipe] } : null,
     );
   };
 
   const updatePipe = (pipeId: string, field: string, value: any) => {
     if (!editForm) return;
     const updatedPipes = editForm.pipes.map((pipe) =>
-      pipe.id === pipeId ? { ...pipe, [field]: value } : pipe
+      pipe.id === pipeId ? { ...pipe, [field]: value } : pipe,
     );
     setEditForm((prev) => (prev ? { ...prev, pipes: updatedPipes } : null));
   };
@@ -252,27 +252,27 @@ export default function PlumbingCalculator({
       connections: { waterSupply: true, drainage: true, vent: false },
     };
     setEditForm((prev) =>
-      prev ? { ...prev, fixtures: [...prev.fixtures, newFixture] } : null
+      prev ? { ...prev, fixtures: [...prev.fixtures, newFixture] } : null,
     );
   };
 
   const updateFixture = (fixtureId: string, field: string, value: any) => {
     if (!editForm) return;
     const updatedFixtures = editForm.fixtures.map((fixture) =>
-      fixture.id === fixtureId ? { ...fixture, [field]: value } : fixture
+      fixture.id === fixtureId ? { ...fixture, [field]: value } : fixture,
     );
     setEditForm((prev) =>
-      prev ? { ...prev, fixtures: updatedFixtures } : null
+      prev ? { ...prev, fixtures: updatedFixtures } : null,
     );
   };
 
   const removeFixture = (fixtureId: string) => {
     if (!editForm) return;
     const updatedFixtures = editForm.fixtures.filter(
-      (fixture) => fixture.id !== fixtureId
+      (fixture) => fixture.id !== fixtureId,
     );
     setEditForm((prev) =>
-      prev ? { ...prev, fixtures: updatedFixtures } : null
+      prev ? { ...prev, fixtures: updatedFixtures } : null,
     );
   };
 
@@ -631,7 +631,7 @@ export default function PlumbingCalculator({
                                   updatePipe(
                                     pipe.id,
                                     "diameter",
-                                    parseInt(value)
+                                    parseInt(value),
                                   )
                                 }
                               >
@@ -662,7 +662,7 @@ export default function PlumbingCalculator({
                                   updatePipe(
                                     pipe.id,
                                     "length",
-                                    parseFloat(e.target.value) || 0
+                                    parseFloat(e.target.value) || 0,
                                   )
                                 }
                               />
@@ -678,7 +678,7 @@ export default function PlumbingCalculator({
                                   updatePipe(
                                     pipe.id,
                                     "quantity",
-                                    parseInt(e.target.value) || 1
+                                    parseInt(e.target.value) || 1,
                                   )
                                 }
                               />
@@ -750,7 +750,7 @@ export default function PlumbingCalculator({
                               <Select
                                 value={fixture.quality}
                                 onValueChange={(
-                                  value: "standard" | "premium" | "luxury"
+                                  value: "standard" | "premium" | "luxury",
                                 ) =>
                                   updateFixture(fixture.id, "quality", value)
                                 }
@@ -779,7 +779,7 @@ export default function PlumbingCalculator({
                                   updateFixture(
                                     fixture.id,
                                     "location",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 placeholder="e.g., Bathroom 1"
@@ -796,7 +796,7 @@ export default function PlumbingCalculator({
                                   updateFixture(
                                     fixture.id,
                                     "count",
-                                    parseInt(e.target.value) || 1
+                                    parseInt(e.target.value) || 1,
                                   )
                                 }
                               />
@@ -840,7 +840,6 @@ export default function PlumbingCalculator({
                         Material Cost
                       </TableHead>
                       <TableHead className="text-right">Total Cost</TableHead>
-                      <TableHead className="text-right">Efficiency</TableHead>
                       {!readonly && (
                         <TableHead className="text-right">Actions</TableHead>
                       )}
@@ -869,7 +868,7 @@ export default function PlumbingCalculator({
                               className={getSystemColor(calc.systemType)}
                             >
                               {SYSTEM_TYPES.find(
-                                (t) => t.value === calc.systemType
+                                (t) => t.value === calc.systemType,
                               )?.label || calc.systemType}
                             </Badge>
                           </TableCell>
@@ -884,22 +883,6 @@ export default function PlumbingCalculator({
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(calc.totalCost)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex flex-col text-xs">
-                              <span>
-                                Material:{" "}
-                                {formatEfficiency(
-                                  calc.efficiency.materialUtilization
-                                )}
-                              </span>
-                              <span>
-                                Install:{" "}
-                                {formatEfficiency(
-                                  calc.efficiency.installationEfficiency
-                                )}
-                              </span>
-                            </div>
                           </TableCell>
                           {!readonly && (
                             <TableCell className="text-right">

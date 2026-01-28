@@ -1,7 +1,7 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MasonryQSSettings } from "./useMasonryCalculatorNew";
 
 export interface FoundationWall {
@@ -9,7 +9,6 @@ export interface FoundationWall {
   type: "external" | "internal"; // Wall type
   blockType: string; // e.g., "Concrete block"
   blockDimensions: string; // e.g., "0.4x0.2x0.2" (length x height x thickness)
-  blockThickness: string; // mm - can differ for internal/external
   wallHeight: string; // meters
   wallLength: string; // meters (perimeter or individual length)
   numberOfWalls: string; // Number of walls of this type
@@ -26,7 +25,6 @@ export interface FoundationWallingRow {
   type: "external" | "internal";
   blockType: string;
   blockDimensions: string;
-  blockThickness: string;
   wallHeight: string;
   wallLength: string;
   numberOfWalls: string;
@@ -42,6 +40,13 @@ const MORTAR_RATIO_MAP = {
 
 const MORTAR_DRY_VOLUME_FACTOR = 1.33;
 const JOINT_THICKNESS_M = 0.01; // 10mm standard joint
+
+// Map block types to their dimensions (L x H x T)
+const BLOCK_TYPE_DIMENSIONS: { [key: string]: string } = {
+  "Large Block": "0.2x0.2x0.2",
+  "Standard Block": "0.15x0.2x0.15",
+  "Small Block": "0.1x0.2x0.1",
+};
 
 /**
  * Parse masonry block dimensions from string format "L x H x T"
@@ -158,7 +163,6 @@ export const useFoundationWallingCalculator = (quote: any) => {
         type: wall.type || "external",
         blockType: wall.blockType || "Standard Block",
         blockDimensions: wall.blockDimensions || "0.2x0.2x0.2",
-        blockThickness: wall.blockThickness || "200",
         wallHeight: String(wall.wallHeight || "2.0"),
         wallLength: String(wall.wallLength || "0"),
         numberOfWalls: String(wall.numberOfWalls || "1"),
@@ -168,20 +172,36 @@ export const useFoundationWallingCalculator = (quote: any) => {
     return [];
   });
 
-  const addWall = useCallback((type: "external" | "internal") => {
-    const newWall: FoundationWallingRow = {
-      id: `${type}-wall-${Date.now()}`,
-      type,
-      blockType: "Standard Natural Block",
-      blockDimensions: type === "external" ? "0.2x0.2x0.2" : "0.15x0.2x0.15",
-      blockThickness: type === "external" ? "200" : "150",
-      wallHeight: "2.0",
-      wallLength: "0",
-      numberOfWalls: "1",
-      mortarRatio: "1:4",
-    };
-    setWalls((prev) => [...prev, newWall]);
-  }, []);
+  const addWall = useCallback(
+    (type: "external" | "internal") => {
+      // Get block type from quote wallSections for this wall type
+      const wallSection = quote?.wallSections?.find(
+        (s: any) => s.type === type,
+      );
+      const blockType = wallSection?.blockType || "Standard Block";
+
+      // Map block type to dimensions
+      const blockDimensionsMap: { [key: string]: string } = {
+        "Large Block": "0.2x0.2x0.2",
+        "Standard Block": "0.15x0.2x0.15",
+        "Small Block": "0.1x0.2x0.1",
+      };
+      const blockDimensions = blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+
+      const newWall: FoundationWallingRow = {
+        id: `${type}-wall-${Date.now()}`,
+        type,
+        blockType: "Standard Natural Block",
+        blockDimensions,
+        wallHeight: "2.0",
+        wallLength: "0",
+        numberOfWalls: "1",
+        mortarRatio: "1:4",
+      };
+      setWalls((prev) => [...prev, newWall]);
+    },
+    [quote?.wallSections],
+  );
 
   const updateWall = useCallback(
     (id: string, updates: Partial<FoundationWallingRow>) => {
@@ -196,6 +216,37 @@ export const useFoundationWallingCalculator = (quote: any) => {
     setWalls((prev) => prev.filter((wall) => wall.id !== id));
   }, []);
 
+  // Sync block dimensions with blockType from wallSections
+  useEffect(() => {
+    if (quote?.wallSections && walls.length > 0) {
+      const blockDimensionsMap: { [key: string]: string } = {
+        "Large Block": "0.2x0.2x0.2",
+        "Standard Block": "0.15x0.2x0.15",
+        "Small Block": "0.1x0.2x0.1",
+      };
+
+      setWalls((prevWalls) =>
+        prevWalls.map((wall) => {
+          const wallSection = quote.wallSections.find(
+            (s: any) => s.type === wall.type,
+          );
+          if (wallSection) {
+            const blockType = wallSection.blockType || "Standard Block";
+            const blockDimensions =
+              blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+            if (wall.blockDimensions !== blockDimensions) {
+              return {
+                ...wall,
+                blockDimensions,
+              };
+            }
+          }
+          return wall;
+        }),
+      );
+    }
+  }, [quote?.wallSections]);
+
   const calculateWallQuantities = useCallback(
     (
       wall: FoundationWallingRow,
@@ -204,7 +255,8 @@ export const useFoundationWallingCalculator = (quote: any) => {
       const wallHeightNum = parseFloat(wall.wallHeight) || 0;
       const wallLengthNum = parseFloat(wall.wallLength) || 0;
       const numberOfWallsNum = parseInt(wall.numberOfWalls) || 1;
-      const thicknessM = (parseFloat(wall.blockThickness) || 200) / 1000;
+      const blockDims = parseBlockDimensions(wall.blockDimensions);
+      const thicknessM = blockDims.thickness;
 
       const totalLength = wallLengthNum * numberOfWallsNum;
       const totalHeight = wallHeightNum;
@@ -224,7 +276,6 @@ export const useFoundationWallingCalculator = (quote: any) => {
         type: wall.type,
         blockType: wall.blockType,
         blockDimensions: wall.blockDimensions,
-        blockThickness: wall.blockThickness,
         wallHeight: wall.wallHeight,
         wallLength: wall.wallLength,
         numberOfWalls: wall.numberOfWalls,

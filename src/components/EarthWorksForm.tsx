@@ -35,7 +35,9 @@ export interface EarthworkItem {
 
 interface EarthworksFormProps {
   earthworks: EarthworkItem[];
-  setEarthworks: (earthworks: EarthworkItem[] | ((prev: EarthworkItem[]) => EarthworkItem[])) => void;
+  setEarthworks: (
+    earthworks: EarthworkItem[] | ((prev: EarthworkItem[]) => EarthworkItem[]),
+  ) => void;
   excavationRates: any;
   setQuoteData?: (data: any) => void;
   setQuote?: (updater: (prev: any) => any) => void;
@@ -129,12 +131,28 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       // Get wall dimensions from quote
       const dims = quote.wallDimensions;
       if (dims && dims.externalWallPerimiter && dims.internalWallPerimiter) {
-        const internalWallThickness =
-          quote.wallSections?.find((s: any) => s.type === "internal")
-            ?.thickness || 0.2;
-        const externalWallThickness =
-          quote.wallSections?.find((s: any) => s.type === "external")
-            ?.thickness || 0.2;
+        // Map block type to dimensions
+        const blockDimensionsMap: { [key: string]: string } = {
+          "Large Block": "0.2x0.2x0.2",
+          "Standard Block": "0.15x0.2x0.15",
+          "Small Block": "0.1x0.2x0.1",
+        };
+        // Extract thickness from blockDimensions "LxHxT" format using blockType
+        const getWallThickness = (wallType: string): number => {
+          const wall = quote.wallSections?.find(
+            (s: any) => s.type === wallType,
+          );
+          // Get block dimensions from blockType mapping
+          const blockType = wall?.blockType || "Standard Block";
+          const blockDimensions =
+            blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+          const parts = blockDimensions
+            .split("x")
+            .map((p: string) => parseFloat(p.trim()));
+          return parts.length >= 3 ? parts[2] : 0.1;
+        };
+        const internalWallThickness = getWallThickness("internal");
+        const externalWallThickness = getWallThickness("external");
         const excavationDepth =
           parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65; // Use foundation details height
 
@@ -226,12 +244,26 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       quote.wallDimensions.internalWallPerimiter
     ) {
       const dims = quote.wallDimensions;
-      const internalWallThickness =
-        quote.wallSections?.find((s: any) => s.type === "internal")
-          ?.thickness || 0.2;
-      const externalWallThickness =
-        quote.wallSections?.find((s: any) => s.type === "external")
-          ?.thickness || 0.2;
+      // Map block type to dimensions
+      const blockDimensionsMap: { [key: string]: string } = {
+        "Large Block": "0.2x0.2x0.2",
+        "Standard Block": "0.15x0.2x0.15",
+        "Small Block": "0.1x0.2x0.1",
+      };
+      // Extract thickness from blockDimensions "LxHxT" format using blockType
+      const getWallThickness = (wallType: string): number => {
+        const wall = quote.wallSections?.find((s: any) => s.type === wallType);
+        // Get block dimensions from blockType mapping
+        const blockType = wall?.blockType || "Standard Block";
+        const blockDimensions =
+          blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+        const parts = blockDimensions
+          .split("x")
+          .map((p: string) => parseFloat(p.trim()));
+        return parts.length >= 3 ? parts[2] : 0.2;
+      };
+      const internalWallThickness = getWallThickness("internal");
+      const externalWallThickness = getWallThickness("external");
       const excavationDepth =
         parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
 

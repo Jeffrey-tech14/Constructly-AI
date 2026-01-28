@@ -1337,7 +1337,6 @@ export default function ElectricalCalculator({
                         Material Cost
                       </TableHead>
                       <TableHead className="text-right">Total Cost</TableHead>
-                      <TableHead className="text-right">Efficiency</TableHead>
                       {!readonly && (
                         <TableHead className="text-right">Actions</TableHead>
                       )}
@@ -1387,28 +1386,6 @@ export default function ElectricalCalculator({
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {formatCurrency(calc.totalCost)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex flex-col text-xs">
-                              <span>
-                                Cable:{" "}
-                                {formatEfficiency(
-                                  calc.efficiency.cableUtilization,
-                                )}
-                              </span>
-                              <span>
-                                Circuit:{" "}
-                                {formatEfficiency(
-                                  calc.efficiency.circuitEfficiency,
-                                )}
-                              </span>
-                              <span>
-                                Energy:{" "}
-                                {formatEfficiency(
-                                  calc.efficiency.energyEfficiency,
-                                )}
-                              </span>
-                            </div>
                           </TableCell>
                           {!readonly && (
                             <TableCell className="text-right">

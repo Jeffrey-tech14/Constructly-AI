@@ -185,7 +185,6 @@ export interface QuoteCalculation {
     id: string;
     type: "external" | "internal";
     blockDimensions: string;
-    blockThickness: string;
     wallLength: string;
     wallHeight: string;
     numberOfWalls: number;

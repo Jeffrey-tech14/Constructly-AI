@@ -2425,7 +2425,10 @@ function calculateIntensityRebar(
   }
 
   // Core calculation: steel_kg = volume_m3 × steel_kg_per_m3
-  const totalSteelKg = volume * intensity;
+  const netSteelKg = volume * intensity;
+  
+  // Apply rebar wastage percentage
+  const totalSteelKg = withWaste(netSteelKg, settings.wastagePercent);
 
   // Use average rebar price for intensity mode (no specific bars)
   // Use D12 as representative bar for pricing
@@ -2465,10 +2468,10 @@ function calculateIntensityRebar(
     category,
     barSchedule: [],
     efficiency: {
-      materialUtilization: 0,
+      materialUtilization: (netSteelKg / totalSteelKg) * 100,
       standardBarUtilization: 0,
-      wastePercentage: 0,
-      cuttingEfficiency: 0,
+      wastePercentage: settings.wastagePercent,
+      cuttingEfficiency: 100 - settings.wastagePercent,
       complianceScore: 0,
     },
     compliance: {
@@ -2478,8 +2481,8 @@ function calculateIntensityRebar(
       score: 100,
     },
     wasteOptimization: {
-      actualWastePercentage: 0,
-      optimizedWastePercentage: 0,
+      actualWastePercentage: settings.wastagePercent,
+      optimizedWastePercentage: settings.wastagePercent,
       cuttingPatterns: [],
       savedMaterialKg: 0,
     },

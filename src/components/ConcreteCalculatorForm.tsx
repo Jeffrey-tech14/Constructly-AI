@@ -324,6 +324,224 @@ export default function ConcreteCalculatorForm({
     }
   }, [user, profile, fetchMaterials]);
 
+  /**
+   * Auto-update strip footing widths based on block type
+   * Width = 3x the block thickness extracted from the blockType mapping
+   */
+  useEffect(() => {
+    setRows((prevRows) => {
+      let updated = false;
+      const blockDimensionsMap: { [key: string]: string } = {
+        "Large Block": "0.2x0.2x0.2",
+        "Standard Block": "0.15x0.2x0.15",
+        "Small Block": "0.1x0.2x0.1",
+      };
+
+      const newRows = prevRows.map((row) => {
+        if (row.element === "strip-footing") {
+          // Determine wall type from row name (should contain "internal" or "external")
+          const nameLower = row.name.toLowerCase();
+          const isInternal = nameLower.includes("internal");
+          const isExternal = nameLower.includes("external");
+          const wallType = isInternal
+            ? "internal"
+            : isExternal
+              ? "external"
+              : row.wallType;
+
+          if (wallType && quote?.wallSections) {
+            // Find the wall section matching this type
+            const wallSection = quote.wallSections.find(
+              (w: any) => w.type === wallType,
+            );
+            if (wallSection) {
+              // Get block dimensions from blockType mapping
+              const blockType = wallSection.blockType || "Standard Block";
+              const blockDimensions =
+                blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+
+              // Extract thickness (third value) from blockDimensions
+              const dims = blockDimensions
+                .split("x")
+                .map((d: string) => parseFloat(d.trim()));
+              if (dims.length >= 3 && dims[2] > 0) {
+                const calculatedWidth = (dims[2] * 3).toString();
+                if (row.width !== calculatedWidth) {
+                  updated = true;
+                  return {
+                    ...row,
+                    width: calculatedWidth,
+                    wallType,
+                  };
+                }
+              }
+            }
+          }
+        }
+        return row;
+      });
+
+      if (updated) {
+        pushRowsDebounced(newRows);
+      }
+
+      return newRows;
+    });
+  }, [quote?.wallSections, pushRowsDebounced]);
+
+  /**
+   * Auto-calculate hardcore backfill depth for strip footings
+   * Formula: Finished Floor Level - slab thickness - maram blinding - concrete blinding - (excavation depth - footing thickness)
+   */
+  useEffect(() => {
+    setRows((prevRows) => {
+      let updated = false;
+      const blockDimensionsMap: { [key: string]: string } = {
+        "Large Block": "0.2x0.2x0.2",
+        "Standard Block": "0.15x0.2x0.15",
+        "Small Block": "0.1x0.2x0.1",
+      };
+
+      const newRows = prevRows.map((row) => {
+        // Only apply to strip footings that have hasBackFill enabled
+        if (row.element === "strip-footing" && row.hasBackFill) {
+          const slabThickness = parseFloat(row.height || "0") || 0; // Using height as slab thickness
+          const maramBlindingDepth = row.hasMaramBlinding
+            ? parseFloat(row.maramBlindingDepth || "0") || 0
+            : 0;
+          const concreteBlindingDepth = row.hasBlinding
+            ? parseFloat(row.blindingDepth || "0") || 0
+            : 0;
+
+          // Get excavation depth and footing thickness
+          const excavationDepth =
+            parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
+
+          // Get footing thickness from block type mapping
+          const nameLower = row.name.toLowerCase();
+          const isInternal = nameLower.includes("internal");
+          const isExternal = nameLower.includes("external");
+          const wallType = isInternal
+            ? "internal"
+            : isExternal
+              ? "external"
+              : row.wallType;
+
+          let footingThickness = 0;
+          if (wallType && quote?.wallSections) {
+            const wallSection = quote.wallSections.find(
+              (w: any) => w.type === wallType,
+            );
+            if (wallSection) {
+              const blockType = wallSection.blockType || "Standard Block";
+              const blockDimensions =
+                blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+              const dims = blockDimensions
+                .split("x")
+                .map((d: string) => parseFloat(d.trim()));
+              footingThickness = dims.length >= 3 ? dims[2] : 0.15;
+            }
+          }
+
+          // Calculate hardcore depth
+          const topOfFootingLevel = excavationDepth - footingThickness;
+          const hardcoreDepth =
+            topOfFootingLevel -
+            slabThickness -
+            maramBlindingDepth -
+            concreteBlindingDepth;
+          const calculatedDepth = Math.max(0, hardcoreDepth).toString();
+
+          if (row.backFillDepth !== calculatedDepth) {
+            updated = true;
+            return {
+              ...row,
+              backFillDepth: calculatedDepth,
+            };
+          }
+        }
+        return row;
+      });
+
+      if (updated) {
+        pushRowsDebounced(newRows);
+      }
+
+      return newRows;
+    });
+  }, [quote, rows, pushRowsDebounced]);
+
+  /**
+   * Auto-calculate return fill depth for strip footings
+   * Formula: Excavation depth - footing thickness
+   */
+  useEffect(() => {
+    setRows((prevRows) => {
+      let updated = false;
+      const blockDimensionsMap: { [key: string]: string } = {
+        "Large Block": "0.2x0.2x0.2",
+        "Standard Block": "0.15x0.2x0.15",
+        "Small Block": "0.1x0.2x0.1",
+      };
+
+      const newRows = prevRows.map((row) => {
+        // Only apply to strip footings that have hasReturnFill enabled
+        if (row.element === "strip-footing" && row.hasReturnFill) {
+          // Get excavation depth from foundation details
+          const excavationDepth =
+            parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
+
+          // Get footing thickness from block type mapping
+          const nameLower = row.name.toLowerCase();
+          const isInternal = nameLower.includes("internal");
+          const isExternal = nameLower.includes("external");
+          const wallType = isInternal
+            ? "internal"
+            : isExternal
+              ? "external"
+              : row.wallType;
+
+          let footingThickness = 0;
+          if (wallType && quote?.wallSections) {
+            const wallSection = quote.wallSections.find(
+              (w: any) => w.type === wallType,
+            );
+            if (wallSection) {
+              const blockType = wallSection.blockType || "Standard Block";
+              const blockDimensions =
+                blockDimensionsMap[blockType] || "0.15x0.2x0.15";
+              const dims = blockDimensions
+                .split("x")
+                .map((d: string) => parseFloat(d.trim()));
+              footingThickness = dims.length >= 3 ? dims[2] : 0.15;
+            }
+          }
+
+          // Calculate return fill depth
+          const returnFillDepth = Math.max(
+            0,
+            excavationDepth - footingThickness,
+          ).toString();
+
+          if (row.returnFillDepth !== returnFillDepth) {
+            updated = true;
+            return {
+              ...row,
+              returnFillDepth,
+            };
+          }
+        }
+        return row;
+      });
+
+      if (updated) {
+        pushRowsDebounced(newRows);
+      }
+
+      return newRows;
+    });
+  }, [quote?.foundationDetails, rows, quote?.wallSections, pushRowsDebounced]);
+
   const { results, totals, calculateConcreteRateForRow } =
     useConcreteCalculator(rows, materials, qsSettings, quote);
 
@@ -2034,8 +2252,42 @@ export default function ConcreteCalculatorForm({
             {renderWaterproofing(row)}
 
             {/* Blinding, Maram & Backfill - Only for Slabs */}
-            {row.element === "slab" && (
+            {(row.element === "strip-footing" ||
+              row.element === "raft-foundation") && (
               <div className="space-y-4">
+                {/* Back Fill */}
+                <div className="space-y-2 p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`backfill-${row.id}`}
+                      checked={row.hasBackFill}
+                      onCheckedChange={(checked) =>
+                        updateRow(row.id, "hasBackFill", checked === true)
+                      }
+                      className="w-4 h-4"
+                    />
+                    <Label
+                      htmlFor={`backfill-${row.id}`}
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Hardcore Backfill
+                    </Label>
+                  </div>
+
+                  {row.hasBackFill && (
+                    <Input
+                      type="number"
+                      value={row.backFillDepth || ""}
+                      onChange={(e) =>
+                        updateRow(row.id, "backFillDepth", e.target.value)
+                      }
+                      placeholder="Back fill depth (m)"
+                      step="0.05"
+                      min="0.05"
+                      max="1"
+                    />
+                  )}
+                </div>
                 {/* Blinding Section */}
                 <div className="space-y-2 p-3 rounded-md">
                   <div className="flex items-center space-x-2">
@@ -2086,7 +2338,10 @@ export default function ConcreteCalculatorForm({
                     </div>
                   )}
                 </div>
-
+              </div>
+            )}
+            {row.element === "slab" && (
+              <div>
                 {/* Murram Blinding */}
                 <div className="space-y-2 p-3 rounded-md">
                   <div className="flex items-center space-x-2">
@@ -2127,38 +2382,26 @@ export default function ConcreteCalculatorForm({
                   )}
                 </div>
 
-                {/* Back Fill */}
-                <div className="space-y-2 p-3 rounded-md">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`backfill-${row.id}`}
-                      checked={row.hasBackFill || false}
-                      onCheckedChange={(checked) =>
-                        updateRow(row.id, "hasBackFill", checked === true)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label
-                      htmlFor={`backfill-${row.id}`}
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Hardcore Backfill
-                    </Label>
-                  </div>
-
-                  {row.hasBackFill && (
-                    <Input
-                      type="number"
-                      value={row.backFillDepth || ""}
-                      onChange={(e) =>
-                        updateRow(row.id, "backFillDepth", e.target.value)
-                      }
-                      placeholder="Back fill depth (m)"
-                      step="0.05"
-                      min="0.05"
-                      max="1"
-                    />
-                  )}
+                {/* Anti-termite Treatment */}
+                <div className="flex items-center space-x-2 p-2 rounded-md">
+                  <Checkbox
+                    id={`termite-${row.id}`}
+                    checked={row.hasAntiTermiteTreatment}
+                    onCheckedChange={(checked) =>
+                      updateRow(
+                        row.id,
+                        "hasAntiTermiteTreatment",
+                        checked === true,
+                      )
+                    }
+                    className="w-4 h-4"
+                  />
+                  <Label
+                    htmlFor={`termite-${row.id}`}
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Anti-termite Treatment
+                  </Label>
                 </div>
               </div>
             )}
@@ -2190,28 +2433,6 @@ export default function ConcreteCalculatorForm({
                 </div> */}
 
                 {renderSteppedFoundation(row)}
-
-                {/* Anti-termite Treatment */}
-                <div className="flex items-center space-x-2 p-2 rounded-md">
-                  <Checkbox
-                    id={`termite-${row.id}`}
-                    checked={row.hasAntiTermiteTreatment || false}
-                    onCheckedChange={(checked) =>
-                      updateRow(
-                        row.id,
-                        "hasAntiTermiteTreatment",
-                        checked === true,
-                      )
-                    }
-                    className="w-4 h-4"
-                  />
-                  <Label
-                    htmlFor={`termite-${row.id}`}
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    Anti-termite Treatment
-                  </Label>
-                </div>
 
                 {/* Return Fill */}
                 <div className="space-y-2 p-3 rounded-md">

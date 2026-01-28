@@ -154,6 +154,10 @@ const UploadPlan = () => {
   const MAX_RETRIES = 3;
 
   const { extractedPlan, setExtractedPlan } = usePlan();
+  if (!quoteData) {
+    navigate("/quotes/new");
+    return null;
+  }
 
   useEffect(() => {
     if (quoteData?.plan_file_url) {
@@ -1475,18 +1479,15 @@ const UploadPlan = () => {
                                 </div>
                                 <div>
                                   <Label className="text-sm mb-2 block">
-                                    External Wall Thickness (mm)
+                                    External Wall Block Type
                                   </Label>
-                                  <Input
-                                    type="number"
+                                  <Select
                                     value={
-                                      (editablePlan.wallSections?.find(
+                                      editablePlan.wallSections?.find(
                                         (s) => s.type === "external",
-                                      )?.thickness ?? 0) * 1000
+                                      )?.blockType || "Standard Block"
                                     }
-                                    onChange={(e) => {
-                                      const newThickness =
-                                        parseFloat(e.target.value) / 1000;
+                                    onValueChange={(value) => {
                                       setEditablePlan((prev) => {
                                         if (!prev) return prev;
                                         const existingIndex =
@@ -1500,13 +1501,13 @@ const UploadPlan = () => {
                                         if (existingIndex >= 0) {
                                           updatedSections[existingIndex] = {
                                             ...updatedSections[existingIndex],
-                                            thickness: newThickness,
+                                            blockType: value,
                                           };
                                         } else {
                                           updatedSections.push({
                                             id: `wall-external-${Date.now()}`,
                                             type: "external",
-                                            thickness: newThickness,
+                                            blockType: value,
                                           } as any);
                                         }
                                         return {
@@ -1515,23 +1516,34 @@ const UploadPlan = () => {
                                         };
                                       });
                                     }}
-                                    placeholder="e.g., 200"
-                                  />
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select block type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Large Block">
+                                        Large Block (200mm)
+                                      </SelectItem>
+                                      <SelectItem value="Standard Block">
+                                        Standard Block (150mm)
+                                      </SelectItem>
+                                      <SelectItem value="Small Block">
+                                        Small Block (100mm)
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div>
                                   <Label className="text-sm mb-2 block">
-                                    Internal Wall Thickness (mm)
+                                    Internal Wall Block Type
                                   </Label>
-                                  <Input
-                                    type="number"
+                                  <Select
                                     value={
-                                      (editablePlan.wallSections?.find(
+                                      editablePlan.wallSections?.find(
                                         (s) => s.type === "internal",
-                                      )?.thickness ?? 0) * 1000
+                                      )?.blockType || "Standard Block"
                                     }
-                                    onChange={(e) => {
-                                      const newThickness =
-                                        parseFloat(e.target.value) / 1000;
+                                    onValueChange={(value) => {
                                       setEditablePlan((prev) => {
                                         if (!prev) return prev;
                                         const existingIndex =
@@ -1545,13 +1557,13 @@ const UploadPlan = () => {
                                         if (existingIndex >= 0) {
                                           updatedSections[existingIndex] = {
                                             ...updatedSections[existingIndex],
-                                            thickness: newThickness,
+                                            blockType: value,
                                           };
                                         } else {
                                           updatedSections.push({
                                             id: `wall-internal-${Date.now()}`,
                                             type: "internal",
-                                            thickness: newThickness,
+                                            blockType: value,
                                           } as any);
                                         }
                                         return {
@@ -1560,8 +1572,22 @@ const UploadPlan = () => {
                                         };
                                       });
                                     }}
-                                    placeholder="e.g., 200"
-                                  />
+                                  >
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder="Select block type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Large Block">
+                                        Large Block (200mm)
+                                      </SelectItem>
+                                      <SelectItem value="Standard Block">
+                                        Standard Block (150mm)
+                                      </SelectItem>
+                                      <SelectItem value="Small Block">
+                                        Small Block (100mm)
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div>
                                   <Label className="text-sm mb-2 block">

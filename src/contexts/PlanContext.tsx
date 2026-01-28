@@ -122,7 +122,6 @@ export interface ExtractedPlan {
     type: "external" | "internal";
     blockType: string;
     blockDimensions: string;
-    blockThickness: string;
     wallLength: string;
     wallHeight: string;
     numberOfWalls: number;

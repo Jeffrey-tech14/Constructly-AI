@@ -140,22 +140,18 @@ export default function FoundationWallingCalculator({
     // Update external wall
     const externalWall = walls.find((w) => w.type === "external");
     if (externalWall && externalPerimeter > 0) {
-      const externalThicknessMm = Math.round(externalWallThickness * 1000);
       updateWall(externalWall.id, {
         wallLength: externalPerimeter.toFixed(2).toString(),
         wallHeight: foundationWallHeight,
-        blockThickness: externalThicknessMm.toString(),
       });
     }
 
     // Update internal wall
     const internalWall = walls.find((w) => w.type === "internal");
     if (internalWall && internalPerimeter > 0) {
-      const internalThicknessMm = Math.round(internalWallThickness * 1000);
       updateWall(internalWall.id, {
         wallLength: internalPerimeter.toFixed(2).toString(),
         wallHeight: foundationWallHeight,
-        blockThickness: internalThicknessMm.toString(),
       });
     }
   }, [walls.length]);
@@ -200,13 +196,15 @@ export default function FoundationWallingCalculator({
     },
   ];
 
-  const blockThicknessOptions = [
-    { label: "100mm", value: "100" },
-    { label: "150mm", value: "150" },
-    { label: "200mm", value: "200" },
-    { label: "250mm", value: "250" },
-    { label: "300mm", value: "300" },
-  ];
+  // Helper function to get block dimensions based on block type
+  const getBlockDimensionsByType = (blockType: string): string => {
+    const typeMapping: { [key: string]: string } = {
+      "Large Block": "0.2x0.2x0.2",
+      "Standard Block": "0.15x0.2x0.15",
+      "Small Block": "0.1x0.2x0.1",
+    };
+    return typeMapping[blockType] || "0.15x0.2x0.15"; // Default to Standard Block
+  };
 
   return (
     <motion.div
@@ -314,60 +312,13 @@ export default function FoundationWallingCalculator({
                           </div>
 
                           <div>
-                            <Label htmlFor={`${wall.id}-thickness`}>
-                              Block Thickness (mm)
-                            </Label>
-                            <Input
-                              id={`${wall.id}-thickness`}
-                              type="number"
-                              min="50"
-                              step="10"
-                              value={wall.blockThickness}
-                              onChange={(e) => {
-                                const thickness = e.target.value;
-                                const updates: any = {
-                                  blockThickness: thickness,
-                                };
-                                // Auto-update block dimensions when thickness changes
-                                const thicknessMm = parseFloat(thickness);
-                                const thicknessM = thicknessMm / 1000;
-
-                                // Find matching block dimensions
-                                const matchingDimension =
-                                  blockDimensionOptions.find((opt) => {
-                                    const parts = opt.value.split("x");
-                                    return parseFloat(parts[2]) === thicknessM;
-                                  });
-
-                                if (matchingDimension) {
-                                  updates.blockDimensions =
-                                    matchingDimension.value;
-                                }
-
-                                updateWall(wall.id, updates);
-                              }}
-                              className="mt-1"
-                              placeholder="e.g., 200"
-                            />
-                          </div>
-
-                          <div>
                             <Label htmlFor={`${wall.id}-dimensions`}>
                               Block Dimensions
                             </Label>
                             <Select
                               value={wall.blockDimensions}
                               onValueChange={(value) => {
-                                const updates: any = { blockDimensions: value };
-                                // Auto-update thickness when block dimensions change
-                                const parts = value.split("x");
-                                const thicknessM = parseFloat(parts[2]);
-                                const thicknessMm = Math.round(
-                                  thicknessM * 1000,
-                                );
-                                updates.blockThickness = thicknessMm.toString();
-
-                                updateWall(wall.id, updates);
+                                updateWall(wall.id, { blockDimensions: value });
                               }}
                             >
                               <SelectTrigger

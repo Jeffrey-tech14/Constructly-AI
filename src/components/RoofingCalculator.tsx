@@ -42,7 +42,6 @@ import useRoofingCalculator, {
   RoofStructure,
   RoofType,
   RoofMaterial,
-  TimberSize,
   UnderlaymentType,
   InsulationType,
   GutterType,
@@ -50,6 +49,7 @@ import useRoofingCalculator, {
   FlashingType,
   FasciaType,
   SoffitType,
+  TimberComponentType,
   estimateRoofArea,
 } from "@/hooks/useRoofingCalculator";
 import { MasonryQSSettings } from "@/hooks/useMasonryCalculatorNew";
@@ -76,13 +76,12 @@ const TIMBER_TREATMENTS = [
 ];
 
 const TIMBER_TYPES = [
-  { value: "rafter", label: "Rafter" },
+  { value: "raft", label: "Raft" },
   { value: "wall-plate", label: "Wall Plate" },
-  { value: "ridge-board", label: "Ridge Board" },
-  { value: "purlin", label: "Purlin" },
-  { value: "battens", label: "Battens" },
-  { value: "truss", label: "Truss" },
-  { value: "joist", label: "Joist" },
+  { value: "fascia-board", label: "Fascia Board" },
+  { value: "purlins", label: "Purlins" },
+  { value: "timber-battens", label: "Timber Battens" },
+  { value: "kingpost-tiebeam", label: "Kingpost/Tie Beam" },
 ];
 
 const UNDERLAYMENT_TYPES = [
@@ -140,35 +139,44 @@ const SOFFIT_TYPES = [
 export const DEFAULT_TIMBERS: RoofStructure["timbers"] = [
   {
     id: "1",
-    type: "rafter",
-    size: "75x50",
-    spacing: 600,
-    quantity: 10,
-    length: 4.5,
-    unit: "m",
+    type: "raft",
+    unitRate: 15, // kg/m² - raft timbers
     grade: "structural",
     treatment: "pressure-treated",
   },
   {
     id: "2",
     type: "wall-plate",
-    size: "100x50",
-    spacing: 0,
-    quantity: 2,
-    length: 8.0,
-    unit: "m",
+    unitRate: 8, // kg/m² - wall plate
     grade: "structural",
     treatment: "pressure-treated",
   },
   {
     id: "3",
-    type: "battens",
-    size: "50x25",
-    spacing: 300,
-    quantity: 50,
-    length: 3.0,
-    unit: "m",
+    type: "fascia-board",
+    unitRate: 5, // kg/m² - fascia board
     grade: "standard",
+    treatment: "pressure-treated",
+  },
+  {
+    id: "4",
+    type: "purlins",
+    unitRate: 12, // kg/m² - purlins
+    grade: "structural",
+    treatment: "pressure-treated",
+  },
+  {
+    id: "5",
+    type: "timber-battens",
+    unitRate: 6, // kg/m² - timber battens
+    grade: "standard",
+    treatment: "pressure-treated",
+  },
+  {
+    id: "6",
+    type: "kingpost-tiebeam",
+    unitRate: 10, // kg/m² - kingpost/tie beam
+    grade: "structural",
     treatment: "pressure-treated",
   },
 ];
@@ -195,16 +203,6 @@ const ROOF_MATERIALS: { value: RoofMaterial; label: string }[] = [
   { value: "membrane", label: "Membrane" },
 ];
 
-const TIMBER_SIZES: { value: TimberSize; label: string }[] = [
-  { value: "50x25", label: "50mm x 25mm" },
-  { value: "50x50", label: "50mm x 50mm" },
-  { value: "75x50", label: "75mm x 50mm" },
-  { value: "100x50", label: "100mm x 50mm" },
-  { value: "100x75", label: "100mm x 75mm" },
-  { value: "150x50", label: "150mm x 50mm" },
-  { value: "200x50", label: "200mm x 50mm" },
-];
-
 export default function RoofingCalculator({
   roofStructures,
   materialPrices,
@@ -224,7 +222,7 @@ export default function RoofingCalculator({
         qsSettings: newSettings,
       }));
     },
-    [setQuoteData]
+    [setQuoteData],
   );
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -305,7 +303,7 @@ export default function RoofingCalculator({
         editForm.width,
         editForm.type,
         editForm.pitch,
-        editForm.eavesOverhang
+        editForm.eavesOverhang,
       );
       setEditForm((prev) => (prev ? { ...prev, area: calculatedArea } : null));
     }
@@ -320,13 +318,13 @@ export default function RoofingCalculator({
         editForm.width,
         editForm.type,
         editForm.pitch,
-        editForm.eavesOverhang
+        editForm.eavesOverhang,
       );
       setEditForm((prev) => (prev ? { ...prev, area: calculatedArea } : null));
     }
 
     const updatedRoofs = roofStructures.map((roof) =>
-      roof.id === editingId ? editForm : roof
+      roof.id === editingId ? editForm : roof,
     );
 
     if (onRoofStructuresUpdate) {
@@ -351,6 +349,124 @@ export default function RoofingCalculator({
     }
   };
 
+  // Calculate ridge height from pitch and span
+  const calculateRidgeHeight = useCallback(
+    (pitchDegrees: number, span: number): number => {
+      const pitchRadians = (pitchDegrees * Math.PI) / 180;
+      return (span / 2) * Math.tan(pitchRadians);
+    },
+    [],
+  );
+
+  // Calculate pitch ratio from pitch angle
+  const calculatePitchRatio = useCallback((pitchDegrees: number): string => {
+    const pitchRadians = (pitchDegrees * Math.PI) / 180;
+    const rise = Math.round(12 * Math.tan(pitchRadians) * 100) / 100;
+    return `${rise}:12`;
+  }, []);
+
+  // Calculate ridge length based on roof type
+  const calculateRidgeLength = useCallback(
+    (
+      roofType: RoofType,
+      length: number,
+      width: number,
+      pitch: number,
+    ): number => {
+      const pitchRadians = (pitch * Math.PI) / 180;
+
+      switch (roofType) {
+        case "gable":
+        case "butterfly":
+          return length;
+        case "hip":
+        case "mansard":
+          return Math.max(0, length - width);
+        case "skillion":
+        case "flat":
+          return 0;
+        case "pitched":
+          return length;
+        default:
+          return length;
+      }
+    },
+    [],
+  );
+
+  // Calculate hip length for hip roofs
+  const calculateHipLength = useCallback(
+    (roofType: RoofType, width: number, pitch: number): number => {
+      if (roofType !== "hip" && roofType !== "mansard") return 0;
+
+      const pitchRadians = (pitch * Math.PI) / 180;
+      const rise = (width / 2) * Math.tan(pitchRadians);
+
+      return Math.sqrt(Math.pow(width / 2, 2) + Math.pow(rise, 2));
+    },
+    [],
+  );
+
+  // Calculate valley length for valley roofs
+  const calculateValleyLength = useCallback(
+    (roofType: RoofType, width: number, pitch: number): number => {
+      if (roofType !== "butterfly") return 0;
+
+      const pitchRadians = (pitch * Math.PI) / 180;
+      const rise = (width / 2) * Math.tan(pitchRadians);
+
+      return Math.sqrt(Math.pow(width / 2, 2) + Math.pow(rise, 2));
+    },
+    [],
+  );
+
+  // Auto-update calculated fields when dependencies change
+  useEffect(() => {
+    if (!editForm) return;
+
+    const ridgeHeight = calculateRidgeHeight(editForm.pitch, editForm.width);
+    const pitchRatio = calculatePitchRatio(editForm.pitch);
+    const ridgeLength = calculateRidgeLength(
+      editForm.type,
+      editForm.length,
+      editForm.width,
+      editForm.pitch,
+    );
+    const hipLength = calculateHipLength(
+      editForm.type,
+      editForm.width,
+      editForm.pitch,
+    );
+    const valleyLength = calculateValleyLength(
+      editForm.type,
+      editForm.width,
+      editForm.pitch,
+    );
+
+    setEditForm((prev) =>
+      prev
+        ? {
+            ...prev,
+            ridgeHeight,
+            pitchRatio,
+            ridgeLength,
+            hipLength,
+            valleyLength,
+          }
+        : null,
+    );
+  }, [
+    editForm?.pitch,
+    editForm?.width,
+    editForm?.length,
+    editForm?.type,
+    calculateRidgeHeight,
+    calculatePitchRatio,
+    calculateRidgeLength,
+    calculateHipLength,
+    calculateValleyLength,
+  ]);
+
   const handleEditFormChange = (field: keyof RoofStructure, value: any) => {
     if (!editForm) return;
     setEditForm((prev) => (prev ? { ...prev, [field]: value } : null));
@@ -359,12 +475,12 @@ export default function RoofingCalculator({
   const handleTimberChange = (
     timberId: string,
     field: keyof RoofStructure["timbers"][0],
-    value: any
+    value: any,
   ) => {
     if (!editForm) return;
 
     const updatedTimbers = editForm.timbers.map((timber) =>
-      timber.id === timberId ? { ...timber, [field]: value } : timber
+      timber.id === timberId ? { ...timber, [field]: value } : timber,
     );
 
     setEditForm((prev) => (prev ? { ...prev, timbers: updatedTimbers } : null));
@@ -379,7 +495,7 @@ export default function RoofingCalculator({
 
   const handleCoveringChange = (
     field: keyof RoofStructure["covering"],
-    value: any
+    value: any,
   ) => {
     if (!editForm) return;
 
@@ -392,13 +508,13 @@ export default function RoofingCalculator({
               [field]: value,
             },
           }
-        : null
+        : null,
     );
   };
 
   const handleInsulationChange = (
     field: keyof { type: string; thickness: number },
-    value: any
+    value: any,
   ) => {
     if (!editForm) return;
 
@@ -414,13 +530,13 @@ export default function RoofingCalculator({
               } as any,
             },
           }
-        : null
+        : null,
     );
   };
 
   const handleAccessoryChange = (
     field: keyof RoofStructure["accessories"],
-    value: any
+    value: any,
   ) => {
     if (!editForm) return;
 
@@ -433,7 +549,7 @@ export default function RoofingCalculator({
               [field]: value,
             } as any,
           }
-        : null
+        : null,
     );
   };
 
@@ -477,7 +593,7 @@ export default function RoofingCalculator({
       "Type",
       "Material",
       "Area",
-      "Timber Volume",
+      "Timber Weight (kg)",
       "Covering Area",
       "Wastage %",
       "Extra Items",
@@ -490,7 +606,7 @@ export default function RoofingCalculator({
       calc.type,
       calc.material,
       calc.area,
-      calc.totalTimberVolume,
+      calc.totalTimberWeightKg || 0,
       calc.coveringArea,
       calc.wastage.percentage * 100,
       calc.wastage.totalWastageItems,
@@ -521,11 +637,20 @@ export default function RoofingCalculator({
         editForm.width,
         editForm.type,
         editForm.pitch,
-        editForm.eavesOverhang
+        editForm.eavesOverhang,
       );
       setEditForm((prev) => (prev ? { ...prev, area: calculatedArea } : null));
     }
   };
+  useEffect(() => {
+    calculateAutoArea();
+  }, [
+    editForm?.length,
+    editForm?.width,
+    editForm?.type,
+    editForm?.pitch,
+    editForm?.eavesOverhang,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -546,11 +671,11 @@ export default function RoofingCalculator({
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Timber Volume</CardTitle>
+            <CardTitle className="text-sm font-medium">Timber Weight</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatVolume(totals.totalTimberVolume)}
+              {(totals.totalTimberVolume || 0).toFixed(1)} kg
             </div>
           </CardContent>
         </Card>
@@ -742,7 +867,7 @@ export default function RoofingCalculator({
                       onChange={(e) =>
                         handleEditFormChange(
                           "length",
-                          parseFloat(e.target.value) || 0
+                          parseFloat(e.target.value) || 0,
                         )
                       }
                     />
@@ -759,7 +884,7 @@ export default function RoofingCalculator({
                       onChange={(e) =>
                         handleEditFormChange(
                           "width",
-                          parseFloat(e.target.value) || 0
+                          parseFloat(e.target.value) || 0,
                         )
                       }
                     />
@@ -776,28 +901,92 @@ export default function RoofingCalculator({
                       onChange={(e) =>
                         handleEditFormChange(
                           "pitch",
-                          parseFloat(e.target.value) || 0
+                          parseFloat(e.target.value) || 0,
                         )
                       }
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-eaves">Eaves Overhang (m)</Label>
+                    <Label htmlFor="edit-pitch-ratio">Pitch Ratio</Label>
                     <Input
-                      id="edit-eaves"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={editForm.eavesOverhang}
-                      onChange={(e) =>
-                        handleEditFormChange(
-                          "eavesOverhang",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
+                      id="edit-pitch-ratio"
+                      type="text"
+                      disabled
+                      value={editForm.pitchRatio || "—"}
+                      className="bg-gray-100 dark:bg-gray-800"
                     />
                   </div>
+
+                  <div>
+                    <Label htmlFor="edit-ridge-height">Ridge Height (m)</Label>
+                    <Input
+                      id="edit-ridge-height"
+                      type="number"
+                      disabled
+                      value={(editForm.ridgeHeight || 0).toFixed(2)}
+                      className="bg-gray-100 dark:bg-gray-800"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-orientation">Roof Orientation</Label>
+                    <Select
+                      value={editForm.orientation || "north"}
+                      onValueChange={(
+                        value: "north" | "south" | "east" | "west",
+                      ) => handleEditFormChange("orientation", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="north">North</SelectItem>
+                        <SelectItem value="south">South</SelectItem>
+                        <SelectItem value="east">East</SelectItem>
+                        <SelectItem value="west">West</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-ridge-length">Ridge Length (m)</Label>
+                    <Input
+                      id="edit-ridge-length"
+                      type="number"
+                      disabled
+                      value={(editForm.ridgeLength || 0).toFixed(2)}
+                      className="bg-gray-100 dark:bg-gray-800"
+                    />
+                  </div>
+
+                  {editForm.type === "hip" || editForm.type === "mansard" ? (
+                    <div>
+                      <Label htmlFor="edit-hip-length">Hip Length (m)</Label>
+                      <Input
+                        id="edit-hip-length"
+                        type="number"
+                        disabled
+                        value={(editForm.hipLength || 0).toFixed(2)}
+                        className="bg-gray-100 dark:bg-gray-800"
+                      />
+                    </div>
+                  ) : null}
+
+                  {editForm.type === "butterfly" ? (
+                    <div>
+                      <Label htmlFor="edit-valley-length">
+                        Valley Length (m)
+                      </Label>
+                      <Input
+                        id="edit-valley-length"
+                        type="number"
+                        disabled
+                        value={(editForm.valleyLength || 0).toFixed(2)}
+                        className="bg-gray-100 dark:bg-gray-800"
+                      />
+                    </div>
+                  ) : null}
 
                   <div>
                     <Label htmlFor="edit-area">Area (m²)</Label>
@@ -811,7 +1000,7 @@ export default function RoofingCalculator({
                         onChange={(e) =>
                           handleEditFormChange(
                             "area",
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
                           )
                         }
                       />
@@ -828,7 +1017,7 @@ export default function RoofingCalculator({
                 </div>
 
                 {/* Lump-Sum Option */}
-                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border">
+                <div className="space-y-4 p-4 border">
                   <div className="flex items-center gap-3">
                     <Checkbox
                       id="edit-lump-sum"
@@ -859,7 +1048,7 @@ export default function RoofingCalculator({
                         onChange={(e) =>
                           handleEditFormChange(
                             "lumpSumAmount",
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
                           )
                         }
                         placeholder="Enter fixed amount"
@@ -879,10 +1068,10 @@ export default function RoofingCalculator({
                         {editForm.timbers.map((timber) => (
                           <div
                             key={timber.id}
-                            className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg"
+                            className="grid grid-cols-1 md:grid-cols-5 gap-3 p-3 border rounded-lg"
                           >
                             <div>
-                              <Label>Type</Label>
+                              <Label>Component Type</Label>
                               <Select
                                 value={timber.type}
                                 onValueChange={(value) =>
@@ -905,27 +1094,20 @@ export default function RoofingCalculator({
                               </Select>
                             </div>
                             <div>
-                              <Label>Size</Label>
-                              <Select
-                                value={timber.size}
-                                onValueChange={(value: TimberSize) =>
-                                  handleTimberChange(timber.id, "size", value)
+                              <Label>Unit Rate (kg/m²)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                value={timber.unitRate}
+                                onChange={(e) =>
+                                  handleTimberChange(
+                                    timber.id,
+                                    "unitRate",
+                                    parseFloat(e.target.value) || 0,
+                                  )
                                 }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TIMBER_SIZES.map((size) => (
-                                    <SelectItem
-                                      key={size.value}
-                                      value={size.value}
-                                    >
-                                      {size.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              />
                             </div>
                             <div>
                               <Label>Grade</Label>
@@ -958,7 +1140,7 @@ export default function RoofingCalculator({
                                   handleTimberChange(
                                     timber.id,
                                     "treatment",
-                                    value
+                                    value,
                                   )
                                 }
                               >
@@ -978,39 +1160,45 @@ export default function RoofingCalculator({
                               </Select>
                             </div>
                             <div>
-                              <Label>Spacing (mm)</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                value={timber.spacing}
-                                onChange={(e) =>
-                                  handleTimberChange(
-                                    timber.id,
-                                    "spacing",
-                                    parseInt(e.target.value) || 0
-                                  )
-                                }
-                              />
-                            </div>
-                            <div>
-                              <Label>Length (m)</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.1"
-                                value={timber.length}
-                                onChange={(e) =>
-                                  handleTimberChange(
-                                    timber.id,
-                                    "length",
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
-                              />
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  handleEditFormChange(
+                                    "timbers",
+                                    editForm.timbers.filter(
+                                      (t) => t.id !== timber.id,
+                                    ),
+                                  );
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         ))}
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newTimber = {
+                            id: `timber-${Date.now()}`,
+                            type: "raft" as TimberComponentType,
+                            unitRate: 15,
+                            grade: "structural",
+                            treatment: "pressure-treated",
+                          };
+                          handleEditFormChange("timbers", [
+                            ...editForm.timbers,
+                            newTimber,
+                          ]);
+                        }}
+                        className="mt-2"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Timber Component
+                      </Button>
                     </div>
 
                     {/* Underlayment and Insulation Section */}
@@ -1069,18 +1257,20 @@ export default function RoofingCalculator({
 
                         <div>
                           <Label htmlFor="edit-insulation-thickness">
-                            Insulation Thickness (m)
+                            Insulation Thickness (mm)
                           </Label>
                           <Input
                             id="edit-insulation-thickness"
                             type="number"
                             min="0"
                             step="10"
-                            value={editForm.covering.insulation?.thickness || 5}
+                            value={
+                              editForm.covering.insulation?.thickness || 50
+                            }
                             onChange={(e) =>
                               handleInsulationChange(
                                 "thickness",
-                                parseFloat(e.target.value) || 0
+                                parseFloat(e.target.value) || 0,
                               )
                             }
                           />
@@ -1105,7 +1295,7 @@ export default function RoofingCalculator({
                               onChange={(e) =>
                                 handleAccessoryChange(
                                   "gutters",
-                                  parseFloat(e.target.value) || 0
+                                  parseFloat(e.target.value) || 0,
                                 )
                               }
                               placeholder="Length in meters"
@@ -1144,7 +1334,7 @@ export default function RoofingCalculator({
                               onChange={(e) =>
                                 handleAccessoryChange(
                                   "downpipes",
-                                  parseFloat(e.target.value) || 0
+                                  parseFloat(e.target.value) || 0,
                                 )
                               }
                               placeholder="Number of pieces"
@@ -1185,7 +1375,7 @@ export default function RoofingCalculator({
                               onChange={(e) =>
                                 handleAccessoryChange(
                                   "flashings",
-                                  parseFloat(e.target.value) || 0
+                                  parseFloat(e.target.value) || 0,
                                 )
                               }
                               placeholder="Length in meters"
@@ -1226,7 +1416,7 @@ export default function RoofingCalculator({
                               onChange={(e) =>
                                 handleAccessoryChange(
                                   "fascia",
-                                  parseFloat(e.target.value) || 0
+                                  parseFloat(e.target.value) || 0,
                                 )
                               }
                               placeholder="Length in meters"
@@ -1265,7 +1455,7 @@ export default function RoofingCalculator({
                               onChange={(e) =>
                                 handleAccessoryChange(
                                   "soffit",
-                                  parseFloat(e.target.value) || 0
+                                  parseFloat(e.target.value) || 0,
                                 )
                               }
                               placeholder="Length in meters"
@@ -1305,7 +1495,7 @@ export default function RoofingCalculator({
                             onChange={(e) =>
                               handleAccessoryChange(
                                 "ridgeCaps",
-                                parseFloat(e.target.value) || 0
+                                parseFloat(e.target.value) || 0,
                               )
                             }
                           />
@@ -1323,7 +1513,7 @@ export default function RoofingCalculator({
                             onChange={(e) =>
                               handleAccessoryChange(
                                 "valleyTrays",
-                                parseFloat(e.target.value) || 0
+                                parseFloat(e.target.value) || 0,
                               )
                             }
                           />
@@ -1352,7 +1542,9 @@ export default function RoofingCalculator({
                   <TableHead>Type</TableHead>
                   <TableHead>Material</TableHead>
                   <TableHead className="text-right">Area</TableHead>
-                  <TableHead className="text-right">Timber</TableHead>
+                  <TableHead className="text-right">
+                    Timber Weight (kg)
+                  </TableHead>
                   <TableHead className="text-right">Covering</TableHead>
                   <TableHead className="text-right">Material Cost</TableHead>
                   <TableHead className="text-right">Total Cost</TableHead>
@@ -1396,7 +1588,7 @@ export default function RoofingCalculator({
                         {formatArea(calc.area)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatVolume(calc.totalTimberVolume)}
+                        {(calc.totalTimberWeightKg || 0).toFixed(1)} kg
                       </TableCell>
                       <TableCell className="text-right">
                         {formatArea(calc.coveringArea)}

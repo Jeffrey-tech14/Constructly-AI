@@ -146,7 +146,7 @@ const makeDefaultRow = (): RebarRow => ({
   stemVerticalSpacing: "150",
   stemHorizontalSpacing: "200",
 
-  steelIntensityKgPerM3: "80",
+  steelIntensityKgPerM3: DEFAULT_STEEL_INTENSITIES["slab"].toString(),
 });
 
 // Create a ground floor slab row with BRC A98 mesh as default
@@ -334,7 +334,6 @@ export default function RebarCalculatorForm({
 }: Props) {
   const rows = quote?.rebar_rows || [];
   const bbsRows = quote?.bar_schedule || [];
-  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const { profile } = useAuth();
   const [rowsState, setRowsState] = useState<RebarRow[]>(rows);
   const [bbsRowsState, setBBSRowsState] = useState<BBSRow[]>(bbsRows);
@@ -517,9 +516,36 @@ export default function RebarCalculatorForm({
   /**
    * Find concrete row matching the rebar element
    */
-  const findMatchingConcreteRow = (elementType: ElementTypes): any => {
+  const findMatchingConcreteRow = (
+    elementType: ElementTypes,
+    rebarRowName?: string,
+  ): any => {
     const concreteRows = quote?.concrete_rows || [];
     const concreteElement = mapRebarElementToConcrete(elementType);
+
+    // For strip footings, match by element type AND internal/external naming pattern
+    if (elementType === "strip-footing" && rebarRowName) {
+      const nameLower = rebarRowName.toLowerCase();
+      const isInternal = nameLower.includes("internal");
+      const isExternal = nameLower.includes("external");
+
+      // Find matching strip-footing concrete row with same internal/external pattern
+      return concreteRows.find((row: any) => {
+        if (row.element !== concreteElement) return false;
+
+        const concreteNameLower = (row.name || "").toLowerCase();
+        const concreteIsInternal = concreteNameLower.includes("internal");
+        const concreteIsExternal = concreteNameLower.includes("external");
+
+        // Match if both have same internal/external designation
+        return (
+          (isInternal && concreteIsInternal) ||
+          (isExternal && concreteIsExternal)
+        );
+      });
+    }
+
+    // For non-strip-footing elements, use simple element type matching
     return concreteRows.find((row: any) => row.element === concreteElement);
   };
 
@@ -548,8 +574,8 @@ export default function RebarCalculatorForm({
    * Finds matching concrete row and calculates volume
    */
   const autoFillConcreteVolume = useCallback(
-    (rowId: string, element: ElementTypes) => {
-      const concreteRow = findMatchingConcreteRow(element);
+    (rowId: string, element: ElementTypes, rowName?: string) => {
+      const concreteRow = findMatchingConcreteRow(element, rowName);
 
       if (!concreteRow) {
         console.log(`No matching concrete row found for element: ${element}`);
@@ -618,13 +644,14 @@ export default function RebarCalculatorForm({
   useEffect(() => {
     rowsState.forEach((row) => {
       if (row.rebarCalculationMode === "NORMAL_REBAR_MODE") {
-        autoFillConcreteVolume(row.id, row.element);
+        autoFillConcreteVolume(row.id, row.element, row.name);
       }
     });
   }, [
     rowsState.length,
     rowsState.map((r) => r.element).join(","),
     rowsState.map((r) => r.rebarCalculationMode).join(","),
+    rowsState.map((r) => r.name).join(","),
   ]);
 
   const { results, totals } = useRebarCalculator(
@@ -634,6 +661,33 @@ export default function RebarCalculatorForm({
   );
 
   const prices = useRebarPrices(profile?.location || "Nairobi");
+
+  /**
+   * Auto-fill steel intensity based on element type
+   */
+  useEffect(() => {
+    setRowsState((prevRows) => {
+      let updated = false;
+      const newRows = prevRows.map((row) => {
+        // Auto-fill steel intensity if not already set
+        if (!row.steelIntensityKgPerM3 || row.steelIntensityKgPerM3 === "") {
+          updated = true;
+          return {
+            ...row,
+            steelIntensityKgPerM3:
+              DEFAULT_STEEL_INTENSITIES[row.element].toString(),
+          };
+        }
+        return row;
+      });
+
+      if (updated) {
+        pushRowsDebounced(newRows);
+      }
+
+      return newRows;
+    });
+  }, [rowsState.map((r) => r.element).join(","), pushRowsDebounced]);
 
   useEffect(() => {
     const rebarItems = results.flatMap((r) => {
@@ -1274,7 +1328,7 @@ export default function RebarCalculatorForm({
                         updateRow(row.id, "element", element);
                         // Auto-fill concrete volume if using intensity mode
                         if (row.rebarCalculationMode === "NORMAL_REBAR_MODE") {
-                          autoFillConcreteVolume(row.id, element);
+                          autoFillConcreteVolume(row.id, element, row.name);
                         }
                       }}
                     >
@@ -1336,7 +1390,7 @@ export default function RebarCalculatorForm({
                         updateRow(row.id, "rebarCalculationMode", mode);
                         // Auto-fill concrete volume when switching to intensity mode
                         if (mode === "NORMAL_REBAR_MODE") {
-                          autoFillConcreteVolume(row.id, row.element);
+                          autoFillConcreteVolume(row.id, row.element, row.name);
                         }
                       }}
                     >
@@ -1556,10 +1610,7 @@ export default function RebarCalculatorForm({
                         min={INTENSITY_BOUNDS.min}
                         max={INTENSITY_BOUNDS.max}
                         step="5"
-                        value={
-                          row.steelIntensityKgPerM3 ||
-                          DEFAULT_STEEL_INTENSITIES[row.element]
-                        }
+                        value={row.steelIntensityKgPerM3}
                         onChange={(e) =>
                           updateRow(
                             row.id,

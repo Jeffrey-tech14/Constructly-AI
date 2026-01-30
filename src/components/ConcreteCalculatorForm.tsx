@@ -471,77 +471,6 @@ export default function ConcreteCalculatorForm({
     });
   }, [quote, rows, pushRowsDebounced]);
 
-  /**
-   * Auto-calculate return fill depth for strip footings
-   * Formula: Excavation depth - footing thickness
-   */
-  useEffect(() => {
-    setRows((prevRows) => {
-      let updated = false;
-      const blockDimensionsMap: { [key: string]: string } = {
-        "Large Block": "0.2x0.2x0.2",
-        "Standard Block": "0.15x0.2x0.15",
-        "Small Block": "0.1x0.2x0.1",
-      };
-
-      const newRows = prevRows.map((row) => {
-        // Only apply to strip footings that have hasReturnFill enabled
-        if (row.element === "strip-footing" && row.hasReturnFill) {
-          // Get excavation depth from foundation details
-          const excavationDepth =
-            parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
-
-          // Get footing thickness from block type mapping
-          const nameLower = row.name.toLowerCase();
-          const isInternal = nameLower.includes("internal");
-          const isExternal = nameLower.includes("external");
-          const wallType = isInternal
-            ? "internal"
-            : isExternal
-              ? "external"
-              : row.wallType;
-
-          let footingThickness = 0;
-          if (wallType && quote?.wallSections) {
-            const wallSection = quote.wallSections.find(
-              (w: any) => w.type === wallType,
-            );
-            if (wallSection) {
-              const blockType = wallSection.blockType || "Standard Block";
-              const blockDimensions =
-                blockDimensionsMap[blockType] || "0.15x0.2x0.15";
-              const dims = blockDimensions
-                .split("x")
-                .map((d: string) => parseFloat(d.trim()));
-              footingThickness = dims.length >= 3 ? dims[2] : 0.15;
-            }
-          }
-
-          // Calculate return fill depth
-          const returnFillDepth = Math.max(
-            0,
-            excavationDepth - footingThickness,
-          ).toString();
-
-          if (row.returnFillDepth !== returnFillDepth) {
-            updated = true;
-            return {
-              ...row,
-              returnFillDepth,
-            };
-          }
-        }
-        return row;
-      });
-
-      if (updated) {
-        pushRowsDebounced(newRows);
-      }
-
-      return newRows;
-    });
-  }, [quote?.foundationDetails, rows, quote?.wallSections, pushRowsDebounced]);
-
   const { results, totals, calculateConcreteRateForRow } =
     useConcreteCalculator(rows, materials, qsSettings, quote);
 
@@ -1752,19 +1681,6 @@ export default function ConcreteCalculatorForm({
         });
       }
 
-      if (r.returnFillCost && r.returnFillCost > 0) {
-        const fillMaterial = materials.find((m) =>
-          m.name?.toLowerCase().includes("backfill"),
-        );
-        rowItems.push({
-          rowId: r.id,
-          name: `Return Fill (${r.name})`,
-          quantity: r.returnFillVolume || 0,
-          unit_price: fillMaterial?.price || 0,
-          total_price: Math.round(r.returnFillCost),
-        });
-      }
-
       if (r.backFillCost && r.backFillCost > 0) {
         const fillMaterial = materials.find((m) =>
           m.name?.toLowerCase().includes("backfill"),
@@ -2433,40 +2349,6 @@ export default function ConcreteCalculatorForm({
                 </div> */}
 
                 {renderSteppedFoundation(row)}
-
-                {/* Return Fill */}
-                <div className="space-y-2 p-3 rounded-md">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`returnfill-${row.id}`}
-                      checked={row.hasReturnFill || false}
-                      onCheckedChange={(checked) =>
-                        updateRow(row.id, "hasReturnFill", checked === true)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label
-                      htmlFor={`returnfill-${row.id}`}
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Return Fill
-                    </Label>
-                  </div>
-
-                  {row.hasReturnFill && (
-                    <Input
-                      type="number"
-                      value={row.returnFillDepth || ""}
-                      onChange={(e) =>
-                        updateRow(row.id, "returnFillDepth", e.target.value)
-                      }
-                      placeholder="Return fill depth (m)"
-                      step="0.05"
-                      min="0.05"
-                      max="1"
-                    />
-                  )}
-                </div>
               </div>
             )}
 
@@ -2718,13 +2600,6 @@ export default function ConcreteCalculatorForm({
           <p>
             <b>Total Compaction:</b> {totals.compactionArea?.toFixed(2)} m² —{" "}
             <b>Ksh {Math.round(totals.compactionCost).toLocaleString()}</b>
-          </p>
-        )}
-
-        {totals.returnFillCost > 0 && (
-          <p>
-            <b>Total Return Fill:</b> {totals.returnFillVolume?.toFixed(3)} m³ —{" "}
-            <b>Ksh {Math.round(totals.returnFillCost).toLocaleString()}</b>
           </p>
         )}
 

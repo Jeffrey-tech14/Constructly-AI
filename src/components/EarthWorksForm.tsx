@@ -200,12 +200,20 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
           wallLocation: "external",
         };
 
-        // Create topsoil excavation item for total area at 200mm depth
+        // Get ground floor slab area from concrete rows
+        const groundFloorSlab = quote.concrete_rows?.find(
+          (f: any) =>
+            f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+        );
+        const slabArea = groundFloorSlab?.slabArea?.toString();
+        ("0");
+
+        // Create topsoil excavation item linked to ground floor slab at 200mm depth
         const topsoilVolume = calculateVolume(
           "0",
           "0",
           "0.2",
-          quote.total_area?.toString(),
+          slabArea,
           "DIRECT_AREA",
           "topsoil-removal",
         );
@@ -218,7 +226,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
           volume: topsoilVolume,
           material: "soil",
           cost: parseFloat(topsoilVolume) * getEarthworkRate(),
-          area: quote.total_area?.toString(),
+          area: slabArea,
           areaSelectionMode: "DIRECT_AREA",
           foundationType: "general",
         };
@@ -226,131 +234,72 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
         setEarthworks([internalItem, externalItem, topsoilItem]);
       }
     }
-  }, [
-    quote?.house_type,
-    quote?.total_area,
-    quote?.concrete_rows,
-    quote?.wallDimensions,
-    quote,
-  ]);
+  }, [quote?.house_type, quote?.concrete_rows, quote?.wallDimensions, quote]);
 
-  // Update existing internal/external wall items when wall dimensions or thickness change
+  // Update topsoil area when ground floor slab area changes, and update ground floor slab when topsoil area changes
   useEffect(() => {
-    if (
-      earthworks.length > 0 &&
-      quote &&
-      quote.wallDimensions &&
-      quote.wallDimensions.externalWallPerimiter &&
-      quote.wallDimensions.internalWallPerimiter
-    ) {
-      const dims = quote.wallDimensions;
-      // Map block type to dimensions
-      const blockDimensionsMap: { [key: string]: string } = {
-        "Large Block": "0.2x0.2x0.2",
-        "Standard Block": "0.15x0.2x0.15",
-        "Small Block": "0.1x0.2x0.1",
-      };
-      // Extract thickness from blockDimensions "LxHxT" format using blockType
-      const getWallThickness = (wallType: string): number => {
-        const wall = quote.wallSections?.find((s: any) => s.type === wallType);
-        // Get block dimensions from blockType mapping
-        const blockType = wall?.blockType || "Standard Block";
-        const blockDimensions =
-          blockDimensionsMap[blockType] || "0.15x0.2x0.15";
-        const parts = blockDimensions
-          .split("x")
-          .map((p: string) => parseFloat(p.trim()));
-        return parts.length >= 3 ? parts[2] : 0.2;
-      };
-      const internalWallThickness = getWallThickness("internal");
-      const externalWallThickness = getWallThickness("external");
-      const excavationDepth =
-        parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
+    if (earthworks.length > 0 && quote) {
+      const topsoilIdx = earthworks.findIndex(
+        (e) => e.type === "topsoil-removal",
+      );
+      const groundFloorSlab = quote.concrete_rows?.find(
+        (f: any) =>
+          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+      );
+      const slabArea = groundFloorSlab?.slabArea?.toString();
 
-      setEarthworks((prev: EarthworkItem[]) => {
-        const updated = [...prev];
-
-        // Find and update internal wall item
-        const internalIdx = updated.findIndex(
-          (e) =>
-            e.foundationType === "strip_footing" &&
-            e.wallLocation === "internal",
+      if (
+        topsoilIdx >= 0 &&
+        slabArea &&
+        earthworks[topsoilIdx].area !== slabArea
+      ) {
+        // Update topsoil area if slab area changed
+        const topsoilVolume = calculateVolume(
+          "0",
+          "0",
+          "0.2",
+          slabArea,
+          "DIRECT_AREA",
+          "topsoil-removal",
         );
-        if (internalIdx >= 0) {
-          const internalVolume = calculateVolume(
-            dims.internalWallPerimiter.toString(),
-            (internalWallThickness * 3).toString(),
-            excavationDepth.toString(),
-            undefined,
-            "LENGTH_WIDTH",
-            "foundation-excavation",
-          );
-          updated[internalIdx] = {
-            ...updated[internalIdx],
-            length: dims.internalWallPerimiter.toString(),
-            width: (internalWallThickness * 3).toString(),
-            depth: excavationDepth.toString(),
-            volume: internalVolume,
-            cost: parseFloat(internalVolume) * getEarthworkRate(),
-          };
-        }
-
-        // Find and update external wall item
-        const externalIdx = updated.findIndex(
-          (e) =>
-            e.foundationType === "strip_footing" &&
-            e.wallLocation === "external",
-        );
-        if (externalIdx >= 0) {
-          const externalVolume = calculateVolume(
-            dims.externalWallPerimiter.toString(),
-            (externalWallThickness * 3).toString(),
-            excavationDepth.toString(),
-            undefined,
-            "LENGTH_WIDTH",
-            "foundation-excavation",
-          );
-          updated[externalIdx] = {
-            ...updated[externalIdx],
-            length: dims.externalWallPerimiter.toString(),
-            width: (externalWallThickness * 3).toString(),
-            depth: excavationDepth.toString(),
-            volume: externalVolume,
-            cost: parseFloat(externalVolume) * getEarthworkRate(),
-          };
-        }
-
-        // Find and update topsoil item
-        const topsoilIdx = updated.findIndex(
-          (e) => e.type === "topsoil-removal",
-        );
-        if (topsoilIdx >= 0) {
-          const topsoilVolume = calculateVolume(
-            "0",
-            "0",
-            "0.2",
-            quote.total_area?.toString(),
-            "DIRECT_AREA",
-            "topsoil-removal",
-          );
+        setEarthworks((prev: EarthworkItem[]) => {
+          const updated = [...prev];
           updated[topsoilIdx] = {
             ...updated[topsoilIdx],
-            area: quote.total_area?.toString(),
+            area: slabArea,
             volume: topsoilVolume,
             cost: parseFloat(topsoilVolume) * getEarthworkRate(),
           };
-        }
-
-        return updated;
-      });
+          return updated;
+        });
+      }
     }
-  }, [
-    quote?.wallDimensions?.externalWallPerimiter,
-    quote?.wallDimensions?.internalWallPerimiter,
-    quote?.wallSection,
-    quote?.foundationDetails?.[0]?.height,
-    quote?.total_area,
-  ]);
+  }, [quote?.concrete_rows]);
+  // Also sync topsoil area back to ground floor slab when topsoil is updated
+  useEffect(() => {
+    const topsoilItem = earthworks.find((e) => e.type === "topsoil-removal");
+    const groundFloorSlab = quote?.concrete_rows?.find(
+      (f: any) =>
+        f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+    );
+
+    if (
+      topsoilItem &&
+      groundFloorSlab &&
+      topsoilItem.area &&
+      topsoilItem.area !== groundFloorSlab.slabArea?.toString() &&
+      setQuote
+    ) {
+      setQuote((prev: any) => ({
+        ...prev,
+        concrete_rows: prev.concrete_rows.map((row: any) =>
+          row.id === groundFloorSlab.id
+            ? { ...row, slabArea: topsoilItem.area }
+            : row,
+        ),
+      }));
+    }
+  }, [earthworks.find((e) => e.type === "topsoil-removal")?.area]);
 
   // Calculate price for an earthwork item
   const calculatePrice = (item: EarthworkItem): number => {
@@ -397,6 +346,25 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
             // Update cost when volume changes
             updatedItem.cost =
               parseFloat(updatedItem.volume) * getEarthworkRate();
+
+            // If updating topsoil area, sync it back to ground floor slab in concrete
+            if (item.type === "topsoil-removal" && field === "area") {
+              const groundFloorSlab = quote?.concrete_rows?.find(
+                (f: any) =>
+                  f.element === "slab" &&
+                  f.name?.toLowerCase().includes("ground"),
+              );
+              if (groundFloorSlab && setQuote) {
+                setQuote((prev: any) => ({
+                  ...prev,
+                  concrete_rows: prev.concrete_rows.map((row: any) =>
+                    row.id === groundFloorSlab.id
+                      ? { ...row, slabArea: value }
+                      : row,
+                  ),
+                }));
+              }
+            }
           }
 
           return updatedItem;

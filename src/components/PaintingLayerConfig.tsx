@@ -64,33 +64,65 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
   );
 
   return (
-    <div className="space-y-4">
-      {/* Card 1: Location & Area - Collapsible */}
-      <Card>
-        <div
-          onClick={() => toggleSection("location")}
-          className="p-6 cursor-pointer hover:bg-white/10 rounded-3xl transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold flex items-center gap-2">
-              {isLocationComplete ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-              ) : (
-                <Circle className="w-5 h-5" />
+    <Card>
+      {/* Header with Title and Delete Button */}
+      <div className="p-6 border-b flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">
+            {painting.location || "New Painting Surface"}
+          </h3>
+          {painting.surfaceArea > 0 && (
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              {painting.surfaceArea.toFixed(2)} m²
+              {painting.calculations?.finishing && (
+                <span className="ml-3 font-semibold">
+                  Ksh
+                  {(
+                    painting.calculations.finishing.totalCostWithWastage || 0
+                  ).toFixed(2)}
+                </span>
               )}
-              Location & Area
-            </h3>
-            <ChevronDown
-              className={`w-5 h-5 transition-transform duration-200 ${
-                expandedSections.location ? "" : "-rotate-90"
-              }`}
-            />
-          </div>
+            </p>
+          )}
         </div>
+        {onDelete && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onDelete}
+            className="h-8 w-8 p-0"
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
 
-        {expandedSections.location && (
-          <CardContent className="pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="space-y-4 pt-6">
+        {/* Section 1: Location & Area */}
+        <div>
+          <div
+            onClick={() => toggleSection("location")}
+            className="cursor-pointer rounded-lg transition-colors mb-3"
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold flex items-center gap-2">
+                {isLocationComplete ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Circle className="w-5 h-5" />
+                )}
+                Location & Area
+              </h4>
+              <ChevronDown
+                className={`w-5 h-5 transition-transform duration-200 ${
+                  expandedSections.location ? "" : "-rotate-90"
+                }`}
+              />
+            </div>
+          </div>
+
+          {expandedSections.location && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-3">
               <div>
                 <Label
                   htmlFor={`location-${painting.id}`}
@@ -127,32 +159,33 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                 />
               </div>
             </div>
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Card 3: Optional Layers - Collapsible */}
-      <Card>
-        <div
-          onClick={() => toggleSection("preparations")}
-          className="p-6 cursor-pointer hover:bg-white/10 rounded-3xl  transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold flex items-center gap-2">
-              <CircleCheck className="w-5 h-5" />
-              Preparations
-            </h3>
-            <ChevronDown
-              className={`w-5 h-5 transition-transform duration-200 ${
-                expandedSections.preparations ? "" : "-rotate-90"
-              }`}
-            />
-          </div>
+          )}
         </div>
 
-        {expandedSections.preparations && (
-          <CardContent className="pb-6">
-            <div className="space-y-6">
+        {/* Divider */}
+        <div className="border-t" />
+
+        {/* Section 2: Preparations */}
+        <div>
+          <div
+            onClick={() => toggleSection("preparations")}
+            className="cursor-pointer rounded-lg transition-colors mb-3"
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold flex items-center gap-2">
+                <CircleCheck className="w-5 h-5 text-green-600" />
+                Preparations
+              </h4>
+              <ChevronDown
+                className={`w-5 h-5 transition-transform duration-200 ${
+                  expandedSections.preparations ? "" : "-rotate-90"
+                }`}
+              />
+            </div>
+          </div>
+
+          {expandedSections.preparations && (
+            <div className="space-y-6 pl-3">
               {/* Skimming */}
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -176,7 +209,7 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
               </div>
 
               {painting.skimming.enabled && (
-                <div className="ml-6 mt-4 p-3 rounded border space-y-3">
+                <div className="ml-6 p-3 rounded border space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label
@@ -262,7 +295,7 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
               </div>
 
               {painting.undercoat.enabled && (
-                <div className="ml-6 mt-4 p-3 rounded border">
+                <div className="ml-6 p-3 rounded border">
                   <Label
                     htmlFor={`undercoat-coverage-${painting.id}`}
                     className="text-xs font-semibold"
@@ -288,36 +321,37 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                 </div>
               )}
             </div>
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Card 2: Finishing Paint - Collapsible */}
-      <Card>
-        <div
-          onClick={() => toggleSection("finishing")}
-          className="p-6 cursor-pointer hover:bg-white/10 rounded-3xl transition-colors"
-        >
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold flex items-center gap-2">
-              {isFinishingComplete ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-              ) : (
-                <Circle className="w-5 h-5" />
-              )}
-              Finishing Paint
-            </h3>
-            <ChevronDown
-              className={`w-5 h-5 transition-transform duration-200 ${
-                expandedSections.finishing ? "" : "-rotate-90"
-              }`}
-            />
-          </div>
+          )}
         </div>
 
-        {expandedSections.finishing && (
-          <CardContent className="pb-6">
-            <div className="space-y-4">
+        {/* Divider */}
+        <div className="border-t" />
+
+        {/* Section 3: Finishing Paint */}
+        <div>
+          <div
+            onClick={() => toggleSection("finishing")}
+            className="cursor-pointer rounded-lg transition-colors mb-3"
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold flex items-center gap-2">
+                {isFinishingComplete ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                ) : (
+                  <Circle className="w-5 h-5" />
+                )}
+                Finishing Paint
+              </h4>
+              <ChevronDown
+                className={`w-5 h-5 transition-transform duration-200 ${
+                  expandedSections.finishing ? "" : "-rotate-90"
+                }`}
+              />
+            </div>
+          </div>
+
+          {expandedSections.finishing && (
+            <div className="space-y-4 pl-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label
@@ -451,22 +485,24 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                 </div>
               </div>
             </div>
-          </CardContent>
-        )}
-      </Card>
+          )}
+        </div>
 
-      {/* Summary Section */}
-      {painting.calculations && (
-        <Card>
-          <CardContent className="pt-6">
+        {/* Divider */}
+        {painting.calculations && <div className="border-t" />}
+
+        {/* Summary Section */}
+        {painting.calculations && (
+          <div className="space-y-3">
+            <h4 className="font-semibold text-sm">Calculations Summary</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {painting.calculations.skimming && (
-                <div className="p-3 rounded border">
+                <div className="p-3 rounded-3xl border bg-slate-50 dark:bg-slate-900/30">
                   <div className="text-xs font-semibold">Skimming</div>
                   <div className="font-bold text-lg">
                     {painting.calculations.skimming.quantity.toFixed(2)} bags
                   </div>
-                  <div className="text-xs mt-1">
+                  <div className="text-xs mt-1 font-semibold">
                     Ksh
                     {painting.calculations.skimming.totalCostWithWastage.toFixed(
                       2,
@@ -476,12 +512,12 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
               )}
 
               {painting.calculations.undercoat && (
-                <div className="p-3 rounded border">
+                <div className="p-3 rounded-3xl border bg-slate-50 dark:bg-slate-900/30">
                   <div className="text-xs font-semibold">Undercoat</div>
                   <div className="font-bold text-lg">
                     {painting.calculations.undercoat.quantity.toFixed(2)} L
                   </div>
-                  <div className="text-xs mt-1">
+                  <div className="text-xs mt-1 font-semibold">
                     Ksh
                     {painting.calculations.undercoat.totalCostWithWastage.toFixed(
                       2,
@@ -491,12 +527,12 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
               )}
 
               {painting.calculations.finishing && (
-                <div className="p-3 rounded border">
+                <div className="p-3 rounded-3xl border bg-slate-50 dark:bg-slate-900/30">
                   <div className="text-xs font-semibold">Finishing Paint</div>
                   <div className="font-bold text-lg">
                     {painting.calculations.finishing.quantity.toFixed(2)} L
                   </div>
-                  <div className="text-xs mt-1">
+                  <div className="text-xs mt-1 font-semibold">
                     Ksh
                     {painting.calculations.finishing.totalCostWithWastage.toFixed(
                       2,
@@ -508,9 +544,9 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
               {(painting.calculations.skimming ||
                 painting.calculations.undercoat ||
                 painting.calculations.finishing) && (
-                <div className="p-3 rounded border ">
+                <div className="p-3 rounded-3xl border bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
                   <div className="text-xs font-semibold">Total Layer Cost</div>
-                  <div className="font-bold text-lg">
+                  <div className="font-bold text-lg text-blue-700 dark:text-blue-300">
                     Ksh
                     {(
                       (painting.calculations.skimming?.totalCostWithWastage ||
@@ -524,45 +560,10 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Header Card with Title and Delete */}
-      {onDelete && (
-        <Card>
-          <div className="p-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-semibold">
-                {painting.location || "New Painting Surface"}
-              </h3>
-              {painting.surfaceArea > 0 && (
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                  {painting.surfaceArea.toFixed(2)} m²
-                  {painting.calculations?.finishing && (
-                    <span className="ml-3">
-                      Ksh
-                      {(
-                        painting.calculations.finishing.totalCostWithWastage ||
-                        0
-                      ).toFixed(2)}
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onDelete}
-              className="h-8 w-8 p-0"
-            >
-              <Trash className="w-4 h-4" />
-            </Button>
           </div>
-        </Card>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

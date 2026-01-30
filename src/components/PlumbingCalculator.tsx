@@ -461,7 +461,7 @@ export default function PlumbingCalculator({
                   </CardDescription>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex-cols space-y-2 sm:space-y-0 sm:flex items-center gap-2">
                   <Label className="items-center space-x-2">
                     {" "}
                     Wastage Allowance (%)

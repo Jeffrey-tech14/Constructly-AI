@@ -29,6 +29,13 @@ export interface FoundationWallingRow {
   wallLength: string;
   numberOfWalls: string;
   mortarRatio: string; // e.g., "1:4"
+  hasReturnFill?: boolean;
+  returnFillDepth?: string;
+  elevation?: string;
+  topsoilDepth?: string;
+  slabThickness?: string;
+  blindingThickness?: string;
+  hasBackfill?: boolean;
 }
 
 const MORTAR_RATIO_MAP = {
@@ -147,6 +154,92 @@ export const calculateFoundationWallingQuantities = (
     mortarVolume: dryMortarVolume,
     mortarCement: cementBags,
     mortarSand: sandVolume,
+  };
+};
+
+/**
+ * Calculate return fill volume and cost
+ * Return fill is the soil/hardcore material placed around the perimeter of the foundation wall
+ * Volume = (Outer Box Volume - Inner Box Volume) - Wall Volume Occupied
+ * OR simplified: Perimeter × returnFillDepth × Height - (Wall Volume in return fill)
+ * Height = elevation + topsoilDepth - slabThickness - blindingThickness
+ *
+ * The wall volume to subtract is: wallPerimeter × wallThickness × height
+ * (This is the actual concrete/block volume that occupies the return fill space)
+ */
+export const calculateReturnFillQuantities = (
+  wallPerimeter: number, // meters (outer perimeter of foundation)
+  wallThickness: number, // meters (thickness of the wall)
+  wallHeight: number, // meters (height of the wall) - NOT USED, uses calculated height instead
+  returnFillDepth: number, // meters (depth of return fill from edge of wall)
+  elevation: number, // meters
+  topsoilDepth: number, // meters
+  slabThickness: number, // meters
+  blindingThickness: number, // meters
+): {
+  volume: number;
+  height: number;
+} => {
+  if (wallPerimeter <= 0 || wallThickness <= 0 || returnFillDepth <= 0) {
+    return { volume: 0, height: 0 };
+  }
+
+  // Calculate the height of return fill (depth from ground level)
+  const height = elevation + topsoilDepth - slabThickness - blindingThickness;
+
+  if (height <= 0) {
+    return { volume: 0, height: 0 };
+  }
+
+  // Volume of return fill area (rectangular band around wall)
+  // Gross volume: outer perimeter × depth × height
+  const grossVolume = wallPerimeter * returnFillDepth * height;
+
+  // Subtract the volume of the wall itself that occupies the return fill space
+  // Wall volume in return fill: wallPerimeter × wallThickness × height
+  const wallVolumeInReturnFill = wallPerimeter * wallThickness * height;
+
+  // Net volume of actual fill material (soil/hardcore) needed
+  const netVolume = Math.max(0, grossVolume - wallVolumeInReturnFill);
+
+  return {
+    volume: netVolume,
+    height,
+  };
+};
+
+/**
+ * Calculate backfill volume and height
+ * Volume = Slab Area × Backfill Height
+ * Height = elevation + topsoilDepth - slabThickness - blindingThickness
+ */
+export const calculateBackfillQuantities = (
+  slabArea: number, // m² - ground floor slab area
+  elevation: number, // meters
+  topsoilDepth: number, // meters
+  slabThickness: number, // meters
+  blindingThickness: number, // meters
+): {
+  volume: number;
+  height: number;
+} => {
+  if (slabArea <= 0) {
+    return { volume: 0, height: 0 };
+  }
+
+  // Calculate the height of backfill
+  const height = elevation + topsoilDepth - slabThickness - blindingThickness;
+
+  if (height <= 0) {
+    return { volume: 0, height: 0 };
+  }
+
+  // Volume = slab area × backfill height
+  const volume = slabArea * height;
+
+  return {
+    volume,
+    height,
   };
 };
 

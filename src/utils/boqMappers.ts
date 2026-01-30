@@ -56,9 +56,6 @@ const generateFromAvailableData = (data: any): BOQSection[] => {
   const services = generateServicesSection(data);
   if (services.items.length > 1) sections.push(services);
 
-  const external = generateExternalWorksSection(data);
-  if (external.items.length > 1) sections.push(external);
-
   return sections;
 };
 
@@ -79,8 +76,8 @@ const generatePreliminariesSection = (data: any): BOQSection => {
             1,
             service.price,
             "preliminaries",
-            "Service"
-          )
+            "Service",
+          ),
         );
       }
     });
@@ -97,8 +94,8 @@ const generatePreliminariesSection = (data: any): BOQSection => {
             equip.usage_quantity,
             equip.rate_per_unit,
             "preliminaries",
-            "Equipment"
-          )
+            "Equipment",
+          ),
         );
       }
     });
@@ -113,8 +110,8 @@ const generatePreliminariesSection = (data: any): BOQSection => {
         1,
         data.transport_costs,
         "preliminaries",
-        "Transport"
-      )
+        "Transport",
+      ),
     );
   }
 
@@ -126,8 +123,8 @@ const generatePreliminariesSection = (data: any): BOQSection => {
         1,
         data.equipment_costs,
         "preliminaries",
-        "Equipment"
-      )
+        "Equipment",
+      ),
     );
   }
 
@@ -139,8 +136,8 @@ const generatePreliminariesSection = (data: any): BOQSection => {
         1,
         data.additional_services_cost,
         "preliminaries",
-        "Services"
-      )
+        "Services",
+      ),
     );
   }
 
@@ -152,8 +149,8 @@ const generatePreliminariesSection = (data: any): BOQSection => {
         1,
         data.permit_cost,
         "preliminaries",
-        "Permits"
-      )
+        "Permits",
+      ),
     );
   }
 
@@ -172,7 +169,7 @@ const generateSubstructureSection = (data: any): BOQSection => {
   if (Array.isArray(data.concrete_rows)) {
     const substructureConcrete = data.concrete_rows.filter(
       (row: any) =>
-        row.category === "substructure" || row.element === "foundation"
+        row.category === "substructure" || row.element === "foundation",
     );
 
     substructureConcrete.forEach((row: any) => {
@@ -187,8 +184,8 @@ const generateSubstructureSection = (data: any): BOQSection => {
               volume,
               rate,
               "substructure",
-              row.element
-            )
+              row.element,
+            ),
           );
         }
       }
@@ -213,7 +210,7 @@ const generateSuperstructureSection = (data: any): BOQSection => {
   // Concrete elements
   if (Array.isArray(data.concrete_rows)) {
     const superstructureConcrete = data.concrete_rows.filter(
-      (row: any) => row.category === "superstructure"
+      (row: any) => row.category === "superstructure",
     );
 
     superstructureConcrete.forEach((row: any) => {
@@ -228,8 +225,8 @@ const generateSuperstructureSection = (data: any): BOQSection => {
               volume,
               rate,
               "superstructure",
-              row.element
-            )
+              row.element,
+            ),
           );
         }
       }
@@ -247,8 +244,8 @@ const generateSuperstructureSection = (data: any): BOQSection => {
             rebar.totalWeightKg,
             rebar.rate || 180,
             "superstructure",
-            "Reinforcement"
-          )
+            "Reinforcement",
+          ),
         );
       }
     });
@@ -258,7 +255,7 @@ const generateSuperstructureSection = (data: any): BOQSection => {
   const masonryItems = extractMasonryFromWalls(
     data.wallDimensions,
     data.wallSections,
-    data.wallProperties
+    data.wallProperties,
   );
   items.push(...masonryItems);
 
@@ -286,8 +283,8 @@ const generateFinishesSection = (data: any): BOQSection => {
           masonry.netPlasterArea,
           masonry.netPlasterCost / masonry.netPlasterArea,
           "finishes",
-          "Plaster"
-        )
+          "Plaster",
+        ),
       );
     }
   }
@@ -323,8 +320,8 @@ const generateServicesSection = (data: any): BOQSection => {
         1,
         data.mechanical_cost,
         "services",
-        "Mechanical"
-      )
+        "Mechanical",
+      ),
     );
   }
 
@@ -336,48 +333,13 @@ const generateServicesSection = (data: any): BOQSection => {
         1,
         data.electrical_cost,
         "services",
-        "Electrical"
-      )
+        "Electrical",
+      ),
     );
   }
 
   return {
     title: "BILL NO. 6: SERVICES INSTALLATIONS",
-    items,
-  };
-};
-
-const generateExternalWorksSection = (data: any): BOQSection => {
-  const items: BOQItem[] = [createHeaderItem("EXTERNAL WORKS", "external")];
-
-  if (data.external_works_cost > 0) {
-    items.push(
-      createBOQItem(
-        "External works and landscaping",
-        "Sum",
-        1,
-        data.external_works_cost,
-        "external",
-        "External Works"
-      )
-    );
-  }
-
-  if (data.landscaping_cost > 0) {
-    items.push(
-      createBOQItem(
-        "Landscaping works",
-        "Sum",
-        1,
-        data.landscaping_cost,
-        "external",
-        "Landscaping"
-      )
-    );
-  }
-
-  return {
-    title: "BILL NO. 7: EXTERNAL WORKS",
     items,
   };
 };
@@ -395,7 +357,7 @@ const getConcreteRateFromData = (data: any, row: any): number => {
   // Try to find actual rate from concrete_materials
   if (Array.isArray(data.concrete_materials)) {
     const material = data.concrete_materials.find(
-      (m: any) => m.rowId === row.id && m.rate > 0
+      (m: any) => m.rowId === row.id && m.rate > 0,
     );
     if (material) return material.rate;
   }
@@ -425,8 +387,8 @@ const extractFoundationWalling = (data: any): BOQItem[] => {
               wallArea,
               1200, // Default masonry rate
               "substructure",
-              "Foundation Walling"
-            )
+              "Foundation Walling",
+            ),
           );
         }
       }
@@ -445,7 +407,7 @@ const calculateWallArea = (row: any): number => {
 const extractMasonryFromWalls = (
   dimensions: any,
   sections: any[],
-  properties: any
+  properties: any,
 ): BOQItem[] => {
   const items: BOQItem[] = [];
 
@@ -497,8 +459,8 @@ const extractMasonryFromWalls = (
           netWallArea,
           1200, // Default masonry rate - adjust based on your data
           "superstructure",
-          "Masonry"
-        )
+          "Masonry",
+        ),
       );
     }
   } catch (error) {
@@ -525,8 +487,8 @@ const extractLintelFromMasonry = (masonryMaterials: any): BOQItem[] => {
           0, // Quantity in m³ is not directly available, using cost breakdown
           0, // Rate is embedded in cost
           "superstructure",
-          "Lintel Beam"
-        )
+          "Lintel Beam",
+        ),
       );
     }
 
@@ -540,8 +502,8 @@ const extractLintelFromMasonry = (masonryMaterials: any): BOQItem[] => {
           masonryMaterials.netLintelRebarCost /
             Math.max(masonryMaterials.netLintelRebar, 1),
           "superstructure",
-          "Lintel Reinforcement"
-        )
+          "Lintel Reinforcement",
+        ),
       );
     }
   } catch (error) {
@@ -619,8 +581,8 @@ const extractDoorsAndWindowsFromWalls = (sections: any[]): BOQItem[] => {
         value.count,
         value.price,
         "openings",
-        "Doors"
-      )
+        "Doors",
+      ),
     );
   });
 
@@ -634,8 +596,8 @@ const extractDoorsAndWindowsFromWalls = (sections: any[]): BOQItem[] => {
         value.count,
         value.price,
         "openings",
-        "Windows"
-      )
+        "Windows",
+      ),
     );
   });
 
@@ -661,7 +623,7 @@ const createBOQItem = (
   rate: number,
   category: string,
   element: string,
-  isHeader: boolean = false
+  isHeader: boolean = false,
 ): BOQItem => ({
   itemNo: "",
   description,

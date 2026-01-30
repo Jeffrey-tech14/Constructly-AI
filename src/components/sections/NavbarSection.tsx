@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ChevronDown,
   User,
+  HelpCircle,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   "Payment Options",
   "Testimonials",
   "FAQ",
+  "Guide",
 ];
 
 const NAV_GROUPS = {
@@ -76,6 +78,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
       "Payment Options": "/payment-options",
       Testimonials: "/testimonials",
       FAQ: "/faq",
+      Guide: "/guide",
     };
     const route = routes[item] || "/";
     navigate(route);
@@ -226,7 +229,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
         {/* ✅ UTILITY STRIP: Navy Background + Black Text + No Icons */}
         <div
           className="text-[11px] font-bold py-2.5 px-4 sm:px-6 hidden md:block tracking-widest uppercase transition-colors duration-300"
-          style={{ backgroundColor: THEME.NAVY, color: "black" }}
+          style={{ backgroundColor: THEME.NAVY, color: "white" }}
         >
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
             <div className="flex items-center gap-6">
@@ -284,6 +287,17 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
                   className="relative group h-full flex items-center px-1 text-[16px] font-medium text-[#00356B] hover:text-[#002a54] transition-colors tracking-normal"
                 >
                   {NAV_GROUPS.faq}
+                  {/* ✅ ORANGE UNDERLINE: Thinned to 2px */}
+                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D85C2C] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
+                </button>
+
+                {/* Guide */}
+                <button
+                  onClick={() => navigate("/guide")}
+                  className="relative group h-full flex items-center gap-1 px-1 text-[16px] font-medium text-[#00356B] hover:text-[#002a54] transition-colors tracking-normal"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  Guide
                   {/* ✅ ORANGE UNDERLINE: Thinned to 2px */}
                   <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D85C2C] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
                 </button>

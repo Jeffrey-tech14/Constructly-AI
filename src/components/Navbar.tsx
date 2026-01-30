@@ -41,6 +41,7 @@ import {
   AlertCircle,
   XCircle,
   Home,
+  HelpCircle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -56,6 +57,7 @@ import {
 } from "./ui/alert-dialog";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
+import { ThemeToggle } from "./ThemeToggle";
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -93,64 +95,72 @@ const Navbar = () => {
     LOGO_LIGHT: "#0077B6",
   };
 
-  const JTechAILogo = () => (
-    <svg
-      width="135"
-      height="36"
-      viewBox="0 0 135 36"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.LOGO_DARK} />
-      <path
-        d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <path
-        d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
-        fill={THEME.LOGO_DARK}
-      />
-      <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.LOGO_LIGHT} />
-      <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.LOGO_LIGHT} />
-      <path d="M22.5 15.75V20.25" stroke={THEME.LOGO_LIGHT} strokeWidth="1.5" />
-      <text
-        x="45"
-        y="24"
-        fontFamily="Segoe UI"
-        fontWeight="800"
-        fontSize="22"
-        fill={THEME.LOGO_DARK}
+  const JTechAILogo = () => {
+    const isDark = theme === "dark";
+    const logoDarkColor = isDark ? "#0077B6" : "#002855";
+    const logoLightColor = isDark ? "#002855" : "#0077B6";
+
+    return (
+      <svg
+        width="135"
+        height="36"
+        viewBox="0 0 135 36"
+        onClick={() => navigate("/")}
+        fill="none"
+        className="cursor-pointer"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        JTech
-      </text>
-      <text
-        x="108"
-        y="24"
-        fontFamily="Segoe UI"
-        fontWeight="800"
-        fontSize="22"
-        fill={THEME.LOGO_LIGHT}
-      >
-        AI
-      </text>
-    </svg>
-  );
+        <path
+          d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
+          fill={logoDarkColor}
+        />
+        <path
+          d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
+          fill={logoDarkColor}
+        />
+        <path
+          d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z"
+          fill={logoDarkColor}
+        />
+        <path
+          d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
+          fill={logoDarkColor}
+        />
+        <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={logoDarkColor} />
+        <path
+          d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
+          fill={logoDarkColor}
+        />
+        <path
+          d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
+          fill={logoDarkColor}
+        />
+        <circle cx="22.5" cy="13.5" r="2.25" fill={logoLightColor} />
+        <circle cx="22.5" cy="22.5" r="2.25" fill={logoLightColor} />
+        <path d="M22.5 15.75V20.25" stroke={logoLightColor} strokeWidth="1.5" />
+        <text
+          x="45"
+          y="24"
+          fontFamily="Segoe UI"
+          fontWeight="800"
+          fontSize="22"
+          fill={logoDarkColor}
+        >
+          JTech
+        </text>
+        <text
+          x="108"
+          y="24"
+          fontFamily="Segoe UI"
+          fontWeight="800"
+          fontSize="22"
+          fill={logoLightColor}
+        >
+          AI
+        </text>
+      </svg>
+    );
+  };
 
   const getTierImage = (tier: string | undefined) => {
     const t = tier || "Free";
@@ -247,18 +257,7 @@ const Navbar = () => {
             )}
 
             <div className="flex items-center ml-auto space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleTheme}
-                className="card-hover"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4" />
-                ) : (
-                  <Moon className="w-4 h-4" />
-                )}
-              </Button>
+              <ThemeToggle />
 
               {user ? (
                 <>
@@ -347,6 +346,20 @@ const Navbar = () => {
                       )}
 
                       <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-gray-700" />
+                      <DropdownMenuItem
+                        onClick={() => navigate("/guide")}
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                      >
+                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-primary/30">
+                          <HelpCircle className="w-4 h-4 text-primary dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium">User Guide</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Learn how to use the app
+                          </p>
+                        </div>
+                      </DropdownMenuItem>
 
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -362,7 +375,7 @@ const Navbar = () => {
                             </div>
                           </div>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                        <AlertDialogContent className="border border-gray-200 dark:border-gray-700 rounded-3xl shadow-xl">
                           <AlertDialogHeader>
                             <AlertDialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                               <LogOut className="w-5 h-5 text-red-500" />

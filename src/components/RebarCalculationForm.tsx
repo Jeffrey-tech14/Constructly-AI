@@ -49,7 +49,15 @@ import {
 } from "@/components/ui/accordion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Category } from "@/hooks/useConcreteCalculator";
-import { Trash, Plus, Settings, Calculator, Download } from "lucide-react";
+import {
+  Trash,
+  Plus,
+  Settings,
+  Calculator,
+  Download,
+  Cog,
+  Grid3x3,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -973,9 +981,27 @@ export default function RebarCalculatorForm({
         <CardContent>
           <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="general">General Settings</TabsTrigger>
-              <TabsTrigger value="technical">Technical Settings</TabsTrigger>
-              <TabsTrigger value="mesh">Mesh Settings</TabsTrigger>
+              <TabsTrigger value="general">
+                <span className="hidden sm:inline">General Settings</span>
+                <span className="sm:hidden flex items-center gap-1">
+                  <Settings className="w-4 h-4" />
+                  GS
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="technical">
+                <span className="hidden sm:inline">Technical Settings</span>
+                <span className="sm:hidden flex items-center gap-1">
+                  <Cog className="w-4 h-4" />
+                  TS
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="mesh">
+                <span className="hidden sm:inline">Mesh Settings</span>
+                <span className="sm:hidden flex items-center gap-1">
+                  <Grid3x3 className="w-4 h-4" />
+                  MS
+                </span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="general" className="space-y-4 pt-4">
@@ -1272,7 +1298,7 @@ export default function RebarCalculatorForm({
               key={row.id}
               className="border-l-4 border-l-blue-500 dark:border-l-blue-200 shadow-sm"
             >
-              <CardContent className="p-6 space-y-4 sm:p-6 p-1">
+              <CardContent className="sm:mt-0 mt-3 space-y-4">
                 <div className="sm:flex flex-1 space-y-3 items-start justify-between">
                   <div className="sm:flex space-y-3 items-center gap-3 flex-1">
                     <Input
@@ -1282,7 +1308,7 @@ export default function RebarCalculatorForm({
                         updateRow(row.id, "name", e.target.value)
                       }
                       placeholder="Element name (e.g., Ground Floor Slab)"
-                      className="font-semibold text-lg pl-2 border-0 focus:ring-0 bg-transparent"
+                      className="font-semibold text-lg pl-2 border-0 bg-transparent"
                     />
                     <Badge
                       variant="outline"

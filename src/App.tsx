@@ -27,6 +27,7 @@ import QuotePaymentPage from "./pages/QuotePaymentPage";
 import QuoteDetailsPage from "./pages/QuoteDetailsPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
+import UserGuide from "./components/UserGuide";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
 const queryClient = new QueryClient();
@@ -169,6 +170,7 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/guide" element={<UserGuide />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

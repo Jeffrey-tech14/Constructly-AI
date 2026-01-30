@@ -53,6 +53,7 @@ import {
 } from "lucide-react";
 import { QuoteExportDialog } from "@/components/QuoteExportDialog";
 import { quotePaymentService } from "@/services/quotePaymentService";
+import { set } from "date-fns";
 const ViewAllQuotes = () => {
   const { fetchQuotes, quotes, loading, deleteQuote } = useQuotes();
   const { profile, user } = useAuth();
@@ -70,6 +71,7 @@ const ViewAllQuotes = () => {
   const [paymentStatuses, setPaymentStatuses] = useState<
     Record<string, boolean>
   >({});
+  const [paymentChecking, setPaymentChecking] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -104,6 +106,7 @@ const ViewAllQuotes = () => {
 
   const loadPaymentStatuses = async () => {
     if (!quotes.length) return;
+    setPaymentChecking(true);
     const statuses: Record<string, boolean> = {};
     for (const quote of quotes) {
       try {
@@ -118,6 +121,7 @@ const ViewAllQuotes = () => {
       }
     }
     setPaymentStatuses(statuses);
+    setPaymentChecking(false);
   };
 
   const [filteredQuotes, setFilteredQuotes] = useState<any[]>([]);
@@ -437,9 +441,19 @@ const ViewAllQuotes = () => {
                             })
                           }
                           className="text-white flex-1 sm:flex-none bg-gradient-to-r from-[#D85C2C] to-[#C94820] hover:from-[#C94820] hover:to-[#B83B1A]"
+                          disabled={paymentChecking}
                         >
-                          <CreditCard className="w-4 h-4 mr-2 text-white" />
-                          Pay 1000 KSH
+                          {paymentChecking ? (
+                            <>
+                              <Loader2 className="animate-spin w-4 h-4 mr-2 text-white" />
+                              Checking...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="w-4 h-4 mr-2 text-white" />
+                              Pay 1000 KSH
+                            </>
+                          )}
                         </Button>
                       )}
 

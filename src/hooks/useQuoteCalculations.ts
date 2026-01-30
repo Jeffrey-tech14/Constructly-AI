@@ -98,7 +98,6 @@ export interface QuoteCalculation {
   subcontractors: Subcontractors[];
   custom_specs: string;
   qsSettings: any;
-  external_works: any[];
   floors: number;
 
   earthwork_items: any[];

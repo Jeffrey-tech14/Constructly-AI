@@ -742,7 +742,7 @@ const safeParseFloat = (
   value: string | undefined,
   defaultValue: number = 0,
 ): number => {
-  if (!value || value.trim() === "") return defaultValue;
+  if (!value) return defaultValue;
   const parsed = parseFloat(value);
   return isNaN(parsed) ? defaultValue : parsed;
 };
@@ -2426,7 +2426,7 @@ function calculateIntensityRebar(
 
   // Core calculation: steel_kg = volume_m3 × steel_kg_per_m3
   const netSteelKg = volume * intensity;
-  
+
   // Apply rebar wastage percentage
   const totalSteelKg = withWaste(netSteelKg, settings.wastagePercent);
 

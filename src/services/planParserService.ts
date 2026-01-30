@@ -246,9 +246,10 @@ One object per wall type (no duplicates)
 
 MEASUREMENTS
 
-External wall perimeter = full building footprint
+External wall perimeter = full external/outermost wall building perimeter footprint
 
 Internal wall perimeter = sum of all partition walls
+Block type is influenced by wall dimensions eg, 200 mm is Large Block
 
 Use external dimension lines where available
 
@@ -343,7 +344,7 @@ Rebar sizes: "D10", "D12", "D16", etc
 Default calculation should be kg/m3 not individual bars
 Ground floor is always BRC A98 as default
 Do not include oversite concrete or any form of blinding
-For bungalows, we only have ground floor slab and strip footing foundation elements only
+**For bungalows, we only have ground floor slab and strip footing foundation elements only for reinforcement and concrete**
 The width of strip footings is always 3 times the wall thickness unless otherwise specified
 
 Concrete grades:
@@ -353,7 +354,7 @@ C25 → "1:2:4"
 C20 → "1:2:3"
 
 ════════════════════════════════════
-FOUNDATION WALLING (MASONRY ABOVE FOOTING)
+FOUNDATION WALLING (MASONRY ABOVE FOOTING IN FOUNDATION TRENCH)
 ════════════════════════════════════
 
 Extract separately for:
@@ -361,16 +362,6 @@ Extract separately for:
 external
 
 internal
-
-Block sizes (LxHxT in meters):
-
-"0.2x0.2x0.2"
-
-"0.15x0.2x0.15"
-
-"0.1x0.2x0.1"
-
-"0.4x0.2x0.2"
 
 Mortar ratios:
 "1:3", "1:4", "1:5", "1:6"
@@ -965,12 +956,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       bedDepth?: string;
       hasAggregateBed?: boolean;
       aggregateDepth?: string;
-      hasMasonryWall?: boolean;
-      masonryBlockType?: string;
-      masonryBlockDimensions?: string;
-      masonryWallThickness?: string;
-      masonryWallHeight?: string;
-      masonryWallPerimeter?: number;
       foundationType?: string;
       clientProvidesWater?: boolean;
       cementWaterRatio?: string;
@@ -1358,7 +1343,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       // Find ground floor slab thickness by name
       const groundFloorSlab = concreteStructures.find(
         (c) =>
-          c.name?.toLowerCase().includes("ground floor") &&
+          c.name?.toLowerCase().includes("ground") &&
           c.name?.toLowerCase().includes("slab"),
       );
       const groundFloorSlabThickness = groundFloorSlab

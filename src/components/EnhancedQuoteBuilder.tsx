@@ -77,6 +77,13 @@ import {
   ChevronLeft,
   X,
   Hand,
+  Grid3x3,
+  Home,
+  Settings,
+  Shovel,
+  BrickWall,
+  BoxesIcon,
+  LucideHousePlus,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,6 +135,9 @@ import {
 import QSSettings from "./QSSettings";
 import MasonryCalculatorForm from "./MasonryCalculatorForm";
 import WardrobesCalculator, { WardrobeItem } from "./WardrobesCalculator";
+import EquipmentSelector from "./EquipmentSelector";
+import ServicesSelector from "./ServicesSelector";
+import SubcontractorsSelector from "./SubcontractorsSelector";
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
@@ -278,7 +288,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     concrete_mix_ratio: "1:2:4",
     plaster_thickness: 0.012,
     include_wastage: true,
-    external_works: [],
     equipment: [],
     services: [],
     percentages: [],
@@ -511,34 +520,116 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
         // Concrete structures
         concrete_rows:
-          extractedPlan.concreteStructures?.map(
-            (structure: any, index: number) => ({
-              id: structure.id || `concrete-${index}`,
-              name: structure.name,
-              element: structure.element,
-              length: structure.length,
-              width: structure.width,
-              height: structure.height,
-              mix: structure.mix || "C25",
-              verandahArea: structure.verandahArea || 0,
-              slabArea: structure.slabArea || 0,
-              formwork: structure.formwork,
-              category: structure.category || "substructure",
-              number: structure.number || "1",
-              hasConcreteBed: structure.hasConcreteBed || false,
-              bedDepth: structure.bedDepth || "0.1",
-              hasAggregateBed: structure.hasAggregateBed || false,
-              aggregateDepth: structure.aggregateDepth || "0.15",
-              foundationType: structure.foundationType,
-              clientProvidesWater: structure.clientProvidesWater || false,
-              cementWaterRatio: structure.cementWaterRatio || "0.5",
-              reinforcement: structure.reinforcement || {
-                mainBarSize: "D12",
-                mainBarSpacing: "0.2",
-              },
-              staircaseDetails: structure.staircaseDetails,
-              tankDetails: structure.tankDetails,
-            }),
+          extractedPlan.concreteStructures?.flatMap(
+            (structure: any, index: number) => {
+              const baseRow = {
+                id: structure.id || `concrete-${index}`,
+                name: structure.name,
+                element: structure.element,
+                mix: structure.mix || "C25",
+                verandahArea: structure.verandahArea || 0,
+                slabArea: structure.slabArea || 0,
+                formwork: structure.formwork,
+                category: structure.category || "substructure",
+                number: structure.number || "1",
+                hasConcreteBed: structure.hasConcreteBed || false,
+                bedDepth: structure.bedDepth || "0.1",
+                hasAggregateBed: structure.hasAggregateBed || false,
+                aggregateDepth: structure.aggregateDepth || "0.15",
+                foundationType: structure.foundationType,
+                clientProvidesWater: structure.clientProvidesWater || false,
+                cementWaterRatio: structure.cementWaterRatio || "0.5",
+                reinforcement: structure.reinforcement || {
+                  mainBarSize: "D12",
+                  mainBarSpacing: "0.2",
+                },
+                staircaseDetails: structure.staircaseDetails,
+                tankDetails: structure.tankDetails,
+              };
+
+              // If element is strip-footing, create two items (external and internal)
+              if (structure.element === "strip-footing") {
+                // Get external wall thickness from blockType
+                const externalSection = extractedPlan.wallSections?.find(
+                  (s: any) => s.type === "external",
+                );
+                const blockDimensionsMap: { [key: string]: string } = {
+                  "Large Block": "0.2x0.2x0.2",
+                  "Standard Block": "0.15x0.2x0.15",
+                  "Small Block": "0.1x0.2x0.1",
+                };
+                const externalBlockType =
+                  externalSection?.blockType || "Standard Block";
+                const externalBlockDimensions =
+                  blockDimensionsMap[externalBlockType] || "0.15x0.2x0.15";
+                const externalDims = externalBlockDimensions
+                  .split("x")
+                  .map((d: string) => parseFloat(d.trim()));
+                const externalThickness =
+                  externalDims.length >= 3 ? externalDims[2] : 0.15;
+
+                // Get internal wall thickness from blockType
+                const internalSection = extractedPlan.wallSections?.find(
+                  (s: any) => s.type === "internal",
+                );
+                const internalBlockType =
+                  internalSection?.blockType || "Standard Block";
+                const internalBlockDimensions =
+                  blockDimensionsMap[internalBlockType] || "0.15x0.2x0.15";
+                const internalDims = internalBlockDimensions
+                  .split("x")
+                  .map((d: string) => parseFloat(d.trim()));
+                const internalThickness =
+                  internalDims.length >= 3 ? internalDims[2] : 0.15;
+
+                // Use calculated build area for ground floor slab area
+                const groundFloorSlabArea =
+                  extractedPlan.projectInfo?.totalArea || 0;
+
+                return [
+                  {
+                    ...baseRow,
+                    id: `${structure.id || `concrete-${index}`}-external`,
+                    name: `${structure.name} (External)`,
+                    length:
+                      extractedPlan.wallDimensions.externalWallPerimiter || 0,
+                    width: externalThickness,
+                    height:
+                      extractedPlan.foundationDetails?.find(
+                        (f: any) => f.foundationType === "strip-footing",
+                      )?.wallHeight ||
+                      structure.height ||
+                      0,
+                    slabArea: groundFloorSlabArea,
+                  },
+                  {
+                    ...baseRow,
+                    id: `${structure.id || `concrete-${index}`}-internal`,
+                    name: `${structure.name} (Internal)`,
+                    length:
+                      extractedPlan.wallDimensions.internalWallPerimiter || 0,
+                    width: internalThickness,
+                    height:
+                      extractedPlan.foundationDetails?.find(
+                        (f: any) => f.foundationType === "strip-footing",
+                      )?.wallHeight ||
+                      structure.height ||
+                      0,
+                    slabArea: groundFloorSlabArea,
+                  },
+                ];
+              }
+
+              // For non-strip-footing elements, return as single item
+              return [
+                {
+                  ...baseRow,
+                  length: structure.length,
+                  width: structure.width,
+                  height: structure.height,
+                },
+              ];
+            },
           ) || prev.concrete_rows,
 
         equipment:
@@ -606,78 +697,162 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         // If BBS file exists, skip reinforcement items and use bar_schedule instead
         rebar_rows: extractedPlan.bbs_file_url
           ? []
-          : extractedPlan.reinforcement?.map((rebar: any, index: number) => ({
-              id: rebar.id || `rebar-${index}`,
-              element: rebar.element,
-              name: rebar.name,
-              length: rebar.length,
-              width: rebar.width,
-              depth: rebar.depth,
-              columnHeight: rebar.columnHeight || "",
-              mainBarSpacing: rebar.mainBarSpacing || "200",
-              distributionBarSpacing: rebar.distributionBarSpacing || "200",
-              mainBarsCount: rebar.mainBarsCount || "",
-              distributionBarsCount: rebar.distributionBarsCount || "",
-              slabLayers: rebar.slabLayers || "1",
-              mainBarSize: rebar.mainBarSize || "D12",
-              distributionBarSize: rebar.distributionBarSize || "D12",
-              stirrupSize: rebar.stirrupSize || "D8",
-              tieSize: rebar.tieSize || "D8",
-              stirrupSpacing: rebar.stirrupSpacing || "200",
-              tieSpacing: rebar.tieSpacing || "250",
-              category: rebar.category || "superstructure",
-              number: rebar.number || "1",
-              rebarCalculationMode:
-                rebar.rebarCalculationMode || "NORMAL_REBAR_MODE",
+          : extractedPlan.reinforcement?.flatMap(
+              (rebar: any, index: number) => {
+                const baseRebar = {
+                  id: rebar.id || `rebar-${index}`,
+                  element: rebar.element,
+                  name: rebar.name,
+                  columnHeight: rebar.columnHeight || "",
+                  mainBarSpacing: rebar.mainBarSpacing || "200",
+                  distributionBarSpacing: rebar.distributionBarSpacing || "200",
+                  mainBarsCount: rebar.mainBarsCount || "",
+                  distributionBarsCount: rebar.distributionBarsCount || "",
+                  slabLayers: rebar.slabLayers || "1",
+                  mainBarSize: rebar.mainBarSize || "D12",
+                  distributionBarSize: rebar.distributionBarSize || "D12",
+                  stirrupSize: rebar.stirrupSize || "D8",
+                  tieSize: rebar.tieSize || "D8",
+                  stirrupSpacing: rebar.stirrupSpacing || "200",
+                  tieSpacing: rebar.tieSpacing || "250",
+                  category: rebar.category || "superstructure",
+                  number: rebar.number || "1",
+                  rebarCalculationMode:
+                    rebar.rebarCalculationMode || "NORMAL_REBAR_MODE",
 
-              // Reinforcement type and mesh fields
-              reinforcementType: rebar.reinforcementType || "individual_bars",
-              meshGrade: rebar.meshGrade || "A142",
-              meshSheetWidth: rebar.meshSheetWidth || "2.4",
-              meshSheetLength: rebar.meshSheetLength || "4.8",
-              meshLapLength: rebar.meshLapLength || "0.3",
+                  // Reinforcement type and mesh fields
+                  reinforcementType:
+                    rebar.reinforcementType || "individual_bars",
+                  meshGrade: rebar.meshGrade || "A142",
+                  meshSheetWidth: rebar.meshSheetWidth || "2.4",
+                  meshSheetLength: rebar.meshSheetLength || "4.8",
+                  meshLapLength: rebar.meshLapLength || "0.3",
 
-              // Footing-specific fields
-              footingType: rebar.footingType || "strip",
-              longitudinalBars: rebar.longitudinalBars || "",
-              transverseBars: rebar.transverseBars || "",
-              topReinforcement: rebar.topReinforcement || "",
-              bottomReinforcement: rebar.bottomReinforcement || "",
+                  // Footing-specific fields
+                  footingType: rebar.footingType || "strip",
+                  longitudinalBars: rebar.longitudinalBars || "",
+                  transverseBars: rebar.transverseBars || "",
+                  topReinforcement: rebar.topReinforcement || "",
+                  bottomReinforcement: rebar.bottomReinforcement || "",
 
-              // Tank-specific fields
-              tankType: rebar.tankType || "septic",
-              tankShape: rebar.tankShape || "rectangular",
-              wallThickness: rebar.wallThickness || "0.2",
-              baseThickness: rebar.baseThickness || "0.15",
-              coverThickness: rebar.coverThickness || "0.125",
-              includeCover: rebar.includeCover ?? true,
+                  // Tank-specific fields
+                  tankType: rebar.tankType || "septic",
+                  tankShape: rebar.tankShape || "rectangular",
+                  wallThickness: rebar.wallThickness || "0.2",
+                  baseThickness: rebar.baseThickness || "0.15",
+                  coverThickness: rebar.coverThickness || "0.125",
+                  includeCover: rebar.includeCover ?? true,
 
-              // Wall reinforcement
-              wallVerticalBarSize: rebar.wallVerticalBarSize || "D10",
-              wallHorizontalBarSize: rebar.wallHorizontalBarSize || "D10",
-              wallVerticalSpacing: rebar.wallVerticalSpacing || "150",
-              wallHorizontalSpacing: rebar.wallHorizontalSpacing || "150",
+                  // Wall reinforcement
+                  wallVerticalBarSize: rebar.wallVerticalBarSize || "D10",
+                  wallHorizontalBarSize: rebar.wallHorizontalBarSize || "D10",
+                  wallVerticalSpacing: rebar.wallVerticalSpacing || "150",
+                  wallHorizontalSpacing: rebar.wallHorizontalSpacing || "150",
 
-              // Base reinforcement
-              baseMainBarSize: rebar.baseMainBarSize || "D10",
-              baseDistributionBarSize: rebar.baseDistributionBarSize || "D10",
-              baseMainSpacing: rebar.baseMainSpacing || "150",
-              baseDistributionSpacing: rebar.baseDistributionSpacing || "150",
+                  // Base reinforcement
+                  baseMainBarSize: rebar.baseMainBarSize || "D10",
+                  baseDistributionBarSize:
+                    rebar.baseDistributionBarSize || "D10",
+                  baseMainSpacing: rebar.baseMainSpacing || "150",
+                  baseDistributionSpacing:
+                    rebar.baseDistributionSpacing || "150",
 
-              // Cover reinforcement
-              coverMainBarSize: rebar.coverMainBarSize || "D10",
-              coverDistributionBarSize: rebar.coverDistributionBarSize || "D10",
-              coverMainSpacing: rebar.coverMainSpacing || "150",
-              coverDistributionSpacing: rebar.coverDistributionSpacing || "150",
+                  // Cover reinforcement
+                  coverMainBarSize: rebar.coverMainBarSize || "D10",
+                  coverDistributionBarSize:
+                    rebar.coverDistributionBarSize || "D10",
+                  coverMainSpacing: rebar.coverMainSpacing || "150",
+                  coverDistributionSpacing:
+                    rebar.coverDistributionSpacing || "150",
 
-              retainingWallType: rebar.retainingWallType || "cantilever",
-              heelLength: rebar.heelLength || "0.5",
-              toeLength: rebar.toeLength || "0.5",
-              stemVerticalBarSize: rebar.stemVerticalBarSize || "D10",
-              stemHorizontalBarSize: rebar.stemHorizontalBarSize || "D10",
-              stemVerticalSpacing: rebar.stemVerticalSpacing || "150",
-              stemHorizontalSpacing: rebar.stemHorizontalSpacing || "200",
-            })) || prev.rebar_rows,
+                  retainingWallType: rebar.retainingWallType || "cantilever",
+                  heelLength: rebar.heelLength || "0.5",
+                  toeLength: rebar.toeLength || "0.5",
+                  stemVerticalBarSize: rebar.stemVerticalBarSize || "D10",
+                  stemHorizontalBarSize: rebar.stemHorizontalBarSize || "D10",
+                  stemVerticalSpacing: rebar.stemVerticalSpacing || "150",
+                  stemHorizontalSpacing: rebar.stemHorizontalSpacing || "200",
+                };
+
+                // If element is strip-footing, create two items (external and internal)
+                if (rebar.element === "strip-footing") {
+                  const blockDimensionsMap: { [key: string]: string } = {
+                    "Large Block": "0.2x0.2x0.2",
+                    "Standard Block": "0.15x0.2x0.15",
+                    "Small Block": "0.1x0.2x0.1",
+                  };
+
+                  // External footing
+                  const externalSection = extractedPlan.wallSections?.find(
+                    (s: any) => s.type === "external",
+                  );
+                  const externalBlockType =
+                    externalSection?.blockType || "Standard Block";
+                  const externalBlockDimensions =
+                    blockDimensionsMap[externalBlockType] || "0.15x0.2x0.15";
+                  const externalDims = externalBlockDimensions
+                    .split("x")
+                    .map((d: string) => parseFloat(d.trim()));
+                  const externalThickness =
+                    externalDims.length >= 3 ? externalDims[2] : 0.15;
+
+                  // Internal footing
+                  const internalSection = extractedPlan.wallSections?.find(
+                    (s: any) => s.type === "internal",
+                  );
+                  const internalBlockType =
+                    internalSection?.blockType || "Standard Block";
+                  const internalBlockDimensions =
+                    blockDimensionsMap[internalBlockType] || "0.15x0.2x0.15";
+                  const internalDims = internalBlockDimensions
+                    .split("x")
+                    .map((d: string) => parseFloat(d.trim()));
+                  const internalThickness =
+                    internalDims.length >= 3 ? internalDims[2] : 0.15;
+
+                  return [
+                    {
+                      ...baseRebar,
+                      id: `${rebar.id || `rebar-${index}`}-external`,
+                      name: `${rebar.name} (External)`,
+                      length:
+                        extractedPlan.wallDimensions.externalWallPerimiter || 0,
+                      width: externalThickness,
+                      depth:
+                        extractedPlan.foundationDetails?.find(
+                          (f: any) => f.foundationType === "strip-footing",
+                        )?.wallHeight ||
+                        rebar.depth ||
+                        0,
+                    },
+                    {
+                      ...baseRebar,
+                      id: `${rebar.id || `rebar-${index}`}-internal`,
+                      name: `${rebar.name} (Internal)`,
+                      length:
+                        extractedPlan.wallDimensions.internalWallPerimiter || 0,
+                      width: internalThickness,
+                      depth:
+                        extractedPlan.foundationDetails?.find(
+                          (f: any) => f.foundationType === "strip-footing",
+                        )?.wallHeight ||
+                        rebar.depth ||
+                        0,
+                    },
+                  ];
+                }
+
+                // For non-strip-footing elements, return as single item
+                return [
+                  {
+                    ...baseRebar,
+                    length: rebar.length,
+                    width: rebar.width,
+                    depth: rebar.depth,
+                  },
+                ];
+              },
+            ) || prev.rebar_rows,
 
         // Masonry
         masonry_materials:
@@ -828,18 +1003,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             location: finish.location || "Unknown",
             specifications: finish.specifications || {},
           })) || prev.finishes,
-
-        // External Works
-        external_works:
-          extractedPlan.externalWorks?.map((work: any, index: number) => ({
-            id: work.type || `external-${index}`,
-            type: work.id,
-            material: work.material,
-            area: parseFloat(work.area) || 0,
-            length: parseFloat(work.length) || 0,
-            width: parseFloat(work.width) || 0,
-            quantity: 1,
-          })) || prev.external_works,
       }));
     }
   }, [extractedPlan]);
@@ -1026,7 +1189,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         subcontractors: quoteData.subcontractors,
         percentages: quoteData.percentages,
         boqData: boqData,
-        external_works: quoteData.external_works,
         plaster_thickness:
           parseFloat(quoteData.plaster_thickness.toString()) || 0.012,
         include_wastage: quoteData.include_wastage,
@@ -1588,12 +1750,32 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <div className="space-y-6">
             <Tabs value={substructureTab} onValueChange={setSubstructureTab}>
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="earthworks">Earthworks</TabsTrigger>
-                <TabsTrigger value="concrete">Concrete</TabsTrigger>
-                <TabsTrigger value="foundation-walling">
-                  Foundation Walling
+                <TabsTrigger value="earthworks">
+                  <span className="hidden sm:inline">Earthworks</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Earth className="w-4 h-4" />
+                    EW
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="rebar">Reinforcement</TabsTrigger>
+                <TabsTrigger value="concrete">
+                  <span className="hidden sm:inline">Concrete</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Building className="w-4 h-4" />C
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="foundation-walling">
+                  <span className="hidden sm:inline">Foundation Walling</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Shovel className="w-4 h-4" />
+                    FW
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="rebar">
+                  <span className="hidden sm:inline">Reinforcement</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Grid3x3 className="w-4 h-4" />R
+                  </span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="earthworks" className="space-y-4">
@@ -1621,9 +1803,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 <FoundationWallingCalculator
                   quote={quoteData}
                   onUpdate={(walls) => {
+                    // Update walls in quote
                     setQuoteData((prev) => ({
                       ...prev,
-                      foundationWalls: walls,
+                      foundationWalling: walls,
                     }));
                   }}
                   materials={materials}
@@ -1651,10 +1834,30 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               onValueChange={setSuperstructureTab}
             >
               <TabsList className="grid w-full grid-cols-4 mb-3">
-                <TabsTrigger value="masonry">Masonry</TabsTrigger>
-                <TabsTrigger value="plumbing">Plumbing</TabsTrigger>
-                <TabsTrigger value="electrical">Electricals</TabsTrigger>
-                <TabsTrigger value="roofing">Roofing</TabsTrigger>
+                <TabsTrigger value="masonry">
+                  <span className="hidden sm:inline">Masonry</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <BrickWall className="w-4 h-4" />M
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="plumbing">
+                  <span className="hidden sm:inline">Plumbing</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Wrench className="w-4 h-4" />P
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="electrical">
+                  <span className="hidden sm:inline">Electricals</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Zap className="w-4 h-4" />E
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="roofing">
+                  <span className="hidden sm:inline">Roofing</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <LucideHousePlus className="w-4 h-4" />R
+                  </span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="masonry" className="space-y-4">
@@ -1719,9 +1922,17 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             <Tabs value={finishesTab} onValueChange={setFinishesTab}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="wardrobes">
-                  Wardrobes & Cabinets
+                  <span className="hidden sm:inline">Wardrobes & Cabinets</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <BoxesIcon className="w-4 h-4" />W & C
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="finishes">Finishes</TabsTrigger>
+                <TabsTrigger value="finishes">
+                  <span className="hidden sm:inline">Finishes</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Paintbrush className="w-4 h-4" />F
+                  </span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="wardrobes" className="space-y-4">
@@ -1751,9 +1962,26 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           <div className="space-y-6">
             <Tabs value={extrasTab} onValueChange={setExtrasTab}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="equipment">Equipment</TabsTrigger>
-                <TabsTrigger value="services">Services & Extras</TabsTrigger>
-                <TabsTrigger value="subcontractors">Subcontractors</TabsTrigger>
+                <TabsTrigger value="equipment">
+                  <span className="hidden sm:inline">Equipment</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Wrench className="w-4 h-4" />
+                    Eq
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="services">
+                  <span className="hidden sm:inline">Services & Extras</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Settings className="w-4 h-4" />S
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="subcontractors">
+                  <span className="hidden sm:inline">Subcontractors</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    Sub
+                  </span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="equipment" className="space-y-4">
@@ -1763,751 +1991,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                      <Wrench className="w-5 h-5" />
-                      Select Required Equipment
-                    </h3>
-                    <div className="grid grid-cols-1 gap-4">
-                      {equipmentRates
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((equipment) => {
-                          const isChecked = quoteData.equipment.some(
-                            (eq) => eq.equipment_type_id === equipment.id,
-                          );
-                          const equipmentItem = quoteData.equipment.find(
-                            (eq) => eq.equipment_type_id === equipment.id,
-                          );
-                          return (
-                            <Card key={equipment.id} className="p-6">
-                              <div className="items-center justify-between">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      checked={isChecked}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setQuoteData((prev) => ({
-                                            ...prev,
-                                            equipment: [
-                                              ...prev.equipment,
-                                              {
-                                                equipment_type_id: equipment.id,
-                                                name: equipment.name,
-                                                desc: equipment.description,
-                                                usage_quantity: 1,
-                                                usage_unit:
-                                                  equipment?.usage_unit ||
-                                                  "day",
-                                                rate_per_unit:
-                                                  equipment.rate_per_unit || 0,
-                                                total_cost:
-                                                  equipment.rate_per_unit || 0,
-                                              },
-                                            ],
-                                          }));
-                                        } else {
-                                          setQuoteData((prev) => ({
-                                            ...prev,
-                                            equipment: prev.equipment.filter(
-                                              (eq) =>
-                                                eq.equipment_type_id !==
-                                                equipment.id,
-                                            ),
-                                          }));
-                                        }
-                                      }}
-                                    />
-                                    <div>
-                                      <h4 className="font-medium text-gray-900 dark:text-white">
-                                        {equipment.name}
-                                      </h4>
-                                      {equipment.description && (
-                                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                                          {equipment.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {isChecked && (
-                                    <div className="space-y-3">
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                          <Label
-                                            htmlFor={`quantity-${equipment.id}`}
-                                            className="text-gray-900 dark:text-white"
-                                          >
-                                            Quantity
-                                          </Label>
-                                          <Input
-                                            id={`quantity-${equipment.id}`}
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
-                                            value={
-                                              equipmentItem?.usage_quantity || 1
-                                            }
-                                            onChange={(e) => {
-                                              const quantity =
-                                                parseFloat(e.target.value) || 0;
-                                              const rate =
-                                                equipmentItem?.rate_per_unit ||
-                                                0;
-                                              setQuoteData((prev) => ({
-                                                ...prev,
-                                                equipment: prev.equipment.map(
-                                                  (eq) =>
-                                                    eq.equipment_type_id ===
-                                                    equipment.id
-                                                      ? {
-                                                          ...eq,
-                                                          usage_quantity:
-                                                            quantity,
-                                                          total_cost:
-                                                            quantity * rate,
-                                                        }
-                                                      : eq,
-                                                ),
-                                              }));
-                                            }}
-                                            className=""
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label
-                                            htmlFor={`unit-${equipment.id}`}
-                                            className="text-gray-900 dark:text-white"
-                                          >
-                                            Unit
-                                          </Label>
-                                          <div id={`unit-${equipment.id}`}>
-                                            <Select
-                                              value={
-                                                equipmentItem?.usage_unit ||
-                                                "day"
-                                              }
-                                              onValueChange={(value) => {
-                                                setQuoteData((prev) => ({
-                                                  ...prev,
-                                                  equipment: prev.equipment.map(
-                                                    (eq) =>
-                                                      eq.equipment_type_id ===
-                                                      equipment.id
-                                                        ? {
-                                                            ...eq,
-                                                            usage_unit: value,
-                                                          }
-                                                        : eq,
-                                                  ),
-                                                }));
-                                              }}
-                                            >
-                                              <SelectTrigger className="h-10 w-full ">
-                                                <SelectValue placeholder="Select unit" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                <SelectItem value="hour">
-                                                  Hour
-                                                </SelectItem>
-                                                <SelectItem value="day">
-                                                  Day
-                                                </SelectItem>
-                                                <SelectItem value="week">
-                                                  Week
-                                                </SelectItem>
-                                                <SelectItem value="month">
-                                                  Month
-                                                </SelectItem>
-                                                <SelectItem value="unit">
-                                                  Unit
-                                                </SelectItem>
-                                                <SelectItem value="trip">
-                                                  Trip
-                                                </SelectItem>
-                                              </SelectContent>
-                                            </Select>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <Label
-                                          htmlFor={`rate-${equipment.id}`}
-                                          className="text-gray-900 dark:text-white"
-                                        >
-                                          Rate per{" "}
-                                          {equipmentItem?.usage_unit || "unit"}
-                                        </Label>
-                                        <Input
-                                          id={`rate-${equipment.id}`}
-                                          type="number"
-                                          min="0"
-                                          step="0.01"
-                                          value={
-                                            equipmentItem?.rate_per_unit || 0
-                                          }
-                                          onChange={(e) => {
-                                            const rate =
-                                              parseFloat(e.target.value) || 0;
-                                            const quantity =
-                                              equipmentItem?.usage_quantity ||
-                                              1;
-                                            setQuoteData((prev) => ({
-                                              ...prev,
-                                              equipment: prev.equipment.map(
-                                                (eq) =>
-                                                  eq.equipment_type_id ===
-                                                  equipment.id
-                                                    ? {
-                                                        ...eq,
-                                                        rate_per_unit: rate,
-                                                        total_cost:
-                                                          quantity * rate,
-                                                      }
-                                                    : eq,
-                                              ),
-                                            }));
-                                          }}
-                                          className=""
-                                        />
-                                      </div>
-                                      <div>
-                                        <Label
-                                          htmlFor={`total-${equipment.id}`}
-                                          className="text-gray-900 dark:text-white"
-                                        >
-                                          Total Cost
-                                        </Label>
-                                        <Input
-                                          id={`total-${equipment.id}`}
-                                          type="text"
-                                          readOnly
-                                          value={`KES ${(
-                                            equipmentItem?.total_cost || 0
-                                          ).toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          })}`}
-                                          className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
-                                        />
-                                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                                          {equipmentItem?.usage_quantity || 0}{" "}
-                                          {equipmentItem?.usage_unit || "unit"}{" "}
-                                          × KES
-                                          {(
-                                            equipmentItem?.rate_per_unit || 0
-                                          ).toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          })}
-                                          /{equipmentItem?.usage_unit || "unit"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      {customEquipment
-                        .sort((a, b) =>
-                          a.equipment_name.localeCompare(b.equipment_name),
-                        )
-                        .map((customEq) => {
-                          const isChecked = quoteData.equipment.some(
-                            (eq) => eq.equipment_type_id === customEq.id,
-                          );
-                          const equipmentItem = quoteData.equipment.find(
-                            (eq) => eq.equipment_type_id === customEq.id,
-                          );
-                          return (
-                            <Card
-                              key={customEq.id}
-                              className="p-6 border-l-4 border-l-blue-500"
-                            >
-                              <div className="items-center justify-between">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      checked={isChecked}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setQuoteData((prev) => ({
-                                            ...prev,
-                                            equipment: [
-                                              ...prev.equipment,
-                                              {
-                                                equipment_type_id: customEq.id,
-                                                name: customEq.equipment_name,
-                                                desc: customEq.description,
-                                                usage_quantity: 1,
-                                                usage_unit:
-                                                  customEq?.usage_unit || "day",
-                                                rate_per_unit:
-                                                  customEq.daily_rate || 0,
-                                                total_cost:
-                                                  customEq.daily_rate || 0,
-                                              },
-                                            ],
-                                          }));
-                                        } else {
-                                          setQuoteData((prev) => ({
-                                            ...prev,
-                                            equipment: prev.equipment.filter(
-                                              (eq) =>
-                                                eq.equipment_type_id !==
-                                                customEq.id,
-                                            ),
-                                          }));
-                                        }
-                                      }}
-                                    />
-                                    <div>
-                                      <h4 className="font-medium text-gray-900 dark:text-white">
-                                        {customEq.equipment_name}
-                                        <Badge className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
-                                          Custom
-                                        </Badge>
-                                      </h4>
-                                      {customEq.description && (
-                                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                                          {customEq.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {isChecked && (
-                                    <div className="space-y-3">
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                          <Label
-                                            htmlFor={`quantity-${customEq.id}`}
-                                            className="text-gray-900 dark:text-white"
-                                          >
-                                            Quantity
-                                          </Label>
-                                          <Input
-                                            id={`quantity-${customEq.id}`}
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
-                                            value={
-                                              equipmentItem?.usage_quantity || 1
-                                            }
-                                            onChange={(e) => {
-                                              const quantity =
-                                                parseFloat(e.target.value) || 0;
-                                              const rate =
-                                                equipmentItem?.rate_per_unit ||
-                                                0;
-                                              setQuoteData((prev) => ({
-                                                ...prev,
-                                                equipment: prev.equipment.map(
-                                                  (eq) =>
-                                                    eq.equipment_type_id ===
-                                                    customEq.id
-                                                      ? {
-                                                          ...eq,
-                                                          usage_quantity:
-                                                            quantity,
-                                                          total_cost:
-                                                            quantity * rate,
-                                                        }
-                                                      : eq,
-                                                ),
-                                              }));
-                                            }}
-                                            className=""
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label
-                                            htmlFor={`unit-${customEq.id}`}
-                                            className="text-gray-900 dark:text-white"
-                                          >
-                                            Unit
-                                          </Label>
-                                          <div id={`unit-${customEq.id}`}>
-                                            <Select
-                                              value={
-                                                equipmentItem?.usage_unit ||
-                                                "day"
-                                              }
-                                              onValueChange={(value) => {
-                                                setQuoteData((prev) => ({
-                                                  ...prev,
-                                                  equipment: prev.equipment.map(
-                                                    (eq) =>
-                                                      eq.equipment_type_id ===
-                                                      customEq.id
-                                                        ? {
-                                                            ...eq,
-                                                            usage_unit: value,
-                                                          }
-                                                        : eq,
-                                                  ),
-                                                }));
-                                              }}
-                                            >
-                                              <SelectTrigger className="h-10 w-full ">
-                                                <SelectValue placeholder="Select unit" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                <SelectItem value="hour">
-                                                  Hour
-                                                </SelectItem>
-                                                <SelectItem value="day">
-                                                  Day
-                                                </SelectItem>
-                                                <SelectItem value="week">
-                                                  Week
-                                                </SelectItem>
-                                                <SelectItem value="month">
-                                                  Month
-                                                </SelectItem>
-                                                <SelectItem value="unit">
-                                                  Unit
-                                                </SelectItem>
-                                                <SelectItem value="trip">
-                                                  Trip
-                                                </SelectItem>
-                                              </SelectContent>
-                                            </Select>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <Label
-                                          htmlFor={`rate-${customEq.id}`}
-                                          className="text-gray-900 dark:text-white"
-                                        >
-                                          Rate per{" "}
-                                          {equipmentItem?.usage_unit || "unit"}
-                                        </Label>
-                                        <Input
-                                          id={`rate-${customEq.id}`}
-                                          type="number"
-                                          min="0"
-                                          step="0.01"
-                                          value={
-                                            equipmentItem?.rate_per_unit || 0
-                                          }
-                                          onChange={(e) => {
-                                            const rate =
-                                              parseFloat(e.target.value) || 0;
-                                            const quantity =
-                                              equipmentItem?.usage_quantity ||
-                                              1;
-                                            setQuoteData((prev) => ({
-                                              ...prev,
-                                              equipment: prev.equipment.map(
-                                                (eq) =>
-                                                  eq.equipment_type_id ===
-                                                  customEq.id
-                                                    ? {
-                                                        ...eq,
-                                                        rate_per_unit: rate,
-                                                        total_cost:
-                                                          quantity * rate,
-                                                      }
-                                                    : eq,
-                                              ),
-                                            }));
-                                          }}
-                                          className=""
-                                        />
-                                      </div>
-                                      <div>
-                                        <Label
-                                          htmlFor={`total-${customEq.id}`}
-                                          className="text-gray-900 dark:text-white"
-                                        >
-                                          Total Cost
-                                        </Label>
-                                        <Input
-                                          id={`total-${customEq.id}`}
-                                          type="text"
-                                          readOnly
-                                          value={`KES ${(
-                                            equipmentItem?.total_cost || 0
-                                          ).toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          })}`}
-                                          className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
-                                        />
-                                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                                          {equipmentItem?.usage_quantity || 0}{" "}
-                                          {equipmentItem?.usage_unit || "unit"}{" "}
-                                          × KES
-                                          {(
-                                            equipmentItem?.rate_per_unit || 0
-                                          ).toLocaleString(undefined, {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          })}
-                                          /{equipmentItem?.usage_unit || "unit"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      {quoteData.equipment
-                        .filter(
-                          (eq) =>
-                            !equipmentRates.some(
-                              (e) => e.id === eq.equipment_type_id,
-                            ) &&
-                            !customEquipment.some(
-                              (ce) => ce.id === eq.equipment_type_id,
-                            ),
-                        )
-                        .map((eq) => {
-                          const totalCost =
-                            (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
-                          return (
-                            <Card
-                              key={eq.equipment_type_id}
-                              className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                            >
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 items-center justify-center sm:space-x-2">
-                                    <Label
-                                      htmlFor={`name-${eq.equipment_type_id}`}
-                                      className="whitespace-nowrap sm:mb-0 mb-1"
-                                    >
-                                      Equipment Name
-                                    </Label>
-                                    <Input
-                                      id={`name-${eq.equipment_type_id}`}
-                                      type="text"
-                                      value={eq.name}
-                                      onChange={(e) =>
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          equipment: prev.equipment.map(
-                                            (item) =>
-                                              item.equipment_type_id ===
-                                              eq.equipment_type_id
-                                                ? {
-                                                    ...item,
-                                                    name: e.target.value,
-                                                  }
-                                                : item,
-                                          ),
-                                        }))
-                                      }
-                                      placeholder="e.g., Specialized Crane"
-                                      className="flex-1 "
-                                    />
-                                  </div>
-                                  <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    className=" justify-center"
-                                    onClick={() =>
-                                      setQuoteData((prev) => ({
-                                        ...prev,
-                                        equipment: prev.equipment.filter(
-                                          (item) =>
-                                            item.equipment_type_id !==
-                                            eq.equipment_type_id,
-                                        ),
-                                      }))
-                                    }
-                                  >
-                                    <Trash className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div>
-                                    <Label
-                                      htmlFor={`custom-quantity-${eq.equipment_type_id}`}
-                                      className="text-gray-900 dark:text-white"
-                                    >
-                                      Quantity
-                                    </Label>
-                                    <Input
-                                      id={`custom-quantity-${eq.equipment_type_id}`}
-                                      type="number"
-                                      min="0"
-                                      step="0.1"
-                                      value={eq.usage_quantity || 1}
-                                      onChange={(e) => {
-                                        const quantity =
-                                          parseFloat(e.target.value) || 0;
-                                        const rate = eq.rate_per_unit || 0;
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          equipment: prev.equipment.map(
-                                            (item) =>
-                                              item.equipment_type_id ===
-                                              eq.equipment_type_id
-                                                ? {
-                                                    ...item,
-                                                    usage_quantity: quantity,
-                                                    total_cost: quantity * rate,
-                                                  }
-                                                : item,
-                                          ),
-                                        }));
-                                      }}
-                                      className=""
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label
-                                      htmlFor={`custom-unit-${eq.equipment_type_id}`}
-                                      className="text-gray-900 dark:text-white"
-                                    >
-                                      Unit
-                                    </Label>
-                                    <Select
-                                      value={eq?.usage_unit}
-                                      onValueChange={(value) => {
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          equipment: prev.equipment.map(
-                                            (item) =>
-                                              item.equipment_type_id ===
-                                              eq.equipment_type_id
-                                                ? { ...item, usage_unit: value }
-                                                : item,
-                                          ),
-                                        }));
-                                      }}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select unit" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="hour">
-                                          Hour
-                                        </SelectItem>
-                                        <SelectItem value="day">Day</SelectItem>
-                                        <SelectItem value="week">
-                                          Week
-                                        </SelectItem>
-                                        <SelectItem value="month">
-                                          Month
-                                        </SelectItem>
-                                        <SelectItem value="unit">
-                                          Unit
-                                        </SelectItem>
-                                        <SelectItem value="trip">
-                                          Trip
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-                                </div>
-                                <div>
-                                  <Label
-                                    htmlFor={`custom-rate-${eq.equipment_type_id}`}
-                                    className="text-gray-900 dark:text-white"
-                                  >
-                                    Rate per {eq.usage_unit || "unit"}
-                                  </Label>
-                                  <Input
-                                    id={`custom-rate-${eq.equipment_type_id}`}
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={eq.rate_per_unit || 0}
-                                    onChange={(e) => {
-                                      const rate =
-                                        parseFloat(e.target.value) || 0;
-                                      const quantity = eq.usage_quantity || 1;
-                                      setQuoteData((prev) => ({
-                                        ...prev,
-                                        equipment: prev.equipment.map((item) =>
-                                          item.equipment_type_id ===
-                                          eq.equipment_type_id
-                                            ? {
-                                                ...item,
-                                                rate_per_unit: rate,
-                                                total_cost: quantity * rate,
-                                              }
-                                            : item,
-                                        ),
-                                      }));
-                                    }}
-                                    className=""
-                                  />
-                                </div>
-                                <div>
-                                  <Label
-                                    htmlFor={`custom-total-${eq.equipment_type_id}`}
-                                    className="text-gray-900 dark:text-white"
-                                  >
-                                    Total Cost
-                                  </Label>
-                                  <Input
-                                    id={`custom-total-${eq.equipment_type_id}`}
-                                    type="text"
-                                    readOnly
-                                    value={`KES ${totalCost.toLocaleString(
-                                      undefined,
-                                      {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      },
-                                    )}`}
-                                    className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
-                                  />
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                                    {eq.usage_quantity || 0}{" "}
-                                    {eq.usage_unit || "unit"} × KES
-                                    {(eq.rate_per_unit || 0).toLocaleString(
-                                      undefined,
-                                      {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                      },
-                                    )}
-                                    /{eq.usage_unit || "unit"}
-                                  </p>
-                                </div>
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      <Card className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col items-center justify-center">
-                        <Button
-                          onClick={() => {
-                            const customId = uuidv4();
-                            setQuoteData((prev) => ({
-                              ...prev,
-                              equipment: [
-                                ...prev.equipment,
-                                {
-                                  equipment_type_id: customId,
-                                  name: "",
-                                  usage_quantity: 1,
-                                  usage_unit: "day",
-                                  rate_per_unit: 0,
-                                  total_cost: 0,
-                                },
-                              ],
-                            }));
-                          }}
-                          className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                          style={{
-                            backgroundColor: RISA_BLUE,
-                            color: RISA_WHITE,
-                            padding: "0.75rem 2rem",
-                          }}
-                        >
-                          + Add Custom Equipment
-                        </Button>
-                      </Card>
-                    </div>
-                  </div>
+                  <EquipmentSelector
+                    quoteData={quoteData}
+                    setQuoteData={setQuoteData}
+                    equipmentRates={equipmentRates}
+                    customEquipment={customEquipment}
+                  />
                 </motion.div>
               </TabsContent>
 
@@ -2518,544 +2007,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                      <Plus className="w-5 h-5" />
-                      Additional Services
-                    </h3>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {services
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((service) => {
-                          const isChecked = quoteData.services.some(
-                            (s) => s.id === service.id,
-                          );
-                          return (
-                            <Card key={service.id} className="p-4">
-                              <div className="grid grid-cols-2">
-                                <div className="flex items-center space-x-3">
-                                  <Checkbox
-                                    className="text-white"
-                                    checked={isChecked}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          services: [
-                                            ...prev.services,
-                                            {
-                                              ...service,
-                                              payment_plan: "full",
-                                              total: service.price,
-                                              days: 1,
-                                              unit: service.unit || "item",
-                                            },
-                                          ],
-                                        }));
-                                      } else {
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          services: prev.services.filter(
-                                            (s) => s.id !== service.id,
-                                          ),
-                                        }));
-                                      }
-                                    }}
-                                  />
-                                  <div>
-                                    <h4 className="font-medium text-gray-900 dark:text-white">
-                                      {service.name}
-                                    </h4>
-                                    {service.description && (
-                                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                                        {service.description}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <Badge
-                                    className="text-black"
-                                    variant="secondary"
-                                  >
-                                    KSh {service.price.toLocaleString()}/
-                                    {service.unit || "item"}
-                                  </Badge>
-                                  <p className="text-xs text-gray-600 dark:text-gray-300">
-                                    {service.category}
-                                  </p>
-                                </div>
-                              </div>
-
-                              {isChecked && (
-                                <div className="mt-3 animate-fade-in space-y-3">
-                                  <div>
-                                    <Label>Payment Plan *</Label>
-                                    <Select
-                                      value={
-                                        quoteData.services.find(
-                                          (s) => s.id === service.id,
-                                        )?.payment_plan || "full"
-                                      }
-                                      onValueChange={(
-                                        value: "interval" | "full",
-                                      ) =>
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          services: prev.services.map((serv) =>
-                                            serv.id === service.id
-                                              ? {
-                                                  ...serv,
-                                                  payment_plan: value,
-                                                  total:
-                                                    value === "full"
-                                                      ? serv.price
-                                                      : (serv.price || 0) *
-                                                        (serv.days || 1),
-                                                }
-                                              : serv,
-                                          ),
-                                        }))
-                                      }
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select Payment Plan" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="full">
-                                          Full Amount
-                                        </SelectItem>
-                                        <SelectItem value="interval">
-                                          Interval Payments
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  <div>
-                                    <Label
-                                      htmlFor={`serviceCost-${service.id}`}
-                                    >
-                                      {quoteData.services.find(
-                                        (s) => s.id === service.id,
-                                      )?.payment_plan === "full"
-                                        ? "Total Cost"
-                                        : "Rate per Unit"}
-                                    </Label>
-                                    <Input
-                                      id={`serviceCost-${service.id}`}
-                                      type="number"
-                                      min="0"
-                                      value={
-                                        quoteData.services.find(
-                                          (s) => s.id === service.id,
-                                        )?.payment_plan === "full"
-                                          ? quoteData.services.find(
-                                              (s) => s.id === service.id,
-                                            )?.total || service.price
-                                          : quoteData.services.find(
-                                              (s) => s.id === service.id,
-                                            )?.price || service.price
-                                      }
-                                      placeholder={
-                                        quoteData.services.find(
-                                          (s) => s.id === service.id,
-                                        )?.payment_plan === "full"
-                                          ? "Total cost"
-                                          : "Rate per unit"
-                                      }
-                                      onChange={(e) =>
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          services: prev.services.map((serv) =>
-                                            serv.id === service.id
-                                              ? {
-                                                  ...serv,
-                                                  total:
-                                                    serv.payment_plan === "full"
-                                                      ? parseFloat(
-                                                          e.target.value,
-                                                        ) || 0
-                                                      : (parseFloat(
-                                                          e.target.value,
-                                                        ) || 0) *
-                                                        (serv.days || 1),
-                                                  price:
-                                                    serv.payment_plan ===
-                                                    "interval"
-                                                      ? parseFloat(
-                                                          e.target.value,
-                                                        ) || 0
-                                                      : serv.price,
-                                                }
-                                              : serv,
-                                          ),
-                                        }))
-                                      }
-                                    />
-                                  </div>
-
-                                  {quoteData.services.find(
-                                    (s) => s.id === service.id,
-                                  )?.payment_plan === "interval" && (
-                                    <>
-                                      <div>
-                                        <Label>
-                                          Unit
-                                          <Select
-                                            value={
-                                              quoteData.services.find(
-                                                (s) => s.id === service.id,
-                                              )?.unit || "day"
-                                            }
-                                            onValueChange={(e) =>
-                                              setQuoteData((prev) => ({
-                                                ...prev,
-                                                services: prev.services.map(
-                                                  (serv) =>
-                                                    serv.id === service.id
-                                                      ? {
-                                                          ...serv,
-                                                          unit: e,
-                                                        }
-                                                      : serv,
-                                                ),
-                                              }))
-                                            }
-                                          >
-                                            <SelectTrigger className="w-full">
-                                              <SelectValue placeholder="Select unit" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="hour">
-                                                Hour
-                                              </SelectItem>
-                                              <SelectItem value="day">
-                                                Day
-                                              </SelectItem>
-                                              <SelectItem value="week">
-                                                Week
-                                              </SelectItem>
-                                              <SelectItem value="month">
-                                                Month
-                                              </SelectItem>
-                                              <SelectItem value="unit">
-                                                Unit
-                                              </SelectItem>
-                                              <SelectItem value="trip">
-                                                Trip
-                                              </SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </Label>
-                                      </div>
-
-                                      <div>
-                                        <Label
-                                          htmlFor={`serviceDays-${service.id}`}
-                                        >
-                                          Number of{" "}
-                                          {quoteData.services.find(
-                                            (s) => s.id === service.id,
-                                          )?.unit || "days"}
-                                        </Label>
-                                        <Input
-                                          id={`serviceDays-${service.id}`}
-                                          type="number"
-                                          min="1"
-                                          value={
-                                            quoteData.services.find(
-                                              (s) => s.id === service.id,
-                                            )?.days || ""
-                                          }
-                                          placeholder="e.g., 5"
-                                          onChange={(e) =>
-                                            setQuoteData((prev) => ({
-                                              ...prev,
-                                              services: prev.services.map(
-                                                (serv) =>
-                                                  serv.id === service.id
-                                                    ? {
-                                                        ...serv,
-                                                        days:
-                                                          parseInt(
-                                                            e.target.value,
-                                                          ) || 0,
-                                                        total:
-                                                          (serv.price || 0) *
-                                                          (parseInt(
-                                                            e.target.value,
-                                                          ) || 0),
-                                                      }
-                                                    : serv,
-                                              ),
-                                            }))
-                                          }
-                                        />
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </Card>
-                          );
-                        })}
-
-                      {/* Custom Services */}
-                      {quoteData.services
-                        .filter((s) => !services.some((srv) => srv.id === s.id))
-                        .map((service) => (
-                          <Card key={service.id} className="p-4">
-                            <div className="grid grid-cols-1 gap-3">
-                              <div className="space-y-2">
-                                <Input
-                                  type="text"
-                                  value={service.name}
-                                  placeholder="Service name"
-                                  onChange={(e) =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      services: prev.services.map((s) =>
-                                        s.id === service.id
-                                          ? { ...s, name: e.target.value }
-                                          : s,
-                                      ),
-                                    }))
-                                  }
-                                />
-
-                                <Input
-                                  type="text"
-                                  value={service.category}
-                                  placeholder="Category"
-                                  onChange={(e) =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      services: prev.services.map((s) =>
-                                        s.id === service.id
-                                          ? { ...s, category: e.target.value }
-                                          : s,
-                                      ),
-                                    }))
-                                  }
-                                />
-
-                                {service.description && (
-                                  <Input
-                                    type="text"
-                                    value={service.description}
-                                    placeholder="Description"
-                                    onChange={(e) =>
-                                      setQuoteData((prev) => ({
-                                        ...prev,
-                                        services: prev.services.map((s) =>
-                                          s.id === service.id
-                                            ? {
-                                                ...s,
-                                                description: e.target.value,
-                                              }
-                                            : s,
-                                        ),
-                                      }))
-                                    }
-                                  />
-                                )}
-                              </div>
-
-                              <div className="space-y-2">
-                                <Select
-                                  value={service.payment_plan || "full"}
-                                  onValueChange={(value: "interval" | "full") =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      services: prev.services.map((s) =>
-                                        s.id === service.id
-                                          ? {
-                                              ...s,
-                                              payment_plan: value,
-                                              total:
-                                                value === "full"
-                                                  ? s.total || s.price
-                                                  : (s.price || 0) *
-                                                    (s.days || 1),
-                                            }
-                                          : s,
-                                      ),
-                                    }))
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Payment Plan" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="full">
-                                      Full Amount
-                                    </SelectItem>
-                                    <SelectItem value="interval">
-                                      Interval Payments
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  placeholder={
-                                    service.payment_plan === "full"
-                                      ? "Total cost"
-                                      : "Rate per unit"
-                                  }
-                                  value={
-                                    service.payment_plan === "full"
-                                      ? service.total || ""
-                                      : service.price || ""
-                                  }
-                                  onChange={(e) => {
-                                    const val = parseFloat(e.target.value) || 0;
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      services: prev.services.map((s) =>
-                                        s.id === service.id
-                                          ? {
-                                              ...s,
-                                              total:
-                                                s.payment_plan === "full"
-                                                  ? val
-                                                  : val * (s.days || 1),
-                                              price:
-                                                s.payment_plan === "interval"
-                                                  ? val
-                                                  : s.price,
-                                            }
-                                          : s,
-                                      ),
-                                    }));
-                                  }}
-                                  className=""
-                                />
-
-                                {service.payment_plan === "interval" && (
-                                  <>
-                                    <Select
-                                      value={service.unit}
-                                      onValueChange={(value) => {
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          services: prev.services.map((s) =>
-                                            s.id === service.id
-                                              ? { ...s, unit: value }
-                                              : s,
-                                          ),
-                                        }));
-                                      }}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select unit" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="hour">
-                                          Hour
-                                        </SelectItem>
-                                        <SelectItem value="day">Day</SelectItem>
-                                        <SelectItem value="week">
-                                          Week
-                                        </SelectItem>
-                                        <SelectItem value="month">
-                                          Month
-                                        </SelectItem>
-                                        <SelectItem value="unit">
-                                          Unit
-                                        </SelectItem>
-                                        <SelectItem value="trip">
-                                          Trip
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      placeholder={`Number of ${
-                                        service.unit || "days"
-                                      }`}
-                                      value={service.days || ""}
-                                      onChange={(e) =>
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          services: prev.services.map((s) =>
-                                            s.id === service.id
-                                              ? {
-                                                  ...s,
-                                                  days:
-                                                    parseInt(e.target.value) ||
-                                                    0,
-                                                  total:
-                                                    (s.price || 0) *
-                                                    (parseInt(e.target.value) ||
-                                                      0),
-                                                }
-                                              : s,
-                                          ),
-                                        }))
-                                      }
-                                    />
-                                  </>
-                                )}
-
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      services: prev.services.filter(
-                                        (s) => s.id !== service.id,
-                                      ),
-                                    }))
-                                  }
-                                >
-                                  Remove
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-
-                      <Card className="p-4 flex items-center justify-center">
-                        <Button
-                          onClick={() => {
-                            const customId = uuidv4();
-                            setQuoteData((prev) => ({
-                              ...prev,
-                              services: [
-                                ...prev.services,
-                                {
-                                  id: customId,
-                                  name: "",
-                                  description: "",
-                                  category: "",
-                                  price: 0,
-                                  total: 0,
-                                  days: 1,
-                                  unit: "day",
-                                  payment_plan: "interval",
-                                },
-                              ],
-                            }));
-                          }}
-                          className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                          style={{
-                            backgroundColor: RISA_BLUE,
-                            color: RISA_WHITE,
-                            padding: "0.75rem 2rem",
-                          }}
-                        >
-                          + Add Custom Service
-                        </Button>
-                      </Card>
-                    </div>
-                  </div>
+                  <ServicesSelector
+                    quoteData={quoteData}
+                    setQuoteData={setQuoteData}
+                    services={services}
+                  />
                   <div>
                     <Label
                       htmlFor="customSpecs"
@@ -3087,401 +2043,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-                      <Zap className="w-5 h-5" />
-                      Subcontractor Charges
-                    </h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {subContractors
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map((service) => {
-                          const isChecked = quoteData.subcontractors.some(
-                            (s) => s.id === service.id,
-                          );
-                          return (
-                            <Card
-                              key={service.id}
-                              className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                            >
-                              <div className="grid grid-cols-2">
-                                <div className="flex items-center space-x-3">
-                                  <Checkbox
-                                    checked={isChecked}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          subcontractors: [
-                                            ...prev.subcontractors,
-                                            {
-                                              ...service,
-                                              subcontractor_payment_plan:
-                                                "full",
-                                              total: service.price,
-                                            },
-                                          ],
-                                        }));
-                                      } else {
-                                        setQuoteData((prev) => ({
-                                          ...prev,
-                                          subcontractors:
-                                            prev.subcontractors.filter(
-                                              (s) => s.id !== service.id,
-                                            ),
-                                        }));
-                                      }
-                                    }}
-                                  />
-                                  <h4 className="font-medium text-gray-900 dark:text-white">
-                                    {service.name}
-                                  </h4>
-                                </div>
-                                <div className="text-right">
-                                  <Badge
-                                    className="text-black"
-                                    variant="secondary"
-                                  >
-                                    KSh {service.price.toLocaleString()}/
-                                    {service.unit}
-                                  </Badge>
-                                </div>
-                              </div>
-                              {isChecked && (
-                                <div className="mt-3 animate-fade-in">
-                                  <Label className="text-gray-900 dark:text-white">
-                                    Payment Plan *
-                                  </Label>
-                                  <Select
-                                    value={
-                                      quoteData.subcontractors.find(
-                                        (s) => s.id === service.id,
-                                      )?.subcontractor_payment_plan || "full"
-                                    }
-                                    onValueChange={(value: "daily" | "full") =>
-                                      setQuoteData((prev) => ({
-                                        ...prev,
-                                        subcontractors: prev.subcontractors.map(
-                                          (sub) =>
-                                            sub.id === service.id
-                                              ? {
-                                                  ...sub,
-                                                  subcontractor_payment_plan:
-                                                    value,
-                                                  total:
-                                                    value === "full"
-                                                      ? sub.price
-                                                      : sub.total,
-                                                  price:
-                                                    value === "daily"
-                                                      ? sub.price
-                                                      : sub.total || sub.price,
-                                                }
-                                              : sub,
-                                        ),
-                                      }))
-                                    }
-                                  >
-                                    <SelectTrigger className="">
-                                      <SelectValue placeholder="Select Payment Plan" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="full">
-                                        Full Amount
-                                      </SelectItem>
-                                      <SelectItem value="daily">
-                                        Daily Payments
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <Label
-                                    htmlFor={`contractorCost-${service.id}`}
-                                    className="text-gray-900 dark:text-white"
-                                  >
-                                    Contractor Cost
-                                  </Label>
-                                  <Input
-                                    id={`contractorCost-${service.id}`}
-                                    type="number"
-                                    min="0"
-                                    value={
-                                      quoteData.subcontractors.find(
-                                        (s) => s.id === service.id,
-                                      )?.subcontractor_payment_plan === "full"
-                                        ? quoteData.subcontractors.find(
-                                            (s) => s.id === service.id,
-                                          )?.total || service.price
-                                        : quoteData.subcontractors.find(
-                                            (s) => s.id === service.id,
-                                          )?.price || service.price
-                                    }
-                                    placeholder={
-                                      quoteData.subcontractors.find(
-                                        (s) => s.id === service.id,
-                                      )?.subcontractor_payment_plan === "full"
-                                        ? "Total cost"
-                                        : "Daily rate"
-                                    }
-                                    onChange={(e) =>
-                                      setQuoteData((prev) => ({
-                                        ...prev,
-                                        subcontractors: prev.subcontractors.map(
-                                          (sub) =>
-                                            sub.id === service.id
-                                              ? {
-                                                  ...sub,
-                                                  total:
-                                                    sub.subcontractor_payment_plan ===
-                                                    "full"
-                                                      ? parseFloat(
-                                                          e.target.value,
-                                                        ) || 0
-                                                      : sub.total,
-                                                  price:
-                                                    sub.subcontractor_payment_plan ===
-                                                    "daily"
-                                                      ? parseFloat(
-                                                          e.target.value,
-                                                        ) || 0
-                                                      : sub.price,
-                                                }
-                                              : sub,
-                                        ),
-                                      }))
-                                    }
-                                    className=""
-                                  />
-                                  {quoteData.subcontractors.find(
-                                    (s) => s.id === service.id,
-                                  )?.subcontractor_payment_plan === "daily" && (
-                                    <>
-                                      <Label
-                                        htmlFor={`days-${service.id}`}
-                                        className="text-gray-900 dark:text-white"
-                                      >
-                                        Number of Days
-                                      </Label>
-                                      <Input
-                                        id={`days-${service.id}`}
-                                        type="number"
-                                        min="1"
-                                        value={
-                                          quoteData.subcontractors.find(
-                                            (s) => s.id === service.id,
-                                          )?.days || ""
-                                        }
-                                        placeholder="e.g., 5"
-                                        onChange={(e) =>
-                                          setQuoteData((prev) => ({
-                                            ...prev,
-                                            subcontractors:
-                                              prev.subcontractors.map((sub) =>
-                                                sub.id === service.id
-                                                  ? {
-                                                      ...sub,
-                                                      days:
-                                                        parseInt(
-                                                          e.target.value,
-                                                        ) || 0,
-                                                    }
-                                                  : sub,
-                                              ),
-                                          }))
-                                        }
-                                        className=""
-                                      />
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </Card>
-                          );
-                        })}
-                      {quoteData.subcontractors
-                        .filter(
-                          (s) => !subContractors.some((srv) => srv.id === s.id),
-                        )
-                        .map((sub) => (
-                          <Card
-                            key={sub.id}
-                            className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-                          >
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-2">
-                                <Input
-                                  type="text"
-                                  value={sub.name}
-                                  placeholder="Subcontractor name"
-                                  onChange={(e) =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      subcontractors: prev.subcontractors.map(
-                                        (s) =>
-                                          s.id === sub.id
-                                            ? { ...s, name: e.target.value }
-                                            : s,
-                                      ),
-                                    }))
-                                  }
-                                  className=""
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Select
-                                  value={
-                                    sub.subcontractor_payment_plan || "full"
-                                  }
-                                  onValueChange={(value: "daily" | "full") =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      subcontractors: prev.subcontractors.map(
-                                        (s) =>
-                                          s.id === sub.id
-                                            ? {
-                                                ...s,
-                                                subcontractor_payment_plan:
-                                                  value,
-                                                total:
-                                                  value === "full"
-                                                    ? s.total || s.price
-                                                    : s.total,
-                                                price:
-                                                  value === "daily"
-                                                    ? s.price || s.total
-                                                    : s.price,
-                                              }
-                                            : s,
-                                      ),
-                                    }))
-                                  }
-                                >
-                                  <SelectTrigger className="">
-                                    <SelectValue placeholder="Payment Plan" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="full">
-                                      Full Amount
-                                    </SelectItem>
-                                    <SelectItem value="daily">
-                                      Daily Payments
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  placeholder={
-                                    sub.subcontractor_payment_plan === "full"
-                                      ? "Total cost"
-                                      : "Daily rate"
-                                  }
-                                  value={
-                                    sub.subcontractor_payment_plan === "full"
-                                      ? sub.total || ""
-                                      : sub.price || ""
-                                  }
-                                  onChange={(e) => {
-                                    const val = parseFloat(e.target.value) || 0;
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      subcontractors: prev.subcontractors.map(
-                                        (s) =>
-                                          s.id === sub.id
-                                            ? {
-                                                ...s,
-                                                total:
-                                                  s.subcontractor_payment_plan ===
-                                                  "full"
-                                                    ? val
-                                                    : s.total,
-                                                price:
-                                                  s.subcontractor_payment_plan ===
-                                                  "daily"
-                                                    ? val
-                                                    : s.price,
-                                              }
-                                            : s,
-                                      ),
-                                    }));
-                                  }}
-                                  className=""
-                                />
-                                {sub.subcontractor_payment_plan === "daily" && (
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    placeholder="Days"
-                                    value={sub.days || ""}
-                                    onChange={(e) =>
-                                      setQuoteData((prev) => ({
-                                        ...prev,
-                                        subcontractors: prev.subcontractors.map(
-                                          (s) =>
-                                            s.id === sub.id
-                                              ? {
-                                                  ...s,
-                                                  days:
-                                                    parseInt(e.target.value) ||
-                                                    0,
-                                                }
-                                              : s,
-                                        ),
-                                      }))
-                                    }
-                                    className=""
-                                  />
-                                )}
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() =>
-                                    setQuoteData((prev) => ({
-                                      ...prev,
-                                      subcontractors:
-                                        prev.subcontractors.filter(
-                                          (s) => s.id !== sub.id,
-                                        ),
-                                    }))
-                                  }
-                                >
-                                  Remove
-                                </Button>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      <Card className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center">
-                        <Button
-                          onClick={() => {
-                            const newId = `custom-${Date.now()}`;
-                            setQuoteData((prev) => ({
-                              ...prev,
-                              subcontractors: [
-                                ...prev.subcontractors,
-                                {
-                                  id: newId,
-                                  name: "",
-                                  unit: "day",
-                                  price: 0,
-                                  total: 0,
-                                  days: 1,
-                                  subcontractor_payment_plan: "daily",
-                                },
-                              ],
-                            }));
-                          }}
-                          className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
-                          style={{
-                            backgroundColor: RISA_BLUE,
-                            color: RISA_WHITE,
-                            padding: "0.75rem 2rem",
-                          }}
-                        >
-                          + Add Custom Subcontractor
-                        </Button>
-                      </Card>
-                    </div>
-                  </div>
+                  <SubcontractorsSelector
+                    quoteData={quoteData}
+                    setQuoteData={setQuoteData}
+                    subContractors={subContractors}
+                  />
                 </motion.div>
               </TabsContent>
             </Tabs>
@@ -3658,6 +2224,15 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                           {calculation?.contingency_amount?.toLocaleString()}
                         </p>
                       </div>
+                      {calculation?.unknown_contingency_amount && (
+                        <div className="flex justify-between text-gray-900 dark:text-white">
+                          <p>Unknown Unknowns Reserve</p>
+                          <p>
+                            KSh{" "}
+                            {calculation?.unknown_contingency_amount?.toLocaleString()}
+                          </p>
+                        </div>
+                      )}
                       <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Overhead</p>
                         <p>

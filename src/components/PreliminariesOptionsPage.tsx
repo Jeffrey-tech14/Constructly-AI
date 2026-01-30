@@ -43,7 +43,7 @@ const PreliminariesOptionsPage = ({
 
   // Site clearance specific state
   const [siteClearanceArea, setSiteClearanceArea] = useState(
-    quoteData?.total_area || 100,
+    quoteData?.total_area * 3 || 100,
   );
   const [siteClearanceRate, setSiteClearanceRate] = useState(1000);
 
@@ -59,7 +59,7 @@ const PreliminariesOptionsPage = ({
 
       // Site clearance rate per m² (default: 1000 KES per m²)
       const clearanceRate = 1000;
-      const clearanceArea = quoteData?.total_area || 100;
+      const clearanceArea = siteClearanceArea || 100;
       const clearanceCost = clearanceRate * clearanceArea;
 
       return [

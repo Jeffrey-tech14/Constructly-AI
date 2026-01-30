@@ -74,6 +74,7 @@ const COMMON_MATERIALS = {
     "Terrazzo",
   ],
   ceiling: [
+    "Blundering",
     "Gypsum Board",
     "Filler",
     "PVC",
@@ -88,6 +89,7 @@ const COMMON_MATERIALS = {
     "Tile Cladding",
     "Wood Paneling",
     "Smooth Stucco",
+    "Window Sills",
   ],
   glazing: [
     "Clear Glass",
@@ -288,6 +290,46 @@ export default function FinishesCalculator({
     }));
   }, [finishes, setQuoteData]);
 
+  // Auto-manage blundering for ceiling items
+  useEffect(() => {
+    if (readonly) return;
+
+    const ceilingItems = finishes.filter(
+      (f) => f.category === "ceiling" && f.material !== "Blundering",
+    );
+    const hasBlundering = finishes.some(
+      (f) => f.category === "ceiling" && f.material === "Blundering",
+    );
+
+    // If there are ceiling items but no blundering, add it
+    if (ceilingItems.length > 0 && !hasBlundering) {
+      const firstCeilingItem = ceilingItems[0];
+      const blunderingItem: FinishElement = {
+        id: `finish-blundering-${Date.now()}`,
+        category: "ceiling",
+        material: "Blundering",
+        area: firstCeilingItem.area,
+        unit: "m²",
+        quantity: firstCeilingItem.quantity,
+        location: firstCeilingItem.location
+          ? `${firstCeilingItem.location} - Blundering`
+          : "Blundering",
+      };
+      if (onFinishesUpdate) {
+        onFinishesUpdate([...finishes, blunderingItem]);
+      }
+    }
+    // If no ceiling items exist, remove blundering
+    else if (ceilingItems.length === 0 && hasBlundering) {
+      const updatedFinishes = finishes.filter(
+        (f) => !(f.category === "ceiling" && f.material === "Blundering"),
+      );
+      if (onFinishesUpdate) {
+        onFinishesUpdate(updatedFinishes);
+      }
+    }
+  }, [finishes, readonly, onFinishesUpdate]);
+
   const handleEdit = (calc: FinishCalculation) => {
     const finish = finishes.find((f) => f.id === calc.id);
     if (finish) {
@@ -319,6 +361,7 @@ export default function FinishesCalculator({
     if (!confirm("Are you sure you want to delete this finish item?")) return;
 
     const updatedFinishes = finishes.filter((finish) => finish.id !== id);
+
     if (onFinishesUpdate) {
       onFinishesUpdate(updatedFinishes);
     }

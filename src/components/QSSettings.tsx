@@ -322,10 +322,7 @@ export default function QSSettings({
               {renderInput("overhead", "Overhead")}
               {renderInput("profit", "Profit")}
               {renderInput("contingency", "Contingency")}
-              {renderInput(
-                "unknowns_contingency",
-                "Unknowns Contingency (Optional)",
-              )}
+              {renderInput("unknowns_contingency", "Unknown Unknowns Reserve")}
               {renderInput("permit_cost", "Permit Cost")}
             </div>
           </CardContent>

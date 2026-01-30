@@ -502,7 +502,7 @@ export default function MasonryCalculatorForm({
         {/* Wall Sections Section */}
         <Card className="border">
           <div className="p-4 bg-gradient-to-r rounded-t-3xl from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b">
-            <div className="flex items-center justify-between">
+            <div className="flex-cols sm:space-y-0 space-y-2  sm:flex items-center justify-between">
               <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
                 Wall Sections & Openings
               </h3>
@@ -697,30 +697,6 @@ function WallSectionComponent({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label className="text-sm">Block Thickness (m)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={section.thickness || ""}
-                onChange={(e) => {
-                  const thickness = parseFloat(e.target.value);
-                  const updates: Partial<WallSection> = { thickness };
-                  // Auto-update block type when thickness changes
-                  const matchingBlock = blockTypes.find(
-                    (b) => b.size && b.size.thickness === thickness,
-                  );
-                  if (matchingBlock) {
-                    updates.blockType = matchingBlock.name;
-                  } else {
-                    // Set to Custom if no matching block type
-                    updates.blockType = "Custom";
-                  }
-                  onUpdateProperties(updates);
-                }}
-                placeholder="e.g., 0.2"
-              />
             </div>
           </div>
 

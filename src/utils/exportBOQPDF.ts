@@ -1,15 +1,10 @@
-// © 2025 Jeff. All rights reserved.
-// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
-
 import { pdf } from "@react-pdf/renderer";
 import React from "react";
 import { BOQSection } from "@/types/boq";
 import {
-  AdvancedMaterialExtractor,
-  MaterialSchedule,
-} from "./advancedMaterialExtractor";
-import { MaterialConsolidator } from "./materialConsolidator";
-import { geminiService } from "@/services/geminiService";
+  geminiService,
+  GeminiMaterialResponse,
+} from "@/services/geminiService";
 import PDFGeneratorComponent from "@/components/PDFGenerator";
 
 interface ProjectInfo {
@@ -34,29 +29,20 @@ const exportBOQPDF = async (
   isClientExport: boolean = false,
 ): Promise<boolean> => {
   try {
-    let materialSchedule: any[] = [];
-    let workItems: any[] = [];
+    let materialSchedule: GeminiMaterialResponse | null = null;
 
     if (quote?.concrete_materials || quote?.rebar_calculations) {
       try {
-        const geminiResponse = await geminiService.analyzeMaterials(quote);
+        materialSchedule = await geminiService.analyzeMaterials(quote);
 
-        // Extract flat materials
-        if (geminiResponse?.materials) {
-          materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-            geminiResponse.materials as any,
-          );
-        }
-
-        // Extract hierarchical work items
-        if (geminiResponse?.workItems && geminiResponse.workItems.length > 0) {
-          workItems = geminiResponse.workItems;
+        if (
+          !materialSchedule?.sections ||
+          materialSchedule.sections.length === 0
+        ) {
+          throw new Error("No material schedule sections returned from Gemini");
         }
       } catch (error) {
-        console.warn(
-          "AI extraction failed, falling back to local extraction:",
-          error,
-        );
+        console.error("Gemini extraction failed for BOQ PDF export:", error);
         throw new Error("Material extraction failed for PDF export");
       }
     }
@@ -66,7 +52,6 @@ const exportBOQPDF = async (
       projectInfo,
       preliminariesData: preliminaries,
       materialSchedule,
-      workItems,
       equipmentItems: quote.equipment,
       additionalServices: quote.services,
       calculationSummary: quote,

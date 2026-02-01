@@ -72,6 +72,10 @@ const COMMON_MATERIALS = {
     "Carpet",
     "Polished Concrete",
     "Terrazzo",
+    "Cement Floor Screed",
+    "Self-leveling Floor Screed",
+    "Anhydrite Floor Screed",
+    "Resinous Floor Screed",
   ],
   ceiling: [
     "Blundering",

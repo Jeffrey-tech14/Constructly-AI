@@ -22,6 +22,7 @@ import {
   ConsolidatedMaterial,
   MaterialConsolidator,
 } from "@/utils/materialConsolidator";
+import { GeminiMaterialResponse } from "@/services/geminiService";
 import { Target } from "lucide-react";
 Font.register({
   family: "Outfit",
@@ -571,7 +572,7 @@ interface PDFGeneratorProps {
   boqData: BOQSection[];
   projectInfo: ProjectInfo;
   preliminariesData?: Preliminaries[];
-  materialSchedule?: any[];
+  materialSchedule?: GeminiMaterialResponse;
   calculationSummary?: CalculationSummary;
   equipmentItems?: EquipmentItem[];
   additionalServices?: AdditionalService[];
@@ -581,6 +582,7 @@ interface PDFGeneratorProps {
   contractType?: "full_contract" | "labor_only";
   profit: number;
   contingency_amount: number;
+  unknown_contingency_amount: number;
   overhead_amount: number;
   labour: number;
   permits: number;
@@ -613,6 +615,7 @@ interface Percentage {
   profit: number;
   contingency: number;
   permit: number;
+  unknown_contingency: number;
 }
 interface CalculationSummary {
   materials_cost: number;
@@ -626,6 +629,7 @@ interface CalculationSummary {
   permit_cost: number;
   overhead_amount: number;
   contingency_amount: number;
+  unknown_contingency_amount: number;
   profit_amount: number;
   subtotal: number;
   total_amount: number;
@@ -645,6 +649,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   contractType = "full_contract",
   profit = 0,
   contingency_amount = 0,
+  unknown_contingency_amount = 0,
   overhead_amount = 0,
   labour = 0,
   permits = 0,
@@ -659,9 +664,30 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
   }, [boqData]);
   const consolidatedMaterials = useMemo(() => {
     let allMaterials: CategorizedMaterial[] = [];
-    if (materialSchedule && Array.isArray(materialSchedule)) {
-      allMaterials = materialSchedule;
+
+    if (materialSchedule) {
+      // Convert new hierarchical structure to flat materials for consolidation
+      materialSchedule.sections.forEach((section) => {
+        section.items.forEach((item) => {
+          if (item.type === "item") {
+            allMaterials.push({
+              itemNo: `${section.section_id}.${item.item_id}`,
+              category: section.name,
+              element: section.name,
+              description: item.description,
+              unit: item.unit || "Unit",
+              quantity: item.quantity || 0,
+              rate: item.unit_rate || 0,
+              amount: item.total_cost || 0,
+              source: "gemini",
+              location: "",
+              confidence: 1.0,
+            } as CategorizedMaterial);
+          }
+        });
+      });
     }
+
     return MaterialConsolidator.consolidateAllMaterials(allMaterials);
   }, [boqData, materialSchedule]);
   const calculateEquipmentTotal = useMemo(
@@ -684,18 +710,10 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
     if (calculationSummary?.materials_cost) {
       return calculationSummary.materials_cost;
     }
-  }, [calculationSummary]);
-  const materialsByCategory = materialSchedule.reduce(
-    (acc, material) => {
-      const category = material.category || "Uncategorized";
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(material);
-      return acc;
-    },
-    {} as Record<string, ConsolidatedMaterial[]>,
-  );
+    if (materialSchedule) {
+      return materialSchedule.summary.sub_total;
+    }
+  }, [calculationSummary, materialSchedule]);
   const renderAdditionalCostDetails = () => {
     return (
       <View style={styles.section}>
@@ -1763,6 +1781,19 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(contingency_amount)}
+                  </Text>
+                </View>
+              )}
+              {calculationSummary.unknown_contingency_amount > 0 && (
+                <View style={styles.tableRow}>
+                  <Text style={[styles.tableColDescription, { width: "70%" }]}>
+                    Unknown Unknowns Reserve (
+                    {calculationSummary.percentages?.[0]?.unknown_contingency ||
+                      0}
+                    %):
+                  </Text>
+                  <Text style={[styles.tableColAmount, { width: "30%" }]}>
+                    {formatCurrency(unknown_contingency_amount)}
                   </Text>
                 </View>
               )}

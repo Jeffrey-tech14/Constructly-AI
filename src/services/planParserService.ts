@@ -680,6 +680,10 @@ ${
     "Carpet",
     "Polished Concrete",
     "Terrazzo",
+    "Cement Floor Screed",
+    "Self-leveling Floor Screed",
+    "Anhydrite Floor Screed",
+    "Resinous Floor Screed",
   ],
   ceiling: [
     "Gypsum Board",

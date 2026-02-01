@@ -1,5 +1,5 @@
 // © 2025 Jeff. All rights reserved.
-// Unauthorized copying, distribution, or modification of this file is stored prohibited.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import { pdf } from "@react-pdf/renderer";
 import React from "react";
@@ -31,20 +31,20 @@ const exportMaterialSchedulePDF = async (
   quote: any,
 ): Promise<boolean> => {
   try {
-    let workItems: any[] = [];
+    let materialSchedule: GeminiMaterialResponse | null = null;
     const hasMaterialData =
       quote?.concrete_materials || quote?.rebar_calculations || quote?.boq_data;
 
-    // Extract work items using Gemini
+    // Extract material schedule using Gemini
     if (hasMaterialData) {
       try {
-        const geminiResponse: GeminiMaterialResponse =
-          await geminiService.analyzeMaterials(quote);
-        // Extract work items from Gemini response
-        if (geminiResponse?.materials && geminiResponse.materials.length > 0) {
-          workItems = geminiResponse.materials;
-        } else {
-          throw new Error("No materials returned from Gemini analysis");
+        materialSchedule = await geminiService.analyzeMaterials(quote);
+        // Validate the structure
+        if (
+          !materialSchedule?.sections ||
+          materialSchedule.sections.length === 0
+        ) {
+          throw new Error("No sections returned from Gemini analysis");
         }
       } catch (error) {
         console.error(
@@ -53,16 +53,14 @@ const exportMaterialSchedulePDF = async (
         );
         throw new Error("Material extraction failed for PDF export");
       }
-    } else if (Array.isArray(quote?.workItems)) {
-      workItems = quote.workItems;
     }
 
-    if (!workItems || workItems.length === 0) {
+    if (!materialSchedule) {
       throw new Error("No material schedule data available for export");
     }
 
     const pdfReactElement = React.createElement(MaterialSchedulePDFComponent, {
-      workItems,
+      materialSchedule,
       projectInfo,
     });
 

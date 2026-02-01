@@ -11,6 +11,11 @@ import {
   Font,
   Image,
 } from "@react-pdf/renderer";
+import {
+  GeminiMaterialResponse,
+  MaterialScheduleItem,
+  MaterialScheduleSection,
+} from "@/services/geminiService";
 
 Font.register({
   family: "Outfit",
@@ -89,15 +94,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#6B7280",
   },
-  materialScheduleTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    backgroundColor: "#1E40AF",
-    padding: 8,
-    marginBottom: 10,
-    textAlign: "center",
-  },
   materialScheduleHeaderRow: {
     flexDirection: "row",
     backgroundColor: "#1E40AF",
@@ -106,45 +102,60 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   materialScheduleColHeaderItem: {
-    width: "8%",
+    width: "6%",
     color: "#FFFFFF",
     fontWeight: "bold",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "center",
   },
   materialScheduleColHeaderDescription: {
-    width: "20%",
+    width: "22%",
     color: "#FFFFFF",
     fontWeight: "bold",
-    fontSize: 9,
+    fontSize: 8,
+    textAlign: "left",
+  },
+  materialScheduleColHeaderSpecification: {
+    width: "18%",
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 8,
+    textAlign: "left",
   },
   materialScheduleColHeaderUnit: {
     width: "8%",
     color: "#FFFFFF",
     fontWeight: "bold",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "center",
   },
   materialScheduleColHeaderQty: {
     width: "10%",
     color: "#FFFFFF",
     fontWeight: "bold",
-    fontSize: 9,
-    textAlign: "center",
+    fontSize: 8,
+    textAlign: "right",
   },
   materialScheduleColHeaderRate: {
     width: "12%",
     color: "#FFFFFF",
     fontWeight: "bold",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "right",
   },
   materialScheduleColHeaderAmount: {
     width: "12%",
     color: "#FFFFFF",
     fontWeight: "bold",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "right",
+  },
+  materialScheduleColHeaderRemarks: {
+    width: "12%",
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 8,
+    textAlign: "left",
   },
   materialScheduleRow: {
     flexDirection: "row",
@@ -154,41 +165,53 @@ const styles = StyleSheet.create({
     minHeight: 16,
   },
   materialScheduleColItem: {
-    width: "8%",
-    fontSize: 9,
+    width: "6%",
+    fontSize: 8,
     textAlign: "center",
     color: "#374151",
   },
   materialScheduleColDescription: {
-    width: "20%",
-    fontSize: 9,
+    width: "22%",
+    fontSize: 8,
     color: "#374151",
+  },
+  materialScheduleColSpecification: {
+    width: "18%",
+    fontSize: 7,
+    color: "#6B7280",
   },
   materialScheduleColUnit: {
     width: "8%",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "center",
     color: "#374151",
   },
   materialScheduleColQty: {
     width: "10%",
-    fontSize: 9,
-    textAlign: "center",
+    fontSize: 8,
+    textAlign: "right",
     color: "#374151",
   },
   materialScheduleColRate: {
     width: "12%",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "right",
     color: "#374151",
   },
   materialScheduleColAmount: {
     width: "12%",
-    fontSize: 9,
+    fontSize: 8,
     textAlign: "right",
     color: "#374151",
+    fontWeight: "bold",
   },
-  materialCategoryHeaderRow: {
+  materialScheduleColRemarks: {
+    width: "12%",
+    fontSize: 7,
+    color: "#6B7280",
+    textAlign: "left",
+  },
+  sectionHeaderRow: {
     flexDirection: "row",
     backgroundColor: "#2563EB",
     padding: 8,
@@ -196,74 +219,105 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     borderRadius: 4,
   },
-  materialCategoryHeaderText: {
-    fontSize: 11,
+  sectionHeaderText: {
+    fontSize: 10,
     fontWeight: "bold",
     color: "#FFFFFF",
-    flex: 1,
   },
-  categoryTotalRow: {
+  subheaderRow: {
+    flexDirection: "row",
+    backgroundColor: "#DBEAFE",
+    padding: 6,
+    marginTop: 4,
+    marginBottom: 2,
+    borderRadius: 2,
+  },
+  subheaderText: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#1E40AF",
+  },
+  noteRow: {
+    flexDirection: "row",
+    backgroundColor: "#FEF3C7",
+    padding: 6,
+    marginTop: 2,
+    marginBottom: 2,
+    borderRadius: 2,
+    borderLeftWidth: 3,
+    borderLeftColor: "#F59E0B",
+  },
+  noteText: {
+    fontSize: 8,
+    color: "#92400E",
+    fontStyle: "italic",
+  },
+  sectionSubtotalRow: {
     flexDirection: "row",
     marginTop: 4,
     marginBottom: 8,
     fontWeight: "bold",
-    fontSize: 10,
+    fontSize: 9,
     backgroundColor: "#EFF6FF",
     padding: 6,
     borderTop: "1pt solid #BFDBFE",
     borderRadius: 4,
   },
-  categoryTotalLabel: {
-    width: "68%",
+  sectionSubtotalLabel: {
+    width: "66%",
     textAlign: "right",
     paddingRight: 8,
     color: "#1E40AF",
   },
-  categoryTotalValue: {
+  sectionSubtotalValue: {
     width: "12%",
     textAlign: "right",
     color: "#1E40AF",
     fontWeight: "bold",
+  },
+  summarySection: {
+    marginTop: 15,
+    borderTopWidth: 2,
+    paddingTop: 10,
+    borderTopColor: "#1E40AF",
+  },
+  summaryRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+    fontSize: 10,
+  },
+  summaryLabel: {
+    flex: 1,
+    textAlign: "right",
+    paddingRight: 12,
+    fontWeight: "bold",
+    color: "#1F2937",
+  },
+  summaryValue: {
+    width: "15%",
+    textAlign: "right",
+    fontWeight: "bold",
+    color: "#1E40AF",
   },
   grandTotalRow: {
     flexDirection: "row",
-    marginTop: 15,
-    borderTop: "2pt solid #3B82F6",
-    paddingTop: 10,
+    marginTop: 10,
+    borderTop: "2pt solid #1E40AF",
+    paddingTop: 8,
     fontWeight: "bold",
-    fontSize: 11,
+    fontSize: 12,
     backgroundColor: "#EFF6FF",
     padding: 10,
-    borderRadius: 6,
+    borderRadius: 4,
   },
   grandTotalLabel: {
-    width: "68%",
+    flex: 1,
     textAlign: "right",
-    paddingRight: 8,
+    paddingRight: 12,
     color: "#1E40AF",
   },
   grandTotalValue: {
-    width: "12%",
-    textAlign: "right",
-    color: "#1E40AF",
-  },
-  contingencyRow: {
-    flexDirection: "row",
-    marginTop: 5,
-    fontWeight: "bold",
-    fontSize: 10,
-    backgroundColor: "#DBEAFE",
-    padding: 8,
-    borderRadius: 4,
-  },
-  contingencyLabel: {
-    width: "68%",
-    textAlign: "right",
-    paddingRight: 8,
-    color: "#1E40AF",
-  },
-  contingencyValue: {
-    width: "12%",
+    width: "15%",
     textAlign: "right",
     color: "#1E40AF",
     fontWeight: "bold",
@@ -283,7 +337,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     textAlign: "center",
-    fontSize: 9,
+    fontSize: 8,
     color: "#6B7280",
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
@@ -291,7 +345,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const formatCurrency = (amount: number): string => {
+const formatCurrency = (amount: number | null): string => {
   if (!amount || amount === 0) return "0";
   return new Intl.NumberFormat("en-KE", {
     minimumFractionDigits: 0,
@@ -299,42 +353,72 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
+const formatQuantity = (qty: number | null): string => {
+  if (qty === null || qty === undefined) return "-";
+  return qty % 1 === 0 ? qty.toFixed(0) : qty.toFixed(2);
+};
+
 interface MaterialSchedulePDFProps {
-  workItems: any[];
+  materialSchedule: GeminiMaterialResponse;
   projectInfo: any;
 }
 
 const MaterialSchedulePDF: React.FC<MaterialSchedulePDFProps> = ({
-  workItems,
+  materialSchedule,
   projectInfo,
 }) => {
-  const totalCost = workItems.reduce(
-    (sum, item) => sum + (item.totalCost || 0),
-    0,
-  );
-  const contingency = totalCost * 0.05;
-  const grandTotal = totalCost + contingency;
+  const renderMaterialItem = (item: MaterialScheduleItem, itemNum: string) => {
+    switch (item.type) {
+      case "subheader":
+        return (
+          <View key={itemNum} style={styles.subheaderRow}>
+            <Text style={styles.subheaderText}>{item.description}</Text>
+          </View>
+        );
 
-  const renderMaterialRow = (material: any, index: number) => (
-    <View style={styles.materialScheduleRow}>
-      <Text style={styles.materialScheduleColItem}>{index + 1}</Text>
-      <Text style={styles.materialScheduleColDescription}>
-        {material.description}
-      </Text>
-      <Text style={styles.materialScheduleColUnit}>{material.unit}</Text>
-      <Text style={styles.materialScheduleColQty}>
-        {typeof material.quantity === "number"
-          ? material.quantity.toFixed(2)
-          : material.quantity}
-      </Text>
-      <Text style={styles.materialScheduleColRate}>
-        {material.rate?.toLocaleString?.() || material.rate}
-      </Text>
-      <Text style={styles.materialScheduleColAmount}>
-        {material.amount?.toLocaleString?.() || formatCurrency(material.amount)}
-      </Text>
-    </View>
-  );
+      case "note":
+        return (
+          <View key={itemNum} style={styles.noteRow}>
+            <Text style={styles.noteText}>{item.description}</Text>
+          </View>
+        );
+
+      case "item":
+      default:
+        return (
+          <View key={itemNum} style={styles.materialScheduleRow}>
+            <Text style={styles.materialScheduleColItem}>{itemNum}</Text>
+            <Text style={styles.materialScheduleColDescription}>
+              {item.description}
+            </Text>
+            <Text style={styles.materialScheduleColSpecification}>
+              {item.specification || "-"}
+            </Text>
+            <Text style={styles.materialScheduleColUnit}>
+              {item.unit || "-"}
+            </Text>
+            <Text style={styles.materialScheduleColQty}>
+              {formatQuantity(item.quantity)}
+            </Text>
+            <Text style={styles.materialScheduleColRate}>
+              {item.unit_rate ? formatCurrency(item.unit_rate) : "-"}
+            </Text>
+            <Text style={styles.materialScheduleColAmount}>
+              {item.total_cost ? formatCurrency(item.total_cost) : "-"}
+            </Text>
+            <Text style={styles.materialScheduleColRemarks}>
+              {item.calculated ? "Calculated" : ""}
+            </Text>
+          </View>
+        );
+    }
+  };
+
+  const calculateSectionTotal = (section: MaterialScheduleSection): number => {
+    return section.items
+      .filter((item) => item.type === "item")
+      .reduce((sum, item) => sum + (item.total_cost || 0), 0);
+  };
 
   return (
     <Document>
@@ -342,7 +426,7 @@ const MaterialSchedulePDF: React.FC<MaterialSchedulePDFProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.companyName}>
-            {projectInfo.companyName || "JTech AI Construction"}
+            {projectInfo.companyName || "Construction Company"}
           </Text>
           {projectInfo.companyTagline && (
             <Text style={styles.companyTagline}>
@@ -356,95 +440,134 @@ const MaterialSchedulePDF: React.FC<MaterialSchedulePDFProps> = ({
         <View style={styles.projectInfoContainer}>
           <View style={styles.projectInfoRow}>
             <Text style={styles.projectInfoLabel}>Project:</Text>
-            <Text style={styles.projectInfoValue}>{projectInfo.title}</Text>
-          </View>
-          <View style={styles.projectInfoRow}>
-            <Text style={styles.projectInfoLabel}>Client:</Text>
             <Text style={styles.projectInfoValue}>
-              {projectInfo.clientName}
+              {materialSchedule.project.title || projectInfo.title}
             </Text>
           </View>
           <View style={styles.projectInfoRow}>
-            <Text style={styles.projectInfoLabel}>Location:</Text>
-            <Text style={styles.projectInfoValue}>{projectInfo.location}</Text>
+            <Text style={styles.projectInfoLabel}>Document Type:</Text>
+            <Text style={styles.projectInfoValue}>
+              {materialSchedule.project.document_type}
+            </Text>
           </View>
+          {materialSchedule.project.prepared_by && (
+            <View style={styles.projectInfoRow}>
+              <Text style={styles.projectInfoLabel}>Prepared By:</Text>
+              <Text style={styles.projectInfoValue}>
+                {materialSchedule.project.prepared_by}
+              </Text>
+            </View>
+          )}
           <View style={styles.projectInfoRow}>
-            <Text style={styles.projectInfoLabel}>Date:</Text>
-            <Text style={styles.projectInfoValue}>{projectInfo.date}</Text>
+            <Text style={styles.projectInfoLabel}>Currency:</Text>
+            <Text style={styles.projectInfoValue}>
+              {materialSchedule.project.currency}
+            </Text>
           </View>
+          {projectInfo.clientName && (
+            <View style={styles.projectInfoRow}>
+              <Text style={styles.projectInfoLabel}>Client:</Text>
+              <Text style={styles.projectInfoValue}>
+                {projectInfo.clientName}
+              </Text>
+            </View>
+          )}
+          {projectInfo.location && (
+            <View style={styles.projectInfoRow}>
+              <Text style={styles.projectInfoLabel}>Location:</Text>
+              <Text style={styles.projectInfoValue}>
+                {projectInfo.location}
+              </Text>
+            </View>
+          )}
+          {projectInfo.date && (
+            <View style={styles.projectInfoRow}>
+              <Text style={styles.projectInfoLabel}>Date:</Text>
+              <Text style={styles.projectInfoValue}>{projectInfo.date}</Text>
+            </View>
+          )}
         </View>
 
         {/* Materials Table */}
         <View style={{ marginBottom: 20 }}>
-          {/* Master header */}
+          {/* Master header - 8 columns */}
           <View style={styles.materialScheduleHeaderRow}>
-            <Text style={styles.materialScheduleColHeaderItem}>#</Text>
+            <Text style={styles.materialScheduleColHeaderItem}>Item</Text>
             <Text style={styles.materialScheduleColHeaderDescription}>
-              Material Requirement
+              Description
+            </Text>
+            <Text style={styles.materialScheduleColHeaderSpecification}>
+              Specification
             </Text>
             <Text style={styles.materialScheduleColHeaderUnit}>Unit</Text>
             <Text style={styles.materialScheduleColHeaderQty}>Qty</Text>
-            <Text style={styles.materialScheduleColHeaderRate}>Unit Cost</Text>
-            <Text style={styles.materialScheduleColHeaderAmount}>Total</Text>
+            <Text style={styles.materialScheduleColHeaderRate}>Unit Rate</Text>
+            <Text style={styles.materialScheduleColHeaderAmount}>
+              Total Cost
+            </Text>
+            <Text style={styles.materialScheduleColHeaderRemarks}>Remarks</Text>
           </View>
 
-          {/* Work items and materials */}
-          {workItems.map((workItem, workIndex) => {
-            const workItemMaterials = workItem.materials || [];
-            const workItemTotal = workItemMaterials.reduce(
-              (sum: number, m: any) => sum + (m.amount || 0),
-              0,
-            );
+          {/* Render sections */}
+          {materialSchedule.sections.map((section, sectionIdx) => {
+            const sectionTotal = calculateSectionTotal(section);
 
             return (
-              <View key={`work-item-${workIndex}`}>
-                {/* Work Item Header */}
-                <View style={styles.materialCategoryHeaderRow}>
-                  <Text style={styles.materialCategoryHeaderText}>
-                    {workItem.workDescription} ({workItem.workQuantity}{" "}
-                    {workItem.workUnit})
-                  </Text>
+              <View key={`section-${sectionIdx}`}>
+                {/* Section Header */}
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.sectionHeaderText}>{section.name}</Text>
                 </View>
 
-                {/* Materials for this work item */}
-                {workItemMaterials.map((material, matIndex) =>
-                  renderMaterialRow(material, matIndex),
+                {/* Section Items */}
+                {section.items.map((item, itemIdx) => {
+                  const itemNum = `${section.section_id}.${itemIdx + 1}`;
+                  return renderMaterialItem(item, itemNum);
+                })}
+
+                {/* Section Subtotal */}
+                {sectionTotal > 0 && (
+                  <View style={styles.sectionSubtotalRow}>
+                    <Text style={styles.sectionSubtotalLabel}>
+                      Section Total:
+                    </Text>
+                    <Text style={styles.sectionSubtotalValue}>
+                      {formatCurrency(sectionTotal)}
+                    </Text>
+                  </View>
                 )}
-
-                {/* Work item subtotal */}
-                <View style={styles.categoryTotalRow}>
-                  <Text style={styles.categoryTotalLabel}>
-                    Subtotal - {workItem.workDescription}:
-                  </Text>
-                  <Text style={styles.categoryTotalValue}>
-                    {formatCurrency(workItemTotal)}
-                  </Text>
-                </View>
               </View>
             );
           })}
         </View>
 
-        {/* Summation Section */}
-        <View style={{ marginTop: 10 }}>
+        {/* Summary Section */}
+        <View style={styles.summarySection}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal:</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(materialSchedule.summary.sub_total)}
+            </Text>
+          </View>
+
+          {materialSchedule.summary.contingency_percentage && (
+            <>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  Contingency ({materialSchedule.summary.contingency_percentage}
+                  %):
+                </Text>
+                <Text style={styles.summaryValue}>
+                  {formatCurrency(materialSchedule.summary.contingency_amount)}
+                </Text>
+              </View>
+            </>
+          )}
+
           <View style={styles.grandTotalRow}>
-            <Text style={styles.grandTotalLabel}>SUBTOTAL:</Text>
-            <Text style={styles.grandTotalValue}>
-              {formatCurrency(totalCost)}
-            </Text>
-          </View>
-
-          <View style={styles.contingencyRow}>
-            <Text style={styles.contingencyLabel}>5% CONTINGENCY:</Text>
-            <Text style={styles.contingencyValue}>
-              {formatCurrency(contingency)}
-            </Text>
-          </View>
-
-          <View style={{ ...styles.grandTotalRow, marginTop: 5, fontSize: 12 }}>
             <Text style={styles.grandTotalLabel}>GRAND TOTAL:</Text>
             <Text style={styles.grandTotalValue}>
-              {formatCurrency(grandTotal)}
+              {formatCurrency(materialSchedule.summary.grand_total)}
             </Text>
           </View>
         </View>
@@ -452,7 +575,8 @@ const MaterialSchedulePDF: React.FC<MaterialSchedulePDFProps> = ({
         {/* Footer */}
         <View style={styles.boqFooter} fixed>
           <Text>
-            Generated on {new Date().toLocaleDateString()} - {projectInfo.title}
+            Generated on {new Date().toLocaleDateString()} -{" "}
+            {materialSchedule.project.title}
           </Text>
           <Text style={{ fontSize: 7, marginTop: 4, color: "#9CA3AF" }}>
             This is an automatically generated document. All calculations are

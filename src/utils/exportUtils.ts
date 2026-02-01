@@ -5,11 +5,10 @@ import { exportBOQPDF } from "./exportBOQPDF";
 import { generateQuoteExcel } from "./excelGenerator";
 import { generateQuoteDOCX } from "./doxGenerator";
 import {
-  AdvancedMaterialExtractor,
-  MaterialSchedule,
-} from "@/utils/advancedMaterialExtractor";
-import { MaterialConsolidator } from "@/utils/materialConsolidator";
-import { geminiService } from "@/services/geminiService";
+  geminiService,
+  GeminiMaterialResponse,
+} from "@/services/geminiService";
+
 export interface ExportOptions {
   format: "pdf" | "excel" | "docx";
   audience: "client" | "contractor";
@@ -38,26 +37,20 @@ export interface ProjectInfo {
 export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
   try {
     const { format, audience, quote, projectInfo, logoUrl } = options;
-    let materialSchedule: any[] = [];
-    let workItems: any[] = [];
+    let materialSchedule: GeminiMaterialResponse | null = null;
     const hasMaterialData =
       quote?.concrete_materials || quote?.rebar_calculations || quote?.boq_data;
 
-    // Extract both flat materials and hierarchical work items
+    // Extract material schedule
     if (hasMaterialData) {
       try {
-        const geminiResponse = await geminiService.analyzeMaterials(quote);
+        materialSchedule = await geminiService.analyzeMaterials(quote);
 
-        // Extract flat materials
-        if (geminiResponse?.materials) {
-          materialSchedule = MaterialConsolidator.consolidateAllMaterials(
-            geminiResponse.materials as any,
-          );
-        }
-
-        // Extract hierarchical work items
-        if (geminiResponse?.workItems && geminiResponse.workItems.length > 0) {
-          workItems = geminiResponse.workItems;
+        if (
+          !materialSchedule?.sections ||
+          materialSchedule.sections.length === 0
+        ) {
+          throw new Error("No material schedule sections returned from Gemini");
         }
       } catch (error) {
         if (format === "pdf") {
@@ -76,17 +69,11 @@ export const exportQuote = async (options: ExportOptions): Promise<boolean> => {
           );
         }
       }
-    } else {
-      // No material data, use existing schedule if available
-      if (Array.isArray(quote?.materialSchedule)) {
-        materialSchedule = quote.materialSchedule;
-      }
     }
 
     const enrichedQuote = {
       ...quote,
       materialSchedule,
-      workItems,
     };
     switch (format) {
       case "pdf":

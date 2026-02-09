@@ -239,29 +239,23 @@ export interface ExtractedPlan {
     area: string;
   }>;
 
-  // Roofing systems
-  roofing?: Array<{
-    id: string;
-    name: string;
-    type: string;
-    material: string;
-    area: string;
-    pitch: string;
-    length?: string;
-    width?: string;
-    structure?: string;
-    span?: string;
-    perimeter?: string;
-    ridgeLength?: string;
-    flashingLength?: string;
-    valleyLength?: string;
-    thickness?: string;
-    underlayment?: string;
-    insulation?: {
-      type: string;
-      thickness: string;
-    };
-  }>;
+  // Roofing systems - deterministic calculation inputs
+  roofing?: {
+    footprintAreaM2: number;
+    externalPerimeterM: number;
+    internalPerimeterM?: number; // Optional internal wall perimeter for wall plates
+    buildingLengthM: number;
+    buildingWidthM: number;
+    roofTrussTypeKingPost: boolean;
+    purlinSpacingM: number;
+    roofingSheetEffectiveCoverWidthM: number;
+    roofingSheetLengthM: number;
+    roofType: "gable" | "hip" | "pitched" | "flat";
+    pitchDegrees: number;
+    eaveWidthM: number;
+    rasterSpacingMm: number;
+    trussSpacingMm: number;
+  };
 
   // Plumbing systems
   plumbing?: Array<{
@@ -359,7 +353,7 @@ export interface ExtractedPlan {
     weight_per_meter?: number; // optional: weight per meter in kg
     total_weight?: number; // optional: total weight in kg
   }>;
-  rebar_calculation_method?: "bbs" | "intensity-based"; // defaults to "intensity-based"
+  rebar_calculation_method?: "bbs" | "NORMAL_REBAR_MODE"; // defaults to "NORMAL_REBAR_MODE"
 
   // Painting specifications (multi-layer painting system)
   painting?: PaintingSpecificationData[];

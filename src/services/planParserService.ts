@@ -491,9 +491,9 @@ ${
 - Return complete bar_schedule array with all extracted bars
 - Be precise and thorough, make usre you capture every detail you can find correctly so take the time to check`
     : `**REBAR CALCULATION METHOD:**
-- Since no Bar Bending Schedule is provided, set rebar_calculation_method to "intensity-based"
+- Since no Bar Bending Schedule is provided, set rebar_calculation_method to "NORMAL_REBAR_MODE"
 - This indicates that rebar calculations will be based on reinforcement intensity formulas
-- bar_schedule array should be empty [] when using intensity-based method`
+- bar_schedule array should be empty [] when using NORMAL_REBAR_MODE method`
 }
 
 
@@ -667,7 +667,7 @@ ${
 
 
 **Finishes:**
-- Categories: "flooring", "ceiling", "wall-finishes",  "joinery"
+- Categories: "flooring", "ceiling", "wall-finishes",  "joinery", "external"
 - Only use these specified categories: skip glass, blocks, anyting to do with masonry or glass etc that are not in this list
 - Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
 - COMMON_MATERIALS = {
@@ -686,6 +686,8 @@ ${
     "Resinous Floor Screed",
   ],
   ceiling: [
+    "Blundering 40x40mm",
+    "Blundering",
     "Gypsum Board",
     "PVC",
     "Acoustic Tiles",
@@ -700,6 +702,20 @@ ${
     "Wood Paneling",
   ],
   joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"],
+  external: [
+    "PVC Gutter",
+    "Galvanized Steel Gutter",
+    "Aluminum Gutter",
+    "Copper Gutter",
+    "PVC Fascia",
+    "Painted Wood Fascia",
+    "Aluminum Fascia",
+    "Composite Fascia",
+    "PVC Soffit",
+    "Aluminum Soffit",
+    "PVC Downpipe",
+    "Galvanized Steel Downpipe",
+  ],
 };
 
 **Concrete & Structure:**
@@ -1117,52 +1133,22 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       ],
     }
   }
-  "roofing": [
-    {
-      "id": string,
-      "name": string,
-      "type": RoofType,
-      "material": RoofMaterial,
-      "area": number,
-      "pitch": number, // degrees
-      "length": number,
-      "width": number,
-      "eavesOverhang": number,
-      "covering": {
-        "type": string,
-        "material": RoofMaterial,
-        "underlayment"?: UnderlaymentType,
-        "insulation"?: { "type": InsulationType, "thickness": number // m }
-      },
-      "timbers": [
-        {
-          "id": string,
-          "type": string, // e.g., "rafter", "battens"
-          "size": TimberSize,
-          "spacing": number,
-          "grade": "standard" | "structural" | "premium",
-          "treatment": "untreated" | "pressure-treated" | "fire-retardant",
-          "quantity": number,
-          "length": number,
-          "unit": "m" | "pcs"
-        }
-      ],
-      "accessories": {
-        "gutters": number,
-        "gutterType": GutterType,
-        "downpipes": number,
-        "downpipeType": DownpipeType,
-        "flashings": number,
-        "flashingType": FlashingType,
-        "fascia": number,
-        "fasciaType": FasciaType,
-        "soffit": number,
-        "soffitType": SoffitType
-        "RidgeCaps": number // m,
-        valleyTraps: number // m
-      },
-    }
-  ],
+  "roofing": {
+    "footprintAreaM2": number, // Building footprint area in m²
+    "externalPerimeterM": number, // External wall perimeter in meters
+    "internalPerimeterM": number, // Internal wall perimeter in meters (for wall plates calculation)
+    "buildingLengthM": number, // Building length in meters
+    "buildingWidthM": number, // Building width in meters
+    "roofTrussTypeKingPost": boolean, // true if king post trusses are used
+    "purlinSpacingM": number, // Purlin spacing in meters (default: 1.5)
+    "roofingSheetEffectiveCoverWidthM": number, // Effective cover width of roofing sheets (default: 1.0)
+    "roofingSheetLengthM": number, // Length of roofing sheets (default: 3.0)
+    "roofType": "gable" | "hip" | "pitched" | "flat", // Type of roof
+    "pitchDegrees": number, // Roof pitch in degrees (default: 25)
+    "eaveWidthM": number, // Eaves width/overhang in meters (default: 0.8)
+    "rasterSpacingMm": number, // Rafter spacing in millimeters (default: 600)
+    "trussSpacingMm": number // Truss spacing in millimeters (default: 600)
+  },
   "plumbing": [
     {
       "id": string,
@@ -1278,7 +1264,7 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     }
   ],
   "rebar_calculation_method": "bbs"`
-      : `"rebar_calculation_method": "intensity-based"`
+      : `"rebar_calculation_method": "NORMAL_REBAR_MODE"`
   }
   }
 `;

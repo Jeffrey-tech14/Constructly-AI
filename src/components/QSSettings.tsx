@@ -66,6 +66,10 @@ export default function QSSettings({
     wastageMasonry: 3,
     wastageRoofing: 7,
     wastageFinishes: 8,
+    wastageFinishesFlooring: 10,
+    wastageFinishesWalls: 8,
+    wastageFinishesCeiling: 10,
+    wastageFinishesOthers: 8,
     wastageElectricals: 2,
     wastagePlumbing: 3,
     wastageWater: 5,
@@ -149,6 +153,10 @@ export default function QSSettings({
       wastageWater: 5,
       wastageRoofing: 7,
       wastageFinishes: 8,
+      wastageFinishesFlooring: 10,
+      wastageFinishesWalls: 8,
+      wastageFinishesCeiling: 10,
+      wastageFinishesOthers: 8,
       wastageElectricals: 2,
       wastagePlumbing: 3,
       clientProvidesWater: true,
@@ -481,6 +489,200 @@ export default function QSSettings({
                   }
                 />
               </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Wastage Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Wastage Allowances</CardTitle>
+          <CardDescription>
+            Configure wastage percentages for different material categories
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="wastage-concrete">Wastage Concrete (%)</Label>
+              <Input
+                id="wastage-concrete"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageConcrete}
+                onChange={(e) => handleChange("wastageConcrete", e.target.value)}
+                placeholder="5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-reinforcement">
+                Wastage Reinforcement (%)
+              </Label>
+              <Input
+                id="wastage-reinforcement"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageReinforcement}
+                onChange={(e) =>
+                  handleChange("wastageReinforcement", e.target.value)
+                }
+                placeholder="4"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-masonry">Wastage Masonry (%)</Label>
+              <Input
+                id="wastage-masonry"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageMasonry}
+                onChange={(e) => handleChange("wastageMasonry", e.target.value)}
+                placeholder="3"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-roofing">Wastage Roofing (%)</Label>
+              <Input
+                id="wastage-roofing"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageRoofing}
+                onChange={(e) => handleChange("wastageRoofing", e.target.value)}
+                placeholder="7"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-finishes">Wastage Finishes (%)</Label>
+              <Input
+                id="wastage-finishes"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageFinishes}
+                onChange={(e) => handleChange("wastageFinishes", e.target.value)}
+                placeholder="8"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-finishes-flooring">
+                Wastage Finishes - Flooring (%)
+              </Label>
+              <Input
+                id="wastage-finishes-flooring"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageFinishesFlooring}
+                onChange={(e) =>
+                  handleChange("wastageFinishesFlooring", e.target.value)
+                }
+                placeholder="10"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-finishes-walls">
+                Wastage Finishes - Walls (%)
+              </Label>
+              <Input
+                id="wastage-finishes-walls"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageFinishesWalls}
+                onChange={(e) =>
+                  handleChange("wastageFinishesWalls", e.target.value)
+                }
+                placeholder="8"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-finishes-ceiling">
+                Wastage Finishes - Ceiling (%)
+              </Label>
+              <Input
+                id="wastage-finishes-ceiling"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageFinishesCeiling}
+                onChange={(e) =>
+                  handleChange("wastageFinishesCeiling", e.target.value)
+                }
+                placeholder="10"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-finishes-others">
+                Wastage Finishes - Others (%)
+              </Label>
+              <Input
+                id="wastage-finishes-others"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageFinishesOthers}
+                onChange={(e) =>
+                  handleChange("wastageFinishesOthers", e.target.value)
+                }
+                placeholder="8"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-electricals">
+                Wastage Electricals (%)
+              </Label>
+              <Input
+                id="wastage-electricals"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageElectricals}
+                onChange={(e) =>
+                  handleChange("wastageElectricals", e.target.value)
+                }
+                placeholder="2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-plumbing">Wastage Plumbing (%)</Label>
+              <Input
+                id="wastage-plumbing"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastagePlumbing}
+                onChange={(e) => handleChange("wastagePlumbing", e.target.value)}
+                placeholder="3"
+              />
+            </div>
+            <div>
+              <Label htmlFor="wastage-water">Wastage Water (%)</Label>
+              <Input
+                id="wastage-water"
+                type="number"
+                step="1"
+                min="1"
+                max="50"
+                value={localSettings.wastageWater}
+                onChange={(e) => handleChange("wastageWater", e.target.value)}
+                placeholder="5"
+              />
             </div>
           </div>
         </CardContent>

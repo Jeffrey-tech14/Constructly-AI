@@ -11,13 +11,10 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Calculator, Plus, Trash, Layers } from "lucide-react";
+import { Calculator, Layers } from "lucide-react";
 import useMasonryCalculatorNew, {
   MasonryQSSettings,
-  Door,
-  Window,
   Dimensions,
-  WallSection,
   WallProperties,
 } from "@/hooks/useMasonryCalculatorNew";
 import { Label } from "./ui/label";
@@ -45,20 +42,7 @@ const blockTypes = [
   },
   { id: 4, displayName: "Custom", name: "Custom", size: null },
 ];
-const doorTypes = ["Flush", "Panel", "Metal", "Glass"];
-const windowGlassTypes = ["Clear", "Tinted", "Frosted"];
-const frameTypes = ["Wood", "Steel", "Aluminum"];
 const plasterOptions = ["None", "One Side", "Both Sides"];
-const standardDoorSizes = [
-  "0.9 \u00D7 2.1 m",
-  "1.0 \u00D7 2.1 m",
-  "1.2 \u00D7 2.4 m",
-];
-const standardWindowSizes = [
-  "1.2 \u00D7 1.2 m",
-  "1.5 \u00D7 1.2 m",
-  "2.0 \u00D7 1.5 m",
-];
 interface MasonryCalculatorFormProps {
   quote: any;
   setQuote: (quote: any) => void;
@@ -85,19 +69,9 @@ export default function MasonryCalculatorForm({
 }: MasonryCalculatorFormProps) {
   const {
     wallDimensions,
-    wallSections,
     wallProperties,
     updateWallDimensions,
     updateWallProperties,
-    addWallSection,
-    removeWallSection,
-    addDoorToSection,
-    addWindowToSection,
-    removeDoorFromSection,
-    removeWindowFromSection,
-    updateDoorInSection,
-    updateWindowInSection,
-    updateWallSectionProperties,
     calculateMasonry,
     results,
     qsSettings,
@@ -308,6 +282,156 @@ export default function MasonryCalculatorForm({
               </div>
             </Card>
           )}
+
+        {/* Doors & Windows Breakdown */}
+        {(results.netDoorsCost > 0 ||
+          results.netWindowsCost > 0) && (
+          <Card className="border">
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b rounded-t-lg">
+              <h4 className="font-semibold text-green-900 dark:text-green-100">
+                Doors & Windows Breakdown
+              </h4>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                {results.netDoorsCost > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Door Leaves (pcs):
+                      </span>
+                      <span className="font-medium">
+                        {results.netDoors || 0} net →{" "}
+                        {results.grossDoors || 0} gross
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Door Leaves Cost:
+                      </span>
+                      <span className="font-medium">
+                        Ksh {results.netDoorsCost?.toLocaleString() || 0} →{" "}
+                        {results.grossDoorsCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {results.netDoorFramesCost > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Door Frames (pcs):
+                      </span>
+                      <span className="font-medium">
+                        {results.netDoorFrames || 0} net →{" "}
+                        {results.grossDoorFrames || 0} gross
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Door Frames Cost:
+                      </span>
+                      <span className="font-medium">
+                        Ksh {results.netDoorFramesCost?.toLocaleString() || 0}{" "}
+                        → {results.grossDoorFramesCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {results.netDoorArchitraveCost > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Door Architrave Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netDoorArchitraveCost?.toLocaleString() || 0}{" "}
+                      → {results.grossDoorArchitraveCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                )}
+                {results.netDoorQuarterRoundCost > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Door Quarter Round Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netDoorQuarterRoundCost?.toLocaleString() || 0}{" "}
+                      → {results.grossDoorQuarterRoundCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                )}
+                {results.netDoorIronmongCost > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Door Ironmongery Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netDoorIronmongCost?.toLocaleString() || 0}{" "}
+                      → {results.grossDoorIronmongCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                )}
+                {results.netDoorTransomCost > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Door Transom Cost:
+                    </span>
+                    <span className="font-medium">
+                      Ksh {results.netDoorTransomCost?.toLocaleString() || 0}{" "}
+                      → {results.grossDoorTransomCost?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                {results.netWindowsCost > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Window Leaves (pcs):
+                      </span>
+                      <span className="font-medium">
+                        {results.netWindows || 0} net →{" "}
+                        {results.grossWindows || 0} gross
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Window Leaves Cost:
+                      </span>
+                      <span className="font-medium">
+                        Ksh {results.netWindowsCost?.toLocaleString() || 0} →{" "}
+                        {results.grossWindowsCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {results.netWindowFramesCost > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Window Frames (pcs):
+                      </span>
+                      <span className="font-medium">
+                        {results.netWindowFrames || 0} net →{" "}
+                        {results.grossWindowFrames || 0} gross
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Window Frames Cost:
+                      </span>
+                      <span className="font-medium">
+                        Ksh {results.netWindowFramesCost?.toLocaleString() || 0}{" "}
+                        → {results.grossWindowFramesCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 m-2">
@@ -496,567 +620,88 @@ export default function MasonryCalculatorForm({
                 </p>
               </div>
             </div>
-          </div>
-        </Card>
 
-        {/* Wall Sections Section */}
-        <Card className="border">
-          <div className="p-4 bg-gradient-to-r rounded-t-3xl from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b">
-            <div className="flex-cols sm:space-y-0 space-y-2  sm:flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                Wall Sections & Openings
-              </h3>
-              <Button
-                onClick={() => {
-                  addWallSection("external");
-                  calculateMasonry();
-                }}
-                size="sm"
-                variant="outline"
-                className="mr-2"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add External Wall
-              </Button>
-              <Button
-                onClick={() => {
-                  addWallSection("internal");
-                  calculateMasonry();
-                }}
-                size="sm"
-                variant="outline"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add Internal Wall
-              </Button>
-            </div>
-          </div>
-          <div className="p-4 space-y-4">
-            {wallSections && wallSections.length > 0 ? (
-              wallSections.map((section: WallSection, sectionIndex: number) => (
-                <WallSectionComponent
-                  key={sectionIndex}
-                  section={section}
-                  sectionIndex={sectionIndex}
-                  onAddDoor={() => {
-                    addDoorToSection(sectionIndex);
-                    calculateMasonry();
-                  }}
-                  onAddWindow={() => {
-                    addWindowToSection(sectionIndex);
-                    calculateMasonry();
-                  }}
-                  onRemoveSection={() => {
-                    removeWallSection(sectionIndex);
-                    calculateMasonry();
-                  }}
-                  onRemoveDoor={(doorIndex) => {
-                    removeDoorFromSection(sectionIndex, doorIndex);
-                    calculateMasonry();
-                  }}
-                  onRemoveWindow={(windowIndex) => {
-                    removeWindowFromSection(sectionIndex, windowIndex);
-                    calculateMasonry();
-                  }}
-                  onUpdateDoor={(doorIndex, field, value) => {
-                    updateDoorInSection(sectionIndex, doorIndex, field, value);
-                    calculateMasonry();
-                  }}
-                  onUpdateWindow={(windowIndex, field, value) => {
-                    updateWindowInSection(
-                      sectionIndex,
-                      windowIndex,
-                      field,
-                      value,
-                    );
-                    calculateMasonry();
-                  }}
-                  onUpdateProperties={(properties) => {
-                    updateWallSectionProperties(sectionIndex, properties);
-                    calculateMasonry();
-                  }}
-                  standardDoorSizes={standardDoorSizes}
-                  standardWindowSizes={standardWindowSizes}
-                  doorTypes={doorTypes}
-                  windowGlassTypes={windowGlassTypes}
-                  frameTypes={frameTypes}
-                />
-              ))
-            ) : (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400 rounded-lg bg-gray-50 dark:bg-gray-800/20">
-                No wall sections added yet. Click "Add External Wall" or "Add
-                Internal Wall" to start.
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
-}
-interface WallSectionComponentProps {
-  section: WallSection;
-  sectionIndex: number;
-  onAddDoor: () => void;
-  onAddWindow: () => void;
-  onRemoveSection: () => void;
-  onRemoveDoor: (doorIndex: number) => void;
-  onRemoveWindow: (windowIndex: number) => void;
-  onUpdateDoor: (doorIndex: number, field: string, value: any) => void;
-  onUpdateWindow: (windowIndex: number, field: string, value: any) => void;
-  onUpdateProperties: (properties: Partial<WallSection>) => void;
-  standardDoorSizes: string[];
-  standardWindowSizes: string[];
-  doorTypes: string[];
-  windowGlassTypes: string[];
-  frameTypes: string[];
-}
-
-function WallSectionComponent({
-  section,
-  sectionIndex,
-  onAddDoor,
-  onAddWindow,
-  onRemoveSection,
-  onRemoveDoor,
-  onRemoveWindow,
-  onUpdateDoor,
-  onUpdateWindow,
-  onUpdateProperties,
-  standardDoorSizes,
-  standardWindowSizes,
-  doorTypes,
-  windowGlassTypes,
-  frameTypes,
-}: WallSectionComponentProps) {
-  return (
-    <Card
-      className={`border-l-4 ${
-        section.type === "external"
-          ? "border-l-blue-500"
-          : "border-l-orange-500"
-      }`}
-    >
-      <div
-        className={`p-4 rounded-t-3xl ${
-          section.type === "external"
-            ? "bg-blue-50 dark:bg-blue-900/20"
-            : "bg-orange-50 dark:bg-orange-900/20"
-        } border-b`}
-      >
-        <div className="flex items-center justify-between">
-          <h4
-            className={`font-semibold text-lg capitalize ${
-              section.type === "external"
-                ? "text-blue-900 dark:text-blue-100"
-                : "text-orange-900 dark:text-orange-100"
-            }`}
-          >
-            {section.type === "external"
-              ? "🏢 External Wall"
-              : "🏠 Internal Wall"}
-          </h4>
-          <Button variant="destructive" size="sm" onClick={onRemoveSection}>
-            <Trash className="w-4 h-4 mr-1" />
-            Remove
-          </Button>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-4">
-        {/* Wall Properties Section */}
-        <div className="p-3 border rounded-lg bg-purple-50 dark:bg-purple-900/20 space-y-3">
-          <h5 className="font-semibold text-md text-purple-900 dark:text-purple-100">
-            Wall Properties
-          </h5>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <Label className="text-sm">Block Type</Label>
-              <Select
-                value={section.blockType || ""}
-                onValueChange={(value) => {
-                  const selectedBlock = blockTypes.find(
-                    (b) => b.name === value,
-                  );
-                  const updates: Partial<WallSection> = { blockType: value };
-                  // Auto-update thickness when block type changes
-                  if (selectedBlock && selectedBlock.size) {
-                    updates.thickness = selectedBlock.size.thickness;
+            {/* Block Type Selectors - from Wall Sections */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
+              <div>
+                <Label htmlFor="ext-block-type">External Wall Block Type</Label>
+                <Select
+                  value={
+                    quote?.wallSections?.find((s) => s.type === "external")
+                      ?.blockType || ""
                   }
-                  onUpdateProperties(updates);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Block Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {blockTypes.map((block) => (
-                    <SelectItem key={block.id} value={block.name}>
-                      {block.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {section.blockType === "Custom" && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/30 rounded border border-yellow-200 dark:border-yellow-800">
-              <div>
-                <Label className="text-xs">Block Name</Label>
-                <Input
-                  type="text"
-                  value={section.customBlockName || ""}
-                  onChange={(e) => {
-                    onUpdateProperties({
-                      customBlockName: e.target.value,
-                    });
+                  onValueChange={(value) => {
+                    const selectedBlockType = blockTypes.find(
+                      (b) => b.name === value
+                    );
+                    setQuote((prev) => ({
+                      ...prev,
+                      wallSections: prev.wallSections?.map((section) =>
+                        section.type === "external"
+                          ? {
+                              ...section,
+                              blockType: value,
+                              thickness: selectedBlockType?.size?.thickness || section.thickness,
+                            }
+                          : section
+                      ),
+                    }));
+                    calculateMasonry();
                   }}
-                  placeholder="e.g., Interlocking"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Block Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {blockTypes.map((block) => (
+                      <SelectItem key={`${block.id}-ext`} value={block.name}>
+                        {block.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label className="text-xs">Custom Length (m)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={section.customBlockLength || ""}
-                  onChange={(e) => {
-                    onUpdateProperties({
-                      customBlockLength: parseFloat(e.target.value),
-                    });
+                <Label htmlFor="int-block-type">Internal Wall Block Type</Label>
+                <Select
+                  value={
+                    quote?.wallSections?.find((s) => s.type === "internal")
+                      ?.blockType || ""
+                  }
+                  onValueChange={(value) => {
+                    const selectedBlockType = blockTypes.find(
+                      (b) => b.name === value
+                    );
+                    setQuote((prev) => ({
+                      ...prev,
+                      wallSections: prev.wallSections?.map((section) =>
+                        section.type === "internal"
+                          ? {
+                              ...section,
+                              blockType: value,
+                              thickness: selectedBlockType?.size?.thickness || section.thickness,
+                            }
+                          : section
+                      ),
+                    }));
+                    calculateMasonry();
                   }}
-                  placeholder="Length"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Custom Height (m)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={section.customBlockHeight || ""}
-                  onChange={(e) => {
-                    onUpdateProperties({
-                      customBlockHeight: parseFloat(e.target.value),
-                    });
-                  }}
-                  placeholder="Height"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Custom Price (Ksh)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={section.customBlockPrice || ""}
-                  onChange={(e) => {
-                    onUpdateProperties({
-                      customBlockPrice: parseFloat(e.target.value),
-                    });
-                  }}
-                  placeholder="Price"
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Block Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {blockTypes.map((block) => (
+                      <SelectItem key={`${block.id}-int`} value={block.name}>
+                        {block.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Doors Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h5 className="font-semibold text-md">Doors</h5>
-            <Button size="sm" variant="outline" onClick={onAddDoor}>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Door
-            </Button>
           </div>
-          {section.doors && section.doors.length > 0 ? (
-            section.doors.map((door: Door, doorIndex: number) => (
-              <DoorWindowItem
-                key={doorIndex}
-                type="door"
-                item={door}
-                itemIndex={doorIndex}
-                onUpdate={(field, value) =>
-                  onUpdateDoor(doorIndex, field, value)
-                }
-                onRemove={() => onRemoveDoor(doorIndex)}
-                standardSizes={standardDoorSizes}
-                types={doorTypes}
-                frameTypes={frameTypes}
-              />
-            ))
-          ) : (
-            <p className="text-sm text-gray-500 italic">No doors added</p>
-          )}
-        </div>
-
-        {/* Windows Section */}
-        <div className="space-y-3 pt-2 border-t">
-          <div className="flex items-center justify-between">
-            <h5 className="font-semibold text-md">Windows</h5>
-            <Button size="sm" variant="outline" onClick={onAddWindow}>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Window
-            </Button>
-          </div>
-          {section.windows && section.windows.length > 0 ? (
-            section.windows.map((window: Window, windowIndex: number) => (
-              <DoorWindowItem
-                key={windowIndex}
-                type="window"
-                item={window}
-                itemIndex={windowIndex}
-                onUpdate={(field, value) =>
-                  onUpdateWindow(windowIndex, field, value)
-                }
-                onRemove={() => onRemoveWindow(windowIndex)}
-                standardSizes={standardWindowSizes}
-                types={windowGlassTypes}
-                frameTypes={frameTypes}
-              />
-            ))
-          ) : (
-            <p className="text-sm text-gray-500 italic">No windows added</p>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-}
-interface DoorWindowItemProps {
-  type: "door" | "window";
-  item: Door | Window;
-  itemIndex: number;
-  onUpdate: (field: string, value: any) => void;
-  onRemove: () => void;
-  standardSizes: string[];
-  types: string[];
-  frameTypes: string[];
-}
-function DoorWindowItem({
-  type,
-  item,
-  itemIndex,
-  onUpdate,
-  onRemove,
-  standardSizes,
-  types,
-  frameTypes,
-}: DoorWindowItemProps) {
-  return (
-    <div className="p-3 border rounded-lg bg-gray-50 dark:bg-transparent space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-        <Select
-          value={item.sizeType}
-          onValueChange={(value) => onUpdate("sizeType", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Size Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="standard">Standard</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {item.sizeType === "standard" && (
-          <Select
-            value={item.standardSize}
-            onValueChange={(value) => onUpdate("standardSize", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select Size" />
-            </SelectTrigger>
-            <SelectContent>
-              {standardSizes.map((size) => (
-                <SelectItem key={size} value={size}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
-        {item.sizeType === "custom" && (
-          <>
-            <Input
-              placeholder="Height (m)"
-              type="number"
-              step="0.01"
-              value={item.custom.height}
-              onChange={(e) =>
-                onUpdate("custom", {
-                  ...item.custom,
-                  height: e.target.value,
-                })
-              }
-            />
-            <Input
-              placeholder="Width (m)"
-              type="number"
-              step="0.01"
-              value={item.custom.width}
-              onChange={(e) =>
-                onUpdate("custom", {
-                  ...item.custom,
-                  width: e.target.value,
-                })
-              }
-            />
-            <Input
-              placeholder="Price (Ksh)"
-              type="number"
-              min="0"
-              value={item.custom.price || ""}
-              onChange={(e) =>
-                onUpdate("custom", {
-                  ...item.custom,
-                  price: e.target.value,
-                })
-              }
-            />
-          </>
-        )}
-
-        <Select
-          value={item.type}
-          onValueChange={(value) => onUpdate("type", value)}
-        >
-          <SelectTrigger>
-            <SelectValue
-              placeholder={`${type === "door" ? "Door" : "Glass"} Type`}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {types.map((t) => (
-              <SelectItem key={t} value={t}>
-                {t}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Input
-          placeholder="Qty"
-          type="number"
-          min="1"
-          value={item.count}
-          onChange={(e) => onUpdate("count", parseInt(e.target.value) || 1)}
-        />
-
-        <Input
-          placeholder="Price (Ksh)"
-          type="number"
-          min="0"
-          value={item.price || ""}
-          onChange={(e) => onUpdate("price", e.target.value)}
-        />
-
-        <Button size="icon" variant="destructive" onClick={onRemove}>
-          <Trash className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-2 rounded">
-        <Select
-          value={item.frame.type}
-          onValueChange={(value) =>
-            onUpdate("frame", {
-              ...item.frame,
-              type: value,
-            })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Frame Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {frameTypes.map((frameType) => (
-              <SelectItem key={frameType} value={frameType}>
-                {frameType}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={item.frame?.sizeType || ""}
-          onValueChange={(value) =>
-            onUpdate("frame", {
-              ...item.frame,
-              sizeType: value,
-            })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Frame Size Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="standard">Standard</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {item.frame?.sizeType === "custom" ? (
-          <>
-            <Input
-              placeholder="Height (m)"
-              type="number"
-              value={item.frame?.custom?.height || ""}
-              onChange={(e) =>
-                onUpdate("frame", {
-                  ...item.frame,
-                  custom: {
-                    ...item.frame?.custom,
-                    height: e.target.value,
-                  },
-                })
-              }
-            />
-            <Input
-              placeholder="Width (m)"
-              type="number"
-              value={item.frame?.custom?.width || ""}
-              onChange={(e) =>
-                onUpdate("frame", {
-                  ...item.frame,
-                  custom: {
-                    ...item.frame?.custom,
-                    width: e.target.value,
-                  },
-                })
-              }
-            />
-            <Input
-              placeholder="Price (Ksh)"
-              type="number"
-              value={item.frame?.custom?.price || ""}
-              onChange={(e) =>
-                onUpdate("frame", {
-                  ...item.frame,
-                  custom: {
-                    ...item.frame?.custom,
-                    price: e.target.value,
-                  },
-                })
-              }
-            />
-          </>
-        ) : (
-          <Input
-            placeholder="Frame Price (Ksh)"
-            type="number"
-            min="0"
-            value={item.frame.price || ""}
-            onChange={(e) =>
-              onUpdate("frame", {
-                ...item.frame,
-                price: e.target.value,
-              })
-            }
-          />
-        )}
+        </Card>
       </div>
     </div>
   );

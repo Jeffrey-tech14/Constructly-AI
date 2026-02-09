@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { saveAs } from "file-saver";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   UploadCloud,
@@ -40,22 +47,16 @@ import {
   Ruler,
   Pickaxe,
   LucideThumbsUp,
+  Plus,
 } from "lucide-react";
 import { ExtractedPlan, usePlan } from "@/contexts/PlanContext";
 import { usePlanUpload } from "@/hooks/usePlanUpload";
 import { useBBSUpload } from "@/hooks/useBBSUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dimensions, WallProperties } from "@/hooks/useMasonryCalculatorNew";
+import { Dimensions, WallProperties, Door, Window } from "@/hooks/useMasonryCalculatorNew";
 import { WallSection } from "@/hooks/useMasonryCalculatorNew";
 import { planParserService } from "@/services/planParserService";
 
@@ -66,6 +67,21 @@ const RISA_WHITE = "#ffffff";
 const RISA_DARK_TEXT = "#2D3748";
 const RISA_LIGHT_GRAY = "#F5F7FA";
 const RISA_MEDIUM_GRAY = "#E2E8F0";
+
+// Door and Window constants
+const doorTypes = ["Flush", "Panel", "Metal", "Glass"];
+const windowGlassTypes = ["Clear", "Tinted", "Frosted"];
+const frameTypes = ["Wood", "Steel", "Aluminum"];
+const standardDoorSizes = [
+  "0.9 × 2.1 m",
+  "1.0 × 2.1 m",
+  "1.2 × 2.4 m",
+];
+const standardWindowSizes = [
+  "1.2 × 1.2 m",
+  "1.5 × 1.2 m",
+  "2.0 × 1.5 m",
+];
 
 export interface ParsedPlan {
   wallDimensions?: Dimensions;
@@ -1282,13 +1298,216 @@ const UploadPlan = () => {
                         {/* Extracted Wall Structure Results */}
                         {editablePlan.wallDimensions && (
                           <Card className="mb-8 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-                            <CardHeader className="bg-green-100 dark:bg-green-900/30 rounded-t-lg">
+                            <CardHeader className="bg-green-100 dark:bg-green-900/30 rounded-t-3xl">
                               <CardTitle className="text-lg flex items-center text-green-900 dark:text-green-100">
                                 <BarChart3 className="w-5 h-5 mr-2" />
                                 Wall Structure Extraction Results
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6 space-y-6">
+                              {/* Doors & Windows by Wall Type - Editable */}
+                              {editablePlan.wallSections && editablePlan.wallSections.length > 0 && (
+                                <div className="mb-6">
+                                  <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+                                    <DoorOpen className="w-4 h-4 mr-2" />
+                                    Doors & Windows by Wall Type
+                                  </h4>
+                                  <div className="space-y-4">
+                                    {editablePlan.wallSections.map((section, sectionIdx) => (
+                                      <div
+                                        key={sectionIdx}
+                                        className={`p-4 rounded-lg border ${
+                                          section.type === "external"
+                                            ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
+                                            : "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
+                                        }`}
+                                      >
+                                        <h5 className={`font-semibold mb-3 capitalize flex items-center ${
+                                          section.type === "external"
+                                            ? "text-green-900 dark:text-green-100"
+                                            : "text-blue-900 dark:text-blue-100"
+                                        }`}>
+                                          <Building className="w-4 h-4 mr-2" />
+                                          {section.type} Walls
+                                        </h5>
+                                        
+                                        {/* Doors Section */}
+                                        <div className="mb-4">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                                              <DoorOpen className="w-3 h-3 mr-1" />
+                                              Doors ({section.doors?.length || 0})
+                                            </p>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => {
+                                                const newDoor: Door = {
+                                                  sizeType: "standard",
+                                                  standardSize: "0.9 × 2.1 m",
+                                                  custom: { height: "2.1", width: "0.9" },
+                                                  type: "Flush",
+                                                  count: 1,
+                                                  frame: {
+                                                    type: "Wood",
+                                                    sizeType: "standard",
+                                                    standardSize: "",
+                                                    height: "",
+                                                    width: "",
+                                                    custom: { height: "", width: "" },
+                                                  },
+                                                };
+                                                setEditablePlan((prev) => {
+                                                  if (!prev) return prev;
+                                                  const updatedSections = [...(prev.wallSections || [])];
+                                                  updatedSections[sectionIdx] = {
+                                                    ...updatedSections[sectionIdx],
+                                                    doors: [...(updatedSections[sectionIdx].doors || []), newDoor],
+                                                  };
+                                                  return { ...prev, wallSections: updatedSections };
+                                                });
+                                              }}
+                                            >
+                                              <Plus className="w-3 h-3 mr-1" />
+                                              Add Door
+                                            </Button>
+                                          </div>
+                                          {section.doors && section.doors.length > 0 ? (
+                                            <div className="space-y-2">
+                                              {section.doors.map((door, doorIdx) => (
+                                                <EditableDoorWindow
+                                                  key={doorIdx}
+                                                  type="door"
+                                                  item={door}
+                                                  onUpdate={(field, value) => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      const updatedDoors = [...(updatedSections[sectionIdx].doors || [])];
+                                                      updatedDoors[doorIdx] = {
+                                                        ...updatedDoors[doorIdx],
+                                                        [field]: value,
+                                                      };
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        doors: updatedDoors,
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  onRemove={() => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        doors: updatedSections[sectionIdx].doors?.filter((_, i) => i !== doorIdx),
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  standardSizes={standardDoorSizes}
+                                                  types={doorTypes}
+                                                  frameTypes={frameTypes}
+                                                />
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <p className="text-xs text-slate-500 italic">No doors added</p>
+                                          )}
+                                        </div>
+                                        
+                                        {/* Windows Section */}
+                                        <div>
+                                          <div className="flex items-center justify-between mb-2">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                                              <LucideAppWindow className="w-3 h-3 mr-1" />
+                                              Windows ({section.windows?.length || 0})
+                                            </p>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => {
+                                                const newWindow: Window = {
+                                                  sizeType: "standard",
+                                                  standardSize: "1.2 × 1.2 m",
+                                                  custom: { height: "1.2", width: "1.2" },
+                                                  type: "Clear",
+                                                  count: 1,
+                                                  frame: {
+                                                    type: "Aluminum",
+                                                    sizeType: "standard",
+                                                    standardSize: "",
+                                                    height: "",
+                                                    width: "",
+                                                    custom: { height: "", width: "" },
+                                                  },
+                                                };
+                                                setEditablePlan((prev) => {
+                                                  if (!prev) return prev;
+                                                  const updatedSections = [...(prev.wallSections || [])];
+                                                  updatedSections[sectionIdx] = {
+                                                    ...updatedSections[sectionIdx],
+                                                    windows: [...(updatedSections[sectionIdx].windows || []), newWindow],
+                                                  };
+                                                  return { ...prev, wallSections: updatedSections };
+                                                });
+                                              }}
+                                            >
+                                              <Plus className="w-3 h-3 mr-1" />
+                                              Add Window
+                                            </Button>
+                                          </div>
+                                          {section.windows && section.windows.length > 0 ? (
+                                            <div className="space-y-2">
+                                              {section.windows.map((window, windowIdx) => (
+                                                <EditableDoorWindow
+                                                  key={windowIdx}
+                                                  type="window"
+                                                  item={window}
+                                                  onUpdate={(field, value) => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      const updatedWindows = [...(updatedSections[sectionIdx].windows || [])];
+                                                      updatedWindows[windowIdx] = {
+                                                        ...updatedWindows[windowIdx],
+                                                        [field]: value,
+                                                      };
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        windows: updatedWindows,
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  onRemove={() => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        windows: updatedSections[sectionIdx].windows?.filter((_, i) => i !== windowIdx),
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  standardSizes={standardWindowSizes}
+                                                  types={windowGlassTypes}
+                                                  frameTypes={frameTypes}
+                                                />
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <p className="text-xs text-slate-500 italic">No windows added</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
                               {/* Wall Dimensions */}
                               <div>
                                 <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
@@ -1682,7 +1901,7 @@ const UploadPlan = () => {
                                   Rebar Calculation Method:{" "}
                                   <span className="font-semibold">
                                     {editablePlan.rebar_calculation_method ||
-                                      "intensity-based"}
+                                      "NORMAL_REBAR_MODE"}
                                   </span>
                                 </CardDescription>
                               </CardHeader>
@@ -2282,5 +2501,238 @@ const UploadPlan = () => {
     </div>
   );
 };
+
+// Editable Door/Window Component
+interface EditableDoorWindowProps {
+  type: "door" | "window";
+  item: Door | Window;
+  onUpdate: (field: string, value: any) => void;
+  onRemove: () => void;
+  standardSizes: string[];
+  types: string[];
+  frameTypes: string[];
+}
+
+function EditableDoorWindow({
+  type,
+  item,
+  onUpdate,
+  onRemove,
+  standardSizes,
+  types,
+  frameTypes,
+}: EditableDoorWindowProps) {
+  return (
+    <div className="p-3 border rounded-3xl bg-white dark:bg-slate-800/50 space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+        {/* Size Type */}
+        <Select
+          value={item.sizeType}
+          onValueChange={(value) => onUpdate("sizeType", value)}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Size Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="standard">Standard</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Standard Size or Custom Dimensions */}
+        {item.sizeType === "standard" ? (
+          <Select
+            value={item.standardSize}
+            onValueChange={(value) => onUpdate("standardSize", value)}
+          >
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue placeholder="Select Size" />
+            </SelectTrigger>
+            <SelectContent>
+              {standardSizes.map((size) => (
+                <SelectItem key={size} value={size}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <>
+            <Input
+              placeholder="Height (m)"
+              type="number"
+              step="0.01"
+              className="h-9 text-xs"
+              value={item.custom.height}
+              onChange={(e) =>
+                onUpdate("custom", {
+                  ...item.custom,
+                  height: e.target.value,
+                })
+              }
+            />
+            <Input
+              placeholder="Width (m)"
+              type="number"
+              step="0.01"
+              className="h-9 text-xs"
+              value={item.custom.width}
+              onChange={(e) =>
+                onUpdate("custom", {
+                  ...item.custom,
+                  width: e.target.value,
+                })
+              }
+            />
+          </>
+        )}
+
+        {/* Type */}
+        <Select
+          value={item.type}
+          onValueChange={(value) => onUpdate("type", value)}
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder={type === "door" ? "Door Type" : "Glass Type"} />
+          </SelectTrigger>
+          <SelectContent>
+            {types.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Count */}
+        <Input
+          placeholder="Qty"
+          type="number"
+          min="1"
+          className="h-9 text-xs"
+          value={item.count}
+          onChange={(e) => onUpdate("count", parseInt(e.target.value) || 1)}
+        />
+
+        {/* Price */}
+        {item.sizeType !== "standard" && (
+        <Input
+          placeholder="Price (Ksh)"
+          type="number"
+          min="0"
+          className="h-9 text-xs"
+          value={item.price || ""}
+          onChange={(e) => onUpdate("price", parseFloat(e.target.value) || undefined)}
+        />
+        )}
+
+        {/* Remove Button */}
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={onRemove}
+          className="h-9"
+        >
+          <Trash2 className="w-3 h-3" />
+        </Button>
+      </div>
+
+      {/* Frame Section */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 pt-2 border-t">
+        <Select
+          value={item.frame.type}
+          onValueChange={(value) =>
+            onUpdate("frame", {
+              ...item.frame,
+              type: value,
+            })
+          }
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Frame Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {frameTypes.map((frameType) => (
+              <SelectItem key={frameType} value={frameType}>
+                {frameType}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={item.frame?.sizeType || "standard"}
+          onValueChange={(value) =>
+            onUpdate("frame", {
+              ...item.frame,
+              sizeType: value,
+            })
+          }
+        >
+          <SelectTrigger className="h-9 text-xs">
+            <SelectValue placeholder="Frame Size Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="standard">Standard</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {item.frame?.sizeType === "custom" && (
+          <>
+            <Input
+              placeholder="Height (m)"
+              type="number"
+              step="0.01"
+              className="h-9 text-xs"
+              value={item.frame?.custom?.height || ""}
+              onChange={(e) =>
+                onUpdate("frame", {
+                  ...item.frame,
+                  custom: {
+                    ...item.frame?.custom,
+                    height: e.target.value,
+                  },
+                })
+              }
+            />
+            <Input
+              placeholder="Width (m)"
+              type="number"
+              step="0.01"
+              className="h-9 text-xs"
+              value={item.frame?.custom?.width || ""}
+              onChange={(e) =>
+                onUpdate("frame", {
+                  ...item.frame,
+                  custom: {
+                    ...item.frame?.custom,
+                    width: e.target.value,
+                  },
+                })
+              }
+            />
+            <Input
+              placeholder="Price (Ksh)"
+              type="number"
+              min="0"
+              className="h-9 text-xs"
+              value={item.frame?.custom?.price || ""}
+              onChange={(e) =>
+                onUpdate("frame", {
+                  ...item.frame,
+                  custom: {
+                    ...item.frame?.custom,
+                    price: parseFloat(e.target.value) || undefined,
+                  },
+                })
+              }
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default UploadPlan;

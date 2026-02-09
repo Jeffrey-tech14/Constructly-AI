@@ -6,11 +6,23 @@
  * All calculations based on m² → litres/bags with coverage rates per coat
  */
 
-export type PaintCategory = "emulsion" | "enamel";
+export type PaintCategory = "emulsion" | "enamel" | "wood-finish" | "metal-finish";
 
 export type EmulsionSubtype = "vinyl-matt" | "vinyl-silk" | "antibacterial";
 export type EnamelSubtype = "eggshell" | "gloss";
-export type PaintSubtype = EmulsionSubtype | EnamelSubtype;
+export type WoodFinishSubtype = "eggshell" | "gloss" | "satin";
+export type MetalFinishSubtype = "gloss" | "semi-gloss" | "satin";
+export type PaintSubtype = EmulsionSubtype | EnamelSubtype | WoodFinishSubtype | MetalFinishSubtype;
+
+/**
+ * STEP 7: Surface material types for paint type recommendation
+ */
+export type SurfaceMaterial = "walls" | "wood" | "metal" | "ceiling" | "custom";
+
+/**
+ * STEP 7: Surface preparation options
+ */
+export type SurfacePrep = "rough-tough" | "light-skimming" | "none";
 
 /**
  * Coverage rates (industry standard QS practice)
@@ -80,6 +92,10 @@ export interface PaintingSpecification {
   surfaceArea: number; // m²
   location?: string; // e.g., "Living Room - East Wall", "All Interior Walls"
 
+  // STEP 7: Surface material and preparation
+  surfaceMaterial?: SurfaceMaterial; // walls, wood, metal, ceiling, custom
+  surfacePrep?: SurfacePrep; // rough-tough, light-skimming, none
+
   // Layer configurations
   skimming: SkimmingConfig;
   undercoat: UndercoatConfig;
@@ -139,6 +155,75 @@ export const PAINT_SUBTYPES_BY_CATEGORY: Record<
     { value: "eggshell", label: "Eggshell (Low Sheen)" },
     { value: "gloss", label: "Gloss (High Sheen)" },
   ],
+  "wood-finish": [
+    { value: "eggshell", label: "Eggshell (Low Sheen)" },
+    { value: "satin", label: "Satin (Semi-Gloss)" },
+    { value: "gloss", label: "Gloss (High Sheen)" },
+  ],
+  "metal-finish": [
+    { value: "gloss", label: "Gloss (High Sheen)" },
+    { value: "semi-gloss", label: "Semi-Gloss" },
+    { value: "satin", label: "Satin (Semi-Gloss)" },
+  ],
+};
+
+/**
+ * STEP 7: Surface material to paint type mapping
+ */
+export const PAINT_TYPE_BY_SURFACE_MATERIAL: Record<
+  SurfaceMaterial,
+  { category: PaintCategory; subtype: PaintSubtype; label: string }
+> = {
+  walls: {
+    category: "emulsion",
+    subtype: "vinyl-matt",
+    label: "Wall Paint (Emulsion - Matt)",
+  },
+  wood: {
+    category: "wood-finish",
+    subtype: "eggshell",
+    label: "Wood Paint (Eggshell)",
+  },
+  metal: {
+    category: "metal-finish",
+    subtype: "gloss",
+    label: "Metal Paint (Gloss)",
+  },
+  ceiling: {
+    category: "emulsion",
+    subtype: "vinyl-matt",
+    label: "Ceiling Paint (Emulsion - Matt)",
+  },
+  custom: {
+    category: "emulsion",
+    subtype: "vinyl-matt",
+    label: "Custom Paint",
+  },
+};
+
+/**
+ * STEP 7: Surface preparation descriptions
+ */
+export const SURFACE_PREP_OPTIONS: Record<
+  SurfacePrep,
+  { label: string; description: string; estimatedHours?: number }
+> = {
+  "rough-tough": {
+    label: "Rough & Tough Prep",
+    description:
+      "Heavy-duty surface preparation - sanding, patching, and priming for challenging surfaces",
+    estimatedHours: 4,
+  },
+  "light-skimming": {
+    label: "Light Skimming",
+    description:
+      "Minor surface preparation - light sanding and spot patching for good condition surfaces",
+    estimatedHours: 1,
+  },
+  none: {
+    label: "No Preparation",
+    description: "Direct application to clean, prepared surfaces",
+  },
 };
 
 /**

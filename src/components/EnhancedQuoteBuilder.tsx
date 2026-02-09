@@ -84,6 +84,12 @@ import {
   BrickWall,
   BoxesIcon,
   LucideHousePlus,
+  DoorOpen,
+  BoxIcon,
+  ListFilter,
+  CheckCircle2,
+  Circle,
+  AlertCircle,
 } from "lucide-react";
 import { usePlan } from "../contexts/PlanContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,15 +117,13 @@ import PreliminariesBuilder from "./PreliminariesBuilder";
 import PreliminariesOptionsPage from "./PreliminariesOptionsPage";
 import PlumbingCalculator from "./PlumbingCalculator";
 import ElectricalCalculator from "./ElectricalCalculator";
-import RoofingCalculator, { DEFAULT_TIMBERS } from "./RoofingCalculator";
-import FinishesCalculator from "./FinishesCalculator";
+import RoofingCalculator from "./RoofingCalculator";
+import FlooringCalculator from "./FlooringCalculator";
+import WallingCalculator from "./WallingCalculator";
+import CeilingCalculator from "./CeilingCalculator";
+import PaintingCalculator from "./PaintingCalculator";
 import {
-  DownpipeType,
-  FasciaType,
-  FlashingType,
-  GutterType,
   RoofStructure,
-  SoffitType,
 } from "@/hooks/useRoofingCalculator";
 import {
   FinishCategory,
@@ -134,10 +138,14 @@ import {
 } from "@/hooks/useElectricalCalculator";
 import QSSettings from "./QSSettings";
 import MasonryCalculatorForm from "./MasonryCalculatorForm";
-import WardrobesCalculator, { WardrobeItem } from "./WardrobesCalculator";
+import DoorsWindowsEditor from "./DoorsWindowsEditor";
 import EquipmentSelector from "./EquipmentSelector";
 import ServicesSelector from "./ServicesSelector";
 import SubcontractorsSelector from "./SubcontractorsSelector";
+import WardrobesCalculator, { WardrobeItem } from "./WardrobesCalculator";
+import FinishesCalculator from "./OtherFinishes";
+import OtherFinishesCalculator from "./OtherFinishes";
+import CountertopsCalculator from "./CountertopsCalculator";
 // RISA Color Palette
 const RISA_BLUE = "#015B97";
 const RISA_LIGHT_BLUE = "#3288e6";
@@ -202,9 +210,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   ];
   const [currentStep, setCurrentStep] = useState(1);
   const [substructureTab, setSubstructureTab] = useState("earthworks");
-  const [superstructureTab, setSuperstructureTab] = useState("masonry");
-  const [finishesTab, setFinishesTab] = useState("wardrobes");
+  const [superstructureTab, setSuperstructureTab] = useState("doors-windows");
+  const [finishesTab, setFinishesTab] = useState("flooring");
   const [extrasTab, setExtrasTab] = useState("equipment");
+  const [countertopsTab, setCountertopsTab] = useState("kitchen");
   const [calculation, setCalculation] = useState<CalculationResult | null>(
     null,
   );
@@ -214,6 +223,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
+  const [wallingFinishesTab, setWallingFinishesTab] = useState("wallFinishes");
+  const [otherFinishesTab, setOtherFinishesTab] = useState("wardrobes");
 
   // Tier limit checking removed - now using per-quote payment model
   // Each quote requires a 1000 KSH payment for access
@@ -256,7 +267,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     },
     plan_file_url: "",
     wallSections: [],
-    rebar_calculation_method: "intensity-based",
+    rebar_calculation_method: "NORMAL_REBAR_MODE",
     bbs_file_url: "",
     wallProperties: {
       blockType: "Standard Block",
@@ -310,7 +321,25 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     roofing_calculations: [],
     electrical_systems: [],
     plumbing_systems: [],
+    wardrobes_cabinets: [],
     finishes: [],
+    countertops: [],
+    roofingInputs: {
+      footprintAreaM2: 0,
+      externalPerimeterM: 0,
+      internalPerimeterM: 0,
+      buildingLengthM: 0,
+      buildingWidthM: 0,
+      roofTrussTypeKingPost: true,
+      purlinSpacingM: 1.5,
+      roofingSheetEffectiveCoverWidthM: 1.0,
+      roofingSheetLengthM: 3.0,
+      roofType: "gable" as "gable" | "hip" | "pitched" | "flat",
+      pitchDegrees: 25,
+      eaveWidthM: 0.8,
+      rasterSpacingMm: 600,
+      trussSpacingMm: 600,
+    },
     roof_structures: [],
     preliminaries: [],
     preliminaryOptions: [],
@@ -320,7 +349,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     profit_percentages: 0,
     contingency_percentages: 0,
     permit_cost: 0,
-    wardrobes_cabinets: [],
     paintings_specifications: [],
     paintings_totals: null,
   });
@@ -483,11 +511,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             doors: section.doors || [],
             windows: section.windows || [],
           })) || [],
-        wallProperties: extractedPlan.wallProperties || {
-          blockType: "Standard Block",
-          thickness: 0.2,
-          plaster: "Both Sides",
-        },
 
         // Foundation Details
         foundationDetails:
@@ -726,7 +749,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   meshGrade: rebar.meshGrade || "A142",
                   meshSheetWidth: rebar.meshSheetWidth || "2.4",
                   meshSheetLength: rebar.meshSheetLength || "4.8",
-                  meshLapLength: rebar.meshLapLength || "0.3",
+                  meshLapLength: rebar.meshLapLength/1000 || "0.3",
 
                   // Footing-specific fields
                   footingType: rebar.footingType || "strip",
@@ -866,31 +889,58 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             area: masonry.area,
           })) || prev.masonry_materials,
 
-        // Roof Structures
-        roof_structures:
-          extractedPlan.roofing?.map((roof: any, index: number) => ({
-            id: roof.id || `roof-${index}`,
-            name: roof.name || `Roof Structure ${index + 1}`,
-            type: roof.type || "pitched",
-            material: roof.material || "concrete-tiles",
-            area: parseFloat(roof.area) || 0,
-            pitch: parseFloat(roof.pitch) || 30,
-            length: parseFloat(roof.length) || 0,
-            width: parseFloat(roof.width) || 0,
-            eavesOverhang: 0.5,
-            ridgeLength: roof.ridgeLength,
-            covering: roof.covering,
-            grade: "structural",
-            treatment: "pressure-treated",
-            timbers: DEFAULT_TIMBERS.map((timber) => ({
-              ...timber,
-              length:
-                roof.structure === "timber-truss"
-                  ? parseFloat(roof.span) / 2 || 4.5
-                  : timber.length,
-            })),
-            accessories: roof.accessories,
-          })) || prev.roof_structures,
+        // Roof Structures - store extracted roofing inputs for deterministic calculator
+        roofingInputs: extractedPlan.roofing
+          ? {
+              footprintAreaM2:
+                extractedPlan.roofing.footprintAreaM2 ||
+                extractedPlan.projectInfo?.totalArea ||
+                0,
+              externalPerimeterM:
+                extractedPlan.roofing.externalPerimeterM ||
+                extractedPlan.wallDimensions?.externalWallPerimiter ||
+                0,
+              internalPerimeterM:
+                extractedPlan.roofing.internalPerimeterM ||
+                extractedPlan.wallDimensions?.internalWallPerimiter ||
+                0,
+              buildingLengthM:
+                extractedPlan.roofing.buildingLengthM ||
+                parseFloat(extractedPlan.wallDimensions?.length as any) ||
+                0,
+              buildingWidthM:
+                extractedPlan.roofing.buildingWidthM ||
+                parseFloat(extractedPlan.wallDimensions?.width as any) ||
+                0,
+              roofTrussTypeKingPost:
+                extractedPlan.roofing.roofTrussTypeKingPost ?? true,
+              purlinSpacingM: extractedPlan.roofing.purlinSpacingM || 1.5,
+              roofingSheetEffectiveCoverWidthM:
+                extractedPlan.roofing.roofingSheetEffectiveCoverWidthM || 1.0,
+              roofingSheetLengthM:
+                extractedPlan.roofing.roofingSheetLengthM || 3.0,
+              roofType: extractedPlan.roofing.roofType || "gable",
+              pitchDegrees: extractedPlan.roofing.pitchDegrees || 25,
+              eaveWidthM: extractedPlan.roofing.eaveWidthM || 0.8,
+              rasterSpacingMm: extractedPlan.roofing.rasterSpacingMm || 600,
+              trussSpacingMm: extractedPlan.roofing.trussSpacingMm || 600,
+            }
+          : (prev as any).roofingInputs || {
+              footprintAreaM2: 0,
+              externalPerimeterM: 0,
+              internalPerimeterM: 0,
+              buildingLengthM: 0,
+              buildingWidthM: 0,
+              roofTrussTypeKingPost: true,
+              purlinSpacingM: 1.5,
+              roofingSheetEffectiveCoverWidthM: 1.0,
+              roofingSheetLengthM: 3.0,
+              roofType: "gable" as const,
+              pitchDegrees: 25,
+              eaveWidthM: 0.8,
+              rasterSpacingMm: 600,
+              trussSpacingMm: 600,
+            },
 
         // Plumbing Systems
         plumbing_systems:
@@ -1196,6 +1246,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         electrical_systems: electricalSystems,
         plumbing_systems: plumbingSystems,
         finishes: finishes,
+        roofingInputs: quoteData.roofingInputs,
         roof_structures: roofStructure,
         earthwork: earthwork,
         services: quoteData.services,
@@ -1235,7 +1286,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             quoteData.percentages[0]?.unknown_contingency?.toString(),
           ) || 0,
         permit_cost: parseFloat(quoteData.permit_cost.toString()) || 0,
-      });
+      } as any);
       setCalculation(result);
       toast({
         title: "Calculation Complete",
@@ -1291,6 +1342,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           electrical_systems: quoteData.electrical_systems,
           plumbing_systems: quoteData.plumbing_systems,
           finishes: quoteData.finishes,
+          roofingInputs: quoteData.roofingInputs,
           roof_structures: quoteData.roof_structures,
           electrical_calculations: quoteData.electrical_calculations,
           roofing_calculations: quoteData.roofing_calculations,
@@ -1321,10 +1373,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           unknown_contingency_amount: calculation.unknown_contingency_amount,
           percentages: calculation.percentages,
           materialPrices: materials,
-          wardrobes_cabinets: wardrobes,
           paintings_specifications: quoteData.paintings_specifications || [],
           paintings_totals: quoteData.paintings_totals || null,
-        });
+        } as any);
         toast({
           title: "Quote Updated",
           description: "Quote has been updated successfully",
@@ -1377,6 +1428,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           bbs_file_url: quoteData.bbs_file_url,
           plumbing_systems: plumbingSystems,
           finishes: finishes,
+          roofingInputs: quoteData.roofingInputs,
           roof_structures: roofStructure,
           earthwork: earthwork,
           additional_services_cost: Math.round(
@@ -1402,11 +1454,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           subcontractors: calculation.subcontractors,
           percentages: calculation.percentages,
           materialPrices: materials,
-
-          wardrobes_cabinets: wardrobes,
           paintings_specifications: quoteData.paintings_specifications || [],
           paintings_totals: quoteData.paintings_totals || null,
-        });
+        } as any);
 
         // Create payment record for the new quote
         if (newQuote && profile?.id) {
@@ -1806,7 +1856,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     // Update walls in quote
                     setQuoteData((prev) => ({
                       ...prev,
-                      foundationWalling: walls,
+                      foundationWalls: walls,
                     }));
                   }}
                   materials={materials}
@@ -1833,7 +1883,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
               value={superstructureTab}
               onValueChange={setSuperstructureTab}
             >
-              <TabsList className="grid w-full grid-cols-4 mb-3">
+              <TabsList className="grid w-full grid-cols-5 mb-3">
+                <TabsTrigger value="doors-windows">
+                  <span className="hidden sm:inline">Doors & Windows</span>
+                  <span className="sm:hidden flex items-center gap-1">
+                    <DoorOpen className="w-4 h-4" />D/W
+                  </span>
+                </TabsTrigger>
                 <TabsTrigger value="masonry">
                   <span className="hidden sm:inline">Masonry</span>
                   <span className="sm:hidden flex items-center gap-1">
@@ -1859,6 +1915,21 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   </span>
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="doors-windows" className="space-y-4">
+                <div className="mb-3">
+                  <DoorsWindowsEditor
+                    wallSections={quoteData.wallSections || []}
+                    onUpdate={(sections) => {
+                      setQuoteData((prev: any) => ({
+                        ...prev,
+                        wallSections: sections,
+                      }));
+                    }}
+                    materialData={materials}
+                  />
+                </div>
+              </TabsContent>
 
               <TabsContent value="masonry" className="space-y-4">
                 <div className="mb-3 p-1">
@@ -1891,9 +1962,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
 
               <TabsContent value="roofing" className="space-y-4">
                 <RoofingCalculator
-                  roofStructures={roofStructure}
-                  onRoofStructuresUpdate={setRoofStructure}
                   materialPrices={materials}
+                  onCalculationResult={(result) => {
+                    setQuoteData((prev: any) => ({
+                      ...prev,
+                      roofing_breakdown: result,
+                    }));
+                  }}
                   setQuoteData={setQuoteData}
                   quote={quoteData}
                 />
@@ -1920,32 +1995,49 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         return (
           <div className="space-y-6">
             <Tabs value={finishesTab} onValueChange={setFinishesTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="wardrobes">
-                  <span className="hidden sm:inline">Wardrobes & Cabinets</span>
-                  <span className="sm:hidden flex items-center gap-1">
-                    <BoxesIcon className="w-4 h-4" />W & C
-                  </span>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="flooring">
+                  <span className="hidden sm:inline">Flooring</span>
+                  <span className="sm:hidden">F</span>
                 </TabsTrigger>
-                <TabsTrigger value="finishes">
-                  <span className="hidden sm:inline">Finishes</span>
-                  <span className="sm:hidden flex items-center gap-1">
-                    <Paintbrush className="w-4 h-4" />F
-                  </span>
+                <TabsTrigger value="walling">
+                  <span className="hidden sm:inline">Walling</span>
+                  <span className="sm:hidden">W</span>
+                </TabsTrigger>
+                <TabsTrigger value="ceiling">
+                  <span className="hidden sm:inline">Ceiling</span>
+                  <span className="sm:hidden">C</span>
+                </TabsTrigger>
+                <TabsTrigger value="others">
+                  <span className="hidden sm:inline">Other Finishes</span>
+                  <span className="sm:hidden">OF</span>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="wardrobes" className="space-y-4">
-                <WardrobesCalculator
-                  wardrobes={wardrobes}
-                  setWardrobes={setWardrobes}
+              <TabsContent value="flooring" className="space-y-4">
+                <FlooringCalculator
+                  finishes={finishes}
+                  onFinishesUpdate={setFinishes}
+                  materialPrices={materials}
                   setQuoteData={setQuoteData}
                   quote={quoteData}
                 />
               </TabsContent>
 
-              <TabsContent value="finishes" className="space-y-4">
-                <FinishesCalculator
+              <TabsContent value="walling" className="space-y-4">
+                <Tabs value={wallingFinishesTab} onValueChange={setWallingFinishesTab}>
+                  <TabsList className="grid w-full grid-cols-2 mb-3">
+                    <TabsTrigger value="wallFinishes">
+                      <span className="hidden sm:inline">Wall Finishes</span>
+                      <span className="sm:hidden">WF</span>
+                      </TabsTrigger>
+                    <TabsTrigger value="painting">
+                      <span className="hidden sm:inline">Painting</span>
+                      <span className="sm:hidden">P</span>
+                      </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="wallFinishes" className="space-y-4">
+                <WallingCalculator
                   finishes={finishes}
                   onFinishesUpdate={setFinishes}
                   materialPrices={materials}
@@ -1953,6 +2045,73 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   quote={quoteData}
                   wallDimensions={quoteData.wallDimensions}
                 />
+                </TabsContent>
+                <TabsContent value="painting" className="space-y-4">
+                <PaintingCalculator
+                  materialPrices={materials}
+                  setQuoteData={setQuoteData}
+                  quote={quoteData}
+                  wallDimensions={quoteData.wallDimensions}
+                />
+                </TabsContent>
+                </Tabs>
+              </TabsContent>
+
+              <TabsContent value="ceiling" className="space-y-4">
+                <CeilingCalculator
+                  finishes={finishes}
+                  onFinishesUpdate={setFinishes}
+                  materialPrices={materials}
+                  setQuoteData={setQuoteData}
+                  quote={quoteData}
+                />
+              </TabsContent>
+
+              <TabsContent value="others" className="space-y-4">
+                <Tabs value={otherFinishesTab} onValueChange={setOtherFinishesTab}>
+                  <TabsList className="grid w-full grid-cols-3 mb-3">
+                    <TabsTrigger value="wardrobes">
+                      <span className="hidden sm:inline">Wardrobes</span>
+                      <span className="sm:hidden">W</span>
+                      </TabsTrigger>
+                    <TabsTrigger value="otherFinishes">
+                      <span className="hidden sm:inline">Other Finishes</span>
+                      <span className="sm:hidden">OF</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="kitchen-finishes">
+                      <span className="hidden sm:inline">Kitchen Finishes</span>
+                      <span className="sm:hidden">KF</span>
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="wardrobes" className="space-y-4">
+                <WardrobesCalculator
+                  wardrobes={wardrobes}
+                  setWardrobes={setWardrobes}
+                  quote={quoteData}
+                  setQuoteData={setQuoteData}
+                />
+              </TabsContent>
+              <TabsContent value="otherFinishes" className="space-y-4">
+
+                <OtherFinishesCalculator
+                  otherFinishes={finishes}
+                  onOtherFinishesUpdate={setFinishes}
+                  materialPrices={materials}
+                  setQuoteData={setQuoteData}
+                  quote={quoteData}
+                  wallDimensions={quoteData.wallDimensions}
+                />
+                </TabsContent>
+                <TabsContent value="kitchen-finishes" className="space-y-4">
+                  <CountertopsCalculator
+                    quote={quoteData}
+                    setQuoteData={setQuoteData}
+                    materialPrices={materials}>
+                  
+                    </CountertopsCalculator>
+                    </TabsContent>
+
+                </Tabs>
               </TabsContent>
             </Tabs>
           </div>

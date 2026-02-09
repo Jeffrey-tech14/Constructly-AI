@@ -27,6 +27,10 @@ import {
   PaintingSpecification,
   PAINT_SUBTYPES_BY_CATEGORY,
   PaintCategory,
+  PAINT_TYPE_BY_SURFACE_MATERIAL,
+  SURFACE_PREP_OPTIONS,
+  SurfaceMaterial,
+  SurfacePrep,
 } from "@/types/painting";
 import { createDefaultPaintingFromInternalWalls } from "@/hooks/usePaintingCalculator";
 
@@ -352,6 +356,104 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
 
           {expandedSections.finishing && (
             <div className="space-y-4 pl-3">
+              {/* STEP 7: Surface Material & Prep */}
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded border border-blue-200 dark:border-blue-800">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor={`surface-material-${painting.id}`}
+                      className="text-xs font-semibold"
+                    >
+                      Surface Material
+                    </Label>
+                    <Select
+                      value={painting.surfaceMaterial || "walls"}
+                      onValueChange={(value) => {
+                        const newMaterial = value as SurfaceMaterial;
+                        const recommendation =
+                          PAINT_TYPE_BY_SURFACE_MATERIAL[newMaterial];
+                        onUpdate({
+                          surfaceMaterial: newMaterial,
+                          surfacePrep: painting.surfacePrep || "light-skimming",
+                          finishingPaint: {
+                            ...painting.finishingPaint,
+                            category: recommendation.category,
+                            subtype: recommendation.subtype,
+                          },
+                        });
+                      }}
+                    >
+                      <SelectTrigger
+                        id={`surface-material-${painting.id}`}
+                        className="mt-2"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="walls">Walls</SelectItem>
+                        <SelectItem value="wood">Wood</SelectItem>
+                        <SelectItem value="metal">Metal</SelectItem>
+                        <SelectItem value="ceiling">Ceiling</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor={`surface-prep-${painting.id}`}
+                      className="text-xs font-semibold"
+                    >
+                      Surface Preparation
+                    </Label>
+                    <Select
+                      value={painting.surfacePrep || "light-skimming"}
+                      onValueChange={(value) => {
+                        onUpdate({
+                          surfacePrep: value as SurfacePrep,
+                        });
+                      }}
+                    >
+                      <SelectTrigger
+                        id={`surface-prep-${painting.id}`}
+                        className="mt-2"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="rough-tough">
+                          Rough & Tough Prep
+                        </SelectItem>
+                        <SelectItem value="light-skimming">
+                          Light Skimming
+                        </SelectItem>
+                        <SelectItem value="none">No Preparation</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {painting.surfacePrep && SURFACE_PREP_OPTIONS[painting.surfacePrep] && (
+                  <div className="mt-3 p-2 bg-white dark:bg-slate-900 rounded border border-blue-100 dark:border-blue-900">
+                    <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      {SURFACE_PREP_OPTIONS[painting.surfacePrep].label}
+                    </p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      {SURFACE_PREP_OPTIONS[painting.surfacePrep].description}
+                    </p>
+                    {SURFACE_PREP_OPTIONS[painting.surfacePrep]
+                      .estimatedHours && (
+                      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-2">
+                        Est. Hours: ~
+                        {SURFACE_PREP_OPTIONS[painting.surfacePrep]
+                          .estimatedHours}{" "}
+                        hrs
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label
@@ -386,6 +488,8 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                         Emulsion (Water-Based)
                       </SelectItem>
                       <SelectItem value="enamel">Enamel (Oil-Based)</SelectItem>
+                      <SelectItem value="wood-finish">Wood Paint</SelectItem>
+                      <SelectItem value="metal-finish">Metal Paint</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -1,4 +1,4 @@
-// © 2025 Jeff. All rights reserved.
+﻿// Â© 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ export interface Door {
   custom: { height: string; width: string; price?: number };
   type: string;
   count: number;
+  wallThickness: number;
   frame: {
     type: string;
     price?: number;
@@ -26,6 +27,57 @@ export interface Door {
     height: string;
     width: string;
     custom: { height: string; width: string; price?: number };
+  };
+  architrave?: {
+    selected?: { type?: string; size?: string };
+    quantity?: number;
+    price?: number;
+  };
+  quarterRound?: {
+    selected?: { type?: string; size?: string };
+    quantity?: number;
+    price?: number;
+  };
+  ironmongery?: {
+    hinges?: {
+      selected?: { type?: string; size?: string };
+      quantity?: number;
+      price?: number;
+    };
+    locks?: {
+      selected?: { type?: string; size?: string };
+      quantity?: number;
+      price?: number;
+    };
+    handles?: {
+      selected?: { type?: string; size?: string };
+      quantity?: number;
+      price?: number;
+    };
+    bolts?: {
+      selected?: { type?: string; size?: string };
+      quantity?: number;
+      price?: number;
+    };
+    closers?: {
+      selected?: { type?: string; size?: string };
+      quantity?: number;
+      price?: number;
+    };
+  };
+  transom?: {
+    enabled?: boolean;
+    height?: string;
+    width?: string;
+    quantity?: number;
+    price?: number;
+    glazing?: {
+      included?: boolean;
+      glassAreaM2?: number;
+      puttyLengthM?: number;
+      glassPricePerM2?: number;
+      puttyPricePerM?: number;
+    };
   };
 }
 
@@ -45,7 +97,43 @@ export interface Window {
     width: string;
     custom: { height: string; width: string; price?: number };
   };
+  architrave?: {
+    selected?: { type?: string; size?: string };
+    quantity?: number;
+    price?: number;
+  };
+  glazing?: {
+    glass?: {
+      type?: string;
+      thickness?: number;
+      quantity?: number;
+      pricePerM2?: number;
+    };
+    putty?: { quantity?: number; unit?: string; price?: number };
+  };
+  glassType?: string;
+  glassThickness?: number;
+  span?: number;
+  isGlassUnderSized?: boolean;
+  recommendedGlassThickness?: number;
 }
+
+export const getRecommendedGlassThickness = (spanM: number): number => {
+  if (spanM <= 1.2) return 3;
+  if (spanM <= 1.5) return 4;
+  if (spanM <= 2.0) return 5;
+  if (spanM <= 2.4) return 6;
+  if (spanM <= 3.0) return 8;
+  if (spanM <= 3.6) return 10;
+  return 12;
+};
+
+export const isGlassThicknessSufficient = (
+  spanM: number,
+  thicknessMm: number,
+): boolean => {
+  return thicknessMm >= getRecommendedGlassThickness(spanM);
+};
 
 // Wall dimension interface - core of new structure
 export interface Dimensions {
@@ -73,12 +161,9 @@ export interface WallSection {
 
 // Wall properties (shared across all walls)
 export interface WallProperties {
-  blockType: string;
-  thickness: number;
+  externalBlockType: string;
+  internalBlockType: string;
   plaster: "None" | "One Side" | "Both Sides";
-  customBlockLength?: number;
-  customBlockHeight?: number;
-  customBlockPrice?: number;
 }
 
 // Professional elements interfaces
@@ -130,6 +215,10 @@ export interface MasonryQSSettings {
   wastageMasonry: number;
   wastageRoofing: number;
   wastageFinishes: number;
+  wastageFinishesFlooring: number;
+  wastageFinishesWalls: number;
+  wastageFinishesCeiling: number;
+  wastageFinishesOthers: number;
   wastageElectricals: number;
   labour_fixed: number;
   overhead_fixed: number;
@@ -308,6 +397,42 @@ interface CalculationTotals {
   grossWasteVolume: number;
   netWasteRemovalCost: number;
   grossWasteRemovalCost: number;
+  netDoorArchitraveCost: number;
+  grossDoorArchitraveCost: number;
+  netWindowArchitraveCost: number;
+  grossWindowArchitraveCost: number;
+  netDoorArchitraveQty: number;
+  grossDoorArchitraveQty: number;
+  netWindowArchitraveQty: number;
+  grossWindowArchitraveQty: number;
+  netDoorQuarterRoundCost: number;
+  grossDoorQuarterRoundCost: number;
+  netDoorQuarterRoundQty: number;
+  grossDoorQuarterRoundQty: number;
+  netDoorIronmongCost: number;
+  grossDoorIronmongCost: number;
+  netDoorIronmongQty: number;
+  grossDoorIronmongQty: number;
+  netDoorTransomCost: number;
+  grossDoorTransomCost: number;
+  netDoorTransomQty: number;
+  grossDoorTransomQty: number;
+  netWindowGlassArea: number;
+  grossWindowGlassArea: number;
+  netWindowPuttyLength: number;
+  grossWindowPuttyLength: number;
+  netWindowGlassCost: number;
+  grossWindowGlassCost: number;
+  netWindowPuttyCost: number;
+  grossWindowPuttyCost: number;
+  netTransomGlassArea: number;
+  grossTransomGlassArea: number;
+  netTransomPuttyLength: number;
+  grossTransomPuttyLength: number;
+  netTransomGlassCost: number;
+  grossTransomGlassCost: number;
+  netTransomPuttyCost: number;
+  grossTransomPuttyCost: number;
   professionalElementsTotalCost: number;
 }
 
@@ -447,6 +572,42 @@ export default function useMasonryCalculatorNew({
     netWasteRemovalCost: 0,
     grossWasteRemovalCost: 0,
     professionalElementsTotalCost: 0,
+    netDoorArchitraveCost: 0,
+    grossDoorArchitraveCost: 0,
+    netWindowArchitraveCost: 0,
+    grossWindowArchitraveCost: 0,
+    netDoorArchitraveQty: 0,
+    grossDoorArchitraveQty: 0,
+    netWindowArchitraveQty: 0,
+    grossWindowArchitraveQty: 0,
+    netDoorQuarterRoundCost: 0,
+    grossDoorQuarterRoundCost: 0,
+    netDoorQuarterRoundQty: 0,
+    grossDoorQuarterRoundQty: 0,
+    netDoorIronmongCost: 0,
+    grossDoorIronmongCost: 0,
+    netDoorIronmongQty: 0,
+    grossDoorIronmongQty: 0,
+    netDoorTransomCost: 0,
+    grossDoorTransomCost: 0,
+    netDoorTransomQty: 0,
+    grossDoorTransomQty: 0,
+    netWindowGlassArea: 0,
+    grossWindowGlassArea: 0,
+    netWindowPuttyLength: 0,
+    grossWindowPuttyLength: 0,
+    netWindowGlassCost: 0,
+    grossWindowGlassCost: 0,
+    netWindowPuttyCost: 0,
+    grossWindowPuttyCost: 0,
+    netTransomGlassArea: 0,
+    grossTransomGlassArea: 0,
+    netTransomPuttyLength: 0,
+    grossTransomPuttyLength: 0,
+    netTransomGlassCost: 0,
+    grossTransomGlassCost: 0,
+    netTransomPuttyCost: 0,
+    grossTransomPuttyCost: 0,
   });
 
   const [rebarPrices, setRebarPrices] = useState<PriceMap>({} as PriceMap);
@@ -503,7 +664,7 @@ export default function useMasonryCalculatorNew({
 
   const parseSize = useCallback((str: string): number => {
     if (!str) return 0;
-    const cleaned = str.replace(/[×x]/g, "x").replace(/[^\d.x]/g, "");
+    const cleaned = str.replace(/[Ã—x]/g, "x").replace(/[^\d.x]/g, "");
     const [w, h] = cleaned.split("x").map((s) => parseFloat(s.trim()));
     if (isNaN(w) || isNaN(h)) return 0;
     return w * h;
@@ -632,6 +793,8 @@ export default function useMasonryCalculatorNew({
     netBricks: number;
   }
 
+  let thickness = 0.15; // Default thickness, will be updated based on block type 
+
   const calculateBricksUsingCenterLineMethod = useCallback(
     (
       dims: Dimensions | undefined,
@@ -645,8 +808,7 @@ export default function useMasonryCalculatorNew({
 
       // Process external walls
       if (dims!.externalWallPerimiter > 0 && dims!.externalWallHeight > 0) {
-        const blockType = properties.blockType || "Standard Block";
-        const thickness = properties.thickness || 0.2;
+        const blockType = properties.externalBlockType || "Standard Block";
         const blockDef = blockTypes.find((b) => b.name === blockType);
         const blockLength = blockDef?.size?.length || 0.4;
         const blockHeight = blockDef?.size?.height || 0.2;
@@ -691,6 +853,7 @@ export default function useMasonryCalculatorNew({
 
         const netArea = Math.max(0, grossArea - externalOpeningsArea);
         const netBricks = Math.ceil(netArea / blockArea);
+        thickness = blockDef?.size?.thickness || 0.15;
 
         results.push({
           wallType: "external",
@@ -711,8 +874,7 @@ export default function useMasonryCalculatorNew({
 
       // Process internal walls
       if (dims!.internalWallPerimiter > 0 && dims!.internalWallHeight > 0) {
-        const blockType = properties.blockType || "Standard Block";
-        const thickness = properties.thickness || 0.2;
+        const blockType = properties.internalBlockType || "Standard Block";
         const blockDef = blockTypes.find((b) => b.name === blockType);
         const blockLength = blockDef?.size?.length || 0.4;
         const blockHeight = blockDef?.size?.height || 0.2;
@@ -756,6 +918,7 @@ export default function useMasonryCalculatorNew({
 
         const netArea = Math.max(0, grossArea - internalOpeningsArea);
         const netBricks = Math.ceil(netArea / blockArea);
+        thickness = blockDef?.size?.thickness || 0.15;
 
         results.push({
           wallType: "internal",
@@ -878,7 +1041,7 @@ export default function useMasonryCalculatorNew({
           .eq("name", "Rebar")
           .single();
         if (!baseMaterial?.type) return 0;
-        const rebarType = baseMaterial.type.find((t: any) => t.size === size);
+        const rebarType = (baseMaterial.type as any[]).find((t: any) => t.size === size);
         return rebarType?.price_kes_per_kg || 0;
       } catch (error) {
         console.error("Error getting rebar price:", error);
@@ -1135,6 +1298,42 @@ export default function useMasonryCalculatorNew({
       grossWasteVolume: 0,
       netWasteRemovalCost: 0,
       grossWasteRemovalCost: 0,
+      netDoorArchitraveCost: 0,
+      grossDoorArchitraveCost: 0,
+      netDoorArchitraveQty: 0,
+      grossDoorArchitraveQty: 0,
+      netWindowArchitraveCost: 0,
+      grossWindowArchitraveCost: 0,
+      netWindowArchitraveQty: 0,
+      grossWindowArchitraveQty: 0,
+      netDoorQuarterRoundCost: 0,
+      grossDoorQuarterRoundCost: 0,
+      netDoorQuarterRoundQty: 0,
+      grossDoorQuarterRoundQty: 0,
+      netDoorIronmongCost: 0,
+      grossDoorIronmongCost: 0,
+      netDoorIronmongQty: 0,
+      grossDoorIronmongQty: 0,
+      netDoorTransomCost: 0,
+      grossDoorTransomCost: 0,
+      netDoorTransomQty: 0,
+      grossDoorTransomQty: 0,
+      netWindowGlassArea: 0,
+      grossWindowGlassArea: 0,
+      netWindowPuttyLength: 0,
+      grossWindowPuttyLength: 0,
+      netWindowGlassCost: 0,
+      grossWindowGlassCost: 0,
+      netWindowPuttyCost: 0,
+      grossWindowPuttyCost: 0,
+      netTransomGlassArea: 0,
+      grossTransomGlassArea: 0,
+      netTransomPuttyLength: 0,
+      grossTransomPuttyLength: 0,
+      netTransomGlassCost: 0,
+      grossTransomGlassCost: 0,
+      netTransomPuttyCost: 0,
+      grossTransomPuttyCost: 0,
       professionalElementsTotalCost: 0,
     };
 
@@ -1173,31 +1372,34 @@ export default function useMasonryCalculatorNew({
     const sandPrice =
       materials.find((m) => m.name?.toLowerCase() === "sand")?.price || 0;
 
-    // Get block type from sections or fall back to wallProperties
-    const blockTypeForCalculation: string =
-      (wallSections?.[0]?.blockType as string) ||
-      wallProperties.blockType ||
-      "Standard Block";
+    // Get block types and prices for each wall type
+    const externalBlockType = wallProperties.externalBlockType || "Standard Block";
+    const internalBlockType = wallProperties.internalBlockType || "Standard Block";
+    
+    const externalBlockPrice = getMaterialPrice("Bricks", externalBlockType);
+    const internalBlockPrice = getMaterialPrice("Bricks", internalBlockType);
 
-    const blockPrice =
-      wallProperties.customBlockPrice ||
-      getMaterialPrice("Bricks", blockTypeForCalculation);
+    // Calculate block costs by wall type
+    let netBlocksCost = 0;
+    let grossBlocksCost = 0;
+    let totalNetBlocksFeet = 0;
+    let totalGrossBlocksFeet = 0;
 
-    // Calculate block dimensions in feet
-    const blockDef = blockTypes.find((b) => b.name === blockTypeForCalculation);
-    const blockLengthMeters = blockDef?.size?.length || 0.4;
-    const blockLengthFeet = blockLengthMeters * METERS_TO_FEET;
+    brickCalcs.forEach((calc) => {
+      const blockPrice = calc.wallType === "external" ? externalBlockPrice : internalBlockPrice;
+      const blockLength = calc.blockLength * METERS_TO_FEET;
+      
+      const netBlocksFeet = calc.netBricks * blockLength;
+      const grossBlocksFeet = calc.grossBricks * (1 + qsSettings.wastageMasonry / 100) * blockLength;
+      
+      netBlocksCost += netBlocksFeet * blockPrice;
+      grossBlocksCost += grossBlocksFeet * blockPrice;
+      totalNetBlocksFeet += netBlocksFeet;
+      totalGrossBlocksFeet += grossBlocksFeet;
+    });
 
-    // Calculate total feet of blocks
-    const netBlocksFeet = netBlocks * blockLengthFeet;
-    const grossBlocksFeet =
-      (totalNetBlocks + totalGrossBlocks) *
-      (1 + qsSettings.wastageMasonry / 100) *
-      blockLengthFeet;
-
-    // Cost calculations using price per foot
-    const netBlocksCost = netBlocksFeet * blockPrice;
-    const grossBlocksCost = grossBlocksFeet * blockPrice;
+    const netBlocksFeet = totalNetBlocksFeet;
+    const grossBlocksFeet = totalGrossBlocksFeet;
 
     const waterPrice =
       materials.find((m) => m.name?.toLowerCase() === "water")?.price || 0;
@@ -1249,60 +1451,378 @@ export default function useMasonryCalculatorNew({
       ? 0
       : (totalWater / 1000) * waterPrice;
 
-    // Openings (doors and windows)
+    // Openings (doors and windows) - with separate cost tracking
     let totalOpeningsCost = 0;
     let doorsCount = 0,
       windowsCount = 0,
       doorFramesCount = 0,
       windowFramesCount = 0;
+    let netDoorsCost = 0,
+      netDoorFramesCost = 0,
+      netDoorArchitraveCost = 0,
+      netWindowArchitraveCost = 0,
+      netDoorArchitraveQty = 0,
+      netWindowArchitraveQty = 0,
+      netDoorQuarterRoundCost = 0,
+      netDoorQuarterRoundQty = 0,
+      netDoorIronmongCost = 0,
+      netDoorIronmongQty = 0,
+      netDoorTransomCost = 0,
+      netDoorTransomQty = 0,
+      netWindowGlassArea = 0,
+      netWindowPuttyLength = 0,
+      netWindowGlassCost = 0,
+      netWindowPuttyCost = 0,
+      netTransomGlassArea = 0,
+      netTransomPuttyLength = 0,
+      netTransomGlassCost = 0,
+      netTransomPuttyCost = 0,
+      netWindowsCost = 0,
+      netWindowFramesCost = 0;
+
+    const normalizeFastenerKey = (value: string) =>
+      value.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const resolveFastenerCategory = (
+      fastenersType: Record<string, any> | undefined,
+      category: string,
+    ) => {
+      if (!fastenersType) return null;
+      const target = normalizeFastenerKey(category);
+      const candidates = target.endsWith("s")
+        ? [target, target.slice(0, -1)]
+        : [target];
+      const match = Object.keys(fastenersType).find((key) =>
+        candidates.includes(normalizeFastenerKey(key)),
+      );
+      return match || null;
+    };
+
+    const resolvePrice = (override?: number, fallback?: number) => {
+      const overrideNumber = Number(override);
+      if (Number.isFinite(overrideNumber)) return overrideNumber;
+      const fallbackNumber = Number(fallback);
+      return Number.isFinite(fallbackNumber) ? fallbackNumber : 0;
+    };
+
+    const getLinearGrossQuantity = (value: number) =>
+      Number(
+        (value * (1 + qsSettings.wastageMasonry / 100)).toFixed(2),
+      );
+
+    const getFastenerPrice = (
+      fastenerCategory: string,
+      selected?: { type?: string; size?: string },
+    ): number => {
+      if (!selected?.type || !selected?.size) return 0;
+      try {
+        const fastenersMaterial = materials.find(
+          (m) => m.name?.toLowerCase() === "fasteners",
+        );
+        if (!fastenersMaterial?.type) return 0;
+
+        const resolvedCategory = resolveFastenerCategory(
+          fastenersMaterial.type,
+          fastenerCategory,
+        );
+        const categoryKey = resolvedCategory || fastenerCategory;
+        const categoryArray = fastenersMaterial.type[categoryKey];
+        if (!Array.isArray(categoryArray)) return 0;
+
+        const fastener = categoryArray.find(
+          (item: any) => item.type === selected.type && item.size === selected.size,
+        );
+        return fastener?.price || 0;
+      } catch (error) {
+        console.warn(
+          `Error looking up fastener price for ${fastenerCategory}:`,
+          error,
+        );
+        return 0;
+      }
+    };
+
+    const getGlassPricePerM2 = (glassType?: string) => {
+      const price = getMaterialPrice("Glazing", glassType || "Clear");
+      return Number.isFinite(Number(price)) ? Number(price) : 0;
+    };
+
+    const getPuttyPricePerM = () => {
+      const price =
+        getMaterialPrice("Sealant", "Glazing Putty") ||
+        getMaterialPrice("Sealant", "Putty") ||
+        getMaterialPrice("Sealant", "Silicone") ||
+        0;
+      return Number.isFinite(Number(price)) ? Number(price) : 0;
+    };
 
     wallSections?.forEach((section) => {
       section.doors.forEach((door) => {
         doorsCount += door.count;
-        const doorLeafPrice = door.custom?.price
-          ? Number(door.custom.price)
+        const doorCustomPrice = Number(door.custom?.price ?? door.price);
+        const hasDoorCustomPrice = Number.isFinite(doorCustomPrice);
+        const doorLeafPrice = hasDoorCustomPrice
+          ? doorCustomPrice
           : getMaterialPrice("Doors", door.type);
 
-        const doorPrice = door.custom?.price
-          ? Number(door.custom.price)
+        const doorPrice = hasDoorCustomPrice
+          ? doorCustomPrice
           : doorLeafPrice[door.standardSize] || 0;
 
         const frameLeafPrice =
           getMaterialPrice("Door Frames", door.frame?.type) || "Wood";
 
-        const framePrice = door.frame?.custom?.price
-          ? Number(door.frame?.custom?.price)
+        const frameCustomPrice = Number(
+          door.frame?.custom?.price ?? door.frame?.price,
+        );
+        const framePrice = Number.isFinite(frameCustomPrice)
+          ? frameCustomPrice
           : frameLeafPrice[door.standardSize] || 0;
 
         door.price = doorPrice;
         door.frame.price = framePrice;
 
-        totalOpeningsCost += (doorPrice + framePrice) * door.count;
+        // Track costs separately
+        const doorCost = doorPrice * door.count;
+        const frameCost = framePrice * door.count;
+        netDoorsCost += doorCost;
+        netDoorFramesCost += frameCost;
+        totalOpeningsCost += doorCost + frameCost;
         doorFramesCount += door.count;
+
+        // Helper function to get fastener price from materials (fixed for nested structure)
+        // Calculate door accessories costs
+        if (door.architrave?.quantity) {
+          const price = resolvePrice(
+            door.architrave?.price,
+            getFastenerPrice("architrave", door.architrave?.selected),
+          );
+          const qty = Number(door.architrave.quantity) * door.count;
+          netDoorArchitraveQty += qty;
+          if (price > 0) {
+            const architraveCost = Number(door.architrave.quantity) * price * door.count;
+            netDoorArchitraveCost += architraveCost;
+            totalOpeningsCost += architraveCost;
+          }
+        }
+
+        if (door.quarterRound?.quantity) {
+          const price = resolvePrice(
+            door.quarterRound?.price,
+            getFastenerPrice("quarterRound", door.quarterRound?.selected),
+          );
+          const qty = Number(door.quarterRound.quantity) * door.count;
+          netDoorQuarterRoundQty += qty;
+          if (price > 0) {
+            const quarterRoundCost = Number(door.quarterRound.quantity) * price * door.count;
+            netDoorQuarterRoundCost += quarterRoundCost;
+            totalOpeningsCost += quarterRoundCost;
+          }
+        }
+
+        // Calculate ironmongery costs
+        if (door.ironmongery) {
+          const hinge = door.ironmongery.hinges;
+          const hasIronmongeryQty =
+            (hinge?.quantity || 0) > 0 ||
+            (door.ironmongery.locks?.quantity || 0) > 0 ||
+            (door.ironmongery.handles?.quantity || 0) > 0 ||
+            (door.ironmongery.bolts?.quantity || 0) > 0 ||
+            (door.ironmongery.closers?.quantity || 0) > 0;
+          if (hasIronmongeryQty) {
+            netDoorIronmongQty += door.count;
+          }
+          if (hinge?.quantity) {
+            const price = resolvePrice(
+              hinge?.price,
+              getFastenerPrice("hinges", hinge?.selected),
+            );
+            if (price > 0) {
+              const hingeCost = Number(hinge.quantity) * price * door.count;
+              netDoorIronmongCost += hingeCost;
+              totalOpeningsCost += hingeCost;
+            }
+          }
+
+          const lock = door.ironmongery.locks;
+          if (lock?.quantity) {
+            const price = resolvePrice(
+              lock?.price,
+              getFastenerPrice("locks", lock?.selected),
+            );
+            if (price > 0) {
+              const lockCost = Number(lock.quantity) * price * door.count;
+              netDoorIronmongCost += lockCost;
+              totalOpeningsCost += lockCost;
+            }
+          }
+
+          const handle = door.ironmongery.handles;
+          if (handle?.quantity) {
+            const price = resolvePrice(
+              handle?.price,
+              getFastenerPrice("handles", handle?.selected),
+            );
+            if (price > 0) {
+              const handleCost = Number(handle.quantity) * price * door.count;
+              netDoorIronmongCost += handleCost;
+              totalOpeningsCost += handleCost;
+            }
+          }
+
+          const bolt = door.ironmongery.bolts;
+          if (bolt?.quantity) {
+            const price = resolvePrice(
+              bolt?.price,
+              getFastenerPrice("bolts", bolt?.selected),
+            );
+            if (price > 0) {
+              const boltCost = Number(bolt.quantity) * price * door.count;
+              netDoorIronmongCost += boltCost;
+              totalOpeningsCost += boltCost;
+            }
+          }
+
+          const closer = door.ironmongery.closers;
+          if (closer?.quantity) {
+            const price = resolvePrice(
+              closer?.price,
+              getFastenerPrice("closers", closer?.selected),
+            );
+            if (price > 0) {
+              const closerCost = Number(closer.quantity) * price * door.count;
+              netDoorIronmongCost += closerCost;
+              totalOpeningsCost += closerCost;
+            }
+          }
+        }
+
+        // Calculate transom costs (custom pricing, not from materials)
+        if (door.transom?.quantity && door.transom?.price) {
+          const transomCost = Number(door.transom.quantity) * Number(door.transom.price) * door.count;
+          netDoorTransomCost += transomCost;
+          totalOpeningsCost += transomCost;
+        }
+        if (door.transom?.quantity) {
+          netDoorTransomQty += Number(door.transom.quantity) * door.count;
+        }
+
+        if (door.transom?.glazing?.glassAreaM2) {
+          const glassAreaPerUnit = Number(door.transom.glazing.glassAreaM2) || 0;
+          const transomQty = Number(door.transom?.quantity) || 1;
+          const glassAreaTotal = glassAreaPerUnit * transomQty * door.count;
+          netTransomGlassArea += glassAreaTotal;
+
+          const glassPrice = resolvePrice(
+            door.transom.glazing?.glassPricePerM2,
+            getGlassPricePerM2("Clear"),
+          );
+          if (glassPrice > 0) {
+            const glassCost = glassAreaTotal * glassPrice;
+            netTransomGlassCost += glassCost;
+            totalOpeningsCost += glassCost;
+          }
+        }
+
+        if (door.transom?.glazing?.puttyLengthM) {
+          const puttyPerUnit = Number(door.transom.glazing.puttyLengthM) || 0;
+          const transomQty = Number(door.transom?.quantity) || 1;
+          const puttyTotal = puttyPerUnit * transomQty * door.count;
+          netTransomPuttyLength += puttyTotal;
+
+          const puttyPrice = resolvePrice(
+            door.transom.glazing?.puttyPricePerM,
+            getPuttyPricePerM(),
+          );
+          if (puttyPrice > 0) {
+            const puttyCost = puttyTotal * puttyPrice;
+            netTransomPuttyCost += puttyCost;
+            totalOpeningsCost += puttyCost;
+          }
+        }
       });
 
       section.windows.forEach((window) => {
         windowsCount += window.count;
-        const windowLeafPrice = window.custom?.price
-          ? Number(window.custom.price)
+        const windowCustomPrice = Number(window.custom?.price ?? window.price);
+        const hasWindowCustomPrice = Number.isFinite(windowCustomPrice);
+        const windowLeafPrice = hasWindowCustomPrice
+          ? windowCustomPrice
           : getMaterialPrice("Windows", window.type);
 
-        const windowPrice = window.custom?.price
-          ? Number(window.custom.price)
+        const windowPrice = hasWindowCustomPrice
+          ? windowCustomPrice
           : windowLeafPrice[window.standardSize] || 0;
 
         const frameLeafPrice =
           getMaterialPrice("window Frames", window.frame?.type) || "Wood";
 
-        const framePrice = window.frame?.custom?.price
-          ? Number(window.frame?.custom?.price)
+        const windowFrameCustomPrice = Number(
+          window.frame?.custom?.price ?? window.frame?.price,
+        );
+        const framePrice = Number.isFinite(windowFrameCustomPrice)
+          ? windowFrameCustomPrice
           : frameLeafPrice[window.standardSize] || 0;
 
         window.price = windowPrice;
         window.frame.price = framePrice;
 
-        totalOpeningsCost += (windowPrice + framePrice) * window.count;
+        // Track costs separately
+        const windowCost = windowPrice * window.count;
+        const frameCost = framePrice * window.count;
+        netWindowsCost += windowCost;
+        netWindowFramesCost += frameCost;
+        totalOpeningsCost += windowCost + frameCost;
         windowFramesCount += window.count;
+
+        if (window.architrave?.quantity) {
+          const price = resolvePrice(
+            window.architrave?.price,
+            getFastenerPrice("architrave", window.architrave?.selected),
+          );
+          const qty = Number(window.architrave.quantity) * window.count;
+          netWindowArchitraveQty += qty;
+          if (price > 0) {
+            const architraveCost =
+              Number(window.architrave.quantity) * price * window.count;
+            netWindowArchitraveCost += architraveCost;
+            totalOpeningsCost += architraveCost;
+          }
+        }
+
+        const windowArea =
+          window.sizeType === "standard"
+            ? parseSize(window.standardSize)
+            : Number(window.custom.height) * Number(window.custom.width);
+        const glassPanes = Number(window.glazing?.glass?.quantity) || 1;
+        const windowGlassArea = (windowArea || 0) * glassPanes * window.count;
+        if (windowGlassArea > 0) {
+          netWindowGlassArea += windowGlassArea;
+          const glassPrice = resolvePrice(
+            window.glazing?.glass?.pricePerM2,
+            getGlassPricePerM2(window.glazing?.glass?.type || window.glassType),
+          );
+          if (glassPrice > 0) {
+            const glassCost = windowGlassArea * glassPrice;
+            netWindowGlassCost += glassCost;
+            totalOpeningsCost += glassCost;
+          }
+        }
+
+        const puttyPerWindow = Number(window.glazing?.putty?.quantity) || 0;
+        if (puttyPerWindow > 0) {
+          const puttyTotal = puttyPerWindow * window.count;
+          netWindowPuttyLength += puttyTotal;
+          const puttyPrice = resolvePrice(
+            window.glazing?.putty?.price,
+            getPuttyPricePerM(),
+          );
+          if (puttyPrice > 0) {
+            const puttyCost = puttyTotal * puttyPrice;
+            netWindowPuttyCost += puttyCost;
+            totalOpeningsCost += puttyCost;
+          }
+        }
       });
     });
 
@@ -1567,10 +2087,10 @@ export default function useMasonryCalculatorNew({
         wallSections && wallSections.length > 0
           ? wallSections.reduce(
               (sum, s) =>
-                sum + (s.thickness || wallProperties.thickness || 0.2),
+                sum + (s.thickness || thickness || 0.2),
               0,
             ) / wallSections.length
-          : wallProperties.thickness || 0.2;
+          : thickness || 0.2;
 
       const wasteVolume = centerLineGrossWallArea * 0.05 * thicknessForWaste;
       const wasteCost = wasteVolume * qsSettings.wasteRemovalRate;
@@ -1621,6 +2141,84 @@ export default function useMasonryCalculatorNew({
     totals.grossWindowFrames = Math.ceil(
       windowFramesCount * (1 + qsSettings.wastageMasonry / 100),
     );
+    totals.netDoorsCost = Math.ceil(netDoorsCost);
+    totals.netDoorFramesCost = Math.ceil(netDoorFramesCost);
+    totals.netWindowsCost = Math.ceil(netWindowsCost);
+    totals.netWindowFramesCost = Math.ceil(netWindowFramesCost);
+    totals.grossDoorsCost = Math.ceil(
+      netDoorsCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.grossDoorFramesCost = Math.ceil(
+      netDoorFramesCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.grossWindowsCost = Math.ceil(
+      netWindowsCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.grossWindowFramesCost = Math.ceil(
+      netWindowFramesCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netDoorArchitraveCost = Math.ceil(netDoorArchitraveCost);
+    totals.grossDoorArchitraveCost = Math.ceil(
+      netDoorArchitraveCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netWindowArchitraveCost = Math.ceil(netWindowArchitraveCost);
+    totals.grossWindowArchitraveCost = Math.ceil(
+      netWindowArchitraveCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netDoorArchitraveQty = Number(netDoorArchitraveQty.toFixed(2));
+    totals.grossDoorArchitraveQty = getLinearGrossQuantity(netDoorArchitraveQty);
+    totals.netWindowArchitraveQty = Number(netWindowArchitraveQty.toFixed(2));
+    totals.grossWindowArchitraveQty = getLinearGrossQuantity(
+      netWindowArchitraveQty,
+    );
+    totals.netDoorQuarterRoundCost = Math.ceil(netDoorQuarterRoundCost);
+    totals.grossDoorQuarterRoundCost = Math.ceil(
+      netDoorQuarterRoundCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netDoorQuarterRoundQty = Number(netDoorQuarterRoundQty.toFixed(2));
+    totals.grossDoorQuarterRoundQty = getLinearGrossQuantity(
+      netDoorQuarterRoundQty,
+    );
+    totals.netDoorIronmongCost = Math.ceil(netDoorIronmongCost);
+    totals.grossDoorIronmongCost = Math.ceil(
+      netDoorIronmongCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netDoorIronmongQty = Math.ceil(netDoorIronmongQty);
+    totals.grossDoorIronmongQty = Math.ceil(
+      netDoorIronmongQty * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netDoorTransomCost = Math.ceil(netDoorTransomCost);
+    totals.grossDoorTransomCost = Math.ceil(
+      netDoorTransomCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netDoorTransomQty = Math.ceil(netDoorTransomQty);
+    totals.grossDoorTransomQty = Math.ceil(
+      netDoorTransomQty * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netWindowGlassArea = Number(netWindowGlassArea.toFixed(2));
+    totals.grossWindowGlassArea = getLinearGrossQuantity(netWindowGlassArea);
+    totals.netWindowPuttyLength = Number(netWindowPuttyLength.toFixed(2));
+    totals.grossWindowPuttyLength = getLinearGrossQuantity(netWindowPuttyLength);
+    totals.netWindowGlassCost = Math.ceil(netWindowGlassCost);
+    totals.grossWindowGlassCost = Math.ceil(
+      netWindowGlassCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netWindowPuttyCost = Math.ceil(netWindowPuttyCost);
+    totals.grossWindowPuttyCost = Math.ceil(
+      netWindowPuttyCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netTransomGlassArea = Number(netTransomGlassArea.toFixed(2));
+    totals.grossTransomGlassArea = getLinearGrossQuantity(netTransomGlassArea);
+    totals.netTransomPuttyLength = Number(netTransomPuttyLength.toFixed(2));
+    totals.grossTransomPuttyLength = getLinearGrossQuantity(netTransomPuttyLength);
+    totals.netTransomGlassCost = Math.ceil(netTransomGlassCost);
+    totals.grossTransomGlassCost = Math.ceil(
+      netTransomGlassCost * (1 + qsSettings.wastageMasonry / 100),
+    );
+    totals.netTransomPuttyCost = Math.ceil(netTransomPuttyCost);
+    totals.grossTransomPuttyCost = Math.ceil(
+      netTransomPuttyCost * (1 + qsSettings.wastageMasonry / 100),
+    );
     totals.netBlocksCost = netBlocksCost;
     totals.grossBlocksCost = grossBlocksCost;
     totals.netMortarCost = netMortarCost;
@@ -1655,7 +2253,7 @@ export default function useMasonryCalculatorNew({
             grossQuantity: totals.grossMortar,
             netCost: totals.netMortarCost,
             grossCost: totals.grossMortarCost,
-            unit: "m³",
+            unit: "mÂ³",
           },
           {
             type: "plaster",
@@ -1663,10 +2261,10 @@ export default function useMasonryCalculatorNew({
             grossQuantity: totals.grossPlaster,
             netCost: totals.netPlasterCost,
             grossCost: totals.grossPlasterCost,
-            unit: "m²",
+            unit: "mÂ²",
           },
           {
-            type: "doors",
+            type: "door_leaves",
             netQuantity: totals.netDoors,
             grossQuantity: totals.grossDoors,
             netCost: totals.netDoorsCost,
@@ -1674,12 +2272,100 @@ export default function useMasonryCalculatorNew({
             unit: "pcs",
           },
           {
-            type: "windows",
+            type: "door_frames",
+            netQuantity: totals.netDoorFrames,
+            grossQuantity: totals.grossDoorFrames,
+            netCost: totals.netDoorFramesCost,
+            grossCost: totals.grossDoorFramesCost,
+            unit: "pcs",
+          },
+          {
+            type: "window_leaves",
             netQuantity: totals.netWindows,
             grossQuantity: totals.grossWindows,
             netCost: totals.netWindowsCost,
             grossCost: totals.grossWindowsCost,
             unit: "pcs",
+          },
+          {
+            type: "window_frames",
+            netQuantity: totals.netWindowFrames,
+            grossQuantity: totals.grossWindowFrames,
+            netCost: totals.netWindowFramesCost,
+            grossCost: totals.grossWindowFramesCost,
+            unit: "pcs",
+          },
+          {
+            type: "door_architrave",
+            netQuantity: totals.netDoorArchitraveQty,
+            grossQuantity: totals.grossDoorArchitraveQty,
+            netCost: totals.netDoorArchitraveCost,
+            grossCost: totals.grossDoorArchitraveCost,
+            unit: "m",
+          },
+          {
+            type: "window_architrave",
+            netQuantity: totals.netWindowArchitraveQty,
+            grossQuantity: totals.grossWindowArchitraveQty,
+            netCost: totals.netWindowArchitraveCost,
+            grossCost: totals.grossWindowArchitraveCost,
+            unit: "m",
+          },
+          {
+            type: "door_quarter_round",
+            netQuantity: totals.netDoorQuarterRoundQty,
+            grossQuantity: totals.grossDoorQuarterRoundQty,
+            netCost: totals.netDoorQuarterRoundCost,
+            grossCost: totals.grossDoorQuarterRoundCost,
+            unit: "m",
+          },
+          {
+            type: "door_ironmongery",
+            netQuantity: totals.netDoorIronmongQty,
+            grossQuantity: totals.grossDoorIronmongQty,
+            netCost: totals.netDoorIronmongCost,
+            grossCost: totals.grossDoorIronmongCost,
+            unit: "set",
+          },
+          {
+            type: "door_transom",
+            netQuantity: totals.netDoorTransomQty,
+            grossQuantity: totals.grossDoorTransomQty,
+            netCost: totals.netDoorTransomCost,
+            grossCost: totals.grossDoorTransomCost,
+            unit: "pcs",
+          },
+          {
+            type: "window_glass",
+            netQuantity: totals.netWindowGlassArea,
+            grossQuantity: totals.grossWindowGlassArea,
+            netCost: totals.netWindowGlassCost,
+            grossCost: totals.grossWindowGlassCost,
+            unit: "mÂ²",
+          },
+          {
+            type: "window_putty",
+            netQuantity: totals.netWindowPuttyLength,
+            grossQuantity: totals.grossWindowPuttyLength,
+            netCost: totals.netWindowPuttyCost,
+            grossCost: totals.grossWindowPuttyCost,
+            unit: "m",
+          },
+          {
+            type: "transom_glass",
+            netQuantity: totals.netTransomGlassArea,
+            grossQuantity: totals.grossTransomGlassArea,
+            netCost: totals.netTransomGlassCost,
+            grossCost: totals.grossTransomGlassCost,
+            unit: "mÂ²",
+          },
+          {
+            type: "transom_putty",
+            netQuantity: totals.netTransomPuttyLength,
+            grossQuantity: totals.grossTransomPuttyLength,
+            netCost: totals.netTransomPuttyCost,
+            grossCost: totals.grossTransomPuttyCost,
+            unit: "m",
           },
           ...(qsSettings.clientProvidesWater
             ? []
@@ -1786,3 +2472,4 @@ export default function useMasonryCalculatorNew({
     waterPrice: results.waterPrice,
   };
 }
+

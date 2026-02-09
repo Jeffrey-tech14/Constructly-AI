@@ -92,7 +92,7 @@ export const usePlanUpload = () => {
         title: "Plan Analyzed",
         description: `Plan analyzed successfully. Found ${
           result.floors || 1
-        } floor(s). Rebar calculation method: ${result.rebar_calculation_method || "intensity-based"}.`,
+      } floor(s). Rebar calculation method: ${result.rebar_calculation_method || "NORMAL_REBAR_MODE"}.`,
       });
 
       return result;

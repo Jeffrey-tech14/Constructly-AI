@@ -7,7 +7,11 @@ export type FinishCategory =
   | "flooring"
   | "ceiling"
   | "wall-finishes"
-  | "joinery";
+  | "joinery"
+  | "external"
+  | "internal-walling"
+  | "external-walling"
+  | "others";
 
 export interface FinishElement {
   id: string;
@@ -17,7 +21,7 @@ export interface FinishElement {
   length?: number;
   width?: number;
   height?: number;
-  unit: "m²" | "m" | "pcs";
+  unit: "m²" | "m" | "pcs" | "kg";
   quantity: number;
   location?: string;
   specifications?: any;

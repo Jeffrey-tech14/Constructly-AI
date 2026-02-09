@@ -107,14 +107,6 @@ export default function FoundationWallingCalculator({
       wallDimensions.internalWallPerimiter || "0",
     );
 
-    // Get wall thickness from wallSection data
-    const internalWallThickness =
-      quote.wallSections?.find((s: any) => s.type === "internal")?.thickness ||
-      0.15;
-    const externalWallThickness =
-      quote.wallSections?.find((s: any) => s.type === "external")?.thickness ||
-      0.2;
-
     // Calculate wall height
     const concreteStructures = quote?.concrete_rows || [];
     const excavationDepth =
@@ -127,17 +119,16 @@ export default function FoundationWallingCalculator({
       : 0;
     const groundFloorSlab = concreteStructures.find(
       (c: any) =>
-        c.name?.toLowerCase().includes("ground floor") &&
+        c.name?.toLowerCase().includes("ground") &&
         c.name?.toLowerCase().includes("slab"),
     );
     const groundFloorSlabThickness = groundFloorSlab
       ? parseFloat(groundFloorSlab.height || "0.15")
       : 0.15;
-
     const calculatedHeight =
       excavationDepth - stripFootingHeight - groundFloorSlabThickness;
     const foundationWallHeight =
-      calculatedHeight > 0 ? calculatedHeight.toFixed(2) : "1.0";
+      calculatedHeight > 0 && calculatedHeight !== 0 ? calculatedHeight.toFixed(2) : "1.0";
 
     // Update external wall
     const externalWall = walls.find((w) => w.type === "external");
@@ -342,7 +333,6 @@ export default function FoundationWallingCalculator({
     quote?.earthwork,
     quote?.concrete_rows,
   ]);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

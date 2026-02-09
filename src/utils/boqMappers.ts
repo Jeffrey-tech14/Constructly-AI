@@ -44,14 +44,14 @@ const generateFromAvailableData = (data: any): BOQSection[] => {
   const substructure = generateSubstructureSection(data);
   if (substructure.items.length > 1) sections.push(substructure);
 
+  const openings = generateOpeningsSection(data);
+  if (openings.items.length > 1) sections.push(openings);
+
   const superstructure = generateSuperstructureSection(data);
   if (superstructure.items.length > 1) sections.push(superstructure);
 
   const finishes = generateFinishesSection(data);
   if (finishes.items.length > 1) sections.push(finishes);
-
-  const openings = generateOpeningsSection(data);
-  if (openings.items.length > 1) sections.push(openings);
 
   const services = generateServicesSection(data);
   if (services.items.length > 1) sections.push(services);

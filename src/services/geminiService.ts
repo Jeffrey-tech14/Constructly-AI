@@ -108,6 +108,8 @@ ORGANIZATION:
 - Create section headers for major categories
 - Include subheaders for material groupings
 - Include any project notes
+- Do not include combined items eg concrete, then also include its components, only include the components in the schedule
+- Do not include concrete, motar, plaster, or any other combined items, always prefere the breakdown of materials
 
 ══════════════════════════════════════════════
 DATA PROCESSING RULES

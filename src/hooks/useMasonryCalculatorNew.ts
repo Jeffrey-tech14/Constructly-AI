@@ -30,37 +30,44 @@ export interface Door {
   };
   architrave?: {
     selected?: { type?: string; size?: string };
+    customSize?: string;
     quantity?: number;
     price?: number;
   };
   quarterRound?: {
     selected?: { type?: string; size?: string };
+    customSize?: string;
     quantity?: number;
     price?: number;
   };
   ironmongery?: {
     hinges?: {
       selected?: { type?: string; size?: string };
+      customSize?: string;
       quantity?: number;
       price?: number;
     };
     locks?: {
       selected?: { type?: string; size?: string };
+      customSize?: string;
       quantity?: number;
       price?: number;
     };
     handles?: {
       selected?: { type?: string; size?: string };
+      customSize?: string;
       quantity?: number;
       price?: number;
     };
     bolts?: {
       selected?: { type?: string; size?: string };
+      customSize?: string;
       quantity?: number;
       price?: number;
     };
     closers?: {
       selected?: { type?: string; size?: string };
+      customSize?: string;
       quantity?: number;
       price?: number;
     };
@@ -88,6 +95,7 @@ export interface Window {
   custom: { height: string; width: string; price?: number };
   type: string;
   count: number;
+  wallThickness?: number;
   frame: {
     type: string;
     price?: number;
@@ -99,8 +107,47 @@ export interface Window {
   };
   architrave?: {
     selected?: { type?: string; size?: string };
+    customSize?: string;
     quantity?: number;
     price?: number;
+  };
+  quarterRound?: {
+    selected?: { type?: string; size?: string };
+    customSize?: string;
+    quantity?: number;
+    price?: number;
+  };
+  ironmongery?: {
+    hinges?: {
+      selected?: { type?: string; size?: string };
+      customSize?: string;
+      quantity?: number;
+      price?: number;
+    };
+    locks?: {
+      selected?: { type?: string; size?: string };
+      customSize?: string;
+      quantity?: number;
+      price?: number;
+    };
+    handles?: {
+      selected?: { type?: string; size?: string };
+      customSize?: string;
+      quantity?: number;
+      price?: number;
+    };
+    bolts?: {
+      selected?: { type?: string; size?: string };
+      customSize?: string;
+      quantity?: number;
+      price?: number;
+    };
+    closers?: {
+      selected?: { type?: string; size?: string };
+      customSize?: string;
+      quantity?: number;
+      price?: number;
+    };
   };
   glazing?: {
     glass?: {
@@ -109,7 +156,7 @@ export interface Window {
       quantity?: number;
       pricePerM2?: number;
     };
-    putty?: { quantity?: number; unit?: string; price?: number };
+    putty?: { quantity?: number; unit?: string; price?: number; size?: string; color?: string; lengthNeeded?: number; tinsNeeded?: number };
   };
   glassType?: string;
   glassThickness?: number;
@@ -1089,13 +1136,75 @@ export default function useMasonryCalculatorNew({
   const addDoorToSection = (sectionIndex: number) => {
     setQuote((prev: any) => {
       const sections = [...(prev.wallSections || [])];
+      const section = sections[sectionIndex];
       sections[sectionIndex].doors.push({
-        sizeType: "",
-        standardSize: "",
-        custom: { height: "", width: "", price: "" },
-        type: "",
+        sizeType: "standard",
+        standardSize: "0.9 × 2.1 m",
+        price: 0,
+        custom: { height: "2.1", width: "0.9", price: 0 },
+        type: "Panel",
         count: 1,
-        frame: { type: "", price: "" },
+        wallThickness: section.thickness || 0.2,
+        frame: {
+          type: "Wood",
+          price: 0,
+          sizeType: "standard",
+          standardSize: "0.9 × 2.1 m",
+          height: "2.1",
+          width: "0.9",
+          custom: { height: "2.1", width: "0.9", price: 0 },
+        },
+        architrave: {
+          selected: { type: "", size: "" },
+          quantity: 0,
+          price: 0,
+        },
+        quarterRound: {
+          selected: { type: "", size: "" },
+          quantity: 0,
+          price: 0,
+        },
+        ironmongery: {
+          hinges: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          locks: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          handles: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          bolts: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          closers: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+        },
+        transom: {
+          enabled: false,
+          height: "",
+          width: "",
+          quantity: 0,
+          price: 0,
+          glazing: {
+            included: false,
+            glassAreaM2: 0,
+            puttyLengthM: 0,
+            glassPricePerM2: 0,
+            puttyPricePerM: 0,
+          },
+        },
       });
       return { ...prev, wallSections: sections };
     });
@@ -1104,13 +1213,79 @@ export default function useMasonryCalculatorNew({
   const addWindowToSection = (sectionIndex: number) => {
     setQuote((prev: any) => {
       const sections = [...(prev.wallSections || [])];
+      const section = sections[sectionIndex];
       sections[sectionIndex].windows.push({
-        sizeType: "",
-        standardSize: "",
-        custom: { height: "", width: "", price: "" },
-        type: "",
+        sizeType: "standard",
+        standardSize: "1.2 × 1.2 m",
+        price: 0,
+        custom: { height: "1.2", width: "1.2", price: 0 },
+        type: "Clear",
         count: 1,
-        frame: { type: "", price: "" },
+        wallThickness: section.thickness || 0.2,
+        frame: {
+          type: "Steel",
+          price: 0,
+          sizeType: "standard",
+          standardSize: "1.2 × 1.2 m",
+          height: "1.2",
+          width: "1.2",
+          custom: { height: "1.2", width: "1.2", price: 0 },
+        },
+        architrave: {
+          selected: { type: "", size: "" },
+          quantity: 0,
+          price: 0,
+        },
+        quarterRound: {
+          selected: { type: "", size: "" },
+          quantity: 0,
+          price: 0,
+        },
+        ironmongery: {
+          hinges: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          locks: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          handles: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          bolts: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+          closers: {
+            selected: { type: "", size: "" },
+            quantity: 0,
+            price: 0,
+          },
+        },
+        glassType: "Clear",
+        glassThickness: 3,
+        span: 1.2,
+        isGlassUnderSized: false,
+        recommendedGlassThickness: 3,
+        glazing: {
+          glass: {
+            type: "Clear",
+            thickness: 3,
+            quantity: 1,
+            pricePerM2: 0,
+          },
+          putty: {
+            quantity: 0,
+            unit: "m",
+            price: 0,
+          },
+        },
       });
       return { ...prev, wallSections: sections };
     });

@@ -287,6 +287,61 @@ standardWindowSizes =
 ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"]
 
 ════════════════════════════════════
+DOOR ACCESSORY EXTRACTION
+════════════════════════════════════
+
+For each door extracted, include ALL related items:
+
+Architrave:
+- Type: "timber-architrave", "stone-arch", "flush", "rebated"
+- Size: "40x20mm", "50x25mm", etc.
+- Quantity: number of linear meters or units needed
+- Price: unit cost (can be 0 if not quoted)
+
+Quarter Round:
+- Type: "timber-quarter-round", "rubber", "vinyl"
+- Size: "20mm", "25mm", etc.
+- Quantity: linear meters or units
+- Price: unit cost
+
+Ironmongery (all of these if applicable):
+  
+  Hinges:
+  - Type: "butt-hinge", "parliament-hinge", "tee-hinge"
+  - Size: "75mm", "100mm", "125mm"
+  - Quantity: typically 3 per door
+  - Price: per set or per unit
+  
+  Locks:
+  - Type: "mortice-lock", "cylinder-lock", "rim-lock"
+  - Size: "3-lever", "5-lever", "security-grade"
+  - Quantity: 1 per door typically
+  - Price: per unit
+  
+  Handles:
+  - Type: "lever-handle", "knob-handle", "pull-handle"
+  - Size: "standard", "large", "65mm bore"
+  - Quantity: typically 1 per door
+  - Price: per pair
+  
+  Bolts:
+  - Type: "tower-bolt", "barrel-bolt", "panic-bolt"
+  - Size: "150mm", "200mm"
+  - Quantity: 0 or as shown on plans
+  - Price: per unit
+  
+  Closers:
+  - Type: "pneumatic-closer", "self-closing-hinge", "electromagnetic"
+  - Size: "standard", "light-duty", "heavy-duty"
+  - Quantity: 0 or 1 if specified
+  - Price: per unit
+
+Transom (if present):
+- Enabled: true/false
+- Height and width: as shown on plans
+- Glazing type and thickness (if applicable)
+
+════════════════════════════════════
 FOUNDATION EXTRACTION (MANDATORY)
 ════════════════════════════════════
 
@@ -313,24 +368,7 @@ Strip Footing Height: footing element only
 
 Ground Floor Slab Thickness: typically 0.15 m
 
-Foundation Wall Height =
-Foundation Height − Strip Footing Height − Slab Thickness
-
 If no clear foundation height → use 0.65 m
-
-FOUNDATION WALL / PLINTH
-
-Extract as a concreteStructure
-
-Name: "Foundation Wall" or "Plinth Wall"
-
-Element type: "foundation-wall"
-
-Identify masonry type (block / rubble stone)
-
-Extract wall thickness and height
-
-MUST have corresponding reinforcement
 
 ════════════════════════════════════
 REINFORCEMENT & CONCRETE RULE
@@ -815,14 +853,18 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         {
           "sizeType": "standard",
           "standardSize": "0.9 × 2.1 m",
+          "price": 0,
           "custom": {
             "height": "2.1",
             "width": "0.9",
-            "price": ""
+            "price": 0
           },
           "type": "Panel",
+          "count": 1,
+          "wallThickness": 0.2,
           "frame": {
             "type": "Wood",
+            "price": 0,
             "sizeType": "standard",
             "standardSize": "0.9 × 2.1 m",
             "height": "2.1",
@@ -830,25 +872,78 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
             "custom": {
               "height": "2.1",
               "width": "0.9",
-              "price": ""
+              "price": 0
             }
           },
-          "count": 1,
-          "price": 0
+          "architrave": {
+            "selected": { "type": "", "size": "" },
+            "quantity": 0,
+            "price": 0
+          },
+          "quarterRound": {
+            "selected": { "type": "", "size": "" },
+            "quantity": 0,
+            "price": 0
+          },
+          "ironmongery": {
+            "hinges": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "locks": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "handles": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "bolts": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "closers": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            }
+          },
+          "transom": {
+            "enabled": false,
+            "height": "",
+            "width": "",
+            "quantity": 0,
+            "price": 0,
+            "glazing": {
+              "included": false,
+              "glassAreaM2": 0,
+              "puttyLengthM": 0,
+              "glassPricePerM2": 0,
+              "puttyPricePerM": 0
+            }
+          }
         }
       ],
       "windows": [
         {
           "sizeType": "standard",
           "standardSize": "1.2 × 1.2 m",
+          "price": 0,
           "custom": {
             "height": "1.2",
             "width": "1.2",
-            "price": ""
+            "price": 0
           },
-          "glass": "Clear",
+          "type": "Clear",
+          "count": 2,
+          "wallThickness": 0.2,
           "frame": {
             "type": "Steel",
+            "price": 0,
             "sizeType": "standard",
             "standardSize": "1.2 × 1.2 m",
             "height": "1.2",
@@ -856,11 +951,64 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
             "custom": {
               "height": "1.2",
               "width": "1.2",
-              "price": ""
+              "price": 0
             }
           },
-          "count": 2,
-          "price": 0
+          "architrave": {
+            "selected": { "type": "", "size": "" },
+            "quantity": 0,
+            "price": 0
+          },
+          "quarterRound": {
+            "selected": { "type": "", "size": "" },
+            "quantity": 0,
+            "price": 0
+          },
+          "ironmongery": {
+            "hinges": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "locks": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "handles": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "bolts": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "closers": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            }
+          },
+          "glassType": "Clear",
+          "glassThickness": 3,
+          "span": 1.2,
+          "isGlassUnderSized": false,
+          "recommendedGlassThickness": 3,
+          "glazing": {
+            "glass": {
+              "type": "Clear",
+              "thickness": 3,
+              "quantity": 1,
+              "pricePerM2": 0
+            },
+            "putty": {
+              "quantity": 0,
+              "unit": "m",
+              "price": 0
+            }
+          }
         }
       ]
     },
@@ -873,14 +1021,18 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
         {
           "sizeType": "standard",
           "standardSize": "0.9 × 2.1 m",
+          "price": 0,
           "custom": {
             "height": "2.1",
             "width": "0.9",
-            "price": ""
+            "price": 0
           },
           "type": "Panel",
+          "count": 5,
+          "wallThickness": 0.15,
           "frame": {
             "type": "Wood",
+            "price": 0,
             "sizeType": "standard",
             "standardSize": "0.9 × 2.1 m",
             "height": "2.1",
@@ -888,11 +1040,60 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
             "custom": {
               "height": "2.1",
               "width": "0.9",
-              "price": ""
+              "price": 0
             }
           },
-          "count": 5,
-          "price": 0
+          "architrave": {
+            "selected": { "type": "", "size": "" },
+            "quantity": 0,
+            "price": 0
+          },
+          "quarterRound": {
+            "selected": { "type": "", "size": "" },
+            "quantity": 0,
+            "price": 0
+          },
+          "ironmongery": {
+            "hinges": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "locks": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "handles": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "bolts": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            },
+            "closers": {
+              "selected": { "type": "", "size": "" },
+              "quantity": 0,
+              "price": 0
+            }
+          },
+          "transom": {
+            "enabled": false,
+            "height": "",
+            "width": "",
+            "quantity": 0,
+            "price": 0,
+            "glazing": {
+              "included": false,
+              "glassAreaM2": 0,
+              "puttyLengthM": 0,
+              "glassPricePerM2": 0,
+              "puttyPricePerM": 0
+            }
+          }
         }
       ],
       "windows": []

@@ -1261,7 +1261,7 @@ const UploadPlan = () => {
                     )}
 
                     {previewUrl && (
-                      <Card className="border p-1 border-slate-200 dark:border-slate-600 overflow-hidden">
+                      <Card onClick={() => setShowPreviewModal(true)} className="cursor-pointer border p-1 border-slate-200 dark:border-slate-600 overflow-hidden">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg flex items-center">
                             <Eye className="w-5 h-5 mr-2 text-green-500" />
@@ -1271,7 +1271,7 @@ const UploadPlan = () => {
                         <CardContent className="p-0">
                           <div
                             className="w-full h-[700px] rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-600"
-                            onClick={() => setShowPreviewModal(true)}
+                          
                           >
                             <div className="h-full flex flex-col items-center justify-center">
                               <PreviewModal
@@ -1345,16 +1345,70 @@ const UploadPlan = () => {
                                                 const newDoor: Door = {
                                                   sizeType: "standard",
                                                   standardSize: "0.9 × 2.1 m",
-                                                  custom: { height: "2.1", width: "0.9" },
+                                                  price: 0,
+                                                  custom: { height: "2.1", width: "0.9", price: 0 },
                                                   type: "Flush",
                                                   count: 1,
+                                                  wallThickness: 0.2,
                                                   frame: {
                                                     type: "Wood",
+                                                    price: 0,
                                                     sizeType: "standard",
-                                                    standardSize: "",
+                                                    standardSize: "0.9 × 2.1 m",
+                                                    height: "2.1",
+                                                    width: "0.9",
+                                                    custom: { height: "2.1", width: "0.9", price: 0 },
+                                                  },
+                                                  architrave: {
+                                                    selected: { type: "", size: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                  },
+                                                  quarterRound: {
+                                                    selected: { type: "", size: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                  },
+                                                  ironmongery: {
+                                                    hinges: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    locks: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    handles: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    bolts: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    closers: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                  },
+                                                  transom: {
+                                                    enabled: false,
                                                     height: "",
                                                     width: "",
-                                                    custom: { height: "", width: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                    glazing: {
+                                                      included: false,
+                                                      glassAreaM2: 0,
+                                                      puttyLengthM: 0,
+                                                      glassPricePerM2: 0,
+                                                      puttyPricePerM: 0,
+                                                    },
                                                   },
                                                 };
                                                 setEditablePlan((prev) => {
@@ -1431,16 +1485,74 @@ const UploadPlan = () => {
                                                 const newWindow: Window = {
                                                   sizeType: "standard",
                                                   standardSize: "1.2 × 1.2 m",
-                                                  custom: { height: "1.2", width: "1.2" },
+                                                  price: 0,
+                                                  custom: { height: "1.2", width: "1.2", price: 0 },
                                                   type: "Clear",
                                                   count: 1,
+                                                  wallThickness: 0.2,
                                                   frame: {
                                                     type: "Aluminum",
+                                                    price: 0,
                                                     sizeType: "standard",
-                                                    standardSize: "",
-                                                    height: "",
-                                                    width: "",
-                                                    custom: { height: "", width: "" },
+                                                    standardSize: "1.2 × 1.2 m",
+                                                    height: "1.2",
+                                                    width: "1.2",
+                                                    custom: { height: "1.2", width: "1.2", price: 0 },
+                                                  },
+                                                  architrave: {
+                                                    selected: { type: "", size: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                  },
+                                                  quarterRound: {
+                                                    selected: { type: "", size: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                  },
+                                                  ironmongery: {
+                                                    hinges: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    locks: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    handles: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    bolts: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    closers: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                  },
+                                                  glassType: "Clear",
+                                                  glassThickness: 3,
+                                                  span: 1.2,
+                                                  isGlassUnderSized: false,
+                                                  recommendedGlassThickness: 3,
+                                                  glazing: {
+                                                    glass: {
+                                                      type: "Clear",
+                                                      thickness: 3,
+                                                      quantity: 1,
+                                                      pricePerM2: 0,
+                                                    },
+                                                    putty: {
+                                                      quantity: 0,
+                                                      unit: "m",
+                                                      price: 0,
+                                                    },
                                                   },
                                                 };
                                                 setEditablePlan((prev) => {

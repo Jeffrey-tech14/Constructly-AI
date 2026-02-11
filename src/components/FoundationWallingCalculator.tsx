@@ -129,7 +129,6 @@ export default function FoundationWallingCalculator({
       excavationDepth - stripFootingHeight - groundFloorSlabThickness;
     const foundationWallHeight =
       calculatedHeight > 0 && calculatedHeight !== 0 ? calculatedHeight.toFixed(2) : "1.0";
-
     // Update external wall
     const externalWall = walls.find((w) => w.type === "external");
     if (externalWall && externalPerimeter > 0) {

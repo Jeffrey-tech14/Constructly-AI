@@ -30,10 +30,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Plus, Trash2, Edit } from "lucide-react";
-import useUniversalFinishesCalculator, {
-  FinishElement,
-  FinishCategory,
-} from "@/hooks/useUniversalFinishesCalculator";
+import useWallingCalculator from "@/hooks/useWallingCalculator";
+import type { FinishElement, FinishCategory } from "@/hooks/useUniversalFinishesCalculator";
 
 const INTERNAL_WALLING_MATERIALS = [
   "Stone Cladding",
@@ -44,29 +42,11 @@ const INTERNAL_WALLING_MATERIALS = [
 ];
 
 const EXTERNAL_WALLING_MATERIALS = [
-  // Gutters
-  "PVC Gutter",
-  "Galvanized Steel Gutter",
-  "Aluminum Gutter",
-  "Copper Gutter",
-  // Fascia
-  "PVC Fascia",
-  "Painted Wood Fascia",
-  "Aluminum Fascia",
-  "Composite Fascia",
-  // Soffit
-  "PVC Soffit",
-  "Aluminum Soffit",
-  // Downpipes
-  "PVC Downpipe",
-  "Galvanized Steel Downpipe",
-  // STEP 4: External Finish Options
-  "Render",
   "Cladding",
   "Marble",
   "Marzella",
   "Wall Master",
-  "Keying Coat",
+  "Keying",
 ];
 
 const TILE_SIZE_FACTORS: Record<
@@ -110,6 +90,10 @@ export default function WallingCalculator({
   );
   const [hasInitializedPaintings, setHasInitializedPaintings] = useState(false);
 
+  // State for dynamic tile pricing
+  const [kitchenTileUnitPrice, setKitchenTileUnitPrice] = useState(0);
+  const [bathroomTileUnitPrice, setBathroomTileUnitPrice] = useState(0);
+
   // Filter finishes based on selected walling type
   const filteredFinishes = finishes.filter((f) =>
     wallingType === "internal"
@@ -117,8 +101,104 @@ export default function WallingCalculator({
       : f.category === "external-walling"
   );
 
+  /**
+   * Helper function to get walling material price from materialPrices (Supabase nested structure)
+   * Follows same pattern as Flooring Calculator
+   */
+  const getWallingMaterialPrice = useCallback((materialName: string): number => {
+    if (!Array.isArray(materialPrices)) return 0;
+
+    // Find the Walling category in materialPrices
+    const wallingMaterial = materialPrices.find((m: any) =>
+      m.name?.toLowerCase() === "wall-finishes"
+    );
+
+    if (!wallingMaterial) return 0;
+
+    // Search in internalWallingMaterials, externalWallingMaterials, and tilingMaterials
+    const allMaterials = [
+      ...(wallingMaterial.type?.internalWallingMaterials || []),
+      ...(wallingMaterial.type?.externalWallingMaterials || []),
+      ...(wallingMaterial.type?.tilingMaterials || []),
+    ];
+
+    const material = allMaterials.find((m: any) =>
+      m.name?.toLowerCase() === materialName.toLowerCase()
+    );
+
+    if (!material || !Array.isArray(material.type)) return 0;
+
+    const firstType = material.type[0];
+    return firstType?.price_kes || 0;
+  }, [materialPrices]);
+
+  /**
+   * Helper function to get tile price by size from materialPrices
+   */
+  const getTilePriceBySize = useCallback(
+    (tileTypeName: string, tileSize: string): number => {
+      if (!Array.isArray(materialPrices)) return 0;
+
+      const wallingMaterial = materialPrices.find((m: any) =>
+        m.name?.toLowerCase() === "wall-finishes"
+      );
+
+      if (!wallingMaterial) return 0;
+
+      // Find in internalWallingMaterials (where tile cladding is)
+      const internalMaterials = wallingMaterial.type?.internalWallingMaterials || [];
+      
+      // First, try to find exact material match
+      let material = internalMaterials.find((m: any) =>
+        m.name?.toLowerCase() === tileTypeName.toLowerCase()
+      );
+
+      // If not found by material name, search within Tile Cladding for the type name
+      if (!material) {
+        const tileCladding = internalMaterials.find((m: any) =>
+          m.name?.toLowerCase() === "tile cladding"
+        );
+        
+        if (tileCladding && Array.isArray(tileCladding.type)) {
+          const typeMatch = tileCladding.type.find((t: any) =>
+            t.name?.toLowerCase() === tileTypeName.toLowerCase()
+          );
+          if (typeMatch) {
+            const tileTypesMap = typeMatch.tileTypes;
+            if (tileTypesMap && typeof tileTypesMap === "object") {
+              if (tileSize in tileTypesMap) {
+                return tileTypesMap[tileSize];
+              }
+            }
+            return typeMatch.price_kes || 0;
+          }
+        }
+        return 0;
+      }
+
+      // If we found a direct material match
+      if (!Array.isArray(material.type)) return 0;
+
+      const firstType = material.type[0];
+      const tileTypesMap = firstType?.tileTypes;
+
+      if (!tileTypesMap || typeof tileTypesMap !== "object") {
+        return firstType?.price_kes || 0;
+      }
+
+      // Try to get the size-specific price
+      if (tileSize in tileTypesMap) {
+        return tileTypesMap[tileSize];
+      }
+
+      // Fallback to base price if size not found
+      return firstType?.price_kes || 0;
+    },
+    [materialPrices]
+  );
+
   const { calculations, totals, calculateAll, wastagePercentage } =
-    useUniversalFinishesCalculator(
+    useWallingCalculator(
       filteredFinishes,
       materialPrices,
       quote,
@@ -137,17 +217,24 @@ export default function WallingCalculator({
     kitchenTileHeight: 1.8, // 1.8m default
     kitchenTileSize: "300x300",
     bathroomTileSize: "300x300",
+    kitchenTileType: "Ceramic Tiles",
+    bathroomTileType: "Ceramic Tiles",
+    kitchenPerimeter: 0, // User input for kitchen wall perimeter
+    bathroomPerimeter: 0, // User input for bathroom wall perimeter
   });
 
   // Auto-add tiling for wet areas
   const getTilingForWetAreas = useCallback(() => {
-    if (!wallDimensions) return [];
-    
     const newWallTiles: FinishElement[] = [];
     
-    if (wetAreaSettings.hasKitchen) {
-      // Kitchen tiling: height × perimeter
-      const kitchenArea = wallDimensions.internalWallPerimiter * wetAreaSettings.kitchenTileHeight;
+    // Get material prices
+    const tileAdhesivePrice = getWallingMaterialPrice("Tile Adhesive");
+    const tileGroutPrice = getWallingMaterialPrice("Tile Grout");
+    const cornerStripsPrice = getWallingMaterialPrice("Corner Strips");
+    
+    if (wetAreaSettings.hasKitchen && wetAreaSettings.kitchenPerimeter > 0) {
+      // Kitchen tiling: height × perimeter (user input)
+      const kitchenArea = wetAreaSettings.kitchenPerimeter * wetAreaSettings.kitchenTileHeight;
       if (kitchenArea > 0) {
         const kitchenFactors = TILE_SIZE_FACTORS[wetAreaSettings.kitchenTileSize];
         const cornerStripsLength = wetAreaSettings.kitchenTileHeight * 4;
@@ -158,7 +245,7 @@ export default function WallingCalculator({
           area: kitchenArea,
           quantity: kitchenArea,
           unit: "m²",
-          location: "Kitchen Walls (1.8m height)",
+          location: `Kitchen Walls - ${wetAreaSettings.kitchenTileType} (${TILE_SIZE_FACTORS[wetAreaSettings.kitchenTileSize].label})`,
         });
         newWallTiles.push({
           id: "kitchen-tiles-adhesive",
@@ -190,9 +277,9 @@ export default function WallingCalculator({
       }
     }
     
-    if (wetAreaSettings.hasBathroom) {
-      // Bathroom tiling: height × perimeter
-      const bathroomArea = wallDimensions.internalWallPerimiter * wetAreaSettings.bathrooomTileHeight;
+    if (wetAreaSettings.hasBathroom && wetAreaSettings.bathroomPerimeter > 0) {
+      // Bathroom tiling: height × perimeter (user input)
+      const bathroomArea = wetAreaSettings.bathroomPerimeter * wetAreaSettings.bathrooomTileHeight;
       if (bathroomArea > 0) {
         const bathroomFactors = TILE_SIZE_FACTORS[wetAreaSettings.bathroomTileSize];
         const cornerStripsLength = wetAreaSettings.bathrooomTileHeight * 4;
@@ -203,7 +290,7 @@ export default function WallingCalculator({
           area: bathroomArea,
           quantity: bathroomArea,
           unit: "m²",
-          location: "Bathroom Walls (1.8m height)",
+          location: `Bathroom Walls - ${wetAreaSettings.bathroomTileType} (${TILE_SIZE_FACTORS[wetAreaSettings.bathroomTileSize].label})`,
         });
         newWallTiles.push({
           id: "bathroom-tiles-adhesive",
@@ -236,7 +323,7 @@ export default function WallingCalculator({
     }
     
     return newWallTiles;
-  }, [wallDimensions, wetAreaSettings]);
+  }, [wetAreaSettings, getWallingMaterialPrice]);
 
   useEffect(() => {
     if (readonly) return;
@@ -253,6 +340,22 @@ export default function WallingCalculator({
       onFinishesUpdate(otherFinishes);
     }
   }, [finishes, getTilingForWetAreas, onFinishesUpdate, readonly, wetAreaSettings]);
+
+  // Update kitchen tile price when tile size changes
+  useEffect(() => {
+    if (wetAreaSettings.hasKitchen) {
+      const kitchenPrice = getTilePriceBySize(wetAreaSettings.kitchenTileType, wetAreaSettings.kitchenTileSize);
+      setKitchenTileUnitPrice(kitchenPrice);
+    }
+  }, [wetAreaSettings.kitchenTileSize, wetAreaSettings.kitchenTileType, wetAreaSettings.hasKitchen, getTilePriceBySize]);
+
+  // Update bathroom tile price when tile size changes
+  useEffect(() => {
+    if (wetAreaSettings.hasBathroom) {
+      const bathroomPrice = getTilePriceBySize(wetAreaSettings.bathroomTileType, wetAreaSettings.bathroomTileSize);
+      setBathroomTileUnitPrice(bathroomPrice);
+    }
+  }, [wetAreaSettings.bathroomTileSize, wetAreaSettings.bathroomTileType, wetAreaSettings.hasBathroom, getTilePriceBySize]);
 
   // Filter calculations based on search
   const filteredCalculations = calculations.filter((calc) =>
@@ -392,11 +495,11 @@ export default function WallingCalculator({
       {/* STEP 4.1: Wet Area Detection */}
       <Card>
         <CardHeader className="bg-green-50 dark:bg-green-950/20">
-          <CardTitle>Wet Area Detection & Auto-Tiling</CardTitle>
-          <CardDescription>Automatically add tiling for kitchen and bathroom areas</CardDescription>
+          <CardTitle>Wet Area Tiling</CardTitle>
+          <CardDescription>Add tiling for kitchen and bathroom areas</CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Kitchen Toggle */}
             <div className="border rounded-lg p-3">
               <div className="flex items-center justify-between mb-3">
@@ -413,45 +516,97 @@ export default function WallingCalculator({
                 />
               </div>
               {wetAreaSettings.hasKitchen && (
-                <div>
-                  <Label className="text-xs">Tiling Height (m)</Label>
-                  <Input
-                    type="number"
-                    min="1.2"
-                    max="2.4"
-                    step="0.1"
-                    value={wetAreaSettings.kitchenTileHeight}
-                    onChange={(e) =>
-                      setWetAreaSettings({
-                        ...wetAreaSettings,
-                        kitchenTileHeight: parseFloat(e.target.value) || 1.8,
-                      })
-                    }
-                    disabled={readonly}
-                    className="mt-2 text-xs"
-                  />
-                  <Label className="text-xs mt-3">Tile Size</Label>
-                  <Select
-                    value={wetAreaSettings.kitchenTileSize}
-                    onValueChange={(value) =>
-                      setWetAreaSettings({
-                        ...wetAreaSettings,
-                        kitchenTileSize: value,
-                      })
-                    }
-                    disabled={readonly}
-                  >
-                    <SelectTrigger className="mt-2 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(TILE_SIZE_FACTORS).map(([key, data]) => (
-                        <SelectItem key={key} value={key}>
-                          {data.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Wall Perimeter (m)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={wetAreaSettings.kitchenPerimeter}
+                      onChange={(e) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          kitchenPerimeter: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      disabled={readonly}
+                      className="mt-2 text-xs"
+                      placeholder="e.g., 8.5"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Length of walls to tile</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tile Type</Label>
+                    <Select
+                      value={wetAreaSettings.kitchenTileType}
+                      onValueChange={(value) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          kitchenTileType: value,
+                        })
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger className="mt-2 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ceramic Tiles">Ceramic Tiles</SelectItem>
+                        <SelectItem value="Granite Tiles">Granite Tiles</SelectItem>
+                        <SelectItem value="Porcelain Tiles">Porcelain Tiles</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tiling Height (m)</Label>
+                    <Input
+                      type="number"
+                      min="1.2"
+                      max="2.4"
+                      step="0.1"
+                      value={wetAreaSettings.kitchenTileHeight}
+                      onChange={(e) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          kitchenTileHeight: parseFloat(e.target.value) || 1.8,
+                        })
+                      }
+                      disabled={readonly}
+                      className="mt-2 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tile Size</Label>
+                    <Select
+                      value={wetAreaSettings.kitchenTileSize}
+                      onValueChange={(value) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          kitchenTileSize: value,
+                        })
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger className="mt-2 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(TILE_SIZE_FACTORS).map(([key, data]) => (
+                          <SelectItem key={key} value={key}>
+                            {data.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {kitchenTileUnitPrice > 0 && (
+                    <div className="bg-blue-50 dark:bg-blue-950/20 p-2 rounded border border-blue-200">
+                      <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                        Price/m²: {formatCurrency(kitchenTileUnitPrice)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -472,70 +627,122 @@ export default function WallingCalculator({
                 />
               </div>
               {wetAreaSettings.hasBathroom && (
-                <div>
-                  <Label className="text-xs">Tiling Height (m)</Label>
-                  <Input
-                    type="number"
-                    min="1.2"
-                    max="2.4"
-                    step="0.1"
-                    value={wetAreaSettings.bathrooomTileHeight}
-                    onChange={(e) =>
-                      setWetAreaSettings({
-                        ...wetAreaSettings,
-                        bathrooomTileHeight: parseFloat(e.target.value) || 1.8,
-                      })
-                    }
-                    disabled={readonly}
-                    className="mt-2 text-xs"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Default: 1.8m</p>
-                  <Label className="text-xs mt-3">Tile Size</Label>
-                  <Select
-                    value={wetAreaSettings.bathroomTileSize}
-                    onValueChange={(value) =>
-                      setWetAreaSettings({
-                        ...wetAreaSettings,
-                        bathroomTileSize: value,
-                      })
-                    }
-                    disabled={readonly}
-                  >
-                    <SelectTrigger className="mt-2 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(TILE_SIZE_FACTORS).map(([key, data]) => (
-                        <SelectItem key={key} value={key}>
-                          {data.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Wall Perimeter (m)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={wetAreaSettings.bathroomPerimeter}
+                      onChange={(e) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          bathroomPerimeter: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      disabled={readonly}
+                      className="mt-2 text-xs"
+                      placeholder="e.g., 6.5"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Length of walls to tile</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tile Type</Label>
+                    <Select
+                      value={wetAreaSettings.bathroomTileType}
+                      onValueChange={(value) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          bathroomTileType: value,
+                        })
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger className="mt-2 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ceramic Tiles">Ceramic Tiles</SelectItem>
+                        <SelectItem value="Granite Tiles">Granite Tiles</SelectItem>
+                        <SelectItem value="Porcelain Tiles">Porcelain Tiles</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tiling Height (m)</Label>
+                    <Input
+                      type="number"
+                      min="1.2"
+                      max="2.4"
+                      step="0.1"
+                      value={wetAreaSettings.bathrooomTileHeight}
+                      onChange={(e) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          bathrooomTileHeight: parseFloat(e.target.value) || 1.8,
+                        })
+                      }
+                      disabled={readonly}
+                      className="mt-2 text-xs"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Default: 1.8m</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Tile Size</Label>
+                    <Select
+                      value={wetAreaSettings.bathroomTileSize}
+                      onValueChange={(value) =>
+                        setWetAreaSettings({
+                          ...wetAreaSettings,
+                          bathroomTileSize: value,
+                        })
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger className="mt-2 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(TILE_SIZE_FACTORS).map(([key, data]) => (
+                          <SelectItem key={key} value={key}>
+                            {data.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {bathroomTileUnitPrice > 0 && (
+                    <div className="bg-purple-50 dark:bg-purple-950/20 p-2 rounded border border-purple-200">
+                      <p className="text-xs font-semibold text-purple-900 dark:text-purple-100">
+                        Price/m²: {formatCurrency(bathroomTileUnitPrice)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
             {/* Kitchen Area Preview */}
-            {wetAreaSettings.hasKitchen && wallDimensions?.internalWallPerimiter && (
+            {wetAreaSettings.hasKitchen && wetAreaSettings.kitchenPerimeter > 0 && (
               <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
                 <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
                   Kitchen Tile Area
                 </Label>
                 <div className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-2">
-                  {(wallDimensions.internalWallPerimiter * wetAreaSettings.kitchenTileHeight).toFixed(2)} m²
+                  {(wetAreaSettings.kitchenPerimeter * wetAreaSettings.kitchenTileHeight).toFixed(2)} m²
                 </div>
               </div>
             )}
 
             {/* Bathroom Area Preview */}
-            {wetAreaSettings.hasBathroom && wallDimensions?.internalWallPerimiter && (
+            {wetAreaSettings.hasBathroom && wetAreaSettings.bathroomPerimeter > 0 && (
               <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded border border-purple-200">
                 <Label className="text-xs font-bold text-purple-900 dark:text-purple-100">
                   Bathroom Tile Area
                 </Label>
                 <div className="text-xl font-bold text-purple-700 dark:text-purple-300 mt-2">
-                  {(wallDimensions.internalWallPerimiter * wetAreaSettings.bathrooomTileHeight).toFixed(2)} m²
+                  {(wetAreaSettings.bathroomPerimeter * wetAreaSettings.bathrooomTileHeight).toFixed(2)} m²
                 </div>
               </div>
             )}
@@ -678,7 +885,7 @@ export default function WallingCalculator({
               <CardDescription>
                 {wallingType === "internal"
                   ? "Manage internal wall finishes (cladding, paneling, tiling, etc.)"
-                  : "Manage external components (gutters, fascia, soffit, downpipes, and STEP 4 finishes: marble, marzella, wall master, keying coat)"}
+                  : "Manage external components (marble, marzella, wall master, keying coat)"}
               </CardDescription>
             </div>
 

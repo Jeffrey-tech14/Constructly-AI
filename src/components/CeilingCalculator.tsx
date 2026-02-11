@@ -93,25 +93,37 @@ export default function CeilingCalculator({
   });
 
   /**
-   * Helper function to get material price from database
-   * Returns the price per unit for a given material
+   * Helper function to get ceiling material price from materialsPrice (Supabase nested structure)
+   * Follows same pattern as Flooring Calculator
    */
-  const getMaterialPrice = useCallback((materialName: string): number => {
-    if (!materialPrices || materialPrices.length === 0) return 0;
+  const getCeilingMaterialPrice = useCallback((materialName: string): number => {
+    if (!Array.isArray(materialPrices)) return 0;
 
-    const ceilingCategory = materialPrices.find(
-      (p: any) => p.name?.toLowerCase() === "ceiling",
+    // Find the Ceiling category in materialPrices
+    const ceilingMaterial = materialPrices.find((m: any) =>
+      m.name?.toLowerCase() === "ceiling"
     );
 
-    if (!ceilingCategory?.type?.materials) return 0;
+    if (!ceilingMaterial) return 0;
 
-    const material = Object.entries(ceilingCategory.type.materials).find(
-      ([name]) => name.toLowerCase() === materialName.toLowerCase(),
-    );
+    // For ceiling, materials are stored in type.materials object (flat structure)
+    const materials = ceilingMaterial.type?.materials;
+    if (!materials || typeof materials !== "object") return 0;
 
-    if (!material) return 0;
-    const [, details] = material;
-    return (details as any)?.price || 0;
+    // Look up the material by name in the flat materials object
+    const material = materials[materialName];
+    if (!material) {
+      // Fallback: try case-insensitive search
+      const key = Object.keys(materials).find(
+        (k) => k.toLowerCase() === materialName.toLowerCase()
+      );
+      if (key) {
+        return materials[key]?.price || 0;
+      }
+      return 0;
+    }
+
+    return material?.price || 0;
   }, [materialPrices]);
 
   // Filter calculations based on search
@@ -132,22 +144,25 @@ export default function CeilingCalculator({
     );
 
     // STEP 6: Only apply blundering to the last floor for multi-storey buildings
-    const isLastFloor = numberOfFloors <= 1 || ceilingFinishes.some((f) => f.location?.includes("Floor " + numberOfFloors) || f.location === "" );
-    const shouldHaveBlundering = isLastFloor && (ceilingTypePerFloor[numberOfFloors] === "Gypsum Board");
+    // Blundering should be added when the LAST floor (top floor) has Gypsum Board ceiling type
+    const shouldHaveBlundering = ceilingTypePerFloor[numberOfFloors] === "Gypsum Board";
 
     // If there are ceiling items on last floor but no blundering, add it
     if (shouldHaveBlundering && nonBlunderingCeilingItems.length > 0 && !hasBlundering) {
-      const totalArea = nonBlunderingCeilingItems.reduce(
-        (sum, item) => sum + item.area,
-        0
+      
+      const groundFloorSlab = quote.concrete_rows?.find(
+        (f: any) =>
+          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
       );
+      const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+      const totalArea = slabArea
       // Formula: 3.36 × area × 1.15 for 40×40mm at 600×600 spacing
       const blunderingMeters = Math.ceil(totalArea * 3.36 * 1.15);
 
       const blunderingItem: FinishElement = {
         id: `finish-blundering-${Date.now()}`,
         category: "ceiling",
-        material: "Blundering",
+        material: "Blundering 40x40mm",
         area: totalArea,
         unit: "m" as const,
         quantity: blunderingMeters,
@@ -159,10 +174,13 @@ export default function CeilingCalculator({
     }
     // Update blundering quantity if ceiling area changes or remove if not on last floor
     else if (nonBlunderingCeilingItems.length > 0 && hasBlundering) {
-      const totalArea = nonBlunderingCeilingItems.reduce(
-        (sum, item) => sum + item.area,
-        0
+    
+      const groundFloorSlab = quote.concrete_rows?.find(
+        (f: any) =>
+          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
       );
+      const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+      const totalArea = slabArea
       const blunderingMeters = Math.ceil(totalArea * 3.36 * 1.15);
       const blunderingItem = ceilingFinishes.find(
         (f) =>
@@ -212,7 +230,7 @@ export default function CeilingCalculator({
         onFinishesUpdate(updatedFinishes);
       }
     }
-  }, [finishes, ceilingFinishes, readonly, onFinishesUpdate, numberOfFloors, ceilingTypePerFloor]);
+  }, [finishes, readonly, numberOfFloors, ceilingTypePerFloor]);
 
   // Auto-manage gypsum board ceiling components
   useEffect(() => {
@@ -263,13 +281,13 @@ export default function CeilingCalculator({
     const studs = totalBoards * 2;
     const screws = Math.ceil(totalArea * 25); // 25 pcs/m²
 
-    // Get material prices from database
-    const gypsumBoardPrice = getMaterialPrice("Gypsum Board");
-    const channelPrice = getMaterialPrice("Metal Ceiling Channel");
-    const studPrice = getMaterialPrice("Metal Ceiling Stud");
-    const screwPrice = getMaterialPrice("Gypsum Screws");
-    const cornerTapePrice = getMaterialPrice("Corner Tape");
-    const fiberMeshPrice = getMaterialPrice("Fiber Mesh");
+    // Get material prices from database (Supabase materialPrices structure)
+    const gypsumBoardPrice = getCeilingMaterialPrice("Gypsum Board 1.2x2.4m");
+    const channelPrice = getCeilingMaterialPrice("Metal Ceiling Channel");
+    const studPrice = getCeilingMaterialPrice("Metal Ceiling Stud");
+    const screwPrice = getCeilingMaterialPrice("Gypsum Screws");
+    const cornerTapePrice = getCeilingMaterialPrice("Corner Tape");
+    const fiberMeshPrice = getCeilingMaterialPrice("Fiber Mesh");
 
     // Calculate total cost of main components (gypsum boards, studs, channels)
     const gypsumBoardsCost = totalBoards * gypsumBoardPrice;

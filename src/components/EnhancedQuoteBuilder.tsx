@@ -479,6 +479,169 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }
   }, [user, profile]);
 
+  // Helper function to enrich door with all properties
+  const enrichDoorWithDefaults = (door: any, wallThickness: number = 0.2) => ({
+    sizeType: door.sizeType || "standard",
+    standardSize: door.standardSize || "0.9 × 2.1 m",
+    price: door.price || 0,
+    custom: {
+      height: door.custom?.height || "2.1",
+      width: door.custom?.width || "0.9",
+      price: door.custom?.price || 0,
+    },
+    type: door.type || "Panel",
+    count: door.count || 1,
+    wallThickness: door.wallThickness || wallThickness,
+    frame: {
+      type: door.frame?.type || "Wood",
+      price: door.frame?.price || 0,
+      sizeType: door.frame?.sizeType || "standard",
+      standardSize: door.frame?.standardSize || "0.9 × 2.1 m",
+      height: door.frame?.height || "2.1",
+      width: door.frame?.width || "0.9",
+      custom: {
+        height: door.frame?.custom?.height || "2.1",
+        width: door.frame?.custom?.width || "0.9",
+        price: door.frame?.custom?.price || 0,
+      },
+    },
+    architrave: door.architrave || {
+      selected: { type: "", size: "" },
+      quantity: 0,
+      price: 0,
+    },
+    quarterRound: door.quarterRound || {
+      selected: { type: "", size: "" },
+      quantity: 0,
+      price: 0,
+    },
+    ironmongery: door.ironmongery || {
+      hinges: {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      },
+      locks: {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      },
+      handles: {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      },
+      bolts: {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      },
+      closers: {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      },
+    },
+    transom: door.transom || {
+      enabled: false,
+      height: "",
+      width: "",
+      quantity: 0,
+      price: 0,
+      glazing: {
+        included: false,
+        glassAreaM2: 0,
+        puttyLengthM: 0,
+        glassPricePerM2: 0,
+        puttyPricePerM: 0,
+      },
+    },
+  });
+
+  // Helper function to enrich window with all properties
+  const enrichWindowWithDefaults = (window: any, wallThickness: number = 0.2) => ({
+    sizeType: window.sizeType || "standard",
+    standardSize: window.standardSize || "1.2 × 1.2 m",
+    price: window.price || 0,
+    custom: {
+      height: window.custom?.height || "1.2",
+      width: window.custom?.width || "1.2",
+      price: window.custom?.price || 0,
+    },
+    type: window.type || "Clear",
+    count: window.count || 1,
+    wallThickness: window.wallThickness || wallThickness,
+    frame: {
+      type: window.frame?.type || "Steel",
+      price: window.frame?.price || 0,
+      sizeType: window.frame?.sizeType || "standard",
+      standardSize: window.frame?.standardSize || "1.2 × 1.2 m",
+      height: window.frame?.height || "1.2",
+      width: window.frame?.width || "1.2",
+      custom: {
+        height: window.frame?.custom?.height || "1.2",
+        width: window.frame?.custom?.width || "1.2",
+        price: window.frame?.custom?.price || 0,
+      },
+    },
+    architrave: window.architrave || {
+      selected: { type: "timber-architrave", size: "40x20mm" },
+      quantity: 0,
+      price: 0,
+    },
+    quarterRound: window.quarterRound || {
+      selected: { type: "timber-quarter-round", size: "20mm" },
+      quantity: 0,
+      price: 0,
+    },
+    ironmongery: window.ironmongery || {
+      hinges: {
+  selected: { type: "butt-hinge", size: "100mm" },
+  quantity: 3,
+  price: 0, // approx 300 each
+},
+locks: {
+  selected: { type: "mortice-lock", size: "3-lever" },
+  quantity: 1,
+  price: 0,
+},
+handles: {
+  selected: { type: "lever-handle", size: "standard" },
+  quantity: 1,
+  price: 0,
+},
+bolts: {
+  selected: { type: "tower-bolt", size: "150mm" },
+  quantity: 1,
+  price: 0,
+},
+closers: {
+  selected: { type: "", size: "" },
+  quantity: 0,
+  price: 0,
+},
+
+    },
+    glassType: window.glassType || "Clear",
+    glassThickness: window.glassThickness || 3,
+    span: window.span || 1.2,
+    isGlassUnderSized: window.isGlassUnderSized || false,
+    recommendedGlassThickness: window.recommendedGlassThickness || 3,
+    glazing: window.glazing || {
+      glass: {
+        type: "Clear",
+        thickness: 3,
+        quantity: 1,
+        pricePerM2: 0,
+      },
+      putty: {
+        quantity: 0,
+        unit: "m",
+        price: 0,
+      },
+    },
+  });
+
   useEffect(() => {
     if (extractedPlan) {
       setQuoteData((prev) => ({
@@ -508,8 +671,12 @@ const EnhancedQuoteBuilder = ({ quote }) => {
             blockType: section.blockType,
             thickness: section.thickness,
             plaster: section.plaster,
-            doors: section.doors || [],
-            windows: section.windows || [],
+            doors: (section.doors || []).map((door: any) =>
+              enrichDoorWithDefaults(door, section.thickness || 0.2),
+            ),
+            windows: (section.windows || []).map((window: any) =>
+              enrichWindowWithDefaults(window, section.thickness || 0.2),
+            ),
           })) || [],
 
         // Foundation Details
@@ -2383,7 +2550,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                           {calculation?.contingency_amount?.toLocaleString()}
                         </p>
                       </div>
-                      {calculation?.unknown_contingency_amount && (
                         <div className="flex justify-between text-gray-900 dark:text-white">
                           <p>Unknown Unknowns Reserve</p>
                           <p>
@@ -2391,7 +2557,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                             {calculation?.unknown_contingency_amount?.toLocaleString()}
                           </p>
                         </div>
-                      )}
                       <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Overhead</p>
                         <p>

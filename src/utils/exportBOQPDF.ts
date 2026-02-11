@@ -57,6 +57,7 @@ const exportBOQPDF = async (
       calculationSummary: quote,
       subcontractors: quote.subcontractors,
       addons: quote.addons,
+      unknown_contingency_amount: quote.unknown_contingency_amount,
       transportCost: quote.transport_costs,
       contractType: quote.contract_type,
       profit: quote.profit_amount,

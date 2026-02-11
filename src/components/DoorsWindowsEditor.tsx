@@ -11,6 +11,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, DoorOpen, LucideAppWindow, Plus, Trash2 } from "lucide-react";
 import { Door, WallSection, Window, getRecommendedGlassThickness, isGlassThicknessSufficient } from "@/hooks/useMasonryCalculatorNew";
+import { Label } from "./ui/label";
 
 // STEP 1: 5 Door specification types
 export const DOOR_TYPES = ["Steel", "Solid flush", "Semi-solid flush", "Panel", "T&G"];
@@ -33,13 +34,6 @@ export const GLASS_THICKNESS_OPTIONS = [3, 4, 5, 6, 8, 10, 12];
 const DOOR_DEFAULT_HEIGHT_M = "2.1";
 const DOOR_TRANSOM_HEIGHT_M = "0.3";
 const DOOR_DEFAULT_WIDTH_M = "0.9";
-
-const getDoorFrameSize = (wallThickness: number) => {
-  if (wallThickness === 200) {
-    return { height: "200", width: "50", label: "200x50mm" };
-  }
-  return { height: "150", width: "50", label: "150x50mm" };
-};
 
 const normalizeWallThicknessMm = (thickness?: number, type?: "external" | "internal") => {
   if (!thickness || Number.isNaN(thickness)) {
@@ -148,7 +142,6 @@ const DoorsWindowsEditor = ({
     const section = wallSections?.[sectionIndex];
     const blockThickness = getBlockThicknessMmFromType(section?.blockType);
     const wallThickness = blockThickness || normalizeWallThicknessMm(section?.thickness, section?.type);
-    const defaultFrameSize = getDoorFrameSize(wallThickness);
     const newDoor: Door = {
       sizeType: "standard",
       standardSize: STANDARD_DOOR_SIZES[0],
@@ -158,25 +151,33 @@ const DoorsWindowsEditor = ({
       wallThickness,
       frame: {
         type: FRAME_TYPES[0],
+        price: 0,
         sizeType: "custom",
         standardSize: STANDARD_DOOR_SIZES[0],
-        height: defaultFrameSize.height,
-        width: defaultFrameSize.width,
-        custom: { height: defaultFrameSize.height, width: defaultFrameSize.width },
+        height: STANDARD_DOOR_SIZES[0].split("×")[1].trim(),
+        width: STANDARD_DOOR_SIZES[0].split("×")[0].trim(),
+        custom: { height: STANDARD_DOOR_SIZES[0].split("×")[1].trim(), width: STANDARD_DOOR_SIZES[0].split("×")[0].trim(), price: 0 },
       },
       architrave: {
         selected: {
           type: "timber-architrave",
           size: "40x20mm"
         },
-        quantity: 1
+        quantity: 1,
+        price: 0
       },
       transom: {
         enabled: false,
         height: DOOR_TRANSOM_HEIGHT_M,
         width: DOOR_DEFAULT_WIDTH_M,
+        quantity: 1,
+        price: 0,
         glazing: {
           included: true,
+          glassAreaM2: 0,
+          puttyLengthM: 0,
+          glassPricePerM2: 0,
+          puttyPricePerM: 0,
         },
       },
       quarterRound: {
@@ -184,7 +185,8 @@ const DoorsWindowsEditor = ({
           type: "timber-quarter-round",
           size: "20mm"
         },
-        quantity: 1
+        quantity: 1,
+        price: 0
       },
       ironmongery: {
         hinges: {
@@ -192,32 +194,40 @@ const DoorsWindowsEditor = ({
             type: "butt-hinge",
             size: "100mm"
           },
-          quantity: 3
+          quantity: 3,
+          price: 0
         },
         locks: {
           selected: {
             type: "mortice-lock",
             size: "3-lever"
           },
-          quantity: 1
+          quantity: 1,
+          price: 0
         },
         handles: {
           selected: {
             type: "lever-handle",
             size: "standard"
           },
-          quantity: 1
+          quantity: 1,
+          price: 0
         },
         bolts: {
           selected: {
             type: "tower-bolt",
             size: "150mm"
           },
-          quantity: 0
+          quantity: 0,
+          price: 0
         },
         closers: {
-          selected: undefined,
-          quantity: 0
+          selected: {
+            type: "pneumatic-closer",
+            size: "standard"
+          },
+          quantity: 0,
+          price: 0
         }
       },
     };
@@ -239,18 +249,22 @@ const DoorsWindowsEditor = ({
       const updatedDoors = (section.doors || []).map((door) => {
         if (door.wallThickness !== undefined && door.wallThickness !== null) return door;
         updatedAny = true;
-        const frameSize = getDoorFrameSize(sectionThickness);
         return {
           ...door,
           wallThickness: sectionThickness,
           frame: {
             ...door.frame,
-            sizeType: "custom",
-            custom: {
-              ...door.frame?.custom,
-              height: frameSize.height,
-              width: frameSize.width,
-            },
+          },
+        };
+      });
+      const updatedWindows = (section.windows || []).map((window) => {
+        if (window.wallThickness !== undefined && window.wallThickness !== null) return window;
+        updatedAny = true;
+        return {
+          ...window,
+          wallThickness: sectionThickness,
+          frame: {
+            ...window.frame,
           },
         };
       });
@@ -258,6 +272,7 @@ const DoorsWindowsEditor = ({
       return {
         ...section,
         doors: updatedDoors,
+        windows: updatedWindows,
       };
     });
     if (updatedAny) {
@@ -266,42 +281,90 @@ const DoorsWindowsEditor = ({
   }, [onUpdate, wallSections]);
 
   const addWindow = (sectionIndex: number) => {
+    const section = wallSections?.[sectionIndex];
+    const blockThickness = getBlockThicknessMmFromType(section?.blockType);
+    const wallThickness = blockThickness || normalizeWallThicknessMm(section?.thickness, section?.type);
     const newWindow: Window = {
       sizeType: "standard",
       standardSize: STANDARD_WINDOW_SIZES[0],
-      custom: { height: "1.2", width: "1.2" },
-      type: "Quality clear",
-      glassType: "Quality clear",
-      glassThickness: 3,
-      span: 1.2,
+      price: 0,
+      custom: { height: "1.2", width: "1.2", price: 0 },
+      type: "Clear",
       count: 1,
+      wallThickness,
       frame: {
         type: FRAME_TYPES[0],
+        price: 0,
         sizeType: "standard",
         standardSize: STANDARD_WINDOW_SIZES[0],
-        height: "",
-        width: "",
-        custom: { height: "", width: "" },
+        height: STANDARD_WINDOW_SIZES[0].split("×")[1].trim(),
+        width: STANDARD_WINDOW_SIZES[0].split("×")[0].trim(),
+        custom: { height: STANDARD_WINDOW_SIZES[0].split("×")[1].trim(), width: STANDARD_WINDOW_SIZES[0].split("×")[0].trim(), price: 0 },
       },
       architrave: {
         selected: {
           type: "timber-architrave",
-          size: "40x20mm",
+          size: "40x20mm"
         },
         quantity: 1,
+        price: 0
       },
-      glazing: {
-        glass: {
-          type: "Quality clear",
-          thickness: 3,
-          quantity: 1
+      quarterRound: {
+        selected: {
+          type: "timber-quarter-round",
+          size: "20mm"
         },
-        putty: {
+        quantity: 1,
+        price: 0
+      },
+      ironmongery: {
+        hinges: {
+          selected: undefined,
           quantity: 0,
-          unit: "m"
+          price: 0
+        },
+        locks: {
+          selected: undefined,
+          quantity: 0,
+          price: 0
+        },
+        handles: {
+          selected: undefined,
+          quantity: 0,
+          price: 0
+        },
+        bolts: {
+          selected: undefined,
+          quantity: 0,
+          price: 0
+        },
+        closers: {
+          selected: undefined,
+          quantity: 0,
+          price: 0
         }
       },
-      isGlassUnderSized: false
+      glassType: "Clear",
+      glassThickness: 3,
+      span: 1.2,
+      isGlassUnderSized: false,
+      recommendedGlassThickness: 3,
+      glazing: {
+        glass: {
+          type: "Clear",
+          thickness: 3,
+          quantity: 1,
+          pricePerM2: 0
+        },
+        putty: {
+          size: "1 kg tin",
+          quantity: 1,
+          unit: "m",
+          price: 0,
+          lengthNeeded: 0,
+          tinsNeeded: 1,
+        }
+      },
     };
 
     updateSections((sections) => {
@@ -732,10 +795,17 @@ const EditableDoorWindow = ({
   const autoQuarterRoundQty = getFramePerimeterLm();
 
   const getFrameRate = () => {
-    const localRate = Number(doorItem.frame?.custom?.price);
+    // Check if custom frame price is explicitly set
+    const customFramePrice = Number(doorItem.frame?.custom?.price);
+    if (Number.isFinite(customFramePrice) && customFramePrice > 0) {
+      return customFramePrice;
+    }
+
+    // Otherwise, look up from material data based on frame type and door size
     let materialRate: number | null = null;
     if (Array.isArray(materialData)) {
       const frameMaterial = materialData.find((m: any) =>
+        m.name?.toLowerCase().includes("door") &&
         m.name?.toLowerCase().includes("frame")
       );
       const types = frameMaterial?.type;
@@ -745,12 +815,17 @@ const EditableDoorWindow = ({
           const name = (t.type || t.name || "").toLowerCase();
           return name === targetType;
         });
-        materialRate =
-          match?.price ?? match?.price_kes ?? match?.unit_price ?? null;
+
+        // Determine the door size to use for lookup
+        const doorSize = doorItem.sizeType === "standard"
+          ? doorItem.standardSize
+          : `${doorItem.custom?.width} × ${doorItem.custom?.height} m`;
+
+        materialRate = match?.price_kes?.[doorSize] ?? null;
       }
     }
-    if (Number.isFinite(materialRate as number)) return materialRate as number;
-    return Number.isFinite(localRate) ? localRate : null;
+
+    return Number.isFinite(materialRate) ? materialRate : null;
   };
 
   const getWindowWidthM = () => {
@@ -778,6 +853,7 @@ const EditableDoorWindow = ({
     if (type !== "door") return;
     const transom = doorItem.transom || {};
     const doorWidthM = getDoorWidthM();
+    const doorHeightM = getDoorHeightM();
     const heightValue = parseFloat(transom.height || "");
     const widthValue = parseFloat(transom.width || "");
     const nextHeight = Number.isFinite(heightValue)
@@ -787,28 +863,40 @@ const EditableDoorWindow = ({
     const frameRate = getFrameRate();
     const hasHeight = !!transom.height;
     const hasWidth = !!transom.width;
-    const hasPrice = transom.price !== undefined && transom.price !== null;
-    const nextPrice = frameRate
-      ? ((2 * nextHeight) + nextWidth) * frameRate
-      : transom.price;
+    // Check if user has manually set the price (> 0 indicates user input)
+    const userSetPrice = Number(transom.price) > 0;
+    
+    // Calculate transom price as a fraction of the frame price
+    // Based on perimeter ratio: transom is a fraction of the whole frame
+    let nextPrice = transom.price;
+    if (frameRate && Number.isFinite(frameRate) && frameRate > 0 && !userSetPrice) {
+      const transomPerimeter = (2 * nextHeight) + nextWidth;
+      const fullDoorPerimeter = (2 * doorHeightM) + doorWidthM;
+      const perimetreFraction = transomPerimeter / fullDoorPerimeter;
+      nextPrice = frameRate * perimetreFraction;
+    }
+    
     const glazingArea = nextWidth * nextHeight;
     const puttyLength = 2 * (nextWidth + nextHeight);
 
+    // Only skip if nothing would change
     if (
       hasHeight &&
       hasWidth &&
-      (hasPrice || !frameRate) &&
-      transom.glazing?.glassAreaM2 !== undefined &&
-      transom.glazing?.puttyLengthM !== undefined
+      transom.glazing?.glassAreaM2 === glazingArea &&
+      transom.glazing?.puttyLengthM === puttyLength &&
+      transom.quantity === doorItem.count &&
+      transom.price === nextPrice
     ) {
       return;
     }
 
     onUpdate("transom", {
       ...transom,
+      quantity: doorItem.count,
       height: hasHeight ? transom.height : nextHeight.toFixed(2),
       width: hasWidth ? transom.width : nextWidth.toFixed(2),
-      price: hasPrice || !frameRate ? transom.price : Number(nextPrice?.toFixed(2)),
+      price: userSetPrice ? transom.price : Number(nextPrice?.toFixed(2)),
       glazing: {
         ...transom.glazing,
         included: true,
@@ -818,12 +906,7 @@ const EditableDoorWindow = ({
     });
   }, [
     type,
-    doorItem.sizeType,
-    doorItem.standardSize,
-    doorItem.custom?.width,
-    doorItem.transom,
-    doorItem.frame?.custom?.price,
-    doorItem.frame?.type,
+    doorItem,
     materialData,
     onUpdate,
   ]);
@@ -871,36 +954,74 @@ const EditableDoorWindow = ({
   };
 
   const getGlassUnitPrice = (glassType?: string) =>
-    getMaterialTypePrice(materialData, "Glazing", glassType || "Clear");
+    getMaterialTypePrice(materialData, "Windows", glassType || "Clear");
 
   const getPuttyUnitPrice = () =>
-    getMaterialTypePrice(materialData, "Sealant", "Glazing Putty") ??
-    getMaterialTypePrice(materialData, "Sealant", "Putty") ??
-    getMaterialTypePrice(materialData, "Sealant", "Silicone");
+    getMaterialTypePrice(materialData, "Sealant", "Window Putty") 
 
+  const getPuttyPriceBySize = (size?: string) => {
+    const puttyPrices: Record<string, number> = {
+      "500 g tin": 400,
+      "1 kg tin": 700,
+      "2 kg tin": 1300,
+    };
+    return size ? puttyPrices[size] || null : null;
+  };
+
+  const getPuttyCoverageBySize = (size?: string): number => {
+    // Linear meters of putty coverage per tin size
+    const puttyCoverage: Record<string, number> = {
+      "500 g tin": 10, // ~10 linear meters per 500g tin
+      "1 kg tin": 20,  // ~20 linear meters per 1kg tin
+      "2 kg tin": 40,  // ~40 linear meters per 2kg tin
+    };
+    return size ? puttyCoverage[size] || 10 : 10;
+  };
+
+  const getAppropriatesPuttySize = (kgNeeded: number): string => {
+    // Select the smallest tin size that can hold the kg needed
+    const PUTTY_KG_PER_LINEAR_METER = 0.09;
+    if (kgNeeded <= 0.5) return "500 g tin";
+    if (kgNeeded <= 1) return "1 kg tin";
+    return "2 kg tin";
+  };
+
+  // Auto-fill glass and putty prices for door transom (following useMasonryCalculator pattern)
   React.useEffect(() => {
     if (type !== "door") return;
+    
+    const resolvePrice = (override?: number, fallback?: number): number => {
+      const overrideNumber = Number(override);
+      if (Number.isFinite(overrideNumber) && overrideNumber > 0) return overrideNumber;
+      const fallbackNumber = Number(fallback);
+      return Number.isFinite(fallbackNumber) ? fallbackNumber : 0;
+    };
+
     const defaultGlass = getGlassUnitPrice("Clear");
     const defaultPutty = getPuttyUnitPrice();
     const transom = doorItem.transom || {};
     const glazing = transom.glazing || {};
     let changed = false;
 
+    // Auto-fill glass price if not set or zero
+    const currentGlassPrice = glazing.glassPricePerM2;
+    const resolvedGlassPrice = resolvePrice(currentGlassPrice, defaultGlass["1.2 × 1.2 m"]);
     if (
-      glazing.glassPricePerM2 === undefined &&
-      defaultGlass !== null &&
-      defaultGlass !== undefined
+      resolvedGlassPrice > 0 &&
+      (!currentGlassPrice || currentGlassPrice === 0 || currentGlassPrice === undefined)
     ) {
-      glazing.glassPricePerM2 = defaultGlass;
+      glazing.glassPricePerM2 = resolvedGlassPrice;
       changed = true;
     }
 
+    // Auto-fill putty price if not set or zero
+    const currentPuttyPrice = glazing.puttyPricePerM;
+    const resolvedPuttyPrice = resolvePrice(currentPuttyPrice, defaultPutty["1 kg tin"]);
     if (
-      glazing.puttyPricePerM === undefined &&
-      defaultPutty !== null &&
-      defaultPutty !== undefined
+      resolvedPuttyPrice > 0 &&
+      (!currentPuttyPrice || currentPuttyPrice === 0 || currentPuttyPrice === undefined)
     ) {
-      glazing.puttyPricePerM = defaultPutty;
+      glazing.puttyPricePerM = resolvedPuttyPrice;
       changed = true;
     }
 
@@ -912,13 +1033,383 @@ const EditableDoorWindow = ({
     });
   }, [
     type,
-    doorItem.transom,
+    doorItem.transom?.glazing,
     materialData,
     onUpdate,
   ]);
 
+  // Auto-fill door component quantities (architrave, quarter round, ironmongery)
+  React.useEffect(() => {
+    if (type !== "door") return;
+
+    const doorHeight = getDoorHeightM();
+    const doorWidth = getDoorWidthM();
+    const componentLength = (doorHeight * 2) + doorWidth;
+
+    const architrave = doorItem.architrave || {};
+    const quarterRound = doorItem.quarterRound || {};
+    const ironmongery = doorItem.ironmongery || {};
+    let changed = false;
+
+    // Auto-fill architrave quantity if not already set
+    if (architrave.quantity === undefined || architrave.quantity === null || architrave.quantity === 0) {
+      architrave.quantity = componentLength;
+      changed = true;
+    }
+
+    // Auto-fill quarter round quantity if not already set
+    if (quarterRound.quantity === undefined || quarterRound.quantity === null || quarterRound.quantity === 0) {
+      quarterRound.quantity = componentLength;
+      changed = true;
+    }
+
+    // Auto-fill ironmongery defaults
+    const hinges = ironmongery.hinges || {};
+    const locks = ironmongery.locks || {};
+    const handles = ironmongery.handles || {};
+    const bolts = ironmongery.bolts || {};
+    const closers = ironmongery.closers || {};
+
+    // Set hinges to 3 if not already set
+    if ((hinges.quantity === undefined || hinges.quantity === null || hinges.quantity === 0) && !hinges.selected?.type) {
+      hinges.quantity = 3;
+      changed = true;
+    }
+
+    // Set locks to 1 if not already set
+    if ((locks.quantity === undefined || locks.quantity === null || locks.quantity === 0) && !locks.selected?.type) {
+      locks.quantity = 1;
+      changed = true;
+    }
+
+    // Set handles to 1 if not already set
+    if ((handles.quantity === undefined || handles.quantity === null || handles.quantity === 0) && !handles.selected?.type) {
+      handles.quantity = 1;
+      changed = true;
+    }
+
+    // Keep bolts and closers at 0 by default
+    if (bolts.quantity === undefined || bolts.quantity === null) {
+      bolts.quantity = 0;
+      changed = true;
+    }
+    if (closers.quantity === undefined || closers.quantity === null) {
+      closers.quantity = 0;
+      changed = true;
+    }
+
+    if (!changed) return;
+
+    onUpdate("architrave", { ...architrave });
+    onUpdate("quarterRound", { ...quarterRound });
+    onUpdate("ironmongery", {
+      ...ironmongery,
+      hinges,
+      locks,
+      handles,
+      bolts,
+      closers,
+    });
+  }, [
+    type,
+    doorItem.sizeType,
+    doorItem.standardSize,
+    doorItem.custom?.width,
+    doorItem.custom?.height,
+    onUpdate,
+  ]);
+
+  // Auto-fill unit prices from materials data for door components
+  React.useEffect(() => {
+    if (type !== "door") return;
+    if (!materialData) return;
+
+    const architrave = doorItem.architrave || {};
+    const quarterRound = doorItem.quarterRound || {};
+    const ironmongery = doorItem.ironmongery || {};
+    let changed = false;
+
+    // Auto-fill architrave price if not set and has selected type/size
+    if (
+      architrave.selected?.type &&
+      architrave.selected?.size &&
+      (architrave.price === undefined || architrave.price === null)
+    ) {
+      const price = getFastenerPrice("Architraves", architrave.selected.type, architrave.selected.size);
+      if (price !== null && price !== undefined) {
+        architrave.price = price;
+        changed = true;
+      }
+    }
+
+    // Auto-fill quarter round price if not set and has selected type/size
+    if (
+      quarterRound.selected?.type &&
+      quarterRound.selected?.size &&
+      (quarterRound.price === undefined || quarterRound.price === null)
+    ) {
+      const price = getFastenerPrice("Quarter_Rounds", quarterRound.selected.type, quarterRound.selected.size);
+      if (price !== null && price !== undefined) {
+        quarterRound.price = price;
+        changed = true;
+      }
+    }
+
+    // Auto-fill ironmongery prices
+    const hinges = ironmongery.hinges || {};
+    const locks = ironmongery.locks || {};
+    const handles = ironmongery.handles || {};
+    const bolts = ironmongery.bolts || {};
+    const closers = ironmongery.closers || {};
+
+    // Hinges
+    if (
+      hinges.selected?.type &&
+      hinges.selected?.size &&
+      (hinges.price === undefined || hinges.price === null)
+    ) {
+      const price = getFastenerPrice("Hinges", hinges.selected.type, hinges.selected.size);
+      if (price !== null && price !== undefined) {
+        hinges.price = price;
+        changed = true;
+      }
+    }
+
+    // Locks
+    if (
+      locks.selected?.type &&
+      locks.selected?.size &&
+      (locks.price === undefined || locks.price === null)
+    ) {
+      const price = getFastenerPrice("Locks", locks.selected.type, locks.selected.size);
+      if (price !== null && price !== undefined) {
+        locks.price = price;
+        changed = true;
+      }
+    }
+
+    // Handles
+    if (
+      handles.selected?.type &&
+      handles.selected?.size &&
+      (handles.price === undefined || handles.price === null)
+    ) {
+      const price = getFastenerPrice("Handles", handles.selected.type, handles.selected.size);
+      if (price !== null && price !== undefined) {
+        handles.price = price;
+        changed = true;
+      }
+    }
+
+    // Bolts
+    if (
+      bolts.selected?.type &&
+      bolts.selected?.size &&
+      (bolts.price === undefined || bolts.price === null)
+    ) {
+      const price = getFastenerPrice("Bolts", bolts.selected.type, bolts.selected.size);
+      if (price !== null && price !== undefined) {
+        bolts.price = price;
+        changed = true;
+      }
+    }
+
+    // Closers
+    if (
+      closers.selected?.type &&
+      closers.selected?.size &&
+      (closers.price === undefined || closers.price === null)
+    ) {
+      const price = getFastenerPrice("Closers", closers.selected.type, closers.selected.size);
+      if (price !== null && price !== undefined) {
+        closers.price = price;
+        changed = true;
+      }
+    }
+
+    if (!changed) return;
+
+    onUpdate("architrave", { ...architrave });
+    onUpdate("quarterRound", { ...quarterRound });
+    onUpdate("ironmongery", {
+      ...ironmongery,
+      hinges,
+      locks,
+      handles,
+      bolts,
+      closers,
+    });
+  }, [
+    type,
+    doorItem.architrave?.selected?.type,
+    doorItem.architrave?.selected?.size,
+    doorItem.quarterRound?.selected?.type,
+    doorItem.quarterRound?.selected?.size,
+    doorItem.ironmongery?.hinges?.selected?.type,
+    doorItem.ironmongery?.hinges?.selected?.size,
+    doorItem.ironmongery?.locks?.selected?.type,
+    doorItem.ironmongery?.locks?.selected?.size,
+    doorItem.ironmongery?.handles?.selected?.type,
+    doorItem.ironmongery?.handles?.selected?.size,
+    doorItem.ironmongery?.bolts?.selected?.type,
+    doorItem.ironmongery?.bolts?.selected?.size,
+    doorItem.ironmongery?.closers?.selected?.type,
+    doorItem.ironmongery?.closers?.selected?.size,
+    materialData,
+    onUpdate,
+  ]);
+
+  // Auto-fill unit prices from materials data for window components
   React.useEffect(() => {
     if (type !== "window") return;
+    if (!materialData) return;
+
+    const architrave = windowItem.architrave || {};
+    const quarterRound = windowItem.quarterRound || {};
+    const ironmongery = windowItem.ironmongery || {};
+    let changed = false;
+
+    // Auto-fill architrave price if not set and has selected type/size
+    if (
+      architrave.selected?.type &&
+      architrave.selected?.size &&
+      (!architrave.price || architrave.price === 0)
+    ) {
+      const price = getFastenerPrice("Architraves", architrave.selected.type, architrave.selected.size);
+      if (price !== null && price !== undefined) {
+        architrave.price = price;
+        changed = true;
+      }
+    }
+
+    // Auto-fill quarter round price if not set and has selected type/size
+    if (
+      quarterRound.selected?.type &&
+      quarterRound.selected?.size &&
+      (!quarterRound.price || quarterRound.price === 0)
+    ) {
+      const price = getFastenerPrice("Quarter_Rounds", quarterRound.selected.type, quarterRound.selected.size);
+      if (price !== null && price !== undefined) {
+        quarterRound.price = price;
+        changed = true;
+      }
+    }
+
+    // Auto-fill ironmongery prices
+    const hinges = ironmongery.hinges || {};
+    const locks = ironmongery.locks || {};
+    const handles = ironmongery.handles || {};
+    const bolts = ironmongery.bolts || {};
+    const closers = ironmongery.closers || {};
+
+    // Hinges
+    if (
+      hinges.selected?.type &&
+      hinges.selected?.size &&
+      (!hinges.price || hinges.price === 0)
+    ) {
+      const price = getFastenerPrice("Hinges", hinges.selected.type, hinges.selected.size);
+      if (price !== null && price !== undefined) {
+        hinges.price = price;
+        changed = true;
+      }
+    }
+
+    // Locks
+    if (
+      locks.selected?.type &&
+      locks.selected?.size &&
+      (!locks.price || locks.price === 0)
+    ) {
+      const price = getFastenerPrice("Locks", locks.selected.type, locks.selected.size);
+      if (price !== null && price !== undefined) {
+        locks.price = price;
+        changed = true;
+      }
+    }
+
+    // Handles
+    if (
+      handles.selected?.type &&
+      handles.selected?.size &&
+      (!handles.price || handles.price === 0)
+    ) {
+      const price = getFastenerPrice("Handles", handles.selected.type, handles.selected.size);
+      if (price !== null && price !== undefined) {
+        handles.price = price;
+        changed = true;
+      }
+    }
+
+    // Bolts
+    if (
+      bolts.selected?.type &&
+      bolts.selected?.size &&
+      (!bolts.price || bolts.price === 0)
+    ) {
+      const price = getFastenerPrice("Bolts", bolts.selected.type, bolts.selected.size);
+      if (price !== null && price !== undefined) {
+        bolts.price = price;
+        changed = true;
+      }
+    }
+
+    // Closers
+    if (
+      closers.selected?.type &&
+      closers.selected?.size &&
+      (!closers.price || closers.price === 0)
+    ) {
+      const price = getFastenerPrice("Closers", closers.selected.type, closers.selected.size);
+      if (price !== null && price !== undefined) {
+        closers.price = price;
+        changed = true;
+      }
+    }
+
+    if (!changed) return;
+
+    onUpdate("architrave", { ...architrave });
+    onUpdate("quarterRound", { ...quarterRound });
+    onUpdate("ironmongery", {
+      ...ironmongery,
+      hinges,
+      locks,
+      handles,
+      bolts,
+      closers,
+    });
+  }, [
+    type,
+    windowItem.architrave?.selected?.type,
+    windowItem.architrave?.selected?.size,
+    windowItem.quarterRound?.selected?.type,
+    windowItem.quarterRound?.selected?.size,
+    windowItem.ironmongery?.hinges?.selected?.type,
+    windowItem.ironmongery?.hinges?.selected?.size,
+    windowItem.ironmongery?.locks?.selected?.type,
+    windowItem.ironmongery?.locks?.selected?.size,
+    windowItem.ironmongery?.handles?.selected?.type,
+    windowItem.ironmongery?.handles?.selected?.size,
+    windowItem.ironmongery?.bolts?.selected?.type,
+    windowItem.ironmongery?.bolts?.selected?.size,
+    windowItem.ironmongery?.closers?.selected?.type,
+    windowItem.ironmongery?.closers?.selected?.size,
+    materialData,
+    onUpdate,
+  ]);
+
+  // Auto-fill glass and putty prices for windows (following useMasonryCalculator pattern)
+  React.useEffect(() => {
+    if (type !== "window") return;
+    
+    const resolvePrice = (override?: number, fallback?: number): number => {
+      const overrideNumber = Number(override);
+      if (Number.isFinite(overrideNumber) && overrideNumber > 0) return overrideNumber;
+      const fallbackNumber = Number(fallback);
+      return Number.isFinite(fallbackNumber) ? fallbackNumber : 0;
+    };
+
     const defaultGlass = getGlassUnitPrice(
       windowItem.glazing?.glass?.type || windowItem.glassType,
     );
@@ -928,21 +1419,25 @@ const EditableDoorWindow = ({
     const putty = glazing.putty || {};
     let changed = false;
 
+    // Auto-fill glass price if not set or zero
+    const currentGlassPrice = glass.pricePerM2;
+    const resolvedGlassPrice = resolvePrice(currentGlassPrice, defaultGlass[windowItem.standardSize]);
     if (
-      glass.pricePerM2 === undefined &&
-      defaultGlass !== null &&
-      defaultGlass !== undefined
+      resolvedGlassPrice > 0 &&
+      (!currentGlassPrice || currentGlassPrice === 0 || currentGlassPrice === undefined)
     ) {
-      glass.pricePerM2 = defaultGlass;
+      glass.pricePerM2 = resolvedGlassPrice;
       changed = true;
     }
 
+    // Auto-fill putty price if not set or zero
+    const currentPuttyPrice = putty.price;
+    const resolvedPuttyPrice = resolvePrice(currentPuttyPrice, defaultPutty);
     if (
-      putty.price === undefined &&
-      defaultPutty !== null &&
-      defaultPutty !== undefined
+      resolvedPuttyPrice > 0 &&
+      (!currentPuttyPrice || currentPuttyPrice === 0 || currentPuttyPrice === undefined)
     ) {
-      putty.price = defaultPutty;
+      putty.price = resolvedPuttyPrice;
       changed = true;
     }
 
@@ -955,9 +1450,104 @@ const EditableDoorWindow = ({
     });
   }, [
     type,
-    windowItem.glazing,
+    windowItem.glazing?.glass?.type,
     windowItem.glassType,
     materialData,
+    onUpdate,
+  ]);
+
+  // Auto-calculate putty requirements based on window dimensions
+  React.useEffect(() => {
+    if (type !== "window") return;
+    
+    const PUTTY_KG_PER_LINEAR_METER = 0.09;
+    const glazing = windowItem.glazing || {};
+    const putty = glazing.putty || {};
+    
+    // Calculate window perimeter (putty length needed in linear meters)
+    const width = getWindowWidthM();
+    const height = getWindowHeightM();
+    const puttyLengthNeeded = 2 * (width + height);
+    
+    // Calculate kg needed
+    const kgNeeded = puttyLengthNeeded * PUTTY_KG_PER_LINEAR_METER;
+    
+    // Determine size: use existing if manually set, otherwise auto-determine
+    let sizeToUse = putty.size;
+    if (!sizeToUse) {
+      // Auto-determine size only if not manually set
+      sizeToUse = getAppropriatesPuttySize(kgNeeded);
+    }
+    
+    // Get the price for the size
+    const pricePerTin = getPuttyPriceBySize(sizeToUse);
+    const coverage = getPuttyCoverageBySize(sizeToUse);
+    const tinsNeeded = Math.ceil(puttyLengthNeeded / coverage);
+    
+    // Only update if values have changed
+    if (
+      putty.size !== sizeToUse ||
+      putty.lengthNeeded !== puttyLengthNeeded ||
+      putty.tinsNeeded !== tinsNeeded ||
+      putty.quantity !== tinsNeeded ||
+      putty.price !== pricePerTin
+    ) {
+      onUpdate("glazing", {
+        ...glazing,
+        putty: {
+          ...putty,
+          size: sizeToUse,
+          lengthNeeded: puttyLengthNeeded,
+          price: pricePerTin || 0,
+          puttyPricePerM: pricePerTin && coverage ? pricePerTin / coverage : 0,
+          tinsNeeded: tinsNeeded,
+          quantity: tinsNeeded, // Auto-fill quantity with number of tins needed
+        },
+      });
+    }
+  }, [
+    type,
+    windowItem.sizeType,
+    windowItem.standardSize,
+    windowItem.custom?.width,
+    windowItem.custom?.height,
+    onUpdate,
+  ]);
+
+  // Auto-fill window architrave and quarter round quantities based on perimeter
+  React.useEffect(() => {
+    if (type !== "window") return;
+
+    const windowHeight = getWindowHeightM();
+    const windowWidth = getWindowWidthM();
+    const perimeterLength = (windowHeight * 2) + windowWidth;
+
+    const architrave = windowItem.architrave || {};
+    const quarterRound = windowItem.quarterRound || {};
+    let changed = false;
+
+    // Auto-fill architrave quantity if not already set
+    if (architrave.quantity === undefined || architrave.quantity === null || architrave.quantity === 0) {
+      architrave.quantity = perimeterLength;
+      changed = true;
+    }
+
+    // Auto-fill quarter round quantity if not already set
+    if (quarterRound.quantity === undefined || quarterRound.quantity === null || quarterRound.quantity === 0) {
+      quarterRound.quantity = perimeterLength;
+      changed = true;
+    }
+
+    if (!changed) return;
+
+    onUpdate("architrave", { ...architrave });
+    onUpdate("quarterRound", { ...quarterRound });
+  }, [
+    type,
+    windowItem.sizeType,
+    windowItem.standardSize,
+    windowItem.custom?.width,
+    windowItem.custom?.height,
     onUpdate,
   ]);
 
@@ -1219,7 +1809,7 @@ const EditableDoorWindow = ({
                 Architrave
               </AccordionTrigger>
               <AccordionContent className="px-3 pb-3">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                   <div>
                     <label className="text-xs font-medium">Architrave Type</label>
                     <Select
@@ -1229,7 +1819,7 @@ const EditableDoorWindow = ({
                           ...doorItem.architrave,
                           selected: {
                             type: value,
-                            size: "40x20mm",
+                            size: "",
                           },
                           quantity: doorItem.architrave?.quantity,
                         })
@@ -1254,16 +1844,44 @@ const EditableDoorWindow = ({
                   </div>
                   <div>
                     <label className="text-xs font-medium">Size</label>
-                    <Input
-                      className="h-8 text-xs "
-                      value={doorItem.architrave?.selected?.size || "40×20mm"}
-                      onChange={(e) =>
+                    <Select
+                      value={doorItem.architrave?.selected?.size || ""}
+                      onValueChange={(value) =>
                         onUpdate("architrave", {
                           ...doorItem.architrave,
                           selected: {
                             ...doorItem.architrave?.selected,
-                            size: e.target.value,
+                            size: value,
                           },
+                        })
+                      }
+                      disabled={readonly || !doorItem.architrave?.selected?.type}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Select Size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableSizes(
+                          "Architraves",
+                          doorItem.architrave?.selected?.type || ""
+                        ).map((size: string) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. 50x25mm"
+                      value={doorItem.architrave?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("architrave", {
+                          ...doorItem.architrave,
+                          customSize: e.target.value,
                         })
                       }
                       disabled={readonly}
@@ -1299,7 +1917,7 @@ const EditableDoorWindow = ({
                           getFastenerPrice(
                             "Architraves",
                             doorItem.architrave?.selected?.type,
-                            doorItem.architrave?.selected?.size || "40x20mm"
+                            doorItem.architrave?.selected?.size
                           )
                         ) || ""
                       }
@@ -1323,7 +1941,7 @@ const EditableDoorWindow = ({
                           getFastenerPrice(
                             "Architraves",
                             doorItem.architrave?.selected?.type,
-                            doorItem.architrave?.selected?.size || "40x20mm"
+                            doorItem.architrave?.selected?.size
                           )
                         ) || 0,
                         doorItem.count
@@ -1343,7 +1961,7 @@ const EditableDoorWindow = ({
                 Quarter Round
               </AccordionTrigger>
               <AccordionContent className="px-3 pb-3">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                   <div>
                     <label className="text-xs font-medium">Quarter Round Type</label>
                     <Select
@@ -1397,7 +2015,7 @@ const EditableDoorWindow = ({
                       </SelectTrigger>
                       <SelectContent>
                         {getAvailableSizes(
-                          "Quarter_Rounds",
+                          "quarter_rounds",
                           doorItem.quarterRound?.selected?.type || ""
                         ).map((size: string) => (
                           <SelectItem key={size} value={size}>
@@ -1406,6 +2024,21 @@ const EditableDoorWindow = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. 25mm"
+                      value={doorItem.quarterRound?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("quarterRound", {
+                          ...doorItem.quarterRound,
+                          customSize: e.target.value,
+                        })
+                      }
+                      disabled={readonly}
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-medium">Qty</label>
@@ -1481,7 +2114,7 @@ const EditableDoorWindow = ({
                 Ironmongery
               </AccordionTrigger>
               <AccordionContent className="px-3 pb-3 space-y-2">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
                   <div>
                     <label className="text-xs font-medium">Hinges Type</label>
                     <Select
@@ -1548,6 +2181,24 @@ const EditableDoorWindow = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. 150mm"
+                      value={doorItem.ironmongery?.hinges?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          hinges: {
+                            ...(doorItem.ironmongery?.hinges || {}),
+                            customSize: e.target.value,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-medium">Qty</label>
@@ -1618,7 +2269,7 @@ const EditableDoorWindow = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
                   <div>
                     <label className="text-xs font-medium">Locks Type</label>
                     <Select
@@ -1685,6 +2336,24 @@ const EditableDoorWindow = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. custom"
+                      value={doorItem.ironmongery?.locks?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          locks: {
+                            ...(doorItem.ironmongery?.locks || {}),
+                            customSize: e.target.value,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-medium">Qty</label>
@@ -1755,7 +2424,7 @@ const EditableDoorWindow = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
                   <div>
                     <label className="text-xs font-medium">Handles Type</label>
                     <Select
@@ -1822,6 +2491,24 @@ const EditableDoorWindow = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. custom"
+                      value={doorItem.ironmongery?.handles?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          handles: {
+                            ...(doorItem.ironmongery?.handles || {}),
+                            customSize: e.target.value,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-medium">Qty</label>
@@ -1892,7 +2579,7 @@ const EditableDoorWindow = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
                   <div>
                     <label className="text-xs font-medium">Bolts Type</label>
                     <Select
@@ -1959,6 +2646,24 @@ const EditableDoorWindow = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. 200mm"
+                      value={doorItem.ironmongery?.bolts?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          bolts: {
+                            ...(doorItem.ironmongery?.bolts || {}),
+                            customSize: e.target.value,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-medium">Qty</label>
@@ -2029,7 +2734,7 @@ const EditableDoorWindow = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
                   <div>
                     <label className="text-xs font-medium">Closers Type</label>
                     <Select
@@ -2096,6 +2801,24 @@ const EditableDoorWindow = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. custom"
+                      value={doorItem.ironmongery?.closers?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          closers: {
+                            ...(doorItem.ironmongery?.closers || {}),
+                            customSize: e.target.value,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-medium">Qty</label>
@@ -2358,391 +3081,465 @@ const EditableDoorWindow = ({
 
       {type === "window" && (
         <div className="space-y-3 pt-2 border-t">
-          {/* STEP 2: Glass Specification */}
-          <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded-3xl border border-cyan-200 dark:border-cyan-700">
-      
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                <div>
-                  <label className="text-xs font-medium">Glass Type</label>
-                  <Select
-                    value={windowItem.glassType || "Clear"}
-                    onValueChange={(value) => {
-                      onUpdate("__batch", {
-                        glassType: value,
-                        type: value,
-                        glazing: {
-                          ...windowItem.glazing,
-                          glass: {
-                            ...windowItem.glazing?.glass,
+          <Accordion type="single" collapsible className="space-y-2">
+            <AccordionItem
+              value="glass-spec"
+              className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
+            >
+              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
+                Glass Specification
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3">
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <div>
+                      <label className="text-xs font-medium">Glass Type</label>
+                      <Select
+                        value={windowItem.glassType || "Clear"}
+                        onValueChange={(value) => {
+                          onUpdate("__batch", {
+                            glassType: value,
                             type: value,
-                          },
-                        },
-                      });
-                    }}
-                    disabled={readonly}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Clear">Clear</SelectItem>
-                      <SelectItem value="Tinted">Tinted</SelectItem>
-                      <SelectItem value="Frosted">Frosted</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Span (m)</label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    className="h-8 text-xs"
-                    value={windowItem.span || 1.2}
-                    onChange={(e) =>
-                      onUpdate("span", parseFloat(e.target.value) || 1.2)
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Glass Thickness</label>
-                  <Select
-                    value={windowItem.glassThickness?.toString() || "4"}
-                    onValueChange={(value) => {
-                      const thickness = parseInt(value);
-                      const isSufficient = thickness >= recommendedGlassThickness;
-                      onUpdate("__batch", {
-                        glassThickness: thickness,
-                        isGlassUnderSized: !isSufficient,
-                        glazing: {
-                          ...windowItem.glazing,
-                          glass: {
-                            ...windowItem.glazing?.glass,
-                            thickness,
-                          },
-                        },
-                      });
-                    }}
-                    disabled={readonly}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GLASS_THICKNESS_OPTIONS.map((thickness) => (
-                        <SelectItem key={thickness} value={thickness.toString()}>
-                          {thickness}mm
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Recommended</label>
-                  <Input
-                    className="h-8 text-xs "
-                    value={recommendedGlassThickness}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || undefined;
-                      const fallback = getRecommendedGlassThickness(
-                        windowItem.span || 1.2
-                      );
-                      const nextRecommended = value ?? fallback;
-                      onUpdate("__batch", {
-                        recommendedGlassThickness: value,
-                        isGlassUnderSized:
-                          (windowItem.glassThickness || 4) < nextRecommended,
-                      });
-                    }}
-                    disabled={readonly}
-                  />
-                </div>
-              </div>
-
-              {/* Validation Feedback */}
-              <div>
-                {isGlassSufficient ? (
-                  <div className="text-xs p-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-100 rounded flex items-center gap-1">
-                    <span>✓</span>
-                    <span>
-                      Glass thickness {windowItem.glassThickness}mm is sufficient for span{" "}
-                      {windowItem.span || 1.2}m
-                    </span>
-                  </div>
-                ) : (
-                  <div className="text-xs p-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-100 rounded flex items-center gap-1">
-                    <span>✗</span>
-                    <span>
-                      Glass thickness {windowItem.glassThickness}mm is undersized. Minimum
-                      recommended: {recommendedGlassThickness}mm
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Architrave - Fixed to 40x20mm */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div>
-                  <label className="text-xs font-medium">Architrave Type</label>
-                  <Select
-                    value={windowItem.architrave?.selected?.type || ""}
-                    onValueChange={(value) =>
-                      onUpdate("architrave", {
-                        ...windowItem.architrave,
-                        selected: {
-                          type: value,
-                          size: "40x20mm",
-                        },
-                        quantity: windowItem.architrave?.quantity,
-                      })
-                    }
-                    disabled={readonly}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from(
-                        new Set(
-                          getFastenerOptions("Architraves").map((opt: any) => opt.type)
-                        )
-                      ).map((t: any) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Size</label>
-                  <Input
-                    className="h-8 text-xs "
-                    value={windowItem.architrave?.selected?.size || "40x20mm"}
-                    onChange={(e) =>
-                      onUpdate("architrave", {
-                        ...windowItem.architrave,
-                        selected: {
-                          ...windowItem.architrave?.selected,
-                          size: e.target.value,
-                        },
-                      })
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Qty</label>
-                  <Input
-                    placeholder="Qty"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    className="h-8 text-xs"
-                    value={(windowItem.architrave?.quantity ?? autoWindowArchitraveQty).toFixed(2)}
-                    onChange={(e) =>
-                      onUpdate("architrave", {
-                        ...windowItem.architrave,
-                        quantity: parseFloat(e.target.value) || undefined,
-                      })
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Unit Price (Ksh)</label>
-                  <Input
-                    placeholder="Ksh"
-                    type="number"
-                    className="h-8 text-xs "
-                        value={
-                          (
-                            windowItem.architrave?.price ??
-                            getFastenerPrice(
-                              "Architraves",
-                              windowItem.architrave?.selected?.type,
-                              windowItem.architrave?.selected?.size || "40x20mm"
-                            )
-                          ) || ""
+                            glazing: {
+                              ...windowItem.glazing,
+                              glass: {
+                                ...windowItem.glazing?.glass,
+                                type: value,
+                              },
+                            },
+                          });
+                        }}
+                        disabled={readonly}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Clear">Clear</SelectItem>
+                          <SelectItem value="Tinted">Tinted</SelectItem>
+                          <SelectItem value="Frosted">Frosted</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Span (m)</label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        className="h-8 text-xs"
+                        value={windowItem.span || 1.2}
+                        onChange={(e) =>
+                          onUpdate("span", parseFloat(e.target.value) || 1.2)
                         }
-                    onChange={(e) =>
-                      onUpdate("architrave", {
-                        ...windowItem.architrave,
-                        price: parseFloat(e.target.value) || undefined,
-                      })
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Total (Ksh)</label>
-                  <Input
-                    className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                    value={getTotalPrice(
-                      windowItem.architrave?.quantity ?? autoWindowArchitraveQty,
-                      (
-                        windowItem.architrave?.price ??
-                        getFastenerPrice(
-                          "Architraves",
-                          windowItem.architrave?.selected?.type,
-                          windowItem.architrave?.selected?.size || "40x20mm"
-                        )
-                      ) || 0,
-                      windowItem.count
-                    ).toFixed(2)}
-                    disabled={true}
-                  />
-                </div>
-              </div>
+                        disabled={readonly}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Glass Thickness</label>
+                      <Select
+                        value={windowItem.glassThickness?.toString() || "4"}
+                        onValueChange={(value) => {
+                          const thickness = parseInt(value);
+                          const isSufficient = thickness >= recommendedGlassThickness;
+                          onUpdate("__batch", {
+                            glassThickness: thickness,
+                            isGlassUnderSized: !isSufficient,
+                            glazing: {
+                              ...windowItem.glazing,
+                              glass: {
+                                ...windowItem.glazing?.glass,
+                                thickness,
+                              },
+                            },
+                          });
+                        }}
+                        disabled={readonly}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GLASS_THICKNESS_OPTIONS.map((thickness) => (
+                            <SelectItem key={thickness} value={thickness.toString()}>
+                              {thickness}mm
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Recommended</label>
+                      <Input
+                        className="h-8 text-xs"
+                        value={recommendedGlassThickness}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || undefined;
+                          const fallback = getRecommendedGlassThickness(
+                            windowItem.span || 1.2
+                          );
+                          const nextRecommended = value ?? fallback;
+                          onUpdate("__batch", {
+                            recommendedGlassThickness: value,
+                            isGlassUnderSized:
+                              (windowItem.glassThickness || 4) < nextRecommended,
+                          });
+                        }}
+                        disabled={readonly}
+                      />
+                    </div>
+                  </div>
 
-              {/* Putty Calculation */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div>
-                  <label className="text-xs font-medium">Glass Area (m²)</label>
-                  <Input
-                    className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                    value={getWindowGlassArea().toFixed(3)}
-                    disabled={true}
-                  />
+                  {/* Validation Feedback */}
+                  <div>
+                    {isGlassSufficient ? (
+                      <div className="text-xs p-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-100 rounded flex items-center gap-1">
+                        <span>✓</span>
+                        <span>
+                          Glass thickness {windowItem.glassThickness}mm is sufficient for span{" "}
+                          {windowItem.span || 1.2}m
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-xs p-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-100 rounded flex items-center gap-1">
+                        <span>✗</span>
+                        <span>
+                          Glass thickness {windowItem.glassThickness}mm is undersized. Minimum
+                          recommended: {recommendedGlassThickness}mm
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Glass and Putty Calculation */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                    <div>
+                      <label className="text-xs font-medium">Area (m²)</label>
+                      <Input
+                        className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
+                        value={getWindowGlassArea().toFixed(3)}
+                        disabled={true}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Price/m² (Ksh)</label>
+                      <Input
+                        className="h-8 text-xs"
+                        type="number"
+                        value={
+                          windowItem.glazing?.glass?.pricePerM2 ??
+                          getGlassUnitPrice(
+                            windowItem.glazing?.glass?.type || windowItem.glassType
+                          ) ??
+                          ""
+                        }
+                        onChange={(e) =>
+                          onUpdate("glazing", {
+                            ...windowItem.glazing,
+                            glass: {
+                              ...windowItem.glazing?.glass,
+                              pricePerM2: parseFloat(e.target.value) || undefined,
+                            },
+                          })
+                        }
+                        disabled={readonly}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Panes</label>
+                      <Input
+                        className="h-8 text-xs"
+                        type="number"
+                        min="1"
+                        value={windowItem.glazing?.glass?.quantity || 1}
+                        onChange={(e) =>
+                          onUpdate("glazing", {
+                            ...windowItem.glazing,
+                            glass: {
+                              ...windowItem.glazing?.glass,
+                              quantity: parseFloat(e.target.value) || 1,
+                            },
+                          })
+                        }
+                        disabled={readonly}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium">Total (Ksh)</label>
+                      <Input
+                        className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
+                        value={getTotalPrice(
+                          getWindowGlassArea() * (windowItem.glazing?.glass?.quantity || 1),
+                          windowItem.glazing?.glass?.pricePerM2 ??
+                            getGlassUnitPrice(
+                              windowItem.glazing?.glass?.type || windowItem.glassType
+                            ) ??
+                            0,
+                          windowItem.count,
+                        ).toFixed(2)}
+                        disabled={true}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Putty Section */}
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      <div>
+                        <label className="text-xs font-medium">Putty Size</label>
+                        <Select
+                          value={windowItem.glazing?.putty?.size || ""}
+                          onValueChange={(value) =>
+                            onUpdate("glazing", {
+                              ...windowItem.glazing,
+                              putty: {
+                                ...windowItem.glazing?.putty,
+                                size: value,
+                                price: getPuttyPriceBySize(value),
+                              },
+                            })
+                          }
+                          disabled={readonly}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Select Size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="500 g tin">500 g tin</SelectItem>
+                            <SelectItem value="1 kg tin">1 kg tin</SelectItem>
+                            <SelectItem value="2 kg tin">2 kg tin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Color</label>
+                        <Select
+                          value={windowItem.glazing?.putty?.color || ""}
+                          onValueChange={(value) =>
+                            onUpdate("glazing", {
+                              ...windowItem.glazing,
+                              putty: {
+                                ...windowItem.glazing?.putty,
+                                color: value,
+                              },
+                            })
+                          }
+                          disabled={readonly}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Select Color" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="White">White</SelectItem>
+                            <SelectItem value="Grey">Grey</SelectItem>
+                            <SelectItem value="Brown">Brown</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Length (m)</label>
+                        <Input
+                          className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
+                          type="number"
+                          value={(windowItem.glazing?.putty?.lengthNeeded || 0).toFixed(2)}
+                          disabled={true}
+                          title="Auto-calculated from window dimensions"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Qty (Cans)</label>
+                        <Input
+                          className="h-8 text-xs bg-blue-50 dark:bg-blue-950/30"
+                          type="number"
+                          min="0"
+                          value={windowItem.glazing?.putty?.tinsNeeded || ""}
+                          onChange={(e) =>
+                            onUpdate("glazing", {
+                              ...windowItem.glazing,
+                              putty: {
+                                ...windowItem.glazing?.putty,
+                                quantity: parseFloat(e.target.value) || undefined,
+                                tinsNeeded: parseFloat(e.target.value) || undefined,
+                              },
+                            })
+                          }
+                          disabled={readonly}
+                          title="Auto-calculated based on window perimeter and coverage"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Total (Ksh)</label>
+                        <Input
+                          className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
+                          value={getTotalPrice(
+                            windowItem.glazing?.putty?.quantity || 0,
+                            windowItem.glazing?.putty?.price ??
+                              getPuttyPriceBySize(windowItem.glazing?.putty?.size) ??
+                              0,
+                            windowItem.count,
+                          ).toFixed(2)}
+                          disabled={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium">Glass Unit (Ksh/m²)</label>
-                  <Input
-                    className="h-8 text-xs"
-                    type="number"
-                    value={
-                      windowItem.glazing?.glass?.pricePerM2 ??
-                      getGlassUnitPrice(
-                        windowItem.glazing?.glass?.type || windowItem.glassType
-                      ) ??
-                      ""
-                    }
-                    onChange={(e) =>
-                      onUpdate("glazing", {
-                        ...windowItem.glazing,
-                        glass: {
-                          ...windowItem.glazing?.glass,
-                          pricePerM2: parseFloat(e.target.value) || undefined,
-                        },
-                      })
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Glass Total (Ksh)</label>
-                  <Input
-                    className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                    value={getTotalPrice(
-                      getWindowGlassArea() * (windowItem.glazing?.glass?.quantity || 1),
-                      windowItem.glazing?.glass?.pricePerM2 ??
-                        getGlassUnitPrice(
-                          windowItem.glazing?.glass?.type || windowItem.glassType
-                        ) ??
-                        0,
-                      windowItem.count,
-                    ).toFixed(2)}
-                    disabled={true}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Glass Panes</label>
-                  <Input
-                    className="h-8 text-xs"
-                    type="number"
-                    min="1"
-                    value={windowItem.glazing?.glass?.quantity || 1}
-                    onChange={(e) =>
-                      onUpdate("glazing", {
-                        ...windowItem.glazing,
-                        glass: {
-                          ...windowItem.glazing?.glass,
-                          quantity: parseFloat(e.target.value) || 1,
-                        },
-                      })
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Putty (linear m)</label>
-                  <Input
-                    className="h-8 text-xs "
-                    value={windowItem.glazing?.putty?.quantity || 0}
-                    onChange={(e) =>
-                      onUpdate("glazing", {
-                        ...windowItem.glazing,
-                        putty: {
-                          ...windowItem.glazing?.putty,
-                          quantity: parseFloat(e.target.value) || 0,
-                        },
-                      })
-                    }
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Putty (m²)</label>
-                  <Input
-                    className="h-8 text-xs "
-                    value={
-                      ((windowItem.glazing?.putty?.quantity || 0) *
-                        (windowItem.glassThickness || 4) / 1000).toFixed(3)
-                    }
-                    onChange={(e) => {
-                      const area = parseFloat(e.target.value) || 0;
-                      const thickness = windowItem.glassThickness || 4;
-                      const linear = thickness > 0 ? (area * 1000) / thickness : 0;
-                      onUpdate("glazing", {
-                        ...windowItem.glazing,
-                        putty: {
-                          ...windowItem.glazing?.putty,
-                          quantity: linear,
-                        },
-                      });
-                    }}
-                    disabled={readonly}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium">Putty Unit (Ksh/m)</label>
-                  <Input
-                    className="h-8 text-xs"
-                    type="number"
-                    value={
-                      windowItem.glazing?.putty?.price ??
-                      getPuttyUnitPrice() ??
-                      ""
-                    }
-                    onChange={(e) =>
-                      onUpdate("glazing", {
-                        ...windowItem.glazing,
-                        putty: {
-                          ...windowItem.glazing?.putty,
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem
+              value="architrave"
+              className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
+            >
+              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
+                Architrave
+              </AccordionTrigger>
+              <AccordionContent className="px-3 pb-3 space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                  <div>
+                    <label className="text-xs font-medium">Type</label>
+                    <Select
+                      value={windowItem.architrave?.selected?.type || ""}
+                      onValueChange={(value) =>
+                        onUpdate("architrave", {
+                          ...windowItem.architrave,
+                          selected: {
+                            type: value,
+                            size: "",
+                          },
+                          quantity: windowItem.architrave?.quantity,
+                        })
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Select Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from(
+                          new Set(
+                            getFastenerOptions("Architraves").map((opt: any) => opt.type)
+                          )
+                        ).map((t: any) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Size</label>
+                    <Select
+                      value={windowItem.architrave?.selected?.size || ""}
+                      onValueChange={(value) =>
+                        onUpdate("architrave", {
+                          ...windowItem.architrave,
+                          selected: {
+                            ...windowItem.architrave?.selected,
+                            size: value,
+                          },
+                        })
+                      }
+                      disabled={readonly || !windowItem.architrave?.selected?.type}
+                    >
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Select Size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableSizes(
+                          "Architraves",
+                          windowItem.architrave?.selected?.type || ""
+                        ).map((size: string) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Custom Size</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="e.g. 50x25mm"
+                      value={windowItem.architrave?.customSize || ""}
+                      onChange={(e) =>
+                        onUpdate("architrave", {
+                          ...windowItem.architrave,
+                          customSize: e.target.value,
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Qty (m)</label>
+                    <Input
+                      placeholder="Qty"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      className="h-8 text-xs"
+                      value={(windowItem.architrave?.quantity ?? autoWindowArchitraveQty).toFixed(2)}
+                      onChange={(e) =>
+                        onUpdate("architrave", {
+                          ...windowItem.architrave,
+                          quantity: parseFloat(e.target.value) || undefined,
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Price/m (Ksh)</label>
+                    <Input
+                      placeholder="Ksh"
+                      type="number"
+                      className="h-8 text-xs"
+                      value={
+                        (
+                          windowItem.architrave?.price ??
+                          getFastenerPrice(
+                            "Architraves",
+                            windowItem.architrave?.selected?.type,
+                            windowItem.architrave?.selected?.size
+                          )
+                        ) || ""
+                      }
+                      onChange={(e) =>
+                        onUpdate("architrave", {
+                          ...windowItem.architrave,
                           price: parseFloat(e.target.value) || undefined,
-                        },
-                      })
-                    }
-                    disabled={readonly}
-                  />
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium">Total (Ksh)</label>
+                    <Input
+                      className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
+                      value={getTotalPrice(
+                        windowItem.architrave?.quantity ?? autoWindowArchitraveQty,
+                        (
+                          windowItem.architrave?.price ??
+                          getFastenerPrice(
+                            "Architraves",
+                            windowItem.architrave?.selected?.type,
+                            windowItem.architrave?.selected?.size
+                          )
+                        ) || 0,
+                        windowItem.count
+                      ).toFixed(2)}
+                      disabled={true}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-medium">Putty Total (Ksh)</label>
-                  <Input
-                    className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                    value={getTotalPrice(
-                      windowItem.glazing?.putty?.quantity || 0,
-                      windowItem.glazing?.putty?.price ?? getPuttyUnitPrice() ?? 0,
-                      windowItem.count,
-                    ).toFixed(2)}
-                    disabled={true}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+              </AccordionContent>
+            </AccordionItem>
+
+          </Accordion>
         </div>
       )}
     </div>

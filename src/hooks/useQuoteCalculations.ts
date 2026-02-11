@@ -58,8 +58,8 @@ export interface Percentage {
   overhead: number;
   profit: number;
   contingency: number;
-  unknown_contingency: number;
-  unknownContingencyMode: "percent" | "cash";
+  unknowns_contingency: number;
+  unknownMode: "percent" | "cash";
   labourMode: "percent" | "cash";
   overheadMode: "percent" | "cash";
   profitMode: "percent" | "cash";
@@ -448,12 +448,12 @@ export const useQuoteCalculations = () => {
               overhead: params.overhead_percentages || 0,
               profit: params.profit_percentages || 0,
               contingency: params.contingency_percentages || 0,
-              unknown_contingency: params.unknown_contingency_percentages || 0,
+              unknowns_contingency: params.unknown_contingency_percentages || 0,
               labourMode: "percent" as const,
               overheadMode: "percent" as const,
               profitMode: "percent" as const,
               contingencyMode: "percent" as const,
-              unknownContingencyMode: "percent" as const,
+              unknownMode: "percent" as const,
             };
 
       const calculatePreliminariesTotal = (): number => {
@@ -571,12 +571,13 @@ export const useQuoteCalculations = () => {
             )
           : qsSettings?.contingency_fixed || 0;
       const unknownContingencyAmount =
-        qsSettings?.financialModes?.unknown_contingency === "percentage"
+        qsSettings?.financialModes?.unknowns_contingency === "percentage"
           ? Math.round(
               subtotalBeforeExtras *
-                (percentageSettings.unknown_contingency / 100),
+                (percentageSettings.unknowns_contingency / 100),
             )
           : qsSettings?.unknown_contingency_amount || 0;
+
 
       // Calculate profit based on mode
       const profitAmount =

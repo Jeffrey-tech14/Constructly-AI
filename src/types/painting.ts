@@ -6,13 +6,14 @@
  * All calculations based on m² → litres/bags with coverage rates per coat
  */
 
-export type PaintCategory = "emulsion" | "enamel" | "wood-finish" | "metal-finish";
+export type PaintCategory = "emulsion" | "enamel" | "wood-finish" | "metal-finish" | "finish-type";
 
 export type EmulsionSubtype = "vinyl-matt" | "vinyl-silk" | "antibacterial";
 export type EnamelSubtype = "eggshell" | "gloss";
 export type WoodFinishSubtype = "eggshell" | "gloss" | "satin";
 export type MetalFinishSubtype = "gloss" | "semi-gloss" | "satin";
-export type PaintSubtype = EmulsionSubtype | EnamelSubtype | WoodFinishSubtype | MetalFinishSubtype;
+export type FinishLevelSubtype = "eggshell" | "gloss";
+export type PaintSubtype = EmulsionSubtype | EnamelSubtype | WoodFinishSubtype | MetalFinishSubtype | FinishLevelSubtype;
 
 /**
  * STEP 7: Surface material types for paint type recommendation
@@ -82,6 +83,7 @@ export interface FinishingPaintConfig {
   subtype: PaintSubtype;
   coats: number; // default 2
   coverage: number; // m² per litre per coat
+  finishType?: string; // For finish-level category, e.g., "eggshell" or "gloss"
 }
 
 /**
@@ -100,6 +102,7 @@ export interface PaintingSpecification {
   skimming: SkimmingConfig;
   undercoat: UndercoatConfig;
   finishingPaint: FinishingPaintConfig;
+  finishType?: string; // For finish-level category, e.g., "eggshell" or "gloss"
 
   // Calculation snapshots (for reproducibility)
   calculations: {
@@ -165,6 +168,10 @@ export const PAINT_SUBTYPES_BY_CATEGORY: Record<
     { value: "semi-gloss", label: "Semi-Gloss" },
     { value: "satin", label: "Satin (Semi-Gloss)" },
   ],
+  "finish-type": [
+    { value: "eggshell", label: "Eggshell Paint" },
+    { value: "gloss", label: "Gloss" },
+  ],
 };
 
 /**
@@ -172,7 +179,7 @@ export const PAINT_SUBTYPES_BY_CATEGORY: Record<
  */
 export const PAINT_TYPE_BY_SURFACE_MATERIAL: Record<
   SurfaceMaterial,
-  { category: PaintCategory; subtype: PaintSubtype; label: string }
+  { category: PaintCategory; subtype: PaintSubtype; finishType?: string; label: string }
 > = {
   walls: {
     category: "emulsion",

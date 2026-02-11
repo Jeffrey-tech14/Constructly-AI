@@ -817,6 +817,8 @@ const Variables = () => {
                 </div>
               </CardContent>
 
+            </Card>
+            
               {/* Custom Materials Section */}
               <Card className="animate-slide-in border-blue-200 dark:border-blue-800">
                 <CardHeader>
@@ -1137,7 +1139,6 @@ const Variables = () => {
                   )}
                 </CardContent>
               </Card>
-            </Card>
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-4 animate-fade-in">

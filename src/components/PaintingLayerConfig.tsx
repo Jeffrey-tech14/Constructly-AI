@@ -357,7 +357,7 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
           {expandedSections.finishing && (
             <div className="space-y-4 pl-3">
               {/* STEP 7: Surface Material & Prep */}
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded border border-blue-200 dark:border-blue-800">
+              <div className="">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label
@@ -529,6 +529,37 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+
+                  <div>
+                    <Label
+                      htmlFor={`finish-level-subtype-${painting.id}`}
+                      className="text-xs font-semibold"
+                    >
+                      Finish Type
+                    </Label>
+                    <Select
+                      value={painting.finishingPaint.finishType}
+                      onValueChange={(value) =>
+                        onUpdate({
+                          finishingPaint: {
+                            ...painting.finishingPaint,
+                            finishType: value as any,
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger
+                        id={`finish-level-subtype-${painting.id}`}
+                        className="mt-2"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="eggshell">Eggshell Paint</SelectItem>
+                        <SelectItem value="gloss">Gloss</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -1764,8 +1764,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               {calculationSummary.overhead_amount > 0 && (
                 <View style={styles.tableRow}>
                   <Text style={[styles.tableColDescription, { width: "70%" }]}>
-                    Overhead (
-                    {calculationSummary.percentages?.[0]?.overhead || 0}%):
+                    Overhead :
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(overhead_amount)}
@@ -1776,8 +1775,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               {calculationSummary.contingency_amount > 0 && (
                 <View style={styles.tableRow}>
                   <Text style={[styles.tableColDescription, { width: "70%" }]}>
-                    Contingency (
-                    {calculationSummary.percentages?.[0]?.contingency || 0}%):
+                    Contingency :
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(contingency_amount)}
@@ -1787,10 +1785,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               {calculationSummary.unknown_contingency_amount > 0 && (
                 <View style={styles.tableRow}>
                   <Text style={[styles.tableColDescription, { width: "70%" }]}>
-                    Unknown Unknowns Reserve (
-                    {calculationSummary.percentages?.[0]?.unknown_contingency ||
-                      0}
-                    %):
+                    Unknown Unknowns Reserve :
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(unknown_contingency_amount)}
@@ -1801,8 +1796,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               {calculationSummary.labor_cost > 0 && (
                 <View style={styles.tableRow}>
                   <Text style={[styles.tableColDescription, { width: "70%" }]}>
-                    Labor(
-                    {calculationSummary.percentages?.[0]?.labour || 0}%):
+                    Labor :
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(labour)}
@@ -1813,8 +1807,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               {calculationSummary.permit_cost > 0 && (
                 <View style={styles.tableRow}>
                   <Text style={[styles.tableColDescription, { width: "70%" }]}>
-                    Permit(
-                    {calculationSummary.percentages?.[0]?.permit || 0}%):
+                    Permit :
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(permits)}
@@ -1836,8 +1829,7 @@ const PDFGenerator: React.FC<PDFGeneratorProps> = ({
               {calculationSummary.profit_amount > 0 && (
                 <View style={[styles.tableRow]}>
                   <Text style={[styles.tableColDescription, { width: "70%" }]}>
-                    Profit Margin (
-                    {calculationSummary.percentages?.[0]?.profit || 0}%):
+                    Profit Margin :
                   </Text>
                   <Text style={[styles.tableColAmount, { width: "30%" }]}>
                     {formatCurrency(profit)}

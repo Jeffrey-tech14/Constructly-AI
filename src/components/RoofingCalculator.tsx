@@ -153,6 +153,14 @@ export default function RoofingCalculatorUI({
   const formatArea = (area: number) => `${formatNumber(area, 2)} m²`;
   const formatLength = (length: number) => `${formatNumber(length, 2)} m`;
   const formatVolume = (volume: number) => `${formatNumber(volume, 3)} m³`;
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-KE", {
+      style: "currency",
+      currency: "KES",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   return (
     <div className="space-y-6">
@@ -612,7 +620,7 @@ export default function RoofingCalculatorUI({
                         </Badge>
                       </button>
                       {expandedSections["wallPlates"] && (
-                        <div className="p-4 border-t space-y-2">
+                        <div className="p-4 border-t space-y-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <span className="font-medium">Base Length:</span>
@@ -641,6 +649,30 @@ export default function RoofingCalculatorUI({
                               <p>{breakdown.wallPlates.unitLm}</p>
                             </div>
                           </div>
+                          {breakdown.wallPlates.unitPrice !== undefined && (
+                            <div className="border-t pt-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Price per Unit:</span>
+                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                    {formatCurrency(breakdown.wallPlates.unitPrice)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (Base):</span>
+                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                    {formatCurrency(breakdown.wallPlates.totalPrice || 0)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (with Wastage):</span>
+                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                    {formatCurrency(breakdown.wallPlates.totalPriceWithWastage || 0)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -671,7 +703,7 @@ export default function RoofingCalculatorUI({
                         </Badge>
                       </button>
                       {expandedSections["tieBeams"] && (
-                        <div className="p-4 border-t space-y-2">
+                        <div className="p-4 border-t space-y-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <span className="font-medium">Base Length:</span>
@@ -698,6 +730,30 @@ export default function RoofingCalculatorUI({
                               <p>{breakdown.tieBeams.quantityPcs} pcs</p>
                             </div>
                           </div>
+                          {breakdown.tieBeams.unitPrice !== undefined && (
+                            <div className="border-t pt-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Price per Unit:</span>
+                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                    {formatCurrency(breakdown.tieBeams.unitPrice)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (Base):</span>
+                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                    {formatCurrency(breakdown.tieBeams.totalPrice || 0)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (with Wastage):</span>
+                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                    {formatCurrency(breakdown.tieBeams.totalPriceWithWastage || 0)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -731,7 +787,7 @@ export default function RoofingCalculatorUI({
                           </Badge>
                         </button>
                         {expandedSections["kingPosts"] && (
-                          <div className="p-4 border-t space-y-2">
+                          <div className="p-4 border-t space-y-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                               <div>
                                 <span className="font-medium">
@@ -768,6 +824,30 @@ export default function RoofingCalculatorUI({
                                 </p>
                               </div>
                             </div>
+                            {breakdown.kingPosts.unitPrice !== undefined && (
+                              <div className="border-t pt-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                  <div>
+                                    <span className="font-medium">Price per Unit:</span>
+                                    <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                      {formatCurrency(breakdown.kingPosts.unitPrice)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Total (Base):</span>
+                                    <p className="text-green-600 dark:text-green-400 font-semibold">
+                                      {formatCurrency(breakdown.kingPosts.totalPrice || 0)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Total (with Wastage):</span>
+                                    <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                      {formatCurrency(breakdown.kingPosts.totalPriceWithWastage || 0)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -799,7 +879,7 @@ export default function RoofingCalculatorUI({
                         </Badge>
                       </button>
                       {expandedSections["rafters"] && (
-                        <div className="p-4 border-t space-y-2">
+                        <div className="p-4 border-t space-y-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <span className="font-medium">Quantity:</span>
@@ -828,6 +908,30 @@ export default function RoofingCalculatorUI({
                               </p>
                             </div>
                           </div>
+                          {breakdown.rafters.unitPrice !== undefined && (
+                            <div className="border-t pt-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Price per Unit:</span>
+                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                    {formatCurrency(breakdown.rafters.unitPrice)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (Base):</span>
+                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                    {formatCurrency(breakdown.rafters.totalPrice || 0)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (with Wastage):</span>
+                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                    {formatCurrency(breakdown.rafters.totalPriceWithWastage || 0)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -858,7 +962,7 @@ export default function RoofingCalculatorUI({
                         </Badge>
                       </button>
                       {expandedSections["purlins"] && (
-                        <div className="p-4 border-t space-y-2">
+                        <div className="p-4 border-t space-y-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <span className="font-medium">Base Length:</span>
@@ -885,6 +989,30 @@ export default function RoofingCalculatorUI({
                               <p>{breakdown.purlins.unitLm}</p>
                             </div>
                           </div>
+                          {breakdown.purlins.unitPrice !== undefined && (
+                            <div className="border-t pt-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Price per Unit:</span>
+                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                    {formatCurrency(breakdown.purlins.unitPrice)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (Base):</span>
+                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                    {formatCurrency(breakdown.purlins.totalPrice || 0)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (with Wastage):</span>
+                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                    {formatCurrency(breakdown.purlins.totalPriceWithWastage || 0)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -915,7 +1043,7 @@ export default function RoofingCalculatorUI({
                         </Badge>
                       </button>
                       {expandedSections["struts"] && (
-                        <div className="p-4 border-t space-y-2">
+                        <div className="p-4 border-t space-y-4">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <span className="font-medium">Quantity:</span>
@@ -944,10 +1072,162 @@ export default function RoofingCalculatorUI({
                               </p>
                             </div>
                           </div>
+                          {breakdown.struts.unitPrice !== undefined && (
+                            <div className="border-t pt-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Price per Unit:</span>
+                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                    {formatCurrency(breakdown.struts.unitPrice)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (Base):</span>
+                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                    {formatCurrency(breakdown.struts.totalPrice || 0)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Total (with Wastage):</span>
+                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                    {formatCurrency(breakdown.struts.totalPriceWithWastage || 0)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                   </div>
+
+                  {/* Timber Pricing Summary */}
+                  {(breakdown.wallPlates.totalPrice !== undefined || breakdown.tieBeams.totalPrice !== undefined) && (
+                    <div className="mt-8 pt-8 border-t">
+                      <Label className="text-lg font-semibold mb-4 block">
+                        Timber Costs Summary
+                      </Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-sm">Base Costs (before wastage)</h4>
+                          <div className="space-y-2 text-sm">
+                            {breakdown.wallPlates.totalPrice !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Wall Plates:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.wallPlates.totalPrice)}</span>
+                              </div>
+                            )}
+                            {breakdown.tieBeams.totalPrice !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Tie Beams:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.tieBeams.totalPrice)}</span>
+                              </div>
+                            )}
+                            {breakdown.kingPosts?.totalPrice !== undefined && (
+                              <div className="flex justify-between">
+                                <span>King Posts:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.kingPosts.totalPrice)}</span>
+                              </div>
+                            )}
+                            {breakdown.rafters.totalPrice !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Rafters:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.rafters.totalPrice)}</span>
+                              </div>
+                            )}
+                            {breakdown.purlins.totalPrice !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Purlins:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.purlins.totalPrice)}</span>
+                              </div>
+                            )}
+                            {breakdown.struts.totalPrice !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Struts:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.struts.totalPrice)}</span>
+                              </div>
+                            )}
+                          </div>
+                          {breakdown.wallPlates.totalPrice !== undefined && (
+                            <div className="border-t pt-3 mt-3">
+                              <div className="flex justify-between font-semibold">
+                                <span>Subtotal:</span>
+                                <span className="text-green-600 dark:text-green-400">
+                                  {formatCurrency(
+                                    (breakdown.wallPlates.totalPrice || 0) +
+                                    (breakdown.tieBeams.totalPrice || 0) +
+                                    (breakdown.kingPosts?.totalPrice || 0) +
+                                    (breakdown.rafters.totalPrice || 0) +
+                                    (breakdown.purlins.totalPrice || 0) +
+                                    (breakdown.struts.totalPrice || 0)
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-sm">With Wastage ({breakdown.defaults.structuralTimberWastagePercent}%)</h4>
+                          <div className="space-y-2 text-sm">
+                            {breakdown.wallPlates.totalPriceWithWastage !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Wall Plates:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.wallPlates.totalPriceWithWastage)}</span>
+                              </div>
+                            )}
+                            {breakdown.tieBeams.totalPriceWithWastage !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Tie Beams:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.tieBeams.totalPriceWithWastage)}</span>
+                              </div>
+                            )}
+                            {breakdown.kingPosts?.totalPriceWithWastage !== undefined && (
+                              <div className="flex justify-between">
+                                <span>King Posts:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.kingPosts.totalPriceWithWastage)}</span>
+                              </div>
+                            )}
+                            {breakdown.rafters.totalPriceWithWastage !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Rafters:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.rafters.totalPriceWithWastage)}</span>
+                              </div>
+                            )}
+                            {breakdown.purlins.totalPriceWithWastage !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Purlins:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.purlins.totalPriceWithWastage)}</span>
+                              </div>
+                            )}
+                            {breakdown.struts.totalPriceWithWastage !== undefined && (
+                              <div className="flex justify-between">
+                                <span>Struts:</span>
+                                <span className="font-medium">{formatCurrency(breakdown.struts.totalPriceWithWastage)}</span>
+                              </div>
+                            )}
+                          </div>
+                          {breakdown.wallPlates.totalPriceWithWastage !== undefined && (
+                            <div className="border-t pt-3 mt-3 bg-orange-50 dark:bg-orange-950 p-3 rounded">
+                              <div className="flex justify-between font-bold text-orange-600 dark:text-orange-400">
+                                <span>Total:</span>
+                                <span className="text-lg">
+                                  {formatCurrency(
+                                    (breakdown.wallPlates.totalPriceWithWastage || 0) +
+                                    (breakdown.tieBeams.totalPriceWithWastage || 0) +
+                                    (breakdown.kingPosts?.totalPriceWithWastage || 0) +
+                                    (breakdown.rafters.totalPriceWithWastage || 0) +
+                                    (breakdown.purlins.totalPriceWithWastage || 0) +
+                                    (breakdown.struts.totalPriceWithWastage || 0)
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -1030,8 +1310,89 @@ export default function RoofingCalculatorUI({
                           </div>
                         </div>
                       </div>
+                      {breakdown.roofingSheets.unitPrice !== undefined && (
+                        <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+                          <Label className="text-base font-semibold block mb-3">
+                            Pricing
+                          </Label>
+                          <div className="space-y-3 text-sm">
+                            <div>
+                              <span className="font-medium">Price per Sheet:</span>
+                              <p className="text-blue-600 dark:text-blue-400 font-semibold text-lg">
+                                {formatCurrency(breakdown.roofingSheets.unitPrice)}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium">Total (Base Quantity):</span>
+                              <p className="text-green-600 dark:text-green-400 font-semibold text-lg">
+                                {formatCurrency(breakdown.roofingSheets.totalPrice || 0)}
+                              </p>
+                            </div>
+                            <div className="border-t pt-3">
+                              <span className="font-semibold\">Total (with Wastage):</span>
+                              <p className="text-orange-600 dark:text-orange-400 font-bold text-xl">
+                                {formatCurrency(breakdown.roofingSheets.totalPriceWithWastage || 0)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Roofing Sheets Pricing Summary */}
+                  {breakdown.roofingSheets.totalPrice !== undefined && (
+                    <div className="mt-8 pt-8 border-t">
+                      <Label className="text-lg font-semibold mb-4 block">
+                        Roofing Sheets Cost Summary
+                      </Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <h4 className="font-semibold text-sm mb-3">Base Cost</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Quantity:</span>
+                              <span className="font-medium">{breakdown.roofingSheets.quantityRequired} sheets</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Price per Sheet:</span>
+                              <span className="font-medium">{formatCurrency(breakdown.roofingSheets.unitPrice || 0)}</span>
+                            </div>
+                            <div className="border-t pt-2 mt-2">
+                              <div className="flex justify-between font-semibold text-blue-600 dark:text-blue-400">
+                                <span>Subtotal:</span>
+                                <span>
+                                  {formatCurrency(breakdown.roofingSheets.totalPrice || 0)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                          <h4 className="font-semibold text-sm mb-3">With Wastage ({breakdown.roofingSheets.wastageAllowancePercent}%)</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Quantity:</span>
+                              <span className="font-medium">{breakdown.roofingSheets.quantityWithWastagePercent} sheets</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Price per Sheet:</span>
+                              <span className="font-medium">{formatCurrency(breakdown.roofingSheets.unitPrice || 0)}</span>
+                            </div>
+                            <div className="border-t pt-2 mt-2">
+                              <div className="flex justify-between font-bold text-orange-600 dark:text-orange-400 text-lg">
+                                <span>Total:</span>
+                                <span className="">
+                                  {formatCurrency(breakdown.roofingSheets.totalPriceWithWastage || 0)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -1044,6 +1405,34 @@ export default function RoofingCalculatorUI({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
+                    {/* Total Costs Summary */}
+                    {breakdown.totalCost !== undefined && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                          <Label className="text-sm font-medium text-green-700 dark:text-green-300">
+                            Total Cost (Base)
+                          </Label>
+                          <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
+                            {formatCurrency(breakdown.totalCost)}
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                            Without wastage factor
+                          </p>
+                        </div>
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                          <Label className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                            Total Cost (with Wastage)
+                          </Label>
+                          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-2">
+                            {formatCurrency(breakdown.totalCostWithWastage || 0)}
+                          </p>
+                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                            Including material wastage
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Key Inputs Summary */}
                     <div>
                       <Label className="text-base font-semibold mb-3 block">

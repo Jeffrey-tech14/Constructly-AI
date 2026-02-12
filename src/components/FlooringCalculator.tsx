@@ -595,11 +595,6 @@ export default function FlooringCalculator({
         internalWallLength: internal,
         totalSkirtingLength,
       });
-      setAccessories((prev) => ({
-        ...prev,
-        cornerStripsLength: totalSkirtingLength,
-        edgeTrimsLength: totalSkirtingLength,
-      }));
     }
   }, [quote, skirting.externalWallLength, skirting.internalWallLength]);
 

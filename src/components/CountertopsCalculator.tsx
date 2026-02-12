@@ -423,25 +423,25 @@ export default function CountertopsCalculator({
 
           {/* List Table */}
           {countertops.length > 0 ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHead>Material</TableHead>
-                    <TableHead>Dimensions</TableHead>
-                    <TableHead className="text-right">Area (m²)</TableHead>
-                    <TableHead className="text-center">Corner Strips</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total Cost</TableHead>
-                    {!readonly && <TableHead className="text-right">Actions</TableHead>}
+            <div className="rounded-md border overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[25%] text-left">Material</TableHead>
+                    <TableHead className="w-[18%] text-left">Dimensions</TableHead>
+                    <TableHead className="w-[12%] text-right">Area (m²)</TableHead>
+                    <TableHead className="w-[18%] text-center">Corner Strips</TableHead>
+                    <TableHead className="w-[15%] text-right">Unit Price</TableHead>
+                    <TableHead className="w-[12%] text-right">Total Cost</TableHead>
+                    {!readonly && <TableHead className="w-[12%] text-right">Actions</TableHead>}
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {countertops.map((countertop) => (
-                    <TableRow key={countertop.id}>
-                      <TableCell className="font-medium">
+                    <TableRow key={countertop.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium w-[25%]">
                         <div>
-                          <div className="font-bold">
+                          <div className="font-bold text-sm">
                             {countertop.material}
                           </div>
                           <div className="text-xs text-gray-500">
@@ -449,34 +449,35 @@ export default function CountertopsCalculator({
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="w-[18%] text-sm">
                         {countertop.length.toFixed(2)}m ×{" "}
                         {countertop.width.toFixed(2)}m
                       </TableCell>
-                      <TableCell className="text-right font-bold">
+                      <TableCell className="text-right font-bold w-[12%] text-sm">
                         {countertop.area.toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center w-[18%]">
                         {countertop.cornerStrips ? (
-                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">
+                          <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
                             {countertop.cornerStripLength.toFixed(2)}m
                           </span>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right w-[15%] text-sm">
                         {formatCurrency(countertop.unitPrice)}/m²
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-green-600">
+                      <TableCell className="text-right font-semibold text-green-600 w-[12%] text-sm">
                         {formatCurrency(countertop.totalCost)}
                       </TableCell>
                       {!readonly && (
-                        <TableCell className="text-right">
-                          <div className="flex gap-2 justify-end">
+                        <TableCell className="text-right w-[12%]">
+                          <div className="flex gap-1 justify-end">
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="h-8 w-8 p-0"
                               onClick={() => handleEditCountertop(countertop)}
                             >
                               <Edit className="h-4 w-4" />
@@ -484,6 +485,7 @@ export default function CountertopsCalculator({
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="h-8 w-8 p-0"
                               onClick={() =>
                                 handleDeleteCountertop(countertop.id)
                               }

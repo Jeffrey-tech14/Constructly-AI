@@ -86,6 +86,9 @@ export interface TimberCalculation {
   totalLengthWithWastageM: number;
   wasteageAllowanceM: number;
   unitLm: string; // "m"
+  unitPrice?: number; // Price per unit (per meter)
+  totalPrice?: number; // Total price before wastage
+  totalPriceWithWastage?: number; // Total price with wastage
 }
 
 /**
@@ -97,6 +100,9 @@ export interface RoofingSheetCalculation {
   quantityWithWastagePercent: number;
   wastageAllowancePercent: number;
   unitPcs: string; // "pcs"
+  unitPrice?: number; // Price per sheet
+  totalPrice?: number; // Total price before wastage
+  totalPriceWithWastage?: number; // Total price with wastage
 }
 
 /**
@@ -124,6 +130,10 @@ export interface RoofMaterialBreakdown {
 
   // Miscellaneous allowance (5% applied last)
   miscellaneousAllowancePercent: number;
+
+  // Pricing totals
+  totalCost?: number; // Total cost before wastage allowance
+  totalCostWithWastage?: number; // Total cost with wastage allowance
 }
 
 export interface RoofStructure {
@@ -131,11 +141,17 @@ export interface RoofStructure {
   name: string;
   type: RoofType;
   material: RoofMaterial;
-  area: number; // m²
-  pitch: number; // degrees
-  length: number; // meters
-  width: number; // meters
-  eavesOverhang: number; // meters
+  area: number; // m² (footprintAreaM2)
+  pitch: number; // degrees (pitchDegrees)
+  length: number; // meters (buildingLengthM)
+  width: number; // meters (buildingWidthM)
+  eavesOverhang: number; // meters (eaveWidthM)
+  externalPerimeterM: number; // P (m) - REQUIRED for calculations
+  internalPerimeterM?: number; // Optional internal perimeter for wall plates
+  roofTrussTypeKingPost: boolean; // REQUIRED - whether to include king posts
+  purlinSpacingM: number; // REQUIRED - spacing between purlins
+  roofingSheetEffectiveCoverWidthM: number; // REQUIRED - effective cover width of sheets
+  roofingSheetLengthM: number; // REQUIRED - length of roofing sheets
   ridgeLength?: number; // meters
   covering: any;
   grade?: string;
@@ -144,6 +160,12 @@ export interface RoofStructure {
   accessories?: any;
   isLumpSum?: boolean;
   lumpSumAmount?: number;
+  // Optional overrides for defaults
+  rasterSpacingMm?: number;
+  trussSpacingMm?: number;
+  structuralTimberWastagePercent?: number;
+  roofingSheetWastagePercent?: number;
+  miscellaneousAllowancePercent?: number;
 }
 
 export interface RoofingCalculation {
@@ -507,6 +529,193 @@ function calculateRoofingSheets(
   };
 }
 
+// ============================================================================
+// PRICING HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get timber price per meter from materialPrices
+ */
+function getTimberPrice(
+  materialPrices: any,
+  timberSize: string
+): number {
+  if (!Array.isArray(materialPrices)) return 0;
+
+  const roofingMaterial = materialPrices.find((m: any) =>
+    m.name?.toLowerCase() === "roof-covering"
+  );
+
+  if (!roofingMaterial || !Array.isArray(roofingMaterial.type)) {
+    return 0;
+  }
+
+  // Find the object in type array that contains structuralTimber
+  const structuralTimberObj = roofingMaterial.type.find((item: any) =>
+    Array.isArray(item.structuralTimber)
+  );
+
+  if (!structuralTimberObj || !Array.isArray(structuralTimberObj.structuralTimber)) {
+    return 0;
+  }
+
+  const timber = structuralTimberObj.structuralTimber.find((t: any) =>
+    t.size?.toLowerCase() === timberSize.toLowerCase()
+  );
+
+  return timber?.price_kes || 0;
+}
+
+/**
+ * Get roofing sheet price per piece from materialPrices
+ */
+function getRoofingSheetPrice(
+  materialPrices: any,
+  sheetType: string = "metal-sheet"
+): number {
+  if (!Array.isArray(materialPrices)) return 0;
+
+  const roofingMaterial = materialPrices.find((m: any) =>
+    m.name?.toLowerCase() === "roof-covering"
+  );
+
+  if (!roofingMaterial || !Array.isArray(roofingMaterial.type)) {
+    return 0;
+  }
+
+  // Find the object in type array that contains roofingSheets
+  const roofingSheetsObj = roofingMaterial.type.find((item: any) =>
+    Array.isArray(item.roofingSheets)
+  );
+
+  if (!roofingSheetsObj || !Array.isArray(roofingSheetsObj.roofingSheets)) {
+    return 0;
+  }
+
+  const sheet = roofingSheetsObj.roofingSheets.find((s: any) =>
+    s.type?.toLowerCase() === sheetType.toLowerCase()
+  );
+
+  return sheet?.price_kes || 0;
+}
+
+/**
+ * Get gutter/fascia price per meter from materialPrices
+ */
+function getFinishingPrice(
+  materialPrices: any,
+  finishType: string,
+  itemType: string
+): number {
+  if (!Array.isArray(materialPrices)) return 0;
+
+  const roofingMaterial = materialPrices.find((m: any) =>
+    m.name?.toLowerCase() === "roof-covering"
+  );
+
+  if (!roofingMaterial || !Array.isArray(roofingMaterial.type)) {
+    return 0;
+  }
+
+  // Find the object in type array that contains roofingFinishing
+  const roofingFinishingObj = roofingMaterial.type.find((item: any) =>
+    Array.isArray(item.roofingFinishing)
+  );
+
+  if (!roofingFinishingObj || !Array.isArray(roofingFinishingObj.roofingFinishing)) {
+    return 0;
+  }
+
+  const finishing = roofingFinishingObj.roofingFinishing;
+  const category = finishing.find((f: any) =>
+    f.name?.toLowerCase() === finishType.toLowerCase()
+  );
+
+  if (!category || !Array.isArray(category.types)) return 0;
+
+  const item = category.types.find((t: any) =>
+    t.name?.toLowerCase() === itemType.toLowerCase()
+  );
+
+  return item?.price_kes || 0;
+}
+
+/**
+ * Apply prices to timber calculation
+ */
+function applyTimberPricing(
+  timber: TimberCalculation,
+  materialPrices: any
+): TimberCalculation {
+  const unitPrice = getTimberPrice(materialPrices, timber.sizeXxY);
+  const totalPrice = timber.totalLengthM * unitPrice;
+  const totalPriceWithWastage = timber.totalLengthWithWastageM * unitPrice;
+
+  return {
+    ...timber,
+    unitPrice,
+    totalPrice,
+    totalPriceWithWastage,
+  };
+}
+
+/**
+ * Apply prices to roofing sheet calculation
+ */
+function applyRoofingSheetPricing(
+  sheets: RoofingSheetCalculation,
+  materialPrices: any
+): RoofingSheetCalculation {
+  const unitPrice = getRoofingSheetPrice(materialPrices, "metal-sheet");
+  const totalPrice = sheets.quantityRequired * unitPrice;
+  const totalPriceWithWastage = sheets.quantityWithWastagePercent * unitPrice;
+
+  return {
+    ...sheets,
+    unitPrice,
+    totalPrice,
+    totalPriceWithWastage,
+  };
+}
+
+/**
+ * Apply prices to gutter calculation
+ */
+function applyGutterPricing(
+  gutter: TimberCalculation,
+  materialPrices: any
+): TimberCalculation {
+  const unitPrice = getFinishingPrice(materialPrices, "Gutters", "steel-gutter");
+  const totalPrice = gutter.totalLengthM * unitPrice;
+  const totalPriceWithWastage = gutter.totalLengthWithWastageM * unitPrice;
+
+  return {
+    ...gutter,
+    unitPrice,
+    totalPrice,
+    totalPriceWithWastage,
+  };
+}
+
+/**
+ * Apply prices to fascia calculation
+ */
+function applyFasciaPricing(
+  fascia: TimberCalculation,
+  materialPrices: any
+): TimberCalculation {
+  const unitPrice = getFinishingPrice(materialPrices, "Fascia", "timber-fascia");
+  const totalPrice = fascia.totalLengthM * unitPrice;
+  const totalPriceWithWastage = fascia.totalLengthWithWastageM * unitPrice;
+
+  return {
+    ...fascia,
+    unitPrice,
+    totalPrice,
+    totalPriceWithWastage,
+  };
+}
+
 export default function useRoofingCalculator(
   roofStructures: RoofStructure[],
   materialPrices: any,
@@ -607,10 +816,13 @@ export default function useRoofingCalculator(
       };
 
       // ===== SECTION 5: WALL PLATES =====
-      const wallPlates = calculateWallPlates(
-        inputs.externalPerimeterM,
-        inputs.internalPerimeterM || 0,
-        defaults
+      const wallPlates = applyTimberPricing(
+        calculateWallPlates(
+          inputs.externalPerimeterM,
+          inputs.internalPerimeterM || 0,
+          defaults
+        ),
+        materialPrices
       );
 
       // ===== SECTION 6: TRUSSES =====
@@ -620,52 +832,87 @@ export default function useRoofingCalculator(
       );
 
       // ===== SECTION 7: TIE BEAMS =====
-      const tieBeams = calculateTieBeams(
-        trussCount,
-        inputs.buildingWidthM,
-        defaults
+      const tieBeams = applyTimberPricing(
+        calculateTieBeams(
+          trussCount,
+          inputs.buildingWidthM,
+          defaults
+        ),
+        materialPrices
       );
 
       // ===== SECTION 8: KING POSTS =====
       const kingPosts = inputs.roofTrussTypeKingPost
-        ? calculateKingPosts(
-            trussCount,
-            halfSpan,
-            defaults.pitchDegrees,
-            defaults
+        ? applyTimberPricing(
+            calculateKingPosts(
+              trussCount,
+              halfSpan,
+              defaults.pitchDegrees,
+              defaults
+            ) as TimberCalculation,
+            materialPrices
           )
         : undefined;
 
       // ===== SECTION 9: RAFTERS =====
-      const rafters = calculateRafters(
-        effectiveRoofArea,
-        defaults
+      const rafters = applyTimberPricing(
+        calculateRafters(
+          effectiveRoofArea,
+          defaults
+        ),
+        materialPrices
       );
 
       // ===== SECTION 10: PURLINS =====
-      const purlins = calculatePurlins(
-        rasterLength,
-        inputs.buildingLengthM,
-        inputs.purlinSpacingM,
-        defaults
+      const purlins = applyTimberPricing(
+        calculatePurlins(
+          rasterLength,
+          inputs.buildingLengthM,
+          inputs.purlinSpacingM,
+          defaults
+        ),
+        materialPrices
       );
 
       // ===== SECTION 11: STRUTS =====
-      const struts = calculateStruts(trussCount, rasterLength, defaults);
+      const struts = applyTimberPricing(
+        calculateStruts(trussCount, rasterLength, defaults),
+        materialPrices
+      );
 
       // ===== SECTION 12: GUTTERS =====
-      const gutters = calculateGutters(inputs.externalPerimeterM);
+      const gutters = applyGutterPricing(
+        calculateGutters(inputs.externalPerimeterM),
+        materialPrices
+      );
 
       // ===== SECTION 13: FASCIA =====
-      const fascia = calculateFascia(inputs.externalPerimeterM);
+      const fascia = applyFasciaPricing(
+        calculateFascia(inputs.externalPerimeterM),
+        materialPrices
+      );
 
       // ===== SECTION 14: ROOFING SHEETS =====
-      const roofingSheets = calculateRoofingSheets(
-        effectiveRoofArea,
-        inputs.roofingSheetEffectiveCoverWidthM,
-        inputs.roofingSheetLengthM,
-        defaults
+      const roofingSheets = applyRoofingSheetPricing(
+        calculateRoofingSheets(
+          effectiveRoofArea,
+          inputs.roofingSheetEffectiveCoverWidthM,
+          inputs.roofingSheetLengthM,
+          defaults
+        ),
+        materialPrices
       );
+
+      // ===== CALCULATE TOTAL COSTS =====
+      const timberItems = [wallPlates, tieBeams, kingPosts, rafters, purlins, struts, gutters, fascia].filter(Boolean);
+      const totalTimberCost = timberItems.reduce((sum, item) => sum + (item?.totalPrice || 0), 0);
+      const totalTimberCostWithWastage = timberItems.reduce((sum, item) => sum + (item?.totalPriceWithWastage || 0), 0);
+
+      const totalSheetsCost = roofingSheets.totalPrice || 0;
+      const totalSheetsCostWithWastage = roofingSheets.totalPriceWithWastage || 0;
+
+      const totalCost = totalTimberCost + totalSheetsCost;
+      const totalCostWithWastage = totalTimberCostWithWastage + totalSheetsCostWithWastage;
 
       return {
         defaults,
@@ -682,9 +929,11 @@ export default function useRoofingCalculator(
         roofingSheets,
         miscellaneousAllowancePercent:
           defaults.miscellaneousAllowancePercent,
+        totalCost,
+        totalCostWithWastage,
       };
     },
-    [resolveDefaults]
+    [resolveDefaults, materialPrices]
   );
 
   /**
@@ -692,8 +941,48 @@ export default function useRoofingCalculator(
    */
   const calculateAll = useCallback(() => {
     const calculatedResults = roofStructures.map((roof) => {
-      // For now, maintain compatibility with existing RoofStructure interface
-      // In future, this would be updated to accept BuildingInputs
+      // Map RoofStructure fields to BuildingInputs
+      const buildingInputs: BuildingInputs = {
+        footprintAreaM2: roof.area,
+        externalPerimeterM: roof.externalPerimeterM,
+        internalPerimeterM: roof.internalPerimeterM,
+        buildingLengthM: roof.length,
+        buildingWidthM: roof.width,
+        roofTrussTypeKingPost: roof.roofTrussTypeKingPost,
+        purlinSpacingM: roof.purlinSpacingM,
+        roofingSheetEffectiveCoverWidthM: roof.roofingSheetEffectiveCoverWidthM,
+        roofingSheetLengthM: roof.roofingSheetLengthM,
+        roofType: roof.type,
+        pitchDegrees: roof.pitch,
+        eaveWidthM: roof.eavesOverhang,
+        rasterSpacingMm: roof.rasterSpacingMm,
+        trussSpacingMm: roof.trussSpacingMm,
+        structuralTimberWastagePercent: roof.structuralTimberWastagePercent,
+        roofingSheetWastagePercent: roof.roofingSheetWastagePercent,
+        miscellaneousAllowancePercent: roof.miscellaneousAllowancePercent,
+      };
+
+      // Calculate roof materials using the deterministic calculation system
+      const materialBreakdown = calculateRoofMaterials(buildingInputs);
+
+      // Aggregate all timber costs
+      const timberItems = [
+        materialBreakdown.wallPlates,
+        materialBreakdown.tieBeams,
+        materialBreakdown.kingPosts,
+        materialBreakdown.rafters,
+        materialBreakdown.purlins,
+        materialBreakdown.struts,
+        materialBreakdown.gutters,
+        materialBreakdown.fascia,
+      ].filter(Boolean);
+
+      const totalTimberCost = timberItems.reduce((sum, item) => sum + (item?.totalPrice || 0), 0);
+      const totalTimberCostWithWastage = timberItems.reduce((sum, item) => sum + (item?.totalPriceWithWastage || 0), 0);
+
+      const totalSheetsCost = materialBreakdown.roofingSheets.totalPrice || 0;
+      const totalSheetsCostWithWastage = materialBreakdown.roofingSheets.totalPriceWithWastage || 0;
+
       return {
         id: roof.id,
         name: roof.name,
@@ -701,47 +990,81 @@ export default function useRoofingCalculator(
         material: roof.material,
         area: roof.area,
         totalTimberVolume: 0,
-        coveringArea: roof.area,
-        materialCost: 0,
-        materialCostWithWastage: 0,
-        totalCost: 0,
-        totalCostWithWastage: 0,
-        breakdown: {},
-        breakdownWithWastage: {},
+        coveringArea: materialBreakdown.geometry.effectiveRoofAreaM2,
+        materialCost: totalTimberCost + totalSheetsCost,
+        materialCostWithWastage: totalTimberCostWithWastage + totalSheetsCostWithWastage,
+        totalCost: totalTimberCost + totalSheetsCost,
+        totalCostWithWastage: totalTimberCostWithWastage + totalSheetsCostWithWastage,
+        breakdown: {
+          timber: totalTimberCost,
+          covering: totalSheetsCost,
+          wallPlates: materialBreakdown.wallPlates.totalPrice || 0,
+          tieBeams: materialBreakdown.tieBeams.totalPrice || 0,
+          kingPosts: materialBreakdown.kingPosts?.totalPrice || 0,
+          rafters: materialBreakdown.rafters.totalPrice || 0,
+          purlins: materialBreakdown.purlins.totalPrice || 0,
+          struts: materialBreakdown.struts.totalPrice || 0,
+          gutters: materialBreakdown.gutters.totalPrice || 0,
+          fascia: materialBreakdown.fascia.totalPrice || 0,
+          roofingSheets: totalSheetsCost,
+        },
+        breakdownWithWastage: {
+          timber: totalTimberCostWithWastage,
+          covering: totalSheetsCostWithWastage,
+          wallPlates: materialBreakdown.wallPlates.totalPriceWithWastage || 0,
+          tieBeams: materialBreakdown.tieBeams.totalPriceWithWastage || 0,
+          kingPosts: materialBreakdown.kingPosts?.totalPriceWithWastage || 0,
+          rafters: materialBreakdown.rafters.totalPriceWithWastage || 0,
+          purlins: materialBreakdown.purlins.totalPriceWithWastage || 0,
+          struts: materialBreakdown.struts.totalPriceWithWastage || 0,
+          gutters: materialBreakdown.gutters.totalPriceWithWastage || 0,
+          fascia: materialBreakdown.fascia.totalPriceWithWastage || 0,
+          roofingSheets: totalSheetsCostWithWastage,
+        },
         efficiency: {},
-        wastage: {},
+        wastage: {
+          percentage: materialBreakdown.miscellaneousAllowancePercent,
+        },
+        // Include full material breakdown for reference
+        materialBreakdown,
       };
     });
+    
     setCalculations(calculatedResults);
+
+    // Calculate totals across all roof structures
+    const totalCost = calculatedResults.reduce((sum, r) => sum + r.totalCost, 0);
+    const totalCostWithWastage = calculatedResults.reduce((sum, r) => sum + r.totalCostWithWastage, 0);
+
     setTotals({
       totalArea: roofStructures.reduce((sum, r) => sum + r.area, 0),
       totalTimberVolume: 0,
-      totalCoveringArea: roofStructures.reduce((sum, r) => sum + r.area, 0),
-      totalMaterialCost: 0,
-      totalMaterialCostWithWastage: 0,
-      totalCost: 0,
-      totalCostWithWastage: 0,
+      totalCoveringArea: calculatedResults.reduce((sum, r) => sum + r.coveringArea, 0),
+      totalMaterialCost: totalCost,
+      totalMaterialCostWithWastage: totalCostWithWastage,
+      totalCost: totalCost,
+      totalCostWithWastage: totalCostWithWastage,
       breakdown: {
-        timber: 0,
-        covering: 0,
+        timber: calculatedResults.reduce((sum, r) => sum + (r.breakdown?.timber || 0), 0),
+        covering: calculatedResults.reduce((sum, r) => sum + (r.breakdown?.covering || 0), 0),
         accessories: 0,
         insulation: 0,
         underlayment: 0,
       },
       breakdownWithWastage: {
-        timber: 0,
-        covering: 0,
+        timber: calculatedResults.reduce((sum, r) => sum + (r.breakdownWithWastage?.timber || 0), 0),
+        covering: calculatedResults.reduce((sum, r) => sum + (r.breakdownWithWastage?.covering || 0), 0),
         accessories: 0,
         insulation: 0,
         underlayment: 0,
       },
       wastage: {
-        percentage: 0,
+        percentage: 5,
         totalAdjustedItems: 0,
         totalWastageItems: 0,
       },
     });
-  }, [roofStructures]);
+  }, [roofStructures, calculateRoofMaterials]);
   useEffect(() => {
     if (roofStructures?.length > 0) {
       calculateAll();
@@ -781,11 +1104,14 @@ export default function useRoofingCalculator(
   const combined = { ...totals, calculations };
 
   useEffect(() => {
-    setQuoteData((prev: any) => ({
-      ...prev,
-      roofing_calculations: combined,
-    }));
-  }, [combined]);
+    if (setQuoteData && combined) {
+      setQuoteData((prev: any) => ({
+        ...prev,
+        roofing_calculations: combined,
+        roofingInputs: roofStructures,
+      }));
+    }
+  }, [combined, roofStructures, setQuoteData]);
 
   return {
     calculations,

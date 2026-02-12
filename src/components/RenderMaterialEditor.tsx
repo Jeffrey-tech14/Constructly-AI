@@ -1129,6 +1129,375 @@ export default function renderMaterialEditor(
     return renderCollapsible(content);
   }
 
+  // 15. Roofing Material Types - Simple roofing tiles/sheets with basic properties
+  if (
+    (material.name === "Concrete Roof Tiles" ||
+      material.name === "Clay Roof Tiles" ||
+      material.name === "Metal Roofing Sheets" ||
+      material.name === "Box Profile Sheets" ||
+      material.name === "Thatch Roofing" ||
+      material.name === "Natural Slate Tiles" ||
+      material.name === "Asphalt Shingles" ||
+      material.name === "Green Roof System" ||
+      material.name === "PVC/TPO Membrane") &&
+    material.type
+  ) {
+    const key = `${material.name.toLowerCase()}`;
+    const overridePrice =
+      tempValues[key] !== undefined ? tempValues[key] : material.price;
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        <div className="p-2 border rounded-lg">
+          <div className="flex justify-between">
+            <span className="font-medium">{material.name}</span>
+            <span className="text-xs text-gray-500">
+              Type: {material.type}
+              {material.thickness && `, Thickness: ${material.thickness}`}
+              {material.warranty && `, Warranty: ${material.warranty}`}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2 mt-2">
+            <Input
+              type="number"
+              value={overridePrice}
+              onChange={(e) =>
+                setTempValues({
+                  ...tempValues,
+                  [key]: parseFloat(e.target.value) || 0,
+                })
+              }
+              placeholder="Enter price in KES"
+            />
+            <Button
+              className="text-white"
+              size="sm"
+              onClick={() =>
+                handleSave(
+                  material.name,
+                  "material",
+                  material.id || material.type,
+                  material.name,
+                  tempValues[key] ?? material.price,
+                  "price"
+                )
+              }
+            >
+              <Save className="w-4 h-4 text-white" />
+            </Button>
+          </div>
+
+          {/* Display additional properties */}
+          {(material.colors || material.finish || material.coverage) && (
+            <div className="mt-3 pt-3 border-t text-xs text-gray-600 dark:text-gray-400">
+              {material.colors && (
+                <p className="mb-1">
+                  <span className="font-medium">Colors:</span> {material.colors.join(", ")}
+                </p>
+              )}
+              {material.finish && (
+                <p className="mb-1">
+                  <span className="font-medium">Finish:</span> {material.finish.join(", ")}
+                </p>
+              )}
+              {material.coverage && (
+                <p className="mb-1">
+                  <span className="font-medium">Coverage:</span> {material.coverage}
+                </p>
+              )}
+              {material.lengths && (
+                <p className="mb-1">
+                  <span className="font-medium">Lengths:</span> {material.lengths.join(", ")}
+                </p>
+              )}
+              {material.sizes && (
+                <p className="mb-1">
+                  <span className="font-medium">Sizes:</span> {material.sizes.join(", ")}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
+  // 16. Complex Roofing Structure with Structural Timber, Sheets, Finishing, and Accessories
+  if (material.name === "Roofing" && isObject(material.type)) {
+    const roofingType = material.type;
+
+    let content;
+
+    // Handle structuralTimber
+    if (roofingType.structuralTimber && isArray(roofingType.structuralTimber)) {
+      content = (
+        <div className="space-y-4">
+          <div className="border-b pb-4">
+            <h4 className="font-semibold mb-2 text-sm">Structural Timber</h4>
+            <div className="space-y-2">
+              {roofingType.structuralTimber.map((timber, idx) => {
+                const key = `roofing-timber-${idx}`;
+                const overridePrice =
+                  tempValues[key] !== undefined
+                    ? tempValues[key]
+                    : timber.price_kes;
+
+                return (
+                  <div key={idx} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-sm">{timber.size}</span>
+                      <span className="text-xs text-gray-500">
+                        {timber.description}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Input
+                        type="number"
+                        value={overridePrice}
+                        onChange={(e) =>
+                          setTempValues({
+                            ...tempValues,
+                            [key]: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        placeholder="Price per meter"
+                      />
+                      <Button
+                        className="text-white"
+                        size="sm"
+                        onClick={() =>
+                          handleSave(
+                            material.name,
+                            "material",
+                            material.id,
+                            `${material.name} - Timber ${timber.size}`,
+                            tempValues[key] ?? timber.price_kes,
+                            `timber-${idx}`
+                          )
+                        }
+                      >
+                        <Save className="w-4 h-4 text-white" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Roofing Sheets */}
+          {roofingType.roofingSheets && isArray(roofingType.roofingSheets) && (
+            <div className="border-b pb-4">
+              <h4 className="font-semibold mb-2 text-sm">Roofing Sheets</h4>
+              <div className="space-y-2">
+                {roofingType.roofingSheets.map((sheet, sheetIdx) => (
+                  <div key={sheetIdx} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="font-medium text-sm mb-2">{sheet.type}</div>
+
+                    {sheet.sizes &&
+                      isObject(sheet.sizes) &&
+                      Object.entries(sheet.sizes as Record<string, any>).map(([size, sizeData]) => {
+                        const key = `roofing-sheet-${sheetIdx}-${size}`;
+                        const overridePrice =
+                          tempValues[key] !== undefined
+                            ? tempValues[key]
+                            : (sizeData as any)?.price_kes || sheet.price_kes;
+
+                        return (
+                          <div
+                            key={size}
+                            className="flex items-center justify-between ml-2 mt-1"
+                          >
+                            <span className="text-sm">{size}</span>
+                            <div className="flex items-center space-x-2">
+                              <Input
+                                type="number"
+                                value={overridePrice}
+                                onChange={(e) =>
+                                  setTempValues({
+                                    ...tempValues,
+                                    [key]: parseFloat(e.target.value) || 0,
+                                  })
+                                }
+                                placeholder="Price per piece"
+                                className="w-32"
+                              />
+                              <Button
+                                className="text-white"
+                                size="sm"
+                                onClick={() =>
+                                  handleSave(
+                                    material.name,
+                                    "material",
+                                    material.id,
+                                    `${material.name} - Sheet ${sheet.type} ${size}`,
+                                    tempValues[key] ?? ((sizeData as any)?.price_kes || sheet.price_kes),
+                                    `sheet-${sheetIdx}-${size}`
+                                  )
+                                }
+                              >
+                                <Save className="w-4 h-4 text-white" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Roofing Finishing */}
+          {roofingType.roofingFinishing &&
+            isArray(roofingType.roofingFinishing) && (
+              <div className="border-b pb-4">
+                <h4 className="font-semibold mb-2 text-sm">Roofing Finishing</h4>
+                <div className="space-y-3">
+                  {roofingType.roofingFinishing.map((finishCategory, catIdx) => (
+                    <div
+                      key={catIdx}
+                      className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                    >
+                      <div className="font-medium text-sm mb-2">
+                        {finishCategory.name}
+                      </div>
+
+                      {isArray(finishCategory.types) &&
+                        finishCategory.types.map((finishType, typeIdx) => {
+                          const key = `roofing-finish-${catIdx}-${typeIdx}`;
+                          const overridePrice =
+                            tempValues[key] !== undefined
+                              ? tempValues[key]
+                              : finishType.price_kes;
+
+                          return (
+                            <div
+                              key={typeIdx}
+                              className="flex items-center justify-between ml-2 mt-1"
+                            >
+                              <div>
+                                <span className="text-sm font-medium">
+                                  {finishType.name}
+                                </span>
+                                <p className="text-xs text-gray-500">
+                                  {finishType.description}
+                                </p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Input
+                                  type="number"
+                                  value={overridePrice}
+                                  onChange={(e) =>
+                                    setTempValues({
+                                      ...tempValues,
+                                      [key]: parseFloat(e.target.value) || 0,
+                                    })
+                                  }
+                                  placeholder="Price per meter"
+                                  className="w-32"
+                                />
+                                <Button
+                                  className="text-white"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleSave(
+                                      material.name,
+                                      "material",
+                                      material.id,
+                                      `${material.name} - ${finishCategory.name} ${finishType.name}`,
+                                      tempValues[key] ?? finishType.price_kes,
+                                      `finish-${catIdx}-${typeIdx}`
+                                    )
+                                  }
+                                >
+                                  <Save className="w-4 h-4 text-white" />
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {/* Roofing Accessories */}
+          {roofingType.accessories &&
+            roofingType.accessories.items &&
+            isArray(roofingType.accessories.items) && (
+              <div>
+                <h4 className="font-semibold mb-2 text-sm">Accessories</h4>
+                <div className="space-y-2">
+                  {roofingType.accessories.items.map((accessory, accIdx) => {
+                    const key = `roofing-accessory-${accIdx}`;
+                    const overridePrice =
+                      tempValues[key] !== undefined
+                        ? tempValues[key]
+                        : accessory.price_kes;
+
+                    return (
+                      <div
+                        key={accIdx}
+                        className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg"
+                      >
+                        <div className="flex justify-between">
+                          <div>
+                            <span className="font-medium text-sm">
+                              {accessory.name}
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              {accessory.description} - {accessory.unit}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="number"
+                              value={overridePrice}
+                              onChange={(e) =>
+                                setTempValues({
+                                  ...tempValues,
+                                  [key]: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                              placeholder="Price"
+                              className="w-32"
+                            />
+                            <Button
+                              className="text-white"
+                              size="sm"
+                              onClick={() =>
+                                handleSave(
+                                  material.name,
+                                  "material",
+                                  material.id,
+                                  `${material.name} - Accessory ${accessory.name}`,
+                                  tempValues[key] ?? accessory.price_kes,
+                                  `accessory-${accIdx}`
+                                )
+                              }
+                            >
+                              <Save className="w-4 h-4 text-white" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+        </div>
+      );
+
+      return renderCollapsible(content, "Roofing Materials");
+    }
+  }
+
   // Default case - show a simple editor for materials with type but no specific handler
   const content = (
     <div className="p-4 text-center text-gray-500">

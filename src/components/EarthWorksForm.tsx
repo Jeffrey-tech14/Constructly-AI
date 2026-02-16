@@ -438,8 +438,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-          <Calculator className="w-5 h-5" />
+        <h3 className="text-2xl mt-4 mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           Earthworks Calculation
         </h3>
 
@@ -761,7 +760,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                  <h4 className="text-gray-900 dark:text-white">
                     Total Earthworks Cost
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">

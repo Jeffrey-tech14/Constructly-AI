@@ -311,7 +311,7 @@ const PreliminariesBuilder = ({
             <Input
               value={section.title}
               onChange={(e) => updateSectionTitle(sectionIndex, e.target.value)}
-              className="bg-background text-lg font-semibold border-none focus:ring-0"
+              className="bg-background text-lg  border-none focus:ring-0"
             />
             <Button
               variant="ghost"
@@ -343,7 +343,7 @@ const PreliminariesBuilder = ({
                       key={`${sectionIndex}-${itemIndex}-${item.itemNo}`}
                       className={
                         item.isHeader
-                          ? "bg-gray-100 dark:bg-gray-700 rounded-lg font-semibold"
+                          ? "bg-gray-100 dark:bg-gray-700 rounded-lg "
                           : ""
                       }
                     >
@@ -423,7 +423,7 @@ const PreliminariesBuilder = ({
                 })}
 
                 {section.items.length > 0 && (
-                  <TableRow className="bg-muted/50 font-semibold">
+                  <TableRow className="bg-muted/50 ">
                     <TableCell colSpan={2} className="text-right">
                       Section Total:
                     </TableCell>

@@ -530,7 +530,7 @@ export default function ElectricalCalculator({
               />
               <Label
                 htmlFor="electrical-category-lumpsum"
-                className="cursor-pointer font-semibold"
+                className="cursor-pointer "
               >
                 Use Lumpsum for All Electrical Systems
               </Label>
@@ -730,7 +730,7 @@ export default function ElectricalCalculator({
                     {/* Cables Section */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <Label className="text-lg font-semibold">Cables</Label>
+                        <Label className="text-lg ">Cables</Label>
                         <Button onClick={addCable} size="sm" variant="outline">
                           <Plus className="h-4 w-4 mr-1" />
                           Add Cable
@@ -871,7 +871,7 @@ export default function ElectricalCalculator({
                     {/* Outlets Section */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <Label className="text-lg font-semibold">Outlets</Label>
+                        <Label className="text-lg ">Outlets</Label>
                         <Button onClick={addOutlet} size="sm" variant="outline">
                           <Plus className="h-4 w-4 mr-1" />
                           Add Outlet
@@ -1013,7 +1013,7 @@ export default function ElectricalCalculator({
                     {/* Lighting Section */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <Label className="text-lg font-semibold">
+                        <Label className="text-lg ">
                           Lighting
                         </Label>
                         <Button
@@ -1170,7 +1170,7 @@ export default function ElectricalCalculator({
                     {/* Distribution Boards Section */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <Label className="text-lg font-semibold flex items-center">
+                        <Label className="text-lg  flex items-center">
                           <CircuitBoard className="h-5 w-5 mr-2" />
                           Distribution Boards
                         </Label>
@@ -1384,7 +1384,7 @@ export default function ElectricalCalculator({
                           <TableCell className="text-right">
                             {formatCurrency(calc.materialCost)}
                           </TableCell>
-                          <TableCell className="text-right font-semibold">
+                          <TableCell className="text-right ">
                             {formatCurrency(calc.totalCost)}
                           </TableCell>
                           {!readonly && (
@@ -1430,7 +1430,7 @@ export default function ElectricalCalculator({
                       <span className="font-medium">Total Load:</span>{" "}
                       {formatPower(totals.totalPowerLoad)}
                     </div>
-                    <div className="font-semibold">
+                    <div className="">
                       <span>Grand Total:</span>{" "}
                       {formatCurrency(totals.totalCost)}
                     </div>

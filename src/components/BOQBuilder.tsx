@@ -247,7 +247,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       <div className="flex flex-col justify-center items-center p-8 space-y-4">
         <RefreshCw className="w-8 h-8 animate-spin text-primary" />
         <div className="text-center">
-          <div className="font-semibold">Generating BOQ</div>
+          <div className="">Generating BOQ</div>
         </div>
       </div>
     );
@@ -258,7 +258,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       <div className="flex flex-col justify-center items-center p-8 space-y-4">
         <Brain className="w-12 h-12 text-muted-foreground" />
         <div className="text-center">
-          <div className="font-semibold">No BOQ Data Available</div>
+          <div className="">No BOQ Data Available</div>
           <div className="text-sm text-muted-foreground mb-4">
             {lastError
               ? `Error: ${lastError}`
@@ -334,7 +334,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
             <Input
               value={section.title}
               onChange={(e) => updateSectionTitle(sectionIndex, e.target.value)}
-              className="bg-background text-lg font-semibold border-none focus:ring-0"
+              className="bg-background text-lg  border-none focus:ring-0"
             />
             <Button
               variant="ghost"
@@ -363,7 +363,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                   <TableRow
                     key={itemIndex}
                     className={`
-                      ${item.isHeader ? "bg-muted/50 font-semibold" : ""}
+                      ${item.isHeader ? "bg-muted/50 " : ""}
                       ${item.isHeader ? "" : "hover:bg-muted/30"}
                     `}
                   >
@@ -390,7 +390,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                           }
                         />
                       ) : (
-                        <div className={item.isHeader ? "font-semibold" : ""}>
+                        <div className={item.isHeader ? "" : ""}>
                           {item.description}
                         </div>
                       )}
@@ -507,7 +507,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                   </TableRow>
                 ))}
 
-                <TableRow className="bg-muted font-semibold">
+                <TableRow className="bg-muted ">
                   <TableCell colSpan={5} className="text-right">
                     Section Total:
                   </TableCell>

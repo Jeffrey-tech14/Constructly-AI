@@ -49,7 +49,7 @@ const UserGuide = () => {
       content: (
         <div className="space-y-6">
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
+            <h3 className="text-lg  text-blue-900 dark:text-blue-100 mb-4">
               How JTech Works
             </h3>
             <p className="text-blue-800 dark:text-blue-200 mb-4">
@@ -141,7 +141,7 @@ const UserGuide = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                <h4 className=" text-gray-900 dark:text-white mb-2">
                   What to Upload
                 </h4>
                 <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -170,7 +170,7 @@ const UserGuide = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                <h4 className=" text-gray-900 dark:text-white mb-2">
                   What the AI Extracts
                 </h4>
                 <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -194,7 +194,7 @@ const UserGuide = () => {
                     1
                   </div>
                   <div>
-                    <p className="font-semibold">Upload Your File</p>
+                    <p className="">Upload Your File</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Select your floor plan file from your computer
                     </p>
@@ -206,7 +206,7 @@ const UserGuide = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-semibold">AI Analyzes the Plan</p>
+                    <p className="">AI Analyzes the Plan</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Our AI studies the drawing and extracts key measurements
                       and information (takes 30-60 seconds)
@@ -219,7 +219,7 @@ const UserGuide = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-semibold">Review & Confirm</p>
+                    <p className="">Review & Confirm</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Check the extracted data. You can edit any values that
                       don't look right
@@ -232,7 +232,7 @@ const UserGuide = () => {
                     4
                   </div>
                   <div>
-                    <p className="font-semibold">Proceed to Quote Builder</p>
+                    <p className="">Proceed to Quote Builder</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Move on to configure your project settings and generate
                       the quote
@@ -402,7 +402,7 @@ const UserGuide = () => {
       content: (
         <div className="space-y-6">
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3">
+            <h3 className="text-lg  text-blue-900 dark:text-blue-100 mb-3">
               What Are Variables?
             </h3>
             <p className="text-blue-800 dark:text-blue-200">
@@ -422,7 +422,7 @@ const UserGuide = () => {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="border-l-4 border-green-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Material Prices
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -433,7 +433,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Equipment Rates
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -444,7 +444,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-orange-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Transport Rates
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -454,7 +454,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Services
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -464,7 +464,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-red-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Custom Materials & Equipment
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -489,7 +489,7 @@ const UserGuide = () => {
                     1
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Go to Settings
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -504,7 +504,7 @@ const UserGuide = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Find Variables & Pricing
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -518,7 +518,7 @@ const UserGuide = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Choose a Category
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -532,7 +532,7 @@ const UserGuide = () => {
                     4
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Edit Prices
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -547,7 +547,7 @@ const UserGuide = () => {
                     ✓
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Save Changes
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -572,7 +572,7 @@ const UserGuide = () => {
                 materials:
               </p>
               <div className="space-y-2 text-sm bg-blue-50 dark:bg-blue-950/20 p-4 rounded">
-                <p className="font-semibold text-gray-900 dark:text-white">
+                <p className=" text-gray-900 dark:text-white">
                   Information Needed:
                 </p>
                 <ul className="space-y-1 text-gray-700 dark:text-gray-300">
@@ -632,7 +632,7 @@ const UserGuide = () => {
       content: (
         <div className="space-y-6">
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3">
+            <h3 className="text-lg  text-blue-900 dark:text-blue-100 mb-3">
               What Are Component Defaults?
             </h3>
             <p className="text-blue-800 dark:text-blue-200">
@@ -652,7 +652,7 @@ const UserGuide = () => {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="border-l-4 border-orange-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Roofing Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -667,7 +667,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Electrical Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -682,7 +682,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-cyan-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Plumbing Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -697,7 +697,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-red-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Concrete Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -710,7 +710,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-red-600 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Masonry Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -723,7 +723,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-yellow-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Painting Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -736,7 +736,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-green-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Finishing Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -749,7 +749,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Rebar Calculator
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -777,7 +777,7 @@ const UserGuide = () => {
                     1
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Open Quote Builder
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -791,7 +791,7 @@ const UserGuide = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Navigate to Each Component
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -806,7 +806,7 @@ const UserGuide = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Review Defaults
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -820,7 +820,7 @@ const UserGuide = () => {
                     4
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Override if Needed
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -834,7 +834,7 @@ const UserGuide = () => {
                     5
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Save Global Defaults (Optional)
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -915,7 +915,7 @@ const UserGuide = () => {
             <CardContent className="space-y-3">
               <div className="space-y-2 text-sm">
                 <div className="border-l-4 border-orange-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     High-End Projects
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -925,7 +925,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Rural Projects
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -935,7 +935,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-green-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Rapid Construction
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -945,7 +945,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Budget Estimates
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1142,7 +1142,7 @@ const UserGuide = () => {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="border-l-4 border-blue-500 pl-4">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Personal Information
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1151,7 +1151,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-green-500 pl-4">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Company Details
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1161,7 +1161,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Professional Settings
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1237,7 +1237,7 @@ const UserGuide = () => {
       content: (
         <div className="space-y-6">
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3">
+            <h3 className="text-lg  text-blue-900 dark:text-blue-100 mb-3">
               What is a PDF Quote?
             </h3>
             <p className="text-blue-800 dark:text-blue-200">
@@ -1258,7 +1258,7 @@ const UserGuide = () => {
                     1
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       You Click "Export to PDF"
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1272,7 +1272,7 @@ const UserGuide = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       System Formats the Data
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1287,7 +1287,7 @@ const UserGuide = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Applies Your Branding
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1302,7 +1302,7 @@ const UserGuide = () => {
                     4
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Generates PDF File
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1316,7 +1316,7 @@ const UserGuide = () => {
                     ✓
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Ready to Share
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1337,7 +1337,7 @@ const UserGuide = () => {
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Project Information
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1345,7 +1345,7 @@ const UserGuide = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Itemized Costs
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1353,7 +1353,7 @@ const UserGuide = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Section Totals
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1361,7 +1361,7 @@ const UserGuide = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Grand Total
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1369,7 +1369,7 @@ const UserGuide = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Company Details
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1377,7 +1377,7 @@ const UserGuide = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Terms & Notes
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1421,7 +1421,7 @@ const UserGuide = () => {
       content: (
         <div className="space-y-6">
           <div className="border-2 border-green-500 dark:border-green-600 rounded-3xl p-6 bg-green-50 dark:bg-green-950/10">
-            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-3">
+            <h3 className="text-lg  text-green-900 dark:text-green-100 mb-3">
               Simple Per-Quote Pricing
             </h3>
             <p className="text-green-800 dark:text-green-200 mb-4">
@@ -1447,7 +1447,7 @@ const UserGuide = () => {
                     1
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Create a Quote (Free)
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1462,7 +1462,7 @@ const UserGuide = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Click "Unlock Quote"
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1477,7 +1477,7 @@ const UserGuide = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Pay KES 1,000
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1492,7 +1492,7 @@ const UserGuide = () => {
                     ✓
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
+                    <p className=" text-gray-900 dark:text-white">
                       Full Access Unlocked
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1559,7 +1559,7 @@ const UserGuide = () => {
             <CardContent className="space-y-4">
               <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded space-y-3">
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Payment Method
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1569,7 +1569,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Payment Type
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1578,7 +1578,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Invoice & Receipt
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1588,7 +1588,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                  <p className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <p className=" text-gray-900 dark:text-white mb-1">
                     Security
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1609,7 +1609,7 @@ const UserGuide = () => {
             <CardContent className="space-y-3">
               <div className="space-y-2 text-sm">
                 <div className="border-l-4 border-green-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Quote Unlock Fee
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1618,7 +1618,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-blue-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Payment Processing
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1628,7 +1628,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-orange-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     No Hidden Charges
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1638,7 +1638,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className="font-semibold text-gray-900 dark:text-white">
+                  <p className=" text-gray-900 dark:text-white">
                     Save More
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -1682,7 +1682,7 @@ const UserGuide = () => {
 
   return (
     <div className="min-h-screen py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent mb-4">
@@ -1777,7 +1777,7 @@ const UserGuide = () => {
         <div className="mt-12 text-center">
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
             <CardContent className="pt-8 pb-8 text-center">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h3 className="text-xl  text-gray-900 dark:text-white mb-4">
                 Ready to Create Your First Quote?
               </h3>
               <p className="text-gray-700 dark:text-gray-300 mb-6">
@@ -1786,7 +1786,7 @@ const UserGuide = () => {
               </p>
               <a
                 href="/quotes/new"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg  transition-colors"
               >
                 Start Building a Quote
                 <ChevronRight className="w-5 h-5" />

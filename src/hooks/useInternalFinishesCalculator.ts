@@ -1,38 +1,11 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { FinishElement } from "@/hooks/useUniversalFinishesCalculator";
 
-export type FinishCategory =
-  | "flooring"
-  | "ceiling"
-  | "wall-finishes"
-  | "joinery"
-  | "external"
-  | "internal-walling"
-  | "external-walling"
-  | "others";
-
-export interface FinishElement {
+export interface InternalFinishCalculation {
   id: string;
-  category: FinishCategory;
-  material: string;
-  area: number;
-  length?: number;
-  width?: number;
-  height?: number;
-  price?: number; // Optional price field for direct input
-  unit: "m²" | "m" | "m³" | "pcs" | "kg" | "bag";
-  quantity: number;
-  location?: string;
-  tileSize?: string; // For tiles, e.g., "600x600mm"
-  specifications?: any;
-  metadata?: any; // For storing additional configuration data
-}
-
-export interface FinishCalculation {
-  id: string;
-  category: FinishCategory;
   material: string;
   quantity: number;
   adjustedQuantity: number;
@@ -49,7 +22,7 @@ export interface FinishCalculation {
   };
 }
 
-export interface FinishesTotals {
+export interface InternalFinishTotals {
   totalArea: number;
   totalQuantity: number;
   totalAdjustedQuantity: number;
@@ -64,13 +37,46 @@ export interface FinishesTotals {
   };
 }
 
-export default function useUniversalFinishesCalculator(
+/**
+ * Get walling material unit rate from materialPrices for internal finishes
+ */
+function getWallingRate(finish: FinishElement, prices: any[]): number {
+  if (!finish || !prices?.length) return 0;
+
+  const wallingCategory = prices.find((p: any) =>
+    p.name?.toLowerCase() === "wall-finishes"
+  );
+
+  if (!wallingCategory) return 0;
+
+  const allMaterials = [
+    ...(wallingCategory.type?.internalWallingMaterials || []),
+    ...(wallingCategory.type?.tilingMaterials || []),
+  ];
+
+  let material = allMaterials.find((m: any) =>
+    m.name?.toLowerCase() === finish.material.toLowerCase()
+  );
+
+  if (!material) {
+    material = allMaterials.find((m: any) =>
+      m.name?.toLowerCase().includes(finish.material.toLowerCase())
+    );
+  }
+
+  if (!material || !Array.isArray(material.type)) return 0;
+
+  const firstType = material.type[0];
+  return firstType?.price_kes || 0;
+}
+
+export default function useInternalFinishesCalculator(
   finishes: FinishElement[],
   materialPrices: any[],
   quote: any,
 ) {
-  const [calculations, setCalculations] = useState<FinishCalculation[]>([]);
-  const [totals, setTotals] = useState<FinishesTotals>({
+  const [calculations, setCalculations] = useState<InternalFinishCalculation[]>([]);
+  const [totals, setTotals] = useState<InternalFinishTotals>({
     totalArea: 0,
     totalQuantity: 0,
     totalAdjustedQuantity: 0,
@@ -105,15 +111,15 @@ export default function useUniversalFinishesCalculator(
   const applyWastageToQuantity = useCallback(
     (quantity: number, wastagePercentage: number): number => {
       const adjustedQuantity = quantity * (1 + wastagePercentage);
-      return Math.ceil(adjustedQuantity * 100) / 100; // Round to 2 decimal places for area/linear, whole numbers for pieces
+      return Math.ceil(adjustedQuantity * 100) / 100; // Round to 2 decimal places
     },
     [],
   );
 
   const calculateFinish = useCallback(
-    (finish: FinishElement): FinishCalculation => {
+    (finish: FinishElement): InternalFinishCalculation => {
       const wastagePercentage = getWastagePercentage();
-      const unitRate = getFinishRate(finish, materialPrices);
+      const unitRate = getWallingRate(finish, materialPrices);
 
       // Apply wastage to quantity
       const adjustedQuantity = applyWastageToQuantity(
@@ -132,7 +138,6 @@ export default function useUniversalFinishesCalculator(
 
       return {
         id: finish.id,
-        category: finish.category,
         material: finish.material,
         quantity: finish.quantity,
         adjustedQuantity,
@@ -153,51 +158,14 @@ export default function useUniversalFinishesCalculator(
   );
 
   const calculateAll = useCallback(() => {
-    // First, check if there are gypsum boards and add Filler
-    const gypsumBoard = finishes.find(
-      (f) =>
-        f.category === "ceiling" && f.material.toLowerCase() === "gypsum board",
-    );
-
-    let finishesToCalculate = [...finishes];
-
-    // If gypsum board exists, add Fillerpsum board quantity)
-    if (gypsumBoard) {
-      const jointingCompoundId = `filler-${gypsumBoard.id}`;
-      const existingJointingCompound = finishesToCalculate.find(
-        (f) => f.id === jointingCompoundId,
-      );
-
-      if (!existingJointingCompound) {
-        // Add Filler as 1/3 of gypsum board quantity
-        finishesToCalculate.push({
-          id: jointingCompoundId,
-          category: "ceiling",
-          material: "Filler",
-          area: gypsumBoard.area,
-          quantity: gypsumBoard.quantity / 3,
-          unit: gypsumBoard.unit,
-          location: gypsumBoard.location,
-          specifications: gypsumBoard.specifications,
-        });
-      } else {
-        // Update existing Filler to be 1/3 of gypsum board
-        finishesToCalculate = finishesToCalculate.map((f) =>
-          f.id === jointingCompoundId
-            ? { ...f, quantity: gypsumBoard.quantity / 3 }
-            : f,
-        );
-      }
-    }
-
-    const calculated = finishesToCalculate.map(calculateFinish);
+    const calculated = finishes.map(calculateFinish);
     setCalculations(calculated);
 
     const wastagePercentage = getWastagePercentage();
 
     const newTotals = calculated.reduce(
       (acc, curr) => ({
-        totalArea: acc.totalArea + (curr.unit === "m²" ? curr.quantity : 0),
+        totalArea: acc.totalArea + (curr.unit === "m²" || curr.unit === "m" ? curr.quantity : 0),
         totalQuantity: acc.totalQuantity + curr.quantity,
         totalAdjustedQuantity:
           acc.totalAdjustedQuantity + curr.adjustedQuantity,
@@ -237,10 +205,25 @@ export default function useUniversalFinishesCalculator(
   useEffect(() => {
     if (finishes?.length > 0) {
       calculateAll();
+    } else {
+      // Reset to empty when no finishes
+      setCalculations([]);
+      setTotals({
+        totalArea: 0,
+        totalQuantity: 0,
+        totalAdjustedQuantity: 0,
+        totalMaterialCost: 0,
+        totalMaterialCostWithWastage: 0,
+        totalCost: 0,
+        totalCostWithWastage: 0,
+        wastage: {
+          percentage: getWastagePercentage(),
+          totalWastageQuantity: 0,
+          totalWastageCost: 0,
+        },
+      });
     }
-  }, [finishes, calculateAll]);
-
-  const combined = { ...totals, calculations };
+  }, [finishes, calculateAll, getWastagePercentage]);
 
   return {
     calculations,
@@ -248,35 +231,4 @@ export default function useUniversalFinishesCalculator(
     calculateAll,
     wastagePercentage: getWastagePercentage(),
   };
-}
-
-function getFinishRate(finish: FinishElement, prices: any[]): number {
-  if (!finish || !prices?.length) return 0;
-
-  const categoryKey = finish.category.toLowerCase();
-
-  // Find category in finishes JSON
-  const category = prices.find(
-    (p: any) => p.name.toLowerCase() === categoryKey,
-  );
-  if (!category) return 0;
-
-  // Find material in that category
-  if (!category?.type?.materials) return 0;
-  const matchedMaterial = Object.entries(category?.type?.materials).find(
-    ([materialName]) =>
-      materialName.toLowerCase() === finish.material.toLowerCase(),
-  );
-
-  if (!matchedMaterial) {
-    // fallback if partial match
-    const partialMatch = Object.entries(category?.type?.materials).find(
-      ([materialName]) =>
-        materialName.toLowerCase().includes(finish.material.toLowerCase()),
-    );
-    return partialMatch ? Number((partialMatch[1] as any)?.price) || 0 : 0;
-  }
-
-  // Return the price value - extract from the material object
-  return Number((matchedMaterial[1] as any)?.price) || 0;
 }

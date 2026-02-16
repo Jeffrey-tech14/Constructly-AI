@@ -177,6 +177,10 @@ const UploadPlan = () => {
   } | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [analysisTimeLeft, setAnalysisTimeLeft] = useState<number | null>(null);
+  const [planDragActive, setPlanDragActive] = useState(false);
+  const [bbsDragActive, setBBSDragActive] = useState(false);
+  const planDropZoneRef = useRef<HTMLDivElement>(null);
+  const bbsDropZoneRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -686,6 +690,151 @@ const UploadPlan = () => {
     }
   };
 
+  // Plan drag and drop handlers
+  const handlePlanDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPlanDragActive(true);
+  };
+
+  const handlePlanDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget === planDropZoneRef.current) {
+      setPlanDragActive(false);
+    }
+  };
+
+  const handlePlanDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handlePlanDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPlanDragActive(false);
+
+    if (!e.dataTransfer.files?.length) return;
+
+    const file = e.dataTransfer.files[0];
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const validExtensions = ["jpg", "jpeg", "png", "pdf", "webp"];
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "application/pdf",
+      "image/webp",
+    ];
+
+    const isValidType =
+      validTypes.includes(file.type) || validExtensions.includes(fileExt || "");
+
+    if (!isValidType) {
+      setError({
+        message: "Please upload a supported file format (JPEG, PNG, PDF, WEBP)",
+        type: "upload",
+        retryable: true,
+      });
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      setError({
+        message: "File size must be less than 20MB",
+        type: "upload",
+        retryable: true,
+      });
+      return;
+    }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setConfidence(0);
+    setError(null);
+    setCurrentStep("idle");
+
+    toast({
+      title: "Plan File Selected",
+      description: file.name,
+    });
+  };
+
+  // BBS drag and drop handlers
+  const handleBBSDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBBSDragActive(true);
+  };
+
+  const handleBBSDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget === bbsDropZoneRef.current) {
+      setBBSDragActive(false);
+    }
+  };
+
+  const handleBBSDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleBBSDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBBSDragActive(false);
+
+    if (!e.dataTransfer.files?.length) return;
+
+    const file = e.dataTransfer.files[0];
+    const fileExt = file.name.split(".").pop()?.toLowerCase();
+    const validExtensions = [
+      "pdf",
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "xlsx",
+      "csv",
+    ];
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "application/pdf",
+      "image/webp",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "text/csv",
+    ];
+
+    const isValidType =
+      validTypes.includes(file.type) || validExtensions.includes(fileExt || "");
+
+    if (!isValidType) {
+      toast({
+        title: "Invalid BBS Format",
+        description: "BBS must be PDF, image, or spreadsheet format",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "BBS file must be less than 20MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBbsFile(file);
+    toast({
+      title: "BBS Added",
+      description: `Bar Bending Schedule added: ${file.name}`,
+    });
+  };
+
   const startAnalysis = async () => {
     if (!selectedFile) {
       toast({
@@ -900,9 +1049,9 @@ const UploadPlan = () => {
           className="flex items-center justify-between mb-10"
         >
           <div className="text-center">
-            <div className="flex items-center sm:text-2xl text-xl font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white dark:from-white dark:via-white dark:to-white  bg-clip-text text-transparent">
+            <div className="flex items-center sm:text-2xl text-xl bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white dark:from-white dark:via-white dark:to-white  bg-clip-text text-transparent">
               <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-blue-700 dark:text-white dark:text-white" />
-              Upload & Analyze Plan
+              <h2 className="text-2xl ">Upload & Analyze Plan</h2>
             </div>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text mt-2">
               AI-powered extraction of rooms, dimensions, doors, and windows —
@@ -1132,13 +1281,7 @@ const UploadPlan = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-2 space-y-8"
           >
-            <Card className="text-center">
-              <CardHeader className="glass rounded-t-3xl">
-                <CardTitle className="sm:text-xl font-bold">
-                  Upload Your Floor Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-8 p-8">
+              <div className="space-y-8 p-8">
                 {(editablePlan && currentStep === "complete") ||
                 ((fileUrl || selectedFile) &&
                   (currentStep === "analyzing" ||
@@ -1146,7 +1289,7 @@ const UploadPlan = () => {
                   <div className="space-y-6 scrollbar-hide">
                     <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
                       <FileText className="sm:w-7 sm:h-7 text-green-500" />
-                      <p className="sm:text-lg font-semibold">
+                      <p className="sm:text-lg ">
                         {selectedFile?.name ||
                           fileUrl.split("/").pop() ||
                           "Uploaded Plan"}
@@ -1220,7 +1363,7 @@ const UploadPlan = () => {
 
                             {/* Text with typewriter effect */}
                             <div className="space-y-3">
-                              <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                              <p className="text-lg  text-slate-800 dark:text-slate-100">
                                 Analyzing your plan...
                               </p>
                               <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -1305,324 +1448,11 @@ const UploadPlan = () => {
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6 space-y-6">
-                              {/* Doors & Windows by Wall Type - Editable */}
-                              {editablePlan.wallSections && editablePlan.wallSections.length > 0 && (
-                                <div className="mb-6">
-                                  <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
-                                    <DoorOpen className="w-4 h-4 mr-2" />
-                                    Doors & Windows by Wall Type
-                                  </h4>
-                                  <div className="space-y-4">
-                                    {editablePlan.wallSections.map((section, sectionIdx) => (
-                                      <div
-                                        key={sectionIdx}
-                                        className={`p-4 rounded-lg border ${
-                                          section.type === "external"
-                                            ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
-                                            : "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
-                                        }`}
-                                      >
-                                        <h5 className={`font-semibold mb-3 capitalize flex items-center ${
-                                          section.type === "external"
-                                            ? "text-green-900 dark:text-green-100"
-                                            : "text-blue-900 dark:text-blue-100"
-                                        }`}>
-                                          <Building className="w-4 h-4 mr-2" />
-                                          {section.type} Walls
-                                        </h5>
-                                        
-                                        {/* Doors Section */}
-                                        <div className="mb-4">
-                                          <div className="flex items-center justify-between mb-2">
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
-                                              <DoorOpen className="w-3 h-3 mr-1" />
-                                              Doors ({section.doors?.length || 0})
-                                            </p>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => {
-                                                const newDoor: Door = {
-                                                  sizeType: "standard",
-                                                  standardSize: "0.9 × 2.1 m",
-                                                  price: 0,
-                                                  custom: { height: "2.1", width: "0.9", price: 0 },
-                                                  type: "Flush",
-                                                  count: 1,
-                                                  wallThickness: 0.2,
-                                                  frame: {
-                                                    type: "Wood",
-                                                    price: 0,
-                                                    sizeType: "standard",
-                                                    standardSize: "0.9 × 2.1 m",
-                                                    height: "2.1",
-                                                    width: "0.9",
-                                                    custom: { height: "2.1", width: "0.9", price: 0 },
-                                                  },
-                                                  architrave: {
-                                                    selected: { type: "", size: "" },
-                                                    quantity: 0,
-                                                    price: 0,
-                                                  },
-                                                  quarterRound: {
-                                                    selected: { type: "", size: "" },
-                                                    quantity: 0,
-                                                    price: 0,
-                                                  },
-                                                  ironmongery: {
-                                                    hinges: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    locks: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    handles: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    bolts: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    closers: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                  },
-                                                  transom: {
-                                                    enabled: false,
-                                                    height: "",
-                                                    width: "",
-                                                    quantity: 0,
-                                                    price: 0,
-                                                    glazing: {
-                                                      included: false,
-                                                      glassAreaM2: 0,
-                                                      puttyLengthM: 0,
-                                                      glassPricePerM2: 0,
-                                                      puttyPricePerM: 0,
-                                                    },
-                                                  },
-                                                };
-                                                setEditablePlan((prev) => {
-                                                  if (!prev) return prev;
-                                                  const updatedSections = [...(prev.wallSections || [])];
-                                                  updatedSections[sectionIdx] = {
-                                                    ...updatedSections[sectionIdx],
-                                                    doors: [...(updatedSections[sectionIdx].doors || []), newDoor],
-                                                  };
-                                                  return { ...prev, wallSections: updatedSections };
-                                                });
-                                              }}
-                                            >
-                                              <Plus className="w-3 h-3 mr-1" />
-                                              Add Door
-                                            </Button>
-                                          </div>
-                                          {section.doors && section.doors.length > 0 ? (
-                                            <div className="space-y-2">
-                                              {section.doors.map((door, doorIdx) => (
-                                                <EditableDoorWindow
-                                                  key={doorIdx}
-                                                  type="door"
-                                                  item={door}
-                                                  onUpdate={(field, value) => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      const updatedDoors = [...(updatedSections[sectionIdx].doors || [])];
-                                                      updatedDoors[doorIdx] = {
-                                                        ...updatedDoors[doorIdx],
-                                                        [field]: value,
-                                                      };
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        doors: updatedDoors,
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  onRemove={() => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        doors: updatedSections[sectionIdx].doors?.filter((_, i) => i !== doorIdx),
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  standardSizes={standardDoorSizes}
-                                                  types={doorTypes}
-                                                  frameTypes={frameTypes}
-                                                />
-                                              ))}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-slate-500 italic">No doors added</p>
-                                          )}
-                                        </div>
-                                        
-                                        {/* Windows Section */}
-                                        <div>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
-                                              <LucideAppWindow className="w-3 h-3 mr-1" />
-                                              Windows ({section.windows?.length || 0})
-                                            </p>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => {
-                                                const newWindow: Window = {
-                                                  sizeType: "standard",
-                                                  standardSize: "1.2 × 1.2 m",
-                                                  price: 0,
-                                                  custom: { height: "1.2", width: "1.2", price: 0 },
-                                                  type: "Clear",
-                                                  count: 1,
-                                                  wallThickness: 0.2,
-                                                  frame: {
-                                                    type: "Aluminum",
-                                                    price: 0,
-                                                    sizeType: "standard",
-                                                    standardSize: "1.2 × 1.2 m",
-                                                    height: "1.2",
-                                                    width: "1.2",
-                                                    custom: { height: "1.2", width: "1.2", price: 0 },
-                                                  },
-                                                  architrave: {
-                                                    selected: { type: "", size: "" },
-                                                    quantity: 0,
-                                                    price: 0,
-                                                  },
-                                                  quarterRound: {
-                                                    selected: { type: "", size: "" },
-                                                    quantity: 0,
-                                                    price: 0,
-                                                  },
-                                                  ironmongery: {
-                                                    hinges: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    locks: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    handles: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    bolts: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    closers: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                  },
-                                                  glassType: "Clear",
-                                                  glassThickness: 3,
-                                                  span: 1.2,
-                                                  isGlassUnderSized: false,
-                                                  recommendedGlassThickness: 3,
-                                                  glazing: {
-                                                    glass: {
-                                                      type: "Clear",
-                                                      thickness: 3,
-                                                      quantity: 1,
-                                                      pricePerM2: 0,
-                                                    },
-                                                    putty: {
-                                                      quantity: 0,
-                                                      unit: "m",
-                                                      price: 0,
-                                                    },
-                                                  },
-                                                };
-                                                setEditablePlan((prev) => {
-                                                  if (!prev) return prev;
-                                                  const updatedSections = [...(prev.wallSections || [])];
-                                                  updatedSections[sectionIdx] = {
-                                                    ...updatedSections[sectionIdx],
-                                                    windows: [...(updatedSections[sectionIdx].windows || []), newWindow],
-                                                  };
-                                                  return { ...prev, wallSections: updatedSections };
-                                                });
-                                              }}
-                                            >
-                                              <Plus className="w-3 h-3 mr-1" />
-                                              Add Window
-                                            </Button>
-                                          </div>
-                                          {section.windows && section.windows.length > 0 ? (
-                                            <div className="space-y-2">
-                                              {section.windows.map((window, windowIdx) => (
-                                                <EditableDoorWindow
-                                                  key={windowIdx}
-                                                  type="window"
-                                                  item={window}
-                                                  onUpdate={(field, value) => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      const updatedWindows = [...(updatedSections[sectionIdx].windows || [])];
-                                                      updatedWindows[windowIdx] = {
-                                                        ...updatedWindows[windowIdx],
-                                                        [field]: value,
-                                                      };
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        windows: updatedWindows,
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  onRemove={() => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        windows: updatedSections[sectionIdx].windows?.filter((_, i) => i !== windowIdx),
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  standardSizes={standardWindowSizes}
-                                                  types={windowGlassTypes}
-                                                  frameTypes={frameTypes}
-                                                />
-                                              ))}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-slate-500 italic">No windows added</p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                              
                               
                               {/* Wall Dimensions */}
                               <div>
-                                <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+                                <h4 className=" text-slate-700 dark:text-slate-300 mb-4 flex items-center">
                                   <Ruler className="w-4 h-4 mr-2" />
                                   Wall Dimensions
                                 </h4>
@@ -1990,7 +1820,7 @@ const UploadPlan = () => {
                               </div>
                               <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
                                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                                  <span className="font-semibold">Note:</span>{" "}
+                                  <span className="">Note:</span>{" "}
                                   These values have been extracted from your
                                   plan. Please verify and correct them if needed
                                   before proceeding.
@@ -2011,7 +1841,7 @@ const UploadPlan = () => {
                                 </CardTitle>
                                 <CardDescription className="text-blue-700 dark:text-blue-300 mt-2">
                                   Rebar Calculation Method:{" "}
-                                  <span className="font-semibold">
+                                  <span className="">
                                     {editablePlan.rebar_calculation_method ||
                                       "NORMAL_REBAR_MODE"}
                                   </span>
@@ -2022,19 +1852,19 @@ const UploadPlan = () => {
                                   <table className="w-full text-sm">
                                     <thead>
                                       <tr className="border-b border-blue-300 dark:border-blue-700">
-                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
                                           Bar Type
                                         </th>
-                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
                                           Length (m)
                                         </th>
-                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
                                           Quantity
                                         </th>
-                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
                                           Weight/m (kg)
                                         </th>
-                                        <th className="text-left p-2 font-semibold text-blue-900 dark:text-blue-100">
+                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
                                           Total Weight (kg)
                                         </th>
                                       </tr>
@@ -2046,7 +1876,7 @@ const UploadPlan = () => {
                                             key={idx}
                                             className="border-b border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
                                           >
-                                            <td className="p-2 text-blue-700 dark:text-blue-300 font-semibold">
+                                            <td className="p-2 text-blue-700 dark:text-blue-300 ">
                                               {bar.bar_type}
                                             </td>
                                             <td className="p-2 text-slate-700 dark:text-slate-300">
@@ -2060,7 +1890,7 @@ const UploadPlan = () => {
                                                 2,
                                               ) || "-"}
                                             </td>
-                                            <td className="p-2 text-slate-700 dark:text-slate-300 font-semibold">
+                                            <td className="p-2 text-slate-700 dark:text-slate-300 ">
                                               {bar.total_weight?.toFixed(2) ||
                                                 "-"}
                                             </td>
@@ -2072,7 +1902,308 @@ const UploadPlan = () => {
                                 </div>
                               </CardContent>
                             </Card>
-                          )}
+                          )}{/* Doors & Windows by Wall Type - Editable */}
+                              {editablePlan.wallSections && editablePlan.wallSections.length > 0 && (
+                                <div className="mb-6">
+                                  <h4 className=" text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+                                    <DoorOpen className="w-4 h-4 mr-2" />
+                                    Doors & Windows by Wall Type
+                                  </h4>
+                                  <div className="space-y-4">
+                                    {editablePlan.wallSections.map((section, sectionIdx) => (
+                                      <div
+                                        key={sectionIdx}
+                                        className={`p-4 rounded-lg border ${
+                                          section.type === "external"
+                                            ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
+                                            : "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
+                                        }`}
+                                      >
+                                        <h5 className={` mb-3 capitalize flex items-center ${
+                                          section.type === "external"
+                                            ? "text-green-900 dark:text-green-100"
+                                            : "text-blue-900 dark:text-blue-100"
+                                        }`}>
+                                          <Building className="w-4 h-4 mr-2" />
+                                          {section.type} Walls
+                                        </h5>
+                                        
+                                        {/* Doors Section */}
+                                        <div className="mb-4">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                                              <DoorOpen className="w-3 h-3 mr-1" />
+                                              Doors ({section.doors?.length || 0})
+                                            </p>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => {
+                                                const newDoor: Door = {
+                                                  sizeType: "standard",
+                                                  standardSize: "0.9 × 2.1 m",
+                                                  price: 0,
+                                                  custom: { height: "2.1", width: "0.9", price: 0 },
+                                                  type: "Flush",
+                                                  count: 1,
+                                                  wallThickness: 0.2,
+                                                  frame: {
+                                                    type: "Wood",
+                                                    price: 0,
+                                                    sizeType: "standard",
+                                                    standardSize: "0.9 × 2.1 m",
+                                                    height: "2.1",
+                                                    width: "0.9",
+                                                    custom: { height: "2.1", width: "0.9", price: 0 },
+                                                  },
+                                                  architrave: {
+                                                    selected: { type: "", size: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                  },
+                                                  quarterRound: {
+                                                    selected: { type: "", size: "" },
+                                                    quantity: 0,
+                                                    price: 0,
+                                                  },
+                                                  ironmongery: {
+                                                    hinges: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    locks: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    handles: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    bolts: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    closers: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                  },
+                                                  transom: {
+                                                    enabled: false,
+                                                    height: "",
+                                                    width: "",
+                                                    quantity: 0,
+                                                    price: 0,
+                                                    glazing: {
+                                                      included: false,
+                                                      glassAreaM2: 0,
+                                                      glassPricePerM2: 0,
+                                                    },
+                                                  },
+                                                };
+                                                setEditablePlan((prev) => {
+                                                  if (!prev) return prev;
+                                                  const updatedSections = [...(prev.wallSections || [])];
+                                                  updatedSections[sectionIdx] = {
+                                                    ...updatedSections[sectionIdx],
+                                                    doors: [...(updatedSections[sectionIdx].doors || []), newDoor],
+                                                  };
+                                                  return { ...prev, wallSections: updatedSections };
+                                                });
+                                              }}
+                                            >
+                                              <Plus className="w-3 h-3 mr-1" />
+                                              Add Door
+                                            </Button>
+                                          </div>
+                                          {section.doors && section.doors.length > 0 ? (
+                                            <div className="space-y-2">
+                                              {section.doors.map((door, doorIdx) => (
+                                                <EditableDoorWindow
+                                                  key={doorIdx}
+                                                  type="door"
+                                                  item={door}
+                                                  onUpdate={(field, value) => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      const updatedDoors = [...(updatedSections[sectionIdx].doors || [])];
+                                                      updatedDoors[doorIdx] = {
+                                                        ...updatedDoors[doorIdx],
+                                                        [field]: value,
+                                                      };
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        doors: updatedDoors,
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  onRemove={() => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        doors: updatedSections[sectionIdx].doors?.filter((_, i) => i !== doorIdx),
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  standardSizes={standardDoorSizes}
+                                                  types={doorTypes}
+                                                  frameTypes={frameTypes}
+                                                />
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <p className="text-xs text-slate-500 italic">No doors added</p>
+                                          )}
+                                        </div>
+                                        
+                                        {/* Windows Section */}
+                                        <div>
+                                          <div className="flex items-center justify-between mb-2">
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                                              <LucideAppWindow className="w-3 h-3 mr-1" />
+                                              Windows ({section.windows?.length || 0})
+                                            </p>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => {
+                                                const newWindow: Window = {
+                                                  sizeType: "standard",
+                                                  standardSize: "1.2 × 1.2 m",
+                                                  price: 0,
+                                                  custom: { height: "1.2", width: "1.2", price: 0 },
+                                                  type: "Clear",
+                                                  count: 1,
+                                                  wallThickness: 0.2,
+                                                  frame: {
+                                                    type: "Aluminum",
+                                                    price: 0,
+                                                    sizeType: "standard",
+                                                    standardSize: "1.2 × 1.2 m",
+                                                    height: "1.2",
+                                                    width: "1.2",
+                                                    custom: { height: "1.2", width: "1.2", price: 0 },
+                                                  },
+                                                  ironmongery: {
+                                                    hinges: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    locks: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    handles: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    bolts: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                    closers: {
+                                                      selected: { type: "", size: "" },
+                                                      quantity: 0,
+                                                      price: 0,
+                                                    },
+                                                  },
+                                                  glassType: "Clear",
+                                                  glassThickness: 3,
+                                                  span: 1.2,
+                                                  isGlassUnderSized: false,
+                                                  recommendedGlassThickness: 3,
+                                                  glazing: {
+                                                    glass: {
+                                                      type: "Clear",
+                                                      thickness: 3,
+                                                      quantity: 1,
+                                                      pricePerM2: 0,
+                                                    },
+                                                    putty: {
+                                                      quantity: 0,
+                                                      unit: "m",
+                                                      price: 0,
+                                                    },
+                                                  },
+                                                };
+                                                setEditablePlan((prev) => {
+                                                  if (!prev) return prev;
+                                                  const updatedSections = [...(prev.wallSections || [])];
+                                                  updatedSections[sectionIdx] = {
+                                                    ...updatedSections[sectionIdx],
+                                                    windows: [...(updatedSections[sectionIdx].windows || []), newWindow],
+                                                  };
+                                                  return { ...prev, wallSections: updatedSections };
+                                                });
+                                              }}
+                                            >
+                                              <Plus className="w-3 h-3 mr-1" />
+                                              Add Window
+                                            </Button>
+                                          </div>
+                                          {section.windows && section.windows.length > 0 ? (
+                                            <div className="space-y-2">
+                                              {section.windows.map((window, windowIdx) => (
+                                                <EditableDoorWindow
+                                                  key={windowIdx}
+                                                  type="window"
+                                                  item={window}
+                                                  onUpdate={(field, value) => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      const updatedWindows = [...(updatedSections[sectionIdx].windows || [])];
+                                                      updatedWindows[windowIdx] = {
+                                                        ...updatedWindows[windowIdx],
+                                                        [field]: value,
+                                                      };
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        windows: updatedWindows,
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  onRemove={() => {
+                                                    setEditablePlan((prev) => {
+                                                      if (!prev) return prev;
+                                                      const updatedSections = [...(prev.wallSections || [])];
+                                                      updatedSections[sectionIdx] = {
+                                                        ...updatedSections[sectionIdx],
+                                                        windows: updatedSections[sectionIdx].windows?.filter((_, i) => i !== windowIdx),
+                                                      };
+                                                      return { ...prev, wallSections: updatedSections };
+                                                    });
+                                                  }}
+                                                  standardSizes={standardWindowSizes}
+                                                  types={windowGlassTypes}
+                                                  frameTypes={frameTypes}
+                                                />
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <p className="text-xs text-slate-500 italic">No windows added</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
 
                         <div className="space-y-6 mt-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2114,7 +2245,7 @@ const UploadPlan = () => {
                             <div className="space-y-6">
                               <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
                                 <LucideFileText className="w-10 h-10 text-green-500" />
-                                <p className="text-xl font-semibold truncate flex-1">
+                                <p className="text-xl  truncate flex-1">
                                   {fileUrl.split("/").pop() || "Uploaded Plan"}
                                 </p>
                                 <Button
@@ -2166,9 +2297,6 @@ const UploadPlan = () => {
                             <div className="space-y-6">
                               {/* Plan File Upload Section */}
                               <div>
-                                <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
-                                  1️⃣ Upload Construction Plan
-                                </h3>
                                 <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-12 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
                                   <UploadCloud className="w-16 h-16 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
                                   <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
@@ -2189,7 +2317,7 @@ const UploadPlan = () => {
 
                                   <Label
                                     htmlFor="fileUpload"
-                                    className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                                    className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                                   >
                                     📁 Select Plan File
                                   </Label>
@@ -2223,10 +2351,6 @@ const UploadPlan = () => {
 
                               {/* BBS File Upload Section (Optional) */}
                               <div>
-                                <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
-                                  2️⃣ Upload Bar Bending Schedule (Optional)
-                                </h3>
-
                                 {/* Existing BBS File Display */}
                                 {bbsFileUrl && (
                                   <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
@@ -2293,7 +2417,7 @@ const UploadPlan = () => {
 
                                     <Label
                                       htmlFor="bbsFileUpload"
-                                      className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                                      className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                                     >
                                       📊 Select BBS File
                                     </Label>
@@ -2314,7 +2438,7 @@ const UploadPlan = () => {
 
                                     <Label
                                       htmlFor="bbsFileUpload"
-                                      className="cursor-pointer glass-button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm font-semibold"
+                                      className="cursor-pointer glass-button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm "
                                     >
                                       📊 Replace BBS File
                                     </Label>
@@ -2424,13 +2548,25 @@ const UploadPlan = () => {
                   <div className="space-y-6">
                     {/* Plan File Upload Section */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
-                        1️⃣ Upload Construction Plan
-                      </h3>
-                      <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-12 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                        <UploadCloud className="w-16 h-16 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                      <div
+                        ref={planDropZoneRef}
+                        onDragEnter={handlePlanDragEnter}
+                        onDragLeave={handlePlanDragLeave}
+                        onDragOver={handlePlanDragOver}
+                        onDrop={handlePlanDrop}
+                        className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
+                          planDragActive
+                            ? "border-blue-500 bg-blue-100 dark:bg-blue-900/40 shadow-lg"
+                            : "border-blue-300 dark:border-blue-500 bg-blue-50/30 dark:bg-primary/20 hover:border-blue-500 dark:hover:border-blue-400"
+                        }`}
+                      >
+                        <UploadCloud className={`w-16 h-16 mx-auto mb-4 transition-colors ${
+                          planDragActive
+                            ? "text-blue-600 dark:text-blue-300 animate-bounce"
+                            : "text-blue-400 dark:text-blue-300"
+                        }`} />
                         <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                          Drag & drop your plan or click to upload
+                          {planDragActive ? "Drop your plan file here" : "Drag & drop your plan or click to upload"}
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                           Supported formats: JPEG, PNG, PDF, WEBP (Max 20MB)
@@ -2446,9 +2582,9 @@ const UploadPlan = () => {
 
                         <Label
                           htmlFor="fileUpload"
-                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                         >
-                          📁 Select Plan File
+                          Select Plan File
                         </Label>
                       </div>
                     </div>
@@ -2473,20 +2609,32 @@ const UploadPlan = () => {
                           onClick={() => setSelectedFile(null)}
                           className="text-red-500 hover:text-red-700"
                         >
-                          <X className="w-5 h-5" />
+                          <Trash2 className="w-5 h-5" />
                         </Button>
                       </div>
                     )}
 
                     {/* BBS File Upload Section (Optional) */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
-                        2️⃣ Upload Bar Bending Schedule (Optional)
-                      </h3>
-                      <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
-                        <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
+                      <div
+                        ref={bbsDropZoneRef}
+                        onDragEnter={handleBBSDragEnter}
+                        onDragLeave={handleBBSDragLeave}
+                        onDragOver={handleBBSDragOver}
+                        onDrop={handleBBSDrop}
+                        className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
+                          bbsDragActive
+                            ? "border-amber-400 bg-amber-100 dark:bg-amber-900/40 shadow-lg"
+                            : "border-amber-300 dark:border-amber-600 bg-amber-50/30 dark:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500"
+                        }`}
+                      >
+                        <BarChart3 className={`w-16 h-16 mx-auto mb-4 transition-colors ${
+                          bbsDragActive
+                            ? "text-amber-600 dark:text-amber-300 animate-bounce"
+                            : "text-amber-400 dark:text-amber-300"
+                        }`} />
                         <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                          Upload BBS for precise rebar calculations
+                          {bbsDragActive ? "Drop your BBS file here" : "Upload BBS for precise rebar calculations (Optional)"}
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                           Supported formats: PDF, Images, Spreadsheet (Max 20MB)
@@ -2502,7 +2650,7 @@ const UploadPlan = () => {
 
                         <Label
                           htmlFor="bbsFileUpload2"
-                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base font-semibold"
+                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                         >
                           📊 Select BBS File
                         </Label>
@@ -2569,8 +2717,7 @@ const UploadPlan = () => {
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
           </motion.div>
         </div>
       </div>
@@ -2593,7 +2740,7 @@ const UploadPlan = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold">Plan Preview</h3>
+                <h3 className="text-lg ">Plan Preview</h3>
                 <Button
                   variant="ghost"
                   size="icon"

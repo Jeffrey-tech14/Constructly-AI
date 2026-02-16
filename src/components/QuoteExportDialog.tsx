@@ -187,7 +187,7 @@ export const QuoteExportDialog = ({
               />
             </svg>
           </div>
-          <p className="text-red-700 dark:text-red-200 font-semibold text-center text-lg">
+          <p className="text-red-700 dark:text-red-200  text-center text-lg">
             Something Went Wrong
           </p>
           <p className="text-red-600 dark:text-red-300 text-sm text-center">
@@ -203,7 +203,7 @@ export const QuoteExportDialog = ({
       ) : isProcessing ? (
         <div className="flex flex-col items-center justify-center space-y-3 bg-green-50 dark:bg-green-900 border border-green-400 rounded-lg p-4">
           <Clock className="w-8 h-8 text-green-600 dark:text-green-300 animate-spin" />
-          <p className="text-green-700 dark:text-green-400 font-semibold text-center text-lg">
+          <p className="text-green-700 dark:text-green-400  text-center text-lg">
             Processing your Document...
           </p>
           <p className="text-green-700 dark:text-green-400 text-sm text-center">
@@ -214,7 +214,7 @@ export const QuoteExportDialog = ({
         <>
           {/* Quote Info Section */}
           <div className="bg-muted/30 p-4 rounded-lg space-y-2 border border-muted">
-            <h3 className="text-lg font-semibold text-white">Quote Summary</h3>
+            <h3 className="text-lg  text-white">Quote Summary</h3>
             <div className="text-sm dark:text-gray-300 text-white space-y-1">
               <p className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />{" "}

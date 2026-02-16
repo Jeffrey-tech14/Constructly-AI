@@ -46,30 +46,35 @@ export interface Door {
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     locks?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     handles?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     bolts?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     closers?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
   };
   transom?: {
@@ -81,9 +86,7 @@ export interface Door {
     glazing?: {
       included?: boolean;
       glassAreaM2?: number;
-      puttyLengthM?: number;
       glassPricePerM2?: number;
-      puttyPricePerM?: number;
     };
   };
 }
@@ -105,48 +108,41 @@ export interface Window {
     width: string;
     custom: { height: string; width: string; price?: number };
   };
-  architrave?: {
-    selected?: { type?: string; size?: string };
-    customSize?: string;
-    quantity?: number;
-    price?: number;
-  };
-  quarterRound?: {
-    selected?: { type?: string; size?: string };
-    customSize?: string;
-    quantity?: number;
-    price?: number;
-  };
   ironmongery?: {
     hinges?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     locks?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     handles?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     bolts?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
     closers?: {
       selected?: { type?: string; size?: string };
       customSize?: string;
       quantity?: number;
       price?: number;
+      enabled?: boolean;
     };
   };
   glazing?: {
@@ -1898,23 +1894,6 @@ export default function useMasonryCalculatorNew({
             totalOpeningsCost += glassCost;
           }
         }
-
-        if (door.transom?.glazing?.puttyLengthM) {
-          const puttyPerUnit = Number(door.transom.glazing.puttyLengthM) || 0;
-          const transomQty = Number(door.transom?.quantity) || 1;
-          const puttyTotal = puttyPerUnit * transomQty * door.count;
-          netTransomPuttyLength += puttyTotal;
-
-          const puttyPrice = resolvePrice(
-            door.transom.glazing?.puttyPricePerM,
-            getPuttyPricePerM(),
-          );
-          if (puttyPrice > 0) {
-            const puttyCost = puttyTotal * puttyPrice;
-            netTransomPuttyCost += puttyCost;
-            totalOpeningsCost += puttyCost;
-          }
-        }
       });
 
       section.windows.forEach((window) => {
@@ -1949,21 +1928,6 @@ export default function useMasonryCalculatorNew({
         netWindowFramesCost += frameCost;
         totalOpeningsCost += windowCost + frameCost;
         windowFramesCount += window.count;
-
-        if (window.architrave?.quantity) {
-          const price = resolvePrice(
-            window.architrave?.price,
-            getFastenerPrice("architrave", window.architrave?.selected),
-          );
-          const qty = Number(window.architrave.quantity) * window.count;
-          netWindowArchitraveQty += qty;
-          if (price > 0) {
-            const architraveCost =
-              Number(window.architrave.quantity) * price * window.count;
-            netWindowArchitraveCost += architraveCost;
-            totalOpeningsCost += architraveCost;
-          }
-        }
 
         const windowArea =
           window.sizeType === "standard"

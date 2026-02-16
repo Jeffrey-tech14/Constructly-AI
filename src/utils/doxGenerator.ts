@@ -25,12 +25,30 @@ import {
   Packer,
 } from "docx";
 import { saveAs } from "file-saver";
-import { WorkItem } from "@/services/geminiService";
+import {
+  GeminiMaterialResponse,
+  MaterialScheduleSection,
+  MaterialScheduleItem,
+  MaterialScheduleSummary,
+} from "@/services/geminiService";
+
+interface WorkItem {
+  workDescription: string;
+  materials: Array<{
+    description: string;
+    unit: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+  }>;
+  subtotal: number;
+}
 
 interface DOCXExportOptions {
   quote: any;
   projectInfo: any;
   isClientExport?: boolean;
+  materialSchedule?: GeminiMaterialResponse;
 }
 const formatCurrency = (amount: number): string => {
   if (!amount || amount === 0) return "";
@@ -444,6 +462,481 @@ const createSectionTitle = (text: string): Paragraph => {
     alignment: AlignmentType.LEFT,
     shading: { type: ShadingType.CLEAR, fill: "3B82F6" },
     spacing: { after: 200 },
+  });
+};
+const createHierarchicalMaterialsTable = (
+  materialSchedule: GeminiMaterialResponse,
+): Table => {
+  if (!materialSchedule || !materialSchedule.sections || materialSchedule.sections.length === 0) {
+    return new Table({
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "No materials data available",
+                      bold: true,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+  }
+
+  const rows: TableRow[] = [
+    // Header row
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "ITEM",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 8, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "DESCRIPTION",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+            }),
+          ],
+          width: { size: 25, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "SPECIFICATION",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+            }),
+          ],
+          width: { size: 20, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "UNIT",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 8, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "QTY",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 10, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "UNIT RATE",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 12, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "TOTAL COST",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 12, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "REMARKS",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.CENTER,
+            }),
+          ],
+          width: { size: 5, type: WidthType.PERCENTAGE },
+          shading: { fill: "1E40AF" },
+        }),
+      ],
+    }),
+  ];
+
+  // Add sections and items
+  materialSchedule.sections.forEach((section: MaterialScheduleSection) => {
+    // Section header
+    rows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: section.name,
+                    bold: true,
+                    size: 22,
+                  }),
+                ],
+              }),
+            ],
+            columnSpan: 8,
+            shading: { fill: "E0E7FF" },
+          }),
+        ],
+      }),
+    );
+
+    // Section items
+    section.items.forEach((item: MaterialScheduleItem) => {
+      if (item.type === "subheader") {
+        // Subheader row
+        rows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: item.description,
+                        bold: true,
+                        size: 20,
+                      }),
+                    ],
+                  }),
+                ],
+                columnSpan: 8,
+                shading: { fill: "F3F4F6" },
+              }),
+            ],
+          }),
+        );
+      } else if (item.type === "note") {
+        // Note row
+        rows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: item.description,
+                        italics: true,
+                        size: 18,
+                        color: "666666",
+                      }),
+                    ],
+                  }),
+                ],
+                columnSpan: 8,
+              }),
+            ],
+          }),
+        );
+      } else if (item.type === "item") {
+        // Material item row
+        rows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: String(item.item_id),
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: item.description || "",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: item.specification || "",
+                        size: 18,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: item.unit || "",
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: formatQuantity(item.quantity),
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: formatCurrency(item.unit_rate),
+                      }),
+                    ],
+                    alignment: AlignmentType.RIGHT,
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: formatCurrency(item.total_cost),
+                      }),
+                    ],
+                    alignment: AlignmentType.RIGHT,
+                  }),
+                ],
+              }),
+              new TableCell({
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: item.calculated ? "C" : "",
+                        size: 16,
+                      }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        );
+      }
+    });
+  });
+
+  // Summary section
+  const summary = materialSchedule.summary;
+  rows.push(
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: "" })],
+          columnSpan: 6,
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "SUB TOTAL:",
+                  bold: true,
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+            }),
+          ],
+          shading: { fill: "F3F4F6" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: formatCurrency(summary.sub_total),
+                  bold: true,
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+              shading: { fill: "F3F4F6" },
+            }),
+          ],
+        }),
+      ],
+    }),
+  );
+
+  if (summary.contingency_percentage && summary.contingency_percentage > 0) {
+    rows.push(
+      new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({ text: "" })],
+            columnSpan: 6,
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `CONTINGENCY (${summary.contingency_percentage}%):`,
+                    bold: true,
+                  }),
+                ],
+                alignment: AlignmentType.RIGHT,
+              }),
+            ],
+            shading: { fill: "F3F4F6" },
+          }),
+          new TableCell({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: formatCurrency(summary.contingency_amount),
+                    bold: true,
+                  }),
+                ],
+                alignment: AlignmentType.RIGHT,
+                shading: { fill: "F3F4F6" },
+              }),
+            ],
+          }),
+        ],
+      }),
+    );
+  }
+
+  rows.push(
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ text: "" })],
+          columnSpan: 6,
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "GRAND TOTAL:",
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+            }),
+          ],
+          shading: { fill: "1E40AF" },
+        }),
+        new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: formatCurrency(summary.grand_total),
+                  bold: true,
+                  color: "FFFFFF",
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+              shading: { fill: "1E40AF" },
+            }),
+          ],
+        }),
+      ],
+    }),
+  );
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+    },
+    rows,
   });
 };
 const createMaterialsScheduleTable = (materials: any[]): Table => {
@@ -1959,8 +2452,11 @@ export const generateQuoteDOCX = async ({
   quote,
   projectInfo,
   isClientExport = false,
+  materialSchedule,
 }: DOCXExportOptions) => {
-  const materials = extractMaterialsFromQuote(quote);
+  const materials = materialSchedule
+    ? undefined
+    : extractMaterialsFromQuote(quote);
   const workItems = quote.workItems;
   const boqData = quote.boq_data || [];
   const preliminariesData = quote.preliminaries || [];
@@ -2086,9 +2582,11 @@ export const generateQuoteDOCX = async ({
             children: [new PageBreak()],
           }),
           createSectionTitle("MATERIALS SCHEDULE"),
-          workItems && workItems.length > 0
-            ? createHierarchicalMaterialsScheduleTable(workItems)
-            : createMaterialsScheduleTable(materials),
+          materialSchedule
+            ? createHierarchicalMaterialsTable(materialSchedule)
+            : workItems && workItems.length > 0
+              ? createHierarchicalMaterialsScheduleTable(workItems)
+              : createMaterialsScheduleTable(materials),
           new Paragraph({
             children: [new PageBreak()],
           }),

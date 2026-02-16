@@ -112,7 +112,7 @@ export default function MasonryCalculatorForm({
   return (
     <div className="space-y-4">
       <div className="p-4 m-2 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h3 className="font-semibold text-lg text-primary dark:text-blue-100">
+        <h3 className=" text-lg text-primary dark:text-blue-100">
           Total Cost: Ksh {results.grossTotalCost?.toLocaleString() || 0}
         </h3>
         <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
@@ -180,7 +180,7 @@ export default function MasonryCalculatorForm({
           (results.netLintelsCost > 0 || results.grossLintelsCost > 0) && (
             <Card className="border">
               <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-b rounded-t-lg">
-                <h4 className="font-semibold text-amber-900 dark:text-amber-100">
+                <h4 className=" text-amber-900 dark:text-amber-100">
                   Lintel Beam Breakdown
                 </h4>
               </div>
@@ -234,7 +234,7 @@ export default function MasonryCalculatorForm({
           (results.netRingBeamsCost > 0 || results.grossRingBeamsCost > 0) && (
             <Card className="border">
               <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border-b rounded-t-lg">
-                <h4 className="font-semibold text-cyan-900 dark:text-cyan-100">
+                <h4 className=" text-cyan-900 dark:text-cyan-100">
                   Ring Beam Breakdown
                 </h4>
               </div>
@@ -288,7 +288,7 @@ export default function MasonryCalculatorForm({
           results.netWindowsCost > 0) && (
           <Card className="border">
             <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b rounded-t-lg">
-              <h4 className="font-semibold text-green-900 dark:text-green-100">
+              <h4 className=" text-green-900 dark:text-green-100">
                 Doors & Windows Breakdown
               </h4>
             </div>
@@ -509,7 +509,7 @@ export default function MasonryCalculatorForm({
             <div>
               • Water Price: Ksh {waterPrice?.toLocaleString() || "0"} per m³
             </div>
-            <div className="font-semibold mt-1">
+            <div className=" mt-1">
               • Total Water Cost: Ksh {results.grossWaterCost?.toLocaleString()}
             </div>
           </div>
@@ -520,7 +520,7 @@ export default function MasonryCalculatorForm({
         {/* Wall Dimensions Section */}
         <Card className="border">
           <div className="p-4 rounded-t-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b">
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+            <h3 className="text-lg  text-blue-900 dark:text-blue-100 flex items-center gap-2">
               <Layers className="w-5 h-5" />
               Wall Dimensions
             </h3>

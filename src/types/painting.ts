@@ -262,5 +262,6 @@ export const DEFAULT_PAINTING_CONFIG = {
     category: "emulsion" as PaintCategory,
     subtype: "vinyl-matt" as PaintSubtype,
     coats: 2,
-  },
+  finishType: "eggshell",
+  }, // default finish type for finish-level category
 };

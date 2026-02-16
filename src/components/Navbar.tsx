@@ -141,7 +141,7 @@ const Navbar = () => {
         <text
           x="45"
           y="24"
-          fontFamily="Segoe UI"
+          fontFamily="Outfit"
           fontWeight="800"
           fontSize="22"
           fill={logoDarkColor}
@@ -151,7 +151,7 @@ const Navbar = () => {
         <text
           x="108"
           y="24"
-          fontFamily="Segoe UI"
+          fontFamily="Outfit"
           fontWeight="800"
           fontSize="22"
           fill={logoLightColor}
@@ -298,7 +298,7 @@ const Navbar = () => {
                       className="w-64 border border-gray-200 dark:border-gray-700 shadow-xl glass rounded-xl p-2"
                     >
                       <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
-                        <p className="font-semibold text-gray-900 dark:text-white truncate">
+                        <p className=" text-gray-900 dark:text-white truncate">
                           {profile?.name || user.email}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -383,7 +383,7 @@ const Navbar = () => {
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
                               Are you sure you want to sign out as{" "}
-                              <span className="font-semibold text-gray-900 dark:text-white">
+                              <span className=" text-gray-900 dark:text-white">
                                 {profile?.name || user.email}
                               </span>
                               ? You will need to sign in again to access your

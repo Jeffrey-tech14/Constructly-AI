@@ -574,7 +574,7 @@ export const useQuoteCalculations = () => {
         qsSettings?.financialModes?.unknowns_contingency === "percentage"
           ? Math.round(
               subtotalBeforeExtras *
-                (percentageSettings.unknowns_contingency / 100),
+                (percentageSettings.unknowns_contingency || 0 / 100),
             )
           : qsSettings?.unknown_contingency_amount || 0;
 

@@ -234,7 +234,7 @@ const Calendar = () => {
           <Card className="border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">
+                <CardTitle className="text-lg ">
                   {format(currentMonth, "MMMM yyyy")}
                 </CardTitle>
                 <div className="flex gap-2">
@@ -282,7 +282,7 @@ const Calendar = () => {
                 {weekDays.map((day) => (
                   <div
                     key={day}
-                    className="text-center font-semibold text-sm text-slate-600 dark:text-slate-400 py-2"
+                    className="text-center  text-sm text-slate-600 dark:text-slate-400 py-2"
                   >
                     {day}
                   </div>
@@ -318,7 +318,7 @@ const Calendar = () => {
                         }
                       `}
                     >
-                      <span className="font-semibold text-sm">
+                      <span className=" text-sm">
                         {format(date, "d")}
                       </span>
                       {eventCount > 0 && (
@@ -359,7 +359,7 @@ const Calendar = () => {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="font-semibold text-slate-900 dark:text-white">
+                        <div className=" text-slate-900 dark:text-white">
                           {event.title}
                         </div>
                         {event.event_time && (

@@ -2,7 +2,6 @@
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import { CategorizedMaterial } from "./advancedMaterialExtractor";
-import { WorkItem, WorkItemMaterial } from "@/services/geminiService";
 
 export interface ConsolidatedMaterial {
   itemNo: string;
@@ -15,56 +14,7 @@ export interface ConsolidatedMaterial {
   category: string;
 }
 
-export interface WorkItemForConsolidation {
-  workNumber: string;
-  workDescription: string;
-  workQuantity: number;
-  workUnit: string;
-  materials: WorkItemMaterial[];
-  subtotal: number;
-}
-
 export class MaterialConsolidator {
-  static consolidateToWorkItems(
-    workItems: WorkItem[],
-  ): WorkItemForConsolidation[] {
-    return workItems.map((workItem, index) => ({
-      workNumber: `WI-${String(index + 1).padStart(3, "0")}`,
-      workDescription: workItem.workDescription,
-      workQuantity: workItem.workQuantity,
-      workUnit: workItem.workUnit,
-      materials: this.consolidateMaterialsForWorkItem(workItem.materials || []),
-      subtotal: workItem.subtotal || 0,
-    }));
-  }
-
-  private static consolidateMaterialsForWorkItem(
-    materials: WorkItemMaterial[],
-  ): WorkItemMaterial[] {
-    const materialMap = new Map<string, WorkItemMaterial>();
-
-    materials.forEach((material) => {
-      const key = `${this.cleanDescription(material.description)}_${
-        material.unit
-      }`.toLowerCase();
-
-      if (materialMap.has(key)) {
-        const existing = materialMap.get(key)!;
-        existing.quantity += material.quantity;
-        existing.amount += material.amount;
-        if (existing.quantity > 0) {
-          existing.rate = existing.amount / existing.quantity;
-        }
-      } else {
-        materialMap.set(key, {
-          ...material,
-          description: this.cleanDescription(material.description),
-        });
-      }
-    });
-
-    return Array.from(materialMap.values());
-  }
 
   static consolidateAllMaterials(
     materials: CategorizedMaterial[],

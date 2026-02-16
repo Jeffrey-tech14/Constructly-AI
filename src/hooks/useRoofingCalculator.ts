@@ -716,6 +716,21 @@ function applyFasciaPricing(
   };
 }
 
+/**
+ * Sync roofing geometry from slab footprint and external perimeter
+ * Ensures roofing area always matches slab footprint area
+ * Ensures roofing perimeter always matches external wall perimeter
+ */
+export function syncRoofingFromSlabGeometry(
+  slabFootprintAreaM2: number,
+  externalPerimeterM: number
+): { roofingAreaM2: number; roofingPerimeterM: number } {
+  return {
+    roofingAreaM2: slabFootprintAreaM2,    // Must always equal slab footprint
+    roofingPerimeterM: externalPerimeterM, // Must always equal external perimeter
+  };
+}
+
 export default function useRoofingCalculator(
   roofStructures: RoofStructure[],
   materialPrices: any,
@@ -1108,7 +1123,7 @@ export default function useRoofingCalculator(
       setQuoteData((prev: any) => ({
         ...prev,
         roofing_calculations: combined,
-        roofingInputs: roofStructures,
+        roof_structures: roofStructures,
       }));
     }
   }, [combined, roofStructures, setQuoteData]);

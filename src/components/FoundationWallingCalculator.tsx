@@ -49,6 +49,7 @@ export default function FoundationWallingCalculator({
     removeWall,
     calculateWallQuantities,
     getTotalQuantities,
+    calculateFoundationWallingArea,
   } = useFoundationWallingCalculator(quote);
 
   const hasInitializedRef = useRef(false);
@@ -340,7 +341,7 @@ export default function FoundationWallingCalculator({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-2xl  text-gray-900 dark:text-white">
           Foundation Wall Calculator
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
@@ -690,7 +691,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Volume
                               </p>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                              <p className=" text-gray-900 dark:text-white">
                                 {calculations.volume?.toFixed(2) || 0} m³
                               </p>
                             </div>
@@ -698,7 +699,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Blocks
                               </p>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                              <p className=" text-gray-900 dark:text-white">
                                 {calculations.blocks || 0}
                               </p>
                             </div>
@@ -706,7 +707,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Block Ft
                               </p>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                              <p className=" text-gray-900 dark:text-white">
                                 {calculations.blocksFeet?.toFixed(0) || 0}
                               </p>
                             </div>
@@ -714,7 +715,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Cement (bags)
                               </p>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                              <p className=" text-gray-900 dark:text-white">
                                 {calculations.mortarCement || 0}
                               </p>
                             </div>
@@ -722,7 +723,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Sand (m³)
                               </p>
-                              <p className="font-semibold text-gray-900 dark:text-white">
+                              <p className=" text-gray-900 dark:text-white">
                                 {calculations.mortarSand?.toFixed(2) || 0}
                               </p>
                             </div>
@@ -781,7 +782,15 @@ export default function FoundationWallingCalculator({
           <CardTitle>Total Foundation Walling</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Walling Area
+              </p>
+              <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+                {calculateFoundationWallingArea().toFixed(2)} m²
+              </p>
+            </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Total Volume
@@ -846,7 +855,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 External Walls
               </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-lg  text-gray-900 dark:text-white">
                 {blockPricePerFoot > 0
                   ? `KES ${totals.externalCost.toLocaleString()}`
                   : "No price set"}
@@ -856,7 +865,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Internal Walls
               </p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
+              <p className="text-lg  text-gray-900 dark:text-white">
                 {blockPricePerFoot > 0
                   ? `KES ${totals.internalCost.toLocaleString()}`
                   : "No price set"}
@@ -904,7 +913,7 @@ export default function FoundationWallingCalculator({
               {/* Breakdown by wall type */}
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-700">
-                  <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                  <p className="text-xs  text-blue-900 dark:text-blue-100">
                     External Wall Return Fill
                   </p>
                   <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
@@ -912,7 +921,7 @@ export default function FoundationWallingCalculator({
                   </p>
                 </div>
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded border border-indigo-200 dark:border-indigo-700">
-                  <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-100">
+                  <p className="text-xs  text-indigo-900 dark:text-indigo-100">
                     Internal Wall Return Fill
                   </p>
                   <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">

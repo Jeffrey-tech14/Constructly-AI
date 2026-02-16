@@ -403,8 +403,8 @@ export default function ConcreteCalculatorForm({
       };
 
       const newRows = prevRows.map((row) => {
-        // Only apply to strip footings that have hasBackFill enabled
-        if (row.element === "strip-footing" && row.hasBackFill) {
+        // Only apply to slabs that have hasBackFill enabled
+        if (row.element === "slab" && row.hasBackFill) {
           const slabThickness = parseFloat(row.height || "0") || 0; // Using height as slab thickness
           const maramBlindingDepth = row.hasMaramBlinding
             ? parseFloat(row.maramBlindingDepth || "0") || 0
@@ -714,7 +714,7 @@ export default function ConcreteCalculatorForm({
         initializeSpecializedDetails(row);
         return (
           <div className="space-y-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-md">
-            <h4 className="font-semibold text-orange-800 dark:text-orange-200">
+            <h4 className=" text-orange-800 dark:text-orange-200">
               Septic Tank Details
             </h4>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -829,7 +829,7 @@ export default function ConcreteCalculatorForm({
         initializeSpecializedDetails(row);
         return (
           <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-            <h4 className="font-semibold text-blue-800 dark:text-blue-200">
+            <h4 className=" text-blue-800 dark:text-blue-200">
               Underground Tank Details
             </h4>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -942,7 +942,7 @@ export default function ConcreteCalculatorForm({
         initializeSpecializedDetails(row);
         return (
           <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-md">
-            <h4 className="font-semibold text-amber-800 dark:text-amber-200">
+            <h4 className=" text-amber-800 dark:text-amber-200">
               Soak Pit Details
             </h4>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -1089,7 +1089,7 @@ export default function ConcreteCalculatorForm({
         initializeSpecializedDetails(row);
         return (
           <div className="space-y-4 p-4 bg-teal-50 dark:bg-teal-900/20 rounded-md">
-            <h4 className="font-semibold text-teal-800 dark:text-teal-200">
+            <h4 className=" text-teal-800 dark:text-teal-200">
               Soakaway Details
             </h4>
             <div className="grid sm:grid-cols-3 gap-4">
@@ -1319,7 +1319,7 @@ export default function ConcreteCalculatorForm({
     return (
       <div className="space-y-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-2xl">
         <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-purple-800 dark:text-purple-200">
+          <h4 className=" text-purple-800 dark:text-purple-200">
             Stepped Foundation Details
           </h4>
           <Button
@@ -1887,7 +1887,7 @@ export default function ConcreteCalculatorForm({
 
   return (
     <div className="space-y-4 p-1 rounded-lg">
-      <h2 className="text-xl font-bold">Concrete & Foundation Calculator</h2>
+      <h2 className="text-2xl ">Concrete & Foundation Calculator</h2>
       <Label className="mt-5 items-center space-x-2">
         {" "}
         Wastage Allowance (%)
@@ -1921,7 +1921,7 @@ export default function ConcreteCalculatorForm({
               • Water Price: Ksh {(waterMat?.price || 0).toLocaleString()} per
               m³
             </div>
-            <div className="font-semibold mt-1">
+            <div className=" mt-1">
               • Total Water Cost: Ksh {(totals.waterCost || 0).toLocaleString()}
             </div>
           </div>
@@ -1944,14 +1944,14 @@ export default function ConcreteCalculatorForm({
         return (
           <Card
             key={row.id}
-            className="p-4 border dark:border-white/20 border-primary/40 rounded-lg space-y-2"
+            className="p-4 border dark:border-white/20 border-primary/40 space-y-2"
           >
             <Input
               type="text"
               value={row.name}
               onChange={(e) => updateRow(row.id, "name", e.target.value)}
               placeholder="Name (e.g. Slab 1)"
-              className="font-semibold text-lg mb-2"
+              className="font-Gabarito text-lg mb-2"
             />
             <div className="grid sm:grid-cols-4 gap-2">
               <Select
@@ -2168,8 +2168,8 @@ export default function ConcreteCalculatorForm({
             {renderWaterproofing(row)}
 
             {/* Blinding, Maram & Backfill - Only for Slabs */}
-            {(row.element === "strip-footing" ||
-              row.element === "raft-foundation") && (
+            {(row.element === "slab" ||
+              row.element === "paving") && (
               <div className="space-y-4">
                 {/* Back Fill */}
                 <div className="space-y-2 p-3 rounded-md">
@@ -2370,7 +2370,7 @@ export default function ConcreteCalculatorForm({
                   result.polytheneCost ||
                   result.waterproofingCost) > 0 && (
                   <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-md">
-                    <h4 className="font-semibold mb-2">Waterproofing Costs:</h4>
+                    <h4 className=" mb-2">Waterproofing Costs:</h4>
                     {result.dpcCost > 0 && (
                       <p>
                         <b>DPC:</b> {result.dpcArea?.toFixed(2)} m² — Ksh{" "}
@@ -2396,7 +2396,7 @@ export default function ConcreteCalculatorForm({
 
                 {result.gravelVolume > 0 && (
                   <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md">
-                    <h4 className="font-semibold mb-2">Gravel Backfill:</h4>
+                    <h4 className=" mb-2">Gravel Backfill:</h4>
                     <p>
                       <b>Gravel Volume:</b> {result.gravelVolume.toFixed(2)} m³
                       — Ksh{" "}
@@ -2406,7 +2406,7 @@ export default function ConcreteCalculatorForm({
                 )}
 
                 <div className="mt-2">
-                  <h4 className="font-semibold">Material Breakdown:</h4>
+                  <h4 className="">Material Breakdown:</h4>
                   <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">
                     (Cement, sand, ballast, water, aggregate are included in the
                     concrete rate)
@@ -2506,7 +2506,7 @@ export default function ConcreteCalculatorForm({
       </Button>
 
       <Card className="p-4 border rounded-lg mt-4">
-        <h3 className="font-bold">Totals</h3>
+        <h3 className="">Totals</h3>
         <p>
           <b>Total Concrete Volume:</b> {totals?.volume?.toFixed(2)} m³
         </p>
@@ -2627,7 +2627,7 @@ export default function ConcreteCalculatorForm({
           </p>
         </div>
 
-        <p className="mt-2 font-bold text-lg">
+        <p className="mt-2  text-lg">
           Grand Total (All Materials): Ksh{" "}
           {Math.round(totals.totalCost || 0).toLocaleString()}
         </p>

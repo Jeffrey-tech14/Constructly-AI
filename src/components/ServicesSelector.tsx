@@ -55,7 +55,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+        <h3 className="text-lg  mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
           <Plus className="w-5 h-5" />
           Additional Services
         </h3>
@@ -371,7 +371,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
                   ],
                 }));
               }}
-              className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+              className="rounded-full  shadow-md hover:shadow-lg transition-all duration-300"
               style={{
                 padding: "0.75rem 2rem",
               }}

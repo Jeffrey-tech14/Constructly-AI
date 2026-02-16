@@ -51,7 +51,7 @@ export function PaymentGate({
             {/* Quote Info */}
             <div className="space-y-2 rounded-lg bg-gray-50 p-4">
               <p className="text-sm font-medium text-gray-600">Quote Title</p>
-              <p className="truncate text-lg font-semibold text-[#00356B]">
+              <p className="truncate text-lg  text-[#00356B]">
                 {quoteTitle}
               </p>
             </div>
@@ -63,7 +63,7 @@ export function PaymentGate({
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-[#00356B]">1,000</span>
-                <span className="text-2xl font-semibold text-[#86bc25]">
+                <span className="text-2xl  text-[#86bc25]">
                   KSH
                 </span>
               </div>
@@ -74,7 +74,7 @@ export function PaymentGate({
 
             {/* Feature List */}
             <div className="space-y-3 rounded-lg bg-[#86bc25]/5 p-4">
-              <p className="text-sm font-semibold text-gray-700">
+              <p className="text-sm  text-gray-700">
                 After payment, you can:
               </p>
               <ul className="space-y-2">
@@ -116,7 +116,7 @@ export function PaymentGate({
 
               <Button
                 variant="outline"
-                className="w-full rounded-lg border-2 border-gray-300 py-6 text-base font-semibold hover:bg-gray-50"
+                className="w-full rounded-lg border-2 border-gray-300 py-6 text-base  hover:bg-gray-50"
                 onClick={() => setIsPayingLater(true)}
                 disabled={isPayingLater}
               >
@@ -130,7 +130,7 @@ export function PaymentGate({
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-3 rounded-lg border-l-4 border-[#86bc25] bg-[#86bc25]/5 p-3"
               >
-                <p className="text-sm font-semibold text-[#00356B]">
+                <p className="text-sm  text-[#00356B]">
                   ✓ Quote saved
                 </p>
                 <p className="text-xs text-gray-600">

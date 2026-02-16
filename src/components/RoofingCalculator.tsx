@@ -1,7 +1,7 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -41,6 +41,7 @@ import useRoofingCalculator, {
   BuildingInputs,
   RoofMaterialBreakdown,
   RoofDefaults,
+  syncRoofingFromSlabGeometry,
 } from "@/hooks/useRoofingCalculator";
 
 interface RoofingCalculatorUIProps {
@@ -114,6 +115,38 @@ export default function RoofingCalculatorUI({
     roofing: true,
   });
 
+  // State for sync status
+  const [isSynced, setIsSynced] = useState(false);
+  const [syncedFromSlab, setSyncedFromSlab] = useState(false);
+
+  // Auto-sync roofing geometry from slab when quote updates
+  useEffect(() => {
+    if (quote?.concrete_rows && quote?.wallDimensions) {
+      // Get slab footprint area
+      const slabRow = quote.concrete_rows.find(
+        (r: any) => r.element === "slab" && r.name?.toLowerCase().includes("ground")
+      );
+      const slabArea = slabRow?.slabArea || quote.concrete_rows[0]?.slabArea || 0;
+
+      // Get external perimeter
+      const externalPerimeter = quote.wallDimensions?.externalWallPerimiter || 0;
+
+      if (slabArea > 0 && externalPerimeter > 0) {
+        const synced = syncRoofingFromSlabGeometry(slabArea, externalPerimeter);
+        
+        // Update inputs with synced values
+        setInputs((prev) => ({
+          ...prev,
+          footprintAreaM2: synced.roofingAreaM2,
+          externalPerimeterM: synced.roofingPerimeterM,
+        }));
+
+        setIsSynced(true);
+        setSyncedFromSlab(true);
+      }
+    }
+  }, [quote?.concrete_rows, quote?.wallDimensions]);
+
   // Handle input changes
   const handleInputChange = useCallback(
     (field: keyof BuildingInputs, value: any) => {
@@ -130,7 +163,7 @@ export default function RoofingCalculatorUI({
       onCalculationResult?.(result);
       setQuoteData?.((prev: any) => ({
         ...prev,
-        roofing_breakdown: result,
+        roof_structures: result,
       }));
     } catch (error) {
       console.error("Calculation error:", error);
@@ -175,7 +208,7 @@ export default function RoofingCalculatorUI({
         <CardContent className="space-y-6">
           {/* Building Inputs */}
           <div>
-            <Label className="text-base font-semibold mb-4 block">
+            <Label className="text-base  mb-4 block">
               Building Parameters
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -188,6 +221,7 @@ export default function RoofingCalculatorUI({
                   step="0.1"
                   value={inputs.footprintAreaM2}
                   onChange={(e) =>
+                    !isSynced &&
                     handleInputChange(
                       "footprintAreaM2",
                       parseFloat(e.target.value) || 0
@@ -205,6 +239,7 @@ export default function RoofingCalculatorUI({
                   step="0.1"
                   value={inputs.externalPerimeterM}
                   onChange={(e) =>
+                    !isSynced &&
                     handleInputChange(
                       "externalPerimeterM",
                       parseFloat(e.target.value) || 0
@@ -251,7 +286,7 @@ export default function RoofingCalculatorUI({
 
           {/* Roof Parameters */}
           <div>
-            <Label className="text-base font-semibold mb-4 block">
+            <Label className="text-base  mb-4 block">
               Roof Parameters
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -329,7 +364,7 @@ export default function RoofingCalculatorUI({
 
           {/* Spacing Parameters */}
           <div>
-            <Label className="text-base font-semibold mb-4 block">
+            <Label className="text-base  mb-4 block">
               Spacing & Dimensions
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -388,7 +423,7 @@ export default function RoofingCalculatorUI({
 
           {/* Roofing Sheet Parameters */}
           <div>
-            <Label className="text-base font-semibold mb-4 block">
+            <Label className="text-base  mb-4 block">
               Roofing Sheet Specifications
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -607,7 +642,7 @@ export default function RoofingCalculatorUI({
                             <ChevronDown className="h-4 w-4" />
                           )}
                           <div className="text-left">
-                            <h4 className="font-semibold">
+                            <h4 className="">
                               {breakdown.wallPlates.name}
                             </h4>
                             <p className="text-sm text-muted-foreground">
@@ -654,19 +689,19 @@ export default function RoofingCalculatorUI({
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Price per Unit:</span>
-                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                  <p className="text-blue-600 dark:text-blue-400 ">
                                     {formatCurrency(breakdown.wallPlates.unitPrice)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (Base):</span>
-                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                  <p className="text-green-600 dark:text-green-400 ">
                                     {formatCurrency(breakdown.wallPlates.totalPrice || 0)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (with Wastage):</span>
-                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
                                     {formatCurrency(breakdown.wallPlates.totalPriceWithWastage || 0)}
                                   </p>
                                 </div>
@@ -690,7 +725,7 @@ export default function RoofingCalculatorUI({
                             <ChevronDown className="h-4 w-4" />
                           )}
                           <div className="text-left">
-                            <h4 className="font-semibold">
+                            <h4 className="">
                               {breakdown.tieBeams.name}
                             </h4>
                             <p className="text-sm text-muted-foreground">
@@ -735,19 +770,19 @@ export default function RoofingCalculatorUI({
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Price per Unit:</span>
-                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                  <p className="text-blue-600 dark:text-blue-400 ">
                                     {formatCurrency(breakdown.tieBeams.unitPrice)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (Base):</span>
-                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                  <p className="text-green-600 dark:text-green-400 ">
                                     {formatCurrency(breakdown.tieBeams.totalPrice || 0)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (with Wastage):</span>
-                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
                                     {formatCurrency(breakdown.tieBeams.totalPriceWithWastage || 0)}
                                   </p>
                                 </div>
@@ -772,7 +807,7 @@ export default function RoofingCalculatorUI({
                               <ChevronDown className="h-4 w-4" />
                             )}
                             <div className="text-left">
-                              <h4 className="font-semibold">
+                              <h4 className="">
                                 {breakdown.kingPosts.name}
                               </h4>
                               <p className="text-sm text-muted-foreground">
@@ -829,19 +864,19 @@ export default function RoofingCalculatorUI({
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                   <div>
                                     <span className="font-medium">Price per Unit:</span>
-                                    <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                    <p className="text-blue-600 dark:text-blue-400 ">
                                       {formatCurrency(breakdown.kingPosts.unitPrice)}
                                     </p>
                                   </div>
                                   <div>
                                     <span className="font-medium">Total (Base):</span>
-                                    <p className="text-green-600 dark:text-green-400 font-semibold">
+                                    <p className="text-green-600 dark:text-green-400 ">
                                       {formatCurrency(breakdown.kingPosts.totalPrice || 0)}
                                     </p>
                                   </div>
                                   <div>
                                     <span className="font-medium">Total (with Wastage):</span>
-                                    <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                    <p className="text-orange-600 dark:text-orange-400  text-lg">
                                       {formatCurrency(breakdown.kingPosts.totalPriceWithWastage || 0)}
                                     </p>
                                   </div>
@@ -866,7 +901,7 @@ export default function RoofingCalculatorUI({
                             <ChevronDown className="h-4 w-4" />
                           )}
                           <div className="text-left">
-                            <h4 className="font-semibold">
+                            <h4 className="">
                               {breakdown.rafters.name}
                             </h4>
                             <p className="text-sm text-muted-foreground">
@@ -913,19 +948,19 @@ export default function RoofingCalculatorUI({
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Price per Unit:</span>
-                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                  <p className="text-blue-600 dark:text-blue-400 ">
                                     {formatCurrency(breakdown.rafters.unitPrice)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (Base):</span>
-                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                  <p className="text-green-600 dark:text-green-400 ">
                                     {formatCurrency(breakdown.rafters.totalPrice || 0)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (with Wastage):</span>
-                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
                                     {formatCurrency(breakdown.rafters.totalPriceWithWastage || 0)}
                                   </p>
                                 </div>
@@ -949,7 +984,7 @@ export default function RoofingCalculatorUI({
                             <ChevronDown className="h-4 w-4" />
                           )}
                           <div className="text-left">
-                            <h4 className="font-semibold">
+                            <h4 className="">
                               {breakdown.purlins.name}
                             </h4>
                             <p className="text-sm text-muted-foreground">
@@ -994,19 +1029,19 @@ export default function RoofingCalculatorUI({
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Price per Unit:</span>
-                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                  <p className="text-blue-600 dark:text-blue-400 ">
                                     {formatCurrency(breakdown.purlins.unitPrice)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (Base):</span>
-                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                  <p className="text-green-600 dark:text-green-400 ">
                                     {formatCurrency(breakdown.purlins.totalPrice || 0)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (with Wastage):</span>
-                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
                                     {formatCurrency(breakdown.purlins.totalPriceWithWastage || 0)}
                                   </p>
                                 </div>
@@ -1030,7 +1065,7 @@ export default function RoofingCalculatorUI({
                             <ChevronDown className="h-4 w-4" />
                           )}
                           <div className="text-left">
-                            <h4 className="font-semibold">
+                            <h4 className="">
                               {breakdown.struts.name}
                             </h4>
                             <p className="text-sm text-muted-foreground">
@@ -1077,19 +1112,19 @@ export default function RoofingCalculatorUI({
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Price per Unit:</span>
-                                  <p className="text-blue-600 dark:text-blue-400 font-semibold">
+                                  <p className="text-blue-600 dark:text-blue-400 ">
                                     {formatCurrency(breakdown.struts.unitPrice)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (Base):</span>
-                                  <p className="text-green-600 dark:text-green-400 font-semibold">
+                                  <p className="text-green-600 dark:text-green-400 ">
                                     {formatCurrency(breakdown.struts.totalPrice || 0)}
                                   </p>
                                 </div>
                                 <div>
                                   <span className="font-medium">Total (with Wastage):</span>
-                                  <p className="text-orange-600 dark:text-orange-400 font-semibold text-lg">
+                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
                                     {formatCurrency(breakdown.struts.totalPriceWithWastage || 0)}
                                   </p>
                                 </div>
@@ -1104,12 +1139,12 @@ export default function RoofingCalculatorUI({
                   {/* Timber Pricing Summary */}
                   {(breakdown.wallPlates.totalPrice !== undefined || breakdown.tieBeams.totalPrice !== undefined) && (
                     <div className="mt-8 pt-8 border-t">
-                      <Label className="text-lg font-semibold mb-4 block">
+                      <Label className="text-lg  mb-4 block">
                         Timber Costs Summary
                       </Label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
-                          <h4 className="font-semibold text-sm">Base Costs (before wastage)</h4>
+                          <h4 className=" text-sm">Base Costs (before wastage)</h4>
                           <div className="space-y-2 text-sm">
                             {breakdown.wallPlates.totalPrice !== undefined && (
                               <div className="flex justify-between">
@@ -1150,7 +1185,7 @@ export default function RoofingCalculatorUI({
                           </div>
                           {breakdown.wallPlates.totalPrice !== undefined && (
                             <div className="border-t pt-3 mt-3">
-                              <div className="flex justify-between font-semibold">
+                              <div className="flex justify-between ">
                                 <span>Subtotal:</span>
                                 <span className="text-green-600 dark:text-green-400">
                                   {formatCurrency(
@@ -1168,7 +1203,7 @@ export default function RoofingCalculatorUI({
                         </div>
 
                         <div className="space-y-3">
-                          <h4 className="font-semibold text-sm">With Wastage ({breakdown.defaults.structuralTimberWastagePercent}%)</h4>
+                          <h4 className=" text-sm">With Wastage ({breakdown.defaults.structuralTimberWastagePercent}%)</h4>
                           <div className="space-y-2 text-sm">
                             {breakdown.wallPlates.totalPriceWithWastage !== undefined && (
                               <div className="flex justify-between">
@@ -1246,7 +1281,7 @@ export default function RoofingCalculatorUI({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <Label className="text-base font-semibold block mb-3">
+                        <Label className="text-base  block mb-3">
                           Sheet Specifications
                         </Label>
                         <div className="space-y-2 text-sm">
@@ -1279,7 +1314,7 @@ export default function RoofingCalculatorUI({
 
                     <div className="space-y-4">
                       <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                        <Label className="text-base font-semibold block mb-3">
+                        <Label className="text-base  block mb-3">
                           Quantity Calculation
                         </Label>
                         <div className="space-y-2 text-sm">
@@ -1302,7 +1337,7 @@ export default function RoofingCalculatorUI({
                             </p>
                           </div>
                           <div className="pt-2 border-t">
-                            <span className="font-semibold">With Wastage:</span>
+                            <span className="">With Wastage:</span>
                             <p className="text-lg font-bold text-green-600 dark:text-green-400">
                               {breakdown.roofingSheets
                                 .quantityWithWastagePercent} pcs
@@ -1312,24 +1347,24 @@ export default function RoofingCalculatorUI({
                       </div>
                       {breakdown.roofingSheets.unitPrice !== undefined && (
                         <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
-                          <Label className="text-base font-semibold block mb-3">
+                          <Label className="text-base  block mb-3">
                             Pricing
                           </Label>
                           <div className="space-y-3 text-sm">
                             <div>
                               <span className="font-medium">Price per Sheet:</span>
-                              <p className="text-blue-600 dark:text-blue-400 font-semibold text-lg">
+                              <p className="text-blue-600 dark:text-blue-400  text-lg">
                                 {formatCurrency(breakdown.roofingSheets.unitPrice)}
                               </p>
                             </div>
                             <div>
                               <span className="font-medium">Total (Base Quantity):</span>
-                              <p className="text-green-600 dark:text-green-400 font-semibold text-lg">
+                              <p className="text-green-600 dark:text-green-400  text-lg">
                                 {formatCurrency(breakdown.roofingSheets.totalPrice || 0)}
                               </p>
                             </div>
                             <div className="border-t pt-3">
-                              <span className="font-semibold\">Total (with Wastage):</span>
+                              <span className="\">Total (with Wastage):</span>
                               <p className="text-orange-600 dark:text-orange-400 font-bold text-xl">
                                 {formatCurrency(breakdown.roofingSheets.totalPriceWithWastage || 0)}
                               </p>
@@ -1343,12 +1378,12 @@ export default function RoofingCalculatorUI({
                   {/* Roofing Sheets Pricing Summary */}
                   {breakdown.roofingSheets.totalPrice !== undefined && (
                     <div className="mt-8 pt-8 border-t">
-                      <Label className="text-lg font-semibold mb-4 block">
+                      <Label className="text-lg  mb-4 block">
                         Roofing Sheets Cost Summary
                       </Label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                          <h4 className="font-semibold text-sm mb-3">Base Cost</h4>
+                          <h4 className=" text-sm mb-3">Base Cost</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Quantity:</span>
@@ -1359,7 +1394,7 @@ export default function RoofingCalculatorUI({
                               <span className="font-medium">{formatCurrency(breakdown.roofingSheets.unitPrice || 0)}</span>
                             </div>
                             <div className="border-t pt-2 mt-2">
-                              <div className="flex justify-between font-semibold text-blue-600 dark:text-blue-400">
+                              <div className="flex justify-between  text-blue-600 dark:text-blue-400">
                                 <span>Subtotal:</span>
                                 <span>
                                   {formatCurrency(breakdown.roofingSheets.totalPrice || 0)}
@@ -1370,7 +1405,7 @@ export default function RoofingCalculatorUI({
                         </div>
 
                         <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
-                          <h4 className="font-semibold text-sm mb-3">With Wastage ({breakdown.roofingSheets.wastageAllowancePercent}%)</h4>
+                          <h4 className=" text-sm mb-3">With Wastage ({breakdown.roofingSheets.wastageAllowancePercent}%)</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Quantity:</span>
@@ -1435,7 +1470,7 @@ export default function RoofingCalculatorUI({
 
                     {/* Key Inputs Summary */}
                     <div>
-                      <Label className="text-base font-semibold mb-3 block">
+                      <Label className="text-base  mb-3 block">
                         Building Inputs Used
                       </Label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg text-sm">
@@ -1458,7 +1493,7 @@ export default function RoofingCalculatorUI({
 
                     {/* Complete Material List */}
                     <div>
-                      <Label className="text-base font-semibold mb-3 block">
+                      <Label className="text-base  mb-3 block">
                         All Materials Required
                       </Label>
                       <div className="border rounded-lg overflow-hidden">
@@ -1609,7 +1644,7 @@ export default function RoofingCalculatorUI({
                                 m
                               </TableCell>
                             </TableRow>
-                            <TableRow className="bg-blue-50 dark:bg-blue-950 font-semibold">
+                            <TableRow className="bg-blue-50 dark:bg-blue-950 ">
                               <TableCell>Roofing Sheets</TableCell>
                               <TableCell>-</TableCell>
                               <TableCell className="text-right">

@@ -705,8 +705,10 @@ ${
 
 
 **Finishes:**
-- Categories: "flooring", "ceiling", "wall-finishes",  "joinery", "external"
-- Only use these specified categories: skip glass, blocks, anyting to do with masonry or glass etc that are not in this list
+- Categories: "flooring", "ceiling", "wall-finishes", "joinery", "external"
+- Only use these specified categories: skip glass, blocks, anything to do with masonry or glass etc that are not in this list
+- Organize finishes under finishes_calculations with category keys
+- Each category contains an array of finish items for that category
 - Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
 - COMMON_MATERIALS = {
   flooring: [
@@ -1441,18 +1443,63 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
       "voltage": 230 // default if not specified
     }
   ],
-  "finishes": [
-    {
-      "id": string,
-      "category": FinishCategory,
-      "type": string,
-      "material": string, // from COMMON_MATERIALS[category]
-      "area": number,
-      "unit": "m²" | "m" | "pcs",
-      "quantity": number,
-      "location": string
-    }
-  ],
+  "finishes_calculations": {
+    "flooring": [
+      {
+        "id": string,
+        "category": "flooring",
+        "material": string, // from COMMON_MATERIALS["flooring"]
+        "area": number,
+        "quantity": number,
+        "unit": "m²" | "m" | "pcs",
+        "location": string
+      }
+    ],
+    "ceiling": [
+      {
+        "id": string,
+        "category": "ceiling",
+        "material": string, // from COMMON_MATERIALS["ceiling"]
+        "area": number,
+        "quantity": number,
+        "unit": "m²" | "m" | "pcs",
+        "location": string
+      }
+    ],
+    "wall-finishes": [
+      {
+        "id": string,
+        "category": "wall-finishes",
+        "material": string, // from COMMON_MATERIALS["wall-finishes"]
+        "area": number,
+        "quantity": number,
+        "unit": "m²" | "m" | "pcs",
+        "location": string
+      }
+    ],
+    "joinery": [
+      {
+        "id": string,
+        "category": "joinery",
+        "material": string, // from COMMON_MATERIALS["joinery"]
+        "area": number,
+        "quantity": number,
+        "unit": "m²" | "m" | "pcs",
+        "location": string
+      }
+    ],
+    "external": [
+      {
+        "id": string,
+        "category": "external",
+        "material": string, // from COMMON_MATERIALS["external"]
+        "area": number,
+        "quantity": number,
+        "unit": "m²" | "m" | "pcs",
+        "location": string
+      }
+    ]
+  },
   ${
     hasBBSFile
       ? `"bar_schedule": [

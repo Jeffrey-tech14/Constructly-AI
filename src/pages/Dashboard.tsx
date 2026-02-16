@@ -200,7 +200,7 @@ const Dashboard = () => {
             <div>
               <div className="sm:text-2xl items-center text-xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
                 <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
-                Welcome back, {profile.name}!
+               <h2 className="text-xl sm:text-2xl"> Welcome back, {profile.name}!</h2>
               </div>
               <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
                 Here's what's happening with your construction business today.

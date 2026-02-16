@@ -1256,7 +1256,7 @@ export default function RebarCalculatorForm({
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Reinforcement Elements</h3>
+          <h3 className="text-lg ">Reinforcement Elements</h3>
           <div className="flex gap-2 items-center">
             <Button
               onClick={addRow}
@@ -1308,7 +1308,7 @@ export default function RebarCalculatorForm({
                         updateRow(row.id, "name", e.target.value)
                       }
                       placeholder="Element name (e.g., Ground Floor Slab)"
-                      className="font-semibold text-lg pl-2 border-0 bg-transparent"
+                      className=" text-lg pl-2 border-0 bg-transparent"
                     />
                     <Badge
                       variant="outline"
@@ -1629,7 +1629,7 @@ export default function RebarCalculatorForm({
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        Steel Intensity (kg/m³)
+                        Steel density (kg/m³)
                       </Label>
                       <Input
                         type="number"
@@ -1677,7 +1677,7 @@ export default function RebarCalculatorForm({
                         Estimated Steel (kg)
                       </Label>
                       <div className="border rounded px-3 py-2 bg-white dark:bg-slate-950">
-                        <p className="text-sm font-semibold">
+                        <p className="text-sm ">
                           {row.concreteVolumeM3 && row.steelIntensityKgPerM3
                             ? (
                                 parseFloat(row.concreteVolumeM3.toString()) *
@@ -3145,7 +3145,7 @@ export default function RebarCalculatorForm({
       {/* Bar Bending Schedule (BBS) Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Bar Bending Schedule (BBS)</h3>
+          <h3 className="text-lg ">Bar Bending Schedule (BBS)</h3>
           <div className="flex gap-2 items-center">
             <Button
               onClick={addBBSRow}
@@ -3277,7 +3277,7 @@ export default function RebarCalculatorForm({
                             <Label className="text-sm font-medium">
                               Weight/m (kg)
                             </Label>
-                            <div className="border rounded px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-sm font-semibold">
+                            <div className="border rounded px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-sm ">
                               {calculated.weight_per_meter?.toFixed(3) || "—"}
                             </div>
                           </div>

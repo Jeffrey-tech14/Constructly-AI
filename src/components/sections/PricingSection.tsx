@@ -119,7 +119,7 @@ export default function PricingSection({
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full mix-blend-overlay filter blur-[60px] opacity-10"></div>
 
                 <div className="relative z-10">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold tracking-wider uppercase mb-6 text-[#86bc25]">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs  tracking-wider uppercase mb-6 text-[#86bc25]">
                     <Sparkles className="w-3 h-3" />
                     Most Popular
                   </div>

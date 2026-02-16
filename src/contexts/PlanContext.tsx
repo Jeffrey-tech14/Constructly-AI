@@ -333,7 +333,7 @@ export interface ExtractedPlan {
     voltage?: number;
   }>;
 
-  // Finishes
+  // Finishes (legacy structure)
   finishes?: Array<{
     id: string;
     type: string;
@@ -344,6 +344,55 @@ export interface ExtractedPlan {
     height?: string;
     specifications?: any;
   }>;
+
+  // Finishes (new category-based structure)
+  finishes_calculations?: {
+    flooring?: Array<{
+      id: string;
+      category: "flooring";
+      material: string;
+      area: number;
+      quantity: number;
+      unit: string;
+      location: string;
+    }>;
+    ceiling?: Array<{
+      id: string;
+      category: "ceiling";
+      material: string;
+      area: number;
+      quantity: number;
+      unit: string;
+      location: string;
+    }>;
+    "wall-finishes"?: Array<{
+      id: string;
+      category: "wall-finishes";
+      material: string;
+      area: number;
+      quantity: number;
+      unit: string;
+      location: string;
+    }>;
+    joinery?: Array<{
+      id: string;
+      category: "joinery";
+      material: string;
+      area: number;
+      quantity: number;
+      unit: string;
+      location: string;
+    }>;
+    external?: Array<{
+      id: string;
+      category: "external";
+      material: string;
+      area: number;
+      quantity: number;
+      unit: string;
+      location: string;
+    }>;
+  };
 
   // Bar Bending Schedule (BBS)
   bar_schedule?: Array<{

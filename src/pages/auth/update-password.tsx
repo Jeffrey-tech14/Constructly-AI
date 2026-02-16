@@ -170,7 +170,7 @@ const UpdatePassword = () => {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white  py-2.5"
                 >
                   {submitting ? (
                     <>

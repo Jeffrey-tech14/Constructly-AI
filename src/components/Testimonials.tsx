@@ -193,7 +193,7 @@ export function TestimonialsSection() {
                       </div>
 
                       <div className="p-8 md:p-10 border-t lg:border-t-0 lg:border-l bg-gradient-to-br from-blue-50 to-white border-gray-200 dark:from-gray-700 dark:to-gray-800 dark:border-gray-700">
-                        <h3 className="text-lg font-semibold mb-6">
+                        <h3 className="text-lg  mb-6">
                           Key Achievements
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
@@ -252,7 +252,7 @@ export function TestimonialsSection() {
         </div>
 
         <div className="mt-8">
-          <h3 className="text-center text-xl font-semibold mb-10 text-gray-700 dark:text-gray-300">
+          <h3 className="text-center text-xl  mb-10 text-gray-700 dark:text-gray-300">
             Trusted by industry leaders worldwide
           </h3>
           <div

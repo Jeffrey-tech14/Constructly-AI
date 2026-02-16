@@ -26,6 +26,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Plus, Trash2, Edit } from "lucide-react";
@@ -35,15 +37,7 @@ import useUniversalFinishesCalculator, {
 } from "@/hooks/useUniversalFinishesCalculator";
 
 const CEILING_MATERIALS = [
-  "Blundering 40x40mm",
   "Gypsum Board 1.2x2.4m",
-  "Metal Ceiling Channel",
-  "Metal Ceiling Stud",
-  "Gypsum Screws",
-  "Corner Tape",
-  "Fiber Mesh",
-  "Cornice",
-  "Filler",
   "PVC",
   "Acoustic Tiles",
   "Exposed Concrete",
@@ -52,12 +46,22 @@ const CEILING_MATERIALS = [
   "Paint - Ceiling",
 ];
 
+const CEILING_SUPPLEMENTARY_MATERIALS = [
+  "Blundering 40x40mm",
+  "Metal Ceiling Channel",
+  "Metal Ceiling Stud",
+  "Gypsum Screws",
+  "Corner Tape",
+  "Fiber Mesh",
+  "Cornice",
+  "Filler",
+];
+
 interface CeilingCalculatorProps {
   finishes: FinishElement[];
   materialPrices: any[];
   onFinishesUpdate?: (finishes: FinishElement[]) => void;
   readonly?: boolean;
-  setQuoteData?: (data: any) => void;
   quote?: any;
 }
 
@@ -66,7 +70,6 @@ export default function CeilingCalculator({
   materialPrices,
   onFinishesUpdate,
   readonly = false,
-  setQuoteData,
   quote,
 }: CeilingCalculatorProps) {
   // Filter only ceiling items
@@ -77,20 +80,11 @@ export default function CeilingCalculator({
       ceilingFinishes,
       materialPrices,
       quote,
-      setQuoteData,
     );
 
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
-
-  // STEP 6: Ceiling Finishes - Multi-floor configuration
-  const [numberOfFloors, setNumberOfFloors] = useState(quote?.floors || 1);
-  const [ceilingTypePerFloor, setCeilingTypePerFloor] = useState<{
-    [key: number]: string;
-  }>({
-    1: "Gypsum Board",
-  });
 
   /**
    * Helper function to get ceiling material price from materialsPrice (Supabase nested structure)
@@ -125,139 +119,225 @@ export default function CeilingCalculator({
 
     return material?.price || 0;
   }, [materialPrices]);
+  const handleAddFinish = () => { 
+    const groundFloorSlab = quote.concrete_rows?.find(
+        (f: any) =>
+          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+      );
+      const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+    const newFinish: FinishElement = {
+      id: `ceiling-${Date.now()}`,
+      category: "ceiling",
+      material: CEILING_MATERIALS[0],
+      area: slabArea,
+      quantity: slabArea,
+      unit: "m²",
+      location: "All Rooms",
+    };
+
+    const updatedFinishes = [...ceilingFinishes, newFinish];
+
+    if (onFinishesUpdate) {
+      onFinishesUpdate(updatedFinishes);
+    }
+    
+    setEditingId(newFinish.id);
+    setEditForm(newFinish);
+  };
+
+  const handleEditFormChange = (field: string, value: any) => {
+    if (editForm) {
+      setEditForm({ ...editForm, [field]: value });
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editForm && onFinishesUpdate) {
+      const updatedFinishes = ceilingFinishes.map((f) =>
+        f.id === editingId ? editForm : f,
+      );
+      
+      onFinishesUpdate(updatedFinishes);
+      setEditingId(null);
+      setEditForm(null);
+    }
+  };
+ 
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const handleDeleteFinish = (id: string) => {
+    const updatedFinishes = ceilingFinishes.filter((f) => f.id !== id);
+    
+    if (onFinishesUpdate) {
+      onFinishesUpdate(updatedFinishes);
+    }
+  };
+
+  const handleEditFinish = (finish: FinishElement) => {
+    setEditingId(finish.id);
+    setEditForm({ ...finish });
+  };
+
 
   // Filter calculations based on search
   const filteredCalculations = calculations.filter((calc) =>
     calc.material.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  // Track stable references to prevent infinite loops
+  const hasNonExposedConcrete = React.useMemo(() => {
+    return ceilingFinishes.some((f) => f.material !== "Exposed Concrete");
+  }, [ceilingFinishes]);
+
+  const gypsumItemsCount = React.useMemo(() => {
+    return ceilingFinishes.filter(
+      (f) => f.material === "Gypsum Board 1.2x2.4m",
+    ).length;
+  }, [ceilingFinishes]);
+
+  const gypsumItemsArea = React.useMemo(() => {
+    return ceilingFinishes
+      .filter((f) => f.material === "Gypsum Board 1.2x2.4m")
+      .reduce((sum, f) => sum + (f.area || 0), 0);
+  }, [ceilingFinishes]);
+  const blunderingExists = React.useMemo(() => {
+    return ceilingFinishes.some((f) =>
+      ["Blundering 40x40mm"].includes(f.material),
+    );
+  }, [ceilingFinishes]);
+
+  const nonBlunderingCount = React.useMemo(() => {
+    return ceilingFinishes.filter(
+      (f) => !["Blundering 40x40mm"].includes(f.material),
+    ).length;
+  }, [ceilingFinishes]);
+  
+  // Stable slab area calculation
+  const slabArea = React.useMemo(() => {
+    const groundFloorSlab = quote?.concrete_rows?.find(
+      (f: any) =>
+        f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+    );
+    return parseFloat(groundFloorSlab?.slabArea) || 0;
+  }, [quote?.concrete_rows?.length, quote?.concrete_rows?.[0]?.slabArea]);
+
+  // Stable perimeter calculations
+  const perimeters = React.useMemo(() => {
+    const externalPerimeter =
+      quote?.wallDimensions?.externalWallPerimiter ||
+      quote?.roof_structures?.externalPerimeterM ||
+      0;
+    const internalPerimeter =
+      quote?.wallDimensions?.internalWallPerimiter || 0;
+    const corniceLength = internalPerimeter * 2 + externalPerimeter;
+    
+    return { externalPerimeter, internalPerimeter, corniceLength };
+  }, [
+    quote?.wallDimensions?.externalWallPerimiter,
+    quote?.roof_structures?.externalPerimeterM,
+    quote?.wallDimensions?.internalWallPerimiter,
+  ]);
+
   // Auto-manage blundering for ceiling items (STEP 6: Only on last floor)
   useEffect(() => {
     if (readonly) return;
 
-    const nonBlunderingCeilingItems = ceilingFinishes.filter(
-      (f) => !["Blundering 40x40mm", "Blundering"].includes(f.material),
-    );
-    const hasBlundering = ceilingFinishes.some(
-      (f) =>
-        ["Blundering 40x40mm", "Blundering"].includes(f.material),
-    );
 
     // STEP 6: Only apply blundering to the last floor for multi-storey buildings
-    // Blundering should be added when the LAST floor (top floor) has Gypsum Board ceiling type
-    const shouldHaveBlundering = ceilingTypePerFloor[numberOfFloors] === "Gypsum Board";
+    // Blundering should exist for all ceiling types except Exposed Concrete
+    const shouldHaveBlundering = hasNonExposedConcrete;
 
-    // If there are ceiling items on last floor but no blundering, add it
-    if (shouldHaveBlundering && nonBlunderingCeilingItems.length > 0 && !hasBlundering) {
-      
-      const groundFloorSlab = quote.concrete_rows?.find(
-        (f: any) =>
-          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
-      );
-      const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
-      const totalArea = slabArea
-      // Formula: 3.36 × area × 1.15 for 40×40mm at 600×600 spacing
-      const blunderingMeters = Math.ceil(totalArea * 3.36 * 1.15);
+    const totalArea = slabArea;
+    const blunderingMeters = Math.ceil(totalArea * 3.36 * 1.15);
 
+    // Check if we need to add blundering
+    if (shouldHaveBlundering && !blunderingExists) {
       const blunderingItem: FinishElement = {
-        id: `finish-blundering-${Date.now()}`,
+        id: `finish-ceiling-blundering`, // Stable ID - not timestamp-based
         category: "ceiling",
         material: "Blundering 40x40mm",
         area: totalArea,
         unit: "m" as const,
         quantity: blunderingMeters,
-        location: `Ceiling battening for support (Floor ${numberOfFloors})`,
+        location: `Ceiling battening for support`,
       };
       if (onFinishesUpdate) {
-        onFinishesUpdate([...finishes, blunderingItem]);
+        const updatedFinishes = [...ceilingFinishes, blunderingItem];
+        onFinishesUpdate(updatedFinishes);
       }
     }
-    // Update blundering quantity if ceiling area changes or remove if not on last floor
-    else if (nonBlunderingCeilingItems.length > 0 && hasBlundering) {
-    
-      const groundFloorSlab = quote.concrete_rows?.find(
-        (f: any) =>
-          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
-      );
-      const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
-      const totalArea = slabArea
-      const blunderingMeters = Math.ceil(totalArea * 3.36 * 1.15);
-      const blunderingItem = ceilingFinishes.find(
-        (f) =>
-          ["Blundering 40x40mm", "Blundering"].includes(f.material),
+    // Check if we need to update existing blundering
+    else if (blunderingExists && shouldHaveBlundering) {
+      const blunderingItem = ceilingFinishes.find((f) =>
+        ["Blundering 40x40mm"].includes(f.material),
       );
 
-      if (blunderingItem) {
-        if (!shouldHaveBlundering) {
-          // Remove blundering if not on last floor
-          const updatedFinishes = finishes.filter((f) => f.id !== blunderingItem.id);
-          if (onFinishesUpdate) {
-            onFinishesUpdate(updatedFinishes);
-          }
-        } else if (
-          blunderingItem.quantity !== blunderingMeters ||
-          blunderingItem.area !== totalArea
-        ) {
-          // Update blundering quantity if area changed
-          const updatedFinishes = finishes.map((f) =>
-            f.id === blunderingItem.id
-              ? {
-                  ...f,
-                  quantity: blunderingMeters,
-                  area: totalArea,
-                  material: "Blundering 40x40mm",
-                  unit: "m" as const,
-                  location: `Ceiling battening for support (Floor ${numberOfFloors})`,
-                }
-              : f,
-          );
-          if (onFinishesUpdate) {
-            onFinishesUpdate(updatedFinishes);
-          }
+      if (
+        blunderingItem &&
+        (blunderingItem.quantity !== blunderingMeters ||
+          blunderingItem.area !== totalArea)
+      ) {
+        // Only update if quantity or area actually changed
+        const updatedFinishes = ceilingFinishes.map((f) =>
+          f.id === blunderingItem.id
+            ? {
+                ...f,
+                quantity: blunderingMeters,
+                area: totalArea,
+                material: "Blundering 40x40mm",
+                unit: "m" as const,
+                location: `Ceiling battening for support`,
+              }
+            : f,
+        );
+        if (onFinishesUpdate) {
+          onFinishesUpdate(updatedFinishes);
         }
       }
     }
-    // If no ceiling items exist, remove blundering
-    else if (nonBlunderingCeilingItems.length === 0 && hasBlundering) {
-      const updatedFinishes = finishes.filter(
+    // Check if we need to remove blundering
+    // Blundering should be removed if only Exposed Concrete ceilings exist
+    else if (blunderingExists && !shouldHaveBlundering) {
+      const updatedFinishes = ceilingFinishes.filter(
         (f) =>
           !(
             f.category === "ceiling" &&
-            ["Blundering 40x40mm", "Blundering"].includes(f.material)
+            ["Blundering 40x40mm"].includes(f.material)
           ),
       );
       if (onFinishesUpdate) {
         onFinishesUpdate(updatedFinishes);
       }
     }
-  }, [finishes, readonly, numberOfFloors, ceilingTypePerFloor]);
-
+  }, [hasNonExposedConcrete, readonly, blunderingExists, slabArea]);
+  
   // Auto-manage gypsum board ceiling components
   useEffect(() => {
     if (readonly) return;
 
-    const gypsumCeilings = ceilingFinishes.filter(
-      (f) => f.material === "Gypsum Board" && f.area > 0,
-    );
-
-    if (gypsumCeilings.length === 0) {
-      // Remove all gypsum-related components if no gypsum ceiling exists
+    // Only trigger if gypsum items exist and changed
+    if (gypsumItemsCount === 0) {
+      // Remove all gypsum components if no gypsum ceiling exists
       const gypsumRelatedMaterials = [
         "Metal Ceiling Channel",
         "Metal Ceiling Stud",
         "Gypsum Screws",
         "Corner Tape",
         "Fiber Mesh",
+        "Filler",
         "Cornice",
       ];
-      const hasGypsumComponents = finishes.some(
+      const hasGypsumComponents = ceilingFinishes.some(
         (f) =>
           f.category === "ceiling" &&
           gypsumRelatedMaterials.includes(f.material),
       );
 
       if (hasGypsumComponents) {
-        const updatedFinishes = finishes.filter(
+        const updatedFinishes = ceilingFinishes.filter(
           (f) =>
             !(
               f.category === "ceiling" &&
@@ -266,13 +346,14 @@ export default function CeilingCalculator({
         );
         if (onFinishesUpdate) {
           onFinishesUpdate(updatedFinishes);
+
         }
       }
       return;
     }
 
     // Calculate totals for all gypsum ceilings
-    const totalArea = gypsumCeilings.reduce((sum, g) => sum + g.area, 0);
+    const totalArea = gypsumItemsArea;
     const boardArea = 1.2 * 2.4; // 2.88 m²
     const totalBoards = Math.ceil((totalArea / boardArea) * 1.25); // 25% wastage
 
@@ -299,27 +380,23 @@ export default function CeilingCalculator({
     const supplementaryCost = mainComponentsCost * 0.1;
 
     // Distribute 10% cost to corner tape, fiber mesh, and screws based on their unit prices
-    // Calculate quantities needed to meet the 10% cost budget
-    const cornerTapeQuantity = cornerTapePrice > 0 
-      ? Math.ceil((supplementaryCost * 0.33) / cornerTapePrice) 
-      : Math.ceil(totalArea * 0.1);
-    
-    const fiberMeshQuantity = fiberMeshPrice > 0 
-      ? Math.ceil((supplementaryCost * 0.33) / fiberMeshPrice) 
-      : Math.ceil(totalArea * 0.1);
-    
-    const screwsQuantity = screwPrice > 0 
-      ? Math.ceil((supplementaryCost * 0.33) / screwPrice) 
-      : screws; // Fallback to 25 pcs/m²
+    const cornerTapeQuantity =
+      cornerTapePrice > 0
+        ? Math.ceil((supplementaryCost * 0.33) / cornerTapePrice)
+        : Math.ceil(totalArea * 0.1);
 
-    // Get perimeters from quote data
-    const externalPerimeter =
-      quote?.wallDimensions?.externalWallPerimiter ||
-      quote?.roofingInputs?.externalPerimeterM ||
-      0;
-    const internalPerimeter =
-      quote?.wallDimensions?.internalWallPerimiter || 0;
-    const corniceLength = internalPerimeter * 2 + externalPerimeter;
+    const fiberMeshQuantity =
+      fiberMeshPrice > 0
+        ? Math.ceil((supplementaryCost * 0.33) / fiberMeshPrice)
+        : Math.ceil(totalArea * 0.1);
+
+    const screwsQuantity =
+      screwPrice > 0
+        ? Math.ceil((supplementaryCost * 0.33) / screwPrice)
+        : screws; // Fallback to 25 pcs/m²
+
+    // Calculate filler as 1/3 of gypsum board quantity
+    const fillerQuantity = Math.ceil(totalBoards / 3);
 
     // Materials to auto-add/update
     const gypsumComponents = [
@@ -349,14 +426,19 @@ export default function CeilingCalculator({
         unit: "m²" as const,
       },
       {
+        material: "Filler",
+        quantity: fillerQuantity,
+        unit: "bag" as const,
+      },
+      {
         material: "Cornice",
-        quantity: Math.ceil(corniceLength),
+        quantity: Math.ceil(perimeters.corniceLength),
         unit: "m" as const,
       },
     ];
 
     let needsUpdate = false;
-    let updatedFinishes = [...finishes];
+    let updatedFinishes = [...ceilingFinishes];
 
     gypsumComponents.forEach((component) => {
       const existing = updatedFinishes.find(
@@ -367,7 +449,7 @@ export default function CeilingCalculator({
       if (!existing) {
         needsUpdate = true;
         updatedFinishes.push({
-          id: `finish-gypsum-${component.material}-${Date.now()}`,
+          id: `finish-ceiling-gypsum-${component.material.replace(/\s+/g, "-").toLowerCase()}`, // Stable ID based on material name
           category: "ceiling",
           material: component.material,
           area: totalArea,
@@ -390,58 +472,86 @@ export default function CeilingCalculator({
     if (needsUpdate && onFinishesUpdate) {
       onFinishesUpdate(updatedFinishes);
     }
-  }, [finishes, ceilingFinishes, readonly, quote, onFinishesUpdate]);
+  }, [gypsumItemsCount, gypsumItemsArea, readonly, perimeters]);
 
-  const handleAddFinish = () => {
-    const newFinish: FinishElement = {
-      id: `ceiling-${Date.now()}`,
-      category: "ceiling",
-      material: CEILING_MATERIALS[0],
-      area: 0,
-      quantity: 0,
-      unit: "m²",
-      location: "",
-    };
+  // Stable exposed concrete tracking
+  const exposedConcreteItemsCount = React.useMemo(() => {
+    return ceilingFinishes.filter((f) => f.material === "Exposed Concrete").length;
+  }, [ceilingFinishes]);
 
-    if (onFinishesUpdate) {
-      onFinishesUpdate([...finishes, newFinish]);
+  const exposedConcreteItemsArea = React.useMemo(() => {
+    return ceilingFinishes
+      .filter((f) => f.material === "Exposed Concrete")
+      .reduce((sum, f) => sum + (f.area || 0), 0);
+  }, [ceilingFinishes]);
+
+  const paintExists = React.useMemo(() => {
+    return finishes.some(
+      (f) =>
+        f.category === "ceiling" && f.material === "Paint - Ceiling",
+    );
+  }, [finishes]);
+
+  // Auto-manage paint for exposed concrete ceilings
+  useEffect(() => {
+    if (readonly) return;
+
+    // If no exposed concrete, remove paint
+    if (exposedConcreteItemsCount === 0) {
+      if (paintExists) {
+        const updatedFinishes = ceilingFinishes.filter(
+          (f) =>
+            !(
+              f.category === "ceiling" && f.material === "Paint - Ceiling"
+            ),
+        );
+        if (onFinishesUpdate) {
+          onFinishesUpdate(updatedFinishes);
+        }
+      }
+      return;
     }
-    setEditingId(newFinish.id);
-    setEditForm(newFinish);
-  };
 
-  const handleEditFormChange = (field: string, value: any) => {
-    if (editForm) {
-      setEditForm({ ...editForm, [field]: value });
+    // Check if paint exists
+    const existingPaint = finishes.find(
+      (f) =>
+        f.category === "ceiling" && f.material === "Paint - Ceiling",
+    );
+
+    // If exposed concrete exists but paint doesn't, add it
+    if (!existingPaint) {
+      const paintItem: FinishElement = {
+        id: `finish-ceiling-paint-exposed-concrete`, // Stable ID - not timestamp-based
+        category: "ceiling",
+        material: "Paint - Ceiling",
+        area: exposedConcreteItemsArea,
+        unit: "m²" as const,
+        quantity: exposedConcreteItemsArea,
+        location: "Auto-calculated for Exposed Concrete Ceiling",
+      };
+
+      const updatedFinishes = [...ceilingFinishes, paintItem];
+      if (onFinishesUpdate) {
+        onFinishesUpdate(updatedFinishes);
+      }
     }
-  };
-
-  const handleSaveEdit = () => {
-    if (editForm && onFinishesUpdate) {
-      const updatedFinishes = finishes.map((f) =>
-        f.id === editingId ? editForm : f,
+    // If paint exists but area changed, update it
+    else if (existingPaint.area !== exposedConcreteItemsArea) {
+      const updatedFinishes = ceilingFinishes.map((f) =>
+        f.id === existingPaint.id
+          ? {
+              ...f,
+              area: exposedConcreteItemsArea,
+              quantity: exposedConcreteItemsArea,
+            }
+          : f,
       );
-      onFinishesUpdate(updatedFinishes);
-      setEditingId(null);
-      setEditForm(null);
+      if (onFinishesUpdate) {
+        onFinishesUpdate(updatedFinishes);
+      }
     }
-  };
+  }, [exposedConcreteItemsCount, exposedConcreteItemsArea, paintExists, readonly]);
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm(null);
-  };
-
-  const handleDeleteFinish = (id: string) => {
-    if (onFinishesUpdate) {
-      onFinishesUpdate(finishes.filter((f) => f.id !== id));
-    }
-  };
-
-  const handleEditFinish = (finish: FinishElement) => {
-    setEditingId(finish.id);
-    setEditForm({ ...finish });
-  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-KE", {
@@ -497,88 +607,10 @@ export default function CeilingCalculator({
     URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    if (setQuoteData) {
-      setQuoteData((prev: any) => ({
-        ...prev,
-        finishes: finishes,
-      }));
-    }
-  }, [finishes, setQuoteData]);
+
 
   return (
     <div className="space-y-6">
-      {/* STEP 6: Multi-Floor Ceiling Configuration */}
-      <Card>
-        <CardHeader className="bg-purple-50 dark:bg-purple-950/20">
-          <CardTitle>Ceiling Types by Floor</CardTitle>
-          <CardDescription>Configure ceiling type for each floor</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="floors">Number of Floors</Label>
-              <Input
-                id="floors"
-                type="number"
-                min="1"
-                max="10"
-                value={numberOfFloors}
-                onChange={(e) => {
-                  const floors = parseInt(e.target.value) || 1;
-                  setNumberOfFloors(floors);
-                  // Initialize missing floors
-                  const updated = { ...ceilingTypePerFloor };
-                  for (let i = 1; i <= floors; i++) {
-                    if (!updated[i]) {
-                      updated[i] = "Gypsum Board";
-                    }
-                  }
-                  setCeilingTypePerFloor(updated);
-                }}
-                className="mt-2"
-              />
-            </div>
-
-            {Array.from({ length: numberOfFloors }).map((_, idx) => {
-              const floorNum = idx + 1;
-              const isLastFloor = floorNum === numberOfFloors;
-              return (
-                <div key={floorNum}>
-                  <Label htmlFor={`floor-${floorNum}`} className="font-bold">
-                    Floor {floorNum} {isLastFloor && <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded ml-1">Top Floor</span>}
-                  </Label>
-                  <Select
-                    value={ceilingTypePerFloor[floorNum] || "Gypsum Board"}
-                    onValueChange={(value) =>
-                      setCeilingTypePerFloor({
-                        ...ceilingTypePerFloor,
-                        [floorNum]: value,
-                      })
-                    }
-                    disabled={readonly}
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Gypsum Board">Gypsum Board</SelectItem>
-                      <SelectItem value="PVC">PVC Ceiling</SelectItem>
-                      <SelectItem value="Acoustic Tiles">Acoustic Tiles</SelectItem>
-                      <SelectItem value="Exposed Concrete">Exposed Concrete</SelectItem>
-                      <SelectItem value="Suspended Grid">Suspended Grid</SelectItem>
-                      <SelectItem value="Wood Panels">Wood Panels</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {isLastFloor && ceilingTypePerFloor[floorNum] === "Gypsum Board" && (
-                    <p className="text-xs text-green-600 mt-1">✓ Blundering enabled</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -587,7 +619,7 @@ export default function CeilingCalculator({
             <CardTitle className="text-sm font-medium">Total Area</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl ">
               {totals.totalArea.toFixed(2)} m²
             </div>
           </CardContent>
@@ -598,7 +630,7 @@ export default function CeilingCalculator({
             <CardTitle className="text-sm font-medium">Material Cost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl ">
               {formatCurrency(totals.totalMaterialCostWithWastage)}
             </div>
           </CardContent>
@@ -609,7 +641,7 @@ export default function CeilingCalculator({
             <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl  text-green-600">
               {formatCurrency(totals.totalCostWithWastage)}
             </div>
           </CardContent>
@@ -623,7 +655,7 @@ export default function CeilingCalculator({
             <div>
               <CardTitle>Ceiling Materials & Components</CardTitle>
               <CardDescription>
-                {numberOfFloors > 1 ? `Configure ${numberOfFloors}-storey ceiling with automatic blundering on floor ${numberOfFloors}` : "Single-storey ceiling with automatic blundering"}
+                Configure ceiling with automatic blundering on ceiling items
               </CardDescription>
             </div>
 
@@ -681,11 +713,22 @@ export default function CeilingCalculator({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {CEILING_MATERIALS.map((material) => (
-                          <SelectItem key={material} value={material}>
-                            {material}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">Main Materials</SelectLabel>
+                          {CEILING_MATERIALS.map((material) => (
+                            <SelectItem key={material} value={material}>
+                              {material}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">Supplementary Materials</SelectLabel>
+                          {CEILING_SUPPLEMENTARY_MATERIALS.map((material) => (
+                            <SelectItem key={material} value={material}>
+                              {material}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>
@@ -703,7 +746,7 @@ export default function CeilingCalculator({
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-quantity">Quantity (m²)</Label>
+                    <Label htmlFor="edit-quantity">Quantity</Label>
                     <Input
                       id="edit-quantity"
                       type="number"
@@ -717,6 +760,28 @@ export default function CeilingCalculator({
                         )
                       }
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-unit">Unit</Label>
+                    <Select
+                      value={editForm.unit}
+                      onValueChange={(value) =>
+                        handleEditFormChange("unit", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="m²">m² (Square Meters)</SelectItem>
+                        <SelectItem value="m">m (Linear Meters)</SelectItem>
+                        <SelectItem value="m³">m³ (Cubic Meters)</SelectItem>
+                        <SelectItem value="pcs">pcs (Pieces)</SelectItem>
+                        <SelectItem value="kg">kg (Kilograms)</SelectItem>
+                        <SelectItem value="bag">bag (Bags)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -765,7 +830,7 @@ export default function CeilingCalculator({
                         </TableCell>
                         <TableCell>{finish?.location || "-"}</TableCell>
                         <TableCell className="text-right">
-                          {calc.quantity.toFixed(2)} m²
+                          {calc.quantity.toFixed(2)} {calc.unit}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(calc.unitRate)}
@@ -773,7 +838,7 @@ export default function CeilingCalculator({
                         <TableCell className="text-right">
                           {formatCurrency(calc.totalCost)}
                         </TableCell>
-                        <TableCell className="text-right font-semibold">
+                        <TableCell className="text-right ">
                           {formatCurrency(calc.totalCostWithWastage)}
                         </TableCell>
                         {!readonly && (
@@ -807,28 +872,28 @@ export default function CeilingCalculator({
           {/* Totals Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 rounded-lg bg-muted">
             <div>
-              <div className="text-xs font-bold">Total Quantity</div>
-              <div className="text-lg font-bold">
+              <div className="text-xs ">Total Quantity</div>
+              <div className="text-lg ">
                 {totals.totalArea.toFixed(2)} m²
               </div>
             </div>
             <div>
-              <div className="text-xs font-bold">Base Cost</div>
-              <div className="text-lg font-bold">
+              <div className="text-xs ">Base Cost</div>
+              <div className="text-lg ">
                 {formatCurrency(totals.totalMaterialCost)}
               </div>
             </div>
             <div>
-              <div className="text-xs font-bold">Wastage ({wastagePercentage}%)</div>
-              <div className="text-lg font-bold">
+              <div className="text-xs ">Wastage ({wastagePercentage}%)</div>
+              <div className="text-lg ">
                 {formatCurrency(
                   totals.totalMaterialCostWithWastage - totals.totalMaterialCost,
                 )}
               </div>
             </div>
             <div>
-              <div className="text-xs font-bold">Total with Wastage</div>
-              <div className="text-lg font-bold text-green-600">
+              <div className="text-xs ">Total with Wastage</div>
+              <div className="text-lg  text-green-600">
                 {formatCurrency(totals.totalMaterialCostWithWastage)}
               </div>
             </div>

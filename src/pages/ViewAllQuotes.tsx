@@ -208,7 +208,7 @@ const ViewAllQuotes = () => {
           <div>
             <h1 className="sm:text-2xl text-xl font-bold flex items-center gap-3 bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
               <Building2 className="sm:w-7 sm:h-7 text-primary dark:text-white" />
-              All Construction Quotes
+              <h2 className="text-xl sm:text-2xl">All Construction Quotes</h2>
             </h1>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
               Manage and track all your construction quotes with ease
@@ -343,7 +343,7 @@ const ViewAllQuotes = () => {
                           <div className="text-sm text-muted-foreground mb-1">
                             Materials
                           </div>
-                          <div className="text-lg font-semibold text-green-600">
+                          <div className="text-lg  text-green-600">
                             KSh{" "}
                             {formatCurrency(
                               quote.materials_cost,
@@ -356,7 +356,7 @@ const ViewAllQuotes = () => {
                           <div className="text-sm text-muted-foreground mb-1">
                             Labor
                           </div>
-                          <div className="text-lg font-semibold text-blue-600">
+                          <div className="text-lg  text-blue-600">
                             KSh{" "}
                             {formatCurrency(quote.labor_cost).toLocaleString()}
                           </div>
@@ -367,7 +367,7 @@ const ViewAllQuotes = () => {
                           <div className="text-sm text-muted-foreground mb-1">
                             Add-ons
                           </div>
-                          <div className="text-lg font-semibold text-purple-600">
+                          <div className="text-lg  text-purple-600">
                             KSh{" "}
                             {formatCurrency(
                               quote.additional_services_cost,

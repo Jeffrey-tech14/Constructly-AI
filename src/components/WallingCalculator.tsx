@@ -602,7 +602,7 @@ export default function WallingCalculator({
                   </div>
                   {kitchenTileUnitPrice > 0 && (
                     <div className="bg-blue-50 dark:bg-blue-950/20 p-2 rounded border border-blue-200">
-                      <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                      <p className="text-xs  text-blue-900 dark:text-blue-100">
                         Price/m²: {formatCurrency(kitchenTileUnitPrice)}
                       </p>
                     </div>
@@ -714,7 +714,7 @@ export default function WallingCalculator({
                   </div>
                   {bathroomTileUnitPrice > 0 && (
                     <div className="bg-purple-50 dark:bg-purple-950/20 p-2 rounded border border-purple-200">
-                      <p className="text-xs font-semibold text-purple-900 dark:text-purple-100">
+                      <p className="text-xs  text-purple-900 dark:text-purple-100">
                         Price/m²: {formatCurrency(bathroomTileUnitPrice)}
                       </p>
                     </div>
@@ -1047,7 +1047,7 @@ export default function WallingCalculator({
                         <TableCell className="text-right">
                           {formatCurrency(calc.totalCost)}
                         </TableCell>
-                        <TableCell className="text-right font-semibold">
+                        <TableCell className="text-right ">
                           {formatCurrency(calc.totalCostWithWastage)}
                         </TableCell>
                         {!readonly && (

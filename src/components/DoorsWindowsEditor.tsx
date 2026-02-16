@@ -8,10 +8,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, DoorOpen, LucideAppWindow, Plus, Trash2 } from "lucide-react";
 import { Door, WallSection, Window, getRecommendedGlassThickness, isGlassThicknessSufficient } from "@/hooks/useMasonryCalculatorNew";
 import { Label } from "./ui/label";
+import { Card } from "./ui/card";
 
 // STEP 1: 5 Door specification types
 export const DOOR_TYPES = ["Steel", "Solid flush", "Semi-solid flush", "Panel", "T&G"];
@@ -126,6 +128,8 @@ const DoorsWindowsEditor = ({
   materialData,
   readonly = false,
 }: DoorsWindowsEditorProps) => {
+  const [activeTab, setActiveTab] = React.useState<"external" | "internal">("external");
+
   const updateSections = (updater: (sections: WallSection[]) => WallSection[]) => {
     onUpdate(updater([...(wallSections || [])]));
   };
@@ -175,9 +179,7 @@ const DoorsWindowsEditor = ({
         glazing: {
           included: true,
           glassAreaM2: 0,
-          puttyLengthM: 0,
           glassPricePerM2: 0,
-          puttyPricePerM: 0,
         },
       },
       quarterRound: {
@@ -195,7 +197,8 @@ const DoorsWindowsEditor = ({
             size: "100mm"
           },
           quantity: 3,
-          price: 0
+          price: 0,
+          enabled: true
         },
         locks: {
           selected: {
@@ -203,7 +206,8 @@ const DoorsWindowsEditor = ({
             size: "3-lever"
           },
           quantity: 1,
-          price: 0
+          price: 0,
+          enabled: true
         },
         handles: {
           selected: {
@@ -211,7 +215,8 @@ const DoorsWindowsEditor = ({
             size: "standard"
           },
           quantity: 1,
-          price: 0
+          price: 0,
+          enabled: true
         },
         bolts: {
           selected: {
@@ -219,15 +224,17 @@ const DoorsWindowsEditor = ({
             size: "150mm"
           },
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         },
         closers: {
           selected: {
-            type: "pneumatic-closer",
+            type: "overhead-closer",
             size: "standard"
           },
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         }
       },
     };
@@ -301,47 +308,36 @@ const DoorsWindowsEditor = ({
         width: STANDARD_WINDOW_SIZES[0].split("×")[0].trim(),
         custom: { height: STANDARD_WINDOW_SIZES[0].split("×")[1].trim(), width: STANDARD_WINDOW_SIZES[0].split("×")[0].trim(), price: 0 },
       },
-      architrave: {
-        selected: {
-          type: "timber-architrave",
-          size: "40x20mm"
-        },
-        quantity: 1,
-        price: 0
-      },
-      quarterRound: {
-        selected: {
-          type: "timber-quarter-round",
-          size: "20mm"
-        },
-        quantity: 1,
-        price: 0
-      },
       ironmongery: {
         hinges: {
           selected: undefined,
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         },
         locks: {
           selected: undefined,
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         },
         handles: {
           selected: undefined,
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         },
         bolts: {
           selected: undefined,
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         },
         closers: {
           selected: undefined,
           quantity: 0,
-          price: 0
+          price: 0,
+          enabled: false
         }
       },
       glassType: "Clear",
@@ -514,12 +510,21 @@ const DoorsWindowsEditor = ({
           const boltUnit = Number(bolt?.price) || getFastenerPrice("Bolts", bolt?.selected);
           const closerUnit = Number(closer?.price) || getFastenerPrice("Closers", closer?.selected);
 
-          totals.doorIronmongery +=
-            (Number(hinge?.quantity) || 0) * hingeUnit * count +
-            (Number(lock?.quantity) || 0) * lockUnit * count +
-            (Number(handle?.quantity) || 0) * handleUnit * count +
-            (Number(bolt?.quantity) || 0) * boltUnit * count +
-            (Number(closer?.quantity) || 0) * closerUnit * count;
+          if (hinge?.enabled) {
+            totals.doorIronmongery += (Number(hinge?.quantity) || 0) * hingeUnit * count;
+          }
+          if (lock?.enabled) {
+            totals.doorIronmongery += (Number(lock?.quantity) || 0) * lockUnit * count;
+          }
+          if (handle?.enabled) {
+            totals.doorIronmongery += (Number(handle?.quantity) || 0) * handleUnit * count;
+          }
+          if (bolt?.enabled) {
+            totals.doorIronmongery += (Number(bolt?.quantity) || 0) * boltUnit * count;
+          }
+          if (closer?.enabled) {
+            totals.doorIronmongery += (Number(closer?.quantity) || 0) * closerUnit * count;
+          }
         }
 
         if (door.transom?.quantity && door.transom?.price) {
@@ -537,15 +542,6 @@ const DoorsWindowsEditor = ({
             (Number(door.transom?.quantity) || 1) *
             count;
         }
-
-        if (door.transom?.glazing?.puttyLengthM) {
-          const puttyUnit = Number(door.transom.glazing?.puttyPricePerM) || getPuttyUnitPrice();
-          totals.transomPutty +=
-            (Number(door.transom.glazing.puttyLengthM) || 0) *
-            puttyUnit *
-            (Number(door.transom?.quantity) || 1) *
-            count;
-        }
       });
 
       (section.windows || []).forEach((window) => {
@@ -554,12 +550,6 @@ const DoorsWindowsEditor = ({
         const framePrice = Number(window.frame?.custom?.price ?? window.frame?.price) || 0;
         totals.windowLeaves += windowPrice * count;
         totals.windowFrames += framePrice * count;
-
-        if (window.architrave?.quantity) {
-          const unit = Number(window.architrave?.price) ||
-            getFastenerPrice("Architraves", window.architrave?.selected);
-          totals.windowArchitrave += (Number(window.architrave.quantity) || 0) * unit * count;
-        }
 
         const parsed = window.sizeType === "standard"
           ? parseStandardSize(window.standardSize)
@@ -619,112 +609,237 @@ const DoorsWindowsEditor = ({
           </>
         )}
       </div>
-      {wallSections.map((section, sectionIdx) => (
-        <div
-          key={`${section.type}-${sectionIdx}`}
-          className={`p-4 rounded-3xl border ${
-            section.type === "external"
-              ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
-              : "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
-          }`}
-        >
-          <h5
-            className={`font-semibold mb-3 capitalize flex items-center ${
-              section.type === "external"
-                ? "text-green-900 dark:text-green-100"
-                : "text-blue-900 dark:text-blue-100"
-            }`}
-          >
-            <Building className="w-4 h-4 mr-2" />
-            {section.type} Walls
-          </h5>
 
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
-                <DoorOpen className="w-3 h-3 mr-1" />
-                Doors ({section.doors?.length || 0})
-              </p>
-              {!readonly && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => addDoor(sectionIdx)}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Door
-                </Button>
-              )}
-            </div>
-            {section.doors && section.doors.length > 0 ? (
-              <div className="space-y-2">
-                {section.doors.map((door, doorIdx) => (
-                  <EditableDoorWindow
-                    key={`door-${sectionIdx}-${doorIdx}`}
-                    type="door"
-                    item={door}
-                    onUpdate={(field, value) => updateDoor(sectionIdx, doorIdx, field, value)}
-                    onRemove={() => removeDoor(sectionIdx, doorIdx)}
-                    standardSizes={STANDARD_DOOR_SIZES}
-                    types={DOOR_TYPES}
-                    frameTypes={FRAME_TYPES}
-                    sectionWallThicknessMm={
-                      getBlockThicknessMmFromType(section.blockType) ||
-                      normalizeWallThicknessMm(section.thickness, section.type)
-                    }
-                    materialData={materialData}
-                    readonly={readonly}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500 italic">No doors added</p>
-            )}
-          </div>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "external" | "internal")}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="external" className="flex items-center gap-2">
+            <Building className="w-4 h-4" />
+            External Walls
+          </TabsTrigger>
+          <TabsTrigger value="internal" className="flex items-center gap-2">
+            <Building className="w-4 h-4" />
+            Internal Walls
+          </TabsTrigger>
+        </TabsList>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
-                <LucideAppWindow className="w-3 h-3 mr-1" />
-                Windows ({section.windows?.length || 0})
-              </p>
-              {!readonly && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => addWindow(sectionIdx)}
+        <TabsContent value="external" className="space-y-4 mt-4">
+          {wallSections
+            .filter((section) => section.type === "external")
+            .map((section, sectionIdx) => {
+              const actualIdx = wallSections.indexOf(section);
+              return (
+                <Card
+                  key={`external-${actualIdx}`}
+                  className={`p-4 rounded-3xl border`}
                 >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Window
-                </Button>
-              )}
-            </div>
-            {section.windows && section.windows.length > 0 ? (
-              <div className="space-y-2">
-                {section.windows.map((window, windowIdx) => (
-                  <EditableDoorWindow
-                    key={`window-${sectionIdx}-${windowIdx}`}
-                    type="window"
-                    item={window}
-                    onUpdate={(field, value) =>
-                      updateWindow(sectionIdx, windowIdx, field, value)
-                    }
-                    onRemove={() => removeWindow(sectionIdx, windowIdx)}
-                    standardSizes={STANDARD_WINDOW_SIZES}
-                    types={WINDOW_GLASS_TYPES}
-                    frameTypes={FRAME_TYPES}
-                    sectionWallThicknessMm={section.thickness}
-                    materialData={materialData}
-                    readonly={readonly}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500 italic">No windows added</p>
-            )}
-          </div>
-        </div>
-      ))}
+                  <h5 className=" mb-3 capitalize flex items-center text-green-900 dark:text-green-100">
+                    <Building className="w-4 h-4 mr-2" />
+                    External Wall Section
+                  </h5>
+
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                        <DoorOpen className="w-3 h-3 mr-1" />
+                        Doors ({section.doors?.length || 0})
+                      </p>
+                      {!readonly && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => addDoor(actualIdx)}
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add Door
+                        </Button>
+                      )}
+                    </div>
+                    {section.doors && section.doors.length > 0 ? (
+                      <div className="space-y-2">
+                        {section.doors.map((door, doorIdx) => (
+                          <EditableDoorWindow
+                            key={`door-${actualIdx}-${doorIdx}`}
+                            type="door"
+                            item={door}
+                            onUpdate={(field, value) => updateDoor(actualIdx, doorIdx, field, value)}
+                            onRemove={() => removeDoor(actualIdx, doorIdx)}
+                            standardSizes={STANDARD_DOOR_SIZES}
+                            types={DOOR_TYPES}
+                            frameTypes={FRAME_TYPES}
+                            sectionWallThicknessMm={
+                              getBlockThicknessMmFromType(section.blockType) ||
+                              normalizeWallThicknessMm(section.thickness, section.type)
+                            }
+                            materialData={materialData}
+                            readonly={readonly}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">No doors added</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                        <LucideAppWindow className="w-3 h-3 mr-1" />
+                        Windows ({section.windows?.length || 0})
+                      </p>
+                      {!readonly && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => addWindow(actualIdx)}
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add Window
+                        </Button>
+                      )}
+                    </div>
+                    {section.windows && section.windows.length > 0 ? (
+                      <div className="space-y-2">
+                        {section.windows.map((window, windowIdx) => (
+                          <EditableDoorWindow
+                            key={`window-${actualIdx}-${windowIdx}`}
+                            type="window"
+                            item={window}
+                            onUpdate={(field, value) =>
+                              updateWindow(actualIdx, windowIdx, field, value)
+                            }
+                            onRemove={() => removeWindow(actualIdx, windowIdx)}
+                            standardSizes={STANDARD_WINDOW_SIZES}
+                            types={WINDOW_GLASS_TYPES}
+                            frameTypes={FRAME_TYPES}
+                            sectionWallThicknessMm={section.thickness}
+                            materialData={materialData}
+                            readonly={readonly}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">No windows added</p>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          {wallSections.filter((section) => section.type === "external").length === 0 && (
+            <p className="text-sm text-slate-500 italic text-center py-8">
+              No external wall sections added. Click "Add External Wall Section" to get started.
+            </p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="internal" className="space-y-4 mt-4">
+          {wallSections
+            .filter((section) => section.type === "internal")
+            .map((section, sectionIdx) => {
+              const actualIdx = wallSections.indexOf(section);
+              return (
+                <Card
+                  key={`internal-${actualIdx}`}
+                  className={`p-4 rounded-3xl border`}
+                >
+                  <h5 className=" mb-3 capitalize flex items-center text-blue-900 dark:text-blue-100">
+                    <Building className="w-4 h-4 mr-2" />
+                    Internal Wall Section
+                  </h5>
+
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                        <DoorOpen className="w-3 h-3 mr-1" />
+                        Doors ({section.doors?.length || 0})
+                      </p>
+                      {!readonly && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => addDoor(actualIdx)}
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add Door
+                        </Button>
+                      )}
+                    </div>
+                    {section.doors && section.doors.length > 0 ? (
+                      <div className="space-y-2">
+                        {section.doors.map((door, doorIdx) => (
+                          <EditableDoorWindow
+                            key={`door-${actualIdx}-${doorIdx}`}
+                            type="door"
+                            item={door}
+                            onUpdate={(field, value) => updateDoor(actualIdx, doorIdx, field, value)}
+                            onRemove={() => removeDoor(actualIdx, doorIdx)}
+                            standardSizes={STANDARD_DOOR_SIZES}
+                            types={DOOR_TYPES}
+                            frameTypes={FRAME_TYPES}
+                            sectionWallThicknessMm={
+                              getBlockThicknessMmFromType(section.blockType) ||
+                              normalizeWallThicknessMm(section.thickness, section.type)
+                            }
+                            materialData={materialData}
+                            readonly={readonly}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">No doors added</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                        <LucideAppWindow className="w-3 h-3 mr-1" />
+                        Windows ({section.windows?.length || 0})
+                      </p>
+                      {!readonly && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => addWindow(actualIdx)}
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add Window
+                        </Button>
+                      )}
+                    </div>
+                    {section.windows && section.windows.length > 0 ? (
+                      <div className="space-y-2">
+                        {section.windows.map((window, windowIdx) => (
+                          <EditableDoorWindow
+                            key={`window-${actualIdx}-${windowIdx}`}
+                            type="window"
+                            item={window}
+                            onUpdate={(field, value) =>
+                              updateWindow(actualIdx, windowIdx, field, value)
+                            }
+                            onRemove={() => removeWindow(actualIdx, windowIdx)}
+                            standardSizes={STANDARD_WINDOW_SIZES}
+                            types={WINDOW_GLASS_TYPES}
+                            frameTypes={FRAME_TYPES}
+                            sectionWallThicknessMm={section.thickness}
+                            materialData={materialData}
+                            readonly={readonly}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">No windows added</p>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          {wallSections.filter((section) => section.type === "internal").length === 0 && (
+            <p className="text-sm text-slate-500 italic text-center py-8">
+              No internal wall sections added. Click "Add Internal Wall Section" to get started.
+            </p>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
@@ -788,10 +903,13 @@ const EditableDoorWindow = ({
       ? (parseFloat(doorItem.transom?.height || "") || parseFloat(DOOR_TRANSOM_HEIGHT_M))
       : 0;
     const totalHeight = height + transomHeight;
-    return (totalHeight * 2) + width;
+    return (height * 2) + width;
   };
 
-  const autoArchitraveQty = getFramePerimeterLm();
+  const transomHeight = doorItem.transom?.enabled
+      ? (parseFloat(doorItem.transom?.height || "") || parseFloat(DOOR_TRANSOM_HEIGHT_M))
+      : 0;
+  const autoArchitraveQty = getFramePerimeterLm() + transomHeight;
   const autoQuarterRoundQty = getFramePerimeterLm();
 
   const getFrameRate = () => {
@@ -884,7 +1002,6 @@ const EditableDoorWindow = ({
       hasHeight &&
       hasWidth &&
       transom.glazing?.glassAreaM2 === glazingArea &&
-      transom.glazing?.puttyLengthM === puttyLength &&
       transom.quantity === doorItem.count &&
       transom.price === nextPrice
     ) {
@@ -953,6 +1070,12 @@ const EditableDoorWindow = ({
     }
   };
 
+  const getGlassUnitM2Price = (glassType?: string, area?: number) =>{
+    const price = getMaterialTypePrice(materialData, "Windows", glassType || "Clear");
+    const pricePerM = price / (area || 1);
+    return pricePerM;
+  }
+
   const getGlassUnitPrice = (glassType?: string) =>
     getMaterialTypePrice(materialData, "Windows", glassType || "Clear");
 
@@ -1011,17 +1134,6 @@ const EditableDoorWindow = ({
       (!currentGlassPrice || currentGlassPrice === 0 || currentGlassPrice === undefined)
     ) {
       glazing.glassPricePerM2 = resolvedGlassPrice;
-      changed = true;
-    }
-
-    // Auto-fill putty price if not set or zero
-    const currentPuttyPrice = glazing.puttyPricePerM;
-    const resolvedPuttyPrice = resolvePrice(currentPuttyPrice, defaultPutty["1 kg tin"]);
-    if (
-      resolvedPuttyPrice > 0 &&
-      (!currentPuttyPrice || currentPuttyPrice === 0 || currentPuttyPrice === undefined)
-    ) {
-      glazing.puttyPricePerM = resolvedPuttyPrice;
       changed = true;
     }
 
@@ -1119,112 +1231,155 @@ const EditableDoorWindow = ({
     onUpdate,
   ]);
 
-  // Auto-fill unit prices from materials data for door components
+  // Initialize missing fields with defaults for door components
   React.useEffect(() => {
     if (type !== "door") return;
-    if (!materialData) return;
 
     const architrave = doorItem.architrave || {};
     const quarterRound = doorItem.quarterRound || {};
     const ironmongery = doorItem.ironmongery || {};
     let changed = false;
 
-    // Auto-fill architrave price if not set and has selected type/size
-    if (
-      architrave.selected?.type &&
-      architrave.selected?.size &&
-      (architrave.price === undefined || architrave.price === null)
-    ) {
-      const price = getFastenerPrice("Architraves", architrave.selected.type, architrave.selected.size);
-      if (price !== null && price !== undefined) {
-        architrave.price = price;
-        changed = true;
-      }
+    // Initialize architrave selected if missing
+    if (!architrave.selected?.type || !architrave.selected?.size) {
+      architrave.selected = {
+        type: "timber-architrave",
+        size: "40x20mm",
+      };
+      changed = true;
     }
 
-    // Auto-fill quarter round price if not set and has selected type/size
-    if (
-      quarterRound.selected?.type &&
-      quarterRound.selected?.size &&
-      (quarterRound.price === undefined || quarterRound.price === null)
-    ) {
-      const price = getFastenerPrice("Quarter_Rounds", quarterRound.selected.type, quarterRound.selected.size);
-      if (price !== null && price !== undefined) {
-        quarterRound.price = price;
-        changed = true;
-      }
+    // Initialize architrave price if missing
+    if (architrave.price === undefined || architrave.price === null) {
+      architrave.price = 0;
+      changed = true;
     }
 
-    // Auto-fill ironmongery prices
+    // Initialize quarter round selected if missing
+    if (!quarterRound.selected?.type || !quarterRound.selected?.size) {
+      quarterRound.selected = {
+        type: "timber-quarter-round",
+        size: "20mm",
+      };
+      changed = true;
+    }
+
+    // Initialize quarter round price if missing
+    if (quarterRound.price === undefined || quarterRound.price === null) {
+      quarterRound.price = 0;
+      changed = true;
+    }
+
+    // Initialize ironmongery components
     const hinges = ironmongery.hinges || {};
     const locks = ironmongery.locks || {};
     const handles = ironmongery.handles || {};
     const bolts = ironmongery.bolts || {};
     const closers = ironmongery.closers || {};
 
-    // Hinges
-    if (
-      hinges.selected?.type &&
-      hinges.selected?.size &&
-      (hinges.price === undefined || hinges.price === null)
-    ) {
-      const price = getFastenerPrice("Hinges", hinges.selected.type, hinges.selected.size);
-      if (price !== null && price !== undefined) {
-        hinges.price = price;
-        changed = true;
-      }
+    // Hinges defaults
+    if (!hinges.selected?.type || !hinges.selected?.size) {
+      hinges.selected = {
+        type: "butt-hinge",
+        size: "100mm",
+      };
+      changed = true;
+    }
+    if (hinges.price === undefined || hinges.price === null) {
+      hinges.price = 0;
+      changed = true;
+    }
+    if (hinges.quantity === undefined || hinges.quantity === null) {
+      hinges.quantity = 3;
+      changed = true;
+    }
+    if (hinges.enabled === undefined || hinges.enabled === null) {
+      hinges.enabled = true;
+      changed = true;
     }
 
-    // Locks
-    if (
-      locks.selected?.type &&
-      locks.selected?.size &&
-      (locks.price === undefined || locks.price === null)
-    ) {
-      const price = getFastenerPrice("Locks", locks.selected.type, locks.selected.size);
-      if (price !== null && price !== undefined) {
-        locks.price = price;
-        changed = true;
-      }
+    // Locks defaults
+    if (!locks.selected?.type || !locks.selected?.size) {
+      locks.selected = {
+        type: "mortice-lock",
+        size: "3-lever",
+      };
+      changed = true;
+    }
+    if (locks.price === undefined || locks.price === null) {
+      locks.price = 0;
+      changed = true;
+    }
+    if (locks.quantity === undefined || locks.quantity === null) {
+      locks.quantity = 1;
+      changed = true;
+    }
+    if (locks.enabled === undefined || locks.enabled === null) {
+      locks.enabled = true;
+      changed = true;
     }
 
-    // Handles
-    if (
-      handles.selected?.type &&
-      handles.selected?.size &&
-      (handles.price === undefined || handles.price === null)
-    ) {
-      const price = getFastenerPrice("Handles", handles.selected.type, handles.selected.size);
-      if (price !== null && price !== undefined) {
-        handles.price = price;
-        changed = true;
-      }
+    // Handles defaults
+    if (!handles.selected?.type || !handles.selected?.size) {
+      handles.selected = {
+        type: "lever-handle",
+        size: "standard",
+      };
+      changed = true;
+    }
+    if (handles.price === undefined || handles.price === null) {
+      handles.price = 0;
+      changed = true;
+    }
+    if (handles.quantity === undefined || handles.quantity === null) {
+      handles.quantity = 1;
+      changed = true;
+    }
+    if (handles.enabled === undefined || handles.enabled === null) {
+      handles.enabled = true;
+      changed = true;
     }
 
-    // Bolts
-    if (
-      bolts.selected?.type &&
-      bolts.selected?.size &&
-      (bolts.price === undefined || bolts.price === null)
-    ) {
-      const price = getFastenerPrice("Bolts", bolts.selected.type, bolts.selected.size);
-      if (price !== null && price !== undefined) {
-        bolts.price = price;
-        changed = true;
-      }
+    // Bolts defaults
+    if (!bolts.selected?.type || !bolts.selected?.size) {
+      bolts.selected = {
+        type: "tower-bolt",
+        size: "150mm",
+      };
+      changed = true;
+    }
+    if (bolts.price === undefined || bolts.price === null) {
+      bolts.price = 0;
+      changed = true;
+    }
+    if (bolts.quantity === undefined || bolts.quantity === null) {
+      bolts.quantity = 0;
+      changed = true;
+    }
+    if (bolts.enabled === undefined || bolts.enabled === null) {
+      bolts.enabled = false;
+      changed = true;
     }
 
-    // Closers
-    if (
-      closers.selected?.type &&
-      closers.selected?.size &&
-      (closers.price === undefined || closers.price === null)
-    ) {
-      const price = getFastenerPrice("Closers", closers.selected.type, closers.selected.size);
-      if (price !== null && price !== undefined) {
-        closers.price = price;
-        changed = true;
-      }
+    // Closers defaults
+    if (!closers.selected?.type || !closers.selected?.size) {
+      closers.selected = {
+        type: "pneumatic-closer",
+        size: "standard",
+      };
+      changed = true;
+    }
+    if (closers.price === undefined || closers.price === null) {
+      closers.price = 0;
+      changed = true;
+    }
+    if (closers.quantity === undefined || closers.quantity === null) {
+      closers.quantity = 0;
+      changed = true;
+    }
+    if (closers.enabled === undefined || closers.enabled === null) {
+      closers.enabled = false;
+      changed = true;
     }
 
     if (!changed) return;
@@ -1239,34 +1394,69 @@ const EditableDoorWindow = ({
       bolts,
       closers,
     });
-  }, [
-    type,
-    doorItem.architrave?.selected?.type,
-    doorItem.architrave?.selected?.size,
-    doorItem.quarterRound?.selected?.type,
-    doorItem.quarterRound?.selected?.size,
-    doorItem.ironmongery?.hinges?.selected?.type,
-    doorItem.ironmongery?.hinges?.selected?.size,
-    doorItem.ironmongery?.locks?.selected?.type,
-    doorItem.ironmongery?.locks?.selected?.size,
-    doorItem.ironmongery?.handles?.selected?.type,
-    doorItem.ironmongery?.handles?.selected?.size,
-    doorItem.ironmongery?.bolts?.selected?.type,
-    doorItem.ironmongery?.bolts?.selected?.size,
-    doorItem.ironmongery?.closers?.selected?.type,
-    doorItem.ironmongery?.closers?.selected?.size,
-    materialData,
-    onUpdate,
-  ]);
+  }, [type, doorItem.architrave, doorItem.quarterRound, doorItem.ironmongery, onUpdate]);
 
-  // Auto-fill unit prices from materials data for window components
+  // Clear architrave, quarter round, and transom for steel doors
   React.useEffect(() => {
-    if (type !== "window") return;
-    if (!materialData) return;
+    if (type !== "door") return;
+    if (doorItem.type !== "Steel") return;
 
-    const architrave = windowItem.architrave || {};
-    const quarterRound = windowItem.quarterRound || {};
-    const ironmongery = windowItem.ironmongery || {};
+    let changed = false;
+    const updates: Record<string, any> = {};
+
+    // Clear architrave
+    if (doorItem.architrave && Object.keys(doorItem.architrave).length > 0) {
+      updates.architrave = {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      };
+      changed = true;
+    }
+
+    // Clear quarter round
+    if (doorItem.quarterRound && Object.keys(doorItem.quarterRound).length > 0) {
+      updates.quarterRound = {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      };
+      changed = true;
+    }
+
+    // Clear transom
+    if (doorItem.transom && Object.keys(doorItem.transom).length > 0) {
+      updates.transom = {
+        enabled: false,
+        height: DOOR_TRANSOM_HEIGHT_M,
+        width: DOOR_DEFAULT_WIDTH_M,
+        quantity: 0,
+        price: 0,
+        glazing: {
+          included: false,
+          glassAreaM2: 0,
+          glassPricePerM2: 0,
+        },
+      };
+      changed = true;
+    }
+
+    if (!changed) return;
+
+    Object.entries(updates).forEach(([key, value]) => {
+      onUpdate(key, value);
+    });
+  }, [type, doorItem.type, onUpdate]);
+
+  // Auto-fill unit prices from materials data for door components
+  React.useEffect(() => {
+    if (type !== "door") return;
+    if (!materialData) return;
+    if (doorItem.type === "Steel") return; // Skip for steel doors
+
+    const architrave = doorItem.architrave || {};
+    const quarterRound = doorItem.quarterRound || {};
+    const ironmongery = doorItem.ironmongery || {};
     let changed = false;
 
     // Auto-fill architrave price if not set and has selected type/size
@@ -1381,10 +1571,253 @@ const EditableDoorWindow = ({
     });
   }, [
     type,
-    windowItem.architrave?.selected?.type,
-    windowItem.architrave?.selected?.size,
-    windowItem.quarterRound?.selected?.type,
-    windowItem.quarterRound?.selected?.size,
+    doorItem.architrave?.selected?.type,
+    doorItem.architrave?.selected?.size,
+    doorItem.quarterRound?.selected?.type,
+    doorItem.quarterRound?.selected?.size,
+    doorItem.ironmongery?.hinges?.selected?.type,
+    doorItem.ironmongery?.hinges?.selected?.size,
+    doorItem.ironmongery?.locks?.selected?.type,
+    doorItem.ironmongery?.locks?.selected?.size,
+    doorItem.ironmongery?.handles?.selected?.type,
+    doorItem.ironmongery?.handles?.selected?.size,
+    doorItem.ironmongery?.bolts?.selected?.type,
+    doorItem.ironmongery?.bolts?.selected?.size,
+    doorItem.ironmongery?.closers?.selected?.type,
+    doorItem.ironmongery?.closers?.selected?.size,
+    materialData,
+    onUpdate,
+  ]);
+
+  // Initialize missing fields with defaults for window components
+  React.useEffect(() => {
+    if (type !== "window") return;
+
+    const glazing = windowItem.glazing || {};
+    const glass = glazing.glass || {};
+    const putty = glazing.putty || {};
+    const ironmongery = windowItem.ironmongery || {};
+    let changed = false;
+
+    // Initialize glass if missing
+    if (!glass.type) {
+      glass.type = "Clear";
+      changed = true;
+    }
+    if (glass.thickness === undefined || glass.thickness === null) {
+      glass.thickness = 3;
+      changed = true;
+    }
+    if (glass.quantity === undefined || glass.quantity === null) {
+      glass.quantity = 1;
+      changed = true;
+    }
+    if (glass.pricePerM2 === undefined || glass.pricePerM2 === null) {
+      glass.pricePerM2 = 0;
+      changed = true;
+    }
+
+    // Initialize putty if missing
+    if (!putty.size) {
+      putty.size = "1 kg tin";
+      changed = true;
+    }
+    if (putty.quantity === undefined || putty.quantity === null) {
+      putty.quantity = 1;
+      changed = true;
+    }
+    if (putty.price === undefined || putty.price === null) {
+      putty.price = 0;
+      changed = true;
+    }
+
+    // Initialize ironmongery components (all optional for windows)
+    const hinges = ironmongery.hinges || {};
+    const locks = ironmongery.locks || {};
+    const handles = ironmongery.handles || {};
+    const bolts = ironmongery.bolts || {};
+    const closers = ironmongery.closers || {};
+
+    // Hinges defaults
+    if (hinges.price === undefined || hinges.price === null) {
+      hinges.price = 0;
+      changed = true;
+    }
+    if (hinges.quantity === undefined || hinges.quantity === null) {
+      hinges.quantity = 0;
+      changed = true;
+    }
+    if (hinges.enabled === undefined || hinges.enabled === null) {
+      hinges.enabled = false;
+      changed = true;
+    }
+
+    // Locks defaults
+    if (locks.price === undefined || locks.price === null) {
+      locks.price = 0;
+      changed = true;
+    }
+    if (locks.quantity === undefined || locks.quantity === null) {
+      locks.quantity = 0;
+      changed = true;
+    }
+    if (locks.enabled === undefined || locks.enabled === null) {
+      locks.enabled = false;
+      changed = true;
+    }
+
+    // Handles defaults
+    if (handles.price === undefined || handles.price === null) {
+      handles.price = 0;
+      changed = true;
+    }
+    if (handles.quantity === undefined || handles.quantity === null) {
+      handles.quantity = 0;
+      changed = true;
+    }
+    if (handles.enabled === undefined || handles.enabled === null) {
+      handles.enabled = false;
+      changed = true;
+    }
+
+    // Bolts defaults
+    if (bolts.price === undefined || bolts.price === null) {
+      bolts.price = 0;
+      changed = true;
+    }
+    if (bolts.quantity === undefined || bolts.quantity === null) {
+      bolts.quantity = 0;
+      changed = true;
+    }
+    if (bolts.enabled === undefined || bolts.enabled === null) {
+      bolts.enabled = false;
+      changed = true;
+    }
+
+    // Closers defaults
+    if (closers.price === undefined || closers.price === null) {
+      closers.price = 0;
+      changed = true;
+    }
+    if (closers.quantity === undefined || closers.quantity === null) {
+      closers.quantity = 0;
+      changed = true;
+    }
+    if (closers.enabled === undefined || closers.enabled === null) {
+      closers.enabled = false;
+      changed = true;
+    }
+
+    if (!changed) return;
+
+    onUpdate("glazing", {
+      ...glazing,
+      glass: { ...glass },
+      putty: { ...putty },
+    });
+
+    onUpdate("ironmongery", {
+      ...ironmongery,
+      hinges,
+      locks,
+      handles,
+      bolts,
+      closers,
+    });
+  }, [type, windowItem.glazing, windowItem.ironmongery, onUpdate]);
+
+  // Auto-fill unit prices from materials data for window components
+  React.useEffect(() => {
+    if (type !== "window") return;
+    if (!materialData) return;
+
+    const ironmongery = windowItem.ironmongery || {};
+    let changed = false;
+
+    // Auto-fill ironmongery prices
+    const hinges = ironmongery.hinges || {};
+    const locks = ironmongery.locks || {};
+    const handles = ironmongery.handles || {};
+    const bolts = ironmongery.bolts || {};
+    const closers = ironmongery.closers || {};
+
+    // Hinges
+    if (
+      hinges.selected?.type &&
+      hinges.selected?.size &&
+      (!hinges.price || hinges.price === 0)
+    ) {
+      const price = getFastenerPrice("Hinges", hinges.selected.type, hinges.selected.size);
+      if (price !== null && price !== undefined) {
+        hinges.price = price;
+        changed = true;
+      }
+    }
+
+    // Locks
+    if (
+      locks.selected?.type &&
+      locks.selected?.size &&
+      (!locks.price || locks.price === 0)
+    ) {
+      const price = getFastenerPrice("Locks", locks.selected.type, locks.selected.size);
+      if (price !== null && price !== undefined) {
+        locks.price = price;
+        changed = true;
+      }
+    }
+
+    // Handles
+    if (
+      handles.selected?.type &&
+      handles.selected?.size &&
+      (!handles.price || handles.price === 0)
+    ) {
+      const price = getFastenerPrice("Handles", handles.selected.type, handles.selected.size);
+      if (price !== null && price !== undefined) {
+        handles.price = price;
+        changed = true;
+      }
+    }
+
+    // Bolts
+    if (
+      bolts.selected?.type &&
+      bolts.selected?.size &&
+      (!bolts.price || bolts.price === 0)
+    ) {
+      const price = getFastenerPrice("Bolts", bolts.selected.type, bolts.selected.size);
+      if (price !== null && price !== undefined) {
+        bolts.price = price;
+        changed = true;
+      }
+    }
+
+    // Closers
+    if (
+      closers.selected?.type &&
+      closers.selected?.size &&
+      (!closers.price || closers.price === 0)
+    ) {
+      const price = getFastenerPrice("Closers", closers.selected.type, closers.selected.size);
+      if (price !== null && price !== undefined) {
+        closers.price = price;
+        changed = true;
+      }
+    }
+
+    if (!changed) return;
+
+    onUpdate("ironmongery", {
+      ...ironmongery,
+      hinges,
+      locks,
+      handles,
+      bolts,
+      closers,
+    });
+  }, [
+    type,
     windowItem.ironmongery?.hinges?.selected?.type,
     windowItem.ironmongery?.hinges?.selected?.size,
     windowItem.ironmongery?.locks?.selected?.type,
@@ -1505,43 +1938,6 @@ const EditableDoorWindow = ({
         },
       });
     }
-  }, [
-    type,
-    windowItem.sizeType,
-    windowItem.standardSize,
-    windowItem.custom?.width,
-    windowItem.custom?.height,
-    onUpdate,
-  ]);
-
-  // Auto-fill window architrave and quarter round quantities based on perimeter
-  React.useEffect(() => {
-    if (type !== "window") return;
-
-    const windowHeight = getWindowHeightM();
-    const windowWidth = getWindowWidthM();
-    const perimeterLength = (windowHeight * 2) + windowWidth;
-
-    const architrave = windowItem.architrave || {};
-    const quarterRound = windowItem.quarterRound || {};
-    let changed = false;
-
-    // Auto-fill architrave quantity if not already set
-    if (architrave.quantity === undefined || architrave.quantity === null || architrave.quantity === 0) {
-      architrave.quantity = perimeterLength;
-      changed = true;
-    }
-
-    // Auto-fill quarter round quantity if not already set
-    if (quarterRound.quantity === undefined || quarterRound.quantity === null || quarterRound.quantity === 0) {
-      quarterRound.quantity = perimeterLength;
-      changed = true;
-    }
-
-    if (!changed) return;
-
-    onUpdate("architrave", { ...architrave });
-    onUpdate("quarterRound", { ...quarterRound });
   }, [
     type,
     windowItem.sizeType,
@@ -1695,7 +2091,7 @@ const EditableDoorWindow = ({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 pt-2 border-t">
-        <h4 className="col-span-full text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <h4 className="col-span-full text-xs  text-slate-700 dark:text-slate-300">
           Frame Specification
           </h4>
         <Select
@@ -1801,13 +2197,14 @@ const EditableDoorWindow = ({
       {type === "door" && (
         <div className="space-y-3 pt-2 border-t">
           <Accordion type="single" collapsible className="space-y-2">
-            <AccordionItem
-              value="architrave"
-              className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
-            >
-              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
-                Architrave
-              </AccordionTrigger>
+            {doorItem.type !== "Steel" && (
+              <AccordionItem
+                value="architrave"
+                className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
+              >
+                <AccordionTrigger className="px-3 py-2 text-sm ">
+                  Architrave
+                </AccordionTrigger>
               <AccordionContent className="px-3 pb-3">
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                   <div>
@@ -1952,14 +2349,16 @@ const EditableDoorWindow = ({
                 </div>
               </AccordionContent>
             </AccordionItem>
+            )}
 
-            <AccordionItem
-              value="quarter-round"
-              className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
-            >
-              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
-                Quarter Round
-              </AccordionTrigger>
+            {doorItem.type !== "Steel" && (
+              <AccordionItem
+                value="quarter-round"
+                className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
+              >
+                <AccordionTrigger className="px-3 py-2 text-sm ">
+                  Quarter Round
+                </AccordionTrigger>
               <AccordionContent className="px-3 pb-3">
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                   <div>
@@ -2105,16 +2504,39 @@ const EditableDoorWindow = ({
                 </div>
               </AccordionContent>
             </AccordionItem>
+            )}
 
             <AccordionItem
               value="ironmongery"
               className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
             >
-              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
+              <AccordionTrigger className="px-3 py-2 text-sm ">
                 Ironmongery
               </AccordionTrigger>
               <AccordionContent className="px-3 pb-3 space-y-2">
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="hinges-enable"
+                      checked={doorItem.ironmongery?.hinges?.enabled ?? true}
+                      onCheckedChange={(checked) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          hinges: {
+                            ...(doorItem.ironmongery?.hinges || {}),
+                            enabled: !!checked,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="hinges-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Use Hinges
+                    </label>
+                  </div>
                   <div>
                     <label className="text-xs font-medium">Hinges Type</label>
                     <Select
@@ -2131,7 +2553,7 @@ const EditableDoorWindow = ({
                           },
                         })
                       }
-                      disabled={readonly}
+                      disabled={readonly || !doorItem.ironmongery?.hinges?.enabled}
                     >
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue placeholder="Select Type" />
@@ -2270,6 +2692,28 @@ const EditableDoorWindow = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="locks-enable"
+                      checked={doorItem.ironmongery?.locks?.enabled ?? true}
+                      onCheckedChange={(checked) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          locks: {
+                            ...(doorItem.ironmongery?.locks || {}),
+                            enabled: !!checked,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="locks-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Use Locks
+                    </label>
+                  </div>
                   <div>
                     <label className="text-xs font-medium">Locks Type</label>
                     <Select
@@ -2286,7 +2730,7 @@ const EditableDoorWindow = ({
                           },
                         })
                       }
-                      disabled={readonly}
+                      disabled={readonly || !doorItem.ironmongery?.locks?.enabled}
                     >
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue placeholder="Select Type" />
@@ -2425,6 +2869,28 @@ const EditableDoorWindow = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="handles-enable"
+                      checked={doorItem.ironmongery?.handles?.enabled ?? true}
+                      onCheckedChange={(checked) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          handles: {
+                            ...(doorItem.ironmongery?.handles || {}),
+                            enabled: !!checked,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="handles-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Use Handles
+                    </label>
+                  </div>
                   <div>
                     <label className="text-xs font-medium">Handles Type</label>
                     <Select
@@ -2441,7 +2907,7 @@ const EditableDoorWindow = ({
                           },
                         })
                       }
-                      disabled={readonly}
+                      disabled={readonly || !doorItem.ironmongery?.handles?.enabled}
                     >
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue placeholder="Select Type" />
@@ -2580,6 +3046,28 @@ const EditableDoorWindow = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="bolts-enable"
+                      checked={doorItem.ironmongery?.bolts?.enabled ?? false}
+                      onCheckedChange={(checked) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          bolts: {
+                            ...(doorItem.ironmongery?.bolts || {}),
+                            enabled: !!checked,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="bolts-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Use Bolts
+                    </label>
+                  </div>
                   <div>
                     <label className="text-xs font-medium">Bolts Type</label>
                     <Select
@@ -2596,7 +3084,7 @@ const EditableDoorWindow = ({
                           },
                         })
                       }
-                      disabled={readonly}
+                      disabled={readonly || !doorItem.ironmongery?.bolts?.enabled}
                     >
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue placeholder="Select Type" />
@@ -2735,6 +3223,28 @@ const EditableDoorWindow = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="closers-enable"
+                      checked={doorItem.ironmongery?.closers?.enabled ?? false}
+                      onCheckedChange={(checked) =>
+                        onUpdate("ironmongery", {
+                          ...doorItem.ironmongery,
+                          closers: {
+                            ...(doorItem.ironmongery?.closers || {}),
+                            enabled: !!checked,
+                          },
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="closers-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Use Closers
+                    </label>
+                  </div>
                   <div>
                     <label className="text-xs font-medium">Closers Type</label>
                     <Select
@@ -2751,7 +3261,7 @@ const EditableDoorWindow = ({
                           },
                         })
                       }
-                      disabled={readonly}
+                      disabled={readonly || !doorItem.ironmongery?.closers?.enabled}
                     >
                       <SelectTrigger className="h-8 text-xs">
                         <SelectValue placeholder="Select Type" />
@@ -2891,13 +3401,14 @@ const EditableDoorWindow = ({
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem
-              value="transom"
-              className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
-            >
-              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
-                Transom
-              </AccordionTrigger>
+            {doorItem.type !== "Steel" && (
+              <AccordionItem
+                value="transom"
+                className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
+              >
+                <AccordionTrigger className="px-3 py-2 text-sm ">
+                  Transom/Fanlight
+                </AccordionTrigger>
               <AccordionContent className="px-3 pb-3">
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <div>
@@ -2993,21 +3504,13 @@ const EditableDoorWindow = ({
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium">Putty Length (m)</label>
-                    <Input
-                      className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                      value={(doorItem.transom?.glazing?.puttyLengthM || 0).toFixed(2)}
-                      disabled={true}
-                    />
-                  </div>
-                  <div>
                     <label className="text-xs font-medium">Glass Unit (Ksh/m²)</label>
                     <Input
                       className="h-8 text-xs"
                       type="number"
                       value={
                         doorItem.transom?.glazing?.glassPricePerM2 ??
-                        getGlassUnitPrice("Clear") ??
+                        getGlassUnitM2Price("Clear", doorItem.transom?.glazing?.glassAreaM2 || 0) ??
                         ""
                       }
                       onChange={(e) =>
@@ -3023,49 +3526,13 @@ const EditableDoorWindow = ({
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium">Putty Unit (Ksh/m)</label>
-                    <Input
-                      className="h-8 text-xs"
-                      type="number"
-                      value={
-                        doorItem.transom?.glazing?.puttyPricePerM ??
-                        getPuttyUnitPrice() ??
-                        ""
-                      }
-                      onChange={(e) =>
-                        onUpdate("transom", {
-                          ...doorItem.transom,
-                          glazing: {
-                            ...doorItem.transom?.glazing,
-                            puttyPricePerM: parseFloat(e.target.value) || undefined,
-                          },
-                        })
-                      }
-                      disabled={readonly}
-                    />
-                  </div>
-                  <div>
                     <label className="text-xs font-medium">Glass Total (Ksh)</label>
                     <Input
                       className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
                       value={getTotalPrice(
                         doorItem.transom?.glazing?.glassAreaM2 || 0,
                         doorItem.transom?.glazing?.glassPricePerM2 ??
-                          getGlassUnitPrice("Clear") ??
-                          0,
-                        (doorItem.transom?.quantity || 1) * doorItem.count,
-                      ).toFixed(2)}
-                      disabled={true}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Putty Total (Ksh)</label>
-                    <Input
-                      className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                      value={getTotalPrice(
-                        doorItem.transom?.glazing?.puttyLengthM || 0,
-                        doorItem.transom?.glazing?.puttyPricePerM ??
-                          getPuttyUnitPrice() ??
+                          getGlassUnitM2Price("Clear", doorItem.transom?.glazing?.glassAreaM2 || 0) ??
                           0,
                         (doorItem.transom?.quantity || 1) * doorItem.count,
                       ).toFixed(2)}
@@ -3075,6 +3542,7 @@ const EditableDoorWindow = ({
                 </div>
               </AccordionContent>
             </AccordionItem>
+            )}
           </Accordion>
         </div>
       )}
@@ -3086,7 +3554,7 @@ const EditableDoorWindow = ({
               value="glass-spec"
               className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
             >
-              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
+              <AccordionTrigger className="px-3 py-2 text-sm ">
                 Glass Specification
               </AccordionTrigger>
               <AccordionContent className="px-3 pb-3">
@@ -3222,7 +3690,7 @@ const EditableDoorWindow = ({
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-medium">Price/m² (Ksh)</label>
+                      <label className="text-xs font-medium">Price (Ksh)</label>
                       <Input
                         className="h-8 text-xs"
                         type="number"
@@ -3387,157 +3855,6 @@ const EditableDoorWindow = ({
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem
-              value="architrave"
-              className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
-            >
-              <AccordionTrigger className="px-3 py-2 text-sm font-semibold">
-                Architrave
-              </AccordionTrigger>
-              <AccordionContent className="px-3 pb-3 space-y-3">
-                <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-                  <div>
-                    <label className="text-xs font-medium">Type</label>
-                    <Select
-                      value={windowItem.architrave?.selected?.type || ""}
-                      onValueChange={(value) =>
-                        onUpdate("architrave", {
-                          ...windowItem.architrave,
-                          selected: {
-                            type: value,
-                            size: "",
-                          },
-                          quantity: windowItem.architrave?.quantity,
-                        })
-                      }
-                      disabled={readonly}
-                    >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Select Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from(
-                          new Set(
-                            getFastenerOptions("Architraves").map((opt: any) => opt.type)
-                          )
-                        ).map((t: any) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Size</label>
-                    <Select
-                      value={windowItem.architrave?.selected?.size || ""}
-                      onValueChange={(value) =>
-                        onUpdate("architrave", {
-                          ...windowItem.architrave,
-                          selected: {
-                            ...windowItem.architrave?.selected,
-                            size: value,
-                          },
-                        })
-                      }
-                      disabled={readonly || !windowItem.architrave?.selected?.type}
-                    >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Select Size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getAvailableSizes(
-                          "Architraves",
-                          windowItem.architrave?.selected?.type || ""
-                        ).map((size: string) => (
-                          <SelectItem key={size} value={size}>
-                            {size}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Custom Size</label>
-                    <Input
-                      className="h-8 text-xs"
-                      placeholder="e.g. 50x25mm"
-                      value={windowItem.architrave?.customSize || ""}
-                      onChange={(e) =>
-                        onUpdate("architrave", {
-                          ...windowItem.architrave,
-                          customSize: e.target.value,
-                        })
-                      }
-                      disabled={readonly}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Qty (m)</label>
-                    <Input
-                      placeholder="Qty"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      className="h-8 text-xs"
-                      value={(windowItem.architrave?.quantity ?? autoWindowArchitraveQty).toFixed(2)}
-                      onChange={(e) =>
-                        onUpdate("architrave", {
-                          ...windowItem.architrave,
-                          quantity: parseFloat(e.target.value) || undefined,
-                        })
-                      }
-                      disabled={readonly}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Price/m (Ksh)</label>
-                    <Input
-                      placeholder="Ksh"
-                      type="number"
-                      className="h-8 text-xs"
-                      value={
-                        (
-                          windowItem.architrave?.price ??
-                          getFastenerPrice(
-                            "Architraves",
-                            windowItem.architrave?.selected?.type,
-                            windowItem.architrave?.selected?.size
-                          )
-                        ) || ""
-                      }
-                      onChange={(e) =>
-                        onUpdate("architrave", {
-                          ...windowItem.architrave,
-                          price: parseFloat(e.target.value) || undefined,
-                        })
-                      }
-                      disabled={readonly}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium">Total (Ksh)</label>
-                    <Input
-                      className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                      value={getTotalPrice(
-                        windowItem.architrave?.quantity ?? autoWindowArchitraveQty,
-                        (
-                          windowItem.architrave?.price ??
-                          getFastenerPrice(
-                            "Architraves",
-                            windowItem.architrave?.selected?.type,
-                            windowItem.architrave?.selected?.size
-                          )
-                        ) || 0,
-                        windowItem.count
-                      ).toFixed(2)}
-                      disabled={true}
-                    />
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
 
           </Accordion>
         </div>

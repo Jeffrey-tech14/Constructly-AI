@@ -24,6 +24,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { v4 as uuidv4 } from "uuid";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BOQSection, PrelimItem, PrelimSection } from "@/types/boq";
+import { QuoteGeometry, DEFAULT_GEOMETRY } from "@/types/geometry";
+import {
+  calculateInternalWallArea,
+  calculateExternalWallArea,
+  extractSlabFootprintArea,
+  mapWallDimensionsToGeometry,
+  calculateFlooringAreas,
+  syncRoofingFromSlab,
+} from "@/utils/geometryCalculations";
 import { useToast } from "@/hooks/use-toast";
 import {
   useQuoteCalculations,
@@ -120,8 +129,9 @@ import ElectricalCalculator from "./ElectricalCalculator";
 import RoofingCalculator from "./RoofingCalculator";
 import FlooringCalculator from "./FlooringCalculator";
 import WallingCalculator from "./WallingCalculator";
+import InternalFinishesCalculator from "./InternalFinishesCalculator";
+import ExternalFinishesCalculator from "./ExternalFinishesCalculator";
 import CeilingCalculator from "./CeilingCalculator";
-import PaintingCalculator from "./PaintingCalculator";
 import {
   RoofStructure,
 } from "@/hooks/useRoofingCalculator";
@@ -223,7 +233,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
-  const [wallingFinishesTab, setWallingFinishesTab] = useState("wallFinishes");
+  const [wallingFinishesTab, setWallingFinishesTab] = useState("internalFinishes");
   const [otherFinishesTab, setOtherFinishesTab] = useState("wardrobes");
 
   // Tier limit checking removed - now using per-quote payment model
@@ -317,30 +327,22 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     rebar_calculations: [],
     electrical_calculations: [],
     plumbing_calculations: [],
-    finishes_calculations: [],
+    finishes_calculations: {
+      flooring: [],
+      ceiling: [],
+      "wall-finishes": [],
+      joinery: [],
+      external: [],
+    },
     roofing_calculations: [],
     electrical_systems: [],
     plumbing_systems: [],
     wardrobes_cabinets: [],
     finishes: [],
     countertops: [],
-    roofingInputs: {
-      footprintAreaM2: 0,
-      externalPerimeterM: 0,
-      internalPerimeterM: 0,
-      buildingLengthM: 0,
-      buildingWidthM: 0,
-      roofTrussTypeKingPost: true,
-      purlinSpacingM: 1.5,
-      roofingSheetEffectiveCoverWidthM: 1.0,
-      roofingSheetLengthM: 3.0,
-      roofType: "gable" as "gable" | "hip" | "pitched" | "flat",
-      pitchDegrees: 25,
-      eaveWidthM: 0.8,
-      rasterSpacingMm: 600,
-      trussSpacingMm: 600,
-    },
     roof_structures: [],
+    // Phase 8: Consolidated geometry for reactive calculations
+    geometry: DEFAULT_GEOMETRY,
     preliminaries: [],
     preliminaryOptions: [],
     earthwork: [],
@@ -375,6 +377,63 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     }
   }, [quote]);
 
+  // Phase 8: Reactive geometry calculation - Wall areas
+  useEffect(() => {
+    const wallDims = quoteData.wallDimensions;
+    const newGeometry = {
+      ...quoteData.geometry,
+      ...mapWallDimensionsToGeometry(wallDims),
+      internalWallAreaM2: calculateInternalWallArea(
+        wallDims.internalWallPerimiter,
+        wallDims.internalWallHeight
+      ),
+      externalWallAreaM2: calculateExternalWallArea(
+        wallDims.externalWallPerimiter,
+        wallDims.externalWallHeight
+      ),
+    };
+    setQuoteData((prev) => ({ ...prev, geometry: newGeometry }));
+  }, [
+    quoteData.wallDimensions.externalWallPerimiter,
+    quoteData.wallDimensions.internalWallPerimiter,
+    quoteData.wallDimensions.externalWallHeight,
+    quoteData.wallDimensions.internalWallHeight,
+    quoteData.wallDimensions.length,
+    quoteData.wallDimensions.width,
+  ]);
+
+  // Phase 8: Reactive geometry calculation - Slab & Roofing
+  useEffect(() => {
+    const slabArea = extractSlabFootprintArea(quoteData.concrete_rows);
+    const externalPerimeter = quoteData.wallDimensions.externalWallPerimiter;
+
+    const roofingSync = syncRoofingFromSlab(slabArea, externalPerimeter);
+
+    // Calculate flooring areas
+    const flooringAreas = calculateFlooringAreas(
+      slabArea,
+      externalPerimeter,
+      quoteData.wallDimensions.externalWallHeight
+    );
+
+    const newGeometry = {
+      ...quoteData.geometry,
+      slabFootprintAreaM2: slabArea,
+      externalSlabPerimeterM: externalPerimeter,
+      roofingAreaM2: roofingSync.roofingAreaM2,
+      roofingPerimeterM: roofingSync.roofingPerimeterM,
+      roofingSyncedFromSlab: roofingSync.roofingSyncedFromSlab,
+      internalFlooringAreaM2: flooringAreas.internalFlooringAreaM2,
+      externalFlooringAreaM2: flooringAreas.externalFlooringAreaM2,
+    };
+
+    setQuoteData((prev) => ({ ...prev, geometry: newGeometry }));
+  }, [
+    quoteData.concrete_rows,
+    quoteData.wallDimensions.externalWallPerimiter,
+    quoteData.wallDimensions.externalWallHeight,
+  ]);
+
   const [materials, setMaterials] = useState<Material[]>([]);
   const [plumbingSystems, setPlumbingSystems] = useState<PlumbingSystem[]>([]);
   const [earthwork, setEarthWorks] = useState<EarthworkItem[]>([]);
@@ -384,6 +443,35 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   >([]);
   const [finishes, setFinishes] = useState<FinishElement[]>([]);
   const [wardrobes, setWardrobes] = useState<WardrobeItem[]>([]);
+
+  /**
+   * Merge finishes by category into finishes_calculations.
+   * This callback is used by child components to update finishes without race conditions.
+   * Each component updates only its category, allowing parallel updates without data loss.
+   */
+  const handleFinishesUpdate = useCallback(
+    (updatedFinishes: FinishElement[]) => {
+      const category = updatedFinishes.length > 0 ? updatedFinishes[0]?.category : null;
+
+      if (category) {
+        // Merge: remove old items from this category, keep all other categories
+        setFinishes((prev) => [
+          ...prev.filter((f) => f.category !== category),
+          ...updatedFinishes,
+        ]);
+
+        // Update quoteData with merged finishes_calculations
+        setQuoteData((prev: any) => ({
+          ...prev,
+          finishes_calculations: {
+            ...prev.finishes_calculations,
+            [category]: updatedFinishes, // Only update this category
+          },
+        }));
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     setPlumbingSystems(quoteData?.plumbing_systems || []);
@@ -1057,7 +1145,7 @@ closers: {
           })) || prev.masonry_materials,
 
         // Roof Structures - store extracted roofing inputs for deterministic calculator
-        roofingInputs: extractedPlan.roofing
+        roof_structures: extractedPlan.roofing
           ? {
               footprintAreaM2:
                 extractedPlan.roofing.footprintAreaM2 ||
@@ -1092,7 +1180,7 @@ closers: {
               rasterSpacingMm: extractedPlan.roofing.rasterSpacingMm || 600,
               trussSpacingMm: extractedPlan.roofing.trussSpacingMm || 600,
             }
-          : (prev as any).roofingInputs || {
+          : (prev as any).roof_structures || {
               footprintAreaM2: 0,
               externalPerimeterM: 0,
               internalPerimeterM: 0,
@@ -1204,7 +1292,68 @@ closers: {
             isLumpsum: false,
           })) || prev.electrical_systems,
 
-        // Finishes
+        // Finishes (category-based structure)
+        finishes_calculations: extractedPlan.finishes_calculations
+          ? {
+              flooring: extractedPlan.finishes_calculations.flooring?.map(
+                (finish: any, index: number) => ({
+                  id: finish.id || `flooring-${index}`,
+                  category: "flooring" as const,
+                  material: finish.material || "",
+                  area: parseFloat(finish.area as any) || 0,
+                  quantity: parseFloat(finish.quantity as any) || 1,
+                  unit: finish.unit || "m²",
+                  location: finish.location || "Unknown",
+                })
+              ) || [],
+              ceiling: extractedPlan.finishes_calculations.ceiling?.map(
+                (finish: any, index: number) => ({
+                  id: finish.id || `ceiling-${index}`,
+                  category: "ceiling" as const,
+                  material: finish.material || "",
+                  area: parseFloat(finish.area as any) || 0,
+                  quantity: parseFloat(finish.quantity as any) || 1,
+                  unit: finish.unit || "m²",
+                  location: finish.location || "Unknown",
+                })
+              ) || [],
+              "wall-finishes": extractedPlan.finishes_calculations[
+                "wall-finishes"
+              ]?.map((finish: any, index: number) => ({
+                id: finish.id || `wall-finishes-${index}`,
+                category: "wall-finishes" as const,
+                material: finish.material || "",
+                area: parseFloat(finish.area as any) || 0,
+                quantity: parseFloat(finish.quantity as any) || 1,
+                unit: finish.unit || "m²",
+                location: finish.location || "Unknown",
+              })) || [],
+              joinery: extractedPlan.finishes_calculations.joinery?.map(
+                (finish: any, index: number) => ({
+                  id: finish.id || `joinery-${index}`,
+                  category: "joinery" as const,
+                  material: finish.material || "",
+                  area: parseFloat(finish.area as any) || 0,
+                  quantity: parseFloat(finish.quantity as any) || 1,
+                  unit: finish.unit || "m²",
+                  location: finish.location || "Unknown",
+                })
+              ) || [],
+              external: extractedPlan.finishes_calculations.external?.map(
+                (finish: any, index: number) => ({
+                  id: finish.id || `external-${index}`,
+                  category: "external" as const,
+                  material: finish.material || "",
+                  area: parseFloat(finish.area as any) || 0,
+                  quantity: parseFloat(finish.quantity as any) || 1,
+                  unit: finish.unit || "m²",
+                  location: finish.location || "Unknown",
+                })
+              ) || [],
+            }
+          : prev.finishes_calculations,
+
+        // Legacy Finishes (backward compatibility)
         finishes:
           extractedPlan.finishes?.map((finish: any, index: number) => ({
             id: finish.id || `finish-${index}`,
@@ -1413,7 +1562,6 @@ closers: {
         electrical_systems: electricalSystems,
         plumbing_systems: plumbingSystems,
         finishes: finishes,
-        roofingInputs: quoteData.roofingInputs,
         roof_structures: roofStructure,
         earthwork: earthwork,
         services: quoteData.services,
@@ -1509,7 +1657,6 @@ closers: {
           electrical_systems: quoteData.electrical_systems,
           plumbing_systems: quoteData.plumbing_systems,
           finishes: quoteData.finishes,
-          roofingInputs: quoteData.roofingInputs,
           roof_structures: quoteData.roof_structures,
           electrical_calculations: quoteData.electrical_calculations,
           roofing_calculations: quoteData.roofing_calculations,
@@ -1595,7 +1742,6 @@ closers: {
           bbs_file_url: quoteData.bbs_file_url,
           plumbing_systems: plumbingSystems,
           finishes: finishes,
-          roofingInputs: quoteData.roofingInputs,
           roof_structures: roofStructure,
           earthwork: earthwork,
           additional_services_cost: Math.round(
@@ -1920,7 +2066,7 @@ closers: {
                 <Card className="border border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
                   <CardContent className="p-6 text-center">
                     <UploadCloud className="w-12 h-12 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                    <h3 className="text-lg  mb-2 text-gray-900 dark:text-white">
                       Upload Construction Plans
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
@@ -1931,7 +2077,7 @@ closers: {
                       onClick={() =>
                         navigate("/upload/plan", { state: { quoteData } })
                       }
-                      className="rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                      className="rounded-full  shadow-md hover:shadow-lg transition-all duration-300"
                     >
                       <UploadCloud className="w-4 h-4 mr-2" />
                       Upload Plan
@@ -2031,7 +2177,7 @@ closers: {
               </TabsContent>
 
               <TabsContent value="rebar" className="space-y-4">
-                <h3 className="text-xl font-bold mb-3">
+                <h3 className="text-2xl mb-3">
                   Reinforcement Calculator
                 </h3>
                 <RebarCalculatorForm
@@ -2114,7 +2260,7 @@ closers: {
 
               <TabsContent value="plumbing" className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                  <h3 className="text-lg  mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
                     Plumbing Systems
                   </h3>
                   <PlumbingCalculator
@@ -2143,7 +2289,7 @@ closers: {
 
               <TabsContent value="electrical" className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                  <h3 className="text-lg  mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
                     Electrical Systems
                   </h3>
                   <ElectricalCalculator
@@ -2184,9 +2330,8 @@ closers: {
               <TabsContent value="flooring" className="space-y-4">
                 <FlooringCalculator
                   finishes={finishes}
-                  onFinishesUpdate={setFinishes}
+                  onFinishesUpdate={handleFinishesUpdate}
                   materialPrices={materials}
-                  setQuoteData={setQuoteData}
                   quote={quoteData}
                 />
               </TabsContent>
@@ -2194,29 +2339,29 @@ closers: {
               <TabsContent value="walling" className="space-y-4">
                 <Tabs value={wallingFinishesTab} onValueChange={setWallingFinishesTab}>
                   <TabsList className="grid w-full grid-cols-2 mb-3">
-                    <TabsTrigger value="wallFinishes">
-                      <span className="hidden sm:inline">Wall Finishes</span>
-                      <span className="sm:hidden">WF</span>
+                    <TabsTrigger value="internalFinishes">
+                      <span className="hidden sm:inline">Internal Walling</span>
+                      <span className="sm:hidden">IW</span>
                       </TabsTrigger>
-                    <TabsTrigger value="painting">
-                      <span className="hidden sm:inline">Painting</span>
-                      <span className="sm:hidden">P</span>
+                    <TabsTrigger value="externalFinishes">
+                      <span className="hidden sm:inline">External Walling</span>
+                      <span className="sm:hidden">EW</span>
                       </TabsTrigger>
                   </TabsList>
-                  <TabsContent value="wallFinishes" className="space-y-4">
-                <WallingCalculator
+                  <TabsContent value="internalFinishes" className="space-y-4">
+                <InternalFinishesCalculator
                   finishes={finishes}
-                  onFinishesUpdate={setFinishes}
+                  onFinishesUpdate={handleFinishesUpdate}
                   materialPrices={materials}
-                  setQuoteData={setQuoteData}
                   quote={quoteData}
                   wallDimensions={quoteData.wallDimensions}
                 />
                 </TabsContent>
-                <TabsContent value="painting" className="space-y-4">
-                <PaintingCalculator
+                <TabsContent value="externalFinishes" className="space-y-4">
+                <ExternalFinishesCalculator
+                  finishes={finishes}
+                  onFinishesUpdate={handleFinishesUpdate}
                   materialPrices={materials}
-                  setQuoteData={setQuoteData}
                   quote={quoteData}
                   wallDimensions={quoteData.wallDimensions}
                 />
@@ -2227,9 +2372,8 @@ closers: {
               <TabsContent value="ceiling" className="space-y-4">
                 <CeilingCalculator
                   finishes={finishes}
-                  onFinishesUpdate={setFinishes}
+                  onFinishesUpdate={handleFinishesUpdate}
                   materialPrices={materials}
-                  setQuoteData={setQuoteData}
                   quote={quoteData}
                 />
               </TabsContent>
@@ -2255,16 +2399,14 @@ closers: {
                   wardrobes={wardrobes}
                   setWardrobes={setWardrobes}
                   quote={quoteData}
-                  setQuoteData={setQuoteData}
                 />
               </TabsContent>
               <TabsContent value="otherFinishes" className="space-y-4">
 
                 <OtherFinishesCalculator
                   otherFinishes={finishes}
-                  onOtherFinishesUpdate={setFinishes}
+                  onOtherFinishesUpdate={handleFinishesUpdate}
                   materialPrices={materials}
-                  setQuoteData={setQuoteData}
                   quote={quoteData}
                   wallDimensions={quoteData.wallDimensions}
                 />
@@ -2272,10 +2414,9 @@ closers: {
                 <TabsContent value="kitchen-finishes" className="space-y-4">
                   <CountertopsCalculator
                     quote={quoteData}
-                    setQuoteData={setQuoteData}
-                    materialPrices={materials}>
-                  
-                    </CountertopsCalculator>
+                    materialPrices={materials}
+                  />
+                    
                     </TabsContent>
 
                 </Tabs>
@@ -2412,7 +2553,7 @@ closers: {
               <>
                 {boqData.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                    <h3 className="text-lg  mb-4 text-gray-900 dark:text-white">
                       Bill of Quantities
                     </h3>
                     {boqData.map((section, index) => (
@@ -2473,7 +2614,7 @@ closers: {
                                           <TableCell className="text-gray-900 dark:text-white">
                                             {item.itemNo || "-"}
                                           </TableCell>
-                                          <TableCell className="font-semibold text-gray-900 dark:text-white">
+                                          <TableCell className=" text-gray-900 dark:text-white">
                                             {item.description || "-"}
                                           </TableCell>
                                           <TableCell className="text-gray-900 dark:text-white">
@@ -2585,7 +2726,7 @@ closers: {
                 <div className="flex space-x-4">
                   <Button
                     onClick={handleSaveQuote}
-                    className="flex-1 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    className="flex-1 rounded-full  shadow-md hover:shadow-lg transition-all duration-300"
                   >
                     Save Quote
                   </Button>
@@ -2600,7 +2741,7 @@ closers: {
               <Button
                 onClick={handleCalculate}
                 disabled={calculationLoading}
-                className="flex-1 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                className="flex-1 rounded-full  shadow-md hover:shadow-lg transition-all duration-300"
               >
                 {calculationLoading ? "Calculating..." : "Recalculate"}
               </Button>
@@ -2666,7 +2807,7 @@ closers: {
         <div className="mb-8">
           <div className="flex sm:text-2xl text-xl font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
             <BuildingIcon className="sm:w-7 sm:h-7 sm:mt-0 mt-1 mr-2 text-primary dark:text-white" />
-            Quote Builder
+            <h2>Quote Builder</h2>
           </div>
           <p className="bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
             Create accurate construction quotes with advanced calculations
@@ -2689,7 +2830,7 @@ closers: {
                     {steps[currentStep - 1]?.icon}
                   </div>
                   <div>
-                    <div className="text-lg font-semibold">
+                    <div className="text-lg ">
                       {steps[currentStep - 1]?.name}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
@@ -2709,7 +2850,7 @@ closers: {
           <Button
             onClick={prevStep}
             variant="outline"
-            className="rounded-full px-6 font-semibold bg-background shadow-md hover:shadow-lg transition-all duration-300"
+            className="rounded-full px-6  bg-background shadow-md hover:shadow-lg transition-all duration-300"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Previous
@@ -2718,7 +2859,7 @@ closers: {
             <>
               <Button
                 onClick={nextStep}
-                className="rounded-full px-6 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                className="rounded-full px-6  shadow-md hover:shadow-lg transition-all duration-300"
                 style={{
                   padding: "0.75rem 2rem",
                 }}

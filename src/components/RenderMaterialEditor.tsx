@@ -1236,7 +1236,7 @@ export default function renderMaterialEditor(
       content = (
         <div className="space-y-4">
           <div className="border-b pb-4">
-            <h4 className="font-semibold mb-2 text-sm">Structural Timber</h4>
+            <h4 className=" mb-2 text-sm">Structural Timber</h4>
             <div className="space-y-2">
               {roofingType.structuralTimber.map((timber, idx) => {
                 const key = `roofing-timber-${idx}`;
@@ -1291,7 +1291,7 @@ export default function renderMaterialEditor(
           {/* Roofing Sheets */}
           {roofingType.roofingSheets && isArray(roofingType.roofingSheets) && (
             <div className="border-b pb-4">
-              <h4 className="font-semibold mb-2 text-sm">Roofing Sheets</h4>
+              <h4 className=" mb-2 text-sm">Roofing Sheets</h4>
               <div className="space-y-2">
                 {roofingType.roofingSheets.map((sheet, sheetIdx) => (
                   <div key={sheetIdx} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -1355,7 +1355,7 @@ export default function renderMaterialEditor(
           {roofingType.roofingFinishing &&
             isArray(roofingType.roofingFinishing) && (
               <div className="border-b pb-4">
-                <h4 className="font-semibold mb-2 text-sm">Roofing Finishing</h4>
+                <h4 className=" mb-2 text-sm">Roofing Finishing</h4>
                 <div className="space-y-3">
                   {roofingType.roofingFinishing.map((finishCategory, catIdx) => (
                     <div
@@ -1431,7 +1431,7 @@ export default function renderMaterialEditor(
             roofingType.accessories.items &&
             isArray(roofingType.accessories.items) && (
               <div>
-                <h4 className="font-semibold mb-2 text-sm">Accessories</h4>
+                <h4 className=" mb-2 text-sm">Accessories</h4>
                 <div className="space-y-2">
                   {roofingType.accessories.items.map((accessory, accIdx) => {
                     const key = `roofing-accessory-${accIdx}`;

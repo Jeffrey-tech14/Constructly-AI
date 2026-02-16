@@ -61,14 +61,12 @@ const COUNTERTOP_MATERIALS = {
 
 interface CountertopsCalculatorProps {
   quote?: any;
-  setQuoteData?: (data: any) => void;
   materialPrices?: any[];
   readonly?: boolean;
 }
 
 export default function CountertopsCalculator({
   quote,
-  setQuoteData,
   materialPrices = [],
   readonly = false,
 }: CountertopsCalculatorProps) {
@@ -135,25 +133,12 @@ export default function CountertopsCalculator({
       setCountertops(updatedCountertops);
       setEditingId(null);
       setEditForm(null);
-
-      if (setQuoteData) {
-        setQuoteData((prev: any) => ({
-          ...prev,
-          countertops: updatedCountertops,
-        }));
-      }
     }
   };
 
   const handleDeleteCountertop = (id: string) => {
     const updated = countertops.filter((c) => c.id !== id);
     setCountertops(updated);
-    if (setQuoteData) {
-      setQuoteData((prev: any) => ({
-        ...prev,
-        countertops: updated,
-      }));
-    }
   };
 
   const totalArea = countertops.reduce((sum, c) => sum + c.area, 0);
@@ -171,14 +156,9 @@ export default function CountertopsCalculator({
     }).format(value);
   };
 
-  useEffect(() => {
-    if (setQuoteData) {
-      setQuoteData((prev: any) => ({
-        ...prev,
-        countertops: countertops,
-      }));
-    }
-  }, [countertops, setQuoteData]);
+  // Local state management - sync to parent via callback when needed
+  // useEffect removed - component manages countertops locally
+  
 
   return (
     <div className="space-y-6">
@@ -190,7 +170,7 @@ export default function CountertopsCalculator({
             <CardTitle className="text-sm font-medium">Total Area</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalArea.toFixed(2)} m²</div>
+            <div className="text-2xl ">{totalArea.toFixed(2)} m²</div>
           </CardContent>
         </Card>
 
@@ -199,7 +179,7 @@ export default function CountertopsCalculator({
             <CardTitle className="text-sm font-medium">Corner Strips</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl ">
               {totalCornerStripLength.toFixed(2)} m
             </div>
           </CardContent>
@@ -210,7 +190,7 @@ export default function CountertopsCalculator({
             <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl  text-green-600">
               {formatCurrency(totalCost)}
             </div>
           </CardContent>
@@ -250,7 +230,7 @@ export default function CountertopsCalculator({
               <CardContent className="space-y-4">
                 {/* Type Selection */}
                 <div>
-                  <Label className="mb-3 block font-bold">Material Type</Label>
+                  <Label className="mb-3 block ">Material Type</Label>
                   <RadioGroup
                     value={editForm.type}
                     onValueChange={(value) =>
@@ -344,7 +324,7 @@ export default function CountertopsCalculator({
                 {/* Corner Strips */}
                 <div className="border p-3 rounded">
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="font-bold">Corner Strips</Label>
+                    <Label className="">Corner Strips</Label>
                     <input
                       type="checkbox"
                       checked={true}
@@ -389,11 +369,11 @@ export default function CountertopsCalculator({
                   <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded border border-amber-200">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <span className="font-bold">Area:</span>{" "}
+                        <span className="">Area:</span>{" "}
                         {(editForm.length * editForm.width).toFixed(2)} m²
                       </div>
                       <div>
-                        <span className="font-bold">Cost:</span>{" "}
+                        <span className="">Cost:</span>{" "}
                         {formatCurrency(
                           editForm.length *
                             editForm.width *
@@ -441,7 +421,7 @@ export default function CountertopsCalculator({
                     <TableRow key={countertop.id} className="hover:bg-muted/30">
                       <TableCell className="font-medium w-[25%]">
                         <div>
-                          <div className="font-bold text-sm">
+                          <div className=" text-sm">
                             {countertop.material}
                           </div>
                           <div className="text-xs text-gray-500">
@@ -453,12 +433,12 @@ export default function CountertopsCalculator({
                         {countertop.length.toFixed(2)}m ×{" "}
                         {countertop.width.toFixed(2)}m
                       </TableCell>
-                      <TableCell className="text-right font-bold w-[12%] text-sm">
+                      <TableCell className="text-right  w-[12%] text-sm">
                         {countertop.area.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center w-[18%]">
                         {countertop.cornerStrips ? (
-                          <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                          <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs  whitespace-nowrap">
                             {countertop.cornerStripLength.toFixed(2)}m
                           </span>
                         ) : (
@@ -468,7 +448,7 @@ export default function CountertopsCalculator({
                       <TableCell className="text-right w-[15%] text-sm">
                         {formatCurrency(countertop.unitPrice)}/m²
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-green-600 w-[12%] text-sm">
+                      <TableCell className="text-right  text-green-600 w-[12%] text-sm">
                         {formatCurrency(countertop.totalCost)}
                       </TableCell>
                       {!readonly && (
@@ -512,18 +492,18 @@ export default function CountertopsCalculator({
           {countertops.length > 0 && (
             <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-muted">
               <div>
-                <div className="text-xs font-bold">Total Area</div>
-                <div className="text-lg font-bold">{totalArea.toFixed(2)} m²</div>
+                <div className="text-xs ">Total Area</div>
+                <div className="text-lg ">{totalArea.toFixed(2)} m²</div>
               </div>
               <div>
-                <div className="text-xs font-bold">Total Corner Strips</div>
-                <div className="text-lg font-bold">
+                <div className="text-xs ">Total Corner Strips</div>
+                <div className="text-lg ">
                   {totalCornerStripLength.toFixed(2)} m
                 </div>
               </div>
               <div>
-                <div className="text-xs font-bold">Total Cost</div>
-                <div className="text-lg font-bold text-green-600">
+                <div className="text-xs ">Total Cost</div>
+                <div className="text-lg  text-green-600">
                   {formatCurrency(totalCost)}
                 </div>
               </div>

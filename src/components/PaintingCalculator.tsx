@@ -48,7 +48,6 @@ export default function PaintingCalculator({
     initialPaintings: quote?.paintings_specifications || [],
     materialPrices,
     quote,
-    setQuoteData,
   });
 
    // Auto-create interior and exterior walls paintings
@@ -96,6 +95,7 @@ export default function PaintingCalculator({
              category: DEFAULT_PAINTING_CONFIG.finishingPaint.category,
              subtype: DEFAULT_PAINTING_CONFIG.finishingPaint.subtype,
              coats: DEFAULT_PAINTING_CONFIG.finishingPaint.coats,
+             finishType: DEFAULT_PAINTING_CONFIG.finishingPaint.finishType,
              coverage: DEFAULT_COVERAGE_RATES.finishPaint,
            },
            calculations: {
@@ -123,6 +123,7 @@ export default function PaintingCalculator({
            finishingPaint: {
              category: DEFAULT_PAINTING_CONFIG.finishingPaint.category,
              subtype: DEFAULT_PAINTING_CONFIG.finishingPaint.subtype,
+             finishType: DEFAULT_PAINTING_CONFIG.finishingPaint.finishType,
              coats: DEFAULT_PAINTING_CONFIG.finishingPaint.coats,
              coverage: DEFAULT_COVERAGE_RATES.finishPaint,
            },
@@ -144,6 +145,17 @@ export default function PaintingCalculator({
        }
      }
    }, [wallDimensions, readonly, setQuoteData, hasInitializedPaintings, quote]);
+
+  // Sync paintings to parent when they change
+  useEffect(() => {
+    if (setQuoteData && paintings.length > 0) {
+      setQuoteData((prev: any) => ({
+        ...prev,
+        paintings_specifications: paintings,
+        paintings_totals: paintingTotals,
+      }));
+    }
+  }, [paintings, paintingTotals, setQuoteData]);
 
   return (
     <Card>
@@ -172,7 +184,7 @@ export default function PaintingCalculator({
         {!readonly && (
                       <Button
                         onClick={() => addPainting(0, "")}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Painting Surface

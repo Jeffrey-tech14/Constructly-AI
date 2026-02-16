@@ -23,8 +23,10 @@ export interface UsePaintingCalculatorProps {
   initialPaintings?: PaintingSpecification[];
   materialPrices?: any[];
   quote?: any;
-  setQuoteData?: (updater: (prev: any) => any) => void;
   onPaintingsChange?: (paintings: PaintingSpecification[]) => void;
+  location?: "Interior Walls" | "Exterior Walls";
+  surfaceArea?: number;
+  autoInitialize?: boolean;
 }
 
 /**
@@ -106,8 +108,10 @@ export default function usePaintingCalculator({
   initialPaintings = [],
   materialPrices = [],
   quote,
-  setQuoteData,
   onPaintingsChange,
+  location,
+  surfaceArea,
+  autoInitialize = true,
 }: UsePaintingCalculatorProps) {
   const [paintings, setPaintings] =
     useState<PaintingSpecification[]>(initialPaintings);
@@ -128,7 +132,7 @@ export default function usePaintingCalculator({
   const paintingPrices = extractPaintingPrices(materialPrices);
   const finishesWastage = getFinishesWastagePercentage(quote);
 
-  // Calculate and update all paintings
+  // Calculate and update all paintings (no onPaintingsChange in deps to avoid circular updates)
   const calculateAll = useCallback(() => {
     const calculated = paintings.map((painting) =>
       calculatePaintingLayers(
@@ -143,30 +147,86 @@ export default function usePaintingCalculator({
     const newTotals = calculatePaintingTotals(calculated);
     setTotals(newTotals);
 
-    if (onPaintingsChange) {
-      onPaintingsChange(calculated);
-    }
-
     return { paintings: calculated, totals: newTotals };
-  }, [paintings, paintingPrices, finishesWastage, onPaintingsChange]);
+  }, [paintings, paintingPrices, finishesWastage]);
 
-  // Auto-recalculate when paintings, material prices, or wastage change
+  // Auto-recalculate when material prices or wastage change
   useEffect(() => {
     if (paintings.length > 0) {
-      calculateAll();
+      const calculated = paintings.map((painting) =>
+        calculatePaintingLayers(
+          painting,
+          DEFAULT_COVERAGE_RATES,
+          paintingPrices,
+          finishesWastage,
+        ),
+      );
+      setPaintings(calculated);
+      const newTotals = calculatePaintingTotals(calculated);
+      setTotals(newTotals);
     }
-  }, [paintingPrices, finishesWastage, calculateAll]);
+  }, [paintingPrices, finishesWastage]);
 
-  // Persist paintings to quote
+  // Sync paintings to parent via callback (separate from calculations)
   useEffect(() => {
-    if (setQuoteData && paintings.length > 0) {
-      setQuoteData((prev: any) => ({
-        ...prev,
-        paintings_specifications: paintings,
-        paintings_totals: totals,
-      }));
+    if (onPaintingsChange && paintings.length > 0) {
+      onPaintingsChange(paintings);
     }
-  }, [paintings, totals, setQuoteData]);
+  }, [paintings, onPaintingsChange]);
+
+  // Auto-initialize painting when location and surfaceArea are provided
+  useEffect(() => {
+    if (
+      autoInitialize &&
+      location &&
+      surfaceArea &&
+      surfaceArea > 0 &&
+      paintings.length === 0
+    ) {
+      const newPainting: PaintingSpecification = {
+        id: `painting-${location.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
+        surfaceArea,
+        location,
+        skimming: {
+          enabled: DEFAULT_PAINTING_CONFIG.skimming.enabled,
+          coats: DEFAULT_PAINTING_CONFIG.skimming.coats,
+          coverage: DEFAULT_COVERAGE_RATES.skimming,
+        },
+        undercoat: {
+          enabled: DEFAULT_PAINTING_CONFIG.undercoat.enabled,
+          coverage: DEFAULT_COVERAGE_RATES.undercoat,
+        },
+        finishingPaint: {
+          category: DEFAULT_PAINTING_CONFIG.finishingPaint.category,
+          subtype: DEFAULT_PAINTING_CONFIG.finishingPaint.subtype,
+          coats: DEFAULT_PAINTING_CONFIG.finishingPaint.coats,
+          coverage: DEFAULT_COVERAGE_RATES.finishPaint,
+        },
+        calculations: {
+          skimming: null,
+          undercoat: null,
+          finishing: null,
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const calculated = calculatePaintingLayers(
+        newPainting,
+        DEFAULT_COVERAGE_RATES,
+        paintingPrices,
+        finishesWastage,
+      );
+
+      setPaintings([calculated]);
+      const newTotals = calculatePaintingTotals([calculated]);
+      setTotals(newTotals);
+
+      if (onPaintingsChange) {
+        onPaintingsChange([calculated]);
+      }
+    }
+  }, [location, surfaceArea, autoInitialize, paintings.length, paintingPrices, finishesWastage, onPaintingsChange]);
 
   /**
    * Create a new painting specification

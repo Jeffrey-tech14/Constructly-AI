@@ -126,7 +126,7 @@ const ErrorPage = ({
 
           {/* Additional Help */}
           <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <h3 className="font-semibold text-sm text-slate-700 dark:text-slate-300">
+            <h3 className=" text-sm text-slate-700 dark:text-slate-300">
               What you can do:
             </h3>
             <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">

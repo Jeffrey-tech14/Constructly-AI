@@ -194,12 +194,12 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen animate-fade-in smooth-transition">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between items-start">
           <div className="items-center">
-            <h1 className="sm:text-3xl items-center text-2xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+            <h1 className="sm:text-3xl items-center text-2xl flex bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
               <LucidePersonStanding className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
-              Profile
+              <h2 className="text-xl sm:text-2xl">Profile</h2>
             </h1>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
               Manage your account and subscription
@@ -412,7 +412,7 @@ const Profile = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex flex-col items-center">
-                  <span className="text-lg font-semibold">Pricing</span>
+                  <span className="text-lg ">Pricing</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -431,7 +431,7 @@ const Profile = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-md">What you get:</h4>
+                    <h4 className=" text-md">What you get:</h4>
                     <ul className="space-y-2 text-left">
                       {[
                         "Quote details & progress tracking",

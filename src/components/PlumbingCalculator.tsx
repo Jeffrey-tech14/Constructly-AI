@@ -409,7 +409,7 @@ export default function PlumbingCalculator({
               />
               <Label
                 htmlFor="plumbing-category-lumpsum"
-                className="cursor-pointer font-semibold"
+                className="cursor-pointer "
               >
                 Use Lumpsum for All Plumbing Systems
               </Label>
@@ -586,7 +586,7 @@ export default function PlumbingCalculator({
                     {/* Pipes Section */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <Label className="text-lg font-semibold">Pipes</Label>
+                        <Label className="text-lg ">Pipes</Label>
                         <Button onClick={addPipe} size="sm" variant="outline">
                           <Plus className="h-4 w-4 mr-1" />
                           Add Pipe
@@ -702,7 +702,7 @@ export default function PlumbingCalculator({
                     {/* Fixtures Section */}
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <Label className="text-lg font-semibold">
+                        <Label className="text-lg ">
                           Fixtures
                         </Label>
                         <Button
@@ -881,7 +881,7 @@ export default function PlumbingCalculator({
                           <TableCell className="text-right">
                             {formatCurrency(calc.materialCost)}
                           </TableCell>
-                          <TableCell className="text-right font-semibold">
+                          <TableCell className="text-right ">
                             {formatCurrency(calc.totalCost)}
                           </TableCell>
                           {!readonly && (
@@ -927,7 +927,7 @@ export default function PlumbingCalculator({
                       <span className="font-medium">Total Fixtures:</span>{" "}
                       {totals.totalFixtures}
                     </div>
-                    <div className="font-semibold">
+                    <div className="">
                       <span>Grand Total:</span>{" "}
                       {formatCurrency(totals.totalCost)}
                     </div>

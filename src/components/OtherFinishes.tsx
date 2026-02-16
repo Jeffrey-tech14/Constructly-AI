@@ -36,7 +36,6 @@ interface OtherFinishesCalculatorProps {
   materialPrices: any[];
   onOtherFinishesUpdate?: (otherFinishes: FinishElement[]) => void;
   readonly?: boolean;
-  setQuoteData?: (data: any) => void;
   quote?: any;
   wallDimensions?: any;
 }
@@ -67,7 +66,6 @@ export default function OtherFinishesCalculator({
   materialPrices,
   onOtherFinishesUpdate,
   readonly = false,
-  setQuoteData,
   quote,
   wallDimensions,
 }: OtherFinishesCalculatorProps) {
@@ -90,7 +88,7 @@ export default function OtherFinishesCalculator({
     return otherFinishes
       .filter((finish) => finish.category === "joinery")
       .map((finish) => {
-        const unitPrice = finish.unitPrice || 0;
+        const unitPrice = finish.price || 0;
         const totalCost = unitPrice * finish.quantity;
         
         return {
@@ -137,7 +135,7 @@ export default function OtherFinishesCalculator({
       area: 0,
       unit: (customFormData.unit || "m²") as "m²" | "m" | "pcs",
       quantity: customFormData.quantity || 0,
-      unitPrice: customFormData.unitPrice || 0,
+      price: customFormData.unitPrice || 0,
     };
 
     if (onOtherFinishesUpdate) {
@@ -165,7 +163,7 @@ export default function OtherFinishesCalculator({
         location: finish.location || "",
         quantity: finish.quantity,
         unit: (finish.unit || "m²") as typeof CUSTOM_UNITS[number],
-        unitPrice: finish.unitPrice || 0,
+        unitPrice: finish.price || 0,
       });
     }
   };
@@ -212,18 +210,6 @@ export default function OtherFinishesCalculator({
     if (!editForm) return;
 
     setEditForm((prev) => (prev ? { ...prev, [field]: value } : null));
-  };
-
-  const getCategoryColor = (category: FinishCategory) => {
-    const colors = {
-      flooring: "bg-blue-100 text-blue-800",
-      ceiling: "bg-green-100 text-green-800",
-      "wall-finishes": "bg-purple-100 text-purple-800",
-      paint: "bg-orange-100 text-orange-800",
-      glazing: "bg-cyan-100 text-cyan-800",
-      joinery: "bg-amber-100 text-amber-800",
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
   };
 
   const formatCurrency = (amount: number) => {
@@ -625,7 +611,7 @@ export default function OtherFinishesCalculator({
                       <TableCell className="text-right">
                         {formatCurrency(calc.unitPrice)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold">
+                      <TableCell className="text-right ">
                         {formatCurrency(calc.totalCost)}
                       </TableCell>
                       {!readonly && (
@@ -667,7 +653,7 @@ export default function OtherFinishesCalculator({
                   <span className="font-medium">Total Quantity:</span>{" "}
                   {filteredCalculations.reduce((sum, calc) => sum + calc.quantity, 0).toFixed(2)}
                 </div>
-                <div className="font-semibold">
+                <div className="">
                   <span>Grand Total:</span>{" "}
                   {formatCurrency(totals.totalCost)}
                 </div>

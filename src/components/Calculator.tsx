@@ -86,7 +86,7 @@ const Calculator = ({ isOpen, onClose }: CalculatorProps) => {
 
           {result !== null && (
             <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg animate-fade-in">
-              <h3 className="text-lg font-semibold text-green-800 dark:text-green-300">
+              <h3 className="text-lg  text-green-800 dark:text-green-300">
                 Volume: {result.toFixed(2)} m³
               </h3>
             </div>

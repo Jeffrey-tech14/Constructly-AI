@@ -142,7 +142,7 @@ const NotFound = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={() => navigate("/")}
-                className="w-full sm:w-auto bg-[#B8860B] hover:bg-[#A67C00] text-white rounded-full h-12 px-8 font-semibold shadow-lg transition-all group"
+                className="w-full sm:w-auto bg-[#B8860B] hover:bg-[#A67C00] text-white rounded-full h-12 px-8  shadow-lg transition-all group"
               >
                 <Home className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
                 Back to Home
@@ -153,7 +153,7 @@ const NotFound = () => {
               <Button
                 onClick={() => navigate("/quotes/new")}
                 variant="outline"
-                className="w-full sm:w-auto text-[#00356B] dark:text-[#86bc25] border-2 border-slate-300 dark:border-slate-600 hover:border-[#B8860B] dark:hover:border-[#B8860B] hover:bg-[#B8860B]/10 rounded-full h-12 px-8 font-semibold transition-all group"
+                className="w-full sm:w-auto text-[#00356B] dark:text-[#86bc25] border-2 border-slate-300 dark:border-slate-600 hover:border-[#B8860B] dark:hover:border-[#B8860B] hover:bg-[#B8860B]/10 rounded-full h-12 px-8  transition-all group"
               >
                 Explore Projects
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -174,7 +174,7 @@ const NotFound = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/help")}
-                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574] font-semibold transition-colors"
+                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574]  transition-colors"
               >
                 Browse Documentation →
               </motion.button>
@@ -185,7 +185,7 @@ const NotFound = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/support")}
-                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574] font-semibold transition-colors"
+                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574]  transition-colors"
               >
                 Contact Support →
               </motion.button>

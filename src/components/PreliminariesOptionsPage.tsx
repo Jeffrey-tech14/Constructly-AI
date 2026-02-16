@@ -119,30 +119,8 @@ const PreliminariesOptionsPage = ({
     },
   );
 
-  // Update preliminary options when house type or project type changes
-  useEffect(() => {
-    setPreleminaries((prev) =>
-      prev.map((prel) => {
-        let isApplicable = prel.isApplicable;
-        let totalCost = prel.totalCost;
-
-        // Update hoarding and nets applicability
-        if (prel.id === "hoarding" || prel.id === "nets") {
-          isApplicable = !isLowRise;
-          totalCost = !isLowRise ? prel.price * prel.quantity : 0;
-        } else if (prel.id === "fall-prevention") {
-          isApplicable = isHighRise && !isLowRise;
-          totalCost = isHighRise && !isLowRise ? prel.price * prel.quantity : 0;
-        }
-
-        return {
-          ...prel,
-          isApplicable,
-          totalCost: prel.isApplicable ? prel.price * prel.quantity : 0,
-        };
-      }),
-    );
-  }, [houseType, isHighRise, isLowRise]);
+  // Note: We no longer auto-update applicability based on house type
+  // Users can now toggle any item on/off as needed
 
   // Update site clearance when area or rate changes
   useEffect(() => {
@@ -217,7 +195,7 @@ const PreliminariesOptionsPage = ({
 
   const getApplicabilityNote = (prelId: string) => {
     if ((prelId === "hoarding" || prelId === "nets") && isLowRise) {
-      return "Not applicable for bungalow/mansionette";
+      return "Not applicable for most buidlings";
     }
     if (prelId === "fall-prevention" && !isHighRise) {
       return "Only applicable for high-rise buildings";
@@ -233,7 +211,7 @@ const PreliminariesOptionsPage = ({
       className="space-y-6"
     >
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-2xl text-gray-900 dark:text-white mb-2">
           Preliminaries & Statutory Requirements
         </h2>
         <p className="text-gray-600 dark:text-gray-300">
@@ -243,84 +221,53 @@ const PreliminariesOptionsPage = ({
       </div>
 
       {/* Project Type Information */}
-      {isLowRise && (
-        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
-                  Low-Rise Building Selected
-                </p>
-                <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
-                  Site fencing and fall prevention requirements have been
-                  disabled for bungalow/mansionette projects
-                </p>
-              </div>
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="pt-6">
+          <div className="flex gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
+                Customize Preliminary Works
+              </p>
+              <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
+                Select the preliminary items you need for your project. Some items are recommended for specific building types, but you can include any that apply to your project.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {isHighRise && !isLowRise && (
-        <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-orange-900 dark:text-orange-200">
-                  High-Rise Building Selected
-                </p>
-                <p className="text-sm text-orange-800 dark:text-orange-300 mt-1">
-                  Fall prevention fence and additional safety measures have been
-                  enabled
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Preliminaries Options Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {preliminaries.map((preliminary) => {
           const applicabilityNote = getApplicabilityNote(preliminary.id);
-          const isDisabled = false;
-          // (preliminary.id === "hording-nets" && isLowRise) ||
-          // (preliminary.id === "fall-prevention" &&
-          //   (!isHighRise || isLowRise));
 
           return (
             <Card
               key={preliminary.id}
-              className={`transition-all ${
-                !isDisabled
-                  ? "border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800"
-                  : "border-gray-200 dark:border-gray-700 opacity-60 bg-gray-50 dark:bg-gray-900"
-              }`}
+              className="transition-all border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
                     <Checkbox
-                      checked={preliminary.isApplicable && !isDisabled}
+                      checked={preliminary.isApplicable}
                       onCheckedChange={() =>
-                        !isDisabled && togglePreliminary(preliminary.id)
+                        togglePreliminary(preliminary.id)
                       }
-                      disabled={isDisabled}
                       className="mt-1"
                       title={preliminary.name}
                     />
                     <div className="flex-1">
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <CardTitle className="text-lg text-gray-900 dark:text-white">
                         {preliminary.name}
                       </CardTitle>
                       <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {preliminary.description}
                       </p>
                       {applicabilityNote && (
-                        <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 font-medium">
-                          ℹ️ {applicabilityNote}
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                          💡 {applicabilityNote}
                         </p>
                       )}
                     </div>
@@ -328,7 +275,7 @@ const PreliminariesOptionsPage = ({
                 </div>
               </CardHeader>
 
-              {preliminary.isApplicable && !isDisabled && (
+              {preliminary.isApplicable && (
                 <CardContent className="space-y-4">
                   {/* Site Clearance specific inputs */}
                   {preliminary.id === "site-clearance" && (
@@ -441,11 +388,11 @@ const PreliminariesOptionsPage = ({
                 </CardContent>
               )}
 
-              {(isDisabled || !preliminary.isApplicable) && (
+              {!preliminary.isApplicable && (
                 <CardContent className="py-4">
                   <div className="text-center">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {isDisabled ? applicabilityNote : "Not selected"}
+                      Check to include this item
                     </p>
                   </div>
                 </CardContent>
@@ -471,7 +418,7 @@ const PreliminariesOptionsPage = ({
                   <span className="text-gray-600 dark:text-gray-300">
                     {p.name}
                   </span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className=" text-gray-900 dark:text-white">
                     KES {p.totalCost.toLocaleString()}
                   </span>
                 </div>

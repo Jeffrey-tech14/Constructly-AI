@@ -335,7 +335,7 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <div className="flex items-center sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
             <Crown className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
-            Admin Dashboard
+            <h2 className="text-xl sm:text-2xl">Admin Dashboard</h2>
           </div>
           <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
             Manage users, monitor system performance, and control platform

@@ -108,7 +108,7 @@ const Hero = ({ scrollTo }: any) => {
                 </motion.button>
               </div>
 
-              <p className="text-[10px] text-white/70 uppercase tracking-widest font-semibold">
+              <p className="text-[10px] text-white/70 uppercase tracking-widest ">
                 Trusted by 500+ Top Construction Firms
               </p>
             </motion.div>

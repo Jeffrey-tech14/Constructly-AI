@@ -564,9 +564,9 @@ const Variables = () => {
     <div className=" scrollbar-hide min-h-screen animate-fade-in">
       <div className="container  scrollbar-hide mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="sm:text-2xl text-xl font-bold flex items-center bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+          <h1 className="sm:text-2xl text-xl flex items-center bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
             <Settings className="sm:w-7 sm:h-7 mr-3 text-primary dark:text-white" />
-            Variables & Pricing
+            <h2 className="text-xl sm:text-2xl">Variables & Pricing</h2>
           </h1>
           <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-900 bg-clip-text text-transparent mt-2">
             Configure all pricing variables and settings for your construction
@@ -1114,7 +1114,7 @@ const Variables = () => {
                                 <span className="text-muted-foreground">
                                   Price:
                                 </span>
-                                <p className="font-semibold">
+                                <p className="">
                                   KSh{" "}
                                   {material.price_per_unit?.toLocaleString() ||
                                     0}
@@ -1124,7 +1124,7 @@ const Variables = () => {
                                 <span className="text-muted-foreground">
                                   Unit:
                                 </span>
-                                <p className="font-semibold">{material.unit}</p>
+                                <p className="">{material.unit}</p>
                               </div>
                             </div>
                           </CardContent>

@@ -133,7 +133,7 @@ const ProfilePictureUpload = ({
     <Card className="w-full max-w-md glass">
       <CardContent className="pt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg  text-white">
             Update Profile Picture
           </h3>
           <Button variant="ghost" size="icon" onClick={onCancel}>

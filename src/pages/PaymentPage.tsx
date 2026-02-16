@@ -61,7 +61,7 @@ const PaymentPage = () => {
                 <div className="text-6xl font-bold text-[#00356B] mb-2">
                   1,000
                 </div>
-                <div className="text-2xl font-semibold text-[#86bc25]">KSH</div>
+                <div className="text-2xl  text-[#86bc25]">KSH</div>
               </div>
               <p className="text-xl text-gray-700 dark:text-gray-300">
                 Per Quote (One-time)
@@ -105,7 +105,7 @@ const PaymentPage = () => {
                       </div>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                      <h3 className=" text-gray-900 dark:text-white">
                         {feature.title}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -173,7 +173,7 @@ const PaymentPage = () => {
                       <Icon className="h-6 w-6 text-[#86bc25]" />
                     </div>
                   </div>
-                  <h3 className="font-semibold text-foreground">
+                  <h3 className=" text-foreground">
                     {benefit.title}
                   </h3>
                   <p className="text-sm text-muted-foreground">

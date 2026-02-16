@@ -1179,10 +1179,11 @@ export function calculateConcrete(
     returnFillCost = returnFillVolume * (fillMaterial?.price || 0);
   }
 
-  // Back fill calculation
+  // Back fill calculation - Only for slabs and paving
   let backFillVolume = 0;
   let backFillCost = 0;
-  if (row.hasBackFill && row.backFillDepth) {
+  const isSlabOrPaving = element === "slab" || element === "paving";
+  if (isSlabOrPaving && row.hasBackFill && row.backFillDepth) {
     const backDepth = parseFloat(row.backFillDepth) || 0;
     backFillVolume = len * wid * backDepth * num;
     const fillMaterial = materials.find(

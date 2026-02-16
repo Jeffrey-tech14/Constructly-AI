@@ -309,7 +309,6 @@ export default function QSSettings({
   return (
     <div className="space-y-6 overflow-y-auto p-1">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">QS Settings</h2>
         <div className="space-x-2">
           <Button variant="outline" onClick={handleReset}>
             Reset to Defaults
@@ -958,7 +957,7 @@ export default function QSSettings({
             {/* Ring Beam Reinforcement Settings */}
             {localSettings.includesRingBeams && (
               <div className="pt-4 border-t">
-                <h4 className="font-semibold text-sm mb-3">
+                <h4 className="text-sm mb-3">
                   Ring Beam Reinforcement
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

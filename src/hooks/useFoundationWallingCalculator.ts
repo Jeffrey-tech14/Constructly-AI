@@ -431,6 +431,18 @@ export const useFoundationWallingCalculator = (quote: any) => {
     [walls, calculateWallQuantities],
   );
 
+  /**
+   * Calculate total foundation walling area (m²)
+   * Area = wallLength × wallHeight for each wall, summed
+   */
+  const calculateFoundationWallingArea = useCallback((): number => {
+    return walls.reduce((total, wall) => {
+      const length = parseFloat(wall.wallLength) || 0;
+      const height = parseFloat(wall.wallHeight) || 0;
+      return total + (length * height);
+    }, 0);
+  }, [walls]);
+
   return {
     walls,
     setWalls,
@@ -439,5 +451,6 @@ export const useFoundationWallingCalculator = (quote: any) => {
     removeWall,
     calculateWallQuantities,
     getTotalQuantities,
+    calculateFoundationWallingArea,
   };
 };

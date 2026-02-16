@@ -41,22 +41,14 @@ export interface WardrobeItem {
 interface WardrobesCalculatorProps {
   wardrobes: WardrobeItem[];
   setWardrobes: (wardrobes: WardrobeItem[]) => void;
-  setQuoteData?: (data: any) => void;
   quote?: any;
 }
 
 const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
   wardrobes,
   setWardrobes,
-  setQuoteData,
   quote,
 }) => {
-  useEffect(() => {
-    setQuoteData?.((prev: any) => ({
-      ...prev,
-      wardrobes_cabinets: wardrobes,
-    }));
-  }, [wardrobes, setQuoteData]);
 
   const addWardrobe = () => {
     const newWardrobe: WardrobeItem = {
@@ -135,7 +127,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+        <h3 className="text-lg  mb-4 text-gray-900 dark:text-white">
           Wardrobes & Cabinets
         </h3>
 
@@ -224,7 +216,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
                 {wardrobe.quotationType === "lump-sum" ? (
                   // LUMP-SUM SECTION
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
-                    <h5 className="font-semibold text-gray-900 dark:text-white mb-4">
+                    <h5 className=" text-gray-900 dark:text-white mb-4">
                       Lump-Sum Pricing
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,7 +245,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
                 ) : (
                   // DETAILED QUOTE SECTION
                   <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mb-4">
-                    <h5 className="font-semibold text-gray-900 dark:text-white mb-4">
+                    <h5 className=" text-gray-900 dark:text-white mb-4">
                       Detailed Components
                     </h5>
 
@@ -417,7 +409,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
                 {/* Total Price Display */}
                 <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-gray-900 dark:text-white">
+                    <span className=" text-gray-900 dark:text-white">
                       Total Cost:
                     </span>
                     <span className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -446,7 +438,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                  <h4 className=" text-gray-900 dark:text-white">
                     Total Wardrobes & Cabinets Cost
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">

@@ -124,7 +124,7 @@ const QuotePaymentPage = () => {
           className="max-w-lg w-full mx-4 text-center space-y-4"
         >
           <XCircle className="w-16 h-16 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-semibold">Invalid Quote</h2>
+          <h2 className="text-2xl ">Invalid Quote</h2>
           <p className="text-muted-foreground">
             Unable to process payment. Quote information is missing.
           </p>
@@ -197,7 +197,7 @@ const QuotePaymentPage = () => {
         >
           <div className="space-y-4 py-8">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
-            <h2 className="text-2xl font-semibold">Payment Successful!</h2>
+            <h2 className="text-2xl ">Payment Successful!</h2>
             <p className="text-muted-foreground">
               Quote <strong>{quoteTitle}</strong> has been unlocked.
             </p>
@@ -224,7 +224,7 @@ const QuotePaymentPage = () => {
         >
           <div className="space-y-4 py-8">
             <XCircle className="w-16 h-16 text-red-500 mx-auto" />
-            <h2 className="text-2xl font-semibold">Payment Failed</h2>
+            <h2 className="text-2xl ">Payment Failed</h2>
             <p className="text-muted-foreground">
               There was an issue processing your payment. Please try again.
             </p>
@@ -259,22 +259,22 @@ const QuotePaymentPage = () => {
         {isProcessing ? (
           <div className="space-y-4 py-8">
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
-            <p className="font-semibold">Processing your payment...</p>
+            <p className="">Processing your payment...</p>
           </div>
         ) : (
           <div className="space-y-4 mt-10 text-left">
             {/* Quote Title Display */}
             <div className="p-4 rounded-lg border bg-muted">
-              <h4 className="font-semibold mb-2">Quote Details</h4>
+              <h4 className=" mb-2">Quote Details</h4>
               <div className="flex items-center justify-between mb-3">
                 <span>Quote Title</span>
-                <span className="font-semibold truncate ml-2 text-right">
+                <span className=" truncate ml-2 text-right">
                   {quoteTitle}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Payment Amount</span>
-                <span className="font-semibold text-lg">
+                <span className=" text-lg">
                   KES {amount.toLocaleString()}
                 </span>
               </div>
@@ -285,7 +285,7 @@ const QuotePaymentPage = () => {
 
             {/* Email Input */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold">
+              <Label htmlFor="email" className="text-sm ">
                 Email Address
               </Label>
               <Input
@@ -303,7 +303,7 @@ const QuotePaymentPage = () => {
 
             {/* Features */}
             <div className="p-4 rounded-lg border bg-muted">
-              <h4 className="font-semibold mb-3">You will unlock:</h4>
+              <h4 className=" mb-3">You will unlock:</h4>
               <ul className="space-y-2 text-sm text-left">
                 <li className="flex items-center gap-2">
                   <span className="text-green-600">✓</span>

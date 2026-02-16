@@ -223,7 +223,7 @@ const QuoteDetailsPage = () => {
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3 bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl  flex items-center gap-3 bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
                   <Building2 className="w-7 h-7 text-primary dark:text-white" />
                   {quote.title}
                 </h1>
@@ -324,14 +324,14 @@ const QuoteDetailsPage = () => {
                     <p className="text-sm text-muted-foreground mb-1">
                       Materials
                     </p>
-                    <p className="text-lg font-semibold">
+                    <p className="text-lg ">
                       KSh{" "}
                       {formatCurrency(quote.materials_cost).toLocaleString()}
                     </p>
                   </div>
                   <div className="p-4 rounded-lg bg-muted">
                     <p className="text-sm text-muted-foreground mb-1">Labor</p>
-                    <p className="text-lg font-semibold">
+                    <p className="text-lg ">
                       KSh {formatCurrency(quote.labor_cost).toLocaleString()}
                     </p>
                   </div>
@@ -339,7 +339,7 @@ const QuoteDetailsPage = () => {
                     <p className="text-sm text-muted-foreground mb-1">
                       Add-ons
                     </p>
-                    <p className="text-lg font-semibold">
+                    <p className="text-lg ">
                       KSh{" "}
                       {formatCurrency(
                         quote.additional_services_cost,
@@ -352,7 +352,7 @@ const QuoteDetailsPage = () => {
                   {quote.equipment_costs > 0 && (
                     <div className="flex justify-between">
                       <span>Equipment Costs</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh{" "}
                         {formatCurrency(quote.equipment_costs).toLocaleString()}
                       </span>
@@ -361,7 +361,7 @@ const QuoteDetailsPage = () => {
                   {quote.transport_costs > 0 && (
                     <div className="flex justify-between">
                       <span>Transport Costs</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh{" "}
                         {formatCurrency(quote.transport_costs).toLocaleString()}
                       </span>
@@ -370,7 +370,7 @@ const QuoteDetailsPage = () => {
                   {quote.permit_cost > 0 && (
                     <div className="flex justify-between">
                       <span>Permit Costs</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh {formatCurrency(quote.permit_cost).toLocaleString()}
                       </span>
                     </div>
@@ -378,7 +378,7 @@ const QuoteDetailsPage = () => {
                   {quote.overhead_amount > 0 && (
                     <div className="flex justify-between">
                       <span>Overhead Amount</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh{" "}
                         {formatCurrency(quote.overhead_amount).toLocaleString()}
                       </span>
@@ -387,7 +387,7 @@ const QuoteDetailsPage = () => {
                   {quote.contingency_amount > 0 && (
                     <div className="flex justify-between">
                       <span>Contingency</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh{" "}
                         {formatCurrency(
                           quote.contingency_amount,
@@ -398,7 +398,7 @@ const QuoteDetailsPage = () => {
                   {quote.addons_cost > 0 && (
                     <div className="flex justify-between">
                       <span>Subcontractor Costs</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh {formatCurrency(quote.addons_cost).toLocaleString()}
                       </span>
                     </div>
@@ -406,7 +406,7 @@ const QuoteDetailsPage = () => {
                   {quote.profit_amount > 0 && (
                     <div className="flex justify-between">
                       <span>Profit</span>
-                      <span className="font-semibold">
+                      <span className="">
                         KSh{" "}
                         {formatCurrency(quote.profit_amount).toLocaleString()}
                       </span>
@@ -468,7 +468,7 @@ const QuoteDetailsPage = () => {
                               {material.quantity} {material.unit}
                             </p>
                           </div>
-                          <p className="font-semibold">
+                          <p className="">
                             KSh{" "}
                             {formatCurrency(
                               material.total_price || 0,

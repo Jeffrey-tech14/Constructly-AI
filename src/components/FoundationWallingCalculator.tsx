@@ -129,7 +129,9 @@ export default function FoundationWallingCalculator({
     const calculatedHeight =
       excavationDepth - stripFootingHeight - groundFloorSlabThickness;
     const foundationWallHeight =
-      calculatedHeight > 0 && calculatedHeight !== 0 ? calculatedHeight.toFixed(2) : "1.0";
+      calculatedHeight > 0 && calculatedHeight !== 0
+        ? calculatedHeight.toFixed(2)
+        : "1.0";
     // Update external wall
     const externalWall = walls.find((w) => w.type === "external");
     if (externalWall && externalPerimeter > 0) {
@@ -462,26 +464,6 @@ export default function FoundationWallingCalculator({
                                 ))}
                               </SelectContent>
                             </Select>
-                          </div>
-
-                          <div>
-                            <Label htmlFor={`${wall.id}-number`}>
-                              Number of Walls
-                            </Label>
-                            <Input
-                              id={`${wall.id}-number`}
-                              type="number"
-                              min="1"
-                              step="1"
-                              value={wall.numberOfWalls}
-                              onChange={(e) =>
-                                updateWall(wall.id, {
-                                  numberOfWalls: e.target.value,
-                                })
-                              }
-                              className="mt-1"
-                              placeholder="e.g., 1"
-                            />
                           </div>
 
                           <div>

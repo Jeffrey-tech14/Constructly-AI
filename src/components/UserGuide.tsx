@@ -292,11 +292,11 @@ const UserGuide = () => {
                   Temporary works needed before construction starts:
                 </p>
                 <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-                  <li>• Site clearing and leveling</li>
-                  <li>• Temporary fencing and access roads</li>
-                  <li>• Site offices and storage facilities</li>
-                  <li>• Safety and security measures</li>
-                  <li>• Water and electricity connections</li>
+                  <li>• Site clearance by area (calculated per m²)</li>
+                  <li>• Project identification signage</li>
+                  <li>• Site boundary hoarding/fencing</li>
+                  <li>• Safety nets for site protection</li>
+                  <li>• Fall prevention barriers (high-rise only)</li>
                 </ul>
               </CardContent>
             </Card>
@@ -394,6 +394,1091 @@ const UserGuide = () => {
       ),
     },
     {
+      id: "step-by-step",
+      title: "Step-by-Step Calculator Guide",
+      icon: <Calculator className="w-5 h-5" />,
+      description: "Detailed input/output guide for each calculator component",
+      duration: "15 minutes",
+      content: (
+        <div className="space-y-6">
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3">
+              How to Use Each Calculator
+            </h3>
+            <p className="text-blue-800 dark:text-blue-200">
+              Each calculator section requires specific inputs and automatically
+              calculates quantities and costs. Follow the order below for the
+              most accurate results.
+            </p>
+          </div>
+
+          <Tabs defaultValue="project" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 gap-2 h-auto flex-wrap">
+              <TabsTrigger value="project" className="text-xs">
+                Project Details
+              </TabsTrigger>
+              <TabsTrigger value="qs-settings" className="text-xs">
+                QS Settings
+              </TabsTrigger>
+              <TabsTrigger value="earthworks" className="text-xs">
+                Earthworks
+              </TabsTrigger>
+              <TabsTrigger value="concrete" className="text-xs">
+                Concrete
+              </TabsTrigger>
+              <TabsTrigger value="masonry" className="text-xs">
+                Masonry
+              </TabsTrigger>
+              <TabsTrigger value="flooring" className="text-xs">
+                Flooring
+              </TabsTrigger>
+              <TabsTrigger value="mep" className="text-xs">
+                MEP Systems
+              </TabsTrigger>
+              <TabsTrigger value="finishes" className="text-xs">
+                Finishes
+              </TabsTrigger>
+              <TabsTrigger value="kitchen" className="text-xs">
+                Kitchen
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="project" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-blue-600">1.</span> Project Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Required Inputs:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Project Name</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          e.g., "Nairobi Residential 2BR"
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Client Name</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          e.g., "John Mwangi"
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Location/Region</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Affects regional price multipliers - Choose accurately
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Project ID for tracking
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Regional pricing multipliers applied
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="qs-settings" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-green-600">2.</span> QS Settings
+                    (Quantity Surveyor Configuration)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Financial Settings Section */}
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Financial Settings (Required):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Labor Cost %</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Percentage or fixed amount for labor costs
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Overhead %</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Percentage or fixed amount for overhead expenses
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Profit Margin %</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Your desired profit percentage or fixed amount
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Contingency %</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Buffer for unforeseen costs (typical: 5-10%)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Permit Cost</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Fixed or percentage-based licensing and permit fees
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Wastage Settings Section */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Material Wastage Percentages:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
+                        <p className="font-medium">Concrete Wastage:</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          5% (typ.)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
+                        <p className="font-medium">Reinforcement Wastage:</p>
+                        <p className="text-gray-600 dark:text-gray-400">4%</p>
+                      </div>
+                      <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
+                        <p className="font-medium">Masonry Wastage:</p>
+                        <p className="text-gray-600 dark:text-gray-400">3%</p>
+                      </div>
+                      <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
+                        <p className="font-medium">Finishes Wastage:</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          8% (flooring 10%, walls 8%, ceiling 10%)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
+                        <p className="font-medium">Roofing Wastage:</p>
+                        <p className="text-gray-600 dark:text-gray-400">7%</p>
+                      </div>
+                      <div className="p-2 bg-purple-50 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
+                        <p className="font-medium">MEP Wastage:</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Electrical 2%, Plumbing 3%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional QS Elements Section */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Professional QS Elements (Toggle Options):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Include Ring Beams</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Structural reinforcement at wall tops
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Include Lintels</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Over doors and windows
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Include Reinforcement</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Rebar in concrete and masonry
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">
+                          Include DPC (Damp Proof Course)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Moisture barrier in foundations
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Include Scaffolding</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          With daily rates configured
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Include Movement Joints</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Expansion joint spacing (6m typical)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Include Waste Removal</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          At configured rate per m³
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Concrete & Masonry Settings */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Concrete & Masonry Configuration:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Concrete Mix Ratio</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Cement:Sand:Aggregate (typical: 1:2:4)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Water-Cement Ratio</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          For concrete durability (typical: 0.5)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Mortar Ratio</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Cement:Sand for masonry joints (typical: 1:4)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Plaster Ratio</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Cement:Sand for plaster finish (typical: 1:4)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Rebar Specifications</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Bar sizes (D8-D25), spacing, and lap lengths
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Applied To:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        All cost calculations across all sections
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Material quantity calculations with wastage
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Labor and overhead costing
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Final quote total with profit and contingency
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="earthworks" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-orange-600">3.</span> Earthworks &
+                    Site Prep
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Required Inputs:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Excavation Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Trenches / Full Excavation / Leveling
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Excavation Depth (meters)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Typical: 1.0-1.5m for foundations
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Fill Material (m³)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          If site needs leveling - leave blank if level
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Excavation volume (m³) & cost
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Fill material quantity & cost
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Labor days required
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="concrete" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-cyan-600">4.</span> Concrete Works
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Required Inputs:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                        <p className="font-medium">Concrete Grade</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          C20 (standard) / C25 / C30
+                        </p>
+                      </div>
+                      <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                        <p className="font-medium">Foundation Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Strip / Raft / Pad - Most common: Strip
+                        </p>
+                      </div>
+                      <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                        <p className="font-medium">Concrete Elements</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Slabs (floors), Beams, Columns, Strip Footings, Raft
+                          Foundations
+                        </p>
+                      </div>
+                      <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                        <p className="font-medium">Reinforcement</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Rebar sizing and spacing with overlap calculation
+                        </p>
+                      </div>
+                      <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                        <p className="font-medium">
+                          Advanced Features (Optional)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Waterproofing details, Septic tanks, Underground
+                          storage tanks, Soak pits, Soakaways for drainage
+                          solutions
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Concrete volume for each element (m³)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Rebar quantity and weight (kg)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Formwork requirements
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Total material costs
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Foundation specifications with dimensions
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="masonry" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-red-600">5.</span> Masonry & Walling
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Building Dimensions (Required Inputs):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">
+                          External Wall Perimeter (meters)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Total length of exterior walls
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">
+                          Internal Wall Perimeter (meters)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Total length of interior partition walls
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">Wall Height (meters)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Height per floor/level
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Masonry Material & Configuration (Required):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">Wall Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Brick / Block / Stone - Most common: Block
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">Block Types</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Large (200×200mm), Standard (150×200mm), Small
+                          (100×200mm), or Custom
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">Wall Thickness</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          230mm (single) / 450mm (cavity)
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">Mortar Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Cement ratio: 1:3 / 1:4 / 1:6 - Standard is 1:4
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">Plaster Type (Optional)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          None / One Side / Both Sides applied
+                        </p>
+                      </div>
+                      <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
+                        <p className="font-medium">DPC & Hoop Iron</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Damp Proof Course and reinforcement requirements
+                          calculated
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Number of bricks/blocks needed
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Mortar volume (m³)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Total walling cost
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Labor days for construction
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="roofing" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-amber-600">6.</span> Roofing System
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Required Inputs:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Roof Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Pitched / Flat / Hip
+                        </p>
+                      </div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Roofing Material</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Concrete tiles / Metal sheets / Asphalt shingles
+                        </p>
+                      </div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Guttering Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          PVC / Aluminum - Size: 90mm or 120mm
+                        </p>
+                      </div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">
+                          Roof Pitch (for pitched roofs)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Angle in degrees - Typical: 30-40°
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Roof coverage area (m²)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Roofing material quantity with waste
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Guttering & downpipes length
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Total roofing system cost
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="flooring" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-amber-600">6.5.</span> Flooring
+                    Systems
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      Required Inputs:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Floor Material</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Ceramic Tiles, Granite Tiles, Granite, Hardwood Wooden
+                          Panels, Cement Paste (Niro finish), PVC Vinyl
+                          Flooring, Epoxy Flooring, Terrazzo, SPC Flooring
+                        </p>
+                      </div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Floor Area (m²)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Total floor area requiring finishing
+                        </p>
+                      </div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Skirting Board (Optional)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Automatically matched to floor material (Tile,
+                          Hardwood, Stone, or PVC skirting). Not applicable for
+                          Niro finishes
+                        </p>
+                      </div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
+                        <p className="font-medium">Skirting Height</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Perimeter length of skirting board required,
+                          calculated from room dimensions
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Floor material quantity (m²) with wastage
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Skirting board length & cost
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Underlayment and adhesive requirements
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Total flooring system cost with installation labor
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="mep" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-purple-600">7.</span> MEP Systems
+                    (Electrical, Plumbing)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h5 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                        Electrical Calculator
+                      </h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">System Type</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Lighting, Power, Data, Security, CCTV, Fire Alarm,
+                            Access Control, AV Systems, Emergency Lighting,
+                            Renewable Energy
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">Cable Type</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            NYM-J, PVC/PVC, XLPE, MICC, SWA, Ethernet, Data
+                            CAT6, Fiber Optic, Coaxial
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">Installation Method</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Surface, Concealed, Underground, Trunking
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">Outlet & Switch Types</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Power sockets, switches, dimmers, data ports, TV
+                            points, USB chargers, circuit breakers
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">
+                            Lighting Types & Wattage
+                          </p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            LED downlights, fluorescent, halogen, emergency
+                            lights, floodlights, street lights (3W-60W range)
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">
+                            Voltage & Circuit Ratings
+                          </p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Single 230V / Three Phase 400V with circuit breaker
+                            ratings 6A-63A
+                          </p>
+                        </div>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                          <p className="font-medium">Cable Sizes</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            1.0mm² to 150mm² for various applications and load
+                            demands
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-2">
+                        Plumbing Calculator
+                      </h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                          <p className="font-medium">System Type</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Water Supply, Drainage, Sewage, Rainwater, Hot
+                            Water, Fire Fighting, Gas Piping, Irrigation
+                          </p>
+                        </div>
+                        <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                          <p className="font-medium">Pipe Material</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            PVC-U, PVC-C, Copper, PEX, Galvanized Steel, HDPE,
+                            PPR, Cast Iron, Vitrified Clay
+                          </p>
+                        </div>
+                        <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                          <p className="font-medium">Pipe Diameters</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            15mm to 200mm range for different applications and
+                            flow rates
+                          </p>
+                        </div>
+                        <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                          <p className="font-medium">Fixture Types</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Water closets, urinals, lavatories, kitchen sinks,
+                            showers, bathtubs, bidets, floor drains, hose bibs
+                          </p>
+                        </div>
+                        <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
+                          <p className="font-medium">Quality Levels</p>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            Standard, Premium, Luxury (for material and fitting
+                            selection)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Cable lengths & circuit schedules (Electrical)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Pipe lengths & fixture schedules (Plumbing)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Material costs with labor
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        System capacity & specifications
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="finishes" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-yellow-600">8.</span> Internal &
+                    External Wall Finishes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Internal Finishes Section */}
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Internal Wall Finishes (Required Inputs):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border-l-4 border-yellow-500">
+                        <p className="font-medium">Material Selection</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Stone Cladding, Tile Cladding, Wood Paneling, Smooth
+                          Stucco, Gypsum Board, or Fluted Panels
+                        </p>
+                      </div>
+                      <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border-l-4 border-yellow-500">
+                        <p className="font-medium">Area Coverage (m²)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          How much wall area needs the finish
+                        </p>
+                      </div>
+                      <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border-l-4 border-yellow-500">
+                        <p className="font-medium">
+                          Paint (Checkbox - Optional)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Enable multi-layer painting: skimming, undercoat,
+                          finishing coat
+                        </p>
+                      </div>
+                      <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border-l-4 border-yellow-500">
+                        <p className="font-medium">
+                          Wet Area Tiling (If Applicable)
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Tile size selection (150x150mm to 1200x600mm),
+                          adhesive, grout calculations
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* External Finishes Section */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      External Wall Finishes (Required Inputs):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Material Type</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Cladding, Marble, Limestone, Marzella, or Wall Master
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Plaster Finish</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Standard 25mm plaster thickness with cement/sand
+                          requirements
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Wall Pointing (Checkbox)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Optional 5mm mortar jointing with cement/sand
+                          calculations
+                        </p>
+                      </div>
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
+                        <p className="font-medium">Paint (Checkbox)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Multi-layer exterior painting with coverage
+                          calculations
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ceiling Finishes Section */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Ceiling Finishes (Required Inputs):
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Ceiling Material</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Gypsum Board, PVC, Acoustic Tiles, Exposed Concrete,
+                          Suspended Grid, or Wood Panels
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Ceiling Area (m²)</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Total floor/ceiling area requiring treatment
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Supplementary Materials</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Metal channels, studs, screws, corner tape, fiber
+                          mesh, cornice, filler
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <p className="font-medium">Paint Finish</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Ceiling paint with coverage calculations
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Material quantities with wastage
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Paint coverage and layers needed
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Tile, adhesive, and grout quantities
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Plaster and pointing material calculations
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Total material costs
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="kitchen" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span className="text-green-600">9.</span> Kitchen &
+                    Wardrobes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Required Inputs:
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Cabinet Specification</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Detailed items (cupboards, drawers, doors) with unit
+                          pricing or lump-sum quote
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Countertop Material</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Granite / Tiles / Laminate / Engineered stone
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Countertop Granite Sizes</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Predefined: 1200×600, 1500×600 (default), 2000×600,
+                          2400×600, 3000×600 mm
+                        </p>
+                      </div>
+                      <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded border-l-4 border-green-500">
+                        <p className="font-medium">Number of Units</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Upper & Lower cabinets separately
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 dark:text-white mb-3">
+                      Results Generated:
+                    </h4>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Cabinet schedule with dimensions
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Countertop area & cost (auto-filled prices)
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Hardware requirements list
+                      </li>
+                      <li className="flex gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />{" "}
+                        Total kitchen cost with installation
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 mt-6">
+            <CardHeader>
+              <CardTitle className="text-base text-amber-900 dark:text-amber-100">
+                💡 General Tips for All Calculators
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
+              <p>
+                <strong>Follow Order:</strong> Work through sections in sequence
+                - earlier sections feed into later ones
+              </p>
+              <p>
+                <strong>Review Calculations:</strong> Each result is shown
+                immediately so you can verify accuracy
+              </p>
+              <p>
+                <strong>Prices Auto-Fill:</strong> Material prices are
+                automatically populated from your pricing variables
+              </p>
+              <p>
+                <strong>Make Adjustments:</strong> Edit any value anytime and
+                calculations update immediately
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ),
+    },
+    {
       id: "variables",
       title: "Variables & Pricing",
       icon: <Settings className="w-5 h-5" />,
@@ -454,9 +1539,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Services
-                  </p>
+                  <p className=" text-gray-900 dark:text-white">Services</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Subcontractor services, labor specializations, and other
                     services you charge for or subcontract.
@@ -616,373 +1699,6 @@ const UserGuide = () => {
               <p>
                 <strong>Keep Records:</strong> Note when you made changes for
                 reference
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      ),
-    },
-
-    {
-      id: "component-defaults",
-      title: "Component Defaults",
-      icon: <Settings className="w-5 h-5" />,
-      description: "Understanding default values for each calculator section",
-      duration: "8 minutes",
-      content: (
-        <div className="space-y-6">
-          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg  text-blue-900 dark:text-blue-100 mb-3">
-              What Are Component Defaults?
-            </h3>
-            <p className="text-blue-800 dark:text-blue-200">
-              Each calculator component (Roofing, Electrical, Plumbing, etc.)
-              comes with pre-configured default values for wastage percentages,
-              labor rates, and material assumptions. These defaults ensure
-              consistent and accurate calculations across all quotes.
-            </p>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Default Values by Component
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="border-l-4 border-orange-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Roofing Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Wastage:</strong> 10% for materials
-                    <br />
-                    <strong>Labor Rate:</strong> Per square meter based on
-                    roofing type
-                    <br />
-                    <strong>Pitch Factor:</strong> Automatically calculated
-                    based on slope
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-blue-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Electrical Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Wire Length Ratio:</strong> 1.15x building perimeter
-                    for internal runs
-                    <br />
-                    <strong>Fixture Density:</strong> Per 10 sq m of usable
-                    floor area
-                    <br />
-                    <strong>Labor Rate:</strong> Per fixture installation
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-cyan-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Plumbing Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Pipe Length Ratio:</strong> 1.10x building perimeter
-                    <br />
-                    <strong>Fitting Density:</strong> Calculated per fixture
-                    point
-                    <br />
-                    <strong>Labor:</strong> Per running meter of pipe
-                    installation
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-red-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Concrete Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Grade:</strong> M20 (4:1:2 cement:sand:aggregate)
-                    <br />
-                    <strong>Water:</strong> 0.55 water-cement ratio
-                    <br />
-                    <strong>Wastage:</strong> 5% for mixing and spillage
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-red-600 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Masonry Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Brick Size:</strong> Standard 19x9x9 cm
-                    <br />
-                    <strong>Bricks per m²:</strong> 50 bricks (with 10mm joints)
-                    <br />
-                    <strong>Mortar Wastage:</strong> 15%
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-yellow-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Painting Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Coverage Rate:</strong> 10 sq m per liter (2 coats)
-                    <br />
-                    <strong>Undercoat:</strong> 12 sq m per liter
-                    <br />
-                    <strong>Labor:</strong> Per 10 sq m painted area
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-green-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Finishing Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Floor Coverage:</strong> Per square meter of floor
-                    <br />
-                    <strong>Ceiling Coverage:</strong> Per square meter treated
-                    <br />
-                    <strong>Wastage:</strong> Varies by material type
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Rebar Calculator
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    <strong>Spacing:</strong> 150mm center-to-center (default)
-                    <br />
-                    <strong>Lap Length:</strong> 50 bar diameters
-                    <br />
-                    <strong>Wastage:</strong> 10% for cutting and bending
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Viewing & Modifying Defaults
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                    1
-                  </div>
-                  <div>
-                    <p className=" text-gray-900 dark:text-white">
-                      Open Quote Builder
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Start creating a new quote or edit an existing one
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                    2
-                  </div>
-                  <div>
-                    <p className=" text-gray-900 dark:text-white">
-                      Navigate to Each Component
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Click on each calculator section (Roofing, Electrical,
-                      etc.)
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                    3
-                  </div>
-                  <div>
-                    <p className=" text-gray-900 dark:text-white">
-                      Review Defaults
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Default values appear in gray text or info sections
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                    4
-                  </div>
-                  <div>
-                    <p className=" text-gray-900 dark:text-white">
-                      Override if Needed
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Click on any default value to edit it for this quote only
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
-                    5
-                  </div>
-                  <div>
-                    <p className=" text-gray-900 dark:text-white">
-                      Save Global Defaults (Optional)
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Go to Settings to permanently change defaults for all
-                      future quotes
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Quote-Level vs Global Defaults
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/10">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-blue-900 dark:text-blue-100">
-                      Quote-Level Override
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
-                    <p>
-                      <strong>Scope:</strong> Affects only this specific quote
-                    </p>
-                    <p>
-                      <strong>When to Use:</strong> Special projects with unique
-                      requirements
-                    </p>
-                    <p>
-                      <strong>Change Method:</strong> Edit values directly in
-                      the quote builder
-                    </p>
-                    <p>
-                      <strong>Duration:</strong> Only for this quote (temporary)
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/10">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-green-900 dark:text-green-100">
-                      Global Defaults
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm text-green-800 dark:text-green-200 space-y-2">
-                    <p>
-                      <strong>Scope:</strong> Applies to all future quotes
-                    </p>
-                    <p>
-                      <strong>When to Use:</strong> When your standard practices
-                      change
-                    </p>
-                    <p>
-                      <strong>Change Method:</strong> Go to Settings &gt;
-                      Component Defaults
-                    </p>
-                    <p>
-                      <strong>Duration:</strong> Permanent until changed again
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Common Default Adjustments
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2 text-sm">
-                <div className="border-l-4 border-orange-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    High-End Projects
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Increase wastage percentages (15% instead of 10%) and labor
-                    rates for premium finishes
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-blue-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Rural Projects
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Increase transport rates and labor costs due to
-                    accessibility challenges
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-green-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Rapid Construction
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Increase labor rates and equipment rental costs for
-                    expedited timelines
-                  </p>
-                </div>
-
-                <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Budget Estimates
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Use minimum defaults for early-stage estimates before
-                    detailed planning
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
-            <CardHeader>
-              <CardTitle className="text-base text-amber-900 dark:text-amber-100">
-                💡 Defaults Best Practices
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
-              <p>
-                <strong>Know the Defaults:</strong> Understand standard values
-                so you can spot incorrect calculations
-              </p>
-              <p>
-                <strong>Document Changes:</strong> Note why you changed defaults
-                for specific projects
-              </p>
-              <p>
-                <strong>Review Quarterly:</strong> Check if defaults still match
-                your current practices
-              </p>
-              <p>
-                <strong>Test After Changes:</strong> Create a test quote after
-                adjusting global defaults
-              </p>
-              <p>
-                <strong>Keep Records:</strong> Save notes about when and why you
-                modified defaults
               </p>
             </CardContent>
           </Card>
@@ -1349,7 +2065,7 @@ const UserGuide = () => {
                     Itemized Costs
                   </p>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Every material and labor item with quantities and prices
+                    Every material item with quantities and prices
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm">
@@ -1638,9 +2354,7 @@ const UserGuide = () => {
                 </div>
 
                 <div className="border-l-4 border-purple-500 pl-4 py-2">
-                  <p className=" text-gray-900 dark:text-white">
-                    Save More
-                  </p>
+                  <p className=" text-gray-900 dark:text-white">Save More</p>
                   <p className="text-gray-600 dark:text-gray-400">
                     Only pay for quotes you want to unlock - create draft quotes
                     for free

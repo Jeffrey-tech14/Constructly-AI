@@ -12,6 +12,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,6 +58,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [showCalculator, setShowCalculator] = useState(false);
+  const [showGuidePopup, setShowGuidePopup] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     totalQuotesValue: 0,
     completedProjects: 0,
@@ -153,6 +163,13 @@ const Dashboard = () => {
     fetchAndSet();
   }, [user, profile?.id]);
 
+  // Show guide popup if user has no quotes
+  useEffect(() => {
+    if (!localDashboardLoading && dashboardData.allQuotes.length === 0) {
+      setShowGuidePopup(true);
+    }
+  }, [localDashboardLoading, dashboardData.allQuotes.length]);
+
   const getStatusColor = (status: string) => {
     const colors = {
       draft: "bg-gray-100 text-gray-800 hover:bg-gray-300",
@@ -194,13 +211,38 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen inset-0 scrollbar-hide">
+      <AlertDialog open={showGuidePopup} onOpenChange={setShowGuidePopup}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Welcome to JTech AI!</AlertDialogTitle>
+            <AlertDialogDescription>
+              It looks like you haven't created any quotes yet. Would you like
+              to check out the user guide to learn how to get started?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 justify-end">
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowGuidePopup(false);
+                navigate("/guide");
+              }}
+            >
+              View Guide
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="max-w-7xl scrollbar-hide mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-4 animate-fade-in">
           <div className="sm:flex flex-1 justify-between items-center">
             <div>
               <div className="sm:text-2xl items-center text-xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
                 <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
-               <h2 className="text-xl sm:text-2xl"> Welcome back, {profile.name}!</h2>
+                <h2 className="text-xl sm:text-2xl">
+                  {" "}
+                  Welcome back, {profile.name}!
+                </h2>
               </div>
               <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
                 Here's what's happening with your construction business today.

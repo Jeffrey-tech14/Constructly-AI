@@ -128,713 +128,239 @@ class PlanParserService {
   private getAnalysisPrompt(hasBBSFile: boolean = false): string {
     return `
 You are an expert architectural data extraction engine analyzing construction drawings and plans.
-
-OUTPUT RULE:
-Return VALID JSON ONLY matching the provided schema.
-If no walls are detected, return exactly:
-{"error":"No walls found"}
-
-You are deterministic.
+════════════════════════════════════
+OUTPUT PROTOCOL (NON-NEGOTIABLE)
+════════════════════════════════════
+VALID JSON ONLY:
+First character: {
+Last character: }
+No markdown code blocks 
+No comments, no trailing commas
+No explanatory text before or after JSON
+ERROR HANDLING:
+If no walls are detected, return exactly: {"error":"No walls found"}
+DETERMINISM:
 You do not explain.
 You do not narrate.
-You do not invent.
+You do not invent data.
 You do not rename enums.
 Any deviation invalidates the result.
-
 ════════════════════════════════════
-GLOBAL NON-NEGOTIABLE RULES
+GLOBAL DATA RULES
 ════════════════════════════════════
-
-OUTPUT FORMAT
-
-Output must be valid JSON
-
-First character: {
-
-Last character: }
-
-No markdown
-
-No comments
-
-No trailing commas
-
-No explanatory text
-
-SCHEMA & ENUM LOCK
-
-Field names must match schema exactly
-
-Enum values must match exactly
-
-Never invent enums
-
-Map extracted labels to closest valid enum
-
-Example: "toilet" → "water-closet"
-
-Example: "LED light" → "led-downlight"
-
-Preserve enum spelling exactly
-
-SOURCE OF TRUTH
-
-Extract ONLY what is visible, labelled, or inferable from drawings
-
-Do NOT hallucinate dimensions
-
-Do NOT assume missing data
-
-Defaults are allowed ONLY where explicitly stated
-
-UNIT NORMALIZATION
-
-Lengths → meters
-
-Areas → m²
-
-Diameters → mm
-
-Convert mm ÷ 1000
-
-Never mix units
-
-DEFAULTS (ONLY IF DATA IS NOT SHOWN)
-
+UNITS:
+Lengths → meters (m)
+Areas → square meters (m²)
+Diameters → millimeters (mm)
+Convert mm ÷ 1000 for meter fields.
+Never mix units.
+DEFAULTS (ONLY IF DATA IS NOT SHOWN):
 External wall height → 3.2 m
-
 Internal wall height → 2.9 m
-
 Wall thickness → 0.2 m
-
 Block type → "Standard Block"
-
 Plaster → "Both Sides"
-
 Electrical voltage → 230V
-
 Fixture quality → "standard"
-
-Timber: "structural", "pressure-treated"
-
-COMPLETENESS & CONSISTENCY
-
-Empty sections → []
-
-Optional objects → omit (never null)
-
-Numeric values only (no strings for numbers)
-
-Be consistent with types
-
-Do not include paint anywhere
-
-Do not include varandah slabs or porch slabs anywhere in this analysis
+Timber → "structural", "pressure-treated"
+Foundation height → 0.65 m (if undefined)
+Ground floor slab thickness → 0.15 m
+SCHEMA & ENUM LOCK:
+Field names must match the expected structure exactly.
+Enum values must match the provided lists exactly.
+Map extracted labels to the closest valid enum (e.g., "toilet" → "water-closet").
+Preserve enum spelling exactly.
+SOURCE OF TRUTH:
+Extract ONLY what is visible, labelled, or inferable from drawings.
+Do NOT hallucinate dimensions.
+Do NOT assume missing data.
+Use ALL views (plans, sections, elevations) to resolve dimensions.
 ════════════════════════════════════
 WALL EXTRACTION (CRITICAL)
 ════════════════════════════════════
-
-Identify ALL walls
-
-Exactly TWO wall sections only:
-
-"external"
-
-"internal"
-
-One object per wall type (no duplicates)
-
-MEASUREMENTS
-
-External wall perimeter = full external/outermost wall building perimeter footprint
-
-Internal wall perimeter = sum of all partition walls
-Block type is influenced by wall dimensions eg, 200 mm is Large Block
-
-Use external dimension lines where available
-
-Prefer labelled dimensions over inferred ones
-
-HEIGHTS
-
-Measure from ground to slab/roof level
-
-Add 0.3 m allowance above slab for ceilings
-
-THICKNESS
-
-Extract external and internal thickness separately
-
+IDENTIFICATION:
+Identify ALL walls.
+Categorize walls into EXACTLY TWO sections: "external" and "internal".
+One object per wall type (no duplicates within wall types).
+MEASUREMENTS:
+External Wall Perimeter: Full external/outermost wall building perimeter footprint.
+Internal Wall Perimeter: Sum of all partition walls.
+Thickness: Extract external and internal wall thickness separately.
+Height: Measure from ground to slab/roof level. Add 0.3 m allowance above slab for ceilings.
+BLOCK TYPE LOGIC:
+Block type is influenced by wall dimensions (e.g., 200 mm → "Large Block").
+Use external dimension lines where available.
+Prefer labelled dimensions over inferred ones.
+OPENINGS (DOORS & WINDOWS):
+Detect all doors and windows within wall sections.
+Use schedules or symbols if present.
+Count totals per wall section.
+Identify frame types and whether opening is internal or external.
+Allowed Sizes Only:
+Doors: ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"]
+Windows: ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"]
+DOOR ACCESSORIES (For each door):
+Architrave: Type (timber-architrave, stone-arch, flush, rebated), Size, Quantity, Price.
+Quarter Round: Type (timber-quarter-round, rubber, vinyl), Size, Quantity, Price.
+Ironmongery:
+Hinges (butt-hinge, parliament-hinge, tee-hinge), Size, Qty (typically 3), Price.
+Locks (mortice-lock, cylinder-lock, rim-lock), Size, Qty (typically 1), Price.
+Handles (lever-handle, knob-handle, pull-handle), Size, Qty (typically 1), Price.
+Bolts (tower-bolt, barrel-bolt, panic-bolt), Size, Qty, Price.
+Closers (pneumatic-closer, self-closing-hinge, electromagnetic), Size, Qty, Price.
+Transom: Enabled (true/false), Height, Width, Glazing.
 ════════════════════════════════════
-DOORS & WINDOWS (WITHIN WALLS)
+FOUNDATION & STRUCTURE (CRITICAL FIX)
 ════════════════════════════════════
-
-Detect all doors and windows
-
-Use schedules or symbols if present
-
-Count totals per wall section
-
-Identify frame types
-
-Identify whether opening is internal or external
-
-Allowed sizes only:
-standardDoorSizes =
-["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"]
-
-standardWindowSizes =
-["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"]
-
+FOUNDATION TYPE:
+Extract from drawing: "strip-footing", "raft-foundation", "pad-foundation".
+If bungalow and concrete → default to "strip-footing".
+🛑 CRITICAL FOUNDATION CONSTRAINT:
+DO NOT create separate concrete footing entries for internal and external walls.
+The Concrete Strip Footing is a SINGLE continuous system element unless structural notes explicitly specify distinct footing types for internal loads.
+Foundation Walling (Masonry) above the footing MAY be extracted separately for external/internal.
+Concrete Footing width is calculated based on the primary load-bearing (external) wall thickness (typically 3x wall thickness) unless specified otherwise.
+FOUNDATION DEFINITIONS:
+Excavation Depth: Ground → bottom of trench.
+Foundation Height: Trench bottom → top of slab.
+Strip Footing Height: Footing element only.
+Ground Floor Slab: Always BRC A98 as default. Do not include oversite concrete or blinding.
+Bungalows: Only have ground floor slab and strip footing foundation elements for reinforcement and concrete.
+REINFORCEMENT & CONCRETE RULE:
+Concrete item ↔ Reinforcement item must BOTH exist.
+Exception: Bar Bending Schedule (BBS) present → do not duplicate.
+Rebar Sizes: "D10", "D12", "D16", etc.
+Calculation: Default to kg/m³, not individual bars (unless BBS).
+Concrete Grades: C25 → "1:2:4", C20 → "1:2:3".
+RING BEAMS:
+Extract ONLY if explicitly drawn or labelled.
+Perimeter usually equals external wall perimeter.
+Width usually equals wall thickness.
+Depth: 0.15–0.25 m.
 ════════════════════════════════════
-DOOR ACCESSORY EXTRACTION
+DETAILED REINFORCEMENT BY ELEMENT
 ════════════════════════════════════
-
-For each door extracted, include ALL related items:
-
-Architrave:
-- Type: "timber-architrave", "stone-arch", "flush", "rebated"
-- Size: "40x20mm", "50x25mm", etc.
-- Quantity: number of linear meters or units needed
-- Price: unit cost (can be 0 if not quoted)
-
-Quarter Round:
-- Type: "timber-quarter-round", "rubber", "vinyl"
-- Size: "20mm", "25mm", etc.
-- Quantity: linear meters or units
-- Price: unit cost
-
-Ironmongery (all of these if applicable):
-  
-  Hinges:
-  - Type: "butt-hinge", "parliament-hinge", "tee-hinge"
-  - Size: "75mm", "100mm", "125mm"
-  - Quantity: typically 3 per door
-  - Price: per set or per unit
-  
-  Locks:
-  - Type: "mortice-lock", "cylinder-lock", "rim-lock"
-  - Size: "3-lever", "5-lever", "security-grade"
-  - Quantity: 1 per door typically
-  - Price: per unit
-  
-  Handles:
-  - Type: "lever-handle", "knob-handle", "pull-handle"
-  - Size: "standard", "large", "65mm bore"
-  - Quantity: typically 1 per door
-  - Price: per pair
-  
-  Bolts:
-  - Type: "tower-bolt", "barrel-bolt", "panic-bolt"
-  - Size: "150mm", "200mm"
-  - Quantity: 0 or as shown on plans
-  - Price: per unit
-  
-  Closers:
-  - Type: "pneumatic-closer", "self-closing-hinge", "electromagnetic"
-  - Size: "standard", "light-duty", "heavy-duty"
-  - Quantity: 0 or 1 if specified
-  - Price: per unit
-
-Transom (if present):
-- Enabled: true/false
-- Height and width: as shown on plans
-- Glazing type and thickness (if applicable)
-
+Be Definite: Distinguish between mesh and individual_bars. If both exist, create two individual entries.
+Strip Footings & Raft Foundations:
+longitudinalBars: Main bars (e.g., "D12" or "D12@150")
+transverseBars: Distribution bars
+topReinforcement / bottomReinforcement
+footingType: "strip", "isolated", or "combined"
+Include mainBarSpacing, distributionBarSpacing (mm)
+Retaining Walls:
+retainingWallType: "cantilever", "gravity", or "counterfort"
+heelLength, toeLength (meters)
+Stem Reinforcement: stemVerticalBarSize, stemHorizontalBarSize, Spacings (mm)
+Base Reinforcement: baseMainBarSize, baseDistributionBarSize, Spacings (mm)
+Beams:
+mainBarsCount, distributionBarsCount
+stirrupSpacing (mm), stirrupSize, mainBarSpacing
+Columns:
+mainBarsCount, tieSpacing (mm), tieSize, mainBarSize, columnHeight (m)
+Slabs:
+mainBarSize, distributionBarSize, Spacings (mm)
+slabLayers: "1" (single) or "2" (double)
+If slabLayers > 1, provide topReinforcement.
+Tanks:
+Include tank-specific reinforcement (wall, base, cover).
+Ensure corresponding concrete tank exists.
+TankType: "septic", "underground", "overhead", "water", "circular"
+TankWallType: "walls", "base", "cover", "all"
 ════════════════════════════════════
-FOUNDATION EXTRACTION (MANDATORY)
+SYSTEMS EXTRACTION (MEP)
 ════════════════════════════════════
-
-If structure is concrete → foundation MUST exist.
-If there is no defined height, use 0.65 m as default.
-
-Foundation type (extract from drawing):
-
-"strip-footing"
-
-"raft-foundation"
-
-"pad-foundation"
-
-If bungalow and concrete → default to "strip-footing"
-
-FOUNDATION DEFINITIONS
-
-Excavation Depth: ground → bottom of trench
-
-Foundation Height: trench bottom - strip footing height(if present) → top of slab
-
-Strip Footing Height: footing element only
-
-Ground Floor Slab Thickness: typically 0.15 m
-
-If no clear foundation height → use 0.65 m
-
+PLUMBING:
+System Types: "water-supply", "drainage", "sewage", "rainwater", "hot-water", "fire-fighting", "gas-piping", "irrigation"
+Pipe Materials: "PVC-u", "PVC-c", "copper", "PEX", "galvanized-steel", "HDPE", "PPR", "cast-iron", "vitrified-clay"
+Fixture Types: "water-closet", "urinal", "lavatory", "kitchen-sink", "shower", "bathtub", "bidet", "floor-drain", "cleanout", "hose-bib"
+Quality: "standard", "premium", "luxury"
+ELECTRICAL:
+System Types: "lighting", "power", "data", "security", "cctv", "fire-alarm", "access-control", "av-systems", "emergency-lighting", "renewable-energy"
+Cable Types: "NYM-J", "PVC/PVC", "XLPE", "MICC", "SWA", "Data-CAT6", "Ethernet", "Fiber-Optic", "Coaxial"
+Outlet Types: "power-socket", "light-switch", "dimmer-switch", "data-port", "tv-point", "telephone", "usb-charger", "gpo"
+Lighting Types: "led-downlight", "fluorescent", "halogen", "emergency-light", "floodlight", "street-light", "decorative"
+Installation: "surface", "concealed", "underground", "trunking"
+Ratings: Amperes [6, 10, 13, 16, 20, 25, 32, 40, 45, 63]
+Wattage: [3, 5, 7, 9, 12, 15, 18, 20, 24, 30, 36, 40, 50, 60]
 ════════════════════════════════════
-REINFORCEMENT & CONCRETE RULE
+FINISHES & ROOFING
 ════════════════════════════════════
-
-Concrete item ↔ reinforcement item must BOTH exist
-
-Exception: Bar Bending Schedule present → do not duplicate
-
-Rebar sizes: "D10", "D12", "D16", etc
-Default calculation should be kg/m3 not individual bars
-Ground floor is always BRC A98 as default
-Do not include oversite concrete or any form of blinding
-**For bungalows, we only have ground floor slab and strip footing foundation elements only for reinforcement and concrete**
-The width of strip footings is always 3 times the wall thickness unless otherwise specified
-
-Concrete grades:
-
-C25 → "1:2:4"
-
-C20 → "1:2:3"
-
+FINISHES:
+Categories: "flooring", "ceiling", "wall-finishes", "joinery", "external"
+Constraint: Skip glass, blocks, or masonry not in this list.
+Common Materials:
+Flooring: "Ceramic Tiles", "Porcelain Tiles", "Hardwood", "Laminate", "Vinyl", "Carpet", "Polished Concrete", "Terrazzo", "Cement Floor Screed", "Self-leveling Floor Screed", "Anhydrite Floor Screed", "Resinous Floor Screed"
+Ceiling: "Blundering 40x40mm", "Blundering", "Gypsum Board", "PVC", "Acoustic Tiles", "Exposed Concrete", "Suspended Grid", "Wood Panels"
+Wall-Finishes: "Wallpaper", "Stone Cladding", "Tile Cladding", "Wood Paneling"
+Joinery: "Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"
+External: "PVC Gutter", "Galvanized Steel Gutter", "Aluminum Gutter", "Copper Gutter", "PVC Fascia", "Painted Wood Fascia", "Aluminum Fascia", "Composite Fascia", "PVC Soffit", "Aluminum Soffit", "PVC Downpipe", "Galvanized Steel Downpipe"
+ROOFING:
+Types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
+Materials: "concrete-tiles", "clay-tiles", "metal-sheets", "box-profile", "thatch", "slate", "asphalt-shingles", "green-roof", "membrane"
+Timber Sizes: "50x25", "50x50", "75x50", "100x50", "100x75", "150x50", "200x50"
+Timber Grades: "standard", "structural", "premium"
+Timber Treatments: "untreated", "pressure-treated", "fire-retardant"
+Timber Types: "rafter", "wall-plate", "ridge-board", "purlin", "battens", "truss", "joist"
+Underlayment: "felt-30", "felt-40", "synthetic", "rubberized", "breathable"
+Insulation: "glass-wool", "rock-wool", "eps", "xps", "polyurethane", "reflective-foil"
+Accessories: Use exact types for Gutters, Downpipes, Flashing, Fascia, Soffit (PVC, Galvanized Steel, Aluminum, Copper).
+EQUIPMENT (Fixed IDs):
+Bulldozer: 15846932-db16-4a28-a477-2e4b2e1e42d5
+Concrete Mixer: 3203526d-fa51-4878-911b-477b2b909db5
+Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b
+Water Pump: 598ca378-6eb3-451f-89ea-f45aa6ecece8
+Crane: d4665c7d-6ace-474d-8282-e888b53e7b48
+Compactor: eb80f645-6450-4026-b007-064b5f15a72a
+Excavator: ef8d17ca-581d-4703-b200-17395bbe1c51
 ════════════════════════════════════
-FOUNDATION WALLING (MASONRY ABOVE FOOTING IN FOUNDATION TRENCH)
+CONCRETE & STRUCTURE DETAILS
 ════════════════════════════════════
-
-Extract separately for:
-
-external
-
-internal
-
-Mortar ratios:
-"1:3", "1:4", "1:5", "1:6"
-
+Categories: "substructure", "superstructure"
+Element Types: "slab", "beam", "column", "septic-tank", "underground-tank", "staircase", "strip-footing", "raft-foundation", "pile-cap", "water-tank", "ramp", "retaining-wall", "culvert", "swimming-pool", "paving", "kerb", "drainage-channel", "manhole", "inspection-chamber", "soak-pit", "soakaway"
+Details Objects (Include if applicable):
+FoundationStep: id, length, width, depth, offset
+ConnectionDetails: lapLength, developmentLength, hookType (standard, seismic, special), spliceType (lap, mechanical, welded)
+WaterproofingDetails: includesDPC, dpcWidth, dpcMaterial, includesPolythene, polytheneGauge, includesWaterproofing, waterproofingType (bituminous, crystalline, membrane)
+SepticTankDetails: capacity, numberOfChambers, wallThickness, baseThickness, coverType (slab, precast, none), depth, includesBaffles, includesManhole, manholeSize
+UndergroundTankDetails: capacity, wallThickness, baseThickness, coverType, includesManhole, manholeSize, waterProofingRequired
+SoakPitDetails: diameter, depth, wallThickness, baseThickness, liningType (brick, concrete, precast), includesGravel, gravelDepth, includesGeotextile
+SoakawayDetails: length, width, depth, wallThickness, baseThickness, includesGravel, gravelDepth, includesPerforatedPipes
 ════════════════════════════════════
-RING BEAMS (ONLY IF SHOWN)
+BAR BENDING SCHEDULE (CONDITIONAL)
 ════════════════════════════════════
-
-Extract ONLY if explicitly drawn or labelled
-
-Perimeter usually equals external wall perimeter
-
-Width usually equals wall thickness
-
-Typical depth: 0.15–0.25 m
-
-Reinforcement (if visible):
-
-mainBarSize
-
-mainBarsCount
-
-stirrupSize
-
-stirrupSpacing (mm)
-
-Multiple ring beams → multiple entries
-
-════════════════════════════════════
-FINAL RULE
-════════════════════════════════════
-
-The drawing may include plans, sections, and elevations of the SAME building.
-Use ALL views to resolve dimensions accurately.
-Never guess.
-Never invent.
-Never explain.
-
-Return JSON only.
-Analyze this construction document and extract ALL available information about:
-
-### 🏗️ WALL STRUCTURE IDENTIFICATION:
-- Calculate the TOTAL EXTERNAL WALL PERIMETER of the building footprint in meters
-- Calculate the TOTAL INTERNAL WALL PERIMETER in meters  
-- Identify the EXTERNAL WALL HEIGHT from ground to slab level
-- Identify the INTERNAL WALL HEIGHT from ground to slab level
-- Create wall sections categorized as "external" or "internal"
-- For each wall section, identify and list all doors and windows with their properties
-- Pay special attention to door and window schedules or labels (like DOO-001, WD-012, etc.)
-- Count doors and windows per section type
-
-**Plumbing:**
-- System types: "water-supply", "drainage", "sewage", "rainwater", "hot-water", "fire-fighting", "gas-piping", "irrigation"
-- Pipe materials: "PVC-u", "PVC-c", "copper", "PEX", "galvanized-steel", "HDPE", "PPR", "cast-iron", "vitrified-clay"
-- Fixture types: "water-closet", "urinal", "lavatory", "kitchen-sink", "shower", "bathtub", "bidet", "floor-drain", "cleanout", "hose-bib"
-- Quality: "standard", "premium", "luxury"
-
-**Electrical:**
-- System types: "lighting", "power", "data", "security", "cctv", "fire-alarm", "access-control", "av-systems", "emergency-lighting", "renewable-energy"
-- Cable types: "NYM-J", "PVC/PVC", "XLPE", "MICC", "SWA", "Data-CAT6", "Ethernet", "Fiber-Optic", "Coaxial"
-- Outlet types: "power-socket", "light-switch", "dimmer-switch", "data-port", "tv-point", "telephone", "usb-charger", "gpo"
-- Lighting types: "led-downlight", "fluorescent", "halogen", "emergency-light", "floodlight", "street-light", "decorative"
-- Installation methods: "surface", "concealed", "underground", "trunking"
-- Amperes: "6, 10, 13, 16, 20, 25, 32, 40, 45, 63"
-- LIGHTING_WATTAGE = [3, 5, 7, 9, 12, 15, 18, 20, 24, 30, 36, 40, 50, 60];
-- commonOutletRatings = [6, 10, 13, 16, 20, 25, 32, 40, 45, 63];
-
-**Reinforcement:** 
-- ElementTypes =
-  | "slab"
-  | "beam"
-  | "column"
-  | "raft-foundation"
-  | "strip-footing"
-  | "tank";
-- RebarSize =
-  | "R6"
-  | "D6"
-  | "D8"
-  | "D10"
-  | "D12"
-  | "D14"
-  | "D16"
-  | "D18"
-  | "D20"
-  | "D22"
-  | "D25"
-  | "D28"
-  | "D32"
-  | "D36"
-  | "D40"
-  | "D50";
-- ReinforcementType = "individual_bars" | "mesh";
-- FootingType = "isolated" | "strip" | "combined";
-- STANDARD_MESH_SHEETS = [
-    { width: 2.4, length: 4.8 },
-    { width: 2.4, length: 6.0 },
-    { width: 2.4, length: 7.2 },
-    { width: 3.0, length: 6.0 },
-    { width: 3.6, length: 6.0 },
-  ];
-- TankType =
-  | "septic"
-  | "underground"
-  | "overhead"
-  | "water"
-  | "circular";
-- TankWallType = "walls" | "base" | "cover" | "all";
-- RetainingWallType = "cantilever" | "gravity" | "counterfort";
-- Be definite between the reinforcement types, eg either mesh or individual_bars
-- If you find both reinforcement types, create two individual entries for each with the correct type
-
 ${
   hasBBSFile
-    ? `**BAR BENDING SCHEDULE (BBS) EXTRACTION:**
-- If a Bar Bending Schedule file is provided, extract ALL bar bending details:
-- Bar types: D6, D8, D10, D12, D14, D16, D18, D20, D22, D25, D28, D32, D36, D40, D50
-- For each bar type found, identify:
-  - Bar length (in meters, convert from mm if needed)
-  - Total quantity of bars with that length
-  - Estimated weight per meter (if visible or calculable)
-- Group bars by type and length combination
-- Make sure to combine similar bars into single entries with total quantities
-- Set rebar_calculation_method to "bbs"
-- Look out for symbols that will inform you of the type of bar eg, ↀ16 or ∅16 will be D16. This applies to the the bbs and the reinforecement in general
-- Look out for measurements eg; 12mm, 8mm, etc these are the diameters of the needed bars, hence D12, D8, etc.
-- Return complete bar_schedule array with all extracted bars
-- Be precise and thorough, make usre you capture every detail you can find correctly so take the time to check`
+    ? `BAR BENDING SCHEDULE (BBS) EXTRACTION:
+If a Bar Bending Schedule file is provided, extract ALL bar bending details.
+Bar types: D6, D8, D10, D12, D14, D16, D18, D20, D22, D25, D28, D32, D36, D40, D50
+For each bar type found, identify:
+Bar length (in meters, convert from mm if needed)
+Total quantity of bars with that length
+Estimated weight per meter (if visible or calculable)
+Group bars by type and length combination.
+Combine similar bars into single entries with total quantities.
+Set rebar_calculation_method to "bbs".
+Symbols: ↀ16 or ∅16 = D16. Measurements eg; 12mm, 8mm = D12, D8.
+Return complete bar_schedule array with all extracted bars.
+Be precise and thorough.:REBAR CALCULATION METHOD:
+Since no Bar Bending Schedule is provided, set rebar_calculation_method to "NORMAL_REBAR_MODE".
+This indicates that rebar calculations will be based on reinforcement intensity formulas.
+bar_schedule array must be empty [] when using NORMAL_REBAR_MODE method.`
     : `**REBAR CALCULATION METHOD:**
 - Since no Bar Bending Schedule is provided, set rebar_calculation_method to "NORMAL_REBAR_MODE"
 - This indicates that rebar calculations will be based on reinforcement intensity formulas
 - bar_schedule array should be empty [] when using NORMAL_REBAR_MODE method`
 }
+════════════════════════════════════
+FINAL INSTRUCTION
+════════════════════════════════════
+Analyze this construction document and extract ALL available information.
+Return ONLY valid JSON with the structure implied by the fields above.
+Use reasonable estimates if exact dimensions are not visible, but adhere strictly to the Foundation Constraint (Single Concrete Footing System).
+Never guess. Never invent. Never explain.
+Use ALL available views to resolve dimensions.
 
 
-### DETAILED REINFORCEMENT EXTRACTION BY ELEMENT TYPE:
-
-**For Strip Footings and Raft Foundations:**
-- Extract longitudinalBars: Main bars running along the length (string format: "D12" for bar size or "D12@150" for bar size and spacing)
-- Extract transverseBars: Distribution bars across width (string format)
-- Extract topReinforcement: Top layer reinforcement specification
-- Extract bottomReinforcement: Bottom layer reinforcement specification
-- footingType: Must be "strip", "isolated", or "combined"
-- Include mainBarSpacing, distributionBarSpacing in mm (e.g., "150", "200")
-
-**For Retaining Walls:**
-- retainingWallType: MUST be "cantilever", "gravity", or "counterfort"
-- heelLength: Length of heel in meters (e.g., "0.5")
-- toeLength: Length of toe in meters (e.g., "0.5")
-- Stem reinforcement:
-  - stemVerticalBarSize: Vertical bar size (e.g., "D12", "D10")
-  - stemHorizontalBarSize: Horizontal bar size (e.g., "D10", "D8")
-  - stemVerticalSpacing: Vertical bar spacing in mm (e.g., "150")
-  - stemHorizontalSpacing: Horizontal bar spacing in mm (e.g., "200")
-- Base reinforcement (same structure as footings):
-  - baseMainBarSize, baseDistributionBarSize
-  - baseMainSpacing, baseDistributionSpacing
-
-**For Beams:**
-- mainBarsCount: Number of main bars (e.g., "4", "6")
-- distributionBarsCount: Number of distribution/shear reinforcement bars
-- stirrupSpacing: Stirrup spacing in mm (e.g., "100", "150", "200")
-- stirrupSize: Stirrup bar size (e.g., "D8", "D6")
-- mainBarSpacing: Spacing of main bars (if continuous layout)
-
-**For Columns:**
-- mainBarsCount: Number of longitudinal bars (e.g., "4", "6", "8", "12")
-- tieSpacing: Column tie/link spacing in mm (e.g., "150", "200", "250")
-- tieSize: Tie bar size (e.g., "D6", "D8", "D10")
-- mainBarSize: Longitudinal bar size
-- columnHeight: Height of column in meters
-
-**For Slabs:**
-- mainBarSize: Bottom layer main bars
-- distributionBarSize: Bottom layer distribution bars
-- mainBarSpacing: Main bar spacing in mm
-- distributionBarSpacing: Distribution bar spacing in mm
-- slabLayers: Number of reinforcement layers ("1" for single, "2" for double)
-- If slabLayers > 1, also provide top layer reinforcement (use topReinforcement field)
-
-**For Tanks:**
-- All basic fields PLUS tank-specific reinforcement (wall, base, cover separately)
-- Ensure corresponding concrete tank exists
-- Tank reinforcement may include vertical and horizontal directions
-- Be deifinate between the reinforcement types, eg either mesh or individual_bars
-- If you find both reinforecement types, create two individual entries for each with the correct 
-
-**Equipment:**
-- Standard equipment types and their respective id = Bulldozer:15846932-db16-4a28-a477-2e4b2e1e42d5, Concrete Mixer:3203526d-fa51-4878-911b-477b2b909db5, Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b, Water Pump:598ca378-6eb3-451f-89ea-f45aa6ecece8, Crane: d4665c7d-6ace-474d-8282-e888b53e7b48, Compactoreb80f645-6450-4026-b007-064b5f15a72a, Excavator:ef8d17ca-581d-4703-b200-17395bbe1c51
-
-**Roofing:**
-- Roof types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
-- Roof materials: "concrete-tiles", "clay-tiles", "metal-sheets", "box-profile", "thatch", "slate", "asphalt-shingles", "green-roof", "membrane"
-- Timber sizes: "50x25", "50x50", "75x50", "100x50", "100x75", "150x50", "200x50"
-- Underlayment: "felt-30", "felt-40", "synthetic", "rubberized", "breathable"
-- Insulation: "glass-wool", "rock-wool", "eps", "xps", "polyurethane", "reflective-foil"
-- Accessories: Use exact types (e.g., gutterType: "PVC", "Galvanized Steel", etc.)
-- TIMBER_GRADES = [
-  { value: "standard", label: "Standard Grade" },
-  { value: "structural", label: "Structural Grade" },
-  { value: "premium", label: "Premium Grade" },
-];
-
-- TIMBER_TREATMENTS = [
-  { value: "untreated", label: "Untreated" },
-  { value: "pressure-treated", label: "Pressure Treated" },
-  { value: "fire-retardant", label: "Fire Retardant" },
-];
-
-- TIMBER_TYPES = [
-  { value: "rafter", label: "Rafter" },
-  { value: "wall-plate", label: "Wall Plate" },
-  { value: "ridge-board", label: "Ridge Board" },
-  { value: "purlin", label: "Purlin" },
-  { value: "battens", label: "Battens" },
-  { value: "truss", label: "Truss" },
-  { value: "joist", label: "Joist" },
-];
-
-- UNDERLAYMENT_TYPES = [
-  { value: "felt-30", label: "30# Felt Underlayment" },
-  { value: "felt-40", label: "40# Felt Underlayment" },
-  { value: "synthetic", label: "Synthetic Underlayment" },
-  { value: "rubberized", label: "Rubberized Asphalt" },
-  { value: "breathable", label: "Breathable Membrane" },
-];
-
-- INSULATION_TYPES = [
-  { value: "glass-wool", label: "Glass Wool Batts" },
-  { value: "rock-wool", label: "Rock Wool" },
-  { value: "eps", label: "Expanded Polystyrene" },
-  { value: "xps", label: "Extruded Polystyrene" },
-  { value: "polyurethane", label: "Polyurethane Foam" },
-  { value: "reflective-foil", label: "Reflective Foil" },
-];
-
-- GUTTER_TYPES = [
-  { value: "PVC", label: "PVC Gutter" },
-  { value: "Galvanized Steel", label: "Galvanized Steel Gutter" },
-  { value: "Aluminum", label: "Aluminum Gutter" },
-  { value: "Copper", label: "Copper Gutter" },
-];
-
-- DOWNPIPE_TYPES = [
-  { value: "PVC", label: "PVC Downpipe" },
-  { value: "Galvanized Steel", label: "Galvanized Steel Downpipe" },
-  { value: "Aluminum", label: "Aluminum Downpipe" },
-  { value: "Copper", label: "Copper Downpipe" },
-];
-
-- FLASHING_TYPES = [
-  { value: "PVC", label: "PVC Flashing" },
-  { value: "Galvanized Steel", label: "Galvanized Steel Flashing" },
-  { value: "Aluminum", label: "Aluminum Flashing" },
-  { value: "Copper", label: "Copper Flashing" },
-];
-
-- FASCIA_TYPES = [
-  { value: "PVC", label: "PVC Fascia" },
-  { value: "Painted Wood", label: "Painted Wood Fascia" },
-  { value: "Aluminum", label: "Aluminum Fascia" },
-  { value: "Composite", label: "Composite Fascia" },
-];
-
-- SOFFIT_TYPES = [
-  { value: "PVC", label: "PVC Soffit" },
-  { value: "Aluminum", label: "Aluminum Soffit" },
-  { value: "Composite", label: "Composite Soffit" },
-  { value: "Metal", label: "Metal Soffit" },
-];
-
-- ROOF_TYPES: { value: RoofType; label: string }[] = [
-  { value: "flat", label: "Flat Roof" },
-  { value: "pitched", label: "Pitched Roof" },
-  { value: "gable", label: "Gable Roof" },
-  { value: "hip", label: "Hip Roof" },
-  { value: "mansard", label: "Mansard Roof" },
-  { value: "butterfly", label: "Butterfly Roof" },
-  { value: "skillion", label: "Skillion Roof" },
-];
-
-- ROOF_MATERIALS: { value: RoofMaterial; label: string }[] = [
-  { value: "concrete-tiles", label: "Concrete Tiles" },
-  { value: "clay-tiles", label: "Clay Tiles" },
-  { value: "metal-sheets", label: "Metal Sheets" },
-  { value: "box-profile", label: "Box Profile" },
-  { value: "thatch", label: "Thatch" },
-  { value: "slate", label: "Slate" },
-  { value: "asphalt-shingles", label: "Asphalt Shingles" },
-  { value: "green-roof", label: "Green Roof" },
-  { value: "membrane", label: "Membrane" },
-];
-
-- TIMBER_SIZES: { value: TimberSize; label: string }[] = [
-  { value: "50x25", label: "50mm x 25mm" },
-  { value: "50x50", label: "50mm x 50mm" },
-  { value: "75x50", label: "75mm x 50mm" },
-  { value: "100x50", label: "100mm x 50mm" },
-  { value: "100x75", label: "100mm x 75mm" },
-  { value: "150x50", label: "150mm x 50mm" },
-  { value: "200x50", label: "200mm x 50mm" },
-];
-
-
-**Finishes:**
-- Categories: "flooring", "ceiling", "wall-finishes", "joinery", "external"
-- Only use these specified categories: skip glass, blocks, anything to do with masonry or glass etc that are not in this list
-- Organize finishes under finishes_calculations with category keys
-- Each category contains an array of finish items for that category
-- Materials must match common options per category (e.g., flooring: "Ceramic Tiles", "Hardwood", etc.)
-- COMMON_MATERIALS = {
-  flooring: [
-    "Ceramic Tiles",
-    "Porcelain Tiles",
-    "Hardwood",
-    "Laminate",
-    "Vinyl",
-    "Carpet",
-    "Polished Concrete",
-    "Terrazzo",
-    "Cement Floor Screed",
-    "Self-leveling Floor Screed",
-    "Anhydrite Floor Screed",
-    "Resinous Floor Screed",
-  ],
-  ceiling: [
-    "Blundering 40x40mm",
-    "Blundering",
-    "Gypsum Board",
-    "PVC",
-    "Acoustic Tiles",
-    "Exposed Concrete",
-    "Suspended Grid",
-    "Wood Panels",
-  ],
-  "wall-finishes": [
-    "Wallpaper",
-    "Stone Cladding",
-    "Tile Cladding",
-    "Wood Paneling",
-  ],
-  joinery: ["Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"],
-  external: [
-    "PVC Gutter",
-    "Galvanized Steel Gutter",
-    "Aluminum Gutter",
-    "Copper Gutter",
-    "PVC Fascia",
-    "Painted Wood Fascia",
-    "Aluminum Fascia",
-    "Composite Fascia",
-    "PVC Soffit",
-    "Aluminum Soffit",
-    "PVC Downpipe",
-    "Galvanized Steel Downpipe",
-  ],
-};
-
-**Concrete & Structure:**
-- Category = "substructure" | "superstructure";
-- If we have a concrete item, ensure there is a corresponding reinforcement item extracted as well, and vice versa
-- ElementType = "slab"| "beam"| "column"| "septic-tank"| "underground-tank"| "staircase"| "strip-footing"| "raft-foundation"| "pile-cap"|"water-tank"
-  | "ramp"| "retaining-wall"| "culvert"| "swimming-pool"| "paving"| "kerb"| "drainage-channel"| "manhole"| "inspection-chamber"|"soak-pit"| "soakaway";
-
-- FoundationStep {
-  id: string;
-  length: string;
-  width: string;
-  depth: string;
-  offset: string;
-}
-
-- ConnectionDetails {
-  lapLength?: number;
-  developmentLength?: number;
-  hookType?: "standard" | "seismic" | "special";
-  spliceType?: "lap" | "mechanical" | "welded";
-}
-
-- WaterproofingDetails {
-  includesDPC: boolean;
-  dpcWidth?: string;
-  dpcMaterial?: string;
-  includesPolythene: boolean;
-  polytheneGauge?: string;
-  includesWaterproofing: boolean;
-  waterproofingType?: "bituminous" | "crystalline" | "membrane";
-}
-
-- SepticTankDetails {
-  capacity: string;
-  numberOfChambers: number;
-  wallThickness: string;
-  baseThickness: string;
-  coverType: "slab" | "precast" | "none";
-  depth: string;
-  includesBaffles: boolean;
-  includesManhole: boolean;
-  manholeSize?: string;
-}
-
-- UndergroundTankDetails {
-  capacity: string;
-  wallThickness: string;
-  baseThickness: string;
-  coverType: "slab" | "precast" | "none";
-  includesManhole: boolean;
-  manholeSize?: string;
-  waterProofingRequired: boolean;
-}
-
-- SoakPitDetails {
-  diameter: string;
-  depth: string;
-  wallThickness: string;
-  baseThickness: string;
-  liningType: "brick" | "concrete" | "precast";
-  includesGravel: boolean;
-  gravelDepth?: string;
-  includesGeotextile: boolean;
-}
-
-- SoakawayDetails {
-  length: string;
-  width: string;
-  depth: string;
-  wallThickness: string;
-  baseThickness: string;
-  includesGravel: boolean;
-  gravelDepth?: string;
-  includesPerforatedPipes: boolean;
-}
-
-Only use the materials specified above strictly.
-Return ONLY valid JSON with this structure. Use reasonable estimates if exact dimensions aren't visible.
 
 {
   "wallDimensions": {
@@ -1444,28 +970,6 @@ Return ONLY valid JSON with this structure. Use reasonable estimates if exact di
     }
   ],
   "finishes_calculations": {
-    "flooring": [
-      {
-        "id": string,
-        "category": "flooring",
-        "material": string, // from COMMON_MATERIALS["flooring"]
-        "area": number,
-        "quantity": number,
-        "unit": "m²" | "m" | "pcs",
-        "location": string
-      }
-    ],
-    "ceiling": [
-      {
-        "id": string,
-        "category": "ceiling",
-        "material": string, // from COMMON_MATERIALS["ceiling"]
-        "area": number,
-        "quantity": number,
-        "unit": "m²" | "m" | "pcs",
-        "location": string
-      }
-    ],
     "wall-finishes": [
       {
         "id": string,

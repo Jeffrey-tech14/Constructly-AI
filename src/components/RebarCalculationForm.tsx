@@ -22,6 +22,7 @@ import {
   ReinforcementType,
   MESH_PROPERTIES,
   STANDARD_MESH_SHEETS,
+  BRC_ROLLS,
   FootingType,
   TankType,
   RetainingWallType,
@@ -1405,32 +1406,42 @@ export default function RebarCalculatorForm({
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Calculation Mode
-                    </Label>
-                    <Select
-                      value={row.rebarCalculationMode || "DETAILED_REBAR_MODE"}
-                      onValueChange={(v) => {
-                        const mode = v as RebarCalculationMode;
-                        updateRow(row.id, "rebarCalculationMode", mode);
-                        // Auto-fill concrete volume when switching to intensity mode
-                        if (mode === "NORMAL_REBAR_MODE") {
-                          autoFillConcreteVolume(row.id, row.element, row.name);
+                  {row.reinforcementType !== "mesh" && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Calculation Mode
+                      </Label>
+                      <Select
+                        value={
+                          row.rebarCalculationMode || "DETAILED_REBAR_MODE"
                         }
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="DETAILED_REBAR_MODE">
-                          Detailed Bars
-                        </SelectItem>
-                        <SelectItem value="NORMAL_REBAR_MODE">kg/m³</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        onValueChange={(v) => {
+                          const mode = v as RebarCalculationMode;
+                          updateRow(row.id, "rebarCalculationMode", mode);
+                          // Auto-fill concrete volume when switching to intensity mode
+                          if (mode === "NORMAL_REBAR_MODE") {
+                            autoFillConcreteVolume(
+                              row.id,
+                              row.element,
+                              row.name,
+                            );
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="DETAILED_REBAR_MODE">
+                            Detailed Bars
+                          </SelectItem>
+                          <SelectItem value="NORMAL_REBAR_MODE">
+                            kg/m³
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Quantity</Label>
@@ -1656,7 +1667,7 @@ export default function RebarCalculatorForm({
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Steel Grade</Label>
                       <Select
-                        value={row.steelGrade || "mild"}
+                        value={row.steelGrade || "415"}
                         onValueChange={(v) =>
                           updateRow(row.id, "steelGrade", v as SteelGrade)
                         }
@@ -1665,9 +1676,10 @@ export default function RebarCalculatorForm({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="mild">Mild Steel</SelectItem>
-                          <SelectItem value="high-yield">High Yield</SelectItem>
-                          <SelectItem value="special">Special Grade</SelectItem>
+                          <SelectItem value="415">Fe 415</SelectItem>
+                          <SelectItem value="500">Fe 500</SelectItem>
+                          <SelectItem value="550">Fe 550</SelectItem>
+                          <SelectItem value="600">Fe 600</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1695,98 +1707,147 @@ export default function RebarCalculatorForm({
                 {row.rebarCalculationMode === "NORMAL_REBAR_MODE" ? null : (
                   <>
                     {row.reinforcementType === "mesh" && (
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                            Mesh Grade
-                          </Label>
-                          <Select
-                            value={row.meshGrade}
-                            onValueChange={(v) =>
-                              updateRow(row.id, "meshGrade", v)
-                            }
-                          >
-                            <SelectTrigger className="border-indigo-300">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {meshGrades.map((grade) => (
-                                <SelectItem key={grade} value={grade}>
-                                  {grade} (
-                                  {MESH_PROPERTIES[grade]?.weightPerSqm} kg/m²)
+                      <div className="space-y-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
+                        {/* First Row: Mesh Grade and BRC Type */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                              Mesh Grade
+                            </Label>
+                            <Select
+                              value={row.meshGrade}
+                              onValueChange={(v) =>
+                                updateRow(row.id, "meshGrade", v)
+                              }
+                            >
+                              <SelectTrigger className="border-indigo-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {meshGrades.map((grade) => (
+                                  <SelectItem key={grade} value={grade}>
+                                    {grade} (
+                                    {MESH_PROPERTIES[grade]?.weightPerSqm}{" "}
+                                    kg/m²)
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                              BRC Product Type
+                            </Label>
+                            <Select
+                              value={row.brcProductType || "roll"}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "brcProductType",
+                                  v as "sheet" | "roll",
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-indigo-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sheet">Sheet</SelectItem>
+                                <SelectItem value="roll">Roll</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Second Row: Product-specific selector (Sheet Size or Roll Type) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {(row.brcProductType || "roll") === "roll" ? (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                                Roll Type
+                              </Label>
+                              <Select
+                                value={row.brcRollType || "2.1x48"}
+                                onValueChange={(v) =>
+                                  updateRow(
+                                    row.id,
+                                    "brcRollType",
+                                    v as "2.1x48" | "2.4x48",
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="border-indigo-300">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {BRC_ROLLS.map((roll) => (
+                                    <SelectItem
+                                      key={roll.name}
+                                      value={
+                                        `${roll.width}x${roll.length}` as
+                                          | "2.1x48"
+                                          | "2.4x48"
+                                      }
+                                    >
+                                      {roll.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                                Sheet Size
+                              </Label>
+                              <Select
+                                value={getCurrentMeshSheetValue(row)}
+                                onValueChange={(v) =>
+                                  handleMeshSheetChange(row.id, v)
+                                }
+                              >
+                                <SelectTrigger className="border-indigo-300">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {meshSheetOptions.map((sheet, index) => (
+                                    <SelectItem key={index} value={sheet}>
+                                      {sheet}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
+                              Dimension Mode
+                            </Label>
+                            <Select
+                              value={row.areaSelectionMode || "LENGTH_WIDTH"}
+                              onValueChange={(v) =>
+                                updateRow(
+                                  row.id,
+                                  "areaSelectionMode",
+                                  v as "LENGTH_WIDTH" | "DIRECT_AREA",
+                                )
+                              }
+                            >
+                              <SelectTrigger className="border-indigo-300">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="LENGTH_WIDTH">
+                                  Length × Width
                                 </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                            Sheet Size
-                          </Label>
-                          <Select
-                            value={getCurrentMeshSheetValue(row)}
-                            onValueChange={(v) =>
-                              handleMeshSheetChange(row.id, v)
-                            }
-                          >
-                            <SelectTrigger className="border-indigo-300">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {meshSheetOptions.map((sheet, index) => (
-                                <SelectItem key={index} value={sheet}>
-                                  {sheet}
+                                <SelectItem value="DIRECT_AREA">
+                                  Direct Area
                                 </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                            Lap Length (m)
-                          </Label>
-                          <Input
-                            type="number"
-                            step="0.05"
-                            min="0.1"
-                            max="0.5"
-                            value={row.meshLapLength}
-                            onChange={(e) =>
-                              updateRow(row.id, "meshLapLength", e.target.value)
-                            }
-                            className="border-indigo-300"
-                            placeholder="0.3"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-50">
-                            Dimension Mode
-                          </Label>
-                          <Select
-                            value={row.areaSelectionMode || "LENGTH_WIDTH"}
-                            onValueChange={(v) =>
-                              updateRow(
-                                row.id,
-                                "areaSelectionMode",
-                                v as "LENGTH_WIDTH" | "DIRECT_AREA",
-                              )
-                            }
-                          >
-                            <SelectTrigger className="border-indigo-300">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="LENGTH_WIDTH">
-                                Length × Width
-                              </SelectItem>
-                              <SelectItem value="DIRECT_AREA">
-                                Direct Area
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
                     )}

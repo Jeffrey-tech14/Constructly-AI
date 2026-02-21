@@ -172,7 +172,7 @@ export type RebarCalculationMode =
   | "BBS_MODE";
 
 // Steel grade for intensity-based calculations (affects pricing)
-export type SteelGrade = "mild" | "high-yield" | "special";
+export type SteelGrade = "415" | "500" | "550" | "600";
 
 // Area selection mode - choose between providing area directly or calculating from length x width
 export type AreaSelectionMode = "LENGTH_WIDTH" | "DIRECT_AREA";
@@ -431,6 +431,12 @@ export const STANDARD_MESH_SHEETS = [
   { width: 3.6, length: 6.0 },
 ];
 
+// BRC Roll definitions
+export const BRC_ROLLS = [
+  { width: 2.1, length: 48, name: "2.1m × 48m" },
+  { width: 2.4, length: 48, name: "2.4m × 48m" },
+];
+
 export interface CodeComplianceLimits {
   minSlabReinforcement: number;
   maxSlabReinforcement: number;
@@ -503,6 +509,9 @@ export interface MeshReinforcementResult {
   lapArea: number;
   netArea: number;
   wastePercentage: number;
+  productType: "sheet" | "roll"; // Whether this is a sheet or roll calculation
+  rollType?: "2.1x48" | "2.4x48"; // Roll type if productType is "roll"
+  productArea?: number; // Area of a single sheet or roll (width × length)
 }
 
 export interface RebarQSSettings {
@@ -574,6 +583,9 @@ export interface CalcInput {
   meshSheetWidth?: string;
   meshSheetLength?: string;
   meshLapLength?: string;
+  // BRC Product Type Selection
+  brcProductType?: "sheet" | "roll"; // "sheet" for standard sheets, "roll" for BRC rolls
+  brcRollType?: "2.1x48" | "2.4x48"; // Roll size when using rolls (default: "2.1x48")
   footingType?: FootingType;
   longitudinalBars?: string;
   transverseBars?: string;
@@ -2120,6 +2132,9 @@ function createEmptyMeshResult(
       lapArea: 0,
       netArea: 0,
       wastePercentage: 0,
+      productType: (input.brcProductType || "sheet") as "sheet" | "roll",
+      rollType: (input.brcRollType || "2.1x48") as "2.1x48" | "2.4x48",
+      productArea: 0,
     },
     meshPricePerSqm: meshPrices[input.meshGrade || "A142"] || 0,
     meshTotalPrice: 0,
@@ -2200,40 +2215,63 @@ function calculateStripFootingReinforcement(
 }
 
 function calculateMeshReinforcement(
-  slabLength: number,
-  slabWidth: number,
+  area: number,
   meshGrade: string,
-  sheetWidth: number,
-  sheetLength: number,
-  lapLength: number,
-  wastagePercent: number,
+  productType: "sheet" | "roll" = "sheet",
+  productWidth: number = 2.4,
+  productLength: number = 4.8,
+  rollType?: "2.1x48" | "2.4x48",
+  wastagePercent: number = 5,
 ): MeshReinforcementResult {
+  // Get mesh properties for weight calculation
   const meshProps = MESH_PROPERTIES[meshGrade] || MESH_PROPERTIES["A142"];
 
-  // Calculate number of sheets required
-  const sheetsInLength = Math.ceil(slabLength / (sheetLength - lapLength));
-  const sheetsInWidth = Math.ceil(slabWidth / (sheetWidth - lapLength));
-  const totalSheets = sheetsInLength * sheetsInWidth;
+  // Calculate product dimensions based on type
+  let width = productWidth;
+  let length = productLength;
+
+  if (productType === "roll") {
+    if (rollType === "2.1x48") {
+      width = 2.1;
+      length = 48;
+    } else if (rollType === "2.4x48") {
+      width = 2.4;
+      length = 48;
+    } else {
+      // Default to 2.1x48
+      width = 2.1;
+      length = 48;
+    }
+  }
+
+  // Calculate product area (single sheet or roll)
+  const productArea = width * length;
+
+  // Calculate number of products needed based on total area
+  // Using Math.ceil to round up to ensure full coverage
+  const totalProducts = Math.ceil(area / productArea);
 
   // Calculate areas
-  const sheetArea = sheetWidth * sheetLength;
-  const totalArea = totalSheets * sheetArea;
-  const lapArea =
-    (sheetsInLength - 1) * slabWidth * lapLength +
-    (sheetsInWidth - 1) * slabLength * lapLength;
-  const netArea = slabLength * slabWidth;
+  const totalArea = totalProducts * productArea;
+  const netArea = area;
 
-  // Calculate weight
+  // Calculate weight based on net area (actual coverage area)
   const netWeight = netArea * meshProps.weightPerSqm;
   const totalWeight = withWaste(netWeight, wastagePercent);
 
+  // Calculate lap area (overlap wastage)
+  const lapArea = totalArea - netArea;
+
   return {
-    totalSheets,
+    totalSheets: totalProducts, // Using name "totalSheets" for compatibility
     totalArea,
     totalWeight: Math.round(totalWeight),
     lapArea,
     netArea,
     wastePercentage: wastagePercent,
+    productType,
+    rollType: productType === "roll" ? rollType : undefined,
+    productArea,
   };
 }
 
@@ -2320,14 +2358,21 @@ function calculateMeshRebar(
     return createEmptyMeshResult(input, meshPrices, errorMsg);
   }
 
-  // Calculate mesh reinforcement
+  // Calculate area
+  const area = effectiveL * effectiveW;
+
+  // Determine BRC product type and roll type
+  const brcProductType = input.brcProductType || "sheet";
+  const brcRollType = input.brcRollType || "2.1x48";
+
+  // Calculate mesh reinforcement using area-based calculation
   const meshResult = calculateMeshReinforcement(
-    effectiveL,
-    effectiveW,
+    area,
     meshGrade,
+    brcProductType as "sheet" | "roll",
     sheetWidth,
     sheetLength,
-    lapLength,
+    brcRollType as "2.1x48" | "2.4x48",
     settings.meshWastagePercent,
   );
 
@@ -2405,7 +2450,7 @@ function calculateIntensityRebar(
     number = "1",
     steelIntensityKgPerM3,
     concreteVolumeM3,
-    steelGrade = "mild",
+    steelGrade = "415",
   } = input;
 
   // Validate intensity mode inputs
@@ -3410,7 +3455,7 @@ export const defaultRebarQSSettings: RebarQSSettings = {
   optimizeCutting: true,
   allowMultipleStandardLengths: true,
   // Mesh settings
-  meshWastagePercent: 5,
+  meshWastagePercent: 10,
   standardMeshLap: 0.3,
 };
 

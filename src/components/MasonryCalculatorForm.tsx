@@ -170,6 +170,22 @@ export default function MasonryCalculatorForm({
               </div>
             </>
           )}
+          {results.hoopIronLength > 0 && (
+            <>
+              <div>
+                <span className="font-medium">Hoop Iron:</span>{" "}
+                {results.hoopIronLength?.toFixed(1) || 0} m (
+                {results.hoopIronCoils || 0}{" "}
+                {quote?.hoopIronRollWeight || "20kg"} rolls)
+              </div>
+              {quote?.hoop_iron?.results?.totalCost > 0 && (
+                <div>
+                  <span className="font-medium">Hoop Iron Cost:</span> Ksh{" "}
+                  {quote?.hoop_iron?.results?.totalCost?.toLocaleString() || 0}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -283,9 +299,58 @@ export default function MasonryCalculatorForm({
             </Card>
           )}
 
+        {/* Hoop Iron Breakdown */}
+        {results.hoopIronLength > 0 && (
+          <Card className="border">
+            <div className="p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 border-b rounded-t-lg">
+              <h4 className=" text-red-900 dark:text-red-100">
+                Hoop Iron Breakdown
+              </h4>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2"> 
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Total Length (m):
+                  </span>
+                  <span className="font-medium">
+                    {quote?.hoop_iron?.results?.length?.toFixed(2) || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Roll Weight:
+                  </span>
+                  <span className="font-medium">
+                    {quote?.hoop_iron?.input?.rollWeight || "20kg"}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Number of Rolls:
+                  </span>
+                  <span className="font-medium">
+                    {quote?.hoop_iron?.results?.coils || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Total Cost (Ksh):
+                  </span>
+                  <span className="font-medium">
+                    {quote?.hoop_iron?.results?.totalCost?.toLocaleString() ||
+                      0}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Doors & Windows Breakdown */}
-        {(results.netDoorsCost > 0 ||
-          results.netWindowsCost > 0) && (
+        {(results.netDoorsCost > 0 || results.netWindowsCost > 0) && (
           <Card className="border">
             <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-b rounded-t-lg">
               <h4 className=" text-green-900 dark:text-green-100">
@@ -301,8 +366,8 @@ export default function MasonryCalculatorForm({
                         Door Leaves (pcs):
                       </span>
                       <span className="font-medium">
-                        {results.netDoors || 0} net →{" "}
-                        {results.grossDoors || 0} gross
+                        {results.netDoors || 0} net → {results.grossDoors || 0}{" "}
+                        gross
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -332,8 +397,8 @@ export default function MasonryCalculatorForm({
                         Door Frames Cost:
                       </span>
                       <span className="font-medium">
-                        Ksh {results.netDoorFramesCost?.toLocaleString() || 0}{" "}
-                        → {results.grossDoorFramesCost?.toLocaleString() || 0}
+                        Ksh {results.netDoorFramesCost?.toLocaleString() || 0} →{" "}
+                        {results.grossDoorFramesCost?.toLocaleString() || 0}
                       </span>
                     </div>
                   </>
@@ -355,8 +420,9 @@ export default function MasonryCalculatorForm({
                       Door Quarter Round Cost:
                     </span>
                     <span className="font-medium">
-                      Ksh {results.netDoorQuarterRoundCost?.toLocaleString() || 0}{" "}
-                      → {results.grossDoorQuarterRoundCost?.toLocaleString() || 0}
+                      Ksh{" "}
+                      {results.netDoorQuarterRoundCost?.toLocaleString() || 0} →{" "}
+                      {results.grossDoorQuarterRoundCost?.toLocaleString() || 0}
                     </span>
                   </div>
                 )}
@@ -366,8 +432,8 @@ export default function MasonryCalculatorForm({
                       Door Ironmongery Cost:
                     </span>
                     <span className="font-medium">
-                      Ksh {results.netDoorIronmongCost?.toLocaleString() || 0}{" "}
-                      → {results.grossDoorIronmongCost?.toLocaleString() || 0}
+                      Ksh {results.netDoorIronmongCost?.toLocaleString() || 0} →{" "}
+                      {results.grossDoorIronmongCost?.toLocaleString() || 0}
                     </span>
                   </div>
                 )}
@@ -377,8 +443,8 @@ export default function MasonryCalculatorForm({
                       Door Transom Cost:
                     </span>
                     <span className="font-medium">
-                      Ksh {results.netDoorTransomCost?.toLocaleString() || 0}{" "}
-                      → {results.grossDoorTransomCost?.toLocaleString() || 0}
+                      Ksh {results.netDoorTransomCost?.toLocaleString() || 0} →{" "}
+                      {results.grossDoorTransomCost?.toLocaleString() || 0}
                     </span>
                   </div>
                 )}
@@ -491,6 +557,33 @@ export default function MasonryCalculatorForm({
         <Label htmlFor="include-dpc" className="cursor-pointer font-medium">
           Include DPC (Damp Proof Course) in calculations
         </Label>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 m-2">
+        <div>
+          <Label htmlFor="hoop-iron-roll">Hoop Iron Roll Weight</Label>
+          <Select
+            value={quote.hoopIronRollWeight || "20kg"}
+            onValueChange={(value) => {
+              setQuote((prev) => ({
+                ...prev,
+                hoopIronRollWeight: value,
+              }));
+              calculateMasonry();
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="20kg">20kg Roll (65m per roll)</SelectItem>
+              <SelectItem value="25kg">25kg Roll (80m per roll)</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-gray-500 mt-1">
+            Select hoop iron roll weight for calculations
+          </p>
+        </div>
       </div>
 
       {qsSettings.clientProvidesWater ? (
@@ -632,7 +725,7 @@ export default function MasonryCalculatorForm({
                   }
                   onValueChange={(value) => {
                     const selectedBlockType = blockTypes.find(
-                      (b) => b.name === value
+                      (b) => b.name === value,
                     );
                     setQuote((prev) => ({
                       ...prev,
@@ -641,9 +734,11 @@ export default function MasonryCalculatorForm({
                           ? {
                               ...section,
                               blockType: value,
-                              thickness: selectedBlockType?.size?.thickness || section.thickness,
+                              thickness:
+                                selectedBlockType?.size?.thickness ||
+                                section.thickness,
                             }
-                          : section
+                          : section,
                       ),
                     }));
                     calculateMasonry();
@@ -670,7 +765,7 @@ export default function MasonryCalculatorForm({
                   }
                   onValueChange={(value) => {
                     const selectedBlockType = blockTypes.find(
-                      (b) => b.name === value
+                      (b) => b.name === value,
                     );
                     setQuote((prev) => ({
                       ...prev,
@@ -679,9 +774,11 @@ export default function MasonryCalculatorForm({
                           ? {
                               ...section,
                               blockType: value,
-                              thickness: selectedBlockType?.size?.thickness || section.thickness,
+                              thickness:
+                                selectedBlockType?.size?.thickness ||
+                                section.thickness,
                             }
-                          : section
+                          : section,
                       ),
                     }));
                     calculateMasonry();

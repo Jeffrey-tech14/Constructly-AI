@@ -171,7 +171,7 @@ export const useDynamicPricing = () => {
     materialId: string,
     region: string,
     newData: any,
-    index?: number | string
+    index?: number | string,
   ) => {
     if (!user) return { error: "User not authenticated" };
     try {
@@ -193,6 +193,9 @@ export const useDynamicPricing = () => {
       } else {
         updatedType = JSON.parse(JSON.stringify(updatedType));
       }
+
+      const indexStr = String(index || "");
+
       if (Array.isArray(updatedType)) {
         if (materialName === "Rebar" && typeof index === "number") {
           updatedType[index] = {
@@ -216,16 +219,56 @@ export const useDynamicPricing = () => {
         ) {
           const [arrIdx, size] = index.split("-");
           const idxNum = parseInt(arrIdx, 10);
-          updatedType[idxNum] = {
-            ...updatedType[idxNum],
-            price_kes: {
-              ...updatedType[idxNum].price_kes,
-              [size]: newData,
-            },
+          if (!updatedType[idxNum]) {
+            updatedType[idxNum] = {};
+          }
+          if (!updatedType[idxNum].price_kes) {
+            updatedType[idxNum].price_kes = {};
+          }
+          updatedType[idxNum].price_kes[size] = newData;
+        } else if (
+          materialName === "Hoop Iron" &&
+          indexStr.startsWith("hoop-iron-")
+        ) {
+          // Hoop Iron: hoop-iron-idx
+          const idx = parseInt(indexStr.replace("hoop-iron-", ""), 10);
+          updatedType[idx] = {
+            ...updatedType[idx],
+            price_kes: newData,
           };
+        } else if (materialName === "Roof-Covering") {
+          // Roof-Covering: roof-timber-roofIdx-timberIdx | roof-sheet-roofIdx-sheetIdx-size | roof-finish-roofIdx-catIdx-typeIdx | roof-accessory-roofIdx-accIdx | roof-roofIdx
+          if (indexStr.startsWith("roof-timber-")) {
+            const [, roofIdx, timberIdx] = indexStr.split("-");
+            const rIdx = parseInt(roofIdx, 10);
+            const tIdx = parseInt(timberIdx, 10);
+            updatedType[rIdx].structuralTimber[tIdx].price_kes = newData;
+          } else if (indexStr.startsWith("roof-sheet-")) {
+            const parts = indexStr.split("-");
+            const rIdx = parseInt(parts[2], 10);
+            const sIdx = parseInt(parts[3], 10);
+            const size = parts.slice(4).join("-");
+            updatedType[rIdx].roofingSheets[sIdx].sizes[size].price_kes =
+              newData;
+          } else if (indexStr.startsWith("roof-finish-")) {
+            const [, , roofIdx, catIdx, typeIdx] = indexStr.split("-");
+            const rIdx = parseInt(roofIdx, 10);
+            const cIdx = parseInt(catIdx, 10);
+            const tIdx = parseInt(typeIdx, 10);
+            updatedType[rIdx].roofingFinishing[cIdx].types[tIdx].price_kes =
+              newData;
+          } else if (indexStr.startsWith("roof-accessory-")) {
+            const [, , roofIdx, accIdx] = indexStr.split("-");
+            const rIdx = parseInt(roofIdx, 10);
+            const aIdx = parseInt(accIdx, 10);
+            updatedType[rIdx].accessories.items[aIdx].price_kes = newData;
+          } else if (indexStr.startsWith("roof-")) {
+            const roofIdx = parseInt(indexStr.replace("roof-", ""), 10);
+            updatedType[roofIdx].price = newData;
+          }
         }
       } else if (typeof updatedType === "object" && updatedType !== null) {
-        // Handle object type materials like DPC, Waterproof, and Polythene
+        // Handle object type materials
         if (
           materialName === "DPC" ||
           materialName === "Waterproof" ||
@@ -235,8 +278,187 @@ export const useDynamicPricing = () => {
             ...updatedType,
             [index]: newData,
           };
+        } else if (materialName === "Ceiling") {
+          // Ceiling: ceiling-materialKey
+          if (indexStr.startsWith("ceiling-")) {
+            const materialKey = indexStr.replace("ceiling-", "");
+            const materials = updatedType.materials || updatedType;
+            materials[materialKey].price = newData;
+          }
+        } else if (materialName === "Countertops") {
+          // Countertops: countertop-materialKey
+          if (indexStr.startsWith("countertop-")) {
+            const materialKey = indexStr.replace("countertop-", "");
+            const materials = updatedType.materials || updatedType;
+            materials[materialKey].price = newData;
+          }
+        } else if (materialName === "Joinery") {
+          // Joinery: joinery-materialKey
+          if (indexStr.startsWith("joinery-")) {
+            const materialKey = indexStr.replace("joinery-", "");
+            const materials = updatedType.materials || updatedType;
+            materials[materialKey] = newData;
+          }
+        } else if (materialName === "Paint") {
+          // Paint: paint-materialKey
+          if (indexStr.startsWith("paint-")) {
+            const materialKey = indexStr.replace("paint-", "");
+            const materials = updatedType.materials || updatedType;
+            materials[materialKey] = newData;
+          }
+        } else if (materialName === "Glazing") {
+          // Glazing: glazing-materialKey
+          if (indexStr.startsWith("glazing-")) {
+            const materialKey = indexStr.replace("glazing-", "");
+            const materials = updatedType.materials || updatedType;
+            materials[materialKey] = newData;
+          }
+        } else if (materialName === "Flooring") {
+          // Flooring: flooring-{category}-{matIdx}-{typeIdx}-{tileSize} or flooring-{category}-{matIdx}-{typeIdx}
+          if (indexStr.startsWith("flooring-")) {
+            const parts = indexStr.replace("flooring-", "").split("-");
+            const category = parts[0];
+            const matIdx = parseInt(parts[1], 10);
+            const typeIdx = parseInt(parts[2], 10);
+            const tileSize = parts[3];
+
+            if (tileSize) {
+              // Tile size price
+              updatedType[category][matIdx].type[typeIdx].tileTypes[tileSize] =
+                newData;
+            } else {
+              // Simple price
+              updatedType[category][matIdx].type[typeIdx].price_kes = newData;
+            }
+          }
+        } else if (materialName === "Wall-Finishes") {
+          // Wall-Finishes: wallfinish-{category}-{matIdx}-{typeIdx}-{tileSize} or wallfinish-{category}-{matIdx}-{typeIdx}
+          if (indexStr.startsWith("wallfinish-")) {
+            try {
+              const parts = indexStr.replace("wallfinish-", "").split("-");
+              const category = parts[0];
+              const matIdx = parseInt(parts[1], 10);
+              const typeIdx = parseInt(parts[2], 10);
+              const tileSize = parts[3];
+
+              if (!updatedType[category]) {
+                console.error(`Category ${category} not found in updatedType`);
+                return { error: `Category ${category} not found` };
+              }
+
+              if (tileSize) {
+                // Tile size price
+                if (!updatedType[category][matIdx].type[typeIdx].tileTypes) {
+                  updatedType[category][matIdx].type[typeIdx].tileTypes = {};
+                }
+                updatedType[category][matIdx].type[typeIdx].tileTypes[
+                  tileSize
+                ] = newData;
+              } else {
+                // Simple price
+                updatedType[category][matIdx].type[typeIdx].price_kes = newData;
+              }
+            } catch (err) {
+              console.error("Error parsing Wall-Finishes index:", err);
+              return { error: "Invalid index format for Wall-Finishes" };
+            }
+          }
+        } else if (materialName === "Fixtures") {
+          // Fixtures: {idx}-{quality}
+          const dashIndex = indexStr.indexOf("-");
+          if (dashIndex !== -1) {
+            const idx = parseInt(indexStr.substring(0, dashIndex), 10);
+            const quality = indexStr.substring(dashIndex + 1);
+            if (!updatedType[idx]) updatedType[idx] = {};
+            if (!updatedType[idx].price_kes_per_item)
+              updatedType[idx].price_kes_per_item = {};
+            updatedType[idx].price_kes_per_item[quality] = newData;
+          }
+        } else if (materialName === "Fasteners") {
+          // Fasteners: {category}-{idx}
+          const dashIndex = indexStr.lastIndexOf("-");
+          if (dashIndex !== -1) {
+            const category = indexStr.substring(0, dashIndex);
+            const idx = parseInt(indexStr.substring(dashIndex + 1), 10);
+            if (!updatedType[category]) updatedType[category] = [];
+            if (!updatedType[category][idx]) updatedType[category][idx] = {};
+            updatedType[category][idx].price = newData;
+          }
+        } else if (materialName === "BRC Mesh") {
+          // BRC Mesh: {idx}
+          const idx = parseInt(indexStr, 10);
+          updatedType[idx] = {
+            ...updatedType[idx],
+            price_kes_per_sqm: newData,
+          };
+        } else if (materialName === "Pipes") {
+          // Pipes: {idx}-{diameter}
+          const dashIndex = indexStr.indexOf("-");
+          if (dashIndex !== -1) {
+            const idx = parseInt(indexStr.substring(0, dashIndex), 10);
+            const diameter = indexStr.substring(dashIndex + 1);
+            if (!updatedType[idx]) updatedType[idx] = {};
+            if (!updatedType[idx].price_kes_per_meter)
+              updatedType[idx].price_kes_per_meter = {};
+            updatedType[idx].price_kes_per_meter[diameter] = newData;
+          }
+        } else if (materialName === "Cable") {
+          // Cable: {idx}-{size}
+          const dashIndex = indexStr.indexOf("-");
+          if (dashIndex !== -1) {
+            const idx = parseInt(indexStr.substring(0, dashIndex), 10);
+            const size = indexStr.substring(dashIndex + 1);
+            if (!updatedType[idx]) updatedType[idx] = {};
+            if (!updatedType[idx].price_kes_per_meter)
+              updatedType[idx].price_kes_per_meter = {};
+            updatedType[idx].price_kes_per_meter[size] = newData;
+          }
+        } else if (materialName === "Lighting") {
+          // Lighting: {idx}-{spec}
+          const dashIndex = indexStr.indexOf("-");
+          if (dashIndex !== -1) {
+            const idx = parseInt(indexStr.substring(0, dashIndex), 10);
+            const spec = indexStr.substring(dashIndex + 1);
+            if (!updatedType[idx]) updatedType[idx] = {};
+            if (!updatedType[idx].price_kes_per_unit)
+              updatedType[idx].price_kes_per_unit = {};
+            updatedType[idx].price_kes_per_unit[spec] = newData;
+          }
+        } else if (materialName === "Outlets") {
+          // Outlets: {idx}-{rating}
+          const dashIndex = indexStr.indexOf("-");
+          if (dashIndex !== -1) {
+            const idx = parseInt(indexStr.substring(0, dashIndex), 10);
+            const rating = indexStr.substring(dashIndex + 1);
+            if (!updatedType[idx]) updatedType[idx] = {};
+            if (!updatedType[idx].price_kes_per_unit)
+              updatedType[idx].price_kes_per_unit = {};
+            updatedType[idx].price_kes_per_unit[rating] = newData;
+          }
+        } else if (
+          materialName === "Timber" ||
+          materialName === "Insulation" ||
+          materialName === "UnderLayment"
+        ) {
+          // Timber/Insulation/UnderLayment: {idx}
+          const idx = parseInt(indexStr, 10);
+          updatedType[idx] = {
+            ...updatedType[idx],
+            price: newData,
+          };
+        } else if (materialName === "Accesories") {
+          // Accessories: {category}-{idx}
+          const dashIndex = indexStr.lastIndexOf("-");
+          if (dashIndex !== -1) {
+            const category = indexStr.substring(0, dashIndex);
+            const idx = parseInt(indexStr.substring(dashIndex + 1), 10);
+            if (!updatedType[category]) updatedType[category] = [];
+            if (!updatedType[category][idx]) updatedType[category][idx] = {};
+            updatedType[category][idx].price = newData;
+          }
         }
       }
+
       const { error } = await supabase.from("user_material_prices").upsert(
         {
           material_id: materialId,
@@ -248,7 +470,7 @@ export const useDynamicPricing = () => {
         },
         {
           onConflict: "user_id, material_id, region",
-        }
+        },
       );
       if (!error) {
         await fetchUserOverrides();
@@ -262,7 +484,7 @@ export const useDynamicPricing = () => {
   const updateLaborRate = async (
     laborTypeId: string,
     customRate: number,
-    region: string
+    region: string,
   ) => {
     if (!user) return { error: "User not authenticated" };
     try {
@@ -285,7 +507,7 @@ export const useDynamicPricing = () => {
   const updateServicePrice = async (
     serviceId: string,
     customPrice: number,
-    region: string
+    region: string,
   ) => {
     if (!user) return { error: "User not authenticated" };
     try {
@@ -308,7 +530,7 @@ export const useDynamicPricing = () => {
   const updateEquipmentRate = async (
     equipmentId: string,
     customRate: number,
-    region: string
+    region: string,
   ) => {
     if (!user) return { error: "User not authenticated" };
     try {
@@ -332,7 +554,7 @@ export const useDynamicPricing = () => {
     materialId: string,
     materialName: string,
     customPrice: number,
-    region: string
+    region: string,
   ) => {
     if (!user) return { error: "User not authenticated" };
     try {
@@ -347,7 +569,7 @@ export const useDynamicPricing = () => {
         },
         {
           onConflict: "user_id, material_id,region",
-        }
+        },
       );
       if (!error) {
         await fetchUserOverrides();
@@ -366,7 +588,7 @@ export const useDynamicPricing = () => {
     regionalMultipliers: {
       region: string;
       multiplier: number;
-    }[]
+    }[],
   ) => {
     const baseMaterial = materialBasePrices.find((m) => m.id === materialId);
     if (!baseMaterial) return null;
@@ -390,7 +612,7 @@ export const useDynamicPricing = () => {
             Object.entries(updated.price_kes).map(([size, price]) => [
               size,
               (price as number) * multiplier,
-            ])
+            ]),
           );
         }
         return updated;
@@ -402,10 +624,10 @@ export const useDynamicPricing = () => {
   };
   const getEffectiveMaterialPriceSingle = (
     materialId: string,
-    region: string
+    region: string,
   ) => {
     const userOverride = userMaterialPrices.find(
-      (p) => p.material_id === materialId && p.region === region
+      (p) => p.material_id === materialId && p.region === region,
     );
     if (userOverride) {
       return userOverride.price;

@@ -93,10 +93,10 @@ const Variables = () => {
   });
   const [editingMaterial, setEditingMaterial] = useState<string | null>(null);
   const [materialInputMode, setMaterialInputMode] = useState<"simple" | "json">(
-    "simple"
+    "simple",
   );
   const [materialJsonInput, setMaterialJsonInput] = useState(
-    '[\n  {\n    "material_name": "Custom Tile",\n    "price_per_unit": 2500,\n    "unit": "sq m",\n    "category": "Flooring",\n    "type": {\n      "thickness_mm": 10,\n      "color": "white",\n      "finish": "glossy",\n      "origin": "Italy"\n    }\n  }\n]'
+    '[\n  {\n    "material_name": "Custom Tile",\n    "price_per_unit": 2500,\n    "unit": "sq m",\n    "category": "Flooring",\n    "type": {\n      "thickness_mm": 10,\n      "color": "white",\n      "finish": "glossy",\n      "origin": "Italy"\n    }\n  }\n]',
   );
   const fetchRates = async () => {
     setLoading(true);
@@ -114,8 +114,8 @@ const Variables = () => {
       const rate = userRate
         ? Number(userRate.price)
         : service.price != null
-        ? Number(service.price)
-        : 0;
+          ? Number(service.price)
+          : 0;
       return {
         ...service,
         price: rate,
@@ -197,10 +197,10 @@ const Variables = () => {
     ];
     const merged = allRegions.map((region) => {
       const base = baseRates.find(
-        (r) => r.region.toLowerCase() === region.toLowerCase()
+        (r) => r.region.toLowerCase() === region.toLowerCase(),
       );
       const userRate = overrides?.find(
-        (o) => o.region.toLowerCase() === region.toLowerCase()
+        (o) => o.region.toLowerCase() === region.toLowerCase(),
       );
       return {
         id: profile.id,
@@ -217,7 +217,7 @@ const Variables = () => {
     equipmentTypeId: string,
     rate: number,
     quantity: number,
-    unit: string
+    unit: string,
   ) => {
     setLoading(true);
     try {
@@ -261,7 +261,7 @@ const Variables = () => {
         newEquipment.dailyRate,
         newEquipment.hourlyRate,
         newEquipment.description,
-        newEquipment.unit
+        newEquipment.unit,
       );
       if (error) throw new Error(error);
       toast({
@@ -290,7 +290,7 @@ const Variables = () => {
 
   const handleUpdateCustomEquipment = async (
     equipmentId: string,
-    equipment: any
+    equipment: any,
   ) => {
     setLoading(true);
     try {
@@ -299,7 +299,7 @@ const Variables = () => {
         equipment.equipment_name,
         equipment.daily_rate,
         equipment.hourly_rate,
-        equipment.description
+        equipment.description,
       );
       if (error) throw new Error(error);
       toast({
@@ -362,7 +362,7 @@ const Variables = () => {
           newMaterial.description || undefined,
           Object.keys(newMaterial.type).length > 0
             ? newMaterial.type
-            : undefined
+            : undefined,
         );
         if (error) throw new Error(error);
         toast({
@@ -379,7 +379,7 @@ const Variables = () => {
           newMaterial.description || undefined,
           Object.keys(newMaterial.type).length > 0
             ? newMaterial.type
-            : undefined
+            : undefined,
         );
         if (error) throw new Error(error);
         toast({
@@ -454,7 +454,7 @@ const Variables = () => {
           material.unit || "unit",
           material.category || undefined,
           material.description || undefined,
-          material.type || undefined
+          material.type || undefined,
         );
         if (error) {
           errorCount++;
@@ -498,7 +498,7 @@ const Variables = () => {
     id: string,
     name: string,
     value: any,
-    index?: number
+    index?: number,
   ) => {
     setLoading(true);
     try {
@@ -513,7 +513,7 @@ const Variables = () => {
             id,
             userRegion,
             value,
-            index
+            index,
           );
           break;
         case "service":
@@ -530,13 +530,13 @@ const Variables = () => {
             await updateTransportRate(
               region,
               value,
-              currentRate?.base_cost || 500
+              currentRate?.base_cost || 500,
             );
           } else {
             await updateTransportRate(
               region,
               currentRate?.cost_per_km || 50,
-              value
+              value,
             );
           }
           fetchTransportRates();
@@ -617,11 +617,12 @@ const Variables = () => {
                     const userRegion = profile?.location || "Nairobi";
                     const userOverride = userMaterialPrices.find(
                       (p) =>
-                        p.material_id === material.id && p.region === userRegion
+                        p.material_id === material.id &&
+                        p.region === userRegion,
                     );
                     const effectivePrice = getEffectiveMaterialPriceSingle(
                       material.id,
-                      userRegion
+                      userRegion,
                     );
                     const isCustomPrice = !!userOverride;
                     return (
@@ -674,7 +675,9 @@ const Variables = () => {
                               "Paint",
                               "Sealant",
                               "Pipes",
+                              "Hoop Iron",
                               "Outlets",
+                              "Countertops",
                               "Polythene",
                               "Insulation",
                               "Joinery",
@@ -691,7 +694,7 @@ const Variables = () => {
                                   <span className="text-xs ml-1">
                                     (
                                     {regionalMultipliers.find(
-                                      (r) => r.region === userRegion
+                                      (r) => r.region === userRegion,
                                     )?.multiplier || 1}
                                     )
                                   </span>
@@ -715,11 +718,13 @@ const Variables = () => {
                               "Fixtures",
                               "DPC",
                               "Glazing",
+                              "Countertops",
                               "Insulation",
                               "Paint",
                               "Pipes",
                               "Outlets",
                               "Insulation",
+                              "Hoop Iron",
                               "Joinery",
                               "Lighting",
                               "Polythene",
@@ -727,7 +732,6 @@ const Variables = () => {
                               "Timber",
                               "UnderLayment",
                               "Wall-Finishes",
-                              ,
                               "Waterproof",
                             ].includes(material.name) && (
                               <div className="flex items-center space-x-2">
@@ -754,7 +758,7 @@ const Variables = () => {
                                       material.name,
                                       tempValues[`material-${material.id}`] ||
                                         effectivePrice,
-                                      0
+                                      0,
                                     )
                                   }
                                   disabled={loading}
@@ -786,6 +790,8 @@ const Variables = () => {
                               "Outlets",
                               "Polythene",
                               "Insulation",
+                              "Countertops",
+                              "Hoop Iron",
                               "Joinery",
                               "Lighting",
                               "Roof-Covering",
@@ -808,7 +814,7 @@ const Variables = () => {
                             userMaterialPrices,
                             regionalMultipliers,
                             userRegion,
-                            getEffectiveMaterialPrice
+                            getEffectiveMaterialPrice,
                           )}
                         </CardContent>
                       </Card>
@@ -816,329 +822,320 @@ const Variables = () => {
                   })}
                 </div>
               </CardContent>
-
             </Card>
-            
-              {/* Custom Materials Section */}
-              <Card className="animate-slide-in border-blue-200 dark:border-blue-800">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center">
-                      <Building className="w-5 h-5 mr-2 text-blue-600" />
-                      My Custom Materials
-                    </CardTitle>
-                    <Button
-                      size="sm"
-                      onClick={() => setShowAddMaterial(!showAddMaterial)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Material
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {showAddMaterial && (
-                    <Card className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20">
-                      <div className="flex gap-2 mb-4">
-                        <Button
-                          size="sm"
-                          variant={
-                            materialInputMode === "simple"
-                              ? "default"
-                              : "outline"
-                          }
-                          onClick={() => setMaterialInputMode("simple")}
-                          className={
-                            materialInputMode === "simple" ? "bg-blue-600" : ""
-                          }
-                        >
-                          Single Material
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={
-                            materialInputMode === "json" ? "default" : "outline"
-                          }
-                          onClick={() => setMaterialInputMode("json")}
-                          className={
-                            materialInputMode === "json" ? "bg-blue-600" : ""
-                          }
-                        >
-                          Bulk (JSON)
-                        </Button>
-                      </div>
 
-                      {materialInputMode === "simple" && (
-                        <>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div className="space-y-2">
-                              <Label>Material Name *</Label>
-                              <Input
-                                placeholder="e.g., Custom Stone, Imported Tile"
-                                value={newMaterial.name}
-                                onChange={(e) =>
-                                  setNewMaterial({
-                                    ...newMaterial,
-                                    name: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Price Per Unit (KSh)</Label>
-                              <Input
-                                type="number"
-                                placeholder="5000"
-                                value={newMaterial.pricePerUnit}
-                                onChange={(e) =>
-                                  setNewMaterial({
-                                    ...newMaterial,
-                                    pricePerUnit:
-                                      parseFloat(e.target.value) || 0,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Unit</Label>
-                              <Select
-                                value={newMaterial.unit}
-                                onValueChange={(value) =>
-                                  setNewMaterial({
-                                    ...newMaterial,
-                                    unit: value,
-                                  })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unit">Unit</SelectItem>
-                                  <SelectItem value="sq m">
-                                    Square Meter (sq m)
-                                  </SelectItem>
-                                  <SelectItem value="bag">Bag</SelectItem>
-                                  <SelectItem value="kg">
-                                    Kilogram (kg)
-                                  </SelectItem>
-                                  <SelectItem value="liter">Liter</SelectItem>
-                                  <SelectItem value="meter">
-                                    Meter (m)
-                                  </SelectItem>
-                                  <SelectItem value="pcs">
-                                    Pieces (pcs)
-                                  </SelectItem>
-                                  <SelectItem value="set">Set</SelectItem>
-                                  <SelectItem value="day">Day</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Category (Optional)</Label>
-                              <Input
-                                placeholder="e.g., Flooring, Paint, Finishing"
-                                value={newMaterial.category}
-                                onChange={(e) =>
-                                  setNewMaterial({
-                                    ...newMaterial,
-                                    category: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>Description</Label>
-                              <Input
-                                placeholder="Additional details about this material"
-                                value={newMaterial.description}
-                                onChange={(e) =>
-                                  setNewMaterial({
-                                    ...newMaterial,
-                                    description: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={handleAddCustomMaterial}
-                              disabled={loading}
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              {loading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : editingMaterial ? (
-                                <>
-                                  <Save className="w-4 h-4 mr-1" />
-                                  Save
-                                </>
-                              ) : (
-                                <>
-                                  <Plus className="w-4 h-4 mr-1" />
-                                  Add
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setShowAddMaterial(false);
-                                setEditingMaterial(null);
-                                setNewMaterial({
-                                  name: "",
-                                  pricePerUnit: 0,
-                                  unit: "unit",
-                                  category: "",
-                                  description: "",
-                                  type: {},
-                                });
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </>
-                      )}
+            {/* Custom Materials Section */}
+            <Card className="animate-slide-in border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <Building className="w-5 h-5 mr-2 text-blue-600" />
+                    My Custom Materials
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddMaterial(!showAddMaterial)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Material
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {showAddMaterial && (
+                  <Card className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20">
+                    <div className="flex gap-2 mb-4">
+                      <Button
+                        size="sm"
+                        variant={
+                          materialInputMode === "simple" ? "default" : "outline"
+                        }
+                        onClick={() => setMaterialInputMode("simple")}
+                        className={
+                          materialInputMode === "simple" ? "bg-blue-600" : ""
+                        }
+                      >
+                        Single Material
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={
+                          materialInputMode === "json" ? "default" : "outline"
+                        }
+                        onClick={() => setMaterialInputMode("json")}
+                        className={
+                          materialInputMode === "json" ? "bg-blue-600" : ""
+                        }
+                      >
+                        Bulk (JSON)
+                      </Button>
+                    </div>
 
-                      {materialInputMode === "json" && (
-                        <>
-                          <div className="space-y-2 mb-4">
-                            <Label>Materials JSON Array</Label>
-                            <Textarea
-                              placeholder={`[\n  {\n    "material_name": "Custom Tile",\n    "price_per_unit": 2500,\n    "unit": "sq m",\n    "category": "Flooring",\n    "description": "Italian marble tile"\n  }\n]`}
-                              value={materialJsonInput}
+                    {materialInputMode === "simple" && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div className="space-y-2">
+                            <Label>Material Name *</Label>
+                            <Input
+                              placeholder="e.g., Custom Stone, Imported Tile"
+                              value={newMaterial.name}
                               onChange={(e) =>
-                                setMaterialJsonInput(e.target.value)
+                                setNewMaterial({
+                                  ...newMaterial,
+                                  name: e.target.value,
+                                })
                               }
-                              rows={8}
-                              className="font-mono text-sm"
                             />
-                            <p className="text-xs text-muted-foreground">
-                              Required fields: material_name, price_per_unit.
-                              Optional: unit, category, description
-                              <br />
-                              <span className="text-xs">
-                                Valid units: unit, sq m, bag, kg, liter, meter,
-                                pcs, set, day
-                              </span>
-                            </p>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              onClick={handleAddMaterialsFromJSON}
-                              disabled={loading}
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              {loading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <Plus className="w-4 h-4 mr-1" />
-                                  Add Materials
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setShowAddMaterial(false);
-                                setMaterialJsonInput("[]");
-                              }}
-                            >
-                              Cancel
-                            </Button>
+                          <div className="space-y-2">
+                            <Label>Price Per Unit (KSh)</Label>
+                            <Input
+                              type="number"
+                              placeholder="5000"
+                              value={newMaterial.pricePerUnit}
+                              onChange={(e) =>
+                                setNewMaterial({
+                                  ...newMaterial,
+                                  pricePerUnit: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
                           </div>
-                        </>
-                      )}
-                    </Card>
-                  )}
+                          <div className="space-y-2">
+                            <Label>Unit</Label>
+                            <Select
+                              value={newMaterial.unit}
+                              onValueChange={(value) =>
+                                setNewMaterial({
+                                  ...newMaterial,
+                                  unit: value,
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="unit">Unit</SelectItem>
+                                <SelectItem value="sq m">
+                                  Square Meter (sq m)
+                                </SelectItem>
+                                <SelectItem value="bag">Bag</SelectItem>
+                                <SelectItem value="kg">
+                                  Kilogram (kg)
+                                </SelectItem>
+                                <SelectItem value="liter">Liter</SelectItem>
+                                <SelectItem value="meter">Meter (m)</SelectItem>
+                                <SelectItem value="pcs">
+                                  Pieces (pcs)
+                                </SelectItem>
+                                <SelectItem value="set">Set</SelectItem>
+                                <SelectItem value="day">Day</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Category (Optional)</Label>
+                            <Input
+                              placeholder="e.g., Flooring, Paint, Finishing"
+                              value={newMaterial.category}
+                              onChange={(e) =>
+                                setNewMaterial({
+                                  ...newMaterial,
+                                  category: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label>Description</Label>
+                            <Input
+                              placeholder="Additional details about this material"
+                              value={newMaterial.description}
+                              onChange={(e) =>
+                                setNewMaterial({
+                                  ...newMaterial,
+                                  description: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleAddCustomMaterial}
+                            disabled={loading}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            {loading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : editingMaterial ? (
+                              <>
+                                <Save className="w-4 h-4 mr-1" />
+                                Save
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4 mr-1" />
+                                Add
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setShowAddMaterial(false);
+                              setEditingMaterial(null);
+                              setNewMaterial({
+                                name: "",
+                                pricePerUnit: 0,
+                                unit: "unit",
+                                category: "",
+                                description: "",
+                                type: {},
+                              });
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    )}
 
-                  {customMaterials && customMaterials.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {customMaterials.map((material) => (
-                        <Card
-                          key={material.id}
-                          className="border-blue-200 dark:border-blue-800"
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <h4 className="font-medium">
-                                  {material.material_name}
-                                </h4>
-                                {material.description && (
-                                  <p className="text-sm text-muted-foreground">
-                                    {material.description}
-                                  </p>
-                                )}
-                                {material.category && (
-                                  <Badge
-                                    variant="secondary"
-                                    className="text-xs mt-1"
-                                  >
-                                    {material.category}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  onClick={() =>
-                                    setEditingMaterial(material.id)
-                                  }
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    handleDeleteCustomMaterial(material.id)
-                                  }
-                                  disabled={loading}
-                                >
-                                  <Trash className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>
-                                <span className="text-muted-foreground">
-                                  Price:
-                                </span>
-                                <p className="">
-                                  KSh{" "}
-                                  {material.price_per_unit?.toLocaleString() ||
-                                    0}
+                    {materialInputMode === "json" && (
+                      <>
+                        <div className="space-y-2 mb-4">
+                          <Label>Materials JSON Array</Label>
+                          <Textarea
+                            placeholder={`[\n  {\n    "material_name": "Custom Tile",\n    "price_per_unit": 2500,\n    "unit": "sq m",\n    "category": "Flooring",\n    "description": "Italian marble tile"\n  }\n]`}
+                            value={materialJsonInput}
+                            onChange={(e) =>
+                              setMaterialJsonInput(e.target.value)
+                            }
+                            rows={8}
+                            className="font-mono text-sm"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Required fields: material_name, price_per_unit.
+                            Optional: unit, category, description
+                            <br />
+                            <span className="text-xs">
+                              Valid units: unit, sq m, bag, kg, liter, meter,
+                              pcs, set, day
+                            </span>
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleAddMaterialsFromJSON}
+                            disabled={loading}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            {loading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4 mr-1" />
+                                Add Materials
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setShowAddMaterial(false);
+                              setMaterialJsonInput("[]");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </Card>
+                )}
+
+                {customMaterials && customMaterials.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {customMaterials.map((material) => (
+                      <Card
+                        key={material.id}
+                        className="border-blue-200 dark:border-blue-800"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-medium">
+                                {material.material_name}
+                              </h4>
+                              {material.description && (
+                                <p className="text-sm text-muted-foreground">
+                                  {material.description}
                                 </p>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">
-                                  Unit:
-                                </span>
-                                <p className="">{material.unit}</p>
-                              </div>
+                              )}
+                              {material.category && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs mt-1"
+                                >
+                                  {material.category}
+                                </Badge>
+                              )}
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-gray-800/20">
-                      No custom materials added yet. Click "Add Material" to
-                      create one.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                            <div className="flex gap-1">
+                              <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => setEditingMaterial(material.id)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="destructive"
+                                onClick={() =>
+                                  handleDeleteCustomMaterial(material.id)
+                                }
+                                disabled={loading}
+                              >
+                                <Trash className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="text-muted-foreground">
+                                Price:
+                              </span>
+                              <p className="">
+                                KSh{" "}
+                                {material.price_per_unit?.toLocaleString() || 0}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">
+                                Unit:
+                              </span>
+                              <p className="">{material.unit}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-gray-800/20">
+                    No custom materials added yet. Click "Add Material" to
+                    create one.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-4 animate-fade-in">
@@ -1153,7 +1150,7 @@ const Variables = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {equipmentTypes.map((equipment) => {
                     const userRate = equipmentRates.find(
-                      (r) => r.equipment_type_id === equipment.id
+                      (r) => r.equipment_type_id === equipment.id,
                     );
                     const currentRate = userRate
                       ? userRate.rate_per_unit
@@ -1272,7 +1269,7 @@ const Variables = () => {
                                     equipment.id,
                                     rateToSave,
                                     quantityToSave,
-                                    unitToSave
+                                    unitToSave,
                                   );
                                 }}
                                 disabled={loading}
@@ -1540,7 +1537,7 @@ const Variables = () => {
                                         rateToSave,
                                         equipment.hourly_rate || 0,
                                         equipment.description,
-                                        unitToSave
+                                        unitToSave,
                                       );
                                     if (error) throw new Error(error);
                                     toast({
@@ -1670,7 +1667,7 @@ const Variables = () => {
                                       tempValues[
                                         `transport-${rate.region}-km`
                                       ] || costPerKm,
-                                      0
+                                      0,
                                     )
                                   }
                                   disabled={loading}
@@ -1706,7 +1703,7 @@ const Variables = () => {
                                       tempValues[
                                         `transport-${rate.region}-base`
                                       ] || baseCost,
-                                      0
+                                      0,
                                     )
                                   }
                                   disabled={loading}
@@ -1737,7 +1734,7 @@ const Variables = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {additionalServices.map((service) => {
                     const userRate = serviceRates.find(
-                      (r) => r.service_id === service.id
+                      (r) => r.service_id === service.id,
                     );
                     const currentPrice = userRate
                       ? userRate.price
@@ -1783,7 +1780,7 @@ const Variables = () => {
                                   "name",
                                   tempValues[`service-${service.id}`] ||
                                     currentPrice,
-                                  0
+                                  0,
                                 )
                               }
                               disabled={loading}
@@ -1845,7 +1842,7 @@ const Variables = () => {
                                 sub.id,
                                 "name",
                                 tempValues[sub.id] || sub.price,
-                                0
+                                0,
                               )
                             }
                             disabled={loading}

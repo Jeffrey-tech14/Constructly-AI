@@ -56,7 +56,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dimensions, WallProperties, Door, Window } from "@/hooks/useMasonryCalculatorNew";
+import {
+  Dimensions,
+  WallProperties,
+  Door,
+  Window,
+} from "@/hooks/useMasonryCalculatorNew";
 import { WallSection } from "@/hooks/useMasonryCalculatorNew";
 import { planParserService } from "@/services/planParserService";
 
@@ -72,16 +77,8 @@ const RISA_MEDIUM_GRAY = "#E2E8F0";
 const doorTypes = ["Flush", "Panel", "Metal", "Glass"];
 const windowGlassTypes = ["Clear", "Tinted", "Frosted"];
 const frameTypes = ["Wood", "Steel", "Aluminum"];
-const standardDoorSizes = [
-  "0.9 × 2.1 m",
-  "1.0 × 2.1 m",
-  "1.2 × 2.4 m",
-];
-const standardWindowSizes = [
-  "1.2 × 1.2 m",
-  "1.5 × 1.2 m",
-  "2.0 × 1.5 m",
-];
+const standardDoorSizes = ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"];
+const standardWindowSizes = ["1.2 × 1.2 m", "1.5 × 1.2 m", "2.0 × 1.5 m"];
 
 export interface ParsedPlan {
   wallDimensions?: Dimensions;
@@ -136,9 +133,9 @@ const PreviewModal = ({
 // Helper function to map thickness (mm) to block type label
 const getBlockTypeFromThickness = (thickness?: number): string => {
   if (!thickness) return "Standard Block";
-  if (thickness >= 190 && thickness <= 210) return "Large Block";
-  if (thickness >= 140 && thickness <= 160) return "Standard Block";
-  if (thickness >= 90 && thickness <= 110) return "Small Block";
+  if (thickness >= 0.19 && thickness <= 0.21) return "Large Block";
+  if (thickness >= 0.14 && thickness <= 0.16) return "Standard Block";
+  if (thickness >= 0.09 && thickness <= 0.11) return "Small Block";
   return "Standard Block"; // Default fallback
 };
 
@@ -1012,7 +1009,7 @@ const UploadPlan = () => {
   };
 
   const getErrorIcon = () => {
-    console.log(error);
+    console.error(error);
     switch (error?.type) {
       case "network":
         return <AlertCircle className="w-6 h-6" />;
@@ -1281,1443 +1278,1600 @@ const UploadPlan = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-2 space-y-8"
           >
-              <div className="space-y-8 p-8">
-                {(editablePlan && currentStep === "complete") ||
-                ((fileUrl || selectedFile) &&
-                  (currentStep === "analyzing" ||
-                    currentStep === "uploading")) ? (
-                  <div className="space-y-6 scrollbar-hide">
-                    <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                      <FileText className="sm:w-7 sm:h-7 text-green-500" />
-                      <p className="sm:text-lg ">
-                        {selectedFile?.name ||
-                          fileUrl.split("/").pop() ||
-                          "Uploaded Plan"}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleRemoveFile}
-                        className="ml-auto text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="sm:w-6 sm:h-6" />
-                      </Button>
-                    </div>
+            <div className="space-y-8 p-8">
+              {(editablePlan && currentStep === "complete") ||
+              ((fileUrl || selectedFile) &&
+                (currentStep === "analyzing" ||
+                  currentStep === "uploading")) ? (
+                <div className="space-y-6 scrollbar-hide">
+                  <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
+                    <FileText className="sm:w-7 sm:h-7 text-green-500" />
+                    <p className="sm:text-lg ">
+                      {selectedFile?.name ||
+                        fileUrl.split("/").pop() ||
+                        "Uploaded Plan"}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleRemoveFile}
+                      className="ml-auto text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="sm:w-6 sm:h-6" />
+                    </Button>
+                  </div>
 
-                    {(currentStep === "analyzing" ||
-                      currentStep === "uploading") && (
-                      <div className="text-center py-16">
-                        {currentStep === "uploading" ? (
-                          <div>
-                            <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-500 mb-4" />
-                            <p className="text-slate-600 dark:text-slate-300">
-                              Uploading...
-                            </p>
-                          </div>
-                        ) : (
+                  {(currentStep === "analyzing" ||
+                    currentStep === "uploading") && (
+                    <div className="text-center py-16">
+                      {currentStep === "uploading" ? (
+                        <div>
+                          <Loader2 className="w-8 h-8 mx-auto animate-spin text-green-500 mb-4" />
+                          <p className="text-slate-600 dark:text-slate-300">
+                            Uploading...
+                          </p>
+                        </div>
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.5 }}
+                          className="space-y-6"
+                        >
+                          {/* Floating Icon Container */}
                           <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.5 }}
-                            className="space-y-6"
+                            animate={{
+                              y: [0, 30, 0],
+                              rotate: [0, 5, -5, 0],
+                            }}
+                            transition={{
+                              duration: 6,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                            className="flex justify-center"
                           >
-                            {/* Floating Icon Container */}
-                            <motion.div
-                              animate={{
-                                y: [0, 30, 0],
-                                rotate: [0, 5, -5, 0],
-                              }}
-                              transition={{
-                                duration: 6,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              }}
-                              className="flex justify-center"
-                            >
-                              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-green-400 dark:from-blue-500 dark:to-green-500 flex items-center justify-center shadow-lg">
-                                <BarChart3 className="w-10 h-10 text-white animate-pulse" />
-                                {/* Decorative rings */}
-                                <motion.div
-                                  className="absolute inset-0 rounded-full border-2 border-blue-400 dark:border-blue-500"
-                                  animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                  }}
-                                  style={{ opacity: 0.5 }}
-                                />
-                                <motion.div
-                                  className="absolute inset-0 rounded-full border-2 border-green-400 dark:border-green-500"
-                                  animate={{ scale: [1.2, 1, 1.2] }}
-                                  transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                    delay: 0.5,
-                                  }}
-                                  style={{ opacity: 0.3 }}
-                                />
-                              </div>
-                            </motion.div>
-
-                            {/* Text with typewriter effect */}
-                            <div className="space-y-3">
-                              <p className="text-lg  text-slate-800 dark:text-slate-100">
-                                Analyzing your plan...
-                              </p>
-                              <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Jtech is analyzing dimensions and structural
-                                details
-                              </p>
-                            </div>
-
-                            {/* Animated dots */}
-                            <div className="flex justify-center gap-2 pt-2">
-                              {[0, 1, 2].map((i) => (
-                                <motion.div
-                                  key={i}
-                                  className="w-2.5 h-2.5 bg-blue-500 rounded-full"
-                                  animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{
-                                    duration: 1,
-                                    repeat: Infinity,
-                                    delay: i * 0.2,
-                                    repeatType: "loop",
-                                  }}
-                                />
-                              ))}
-                            </div>
-
-                            {analysisTimeLeft !== null && (
-                              <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-xs text-slate-500 dark:text-slate-400 font-medium"
-                              >
-                                Est. time: {analysisTimeLeft}s remaining
-                              </motion.p>
-                            )}
-                          </motion.div>
-                        )}
-                      </div>
-                    )}
-
-                    {previewUrl && (
-                      <Card onClick={() => setShowPreviewModal(true)} className="cursor-pointer border p-1 border-slate-200 dark:border-slate-600 overflow-hidden">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg flex items-center">
-                            <Eye className="w-5 h-5 mr-2 text-green-500" />
-                            Plan Preview
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <div
-                            className="w-full h-[700px] rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-600"
-                          
-                          >
-                            <div className="h-full flex flex-col items-center justify-center">
-                              <PreviewModal
-                                fileUrl={previewUrl}
-                                fileType={selectedFile?.type || "image/jpeg"}
+                            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-green-400 dark:from-blue-500 dark:to-green-500 flex items-center justify-center shadow-lg">
+                              <BarChart3 className="w-10 h-10 text-white animate-pulse" />
+                              {/* Decorative rings */}
+                              <motion.div
+                                className="absolute inset-0 rounded-full border-2 border-blue-400 dark:border-blue-500"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }}
+                                style={{ opacity: 0.5 }}
+                              />
+                              <motion.div
+                                className="absolute inset-0 rounded-full border-2 border-green-400 dark:border-green-500"
+                                animate={{ scale: [1.2, 1, 1.2] }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                  delay: 0.5,
+                                }}
+                                style={{ opacity: 0.3 }}
                               />
                             </div>
+                          </motion.div>
+
+                          {/* Text with typewriter effect */}
+                          <div className="space-y-3">
+                            <p className="text-lg  text-slate-800 dark:text-slate-100">
+                              Analyzing your plan...
+                            </p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Jtech is analyzing dimensions and structural
+                              details
+                            </p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    )}
 
-                    {currentStep === "complete" && editablePlan && (
-                      <div className="scrollbar-hide">
-                        <div className="flex items-center justify-between mb-6">
-                          <h3 className="sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
-                            <span className="bg-blue-100 dark:bg-primary p-2 rounded-full mr-3">
-                              <FileText className="sm:w-5 sm:h-5 text-primary dark:text-blue-300" />
-                            </span>
-                            Edit Extracted Plan
-                          </h3>
+                          {/* Animated dots */}
+                          <div className="flex justify-center gap-2 pt-2">
+                            {[0, 1, 2].map((i) => (
+                              <motion.div
+                                key={i}
+                                className="w-2.5 h-2.5 bg-blue-500 rounded-full"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  delay: i * 0.2,
+                                  repeatType: "loop",
+                                }}
+                              />
+                            ))}
+                          </div>
+
+                          {analysisTimeLeft !== null && (
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="text-xs text-slate-500 dark:text-slate-400 font-medium"
+                            >
+                              Est. time: {analysisTimeLeft}s remaining
+                            </motion.p>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+
+                  {previewUrl && (
+                    <Card
+                      onClick={() => setShowPreviewModal(true)}
+                      className="cursor-pointer border p-1 border-slate-200 dark:border-slate-600 overflow-hidden"
+                    >
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center">
+                          <Eye className="w-5 h-5 mr-2 text-green-500" />
+                          Plan Preview
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="w-full h-[700px] rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-600">
+                          <div className="h-full flex flex-col items-center justify-center">
+                            <PreviewModal
+                              fileUrl={previewUrl}
+                              fileType={selectedFile?.type || "image/jpeg"}
+                            />
+                          </div>
                         </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-                        {/* Extracted Wall Structure Results */}
-                        {editablePlan.wallDimensions && (
-                          <Card className="mb-8 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
-                            <CardHeader className="bg-green-100 dark:bg-green-900/30 rounded-t-3xl">
-                              <CardTitle className="text-lg flex items-center text-green-900 dark:text-green-100">
-                                <BarChart3 className="w-5 h-5 mr-2" />
-                                Wall Structure Extraction Results
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-6 space-y-6">
-                              
-                              
-                              {/* Wall Dimensions */}
-                              <div>
-                                <h4 className=" text-slate-700 dark:text-slate-300 mb-4 flex items-center">
-                                  <Ruler className="w-4 h-4 mr-2" />
-                                  Wall Dimensions
-                                </h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
-                                      External Wall Perimeter (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.externalWallPerimiter || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  externalWallPerimiter:
-                                                    parseFloat(
-                                                      e.target.value,
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev,
-                                        )
-                                      }
-                                      className="bg-green-50 dark:bg-slate-700"
-                                    />
-                                  </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
-                                      External Wall Height (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.externalWallHeight || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  externalWallHeight:
-                                                    parseFloat(
-                                                      e.target.value,
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev,
-                                        )
-                                      }
-                                      className="bg-green-50 dark:bg-slate-700"
-                                    />
-                                  </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
-                                      Internal Wall Perimeter (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.internalWallPerimiter || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  internalWallPerimiter:
-                                                    parseFloat(
-                                                      e.target.value,
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev,
-                                        )
-                                      }
-                                      className="bg-blue-50 dark:bg-slate-700"
-                                    />
-                                  </div>
-                                  <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-700">
-                                    <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
-                                      Internal Wall Height (m)
-                                    </Label>
-                                    <Input
-                                      type="number"
-                                      step="0.1"
-                                      min="0"
-                                      value={
-                                        editablePlan.wallDimensions
-                                          ?.internalWallHeight || 0
-                                      }
-                                      onChange={(e) =>
-                                        setEditablePlan((prev) =>
-                                          prev && prev.wallDimensions
-                                            ? {
-                                                ...prev,
-                                                wallDimensions: {
-                                                  ...prev.wallDimensions,
-                                                  internalWallHeight:
-                                                    parseFloat(
-                                                      e.target.value,
-                                                    ) || 0,
-                                                },
-                                              }
-                                            : prev,
-                                        )
-                                      }
-                                      className="bg-blue-50 dark:bg-slate-700"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
+                  {currentStep === "complete" && editablePlan && (
+                    <div className="scrollbar-hide">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                          <span className="bg-blue-100 dark:bg-primary p-2 rounded-full mr-3">
+                            <FileText className="sm:w-5 sm:h-5 text-primary dark:text-blue-300" />
+                          </span>
+                          Edit Extracted Plan
+                        </h3>
+                      </div>
 
-                        {/* Inline Confirmation Fields */}
-                        {editablePlan && currentStep === "complete" && (
-                          <Card className="mb-8">
-                            <CardHeader className="rounded-t-lg">
-                              <CardTitle className="text-lg flex items-center">
-                                <CheckCircle className="w-5 h-5 mr-2" />
-                                Confirm Extracted Project Details
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-6 space-y-6">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label className="text-sm mb-2 block">
-                                    House Type
-                                  </Label>
-                                  <Select
-                                    value={
-                                      editablePlan.projectInfo?.houseType ||
-                                      "bungalow"
-                                    }
-                                    onValueChange={(value) => {
-                                      const houseType = value as
-                                        | "bungalow"
-                                        | "mansionate";
-                                      handleConfirmationFieldsUpdate({
-                                        houseType,
-                                      });
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select house type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="bungalow">
-                                        Bungalow
-                                      </SelectItem>
-                                      <SelectItem value="mansionate">
-                                        Mansionate
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-sm mb-2 block">
-                                    Foundation Type
-                                  </Label>
-                                  <Select
-                                    value={
-                                      editablePlan.foundationDetails?.[0]
-                                        ?.foundationType || ""
-                                    }
-                                    onValueChange={(value) => {
-                                      handleConfirmationFieldsUpdate({
-                                        foundationType: value,
-                                      });
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select foundation type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="strip-footing">
-                                        Strip Foundation
-                                      </SelectItem>
-                                      <SelectItem value="raft-foundation">
-                                        Raft Foundation
-                                      </SelectItem>
-                                      <SelectItem value="pad-foundation">
-                                        Pad Foundation
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-sm mb-2 block">
-                                    External Wall Block Type
-                                  </Label>
-                                  <Select
-                                    value={getBlockTypeFromThickness(
-                                      editablePlan.wallSections?.find(
-                                        (s) => s.type === "external",
-                                      )?.thickness,
-                                    )}
-                                    onValueChange={(value) => {
-                                      setEditablePlan((prev) => {
-                                        if (!prev) return prev;
-                                        const existingIndex =
-                                          prev.wallSections?.findIndex(
-                                            (s) => s.type === "external",
-                                          ) ?? -1;
-                                        let updatedSections = prev.wallSections
-                                          ? [...prev.wallSections]
-                                          : [];
-                                        const thickness =
-                                          getThicknessFromBlockType(value);
-
-                                        if (existingIndex >= 0) {
-                                          updatedSections[existingIndex] = {
-                                            ...updatedSections[existingIndex],
-                                            blockType: value,
-                                            thickness: thickness,
-                                          };
-                                        } else {
-                                          updatedSections.push({
-                                            id: `wall-external-${Date.now()}`,
-                                            type: "external",
-                                            blockType: value,
-                                            thickness: thickness,
-                                          } as any);
-                                        }
-                                        return {
-                                          ...prev,
-                                          wallSections: updatedSections,
-                                        };
-                                      });
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select block type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Large Block">
-                                        Large Block (200mm/9x9)
-                                      </SelectItem>
-                                      <SelectItem value="Standard Block">
-                                        Standard Block (150mm/6x9)
-                                      </SelectItem>
-                                      <SelectItem value="Small Block">
-                                        Small Block (100mm/4x9)
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-sm mb-2 block">
-                                    Internal Wall Block Type
-                                  </Label>
-                                  <Select
-                                    value={getBlockTypeFromThickness(
-                                      editablePlan.wallSections?.find(
-                                        (s) => s.type === "internal",
-                                      )?.thickness,
-                                    )}
-                                    onValueChange={(value) => {
-                                      setEditablePlan((prev) => {
-                                        if (!prev) return prev;
-                                        const existingIndex =
-                                          prev.wallSections?.findIndex(
-                                            (s) => s.type === "internal",
-                                          ) ?? -1;
-                                        let updatedSections = prev.wallSections
-                                          ? [...prev.wallSections]
-                                          : [];
-                                        const thickness =
-                                          getThicknessFromBlockType(value);
-
-                                        if (existingIndex >= 0) {
-                                          updatedSections[existingIndex] = {
-                                            ...updatedSections[existingIndex],
-                                            blockType: value,
-                                            thickness: thickness,
-                                          };
-                                        } else {
-                                          updatedSections.push({
-                                            id: `wall-internal-${Date.now()}`,
-                                            type: "internal",
-                                            blockType: value,
-                                            thickness: thickness,
-                                          } as any);
-                                        }
-                                        return {
-                                          ...prev,
-                                          wallSections: updatedSections,
-                                        };
-                                      });
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select block type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="Large Block">
-                                        Large Block (200mm/9x9)
-                                      </SelectItem>
-                                      <SelectItem value="Standard Block">
-                                        Standard Block (150mm/6x9)
-                                      </SelectItem>
-                                      <SelectItem value="Small Block">
-                                        Small Block (100mm/4x9)
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-sm mb-2 block">
-                                    Build Area (m²)
+                      {/* Extracted Wall Structure Results */}
+                      {editablePlan.wallDimensions && (
+                        <Card className="mb-8 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+                          <CardHeader className="bg-green-100 dark:bg-green-900/30 rounded-t-3xl">
+                            <CardTitle className="text-lg flex items-center text-green-900 dark:text-green-100">
+                              <BarChart3 className="w-5 h-5 mr-2" />
+                              Wall Structure Extraction Results
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="pt-6 space-y-6">
+                            {/* Wall Dimensions */}
+                            <div>
+                              <h4 className=" text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+                                <Ruler className="w-4 h-4 mr-2" />
+                                Wall Dimensions
+                              </h4>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
+                                  <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                    External Wall Perimeter (m)
                                   </Label>
                                   <Input
                                     type="number"
                                     step="0.1"
+                                    min="0"
                                     value={
-                                      editablePlan.projectInfo?.totalArea || ""
+                                      editablePlan.wallDimensions
+                                        ?.externalWallPerimiter || 0
                                     }
-                                    onChange={(e) => {
-                                      handleConfirmationFieldsUpdate({
-                                        buildArea: e.target.value,
-                                      });
-                                    }}
-                                    placeholder="e.g., 100"
+                                    onChange={(e) =>
+                                      setEditablePlan((prev) =>
+                                        prev && prev.wallDimensions
+                                          ? {
+                                              ...prev,
+                                              wallDimensions: {
+                                                ...prev.wallDimensions,
+                                                externalWallPerimiter:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              },
+                                            }
+                                          : prev,
+                                      )
+                                    }
+                                    className="bg-green-50 dark:bg-slate-700"
                                   />
                                 </div>
-                                <div>
-                                  <Label className="text-sm mb-2 block">
-                                    Ground Floor Elevation (m)
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
+                                  <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                    External Wall Height (m)
                                   </Label>
                                   <Input
                                     type="number"
-                                    step="0.001"
+                                    step="0.1"
+                                    min="0"
                                     value={
-                                      editablePlan.foundationDetails?.[0]
-                                        ?.groundFloorElevation || ""
+                                      editablePlan.wallDimensions
+                                        ?.externalWallHeight || 0
                                     }
-                                    onChange={(e) => {
-                                      handleConfirmationFieldsUpdate({
-                                        groundFloorElevation: e.target.value,
-                                      });
-                                    }}
-                                    placeholder="e.g., 150"
+                                    onChange={(e) =>
+                                      setEditablePlan((prev) =>
+                                        prev && prev.wallDimensions
+                                          ? {
+                                              ...prev,
+                                              wallDimensions: {
+                                                ...prev.wallDimensions,
+                                                externalWallHeight:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              },
+                                            }
+                                          : prev,
+                                      )
+                                    }
+                                    className="bg-green-50 dark:bg-slate-700"
+                                  />
+                                </div>
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-700">
+                                  <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                    Internal Wall Perimeter (m)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    value={
+                                      editablePlan.wallDimensions
+                                        ?.internalWallPerimiter || 0
+                                    }
+                                    onChange={(e) =>
+                                      setEditablePlan((prev) =>
+                                        prev && prev.wallDimensions
+                                          ? {
+                                              ...prev,
+                                              wallDimensions: {
+                                                ...prev.wallDimensions,
+                                                internalWallPerimiter:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              },
+                                            }
+                                          : prev,
+                                      )
+                                    }
+                                    className="bg-blue-50 dark:bg-slate-700"
+                                  />
+                                </div>
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-blue-200 dark:border-blue-700">
+                                  <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
+                                    Internal Wall Height (m)
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    value={
+                                      editablePlan.wallDimensions
+                                        ?.internalWallHeight || 0
+                                    }
+                                    onChange={(e) =>
+                                      setEditablePlan((prev) =>
+                                        prev && prev.wallDimensions
+                                          ? {
+                                              ...prev,
+                                              wallDimensions: {
+                                                ...prev.wallDimensions,
+                                                internalWallHeight:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              },
+                                            }
+                                          : prev,
+                                      )
+                                    }
+                                    className="bg-blue-50 dark:bg-slate-700"
                                   />
                                 </div>
                               </div>
-                              <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
-                                <p className="text-sm text-slate-600 dark:text-slate-300">
-                                  <span className="">Note:</span>{" "}
-                                  These values have been extracted from your
-                                  plan. Please verify and correct them if needed
-                                  before proceeding.
-                                </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Inline Confirmation Fields */}
+                      {editablePlan && currentStep === "complete" && (
+                        <Card className="mb-8">
+                          <CardHeader className="rounded-t-lg">
+                            <CardTitle className="text-lg flex items-center">
+                              <CheckCircle className="w-5 h-5 mr-2" />
+                              Confirm Extracted Project Details
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="pt-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm mb-2 block">
+                                  House Type
+                                </Label>
+                                <Select
+                                  value={
+                                    editablePlan.projectInfo?.houseType ||
+                                    "bungalow"
+                                  }
+                                  onValueChange={(value) => {
+                                    const houseType = value as
+                                      | "bungalow"
+                                      | "mansionate";
+                                    handleConfirmationFieldsUpdate({
+                                      houseType,
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select house type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="bungalow">
+                                      Bungalow
+                                    </SelectItem>
+                                    <SelectItem value="mansionate">
+                                      Mansionate
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm mb-2 block">
+                                  Foundation Type
+                                </Label>
+                                <Select
+                                  value={
+                                    editablePlan.foundationDetails?.[0]
+                                      ?.foundationType || ""
+                                  }
+                                  onValueChange={(value) => {
+                                    handleConfirmationFieldsUpdate({
+                                      foundationType: value,
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select foundation type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="strip-footing">
+                                      Strip Foundation
+                                    </SelectItem>
+                                    <SelectItem value="raft-foundation">
+                                      Raft Foundation
+                                    </SelectItem>
+                                    <SelectItem value="pad-foundation">
+                                      Pad Foundation
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm mb-2 block">
+                                  External Wall Block Type
+                                </Label>
+                                <Select
+                                  value={getBlockTypeFromThickness(
+                                    editablePlan.wallSections?.find(
+                                      (s) => s.type === "external",
+                                    )?.thickness,
+                                  )}
+                                  onValueChange={(value) => {
+                                    setEditablePlan((prev) => {
+                                      if (!prev) return prev;
+                                      const existingIndex =
+                                        prev.wallSections?.findIndex(
+                                          (s) => s.type === "external",
+                                        ) ?? -1;
+                                      let updatedSections = prev.wallSections
+                                        ? [...prev.wallSections]
+                                        : [];
+                                      const thickness =
+                                        getThicknessFromBlockType(value);
+
+                                      if (existingIndex >= 0) {
+                                        updatedSections[existingIndex] = {
+                                          ...updatedSections[existingIndex],
+                                          blockType: value,
+                                          thickness: thickness,
+                                        };
+                                      } else {
+                                        updatedSections.push({
+                                          id: `wall-external-${Date.now()}`,
+                                          type: "external",
+                                          blockType: value,
+                                          thickness: thickness,
+                                        } as any);
+                                      }
+                                      return {
+                                        ...prev,
+                                        wallSections: updatedSections,
+                                      };
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select block type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Large Block">
+                                      Large Block (200mm/9x9)
+                                    </SelectItem>
+                                    <SelectItem value="Standard Block">
+                                      Standard Block (150mm/6x9)
+                                    </SelectItem>
+                                    <SelectItem value="Small Block">
+                                      Small Block (100mm/4x9)
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm mb-2 block">
+                                  Internal Wall Block Type
+                                </Label>
+                                <Select
+                                  value={getBlockTypeFromThickness(
+                                    editablePlan.wallSections?.find(
+                                      (s) => s.type === "internal",
+                                    )?.thickness,
+                                  )}
+                                  onValueChange={(value) => {
+                                    setEditablePlan((prev) => {
+                                      if (!prev) return prev;
+                                      const existingIndex =
+                                        prev.wallSections?.findIndex(
+                                          (s) => s.type === "internal",
+                                        ) ?? -1;
+                                      let updatedSections = prev.wallSections
+                                        ? [...prev.wallSections]
+                                        : [];
+                                      const thickness =
+                                        getThicknessFromBlockType(value);
+
+                                      if (existingIndex >= 0) {
+                                        updatedSections[existingIndex] = {
+                                          ...updatedSections[existingIndex],
+                                          blockType: value,
+                                          thickness: thickness,
+                                        };
+                                      } else {
+                                        updatedSections.push({
+                                          id: `wall-internal-${Date.now()}`,
+                                          type: "internal",
+                                          blockType: value,
+                                          thickness: thickness,
+                                        } as any);
+                                      }
+                                      return {
+                                        ...prev,
+                                        wallSections: updatedSections,
+                                      };
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select block type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Large Block">
+                                      Large Block (200mm/9x9)
+                                    </SelectItem>
+                                    <SelectItem value="Standard Block">
+                                      Standard Block (150mm/6x9)
+                                    </SelectItem>
+                                    <SelectItem value="Small Block">
+                                      Small Block (100mm/4x9)
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-sm mb-2 block">
+                                  Build Area (m²)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="0.1"
+                                  value={
+                                    editablePlan.projectInfo?.totalArea || ""
+                                  }
+                                  onChange={(e) => {
+                                    handleConfirmationFieldsUpdate({
+                                      buildArea: e.target.value,
+                                    });
+                                  }}
+                                  placeholder="e.g., 100"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-sm mb-2 block">
+                                  Ground Floor Elevation (m)
+                                </Label>
+                                <Input
+                                  type="number"
+                                  step="0.001"
+                                  value={
+                                    editablePlan.foundationDetails?.[0]
+                                      ?.groundFloorElevation || ""
+                                  }
+                                  onChange={(e) => {
+                                    handleConfirmationFieldsUpdate({
+                                      groundFloorElevation: e.target.value,
+                                    });
+                                  }}
+                                  placeholder="e.g., 150"
+                                />
+                              </div>
+                            </div>
+                            <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
+                              <p className="text-sm text-slate-600 dark:text-slate-300">
+                                <span className="">Note:</span> These values
+                                have been extracted from your plan. Please
+                                verify and correct them if needed before
+                                proceeding.
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Bar Bending Schedule Results */}
+                      {editablePlan.bar_schedule &&
+                        editablePlan.bar_schedule.length > 0 && (
+                          <Card className="mb-8 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                            <CardHeader className="bg-blue-100 dark:bg-blue-900/30 rounded-t-lg">
+                              <CardTitle className="text-lg flex items-center text-blue-900 dark:text-blue-100">
+                                <BarChart3 className="w-5 h-5 mr-2" />
+                                Bar Bending Schedule (BBS)
+                              </CardTitle>
+                              <CardDescription className="text-blue-700 dark:text-blue-300 mt-2">
+                                Rebar Calculation Method:{" "}
+                                <span className="">
+                                  {editablePlan.rebar_calculation_method ||
+                                    "NORMAL_REBAR_MODE"}
+                                </span>
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-6">
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="border-b border-blue-300 dark:border-blue-700">
+                                      <th className="text-left p-2  text-blue-900 dark:text-blue-100">
+                                        Bar Type
+                                      </th>
+                                      <th className="text-left p-2  text-blue-900 dark:text-blue-100">
+                                        Length (m)
+                                      </th>
+                                      <th className="text-left p-2  text-blue-900 dark:text-blue-100">
+                                        Quantity
+                                      </th>
+                                      <th className="text-left p-2  text-blue-900 dark:text-blue-100">
+                                        Weight/m (kg)
+                                      </th>
+                                      <th className="text-left p-2  text-blue-900 dark:text-blue-100">
+                                        Total Weight (kg)
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {editablePlan.bar_schedule.map(
+                                      (bar, idx) => (
+                                        <tr
+                                          key={idx}
+                                          className="border-b border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                                        >
+                                          <td className="p-2 text-blue-700 dark:text-blue-300 ">
+                                            {bar.bar_type}
+                                          </td>
+                                          <td className="p-2 text-slate-700 dark:text-slate-300">
+                                            {bar.bar_length.toFixed(2)}
+                                          </td>
+                                          <td className="p-2 text-slate-700 dark:text-slate-300">
+                                            {bar.quantity}
+                                          </td>
+                                          <td className="p-2 text-slate-700 dark:text-slate-300">
+                                            {bar.weight_per_meter?.toFixed(2) ||
+                                              "-"}
+                                          </td>
+                                          <td className="p-2 text-slate-700 dark:text-slate-300 ">
+                                            {bar.total_weight?.toFixed(2) ||
+                                              "-"}
+                                          </td>
+                                        </tr>
+                                      ),
+                                    )}
+                                  </tbody>
+                                </table>
                               </div>
                             </CardContent>
                           </Card>
                         )}
+                      {/* Doors & Windows by Wall Type - Editable */}
+                      {editablePlan.wallSections &&
+                        editablePlan.wallSections.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className=" text-slate-700 dark:text-slate-300 mb-4 flex items-center">
+                              <DoorOpen className="w-4 h-4 mr-2" />
+                              Doors & Windows by Wall Type
+                            </h4>
+                            <div className="space-y-4">
+                              {editablePlan.wallSections.map(
+                                (section, sectionIdx) => (
+                                  <div
+                                    key={sectionIdx}
+                                    className={`p-4 rounded-lg border ${
+                                      section.type === "external"
+                                        ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
+                                        : "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
+                                    }`}
+                                  >
+                                    <h5
+                                      className={` mb-3 capitalize flex items-center ${
+                                        section.type === "external"
+                                          ? "text-green-900 dark:text-green-100"
+                                          : "text-blue-900 dark:text-blue-100"
+                                      }`}
+                                    >
+                                      <Building className="w-4 h-4 mr-2" />
+                                      {section.type} Walls
+                                    </h5>
 
-                        {/* Bar Bending Schedule Results */}
-                        {editablePlan.bar_schedule &&
-                          editablePlan.bar_schedule.length > 0 && (
-                            <Card className="mb-8 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
-                              <CardHeader className="bg-blue-100 dark:bg-blue-900/30 rounded-t-lg">
-                                <CardTitle className="text-lg flex items-center text-blue-900 dark:text-blue-100">
-                                  <BarChart3 className="w-5 h-5 mr-2" />
-                                  Bar Bending Schedule (BBS)
-                                </CardTitle>
-                                <CardDescription className="text-blue-700 dark:text-blue-300 mt-2">
-                                  Rebar Calculation Method:{" "}
-                                  <span className="">
-                                    {editablePlan.rebar_calculation_method ||
-                                      "NORMAL_REBAR_MODE"}
-                                  </span>
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent className="pt-6">
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-sm">
-                                    <thead>
-                                      <tr className="border-b border-blue-300 dark:border-blue-700">
-                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
-                                          Bar Type
-                                        </th>
-                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
-                                          Length (m)
-                                        </th>
-                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
-                                          Quantity
-                                        </th>
-                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
-                                          Weight/m (kg)
-                                        </th>
-                                        <th className="text-left p-2  text-blue-900 dark:text-blue-100">
-                                          Total Weight (kg)
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {editablePlan.bar_schedule.map(
-                                        (bar, idx) => (
-                                          <tr
-                                            key={idx}
-                                            className="border-b border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                                          >
-                                            <td className="p-2 text-blue-700 dark:text-blue-300 ">
-                                              {bar.bar_type}
-                                            </td>
-                                            <td className="p-2 text-slate-700 dark:text-slate-300">
-                                              {bar.bar_length.toFixed(2)}
-                                            </td>
-                                            <td className="p-2 text-slate-700 dark:text-slate-300">
-                                              {bar.quantity}
-                                            </td>
-                                            <td className="p-2 text-slate-700 dark:text-slate-300">
-                                              {bar.weight_per_meter?.toFixed(
-                                                2,
-                                              ) || "-"}
-                                            </td>
-                                            <td className="p-2 text-slate-700 dark:text-slate-300 ">
-                                              {bar.total_weight?.toFixed(2) ||
-                                                "-"}
-                                            </td>
-                                          </tr>
-                                        ),
-                                      )}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}{/* Doors & Windows by Wall Type - Editable */}
-                              {editablePlan.wallSections && editablePlan.wallSections.length > 0 && (
-                                <div className="mb-6">
-                                  <h4 className=" text-slate-700 dark:text-slate-300 mb-4 flex items-center">
-                                    <DoorOpen className="w-4 h-4 mr-2" />
-                                    Doors & Windows by Wall Type
-                                  </h4>
-                                  <div className="space-y-4">
-                                    {editablePlan.wallSections.map((section, sectionIdx) => (
-                                      <div
-                                        key={sectionIdx}
-                                        className={`p-4 rounded-lg border ${
-                                          section.type === "external"
-                                            ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
-                                            : "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700"
-                                        }`}
-                                      >
-                                        <h5 className={` mb-3 capitalize flex items-center ${
-                                          section.type === "external"
-                                            ? "text-green-900 dark:text-green-100"
-                                            : "text-blue-900 dark:text-blue-100"
-                                        }`}>
-                                          <Building className="w-4 h-4 mr-2" />
-                                          {section.type} Walls
-                                        </h5>
-                                        
-                                        {/* Doors Section */}
-                                        <div className="mb-4">
-                                          <div className="flex items-center justify-between mb-2">
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
-                                              <DoorOpen className="w-3 h-3 mr-1" />
-                                              Doors ({section.doors?.length || 0})
-                                            </p>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => {
-                                                const newDoor: Door = {
-                                                  sizeType: "standard",
-                                                  standardSize: "0.9 × 2.1 m",
+                                    {/* Doors Section */}
+                                    <div className="mb-4">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                                          <DoorOpen className="w-3 h-3 mr-1" />
+                                          Doors ({section.doors?.length || 0})
+                                        </p>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            const newDoor: Door = {
+                                              sizeType: "standard",
+                                              standardSize: "0.9 × 2.1 m",
+                                              price: 0,
+                                              custom: {
+                                                height: "2.1",
+                                                width: "0.9",
+                                                price: 0,
+                                              },
+                                              type: "Flush",
+                                              count: 1,
+                                              wallThickness: 0.2,
+                                              frame: {
+                                                type: "Wood",
+                                                price: 0,
+                                                sizeType: "standard",
+                                                standardSize: "0.9 × 2.1 m",
+                                                height: "2.1",
+                                                width: "0.9",
+                                                custom: {
+                                                  height: "2.1",
+                                                  width: "0.9",
                                                   price: 0,
-                                                  custom: { height: "2.1", width: "0.9", price: 0 },
-                                                  type: "Flush",
-                                                  count: 1,
-                                                  wallThickness: 0.2,
-                                                  frame: {
-                                                    type: "Wood",
-                                                    price: 0,
-                                                    sizeType: "standard",
-                                                    standardSize: "0.9 × 2.1 m",
-                                                    height: "2.1",
-                                                    width: "0.9",
-                                                    custom: { height: "2.1", width: "0.9", price: 0 },
+                                                },
+                                              },
+                                              architrave: {
+                                                selected: {
+                                                  type: "",
+                                                  size: "",
+                                                },
+                                                quantity: 0,
+                                                price: 0,
+                                              },
+                                              quarterRound: {
+                                                selected: {
+                                                  type: "",
+                                                  size: "",
+                                                },
+                                                quantity: 0,
+                                                price: 0,
+                                              },
+                                              ironmongery: {
+                                                hinges: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
                                                   },
-                                                  architrave: {
-                                                    selected: { type: "", size: "" },
-                                                    quantity: 0,
-                                                    price: 0,
-                                                  },
-                                                  quarterRound: {
-                                                    selected: { type: "", size: "" },
-                                                    quantity: 0,
-                                                    price: 0,
-                                                  },
-                                                  ironmongery: {
-                                                    hinges: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    locks: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    handles: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    bolts: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    closers: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                  },
-                                                  transom: {
-                                                    enabled: false,
-                                                    height: "",
-                                                    width: "",
-                                                    quantity: 0,
-                                                    price: 0,
-                                                    glazing: {
-                                                      included: false,
-                                                      glassAreaM2: 0,
-                                                      glassPricePerM2: 0,
-                                                    },
-                                                  },
-                                                };
-                                                setEditablePlan((prev) => {
-                                                  if (!prev) return prev;
-                                                  const updatedSections = [...(prev.wallSections || [])];
-                                                  updatedSections[sectionIdx] = {
-                                                    ...updatedSections[sectionIdx],
-                                                    doors: [...(updatedSections[sectionIdx].doors || []), newDoor],
-                                                  };
-                                                  return { ...prev, wallSections: updatedSections };
-                                                });
-                                              }}
-                                            >
-                                              <Plus className="w-3 h-3 mr-1" />
-                                              Add Door
-                                            </Button>
-                                          </div>
-                                          {section.doors && section.doors.length > 0 ? (
-                                            <div className="space-y-2">
-                                              {section.doors.map((door, doorIdx) => (
-                                                <EditableDoorWindow
-                                                  key={doorIdx}
-                                                  type="door"
-                                                  item={door}
-                                                  onUpdate={(field, value) => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      const updatedDoors = [...(updatedSections[sectionIdx].doors || [])];
-                                                      updatedDoors[doorIdx] = {
-                                                        ...updatedDoors[doorIdx],
-                                                        [field]: value,
-                                                      };
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        doors: updatedDoors,
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  onRemove={() => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        doors: updatedSections[sectionIdx].doors?.filter((_, i) => i !== doorIdx),
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  standardSizes={standardDoorSizes}
-                                                  types={doorTypes}
-                                                  frameTypes={frameTypes}
-                                                />
-                                              ))}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-slate-500 italic">No doors added</p>
-                                          )}
-                                        </div>
-                                        
-                                        {/* Windows Section */}
-                                        <div>
-                                          <div className="flex items-center justify-between mb-2">
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
-                                              <LucideAppWindow className="w-3 h-3 mr-1" />
-                                              Windows ({section.windows?.length || 0})
-                                            </p>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => {
-                                                const newWindow: Window = {
-                                                  sizeType: "standard",
-                                                  standardSize: "1.2 × 1.2 m",
+                                                  quantity: 0,
                                                   price: 0,
-                                                  custom: { height: "1.2", width: "1.2", price: 0 },
-                                                  type: "Clear",
-                                                  count: 1,
-                                                  wallThickness: 0.2,
-                                                  frame: {
-                                                    type: "Aluminum",
-                                                    price: 0,
-                                                    sizeType: "standard",
-                                                    standardSize: "1.2 × 1.2 m",
-                                                    height: "1.2",
-                                                    width: "1.2",
-                                                    custom: { height: "1.2", width: "1.2", price: 0 },
+                                                },
+                                                locks: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
                                                   },
-                                                  ironmongery: {
-                                                    hinges: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    locks: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    handles: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    bolts: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
-                                                    closers: {
-                                                      selected: { type: "", size: "" },
-                                                      quantity: 0,
-                                                      price: 0,
-                                                    },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                handles: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
                                                   },
-                                                  glassType: "Clear",
-                                                  glassThickness: 3,
-                                                  span: 1.2,
-                                                  isGlassUnderSized: false,
-                                                  recommendedGlassThickness: 3,
-                                                  glazing: {
-                                                    glass: {
-                                                      type: "Clear",
-                                                      thickness: 3,
-                                                      quantity: 1,
-                                                      pricePerM2: 0,
-                                                    },
-                                                    putty: {
-                                                      quantity: 0,
-                                                      unit: "m",
-                                                      price: 0,
-                                                    },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                bolts: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
                                                   },
-                                                };
-                                                setEditablePlan((prev) => {
-                                                  if (!prev) return prev;
-                                                  const updatedSections = [...(prev.wallSections || [])];
-                                                  updatedSections[sectionIdx] = {
-                                                    ...updatedSections[sectionIdx],
-                                                    windows: [...(updatedSections[sectionIdx].windows || []), newWindow],
-                                                  };
-                                                  return { ...prev, wallSections: updatedSections };
-                                                });
-                                              }}
-                                            >
-                                              <Plus className="w-3 h-3 mr-1" />
-                                              Add Window
-                                            </Button>
-                                          </div>
-                                          {section.windows && section.windows.length > 0 ? (
-                                            <div className="space-y-2">
-                                              {section.windows.map((window, windowIdx) => (
-                                                <EditableDoorWindow
-                                                  key={windowIdx}
-                                                  type="window"
-                                                  item={window}
-                                                  onUpdate={(field, value) => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      const updatedWindows = [...(updatedSections[sectionIdx].windows || [])];
-                                                      updatedWindows[windowIdx] = {
-                                                        ...updatedWindows[windowIdx],
-                                                        [field]: value,
-                                                      };
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        windows: updatedWindows,
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  onRemove={() => {
-                                                    setEditablePlan((prev) => {
-                                                      if (!prev) return prev;
-                                                      const updatedSections = [...(prev.wallSections || [])];
-                                                      updatedSections[sectionIdx] = {
-                                                        ...updatedSections[sectionIdx],
-                                                        windows: updatedSections[sectionIdx].windows?.filter((_, i) => i !== windowIdx),
-                                                      };
-                                                      return { ...prev, wallSections: updatedSections };
-                                                    });
-                                                  }}
-                                                  standardSizes={standardWindowSizes}
-                                                  types={windowGlassTypes}
-                                                  frameTypes={frameTypes}
-                                                />
-                                              ))}
-                                            </div>
-                                          ) : (
-                                            <p className="text-xs text-slate-500 italic">No windows added</p>
-                                          )}
-                                        </div>
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                closers: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
+                                                  },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                              },
+                                              transom: {
+                                                enabled: false,
+                                                height: "",
+                                                width: "",
+                                                quantity: 0,
+                                                price: 0,
+                                                glazing: {
+                                                  included: false,
+                                                  glassAreaM2: 0,
+                                                  glassPricePerM2: 0,
+                                                },
+                                              },
+                                            };
+                                            setEditablePlan((prev) => {
+                                              if (!prev) return prev;
+                                              const updatedSections = [
+                                                ...(prev.wallSections || []),
+                                              ];
+                                              updatedSections[sectionIdx] = {
+                                                ...updatedSections[sectionIdx],
+                                                doors: [
+                                                  ...(updatedSections[
+                                                    sectionIdx
+                                                  ].doors || []),
+                                                  newDoor,
+                                                ],
+                                              };
+                                              return {
+                                                ...prev,
+                                                wallSections: updatedSections,
+                                              };
+                                            });
+                                          }}
+                                        >
+                                          <Plus className="w-3 h-3 mr-1" />
+                                          Add Door
+                                        </Button>
                                       </div>
-                                    ))}
+                                      {section.doors &&
+                                      section.doors.length > 0 ? (
+                                        <div className="space-y-2">
+                                          {section.doors.map(
+                                            (door, doorIdx) => (
+                                              <EditableDoorWindow
+                                                key={doorIdx}
+                                                type="door"
+                                                item={door}
+                                                onUpdate={(field, value) => {
+                                                  setEditablePlan((prev) => {
+                                                    if (!prev) return prev;
+                                                    const updatedSections = [
+                                                      ...(prev.wallSections ||
+                                                        []),
+                                                    ];
+                                                    const updatedDoors = [
+                                                      ...(updatedSections[
+                                                        sectionIdx
+                                                      ].doors || []),
+                                                    ];
+                                                    updatedDoors[doorIdx] = {
+                                                      ...updatedDoors[doorIdx],
+                                                      [field]: value,
+                                                    };
+                                                    updatedSections[
+                                                      sectionIdx
+                                                    ] = {
+                                                      ...updatedSections[
+                                                        sectionIdx
+                                                      ],
+                                                      doors: updatedDoors,
+                                                    };
+                                                    return {
+                                                      ...prev,
+                                                      wallSections:
+                                                        updatedSections,
+                                                    };
+                                                  });
+                                                }}
+                                                onRemove={() => {
+                                                  setEditablePlan((prev) => {
+                                                    if (!prev) return prev;
+                                                    const updatedSections = [
+                                                      ...(prev.wallSections ||
+                                                        []),
+                                                    ];
+                                                    updatedSections[
+                                                      sectionIdx
+                                                    ] = {
+                                                      ...updatedSections[
+                                                        sectionIdx
+                                                      ],
+                                                      doors: updatedSections[
+                                                        sectionIdx
+                                                      ].doors?.filter(
+                                                        (_, i) => i !== doorIdx,
+                                                      ),
+                                                    };
+                                                    return {
+                                                      ...prev,
+                                                      wallSections:
+                                                        updatedSections,
+                                                    };
+                                                  });
+                                                }}
+                                                standardSizes={
+                                                  standardDoorSizes
+                                                }
+                                                types={doorTypes}
+                                                frameTypes={frameTypes}
+                                              />
+                                            ),
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-slate-500 italic">
+                                          No doors added
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    {/* Windows Section */}
+                                    <div>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center">
+                                          <LucideAppWindow className="w-3 h-3 mr-1" />
+                                          Windows (
+                                          {section.windows?.length || 0})
+                                        </p>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => {
+                                            const newWindow: Window = {
+                                              sizeType: "standard",
+                                              standardSize: "1.2 × 1.2 m",
+                                              price: 0,
+                                              custom: {
+                                                height: "1.2",
+                                                width: "1.2",
+                                                price: 0,
+                                              },
+                                              type: "Clear",
+                                              count: 1,
+                                              wallThickness: 0.2,
+                                              frame: {
+                                                type: "Aluminum",
+                                                price: 0,
+                                                sizeType: "standard",
+                                                standardSize: "1.2 × 1.2 m",
+                                                height: "1.2",
+                                                width: "1.2",
+                                                custom: {
+                                                  height: "1.2",
+                                                  width: "1.2",
+                                                  price: 0,
+                                                },
+                                              },
+                                              ironmongery: {
+                                                hinges: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
+                                                  },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                locks: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
+                                                  },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                handles: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
+                                                  },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                bolts: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
+                                                  },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                                closers: {
+                                                  selected: {
+                                                    type: "",
+                                                    size: "",
+                                                  },
+                                                  quantity: 0,
+                                                  price: 0,
+                                                },
+                                              },
+                                              glassType: "Clear",
+                                              glassThickness: 3,
+                                              span: 1.2,
+                                              isGlassUnderSized: false,
+                                              recommendedGlassThickness: 3,
+                                              glazing: {
+                                                glass: {
+                                                  type: "Clear",
+                                                  thickness: 3,
+                                                  quantity: 1,
+                                                  pricePerM2: 0,
+                                                },
+                                                putty: {
+                                                  quantity: 0,
+                                                  unit: "m",
+                                                  price: 0,
+                                                },
+                                              },
+                                            };
+                                            setEditablePlan((prev) => {
+                                              if (!prev) return prev;
+                                              const updatedSections = [
+                                                ...(prev.wallSections || []),
+                                              ];
+                                              updatedSections[sectionIdx] = {
+                                                ...updatedSections[sectionIdx],
+                                                windows: [
+                                                  ...(updatedSections[
+                                                    sectionIdx
+                                                  ].windows || []),
+                                                  newWindow,
+                                                ],
+                                              };
+                                              return {
+                                                ...prev,
+                                                wallSections: updatedSections,
+                                              };
+                                            });
+                                          }}
+                                        >
+                                          <Plus className="w-3 h-3 mr-1" />
+                                          Add Window
+                                        </Button>
+                                      </div>
+                                      {section.windows &&
+                                      section.windows.length > 0 ? (
+                                        <div className="space-y-2">
+                                          {section.windows.map(
+                                            (window, windowIdx) => (
+                                              <EditableDoorWindow
+                                                key={windowIdx}
+                                                type="window"
+                                                item={window}
+                                                onUpdate={(field, value) => {
+                                                  setEditablePlan((prev) => {
+                                                    if (!prev) return prev;
+                                                    const updatedSections = [
+                                                      ...(prev.wallSections ||
+                                                        []),
+                                                    ];
+                                                    const updatedWindows = [
+                                                      ...(updatedSections[
+                                                        sectionIdx
+                                                      ].windows || []),
+                                                    ];
+                                                    updatedWindows[windowIdx] =
+                                                      {
+                                                        ...updatedWindows[
+                                                          windowIdx
+                                                        ],
+                                                        [field]: value,
+                                                      };
+                                                    updatedSections[
+                                                      sectionIdx
+                                                    ] = {
+                                                      ...updatedSections[
+                                                        sectionIdx
+                                                      ],
+                                                      windows: updatedWindows,
+                                                    };
+                                                    return {
+                                                      ...prev,
+                                                      wallSections:
+                                                        updatedSections,
+                                                    };
+                                                  });
+                                                }}
+                                                onRemove={() => {
+                                                  setEditablePlan((prev) => {
+                                                    if (!prev) return prev;
+                                                    const updatedSections = [
+                                                      ...(prev.wallSections ||
+                                                        []),
+                                                    ];
+                                                    updatedSections[
+                                                      sectionIdx
+                                                    ] = {
+                                                      ...updatedSections[
+                                                        sectionIdx
+                                                      ],
+                                                      windows: updatedSections[
+                                                        sectionIdx
+                                                      ].windows?.filter(
+                                                        (_, i) =>
+                                                          i !== windowIdx,
+                                                      ),
+                                                    };
+                                                    return {
+                                                      ...prev,
+                                                      wallSections:
+                                                        updatedSections,
+                                                    };
+                                                  });
+                                                }}
+                                                standardSizes={
+                                                  standardWindowSizes
+                                                }
+                                                types={windowGlassTypes}
+                                                frameTypes={frameTypes}
+                                              />
+                                            ),
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-slate-500 italic">
+                                          No windows added
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                      <div className="space-y-6 mt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <Label className="">Floors</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={editablePlan.floors}
+                              onChange={(e) =>
+                                setEditablePlan((prev) =>
+                                  prev
+                                    ? {
+                                        ...prev,
+                                        floors: parseInt(e.target.value) || 1,
+                                      }
+                                    : prev,
+                                )
+                              }
+                              className="mt-1 "
+                            />
+                          </div>
+                          <div>
+                            <Label className="">File Name</Label>
+                            <Input
+                              value={editablePlan.file_name || ""}
+                              onChange={(e) =>
+                                setEditablePlan((prev) =>
+                                  prev
+                                    ? { ...prev, file_name: e.target.value }
+                                    : prev,
+                                )
+                              }
+                              className="mt-1  "
+                            />
+                          </div>
+                        </div>
+                        {fileUrl ? (
+                          <div className="space-y-6">
+                            <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
+                              <LucideFileText className="w-10 h-10 text-green-500" />
+                              <p className="text-xl  truncate flex-1">
+                                {fileUrl.split("/").pop() || "Uploaded Plan"}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={handleRemoveFile}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="w-6 h-6" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  downloadFile(
+                                    fileUrl,
+                                    fileUrl.split("/").pop() || "Uploaded Plan",
+                                  )
+                                }
+                                className=""
+                              >
+                                <HardDriveDownload className="w-6 h-6" />
+                              </Button>
+                            </div>
+                            <div className="flex space-x-4">
+                              <Button
+                                variant="outline"
+                                onClick={() =>
+                                  navigate("/quotes/new", {
+                                    state: { quoteData },
+                                  })
+                                }
+                                className="flex-1 text-slate-700 dark:text-slate-200  h-14"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={handleRetry}
+                                variant="secondary"
+                                className="text-slate-700 dark:text-slate-200  h-14"
+                              >
+                                <RefreshCw className="w-6 h-6 mr-2" />
+                                Retry Analysis
+                              </Button>
+                            </div>
+                          </div>
+                        ) : !selectedFile ? (
+                          <div className="space-y-6">
+                            {/* Plan File Upload Section */}
+                            <div>
+                              <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-12 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
+                                <UploadCloud className="w-16 h-16 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                                <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                                  Drag & drop your plan or click to upload
+                                </p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                  Supported formats: JPEG, PNG, PDF, WEBP (Max
+                                  20MB)
+                                </p>
+
+                                <Input
+                                  type="file"
+                                  accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
+                                  onChange={handleFileChange}
+                                  className="hidden"
+                                  id="fileUpload"
+                                />
+
+                                <Label
+                                  htmlFor="fileUpload"
+                                  className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                                >
+                                  📁 Select Plan File
+                                </Label>
+                              </div>
+                            </div>
+
+                            {/* Plan File Status */}
+                            {selectedFile && (
+                              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                  <div>
+                                    <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                                      {selectedFile.name}
+                                    </p>
+                                    <p className="text-xs text-green-600 dark:text-green-400">
+                                      Plan file ready for analysis
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setSelectedFile(null)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <X className="w-5 h-5" />
+                                </Button>
+                              </div>
+                            )}
+
+                            {/* BBS File Upload Section (Optional) */}
+                            <div>
+                              {/* Existing BBS File Display */}
+                              {bbsFileUrl && (
+                                <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                                      <div>
+                                        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                                          {bbsFileUrl.split("/").pop() ||
+                                            "BBS File"}
+                                        </p>
+                                        <p className="text-xs text-amber-600 dark:text-amber-400">
+                                          Existing BBS file ready for use
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          downloadFile(
+                                            bbsFileUrl,
+                                            bbsFileUrl.split("/").pop() ||
+                                              "BBS File",
+                                          )
+                                        }
+                                        className="text-amber-600 hover:text-amber-700 dark:text-amber-400"
+                                      >
+                                        <HardDriveDownload className="w-5 h-5" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleRemoveBBSFile}
+                                        className="text-red-500 hover:text-red-700"
+                                      >
+                                        <Trash2 className="w-5 h-5" />
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               )}
 
-                        <div className="space-y-6 mt-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                              <Label className="">Floors</Label>
-                              <Input
-                                type="number"
-                                min="1"
-                                value={editablePlan.floors}
-                                onChange={(e) =>
-                                  setEditablePlan((prev) =>
-                                    prev
-                                      ? {
-                                          ...prev,
-                                          floors: parseInt(e.target.value) || 1,
-                                        }
-                                      : prev,
-                                  )
-                                }
-                                className="mt-1 "
-                              />
-                            </div>
-                            <div>
-                              <Label className="">File Name</Label>
-                              <Input
-                                value={editablePlan.file_name || ""}
-                                onChange={(e) =>
-                                  setEditablePlan((prev) =>
-                                    prev
-                                      ? { ...prev, file_name: e.target.value }
-                                      : prev,
-                                  )
-                                }
-                                className="mt-1  "
-                              />
-                            </div>
-                          </div>
-                          {fileUrl ? (
-                            <div className="space-y-6">
-                              <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                                <LucideFileText className="w-10 h-10 text-green-500" />
-                                <p className="text-xl  truncate flex-1">
-                                  {fileUrl.split("/").pop() || "Uploaded Plan"}
-                                </p>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={handleRemoveFile}
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <Trash2 className="w-6 h-6" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    downloadFile(
-                                      fileUrl,
-                                      fileUrl.split("/").pop() ||
-                                        "Uploaded Plan",
-                                    )
-                                  }
-                                  className=""
-                                >
-                                  <HardDriveDownload className="w-6 h-6" />
-                                </Button>
-                              </div>
-                              <div className="flex space-x-4">
-                                <Button
-                                  variant="outline"
-                                  onClick={() =>
-                                    navigate("/quotes/new", {
-                                      state: { quoteData },
-                                    })
-                                  }
-                                  className="flex-1 text-slate-700 dark:text-slate-200  h-14"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  onClick={handleRetry}
-                                  variant="secondary"
-                                  className="text-slate-700 dark:text-slate-200  h-14"
-                                >
-                                  <RefreshCw className="w-6 h-6 mr-2" />
-                                  Retry Analysis
-                                </Button>
-                              </div>
-                            </div>
-                          ) : !selectedFile ? (
-                            <div className="space-y-6">
-                              {/* Plan File Upload Section */}
-                              <div>
-                                <div className="border-2 border-dashed border-blue-300 dark:border-blue-500 rounded-2xl p-12 text-center transition-all hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl bg-blue-50/30 dark:bg-primary/20">
-                                  <UploadCloud className="w-16 h-16 mx-auto mb-4 text-blue-400 dark:text-blue-300" />
+                              {/* New BBS File Upload */}
+                              {!bbsFileUrl ? (
+                                <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
+                                  <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
                                   <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                                    Drag & drop your plan or click to upload
+                                    Upload BBS for precise rebar calculations
                                   </p>
                                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                                    Supported formats: JPEG, PNG, PDF, WEBP (Max
-                                    20MB)
+                                    Supported formats: PDF, Images, Spreadsheet
+                                    (Max 20MB)
                                   </p>
 
                                   <Input
                                     type="file"
-                                    accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
-                                    onChange={handleFileChange}
+                                    accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                                    onChange={handleBBSFileChange}
                                     className="hidden"
-                                    id="fileUpload"
+                                    id="bbsFileUpload"
                                   />
 
                                   <Label
-                                    htmlFor="fileUpload"
+                                    htmlFor="bbsFileUpload"
                                     className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                                   >
-                                    📁 Select Plan File
+                                    📊 Select BBS File
                                   </Label>
                                 </div>
-                              </div>
+                              ) : (
+                                <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-8 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
+                                  <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-4">
+                                    Or upload a new BBS file to replace the
+                                    existing one
+                                  </p>
+                                  <Input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                                    onChange={handleBBSFileChange}
+                                    className="hidden"
+                                    id="bbsFileUpload"
+                                  />
 
-                              {/* Plan File Status */}
-                              {selectedFile && (
-                                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between">
+                                  <Label
+                                    htmlFor="bbsFileUpload"
+                                    className="cursor-pointer glass-button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm "
+                                  >
+                                    📊 Replace BBS File
+                                  </Label>
+                                </div>
+                              )}
+
+                              {/* New BBS File Status */}
+                              {bbsFile && (
+                                <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
                                   <div className="flex items-center gap-3">
-                                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                                    <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                                     <div>
-                                      <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                                        {selectedFile.name}
+                                      <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                                        {bbsFile.name}
                                       </p>
-                                      <p className="text-xs text-green-600 dark:text-green-400">
-                                        Plan file ready for analysis
+                                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                                        New BBS file ready to upload
                                       </p>
                                     </div>
                                   </div>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => setSelectedFile(null)}
+                                    onClick={() => setBbsFile(null)}
                                     className="text-red-500 hover:text-red-700"
                                   >
                                     <X className="w-5 h-5" />
                                   </Button>
                                 </div>
                               )}
-
-                              {/* BBS File Upload Section (Optional) */}
-                              <div>
-                                {/* Existing BBS File Display */}
-                                {bbsFileUrl && (
-                                  <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                                        <div>
-                                          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                                            {bbsFileUrl.split("/").pop() ||
-                                              "BBS File"}
-                                          </p>
-                                          <p className="text-xs text-amber-600 dark:text-amber-400">
-                                            Existing BBS file ready for use
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() =>
-                                            downloadFile(
-                                              bbsFileUrl,
-                                              bbsFileUrl.split("/").pop() ||
-                                                "BBS File",
-                                            )
-                                          }
-                                          className="text-amber-600 hover:text-amber-700 dark:text-amber-400"
-                                        >
-                                          <HardDriveDownload className="w-5 h-5" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={handleRemoveBBSFile}
-                                          className="text-red-500 hover:text-red-700"
-                                        >
-                                          <Trash2 className="w-5 h-5" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* New BBS File Upload */}
-                                {!bbsFileUrl ? (
-                                  <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-12 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
-                                    <BarChart3 className="w-16 h-16 mx-auto mb-4 text-amber-400 dark:text-amber-300" />
-                                    <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                                      Upload BBS for precise rebar calculations
-                                    </p>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                                      Supported formats: PDF, Images,
-                                      Spreadsheet (Max 20MB)
-                                    </p>
-
-                                    <Input
-                                      type="file"
-                                      accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
-                                      onChange={handleBBSFileChange}
-                                      className="hidden"
-                                      id="bbsFileUpload"
-                                    />
-
-                                    <Label
-                                      htmlFor="bbsFileUpload"
-                                      className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
-                                    >
-                                      📊 Select BBS File
-                                    </Label>
-                                  </div>
-                                ) : (
-                                  <div className="border-2 border-dashed border-amber-300 dark:border-amber-600 rounded-2xl p-8 text-center transition-all hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-xl bg-amber-50/30 dark:bg-amber-950/20">
-                                    <p className="text-sm text-slate-600 dark:text-slate-300 font-medium mb-4">
-                                      Or upload a new BBS file to replace the
-                                      existing one
-                                    </p>
-                                    <Input
-                                      type="file"
-                                      accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
-                                      onChange={handleBBSFileChange}
-                                      className="hidden"
-                                      id="bbsFileUpload"
-                                    />
-
-                                    <Label
-                                      htmlFor="bbsFileUpload"
-                                      className="cursor-pointer glass-button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm "
-                                    >
-                                      📊 Replace BBS File
-                                    </Label>
-                                  </div>
-                                )}
-
-                                {/* New BBS File Status */}
-                                {bbsFile && (
-                                  <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                      <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                                      <div>
-                                        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                                          {bbsFile.name}
-                                        </p>
-                                        <p className="text-xs text-amber-600 dark:text-amber-400">
-                                          New BBS file ready to upload
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => setBbsFile(null)}
-                                      className="text-red-500 hover:text-red-700"
-                                    >
-                                      <X className="w-5 h-5" />
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Start Analysis Button */}
-                              {selectedFile && (
-                                <Button
-                                  onClick={startAnalysis}
-                                  disabled={
-                                    (currentStep as string) === "analyzing"
-                                  }
-                                  className="w-full font-bold py-6 h-auto text-lg shadow-lg hover:shadow-xl transition-all"
-                                >
-                                  {(currentStep as string) === "analyzing" ? (
-                                    <>
-                                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                      Analyzing Plan...
-                                    </>
-                                  ) : (
-                                    <>🚀 Start Analysis</>
-                                  )}
-                                </Button>
-                              )}
-
-                              {/* Show button to use existing file if available */}
-                              {fileUrl && previewUrl && (
-                                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                    Or use your existing plan file
-                                  </p>
-                                  <Button
-                                    onClick={handleUseExistingFile}
-                                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
-                                  >
-                                    <Eye className="w-5 h-5 mr-2" />
-                                    Use Existing Plan File
-                                  </Button>
-                                </div>
-                              )}
                             </div>
-                          ) : null}
 
-                          <div className="flex space-x-4 pt-8">
-                            <Button
-                              variant="outline"
-                              onClick={() => navigate("/quotes/new")}
-                              className="flex-1 dark:hover:bg-primary hover:bg-blue-700 hover:text-white h-14"
-                            >
-                              Cancel
-                            </Button>
-
-                            {editablePlan &&
-                            selectedFile &&
-                            currentStep === "complete" ? (
+                            {/* Start Analysis Button */}
+                            {selectedFile && (
                               <Button
-                                onClick={handleDone}
-                                disabled={false}
-                                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 shadow-lg transition-all"
+                                onClick={startAnalysis}
+                                disabled={
+                                  (currentStep as string) === "analyzing"
+                                }
+                                className="w-full font-bold py-6 h-auto text-lg shadow-lg hover:shadow-xl transition-all"
                               >
-                                {currentStep !== "complete" ? (
+                                {(currentStep as string) === "analyzing" ? (
                                   <>
-                                    <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                                    Processing...
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    Analyzing Plan...
                                   </>
                                 ) : (
-                                  <>
-                                    <LucideThumbsUp className="w-6 h-6 mr-3" />
-                                    Done
-                                  </>
+                                  <>🚀 Start Analysis</>
                                 )}
                               </Button>
-                            ) : null}
+                            )}
+
+                            {/* Show button to use existing file if available */}
+                            {fileUrl && previewUrl && (
+                              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                                  Or use your existing plan file
+                                </p>
+                                <Button
+                                  onClick={handleUseExistingFile}
+                                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
+                                >
+                                  <Eye className="w-5 h-5 mr-2" />
+                                  Use Existing Plan File
+                                </Button>
+                              </div>
+                            )}
                           </div>
+                        ) : null}
+
+                        <div className="flex space-x-4 pt-8">
+                          <Button
+                            variant="outline"
+                            onClick={() => navigate("/quotes/new")}
+                            className="flex-1 dark:hover:bg-primary hover:bg-blue-700 hover:text-white h-14"
+                          >
+                            Cancel
+                          </Button>
+
+                          {editablePlan &&
+                          selectedFile &&
+                          currentStep === "complete" ? (
+                            <Button
+                              onClick={handleDone}
+                              disabled={false}
+                              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-primary hover:to-indigo-700 font-bold  h-14 shadow-lg transition-all"
+                            >
+                              {currentStep !== "complete" ? (
+                                <>
+                                  <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <LucideThumbsUp className="w-6 h-6 mr-3" />
+                                  Done
+                                </>
+                              )}
+                            </Button>
+                          ) : null}
                         </div>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Plan File Upload Section */}
-                    <div>
-                      <div
-                        ref={planDropZoneRef}
-                        onDragEnter={handlePlanDragEnter}
-                        onDragLeave={handlePlanDragLeave}
-                        onDragOver={handlePlanDragOver}
-                        onDrop={handlePlanDrop}
-                        className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
-                          planDragActive
-                            ? "border-blue-500 bg-blue-100 dark:bg-blue-900/40 shadow-lg"
-                            : "border-blue-300 dark:border-blue-500 bg-blue-50/30 dark:bg-primary/20 hover:border-blue-500 dark:hover:border-blue-400"
-                        }`}
-                      >
-                        <UploadCloud className={`w-16 h-16 mx-auto mb-4 transition-colors ${
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Plan File Upload Section */}
+                  <div>
+                    <div
+                      ref={planDropZoneRef}
+                      onDragEnter={handlePlanDragEnter}
+                      onDragLeave={handlePlanDragLeave}
+                      onDragOver={handlePlanDragOver}
+                      onDrop={handlePlanDrop}
+                      className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
+                        planDragActive
+                          ? "border-blue-500 bg-blue-100 dark:bg-blue-900/40 shadow-lg"
+                          : "border-blue-300 dark:border-blue-500 bg-blue-50/30 dark:bg-primary/20 hover:border-blue-500 dark:hover:border-blue-400"
+                      }`}
+                    >
+                      <UploadCloud
+                        className={`w-16 h-16 mx-auto mb-4 transition-colors ${
                           planDragActive
                             ? "text-blue-600 dark:text-blue-300 animate-bounce"
                             : "text-blue-400 dark:text-blue-300"
-                        }`} />
-                        <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                          {planDragActive ? "Drop your plan file here" : "Drag & drop your plan or click to upload"}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                          Supported formats: JPEG, PNG, PDF, WEBP (Max 20MB)
-                        </p>
+                        }`}
+                      />
+                      <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                        {planDragActive
+                          ? "Drop your plan file here"
+                          : "Drag & drop your plan or click to upload"}
+                      </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                        Supported formats: JPEG, PNG, PDF, WEBP (Max 20MB)
+                      </p>
 
-                        <Input
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          id="fileUpload"
-                        />
+                      <Input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.pdf,.dwg,.dxf,.rvt,.ifc,.pln,.zip,.csv,.xlsx,.txt,.webp"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        id="fileUpload"
+                      />
 
-                        <Label
-                          htmlFor="fileUpload"
-                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
-                        >
-                          Select Plan File
-                        </Label>
+                      <Label
+                        htmlFor="fileUpload"
+                        className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                      >
+                        Select Plan File
+                      </Label>
+                    </div>
+                  </div>
+
+                  {/* Plan File Status */}
+                  {selectedFile && (
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <div>
+                          <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                            {selectedFile.name}
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            Plan file ready for analysis
+                          </p>
+                        </div>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedFile(null)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* BBS File Upload Section (Optional) */}
+                  <div>
+                    <div
+                      ref={bbsDropZoneRef}
+                      onDragEnter={handleBBSDragEnter}
+                      onDragLeave={handleBBSDragLeave}
+                      onDragOver={handleBBSDragOver}
+                      onDrop={handleBBSDrop}
+                      className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
+                        bbsDragActive
+                          ? "border-amber-400 bg-amber-100 dark:bg-amber-900/40 shadow-lg"
+                          : "border-amber-300 dark:border-amber-600 bg-amber-50/30 dark:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500"
+                      }`}
+                    >
+                      <BarChart3
+                        className={`w-16 h-16 mx-auto mb-4 transition-colors ${
+                          bbsDragActive
+                            ? "text-amber-600 dark:text-amber-300 animate-bounce"
+                            : "text-amber-400 dark:text-amber-300"
+                        }`}
+                      />
+                      <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
+                        {bbsDragActive
+                          ? "Drop your BBS file here"
+                          : "Upload BBS for precise rebar calculations (Optional)"}
+                      </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                        Supported formats: PDF, Images, Spreadsheet (Max 20MB)
+                      </p>
+
+                      <Input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
+                        onChange={handleBBSFileChange}
+                        className="hidden"
+                        id="bbsFileUpload2"
+                      />
+
+                      <Label
+                        htmlFor="bbsFileUpload2"
+                        className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                      >
+                        📊 Select BBS File
+                      </Label>
                     </div>
 
-                    {/* Plan File Status */}
-                    {selectedFile && (
-                      <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 flex items-center justify-between">
+                    {/* BBS File Status */}
+                    {bbsFile && (
+                      <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                          <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                           <div>
-                            <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                              {selectedFile.name}
+                            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                              {bbsFile.name}
                             </p>
-                            <p className="text-xs text-green-600 dark:text-green-400">
-                              Plan file ready for analysis
+                            <p className="text-xs text-amber-600 dark:text-amber-400">
+                              BBS file ready for analysis
                             </p>
                           </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelectedFile(null)}
+                          onClick={() => setBbsFile(null)}
                           className="text-red-500 hover:text-red-700"
                         >
-                          <Trash2 className="w-5 h-5" />
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* BBS File Upload Section (Optional) */}
-                    <div>
-                      <div
-                        ref={bbsDropZoneRef}
-                        onDragEnter={handleBBSDragEnter}
-                        onDragLeave={handleBBSDragLeave}
-                        onDragOver={handleBBSDragOver}
-                        onDrop={handleBBSDrop}
-                        className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
-                          bbsDragActive
-                            ? "border-amber-400 bg-amber-100 dark:bg-amber-900/40 shadow-lg"
-                            : "border-amber-300 dark:border-amber-600 bg-amber-50/30 dark:bg-amber-950/20 hover:border-amber-400 dark:hover:border-amber-500"
-                        }`}
-                      >
-                        <BarChart3 className={`w-16 h-16 mx-auto mb-4 transition-colors ${
-                          bbsDragActive
-                            ? "text-amber-600 dark:text-amber-300 animate-bounce"
-                            : "text-amber-400 dark:text-amber-300"
-                        }`} />
-                        <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
-                          {bbsDragActive ? "Drop your BBS file here" : "Upload BBS for precise rebar calculations (Optional)"}
-                        </p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                          Supported formats: PDF, Images, Spreadsheet (Max 20MB)
-                        </p>
-
-                        <Input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv"
-                          onChange={handleBBSFileChange}
-                          className="hidden"
-                          id="bbsFileUpload2"
-                        />
-
-                        <Label
-                          htmlFor="bbsFileUpload2"
-                          className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
-                        >
-                          📊 Select BBS File
-                        </Label>
-                      </div>
-
-                      {/* BBS File Status */}
-                      {bbsFile && (
-                        <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle2 className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                            <div>
-                              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                                {bbsFile.name}
-                              </p>
-                              <p className="text-xs text-amber-600 dark:text-amber-400">
-                                BBS file ready for analysis
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setBbsFile(null)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="w-5 h-5" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Start Analysis Button */}
-                    {selectedFile && (
-                      <Button
-                        onClick={startAnalysis}
-                        disabled={(currentStep as string) === "analyzing"}
-                        className="w-full font-bold py-6 h-auto text-lg  shadow-lg hover:shadow-xl transition-all"
-                      >
-                        {(currentStep as string) === "analyzing" ? (
-                          <>
-                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Analyzing Plan...
-                          </>
-                        ) : (
-                          <>🚀 Start Analysis</>
-                        )}
-                      </Button>
-                    )}
-
-                    {/* Show button to use existing file if available */}
-                    {fileUrl && previewUrl && (
-                      <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                          Or use your existing plan file
-                        </p>
-                        <Button
-                          onClick={handleUseExistingFile}
-                          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
-                        >
-                          <Eye className="w-5 h-5 mr-2" />
-                          Use Existing Plan File
+                          <X className="w-5 h-5" />
                         </Button>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+
+                  {/* Start Analysis Button */}
+                  {selectedFile && (
+                    <Button
+                      onClick={startAnalysis}
+                      disabled={(currentStep as string) === "analyzing"}
+                      className="w-full font-bold py-6 h-auto text-lg  shadow-lg hover:shadow-xl transition-all"
+                    >
+                      {(currentStep as string) === "analyzing" ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Analyzing Plan...
+                        </>
+                      ) : (
+                        <>🚀 Start Analysis</>
+                      )}
+                    </Button>
+                  )}
+
+                  {/* Show button to use existing file if available */}
+                  {fileUrl && previewUrl && (
+                    <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Or use your existing plan file
+                      </p>
+                      <Button
+                        onClick={handleUseExistingFile}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
+                      >
+                        <Eye className="w-5 h-5 mr-2" />
+                        Use Existing Plan File
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>
@@ -2852,7 +3006,9 @@ function EditableDoorWindow({
           onValueChange={(value) => onUpdate("type", value)}
         >
           <SelectTrigger className="h-9 text-xs">
-            <SelectValue placeholder={type === "door" ? "Door Type" : "Glass Type"} />
+            <SelectValue
+              placeholder={type === "door" ? "Door Type" : "Glass Type"}
+            />
           </SelectTrigger>
           <SelectContent>
             {types.map((t) => (
@@ -2875,14 +3031,16 @@ function EditableDoorWindow({
 
         {/* Price */}
         {item.sizeType !== "standard" && (
-        <Input
-          placeholder="Price (Ksh)"
-          type="number"
-          min="0"
-          className="h-9 text-xs"
-          value={item.price || ""}
-          onChange={(e) => onUpdate("price", parseFloat(e.target.value) || undefined)}
-        />
+          <Input
+            placeholder="Price (Ksh)"
+            type="number"
+            min="0"
+            className="h-9 text-xs"
+            value={item.custom.price || ""}
+            onChange={(e) =>
+              onUpdate("price", parseFloat(e.target.value) || undefined)
+            }
+          />
         )}
 
         {/* Remove Button */}

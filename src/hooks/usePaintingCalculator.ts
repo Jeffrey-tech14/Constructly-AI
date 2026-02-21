@@ -172,7 +172,7 @@ export default function usePaintingCalculator({
     if (onPaintingsChange && paintings.length > 0) {
       onPaintingsChange(paintings);
     }
-  }, [paintings, onPaintingsChange]);
+  }, [paintings]); // Only depend on paintings data, not the callback function
 
   // Auto-initialize painting when location and surfaceArea are provided
   useEffect(() => {
@@ -226,7 +226,14 @@ export default function usePaintingCalculator({
         onPaintingsChange([calculated]);
       }
     }
-  }, [location, surfaceArea, autoInitialize, paintings.length, paintingPrices, finishesWastage, onPaintingsChange]);
+  }, [
+    location,
+    surfaceArea,
+    autoInitialize,
+    paintings.length,
+    paintingPrices,
+    finishesWastage,
+  ]);
 
   /**
    * Create a new painting specification

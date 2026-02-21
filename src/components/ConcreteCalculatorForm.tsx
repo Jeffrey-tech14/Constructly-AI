@@ -2167,9 +2167,8 @@ export default function ConcreteCalculatorForm({
 
             {renderWaterproofing(row)}
 
-            {/* Blinding, Maram & Backfill - Only for Slabs */}
-            {(row.element === "slab" ||
-              row.element === "paving") && (
+            {/* Backfill - Only for Slabs & Paving */}
+            {(row.element === "slab" || row.element === "paving") && (
               <div className="space-y-4">
                 {/* Back Fill */}
                 <div className="space-y-2 p-3 rounded-md">
@@ -2202,56 +2201,6 @@ export default function ConcreteCalculatorForm({
                       min="0.05"
                       max="1"
                     />
-                  )}
-                </div>
-                {/* Blinding Section */}
-                <div className="space-y-2 p-3 rounded-md">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`blinding-${row.id}`}
-                      checked={row.hasBlinding || false}
-                      onCheckedChange={(checked) =>
-                        updateRow(row.id, "hasBlinding", checked === true)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <Label
-                      htmlFor={`blinding-${row.id}`}
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Concrete Blinding (1:4:8)
-                    </Label>
-                  </div>
-
-                  {row.hasBlinding && (
-                    <div className="grid sm:grid-cols-3 gap-2 ml-6">
-                      <Input
-                        type="number"
-                        value={row.blindingDepth || "0.05"}
-                        onChange={(e) =>
-                          updateRow(row.id, "blindingDepth", e.target.value)
-                        }
-                        placeholder="Depth (m)"
-                        step="0.01"
-                        min="0.01"
-                        max="0.5"
-                      />
-                      <Select
-                        value={row.blindingMix || "1:4:8"}
-                        onValueChange={(value) =>
-                          updateRow(row.id, "blindingMix", value)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1:3:6">1:3:6</SelectItem>
-                          <SelectItem value="1:4:8">1:4:8</SelectItem>
-                          <SelectItem value="1:2:4">1:2:4</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
                   )}
                 </div>
               </div>
@@ -2349,6 +2298,57 @@ export default function ConcreteCalculatorForm({
                 </div> */}
 
                 {renderSteppedFoundation(row)}
+
+                {/* Concrete Blinding Section */}
+                <div className="space-y-2 p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`blinding-${row.id}`}
+                      checked={row.hasBlinding || false}
+                      onCheckedChange={(checked) =>
+                        updateRow(row.id, "hasBlinding", checked === true)
+                      }
+                      className="w-4 h-4"
+                    />
+                    <Label
+                      htmlFor={`blinding-${row.id}`}
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Concrete Blinding (1:4:8)
+                    </Label>
+                  </div>
+
+                  {row.hasBlinding && (
+                    <div className="grid sm:grid-cols-3 gap-2 ml-6">
+                      <Input
+                        type="number"
+                        value={row.blindingDepth || "0.05"}
+                        onChange={(e) =>
+                          updateRow(row.id, "blindingDepth", e.target.value)
+                        }
+                        placeholder="Depth (m)"
+                        step="0.01"
+                        min="0.01"
+                        max="0.5"
+                      />
+                      <Select
+                        value={row.blindingMix || "1:4:8"}
+                        onValueChange={(value) =>
+                          updateRow(row.id, "blindingMix", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1:3:6">1:3:6</SelectItem>
+                          <SelectItem value="1:4:8">1:4:8</SelectItem>
+                          <SelectItem value="1:2:4">1:2:4</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

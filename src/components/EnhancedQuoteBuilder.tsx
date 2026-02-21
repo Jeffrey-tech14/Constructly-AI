@@ -132,9 +132,7 @@ import WallingCalculator from "./WallingCalculator";
 import InternalFinishesCalculator from "./InternalFinishesCalculator";
 import ExternalFinishesCalculator from "./ExternalFinishesCalculator";
 import CeilingCalculator from "./CeilingCalculator";
-import {
-  RoofStructure,
-} from "@/hooks/useRoofingCalculator";
+import { RoofStructure } from "@/hooks/useRoofingCalculator";
 import {
   FinishCategory,
   FinishElement,
@@ -152,15 +150,12 @@ import DoorsWindowsEditor from "./DoorsWindowsEditor";
 import EquipmentSelector from "./EquipmentSelector";
 import ServicesSelector from "./ServicesSelector";
 import SubcontractorsSelector from "./SubcontractorsSelector";
-import WardrobesCalculator, { WardrobeItem } from "./WardrobesCalculator";
+import KitchenAndWardrobesCalculator, {
+  WardrobeItem,
+} from "./KitchenAndWardrobesCalculator";
+import DoorWindowPaintCalculator from "./DoorWindowPaintCalculator";
 import FinishesCalculator from "./OtherFinishes";
 import OtherFinishesCalculator from "./OtherFinishes";
-import CountertopsCalculator from "./CountertopsCalculator";
-// RISA Color Palette
-const RISA_BLUE = "#015B97";
-const RISA_LIGHT_BLUE = "#3288e6";
-const RISA_WHITE = "#ffffff";
-const RISA_DARK_TEXT = "#2D3748";
 const EnhancedQuoteBuilder = ({ quote }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -233,8 +228,9 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   const [loading, setLoading] = useState(true);
   const [boqData, setBoqData] = useState<BOQSection[]>([]);
   const [preliminaries, setPreliminaries] = useState<PrelimSection[]>([]);
-  const [wallingFinishesTab, setWallingFinishesTab] = useState("internalFinishes");
-  const [otherFinishesTab, setOtherFinishesTab] = useState("wardrobes");
+  const [wallingFinishesTab, setWallingFinishesTab] =
+    useState("internalFinishes");
+  const [otherFinishesTab, setOtherFinishesTab] = useState("kitchen-wardrobes");
 
   // Tier limit checking removed - now using per-quote payment model
   // Each quote requires a 1000 KSH payment for access
@@ -338,6 +334,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     electrical_systems: [],
     plumbing_systems: [],
     wardrobes_cabinets: [],
+    doorWindowPaints: [],
     finishes: [],
     countertops: [],
     roof_structures: [],
@@ -385,11 +382,11 @@ const EnhancedQuoteBuilder = ({ quote }) => {
       ...mapWallDimensionsToGeometry(wallDims),
       internalWallAreaM2: calculateInternalWallArea(
         wallDims.internalWallPerimiter,
-        wallDims.internalWallHeight
+        wallDims.internalWallHeight,
       ),
       externalWallAreaM2: calculateExternalWallArea(
         wallDims.externalWallPerimiter,
-        wallDims.externalWallHeight
+        wallDims.externalWallHeight,
       ),
     };
     setQuoteData((prev) => ({ ...prev, geometry: newGeometry }));
@@ -413,7 +410,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     const flooringAreas = calculateFlooringAreas(
       slabArea,
       externalPerimeter,
-      quoteData.wallDimensions.externalWallHeight
+      quoteData.wallDimensions.externalWallHeight,
     );
 
     const newGeometry = {
@@ -451,7 +448,8 @@ const EnhancedQuoteBuilder = ({ quote }) => {
    */
   const handleFinishesUpdate = useCallback(
     (updatedFinishes: FinishElement[]) => {
-      const category = updatedFinishes.length > 0 ? updatedFinishes[0]?.category : null;
+      const category =
+        updatedFinishes.length > 0 ? updatedFinishes[0]?.category : null;
 
       if (category) {
         // Merge: remove old items from this category, keep all other categories
@@ -470,7 +468,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
         }));
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -647,7 +645,10 @@ const EnhancedQuoteBuilder = ({ quote }) => {
   });
 
   // Helper function to enrich window with all properties
-  const enrichWindowWithDefaults = (window: any, wallThickness: number = 0.2) => ({
+  const enrichWindowWithDefaults = (
+    window: any,
+    wallThickness: number = 0.2,
+  ) => ({
     sizeType: window.sizeType || "standard",
     standardSize: window.standardSize || "1.2 × 1.2 m",
     price: window.price || 0,
@@ -684,31 +685,30 @@ const EnhancedQuoteBuilder = ({ quote }) => {
     },
     ironmongery: window.ironmongery || {
       hinges: {
-  selected: { type: "butt-hinge", size: "100mm" },
-  quantity: 3,
-  price: 0, // approx 300 each
-},
-locks: {
-  selected: { type: "mortice-lock", size: "3-lever" },
-  quantity: 1,
-  price: 0,
-},
-handles: {
-  selected: { type: "lever-handle", size: "standard" },
-  quantity: 1,
-  price: 0,
-},
-bolts: {
-  selected: { type: "tower-bolt", size: "150mm" },
-  quantity: 1,
-  price: 0,
-},
-closers: {
-  selected: { type: "", size: "" },
-  quantity: 0,
-  price: 0,
-},
-
+        selected: { type: "butt-hinge", size: "100mm" },
+        quantity: 3,
+        price: 0, // approx 300 each
+      },
+      locks: {
+        selected: { type: "mortice-lock", size: "3-lever" },
+        quantity: 1,
+        price: 0,
+      },
+      handles: {
+        selected: { type: "lever-handle", size: "standard" },
+        quantity: 1,
+        price: 0,
+      },
+      bolts: {
+        selected: { type: "tower-bolt", size: "150mm" },
+        quantity: 1,
+        price: 0,
+      },
+      closers: {
+        selected: { type: "", size: "" },
+        quantity: 0,
+        price: 0,
+      },
     },
     glassType: window.glassType || "Clear",
     glassThickness: window.glassThickness || 3,
@@ -872,12 +872,7 @@ closers: {
                     length:
                       extractedPlan.wallDimensions.externalWallPerimiter || 0,
                     width: externalThickness,
-                    height:
-                      extractedPlan.foundationDetails?.find(
-                        (f: any) => f.foundationType === "strip-footing",
-                      )?.wallHeight ||
-                      structure.height ||
-                      0,
+                    height: externalThickness,
                     slabArea: groundFloorSlabArea,
                   },
                   {
@@ -887,12 +882,7 @@ closers: {
                     length:
                       extractedPlan.wallDimensions.internalWallPerimiter || 0,
                     width: internalThickness,
-                    height:
-                      extractedPlan.foundationDetails?.find(
-                        (f: any) => f.foundationType === "strip-footing",
-                      )?.wallHeight ||
-                      structure.height ||
-                      0,
+                    height: internalThickness,
                     slabArea: groundFloorSlabArea,
                   },
                 ];
@@ -1004,7 +994,7 @@ closers: {
                   meshGrade: rebar.meshGrade || "A142",
                   meshSheetWidth: rebar.meshSheetWidth || "2.4",
                   meshSheetLength: rebar.meshSheetLength || "4.8",
-                  meshLapLength: rebar.meshLapLength/1000 || "0.3",
+                  meshLapLength: rebar.meshLapLength / 1000 || "0.3",
 
                   // Footing-specific fields
                   footingType: rebar.footingType || "strip",
@@ -1295,61 +1285,66 @@ closers: {
         // Finishes (category-based structure)
         finishes_calculations: extractedPlan.finishes_calculations
           ? {
-              flooring: extractedPlan.finishes_calculations.flooring?.map(
-                (finish: any, index: number) => ({
-                  id: finish.id || `flooring-${index}`,
-                  category: "flooring" as const,
-                  material: finish.material || "",
-                  area: parseFloat(finish.area as any) || 0,
-                  quantity: parseFloat(finish.quantity as any) || 1,
-                  unit: finish.unit || "m²",
-                  location: finish.location || "Unknown",
-                })
-              ) || [],
-              ceiling: extractedPlan.finishes_calculations.ceiling?.map(
-                (finish: any, index: number) => ({
-                  id: finish.id || `ceiling-${index}`,
-                  category: "ceiling" as const,
-                  material: finish.material || "",
-                  area: parseFloat(finish.area as any) || 0,
-                  quantity: parseFloat(finish.quantity as any) || 1,
-                  unit: finish.unit || "m²",
-                  location: finish.location || "Unknown",
-                })
-              ) || [],
-              "wall-finishes": extractedPlan.finishes_calculations[
-                "wall-finishes"
-              ]?.map((finish: any, index: number) => ({
-                id: finish.id || `wall-finishes-${index}`,
-                category: "wall-finishes" as const,
-                material: finish.material || "",
-                area: parseFloat(finish.area as any) || 0,
-                quantity: parseFloat(finish.quantity as any) || 1,
-                unit: finish.unit || "m²",
-                location: finish.location || "Unknown",
-              })) || [],
-              joinery: extractedPlan.finishes_calculations.joinery?.map(
-                (finish: any, index: number) => ({
-                  id: finish.id || `joinery-${index}`,
-                  category: "joinery" as const,
-                  material: finish.material || "",
-                  area: parseFloat(finish.area as any) || 0,
-                  quantity: parseFloat(finish.quantity as any) || 1,
-                  unit: finish.unit || "m²",
-                  location: finish.location || "Unknown",
-                })
-              ) || [],
-              external: extractedPlan.finishes_calculations.external?.map(
-                (finish: any, index: number) => ({
-                  id: finish.id || `external-${index}`,
-                  category: "external" as const,
-                  material: finish.material || "",
-                  area: parseFloat(finish.area as any) || 0,
-                  quantity: parseFloat(finish.quantity as any) || 1,
-                  unit: finish.unit || "m²",
-                  location: finish.location || "Unknown",
-                })
-              ) || [],
+              flooring:
+                extractedPlan.finishes_calculations.flooring?.map(
+                  (finish: any, index: number) => ({
+                    id: finish.id || `flooring-${index}`,
+                    category: "flooring" as const,
+                    material: finish.material || "",
+                    area: parseFloat(finish.area as any) || 0,
+                    quantity: parseFloat(finish.quantity as any) || 1,
+                    unit: finish.unit || "m²",
+                    location: finish.location || "Unknown",
+                  }),
+                ) || [],
+              ceiling:
+                extractedPlan.finishes_calculations.ceiling?.map(
+                  (finish: any, index: number) => ({
+                    id: finish.id || `ceiling-${index}`,
+                    category: "ceiling" as const,
+                    material: finish.material || "",
+                    area: parseFloat(finish.area as any) || 0,
+                    quantity: parseFloat(finish.quantity as any) || 1,
+                    unit: finish.unit || "m²",
+                    location: finish.location || "Unknown",
+                  }),
+                ) || [],
+              "wall-finishes":
+                extractedPlan.finishes_calculations["wall-finishes"]?.map(
+                  (finish: any, index: number) => ({
+                    id: finish.id || `wall-finishes-${index}`,
+                    category: "wall-finishes" as const,
+                    material: finish.material || "",
+                    area: parseFloat(finish.area as any) || 0,
+                    quantity: parseFloat(finish.quantity as any) || 1,
+                    unit: finish.unit || "m²",
+                    location: finish.location || "Unknown",
+                  }),
+                ) || [],
+              joinery:
+                extractedPlan.finishes_calculations.joinery?.map(
+                  (finish: any, index: number) => ({
+                    id: finish.id || `joinery-${index}`,
+                    category: "joinery" as const,
+                    material: finish.material || "",
+                    area: parseFloat(finish.area as any) || 0,
+                    quantity: parseFloat(finish.quantity as any) || 1,
+                    unit: finish.unit || "m²",
+                    location: finish.location || "Unknown",
+                  }),
+                ) || [],
+              external:
+                extractedPlan.finishes_calculations.external?.map(
+                  (finish: any, index: number) => ({
+                    id: finish.id || `external-${index}`,
+                    category: "external" as const,
+                    material: finish.material || "",
+                    area: parseFloat(finish.area as any) || 0,
+                    quantity: parseFloat(finish.quantity as any) || 1,
+                    unit: finish.unit || "m²",
+                    location: finish.location || "Unknown",
+                  }),
+                ) || [],
             }
           : prev.finishes_calculations,
 
@@ -2177,9 +2172,7 @@ closers: {
               </TabsContent>
 
               <TabsContent value="rebar" className="space-y-4">
-                <h3 className="text-2xl mb-3">
-                  Reinforcement Calculator
-                </h3>
+                <h3 className="text-2xl mb-3">Reinforcement Calculator</h3>
                 <RebarCalculatorForm
                   quote={quoteData}
                   setQuote={setQuoteData}
@@ -2200,7 +2193,8 @@ closers: {
                 <TabsTrigger value="doors-windows">
                   <span className="hidden sm:inline">Doors & Windows</span>
                   <span className="sm:hidden flex items-center gap-1">
-                    <DoorOpen className="w-4 h-4" />D/W
+                    <DoorOpen className="w-4 h-4" />
+                    D/W
                   </span>
                 </TabsTrigger>
                 <TabsTrigger value="masonry">
@@ -2337,35 +2331,38 @@ closers: {
               </TabsContent>
 
               <TabsContent value="walling" className="space-y-4">
-                <Tabs value={wallingFinishesTab} onValueChange={setWallingFinishesTab}>
+                <Tabs
+                  value={wallingFinishesTab}
+                  onValueChange={setWallingFinishesTab}
+                >
                   <TabsList className="grid w-full grid-cols-2 mb-3">
                     <TabsTrigger value="internalFinishes">
                       <span className="hidden sm:inline">Internal Walling</span>
                       <span className="sm:hidden">IW</span>
-                      </TabsTrigger>
+                    </TabsTrigger>
                     <TabsTrigger value="externalFinishes">
                       <span className="hidden sm:inline">External Walling</span>
                       <span className="sm:hidden">EW</span>
-                      </TabsTrigger>
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="internalFinishes" className="space-y-4">
-                <InternalFinishesCalculator
-                  finishes={finishes}
-                  onFinishesUpdate={handleFinishesUpdate}
-                  materialPrices={materials}
-                  quote={quoteData}
-                  wallDimensions={quoteData.wallDimensions}
-                />
-                </TabsContent>
-                <TabsContent value="externalFinishes" className="space-y-4">
-                <ExternalFinishesCalculator
-                  finishes={finishes}
-                  onFinishesUpdate={handleFinishesUpdate}
-                  materialPrices={materials}
-                  quote={quoteData}
-                  wallDimensions={quoteData.wallDimensions}
-                />
-                </TabsContent>
+                    <InternalFinishesCalculator
+                      finishes={finishes}
+                      onFinishesUpdate={handleFinishesUpdate}
+                      materialPrices={materials}
+                      quote={quoteData}
+                      wallDimensions={quoteData.wallDimensions}
+                    />
+                  </TabsContent>
+                  <TabsContent value="externalFinishes" className="space-y-4">
+                    <ExternalFinishesCalculator
+                      finishes={finishes}
+                      onFinishesUpdate={handleFinishesUpdate}
+                      materialPrices={materials}
+                      quote={quoteData}
+                      wallDimensions={quoteData.wallDimensions}
+                    />
+                  </TabsContent>
                 </Tabs>
               </TabsContent>
 
@@ -2379,46 +2376,56 @@ closers: {
               </TabsContent>
 
               <TabsContent value="others" className="space-y-4">
-                <Tabs value={otherFinishesTab} onValueChange={setOtherFinishesTab}>
+                <Tabs
+                  value={otherFinishesTab}
+                  onValueChange={setOtherFinishesTab}
+                >
                   <TabsList className="grid w-full grid-cols-3 mb-3">
-                    <TabsTrigger value="wardrobes">
-                      <span className="hidden sm:inline">Wardrobes</span>
-                      <span className="sm:hidden">W</span>
-                      </TabsTrigger>
+                    <TabsTrigger value="kitchen-wardrobes">
+                      <span className="hidden sm:inline">
+                        Kitchen & Wardrobes
+                      </span>
+                      <span className="sm:hidden">K&W</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="door-paint">
+                      <span className="hidden sm:inline">Other Paint</span>
+                      <span className="sm:hidden">Paint</span>
+                    </TabsTrigger>
                     <TabsTrigger value="otherFinishes">
                       <span className="hidden sm:inline">Other Finishes</span>
                       <span className="sm:hidden">OF</span>
                     </TabsTrigger>
-                    <TabsTrigger value="kitchen-finishes">
-                      <span className="hidden sm:inline">Kitchen Finishes</span>
-                      <span className="sm:hidden">KF</span>
-                    </TabsTrigger>
                   </TabsList>
-                  <TabsContent value="wardrobes" className="space-y-4">
-                <WardrobesCalculator
-                  wardrobes={wardrobes}
-                  setWardrobes={setWardrobes}
-                  quote={quoteData}
-                />
-              </TabsContent>
-              <TabsContent value="otherFinishes" className="space-y-4">
-
-                <OtherFinishesCalculator
-                  otherFinishes={finishes}
-                  onOtherFinishesUpdate={handleFinishesUpdate}
-                  materialPrices={materials}
-                  quote={quoteData}
-                  wallDimensions={quoteData.wallDimensions}
-                />
-                </TabsContent>
-                <TabsContent value="kitchen-finishes" className="space-y-4">
-                  <CountertopsCalculator
-                    quote={quoteData}
-                    materialPrices={materials}
-                  />
-                    
-                    </TabsContent>
-
+                  <TabsContent value="kitchen-wardrobes" className="space-y-4">
+                    <KitchenAndWardrobesCalculator
+                      wardrobes={wardrobes}
+                      setWardrobes={setWardrobes}
+                      quote={quoteData}
+                      materialPrices={materials}
+                    />
+                  </TabsContent>
+                  <TabsContent value="door-paint" className="space-y-4">
+                    <DoorWindowPaintCalculator
+                      paints={quoteData.doorWindowPaints || []}
+                      onPaintsUpdate={(paints) => {
+                        setQuoteData((prev: any) => ({
+                          ...prev,
+                          doorWindowPaints: paints,
+                        }));
+                      }}
+                      materialPrices={materials}
+                      readonly={false}
+                    />
+                  </TabsContent>
+                  <TabsContent value="otherFinishes" className="space-y-4">
+                    <OtherFinishesCalculator
+                      otherFinishes={finishes}
+                      onOtherFinishesUpdate={handleFinishesUpdate}
+                      materialPrices={materials}
+                      quote={quoteData}
+                      wallDimensions={quoteData.wallDimensions}
+                    />
+                  </TabsContent>
                 </Tabs>
               </TabsContent>
             </Tabs>
@@ -2691,13 +2698,13 @@ closers: {
                           {calculation?.contingency_amount?.toLocaleString()}
                         </p>
                       </div>
-                        <div className="flex justify-between text-gray-900 dark:text-white">
-                          <p>Unknown Unknowns Reserve</p>
-                          <p>
-                            KSh{" "}
-                            {calculation?.unknown_contingency_amount?.toLocaleString()}
-                          </p>
-                        </div>
+                      <div className="flex justify-between text-gray-900 dark:text-white">
+                        <p>Unknown Unknowns Reserve</p>
+                        <p>
+                          KSh{" "}
+                          {calculation?.unknown_contingency_amount?.toLocaleString()}
+                        </p>
+                      </div>
                       <div className="flex justify-between text-gray-900 dark:text-white">
                         <p>Overhead</p>
                         <p>

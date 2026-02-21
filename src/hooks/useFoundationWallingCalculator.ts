@@ -11,7 +11,6 @@ export interface FoundationWall {
   blockDimensions: string; // e.g., "0.4x0.2x0.2" (length x height x thickness)
   wallHeight: string; // meters
   wallLength: string; // meters (perimeter or individual length)
-  numberOfWalls: string; // Number of walls of this type
   volume?: number; // Calculated volume (m³)
   blocks?: number; // Calculated block count
   blocksFeet?: number; // Linear feet of blocks
@@ -27,7 +26,6 @@ export interface FoundationWallingRow {
   blockDimensions: string;
   wallHeight: string;
   wallLength: string;
-  numberOfWalls: string;
   mortarRatio: string; // e.g., "1:4"
   hasReturnFill?: boolean;
   returnFillDepth?: string;
@@ -288,7 +286,6 @@ export const useFoundationWallingCalculator = (quote: any) => {
         blockDimensions,
         wallHeight: "2.0",
         wallLength: "0",
-        numberOfWalls: "1",
         mortarRatio: "1:4",
       };
       setWalls((prev) => [...prev, newWall]);
@@ -347,11 +344,10 @@ export const useFoundationWallingCalculator = (quote: any) => {
     ): FoundationWall => {
       const wallHeightNum = parseFloat(wall.wallHeight) || 0;
       const wallLengthNum = parseFloat(wall.wallLength) || 0;
-      const numberOfWallsNum = parseInt(wall.numberOfWalls) || 1;
       const blockDims = parseBlockDimensions(wall.blockDimensions);
       const thicknessM = blockDims.thickness;
 
-      const totalLength = wallLengthNum * numberOfWallsNum;
+      const totalLength = wallLengthNum;
       const totalHeight = wallHeightNum;
 
       const quantities = calculateFoundationWallingQuantities(
@@ -371,7 +367,6 @@ export const useFoundationWallingCalculator = (quote: any) => {
         blockDimensions: wall.blockDimensions,
         wallHeight: wall.wallHeight,
         wallLength: wall.wallLength,
-        numberOfWalls: wall.numberOfWalls,
         volume: totalLength * totalHeight * thicknessM,
         blocks: quantities.blocks,
         blocksFeet: quantities.blocksFeet,
@@ -439,7 +434,7 @@ export const useFoundationWallingCalculator = (quote: any) => {
     return walls.reduce((total, wall) => {
       const length = parseFloat(wall.wallLength) || 0;
       const height = parseFloat(wall.wallHeight) || 0;
-      return total + (length * height);
+      return total + length * height;
     }, 0);
   }, [walls]);
 

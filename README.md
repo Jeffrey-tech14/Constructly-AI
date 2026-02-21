@@ -4,6 +4,7 @@
 
 ## 📋 Table of Contents
 
+- [Technical Documentation](#-technical-documentation)
 - [Overview](#overview)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
@@ -24,12 +25,32 @@
 
 ---
 
+## 📚 Technical Documentation
+
+For detailed technical information, developers should refer to our comprehensive documentation:
+
+| Document                                     | Purpose                                                                                                                                                                                                  | Audience                                  |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [**TECHNICAL.md**](TECHNICAL.md)             | Complete system architecture, calculator patterns, hooks, state management, API integration, database schema deep dive, performance optimization, error handling, and deployment architecture            | Backend & Frontend Developers, Architects |
+| [**DESIGN_PATTERNS.md**](DESIGN_PATTERNS.md) | Reusable patterns, best practices, form handling patterns, calculation patterns, pricing patterns, UI patterns, error handling approaches, performance optimization patterns, and anti-patterns to avoid | All Developers                            |
+| [**TESTING_GUIDE.md**](TESTING_GUIDE.md)     | Comprehensive testing strategy, unit tests for calculations, hook testing, component testing, async testing, integration testing, E2E testing, and test utilities                                        | QA Engineers, Test Developers             |
+| [**DATA_MODEL.md**](DATA_MODEL.md)           | Complete TypeScript interfaces, database schema relationships, validation schemas, material pricing models, and component data structures                                                                | Developers working with data              |
+
+**Quick Start for Developers:**
+
+1. Read **TECHNICAL.md** for system overview and architecture
+2. Reference **DESIGN_PATTERNS.md** when building new calculators or components
+3. Use **DATA_MODEL.md** for TypeScript interface definitions
+4. Follow **TESTING_GUIDE.md** for writing tests
+
+---
+
 ## 🎯 Overview
 
 **Constructly AI** is a full-stack web application that empowers construction professionals to:
 
 - **Generate Accurate Estimates** - Specialized calculators for concrete, masonry, plumbing, electrical, roofing, earth works, finishes, rebar, and wardrobes
-- **AI-Powered Assistance** - Leverages Google Gemini AI for intelligent cost analysis and architectural plan interpretation
+- **AI-Powered Assistance** - Leverages Google Gemini AI for intelligent architectural plan interpretation
 - **Professional Quote Generation** - Create, manage, export (PDF/Excel), and track construction project quotes
 - **Plan Upload & Analysis** - Upload architectural plans and PDFs for AI-powered material extraction and cost estimation
 - **Dynamic Pricing** - Region-based and user-customizable material prices with real-time calculations
@@ -57,14 +78,26 @@
 #### 2. **Specialized Construction Calculators**
 
 - **Concrete Calculator** - Volume, wastage, aggregate ratios, and costs
-- **Masonry Calculator** - Brick/block quantities, mortar, and labor estimates
-- **Plumbing Calculator** - Pipe sizing, fittings, and labor costs
-- **Electrical Calculator** - Wire gauges, load calculations, and labor hours
+- **Masonry Calculator** - Brick/block quantities, mortar estimates with DPC, hoop iron, and plaster
+- **Plumbing Calculator** - Pipe sizing, fittings costs
+- **Electrical Calculator** - Wire gauges, load calculations
 - **Roofing Calculator** - Material quantities, pitch calculations, and labor
 - **Earth Works Calculator** - Excavation volume, soil classification, and equipment
-- **Finishes Calculator** - Paint coverage, flooring, trim materials
-- **Rebar Calculator** - Steel bar counts, weights, and spacing
-- **Wardrobes Calculator** - Lump-sum or detailed component pricing
+- **Internal Finishes Calculator** - Paint coverage (with optional checkbox), flooring, trim, wet area tiling
+- **External Finishes Calculator** - Cladding, painting, plaster thickness calculations
+- **Painting Calculator** - Multi-layer painting specs (skimming, undercoat, finishing paint) for interior/exterior walls
+- **Doors & Windows Editor** - Comprehensive door/window scheduling with frames, architrave, ironmongery, transom/fanlight options
+- **Door/Window Paint Calculator** - Specialized paint calculations for doors and windows
+- **Ceiling Calculator** - Suspended ceiling, drop ceiling, and ceiling paint calculations
+- **Flooring Calculator** - Flooring materials with subfloor and adhesive requirements
+- **Kitchen & Wardrobes Calculator** - Lump-sum or detailed component pricing with assembly details and Custom countertop measurements and material selection
+- **Foundation Walling Calculator** - Concrete footings, foundation blocks, and perimeter calculations
+- **Rebar Calculator** - Steel bar counts, weights, and spacing patterns
+- **Walling Calculator** - Brick/block walls with mortar and plaster calculations
+- **Finishes Calculator** - General finishes handling
+- **Equipment Selector** - Construction equipment selection and rental costs
+- **Services Selector** - Third-party services and subcontractor management
+- **Subcontractors Selector** - Subcontractor pricing and management
 - **Volume Calculator** - Quick dimensional calculations
 
 #### 3. **Quote Builder**
@@ -79,7 +112,7 @@
 #### 4. **Bill of Quantities (BOQ) Management**
 
 - BOQ builder interface with AI support
-- Material and labor line items
+- Material line items
 - Unit pricing and quantity adjustments
 - Automated calculations
 
@@ -107,40 +140,81 @@
 - Floor count and area estimation
 - Preliminary cost analysis
 
-#### 8. **Painting & Multi-Layer Support**
+#### 8. **Comprehensive Door & Window Management**
 
-- Multiple paint layer configuration
+- Standard and custom door/window sizing
+- Multiple door types (steel, flush, panel, T&G)
+- Glass types (clear, tinted, frosted) with thickness recommendations
+- Frame specifications with wall-thickness-based sizing
+- **Transom/Fanlight** - Optional checkbox-enabled upper glazing
+- **Architrave** - Decorative trim with automatic quantity calculation
+- **Ironmongery** - All hardware components checkbox-enabled:
+  - Hinges with auto-quantity (typically 3)
+  - Locks with size specifications
+  - Handles and pulls
+  - Bolts and closers
+  - All with dynamic pricing from material database
+
+#### 9. **Advanced Finishes System**
+
+- **Internal Finishes**
+  - Material finishes (stone, tiles, wood, stucco, gypsum board, panels) always visible
+  - **Paint checkbox** - Optional paint layer with auto-initialization
+  - **Wet area tiling** - Kitchen/bathroom with specific tile sizes and adhesive requirements
+- **External Finishes**
+  - Material cladding options
+  - Exterior painting with multi-layer specs
+  - Plaster thickness calculations (default 25mm)
+  - Wall pointing and jointing
+  - Keying preparation option
+
+#### 10. **Painting & Multi-Layer Support**
+
+- Multiple paint layer configuration (skimming, undercoat, finishing)
 - Surface area calculations per layer
-- Detailed layer-by-layer costing
+- Coverage rate-aware sizing with wastage
+- Separate calculators for interior walls, exterior walls, and door/window finishes
+- Real-time cost calculations based on material pricing
 
-#### 9. **Report Generation**
+#### 11. **Equipment & Services Management**
 
-- PDF export with professional formatting
-- Excel export with detailed breakdowns
+- Equipment selector for construction tools and machinery
+- Equipment rental rates with time-based pricing
+- Services selector for third-party work
+- Subcontractor management with fixed/hourly rates
+- Labor hour estimation for all activities
+
+#### 12. **Report Generation**
+
+- PDF export with professional formatting and compliance
+- Excel export with detailed worksheets and calculations
+- Material Schedule PDF generation
 - Quote and project reports
-- Financial summaries
+- Financial summaries with BOQ integration
 
-#### 10. **Project Calendar**
+#### 13. **Project Calendar**
 
 - Event scheduling and management
 - Milestone tracking
 - Project deadline management
+- Integration with quotes
 
-#### 11. **Payment Processing**
+#### 14. **Payment Processing**
 
 - Paystack integration for card payments
 - Subscription management
-- Recurring billing
+- Recurring billing cycles
 - Payment history tracking
+- Payment verification and confirmation
 
-#### 12. **Admin Dashboard**
+#### 15. **Admin Dashboard**
 
-- System-wide analytics
-- User management and tier customization
-- Configuration settings
-- Variable management
-- Material price management
-- Reports and analytics
+- System-wide analytics and reporting
+- User management with tier customization
+- Configuration settings and preferences
+- Variable and constant management
+- Material price management with regional multipliers
+- Reports, analytics, and user activity tracking
 
 ---
 
@@ -215,9 +289,12 @@ Constructly-AI/
 │   │   ├── EnhancedQuoteBuilder.tsx
 │   │   ├── BOQBuilder.tsx
 │   │   ├── PreliminariesBuilder.tsx
+│   │   ├── PreliminariesOptionsPage.tsx
 │   │   ├── WardrobesCalculator.tsx
+│   │   ├── KitchenAndWardrobesCalculator.tsx
 │   │   ├── RenderMaterialEditor.tsx
 │   │   ├── PaintingLayerConfig.tsx
+│   │   ├── PaintingCalculator.tsx
 │   │   ├── QuotesTab.tsx
 │   │   ├── TiersTab.tsx
 │   │   ├── RebarCalculationForm.tsx
@@ -227,11 +304,24 @@ Constructly-AI/
 │   │   ├── ElectricalCalculator.tsx
 │   │   ├── RoofingCalculator.tsx
 │   │   ├── EarthWorksForm.tsx
-│   │   ├── FinishesCalculator.tsx
+│   │   ├── InternalFinishesCalculator.tsx
+│   │   ├── ExternalFinishesCalculator.tsx
+│   │   ├── FlooringCalculator.tsx
+│   │   ├── CeilingCalculator.tsx
+│   │   ├── CountertopsCalculator.tsx
+│   │   ├── WallingCalculator.tsx
+│   │   ├── FoundationWallingCalculator.tsx
+│   │   ├── DoorsWindowsEditor.tsx
+│   │   ├── DoorWindowPaintCalculator.tsx
+│   │   ├── EquipmentSelector.tsx
+│   │   ├── ServicesSelector.tsx
+│   │   ├── SubcontractorsSelector.tsx
+│   │   ├── OtherFinishes.tsx
 │   │   ├── Calendar.tsx
 │   │   ├── PDFGenerator.tsx
 │   │   ├── ExcelGenerator.tsx
-│   │   ├── PaymentDialog.tsx
+│   │   ├── MaterialSchedulePDF.tsx
+│   │   ├── PaymentGate.tsx
 │   │   ├── AdminConfigDialogs.tsx
 │   │   ├── ProfilePictureUpload.tsx
 │   │   ├── QSSettings.tsx
@@ -239,26 +329,42 @@ Constructly-AI/
 │   │   ├── Reports.tsx
 │   │   ├── ProjectProgress.tsx
 │   │   ├── QuoteExportDialog.tsx
+│   │   ├── UserGuide.tsx
+│   │   ├── ErrorBoundary.tsx
+│   │   ├── PublicLayout.tsx
 │   │   ├── ProtectedRoute.tsx
 │   │   └── ui/                   # shadcn UI components
 │   │
 │   ├── hooks/                    # Custom React hooks
 │   │   ├── useAuth.ts
 │   │   ├── useQuotes.ts
+│   │   ├── useQuoteCalculations.ts
+│   │   ├── useQuoteGeometry.ts
 │   │   ├── useRebarCalculator.ts
 │   │   ├── useConcreteCalculator.ts
 │   │   ├── useMasonryCalculatorNew.ts
 │   │   ├── usePlumbingCalculator.ts
 │   │   ├── useElectricalCalculator.ts
 │   │   ├── useRoofingCalculator.ts
+│   │   ├── usePaintingCalculator.ts
 │   │   ├── useUniversalFinishesCalculator.ts
-│   │   ├── useQuoteCalculations.ts
+│   │   ├── useInternalFinishesCalculator.ts
+│   │   ├── useExternalFinishesCalculator.ts
+│   │   ├── useFlooringCalculator.ts
+│   │   ├── useFoundationWallingCalculator.ts
+│   │   ├── useWallingCalculator.ts
+│   │   ├── useEquipmentCalculator.ts
+│   │   ├── useServicesCalculator.ts
+│   │   ├── useSubcontractorsCalculator.ts
 │   │   ├── useDynamicPricing.ts
 │   │   ├── useMaterialPrices.ts
 │   │   ├── useUserSettings.ts
 │   │   ├── usePlanUpload.ts
 │   │   ├── useCalendarEvents.ts
 │   │   ├── useClientReviews.ts
+│   │   ├── useBBSUpload.ts
+│   │   ├── useOnlineStatus.ts
+│   │   ├── use-mobile.tsx
 │   │   └── use-toast.ts
 │   │
 │   ├── contexts/                 # React context providers
@@ -388,41 +494,59 @@ npm run preview
 ### Calculator Components
 
 **ConcreteCalculatorForm** - Volume and cost calculations.
-**MasonryCalculatorForm** - Masonry materials and labor.
-**PlumbingCalculator** - Plumbing estimates.
-**ElectricalCalculator** - Electrical calculations.
-**RoofingCalculator** - Roofing estimates.
-**EarthWorksForm** - Excavation and earthworks.
-**FinishesCalculator** - Finishes and paint.
-**RebarCalculator** - Rebar calculations.
-**WardrobesCalculator** - Wardrobes and cabinets (lump-sum or detailed).
+**MasonryCalculatorForm** - Masonry materials, labor, DPC, hoop iron, and plaster.
+**PlumbingCalculator** - Plumbing pipe, fittings
+**ElectricalCalculator** - Wire gauge selection, load calculations, and labor.
+**RoofingCalculator** - Roofing material quantities costs.
+**EarthWorksForm** - Excavation volume, soil classification, and equipment.
+**InternalFinishesCalculator** - Paint finishes (checkbox-based), materials, wet area tiling.
+**ExternalFinishesCalculator** - Cladding, painting, plaster with thickness calculations.
+**PaintingCalculator** - Multi-layer painting (skimming, undercoat, finishing) for walls.
+**DoorsWindowsEditor** - Door/window scheduling with frames, architrave, ironmongery, transom options.
+**DoorWindowPaintCalculator** - Specialized paint calculations for doors and windows.
+**CeilingCalculator** - Suspended and drop-ceiling calculations with paint.
+**FlooringCalculator** - Flooring materials with subfloor and adhesive requirements.
+**CountertopsCalculator** - Custom countertop measurements and materials.
+**KitchenAndWardrobesCalculator** - Kitchen and wardrobe design (lump-sum or detailed).
+**FoundationWallingCalculator** - Foundation blocks and concrete footings.
+**RebarCalculator** - Rebar counts, weights, and spacing calculations.
+**WallingCalculator** - Brick/block walling with mortar and plaster.
+**OtherFinishes** - General finishes processing.
+**EquipmentSelector** - Construction equipment rental and costs.
+**ServicesSelector** - Services and subcontractor management.
+**SubcontractorsSelector** - Subcontractor pricing and selection.
 
 ### Material & Configuration
 
 **RenderMaterialEditor.tsx** - Material configuration.
-**PaintingLayerConfig.tsx** - Paint layer setup.
+**PaintingLayerConfig.tsx** - Paint layer setup with coverage rates.
+**ProfilePictureUpload.tsx** - Avatar upload.
 
 ### Export & Reporting
 
-**PDFGenerator.tsx** - PDF export with formatting.
-**ExcelGenerator.tsx** - Excel export with worksheets.
+**PDFGenerator.tsx** - PDF export with professional formatting.
+**ExcelGenerator.tsx** - Excel export with multiple worksheets.
+**MaterialSchedulePDF.tsx** - Material schedule PDF generation.
 **Reports.tsx** - Reporting interface.
-**QuoteExportDialog.tsx** - Export options.
+**QuoteExportDialog.tsx** - Export options and compliance.
 
 ### UI Components
 
-**Navbar.tsx** - Navigation bar.
-**Hero.tsx** - Hero section.
-**Testimonials.tsx** - Testimonials display.
-**PageFooter.tsx** - Footer.
-**Calendar.tsx** - Calendar and events.
-**PaymentDialog.tsx** - Payment processing.
-**ProfilePictureUpload.tsx** - Avatar upload.
-**QSSettings.tsx** - Quote settings.
-**DashboardSettings.tsx** - Dashboard settings.
-**ProjectProgress.tsx** - Progress tracking.
-**ProtectedRoute.tsx** - Auth guard.
-**ThemeToggle.tsx** - Dark/light mode.
+**Navbar.tsx** - Navigation with theme and profile controls.
+**Hero.tsx** - Landing page hero section.
+**Testimonials.tsx** - Client testimonials carousel.
+**PageFooter.tsx** - Footer with links and social.
+**PageSections.tsx** - Reusable section components.
+**Calendar.tsx** - Calendar with event scheduling.
+**PaymentGate.tsx** - Payment processing UI.
+**QSSettings.tsx** - Quote settings and configuration.
+**DashboardSettings.tsx** - Dashboard preferences.
+**ProjectProgress.tsx** - Progress tracking visualization.
+**ProtectedRoute.tsx** - Authentication guard component.
+**PublicLayout.tsx** - Public page layout wrapper.
+**UserGuide.tsx** - In-app user guidance.
+**ErrorBoundary.tsx** - Error handling boundary.
+**ThemeToggle.tsx** - Dark/light mode toggle.
 
 ---
 
@@ -476,14 +600,35 @@ npm run preview
 
 ## 🎣 Hooks
 
-**useAuth** - Authentication state management.
-**useQuotes** - Quote CRUD operations.
-**useQuoteCalculations** - Core calculation engine.
-**useDynamicPricing** - User pricing customization.
-**useMaterialPrices** - Material price fetching.
-**useUserSettings** - User settings.
+**useAuth** - Authentication state management with profile data.
+**useQuotes** - Quote CRUD operations and retrieval.
+**useQuoteCalculations** - Core quote calculation engine.
+**useQuoteGeometry** - Wall dimensions and geometry calculations.
+**useDynamicPricing** - User pricing customization and overrides.
+**useMaterialPrices** - Material price fetching with region support.
+**useUserSettings** - User preferences and profile settings.
 **usePlanUpload** - Plan upload and parsing using `planParserService`.
-**useCalendarEvents** - Calendar event management.
+**useCalendarEvents** - Calendar event CRUD operations.
+**usePaintingCalculator** - Multi-layer painting specifications and calculations.
+**useConcreteCalculator** - Concrete volume and material calculations.
+**useMasonryCalculatorNew** - Masonry, DPC, hoop iron, plaster, doors/windows calculations.
+**usePlumbingCalculator** - Plumbing material calculations.
+**useElectricalCalculator** - Electrical calculations
+**useRoofingCalculator** - Roofing calculations and material quantities.
+**useRebarCalculator** - Rebar counts, weights, and spacing.
+**useUniversalFinishesCalculator** - Generic finishes calculation engine.
+**useInternalFinishesCalculator** - Internal wall finishes (with paint option).
+**useExternalFinishesCalculator** - External finishes and plaster thickness.
+**useFlooringCalculator** - Flooring materials and adhesive requirements.
+**useFoundationWallingCalculator** - Foundation and footing calculations.
+**useWallingCalculator** - Wall construction material and labor.
+**useEquipmentCalculator** - Equipment rental and costs.
+**useServicesCalculator** - Third-party services pricing.
+**useSubcontractorsCalculator** - Subcontractor management and costs.
+**useBBSUpload** - BBS (Bills of Supply) document handling.
+**useOnlineStatus** - Network connectivity tracking.
+**use-mobile** - Mobile device detection.
+**useClientReviews** - Client review management.
 **use-toast** - Toast notifications.
 
 ---
@@ -492,64 +637,180 @@ npm run preview
 
 ### Concrete Calculator
 
-- Volume calculations
-- Wastage percentage
-- Aggregate ratios
-- Regional pricing adjustments
+- Concrete volume calculations
+- Aggregate ratios (cement, sand, gravel)
+- Wastage percentage adjustments
+- Regional pricing with multipliers
+- Total material costs
 
 ### Masonry Calculator
 
-- Brick/block quantities
-- Mortar requirements
-- Coursing layouts
+- Brick/block quantities with joint factors
+- Mortar requirements (sand + cement)
+- DPC (Damp Proof Course) membrane coverage
+- Hoop iron specifications (20kg/25kg rolls)
+- Plaster requirements with thickness options (internal/external)
+- Door/window deductions
 - Material costs
 
 ### Plumbing Calculator
 
-- Pipe sizing
-- Fitting counts
+- Pipe sizing based on flow rates
+- Pipe fitting counts and types
 - Labor hour estimation
-- Cost estimates
+- Regional material pricing
+- Total plumbing system cost
 
 ### Electrical Calculator
 
-- Wire gauge selection
-- Load calculations
-- Circuit design
+- Wire gauge selection based on load
+- Circuit design and protection
+- Load calculations in kW/kVA
 - Labor hour estimation
+- Material costs
 
 ### Roofing Calculator
 
-- Roof pitch calculations
-- Material quantities
-- Labor estimates
+- Roof pitch and coverage calculations
+- Material quantities (shingles, trusses, etc.)
+- Underlayment and trim materials
+- Labor hour estimation
+- Cost breakdowns
 
 ### Earth Works Calculator
 
-- Excavation volume
-- Soil classification
+- Excavation volume calculations
+- Soil classification and handling
 - Compaction requirements
-- Equipment hours
+- Equipment hours and costs
+- Material removal and disposal
 
-### Finishes Calculator
+### Internal Finishes Calculator
 
-- Paint coverage
-- Flooring quantities
-- Trim and molding
-- Labor costs
+- **Paint Finishes** (Checkbox-optional)
+  - Multi-layer painting (skimming, undercoat, finishing)
+  - Surface area calculations
+  - Paint coverage rates and wastage
+- **Material Finishes**
+  - Stone cladding, tile cladding, wood paneling
+  - Gypsum board, smooth stucco, fluted panels
+- **Wet Area Tiling**
+  - Kitchen and bathroom wall tiling
+  - Adhesive and grout requirements
+  - Corner strips and edge treatment
+  - Tile sizes from 150x150mm to 1200x600mm
+
+### External Finishes Calculator
+
+- **Painting** - Multi-layer exterior paint specifications
+- **Material Finishes** - Cladding (marble, limestone, marzella, wall master)
+- **Plaster** - Thickness calculations (standard 25mm) with cement/sand requirements
+- **Wall Pointing** - Mortar jointing calculations
+
+### Painting Calculator (Standalone)
+
+- Multi-layer specifications for interior and exterior walls
+- **Layer Types:**
+  - Skimming (preparation layer)
+  - Undercoat (primer)
+  - Finishing Paint (top coat)
+- Coverage rate calculations per layer
+- Wastage adjustments based on QS settings
+- Quick initialization for wall dimensions
+
+### Doors & Windows Editor
+
+**Doors:**
+
+- Door types: Steel, solid flush, semi-solid flush, panel, T&G
+- Standard and custom sizing
+- Frame types: Wood, steel, aluminum
+- Transom/fanlight (optional checkbox)
+- Architrave with standard sizes
+- Quarter round molding
+- **Ironmongery** (hinges, locks, handles, bolts, closers) - all checkbox-enabled
+
+**Windows:**
+
+- Standard and custom sizes
+- Glass types: Clear, tinted, frosted
+- Glass thickness: 3-12mm with recommendations
+- Frame sizing by wall thickness
+- Glazing putty calculations
+- Optional ironmongery
+
+### Ceiling Calculator
+
+- Suspended ceiling (drop-down) calculations
+- Ceiling area and material requirements
+- Paint coverage for ceiling finishing
+
+### Flooring Calculator
+
+- Flooring material selection
+- Subfloor preparation
+- Adhesive and grout requirements
+- Labor hour estimation
+
+### Countertops Calculator
+
+- Custom countertop dimensions
+- Material selection and pricing
+- Edge treatments and finish options
+
+### Kitchen & Wardrobes Calculator
+
+- **Lump-Sum Mode** - Fixed amount pricing
+- **Detailed Mode** - Component-based:
+  - Cabinet boards (melamine, plywood, solid wood)
+  - Hardware (hinges, soft-close dampers)
+  - Locks and handles
+  - Drawer rails and guides
+  - Glass doors and shelves
+  - Finishing materials
+- Assembly and installation labor
+
+### Foundation Walling Calculator
+
+- Foundation depth and width calculations
+- Concrete footing volume
+- Foundation block/brick requirements
+- Ground preparation labor
 
 ### Rebar Calculator
 
-- Steel bar counts
-- Length calculations
-- Weight estimates
-- Spacing calculations
+- Bar diameter selection (10mm, 12mm, 16mm, 20mm, etc.)
+- Bar count and spacing calculations
+- Length calculations with overlap
+- Weight per bar and total weight
+- Cost estimation
 
-### Wardrobes Calculator
+### Walling Calculator
 
-- **Lump-Sum Mode** - Fixed amount pricing
-- **Detailed Mode** - Component-based (boards, hinges, locks, drawer rails, glass)
-- Usage tracker (`usesLumpSum` boolean)
+- Brick/block wall construction
+- Mortar requirements
+- Plaster and finishing
+- Labor hour estimation
+
+### Equipment Selector
+
+- Equipment rental rates
+- Daily/weekly/monthly pricing
+- Equipment transport costs
+- Fuel and operator costs
+
+### Services Selector
+
+- Third-party service pricing
+- Subcontractor management
+- Service labor hour estimation
+
+### Subcontractors Selector
+
+- Subcontractor rate cards
+- Fixed price vs. hourly rates
+- Service category selection
+- Total subcontract cost
 
 ---
 
@@ -820,6 +1081,6 @@ git commit -m "feat: Add amazing feature"
 
 ---
 
-**Last Updated:** January 2026  
-**Version:** 2.0.0  
+**Last Updated:** February 2026  
+**Version:** 2.1.0  
 **Maintainer:** Jeffrey Tech

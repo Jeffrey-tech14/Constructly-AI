@@ -19,7 +19,7 @@ export default function renderMaterialEditor(
   userMaterialPrices,
   regionalMultipliers,
   userRegion,
-  getEffectiveMaterialPrice
+  getEffectiveMaterialPrice,
 ) {
   if (!material.type) return null;
 
@@ -30,7 +30,7 @@ export default function renderMaterialEditor(
   // Helper function to get user override and effective price
   const getUserOverrideAndPrice = () => {
     const userOverride = userMaterialPrices.find(
-      (p) => p.material_id === material.id && p.region === userRegion
+      (p) => p.material_id === material.id && p.region === userRegion,
     );
     const effectivePrice = getEffectiveMaterialPrice(
       material.id,
@@ -38,7 +38,7 @@ export default function renderMaterialEditor(
       userOverride,
       userMaterialPrices,
       materialBasePrices,
-      regionalMultipliers
+      regionalMultipliers,
     );
     return { userOverride, effectivePrice };
   };
@@ -59,16 +59,23 @@ export default function renderMaterialEditor(
 
   // 1. Rebar - Array of objects with price_kes_per_kg
   if (material.name === "Rebar" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const rebarOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideRebar = (rebarOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
         {material.type.map((bar, idx) => {
+          // Get override from the override array item
+          const overrideItem = (overrideRebar as any)?.[idx];
+          const effectivePrice =
+            overrideItem?.price_kes_per_kg ?? bar.price_kes_per_kg;
           const overridePrice =
             tempValues[`rebar-${idx}`] !== undefined
               ? tempValues[`rebar-${idx}`]
-              : userOverride?.type?.[idx]?.price_kes_per_kg ??
-                bar.price_kes_per_kg;
+              : effectivePrice;
           return (
             <div key={idx} className="p-2 border rounded-lg">
               <div className="flex justify-between">
@@ -99,7 +106,7 @@ export default function renderMaterialEditor(
                       material.id,
                       material.name,
                       tempValues[`rebar-${idx}`] ?? bar.price_kes_per_kg,
-                      idx
+                      idx,
                     )
                   }
                 >
@@ -120,15 +127,23 @@ export default function renderMaterialEditor(
     (material.name === "Bricks" || material.name.includes("Block")) &&
     isArray(material.type)
   ) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const bricksBlocksOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideBricksBlocks =
+      (bricksBlocksOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
         {material.type.map((block, idx) => {
+          // Get override from the override array item
+          const overrideItem = (overrideBricksBlocks as any)?.[idx];
+          const effectivePrice = overrideItem?.price_kes ?? block.price_kes;
           const overridePrice =
             tempValues[`block-${idx}`] !== undefined
               ? tempValues[`block-${idx}`]
-              : userOverride?.type?.[idx]?.price_kes ?? block.price_kes;
+              : effectivePrice;
           return (
             <div key={idx} className="p-2 border rounded-lg">
               <span className="font-medium">{block.name}</span>
@@ -158,7 +173,7 @@ export default function renderMaterialEditor(
                       material.id,
                       material.name,
                       tempValues[`block-${idx}`] ?? block.price_kes,
-                      idx
+                      idx,
                     )
                   }
                 >
@@ -182,7 +197,12 @@ export default function renderMaterialEditor(
       material.name === "Window Frames") &&
     isArray(material.type)
   ) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const doorsWindowsOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideDoorsWindows =
+      (doorsWindowsOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2 rounded-lg">
@@ -192,8 +212,16 @@ export default function renderMaterialEditor(
 
             {Object.entries(item.price_kes).map(([size, price]) => {
               const key = `${material.name.toLowerCase()}-${idx}-${size}`;
+
+              // Get override from the override array item
+              const overrideItem = (overrideDoorsWindows as any)?.[idx];
+              const overrideSizePrice = overrideItem?.price_kes?.[size];
+
+              const effectivePrice = overrideSizePrice ?? price;
               const overridePrice =
-                tempValues[key] !== undefined ? tempValues[key] : price;
+                tempValues[key] !== undefined
+                  ? tempValues[key]
+                  : effectivePrice;
               return (
                 <div
                   key={size}
@@ -222,7 +250,7 @@ export default function renderMaterialEditor(
                           material.id,
                           material.name,
                           tempValues[key] ?? price,
-                          `${idx}-${size}`
+                          `${idx}-${size}`,
                         )
                       }
                     >
@@ -240,79 +268,24 @@ export default function renderMaterialEditor(
     return renderCollapsible(content);
   }
 
-  // 4. Materials with type as object containing materials (Paint, Flooring, Ceiling, etc.)
-  if (
-    isObject(material.type) &&
-    material.type.materials &&
-    isObject(material.type.materials)
-  ) {
-    const { userOverride } = getUserOverrideAndPrice();
-
-    const content = (
-      <div className="space-y-2 mt-2">
-        {Object.entries(material.type.materials).map(
-          ([materialName, price], idx) => {
-            const key = `${material.name.toLowerCase()}-${materialName}`;
-            const overridePrice =
-              tempValues[key] !== undefined ? tempValues[key] : price;
-
-            return (
-              <div key={idx} className="p-2 border rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{materialName}</span>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="number"
-                      value={overridePrice}
-                      onChange={(e) =>
-                        setTempValues({
-                          ...tempValues,
-                          [key]: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-32"
-                    />
-                    <Button
-                      className="text-white"
-                      size="sm"
-                      onClick={() =>
-                        handleSave(
-                          material.name,
-                          "material",
-                          material.id,
-                          material.name,
-                          tempValues[key] ?? price,
-                          materialName
-                        )
-                      }
-                    >
-                      <Save className="w-4 h-4 text-white" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-        )}
-      </div>
-    );
-
-    return renderCollapsible(content);
-  }
-
   // 5. BRC Mesh - Array with price_kes_per_sqm and technical specs
   if (material.name === "BRC Mesh" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const brcMeshOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideBrcMesh = (brcMeshOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
         {material.type.map((mesh, idx) => {
           const key = `brc-mesh-${idx}`;
+          // Get override from the override array item
+          const overrideItem = (overrideBrcMesh as any)?.[idx];
+          const effectivePrice =
+            overrideItem?.price_kes_per_sqm ?? mesh.price_kes_per_sqm;
           const overridePrice =
-            tempValues[key] !== undefined
-              ? tempValues[key]
-              : userOverride?.type?.[idx]?.price_kes_per_sqm ??
-                mesh.price_kes_per_sqm;
+            tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
 
           return (
             <div key={idx} className="p-2 border rounded-lg">
@@ -347,7 +320,7 @@ export default function renderMaterialEditor(
                       material.id,
                       material.name,
                       tempValues[key] ?? mesh.price_kes_per_sqm,
-                      idx
+                      idx,
                     )
                   }
                 >
@@ -365,7 +338,11 @@ export default function renderMaterialEditor(
 
   // 6. Pipes - Array with price_kes_per_meter and diameters
   if (material.name === "Pipes" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const pipesOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overridePipes = (pipesOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
@@ -376,8 +353,15 @@ export default function renderMaterialEditor(
             {Object.entries(pipeType.price_kes_per_meter).map(
               ([diameter, price]) => {
                 const key = `pipe-${idx}-${diameter}`;
+                // Get override from the override array item
+                const overrideItem = (overridePipes as any)?.[idx];
+                const overridePricePerMeter =
+                  overrideItem?.price_kes_per_meter?.[diameter];
+                const effectivePrice = overridePricePerMeter ?? price;
                 const overridePrice =
-                  tempValues[key] !== undefined ? tempValues[key] : price;
+                  tempValues[key] !== undefined
+                    ? tempValues[key]
+                    : effectivePrice;
 
                 return (
                   <div
@@ -407,7 +391,7 @@ export default function renderMaterialEditor(
                             material.id,
                             material.name,
                             tempValues[key] ?? price,
-                            `${idx}-${diameter}`
+                            `${idx}-${diameter}`,
                           )
                         }
                       >
@@ -416,7 +400,7 @@ export default function renderMaterialEditor(
                     </div>
                   </div>
                 );
-              }
+              },
             )}
           </div>
         ))}
@@ -428,7 +412,11 @@ export default function renderMaterialEditor(
 
   // 7. Cable - Array with price_kes_per_meter and sizes
   if (material.name === "Cable" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const cableOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideCable = (cableOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
@@ -439,8 +427,15 @@ export default function renderMaterialEditor(
             {Object.entries(cableType.price_kes_per_meter).map(
               ([size, price]) => {
                 const key = `cable-${idx}-${size}`;
+                // Get override from the override array item
+                const overrideItem = (overrideCable as any)?.[idx];
+                const overridePricePerMeter =
+                  overrideItem?.price_kes_per_meter?.[size];
+                const effectivePrice = overridePricePerMeter ?? price;
                 const overridePrice =
-                  tempValues[key] !== undefined ? tempValues[key] : price;
+                  tempValues[key] !== undefined
+                    ? tempValues[key]
+                    : effectivePrice;
 
                 return (
                   <div
@@ -470,7 +465,7 @@ export default function renderMaterialEditor(
                             material.id,
                             material.name,
                             tempValues[key] ?? price,
-                            `${idx}-${size}`
+                            `${idx}-${size}`,
                           )
                         }
                       >
@@ -479,7 +474,7 @@ export default function renderMaterialEditor(
                     </div>
                   </div>
                 );
-              }
+              },
             )}
           </div>
         ))}
@@ -491,7 +486,11 @@ export default function renderMaterialEditor(
 
   // 8. Lighting - Array with price_kes_per_unit and wattage/control types
   if (material.name === "Lighting" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const lightingOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideLighting = (lightingOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
@@ -502,8 +501,15 @@ export default function renderMaterialEditor(
             {Object.entries(lightType.price_kes_per_unit).map(
               ([spec, price]) => {
                 const key = `lighting-${idx}-${spec}`;
+                // Get override from the override array item
+                const overrideItem = (overrideLighting as any)?.[idx];
+                const overridePricePerUnit =
+                  overrideItem?.price_kes_per_unit?.[spec];
+                const effectivePrice = overridePricePerUnit ?? price;
                 const overridePrice =
-                  tempValues[key] !== undefined ? tempValues[key] : price;
+                  tempValues[key] !== undefined
+                    ? tempValues[key]
+                    : effectivePrice;
 
                 return (
                   <div
@@ -533,7 +539,7 @@ export default function renderMaterialEditor(
                             material.id,
                             material.name,
                             tempValues[key] ?? price,
-                            `${idx}-${spec}`
+                            `${idx}-${spec}`,
                           )
                         }
                       >
@@ -542,7 +548,7 @@ export default function renderMaterialEditor(
                     </div>
                   </div>
                 );
-              }
+              },
             )}
           </div>
         ))}
@@ -554,7 +560,11 @@ export default function renderMaterialEditor(
 
   // 9. Outlets - Array with price_kes_per_unit and ratings
   if (material.name === "Outlets" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const outletsOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideOutlets = (outletsOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
@@ -565,8 +575,15 @@ export default function renderMaterialEditor(
             {Object.entries(outletType.price_kes_per_unit).map(
               ([rating, price]) => {
                 const key = `outlet-${idx}-${rating}`;
+                // Get override from the override array item
+                const overrideItem = (overrideOutlets as any)?.[idx];
+                const overridePricePerUnit =
+                  overrideItem?.price_kes_per_unit?.[rating];
+                const effectivePrice = overridePricePerUnit ?? price;
                 const overridePrice =
-                  tempValues[key] !== undefined ? tempValues[key] : price;
+                  tempValues[key] !== undefined
+                    ? tempValues[key]
+                    : effectivePrice;
 
                 return (
                   <div
@@ -596,7 +613,7 @@ export default function renderMaterialEditor(
                             material.id,
                             material.name,
                             tempValues[key] ?? price,
-                            `${idx}-${rating}`
+                            `${idx}-${rating}`,
                           )
                         }
                       >
@@ -605,7 +622,7 @@ export default function renderMaterialEditor(
                     </div>
                   </div>
                 );
-              }
+              },
             )}
           </div>
         ))}
@@ -620,7 +637,12 @@ export default function renderMaterialEditor(
     (material.name === "DPC" || material.name === "Sealant") &&
     isArray(material.type)
   ) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const dpcSealantOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideDpcSealant =
+      (dpcSealantOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
@@ -630,8 +652,16 @@ export default function renderMaterialEditor(
 
             {Object.entries(item.price_kes).map(([size, price]) => {
               const key = `${material.name.toLowerCase()}-${idx}-${size}`;
+
+              // Get override from the override array item
+              const overrideItem = (overrideDpcSealant as any)?.[idx];
+              const overrideSizePrice = overrideItem?.price_kes?.[size];
+
+              const effectivePrice = overrideSizePrice ?? price;
               const overridePrice =
-                tempValues[key] !== undefined ? tempValues[key] : price;
+                tempValues[key] !== undefined
+                  ? tempValues[key]
+                  : effectivePrice;
 
               return (
                 <div
@@ -661,7 +691,7 @@ export default function renderMaterialEditor(
                           material.id,
                           material.name,
                           tempValues[key] ?? price,
-                          `${idx}-${size}`
+                          `${idx}-${size}`,
                         )
                       }
                     >
@@ -716,7 +746,7 @@ export default function renderMaterialEditor(
                         material.id,
                         material.name,
                         currentValue,
-                        gauge
+                        gauge,
                       );
                     }}
                   >
@@ -735,7 +765,11 @@ export default function renderMaterialEditor(
 
   // 11. Fixtures - Array with price_kes_per_item and qualities
   if (material.name === "Fixtures" && isArray(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const fixturesOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideFixtures = (fixturesOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
@@ -746,8 +780,15 @@ export default function renderMaterialEditor(
             {Object.entries(fixture.price_kes_per_item).map(
               ([quality, price]) => {
                 const key = `fixture-${idx}-${quality}`;
+                // Get override from the override array item
+                const overrideItem = (overrideFixtures as any)?.[idx];
+                const overridePricePerItem =
+                  overrideItem?.price_kes_per_item?.[quality];
+                const effectivePrice = overridePricePerItem ?? price;
                 const overridePrice =
-                  tempValues[key] !== undefined ? tempValues[key] : price;
+                  tempValues[key] !== undefined
+                    ? tempValues[key]
+                    : effectivePrice;
 
                 return (
                   <div
@@ -777,7 +818,7 @@ export default function renderMaterialEditor(
                             material.id,
                             material.name,
                             tempValues[key] ?? price,
-                            `${idx}-${quality}`
+                            `${idx}-${quality}`,
                           )
                         }
                       >
@@ -786,7 +827,7 @@ export default function renderMaterialEditor(
                     </div>
                   </div>
                 );
-              }
+              },
             )}
           </div>
         ))}
@@ -796,24 +837,28 @@ export default function renderMaterialEditor(
     return renderCollapsible(content);
   }
 
-  // 12. Timber, Roof-Covering, Insulation, Underlayment - Array with direct price property
+  // 12. Timber, Insulation, Underlayment - Array with direct price property
   if (
     (material.name === "Timber" ||
-      material.name === "Roof-Covering" ||
       material.name === "Insulation" ||
       material.name === "UnderLayment") &&
     isArray(material.type)
   ) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const timberOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideTimber = (timberOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
         {material.type.map((item, idx) => {
           const key = `${material.name.toLowerCase()}-${idx}`;
+          // Get override from the override array item
+          const overrideItem = (overrideTimber as any)?.[idx];
+          const effectivePrice = overrideItem?.price ?? item.price;
           const overridePrice =
-            tempValues[key] !== undefined
-              ? tempValues[key]
-              : userOverride?.type?.[idx]?.price ?? item.price;
+            tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
 
           return (
             <div key={idx} className="p-2 border rounded-lg">
@@ -847,7 +892,7 @@ export default function renderMaterialEditor(
                       material.id,
                       material.name,
                       tempValues[key] ?? item.price,
-                      idx
+                      idx,
                     )
                   }
                 >
@@ -865,7 +910,12 @@ export default function renderMaterialEditor(
 
   // 13. Accessories - Object with nested arrays
   if (material.name === "Accesories" && isObject(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const accessoriesOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideAccessories =
+      (accessoriesOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2">
@@ -880,11 +930,14 @@ export default function renderMaterialEditor(
               <div className="space-y-2">
                 {items.map((item, idx) => {
                   const key = `accessory-${category}-${idx}`;
+                  // Get override from the override material
+                  const overrideItemPrice =
+                    (overrideAccessories as any)?.[category]?.[idx]?.price ??
+                    item.price;
                   const overridePrice =
                     tempValues[key] !== undefined
                       ? tempValues[key]
-                      : userOverride?.type?.[category]?.[idx]?.price ??
-                        item.price;
+                      : overrideItemPrice;
 
                   return (
                     <div
@@ -921,7 +974,7 @@ export default function renderMaterialEditor(
                               material.id,
                               material.name,
                               tempValues[key] ?? item.price,
-                              `${category}-${idx}`
+                              `${category}-${idx}`,
                             )
                           }
                         >
@@ -943,7 +996,11 @@ export default function renderMaterialEditor(
 
   // 14. Fasteners - Object with nested arrays
   if (material.name === "Fasteners" && isObject(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const fastenersOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideFasteners = (fastenersOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2">
@@ -956,11 +1013,14 @@ export default function renderMaterialEditor(
               <div className="space-y-2">
                 {items.map((item, idx) => {
                   const key = `fastener-${category}-${idx}`;
+                  // Get override from the override material
+                  const overrideItemPrice =
+                    (overrideFasteners as any)?.[category]?.[idx]?.price ??
+                    item.price;
                   const overridePrice =
                     tempValues[key] !== undefined
                       ? tempValues[key]
-                      : userOverride?.type?.[category]?.[idx]?.price ??
-                        item.price;
+                      : overrideItemPrice;
 
                   return (
                     <div
@@ -997,7 +1057,7 @@ export default function renderMaterialEditor(
                               material.id,
                               material.name,
                               tempValues[key] ?? item.price,
-                              `${category}-${idx}`
+                              `${category}-${idx}`,
                             )
                           }
                         >
@@ -1019,16 +1079,21 @@ export default function renderMaterialEditor(
 
   // DPC (Damp Proof Course) - Simple object with material types and prices
   if (material.name === "DPC" && isObject(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const dpcOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideDpc = (dpcOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
         {Object.entries(material.type).map(([dpcType, price], idx) => {
           const key = `dpc-${dpcType}`;
+          // Get override from the override material
           const overridePrice =
             tempValues[key] !== undefined
               ? tempValues[key]
-              : userOverride?.type?.[dpcType] ?? price;
+              : (overrideDpc?.[dpcType] ?? price);
 
           return (
             <div key={idx} className="p-2 border rounded-lg">
@@ -1056,7 +1121,7 @@ export default function renderMaterialEditor(
                         material.id,
                         material.name,
                         tempValues[key] ?? overridePrice,
-                        dpcType
+                        dpcType,
                       )
                     }
                   >
@@ -1075,16 +1140,22 @@ export default function renderMaterialEditor(
 
   // Waterproof - Simple object with material types and prices
   if (material.name === "Waterproof" && isObject(material.type)) {
-    const { userOverride } = getUserOverrideAndPrice();
+    // Find override once by material_id and region
+    const waterproofOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideWaterproof =
+      (waterproofOverride?.type as any) || material.type;
 
     const content = (
       <div className="space-y-2 mt-2">
         {Object.entries(material.type).map(([waterproofType, price], idx) => {
           const key = `waterproof-${waterproofType}`;
+          // Get override from the override material
           const overridePrice =
             tempValues[key] !== undefined
               ? tempValues[key]
-              : userOverride?.type?.[waterproofType] ?? price;
+              : (overrideWaterproof?.[waterproofType] ?? price);
 
           return (
             <div key={idx} className="p-2 border rounded-lg">
@@ -1112,7 +1183,7 @@ export default function renderMaterialEditor(
                         material.id,
                         material.name,
                         tempValues[key] ?? overridePrice,
-                        waterproofType
+                        waterproofType,
                       )
                     }
                   >
@@ -1129,373 +1200,1280 @@ export default function renderMaterialEditor(
     return renderCollapsible(content);
   }
 
-  // 15. Roofing Material Types - Simple roofing tiles/sheets with basic properties
-  if (
-    (material.name === "Concrete Roof Tiles" ||
-      material.name === "Clay Roof Tiles" ||
-      material.name === "Metal Roofing Sheets" ||
-      material.name === "Box Profile Sheets" ||
-      material.name === "Thatch Roofing" ||
-      material.name === "Natural Slate Tiles" ||
-      material.name === "Asphalt Shingles" ||
-      material.name === "Green Roof System" ||
-      material.name === "PVC/TPO Membrane") &&
-    material.type
-  ) {
-    const key = `${material.name.toLowerCase()}`;
-    const overridePrice =
-      tempValues[key] !== undefined ? tempValues[key] : material.price;
+  // 15. Roof-Covering - Array of roofing types (simple and complex)
+  if (material.name === "Roof-Covering" && isArray(material.type)) {
+    const roofingTypes = material.type;
+
+    // Find override once by material_id and region
+    const roofCoveringOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideRoofingTypes =
+      (roofCoveringOverride?.type as any) || roofingTypes;
 
     const content = (
+      <div className="space-y-4 mt-2">
+        {roofingTypes.map((roofItem, roofIdx) => {
+          // Check if this is the complex roofing structure
+          if (roofItem.structuralTimber || roofItem.roofingSheets) {
+            return (
+              <div key={roofIdx} className="border rounded-lg p-3">
+                <div className="space-y-4">
+                  {/* Structural Timber */}
+                  {roofItem.structuralTimber &&
+                    isArray(roofItem.structuralTimber) && (
+                      <div className="border-b pb-4">
+                        <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                          Structural Timber
+                        </h4>
+                        <div className="space-y-2">
+                          {roofItem.structuralTimber.map(
+                            (timber, timberIdx) => {
+                              const key = `roof-timber-${roofIdx}-${timberIdx}`;
+
+                              // Get override from the override array item
+                              const overrideRoofItem = (
+                                overrideRoofingTypes as any
+                              )?.[roofIdx];
+                              const overrideTimber =
+                                overrideRoofItem?.structuralTimber?.[timberIdx];
+
+                              const effectivePrice =
+                                overrideTimber?.price_kes ?? timber.price_kes;
+                              const overridePrice =
+                                tempValues[key] !== undefined
+                                  ? tempValues[key]
+                                  : effectivePrice;
+
+                              return (
+                                <div
+                                  key={timberIdx}
+                                  className="p-2 border rounded-lg"
+                                >
+                                  <div className="flex justify-between">
+                                    <span className="font-medium text-sm">
+                                      {timber.size}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {timber.description}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <Input
+                                      type="number"
+                                      value={overridePrice}
+                                      onChange={(e) =>
+                                        setTempValues({
+                                          ...tempValues,
+                                          [key]:
+                                            parseFloat(e.target.value) || 0,
+                                        })
+                                      }
+                                      className="w-28 h-8"
+                                    />
+                                    <Button
+                                      className="text-white"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleSave(
+                                          "Roof-Covering",
+                                          "material",
+                                          material.id,
+                                          `Roof-Covering - Timber ${timber.size}`,
+                                          overridePrice,
+                                          `timber-${roofIdx}-${timberIdx}`,
+                                        )
+                                      }
+                                    >
+                                      <Save className="w-3 h-3 text-white" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            },
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Roofing Sheets */}
+                  {roofItem.roofingSheets &&
+                    isArray(roofItem.roofingSheets) && (
+                      <div className="border-b pb-4">
+                        <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                          Roofing Sheets
+                        </h4>
+                        <div className="space-y-3">
+                          {roofItem.roofingSheets.map((sheet, sheetIdx) => (
+                            <div
+                              key={sheetIdx}
+                              className="p-2 border rounded-lg"
+                            >
+                              <div className="font-medium text-sm mb-2">
+                                {sheet.type}
+                                {sheet.grade && ` (${sheet.grade})`}
+                              </div>
+                              {sheet.sizes &&
+                                isObject(sheet.sizes) &&
+                                Object.entries(sheet.sizes).map(
+                                  ([size, sizeData]) => {
+                                    const key = `roof-sheet-${roofIdx}-${sheetIdx}-${size}`;
+
+                                    // Get override from the override array item
+                                    const overrideRoofItem = (
+                                      overrideRoofingTypes as any
+                                    )?.[roofIdx];
+                                    const overrideSheet =
+                                      overrideRoofItem?.roofingSheets?.[
+                                        sheetIdx
+                                      ];
+                                    const overrideSizeData =
+                                      overrideSheet?.sizes?.[size];
+
+                                    const effectivePrice =
+                                      overrideSizeData?.price_kes ??
+                                      (sizeData as any)?.price_kes;
+                                    const overridePrice =
+                                      tempValues[key] !== undefined
+                                        ? tempValues[key]
+                                        : effectivePrice;
+
+                                    return (
+                                      <div
+                                        key={size}
+                                        className="flex items-center justify-between ml-2 mt-1"
+                                      >
+                                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                                          {size}
+                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                          <Input
+                                            type="number"
+                                            value={overridePrice}
+                                            onChange={(e) =>
+                                              setTempValues({
+                                                ...tempValues,
+                                                [key]:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              })
+                                            }
+                                            className="w-28 h-8"
+                                          />
+                                          <Button
+                                            className="text-white"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleSave(
+                                                "Roof-Covering",
+                                                "material",
+                                                material.id,
+                                                `Roof-Covering - Sheet ${sheet.type} ${size}`,
+                                                overridePrice,
+                                                `sheet-${roofIdx}-${sheetIdx}-${size}`,
+                                              )
+                                            }
+                                          >
+                                            <Save className="w-3 h-3 text-white" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  },
+                                )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Roofing Finishing */}
+                  {roofItem.roofingFinishing &&
+                    isArray(roofItem.roofingFinishing) && (
+                      <div className="border-b pb-4">
+                        <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                          Roofing Finishing
+                        </h4>
+                        <div className="space-y-3">
+                          {roofItem.roofingFinishing.map(
+                            (finishCategory, catIdx) => (
+                              <div
+                                key={catIdx}
+                                className="p-2 border rounded-lg"
+                              >
+                                <div className="font-medium text-sm mb-2">
+                                  {finishCategory.name}
+                                </div>
+                                {isArray(finishCategory.types) &&
+                                  finishCategory.types.map(
+                                    (finishType, typeIdx) => {
+                                      const key = `roof-finish-${roofIdx}-${catIdx}-${typeIdx}`;
+
+                                      // Get override from the override array item
+                                      const overrideRoofItem = (
+                                        overrideRoofingTypes as any
+                                      )?.[roofIdx];
+                                      const overrideFinishCategory =
+                                        overrideRoofItem?.roofingFinishing?.[
+                                          catIdx
+                                        ];
+                                      const overrideFinishType =
+                                        overrideFinishCategory?.types?.[
+                                          typeIdx
+                                        ];
+
+                                      const effectivePrice =
+                                        overrideFinishType?.price_kes ??
+                                        finishType.price_kes;
+                                      const overridePrice =
+                                        tempValues[key] !== undefined
+                                          ? tempValues[key]
+                                          : effectivePrice;
+
+                                      return (
+                                        <div
+                                          key={typeIdx}
+                                          className="flex items-center justify-between ml-2 mt-1"
+                                        >
+                                          <div>
+                                            <span className="text-sm font-medium">
+                                              {finishType.name}
+                                            </span>
+                                            <p className="text-xs text-gray-500">
+                                              {finishType.description}
+                                            </p>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <Input
+                                              type="number"
+                                              value={overridePrice}
+                                              onChange={(e) =>
+                                                setTempValues({
+                                                  ...tempValues,
+                                                  [key]:
+                                                    parseFloat(
+                                                      e.target.value,
+                                                    ) || 0,
+                                                })
+                                              }
+                                              className="w-28 h-8"
+                                            />
+                                            <Button
+                                              className="text-white"
+                                              size="sm"
+                                              onClick={() =>
+                                                handleSave(
+                                                  "Roof-Covering",
+                                                  "material",
+                                                  material.id,
+                                                  `Roof-Covering - ${finishCategory.name} ${finishType.name}`,
+                                                  overridePrice,
+                                                  `finish-${roofIdx}-${catIdx}-${typeIdx}`,
+                                                )
+                                              }
+                                            >
+                                              <Save className="w-3 h-3 text-white" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      );
+                                    },
+                                  )}
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Accessories */}
+                  {roofItem.accessories && roofItem.accessories.items && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                        Accessories
+                      </h4>
+                      <div className="space-y-2">
+                        {isArray(roofItem.accessories.items) &&
+                          roofItem.accessories.items.map(
+                            (accessory, accIdx) => {
+                              const key = `roof-accessory-${roofIdx}-${accIdx}`;
+
+                              // Get override from the override array item
+                              const overrideRoofItem = (
+                                overrideRoofingTypes as any
+                              )?.[roofIdx];
+                              const overrideAccessory =
+                                overrideRoofItem?.accessories?.items?.[accIdx];
+
+                              const effectivePrice =
+                                overrideAccessory?.price_kes ??
+                                accessory.price_kes;
+                              const overridePrice =
+                                tempValues[key] !== undefined
+                                  ? tempValues[key]
+                                  : effectivePrice;
+
+                              return (
+                                <div
+                                  key={accIdx}
+                                  className="p-2 border rounded-lg"
+                                >
+                                  <div className="flex justify-between">
+                                    <div>
+                                      <span className="font-medium text-sm">
+                                        {accessory.name}
+                                      </span>
+                                      <p className="text-xs text-gray-500">
+                                        {accessory.description}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Input
+                                        type="number"
+                                        value={overridePrice}
+                                        onChange={(e) =>
+                                          setTempValues({
+                                            ...tempValues,
+                                            [key]:
+                                              parseFloat(e.target.value) || 0,
+                                          })
+                                        }
+                                        className="w-28 h-8"
+                                      />
+                                      <Button
+                                        className="text-white"
+                                        size="sm"
+                                        onClick={() =>
+                                          handleSave(
+                                            "Roof-Covering",
+                                            "material",
+                                            material.id,
+                                            `Roof-Covering - Accessory ${accessory.name}`,
+                                            overridePrice,
+                                            `accessory-${roofIdx}-${accIdx}`,
+                                          )
+                                        }
+                                      >
+                                        <Save className="w-3 h-3 text-white" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            },
+                          )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          } else {
+            // Simple roofing type with just price and optional properties
+            const key = `roof-${roofIdx}`;
+
+            // Get override from the override array item
+            const overrideRoofItem = (overrideRoofingTypes as any)?.[roofIdx];
+
+            const effectivePrice = overrideRoofItem?.price ?? roofItem.price;
+            const overridePrice =
+              tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+            return (
+              <div key={roofIdx} className="p-2 border rounded-lg ">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <span className="font-medium text-sm">{roofItem.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      ({roofItem.type})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 mt-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-28 h-8"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        "Roof-Covering",
+                        "material",
+                        material.id,
+                        `Roof-Covering - ${roofItem.name}`,
+                        overridePrice,
+                        `roof-${roofIdx}`,
+                      )
+                    }
+                  >
+                    <Save className="w-3 h-3 text-white" />
+                  </Button>
+                </div>
+
+                {/* Display additional properties */}
+                {(roofItem.colors ||
+                  roofItem.finish ||
+                  roofItem.coverage ||
+                  roofItem.thickness ||
+                  roofItem.sizes ||
+                  roofItem.lengths ||
+                  roofItem.materialType) && (
+                  <div className="mt-2 pt-2 border-t text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    {roofItem.colors && (
+                      <p>
+                        <span className="font-medium">Colors:</span>{" "}
+                        {roofItem.colors.join(", ")}
+                      </p>
+                    )}
+                    {roofItem.finish && (
+                      <p>
+                        <span className="font-medium">Finish:</span>{" "}
+                        {roofItem.finish.join(", ")}
+                      </p>
+                    )}
+                    {roofItem.coverage && (
+                      <p>
+                        <span className="font-medium">Coverage:</span>{" "}
+                        {roofItem.coverage}
+                      </p>
+                    )}
+                    {roofItem.thickness && (
+                      <p>
+                        <span className="font-medium">Thickness:</span>{" "}
+                        {roofItem.thickness}
+                      </p>
+                    )}
+                    {roofItem.sizes && (
+                      <p>
+                        <span className="font-medium">Sizes:</span>{" "}
+                        {roofItem.sizes.join(", ")}
+                      </p>
+                    )}
+                    {roofItem.lengths && (
+                      <p>
+                        <span className="font-medium">Lengths:</span>{" "}
+                        {roofItem.lengths.join(", ")}
+                      </p>
+                    )}
+                    {roofItem.materialType && (
+                      <p>
+                        <span className="font-medium">Material Type:</span>{" "}
+                        {roofItem.materialType.join(", ")}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content, "Roof-Covering");
+  }
+
+  // 16. Hoop Iron - Simple array with sizes and prices
+  if (material.name === "Hoop Iron" && isArray(material.type)) {
+    const content = (
       <div className="space-y-2 mt-2">
-        <div className="p-2 border rounded-lg">
-          <div className="flex justify-between">
-            <span className="font-medium">{material.name}</span>
-            <span className="text-xs text-gray-500">
-              Type: {material.type}
-              {material.thickness && `, Thickness: ${material.thickness}`}
-              {material.warranty && `, Warranty: ${material.warranty}`}
-            </span>
-          </div>
+        {material.type.map((iron, idx) => {
+          const key = `hoop-iron-${idx}`;
 
-          <div className="flex items-center space-x-2 mt-2">
-            <Input
-              type="number"
-              value={overridePrice}
-              onChange={(e) =>
-                setTempValues({
-                  ...tempValues,
-                  [key]: parseFloat(e.target.value) || 0,
-                })
-              }
-              placeholder="Enter price in KES"
-            />
-            <Button
-              className="text-white"
-              size="sm"
-              onClick={() =>
-                handleSave(
-                  material.name,
-                  "material",
-                  material.id || material.type,
-                  material.name,
-                  tempValues[key] ?? material.price,
-                  "price"
-                )
-              }
-            >
-              <Save className="w-4 h-4 text-white" />
-            </Button>
-          </div>
+          // Check for user override in database
+          // Find override once by material_id and region, then navigate type field
+          const userOverrideRecord = userMaterialPrices.find(
+            (p) => p.material_id === material.id && p.region === userRegion,
+          );
 
-          {/* Display additional properties */}
-          {(material.colors || material.finish || material.coverage) && (
-            <div className="mt-3 pt-3 border-t text-xs text-gray-600 dark:text-gray-400">
-              {material.colors && (
-                <p className="mb-1">
-                  <span className="font-medium">Colors:</span> {material.colors.join(", ")}
-                </p>
-              )}
-              {material.finish && (
-                <p className="mb-1">
-                  <span className="font-medium">Finish:</span> {material.finish.join(", ")}
-                </p>
-              )}
-              {material.coverage && (
-                <p className="mb-1">
-                  <span className="font-medium">Coverage:</span> {material.coverage}
-                </p>
-              )}
-              {material.lengths && (
-                <p className="mb-1">
-                  <span className="font-medium">Lengths:</span> {material.lengths.join(", ")}
-                </p>
-              )}
-              {material.sizes && (
-                <p className="mb-1">
-                  <span className="font-medium">Sizes:</span> {material.sizes.join(", ")}
-                </p>
-              )}
+          const overrideIron = (userOverrideRecord?.type as any)?.[idx];
+          const effectivePrice = overrideIron?.price_kes ?? iron.price_kes;
+          const overridePrice =
+            tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+          return (
+            <div key={idx} className="p-2 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{iron.name}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-32"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        "Hoop Iron",
+                        "material",
+                        material.id,
+                        `Hoop Iron - ${iron.name}`,
+                        overridePrice,
+                        `hoop-iron-${idx}`,
+                      )
+                    }
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
     );
 
     return renderCollapsible(content);
   }
 
-  // 16. Complex Roofing Structure with Structural Timber, Sheets, Finishing, and Accessories
-  if (material.name === "Roofing" && isObject(material.type)) {
-    const roofingType = material.type;
+  // 17. Flooring - Complex nested structure with four categories
+  if (material.name === "Flooring" && isObject(material.type)) {
+    const flooring = material.type;
 
-    let content;
+    // Find override once by material_id and region
+    const flooringOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideFlooring = (flooringOverride?.type as any) || flooring;
 
-    // Handle structuralTimber
-    if (roofingType.structuralTimber && isArray(roofingType.structuralTimber)) {
-      content = (
-        <div className="space-y-4">
-          <div className="border-b pb-4">
-            <h4 className=" mb-2 text-sm">Structural Timber</h4>
-            <div className="space-y-2">
-              {roofingType.structuralTimber.map((timber, idx) => {
-                const key = `roofing-timber-${idx}`;
-                const overridePrice =
-                  tempValues[key] !== undefined
-                    ? tempValues[key]
-                    : timber.price_kes;
+    const categories = [
+      { key: "flooringMaterials", label: "Flooring Materials" },
+      { key: "screeningBaseMaterials", label: "Base Materials" },
+      { key: "skirtingMaterials", label: "Skirting Materials" },
+      { key: "skirtingAccessories", label: "Skirting Accessories" },
+    ];
 
-                return (
-                  <div key={idx} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                    <div className="flex justify-between">
-                      <span className="font-medium text-sm">{timber.size}</span>
-                      <span className="text-xs text-gray-500">
-                        {timber.description}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <Input
-                        type="number"
-                        value={overridePrice}
-                        onChange={(e) =>
-                          setTempValues({
-                            ...tempValues,
-                            [key]: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        placeholder="Price per meter"
-                      />
-                      <Button
-                        className="text-white"
-                        size="sm"
-                        onClick={() =>
-                          handleSave(
-                            material.name,
-                            "material",
-                            material.id,
-                            `${material.name} - Timber ${timber.size}`,
-                            tempValues[key] ?? timber.price_kes,
-                            `timber-${idx}`
-                          )
-                        }
-                      >
-                        <Save className="w-4 h-4 text-white" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+    const content = (
+      <div className="space-y-4 mt-2">
+        {categories.map((category) => {
+          const items = flooring[category.key];
+          const overrideItems = overrideFlooring[category.key];
+          if (!isArray(items)) return null;
 
-          {/* Roofing Sheets */}
-          {roofingType.roofingSheets && isArray(roofingType.roofingSheets) && (
-            <div className="border-b pb-4">
-              <h4 className=" mb-2 text-sm">Roofing Sheets</h4>
-              <div className="space-y-2">
-                {roofingType.roofingSheets.map((sheet, sheetIdx) => (
-                  <div key={sheetIdx} className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                    <div className="font-medium text-sm mb-2">{sheet.type}</div>
-
-                    {sheet.sizes &&
-                      isObject(sheet.sizes) &&
-                      Object.entries(sheet.sizes as Record<string, any>).map(([size, sizeData]) => {
-                        const key = `roofing-sheet-${sheetIdx}-${size}`;
-                        const overridePrice =
-                          tempValues[key] !== undefined
-                            ? tempValues[key]
-                            : (sizeData as any)?.price_kes || sheet.price_kes;
-
-                        return (
-                          <div
-                            key={size}
-                            className="flex items-center justify-between ml-2 mt-1"
-                          >
-                            <span className="text-sm">{size}</span>
-                            <div className="flex items-center space-x-2">
-                              <Input
-                                type="number"
-                                value={overridePrice}
-                                onChange={(e) =>
-                                  setTempValues({
-                                    ...tempValues,
-                                    [key]: parseFloat(e.target.value) || 0,
-                                  })
-                                }
-                                placeholder="Price per piece"
-                                className="w-32"
-                              />
-                              <Button
-                                className="text-white"
-                                size="sm"
-                                onClick={() =>
-                                  handleSave(
-                                    material.name,
-                                    "material",
-                                    material.id,
-                                    `${material.name} - Sheet ${sheet.type} ${size}`,
-                                    tempValues[key] ?? ((sizeData as any)?.price_kes || sheet.price_kes),
-                                    `sheet-${sheetIdx}-${size}`
-                                  )
-                                }
-                              >
-                                <Save className="w-4 h-4 text-white" />
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Roofing Finishing */}
-          {roofingType.roofingFinishing &&
-            isArray(roofingType.roofingFinishing) && (
-              <div className="border-b pb-4">
-                <h4 className=" mb-2 text-sm">Roofing Finishing</h4>
-                <div className="space-y-3">
-                  {roofingType.roofingFinishing.map((finishCategory, catIdx) => (
-                    <div
-                      key={catIdx}
-                      className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg"
-                    >
-                      <div className="font-medium text-sm mb-2">
-                        {finishCategory.name}
+          return (
+            <div key={category.key} className="border rounded-lg p-3">
+              <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                {category.label}
+              </h4>
+              <div className="space-y-3">
+                {items.map((material, matIdx) => {
+                  const overrideMaterial = (overrideItems as any)?.[matIdx];
+                  return (
+                    <div key={matIdx} className="p-2 border rounded-lg">
+                      <div className="font-medium text-sm mb-2 text-gray-900 dark:text-white">
+                        {material.name}
                       </div>
 
-                      {isArray(finishCategory.types) &&
-                        finishCategory.types.map((finishType, typeIdx) => {
-                          const key = `roofing-finish-${catIdx}-${typeIdx}`;
-                          const overridePrice =
-                            tempValues[key] !== undefined
-                              ? tempValues[key]
-                              : finishType.price_kes;
+                      {isArray(material.type) &&
+                        material.type.map((typeItem, typeIdx) => (
+                          <div key={typeIdx} className="space-y-2 ml-2">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                              {typeItem.name}
+                              {typeItem.unit && ` (${typeItem.unit})`}
+                            </div>
 
-                          return (
-                            <div
-                              key={typeIdx}
-                              className="flex items-center justify-between ml-2 mt-1"
-                            >
-                              <div>
-                                <span className="text-sm font-medium">
-                                  {finishType.name}
+                            {/* Handle tile types if they exist */}
+                            {typeItem.tileTypes &&
+                            isObject(typeItem.tileTypes) ? (
+                              <div className="space-y-2">
+                                {Object.entries(typeItem.tileTypes).map(
+                                  ([tileSize, tilePrice]) => {
+                                    const key = `flooring-${category.key}-${matIdx}-${typeIdx}-${tileSize}`;
+
+                                    // Get override from the override material
+                                    const overrideTypeItem = (
+                                      overrideMaterial?.type as any
+                                    )?.[typeIdx];
+                                    const overrideTilePrice =
+                                      overrideTypeItem?.tileTypes?.[tileSize];
+
+                                    const effectivePrice =
+                                      overrideTilePrice ?? tilePrice;
+                                    const overridePrice =
+                                      tempValues[key] !== undefined
+                                        ? tempValues[key]
+                                        : effectivePrice;
+
+                                    return (
+                                      <div
+                                        key={tileSize}
+                                        className="flex items-center justify-between ml-2"
+                                      >
+                                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                                          {tileSize}
+                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                          <Input
+                                            type="number"
+                                            value={overridePrice}
+                                            onChange={(e) =>
+                                              setTempValues({
+                                                ...tempValues,
+                                                [key]:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              })
+                                            }
+                                            className="w-28 h-8"
+                                          />
+                                          <Button
+                                            className="text-white"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleSave(
+                                                "Flooring",
+                                                "material",
+                                                material.id,
+                                                `Flooring - ${typeItem.name} ${tileSize}`,
+                                                overridePrice,
+                                                `flooring-${category.key}-${matIdx}-${typeIdx}-${tileSize}`,
+                                              )
+                                            }
+                                          >
+                                            <Save className="w-3 h-3 text-white" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  },
+                                )}
+                              </div>
+                            ) : (
+                              /* Simple price editor for non-tile materials */
+                              <div className="flex items-center justify-between ml-2">
+                                <span className="text-xs text-gray-500">
+                                  KES per {typeItem.unit}
                                 </span>
-                                <p className="text-xs text-gray-500">
-                                  {finishType.description}
-                                </p>
+                                <div className="flex items-center space-x-2">
+                                  {(() => {
+                                    const key = `flooring-${category.key}-${matIdx}-${typeIdx}`;
+
+                                    // Get override from the override material
+                                    const overrideTypeItem = (
+                                      overrideMaterial?.type as any
+                                    )?.[typeIdx];
+                                    const effectivePrice =
+                                      overrideTypeItem?.price_kes ??
+                                      typeItem.price_kes;
+                                    const overridePrice =
+                                      tempValues[key] !== undefined
+                                        ? tempValues[key]
+                                        : effectivePrice;
+
+                                    return (
+                                      <>
+                                        <Input
+                                          type="number"
+                                          value={overridePrice}
+                                          onChange={(e) =>
+                                            setTempValues({
+                                              ...tempValues,
+                                              [key]:
+                                                parseFloat(e.target.value) || 0,
+                                            })
+                                          }
+                                          className="w-28 h-8"
+                                        />
+                                        <Button
+                                          className="text-white"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleSave(
+                                              "Flooring",
+                                              "material",
+                                              material.id,
+                                              `Flooring - ${typeItem.name}`,
+                                              overridePrice,
+                                              `flooring-${category.key}-${matIdx}-${typeIdx}`,
+                                            )
+                                          }
+                                        >
+                                          <Save className="w-3 h-3 text-white" />
+                                        </Button>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <Input
-                                  type="number"
-                                  value={overridePrice}
-                                  onChange={(e) =>
-                                    setTempValues({
-                                      ...tempValues,
-                                      [key]: parseFloat(e.target.value) || 0,
-                                    })
-                                  }
-                                  placeholder="Price per meter"
-                                  className="w-32"
-                                />
-                                <Button
-                                  className="text-white"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleSave(
-                                      material.name,
-                                      "material",
-                                      material.id,
-                                      `${material.name} - ${finishCategory.name} ${finishType.name}`,
-                                      tempValues[key] ?? finishType.price_kes,
-                                      `finish-${catIdx}-${typeIdx}`
-                                    )
-                                  }
-                                >
-                                  <Save className="w-4 h-4 text-white" />
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            )}
+                          </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          );
+        })}
+      </div>
+    );
 
-          {/* Roofing Accessories */}
-          {roofingType.accessories &&
-            roofingType.accessories.items &&
-            isArray(roofingType.accessories.items) && (
-              <div>
-                <h4 className=" mb-2 text-sm">Accessories</h4>
-                <div className="space-y-2">
-                  {roofingType.accessories.items.map((accessory, accIdx) => {
-                    const key = `roofing-accessory-${accIdx}`;
-                    const overridePrice =
-                      tempValues[key] !== undefined
-                        ? tempValues[key]
-                        : accessory.price_kes;
+    return renderCollapsible(content, "Flooring");
+  }
 
-                    return (
-                      <div
-                        key={accIdx}
-                        className="p-2 bg-gray-50 dark:bg-gray-900 rounded-lg"
-                      >
-                        <div className="flex justify-between">
-                          <div>
-                            <span className="font-medium text-sm">
-                              {accessory.name}
-                            </span>
-                            <p className="text-xs text-gray-500">
-                              {accessory.description} - {accessory.unit}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Input
-                              type="number"
-                              value={overridePrice}
-                              onChange={(e) =>
-                                setTempValues({
-                                  ...tempValues,
-                                  [key]: parseFloat(e.target.value) || 0,
-                                })
-                              }
-                              placeholder="Price"
-                              className="w-32"
-                            />
-                            <Button
-                              className="text-white"
-                              size="sm"
-                              onClick={() =>
-                                handleSave(
-                                  material.name,
-                                  "material",
-                                  material.id,
-                                  `${material.name} - Accessory ${accessory.name}`,
-                                  tempValues[key] ?? accessory.price_kes,
-                                  `accessory-${accIdx}`
-                                )
-                              }
-                            >
-                              <Save className="w-4 h-4 text-white" />
-                            </Button>
-                          </div>
-                        </div>
+  // 18. Wall-Finishes - Complex nested structure with categories
+  if (material.name === "Wall-Finishes" && isObject(material.type)) {
+    const wallFinishes = material.type;
+
+    // Find override once by material_id and region
+    const wallFinishesOverride = userMaterialPrices.find(
+      (p) => p.material_id === material.id && p.region === userRegion,
+    );
+    const overrideWallFinishes =
+      (wallFinishesOverride?.type as any) || wallFinishes;
+
+    const categories = [
+      { key: "internalWallingMaterials", label: "Internal Walling Materials" },
+      { key: "tilingMaterials", label: "Tiling Materials" },
+      { key: "externalWallingMaterials", label: "External Walling Materials" },
+    ];
+
+    const content = (
+      <div className="space-y-4 mt-2">
+        {categories.map((category) => {
+          const items = wallFinishes[category.key];
+          const overrideItems = overrideWallFinishes[category.key];
+          if (!isArray(items)) return null;
+
+          return (
+            <div key={category.key} className="border rounded-lg p-3">
+              <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                {category.label}
+              </h4>
+              <div className="space-y-3">
+                {items.map((material, matIdx) => {
+                  const overrideMaterial = (overrideItems as any)?.[matIdx];
+                  return (
+                    <div key={matIdx} className="p-2 border rounded-lg">
+                      <div className="font-medium text-sm mb-2 text-gray-900 dark:text-white">
+                        {material.name}
                       </div>
-                    );
-                  })}
+
+                      {isArray(material.type) &&
+                        material.type.map((typeItem, typeIdx) => (
+                          <div key={typeIdx} className="space-y-2 ml-2">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                              {typeItem.name}
+                              {typeItem.unit && ` (${typeItem.unit})`}
+                            </div>
+
+                            {/* Handle tile types if they exist */}
+                            {typeItem.tileTypes &&
+                            isObject(typeItem.tileTypes) ? (
+                              <div className="space-y-2">
+                                {Object.entries(typeItem.tileTypes).map(
+                                  ([tileSize, tilcePrice]) => {
+                                    const key = `wallfinish-${category.key}-${matIdx}-${typeIdx}-${tileSize}`;
+
+                                    // Get override from the override material
+                                    const overrideTypeItem = (
+                                      overrideMaterial?.type as any
+                                    )?.[typeIdx];
+                                    const overrideTilePrice =
+                                      overrideTypeItem?.tileTypes?.[tileSize];
+
+                                    const effectivePrice =
+                                      overrideTilePrice ?? tilcePrice;
+                                    const overridePrice =
+                                      tempValues[key] !== undefined
+                                        ? tempValues[key]
+                                        : effectivePrice;
+
+                                    return (
+                                      <div
+                                        key={tileSize}
+                                        className="flex items-center justify-between ml-2"
+                                      >
+                                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                                          {tileSize}
+                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                          <Input
+                                            type="number"
+                                            value={overridePrice}
+                                            onChange={(e) =>
+                                              setTempValues({
+                                                ...tempValues,
+                                                [key]:
+                                                  parseFloat(e.target.value) ||
+                                                  0,
+                                              })
+                                            }
+                                            className="w-28 h-8"
+                                          />
+                                          <Button
+                                            className="text-white"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleSave(
+                                                "Wall-Finishes",
+                                                "material",
+                                                material.id,
+                                                `${material.name} - ${typeItem.name} ${tileSize}`,
+                                                overridePrice,
+                                                `wallfinish-${category.key}-${matIdx}-${typeIdx}-${tileSize}`,
+                                              )
+                                            }
+                                          >
+                                            <Save className="w-3 h-3 text-white" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    );
+                                  },
+                                )}
+                              </div>
+                            ) : (
+                              /* Simple price editor for non-tile materials */
+                              <div className="flex items-center justify-between ml-2">
+                                <span className="text-xs text-gray-500">
+                                  KES per {typeItem.unit}
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                  {(() => {
+                                    const key = `wallfinish-${category.key}-${matIdx}-${typeIdx}`;
+
+                                    // Get override from the override material
+                                    const overrideTypeItem = (
+                                      overrideMaterial?.type as any
+                                    )?.[typeIdx];
+                                    const effectivePrice =
+                                      overrideTypeItem?.price_kes ??
+                                      typeItem.price_kes;
+                                    const overridePrice =
+                                      tempValues[key] !== undefined
+                                        ? tempValues[key]
+                                        : effectivePrice;
+
+                                    return (
+                                      <>
+                                        <Input
+                                          type="number"
+                                          value={overridePrice}
+                                          onChange={(e) =>
+                                            setTempValues({
+                                              ...tempValues,
+                                              [key]:
+                                                parseFloat(e.target.value) || 0,
+                                            })
+                                          }
+                                          className="w-28 h-8"
+                                        />
+                                        <Button
+                                          className="text-white"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleSave(
+                                              "Wall-Finishes",
+                                              "material",
+                                              material.id,
+                                              `${material.name} - ${typeItem.name}`,
+                                              overridePrice,
+                                              `wallfinish-${category.key}-${matIdx}-${typeIdx}`,
+                                            )
+                                          }
+                                        >
+                                          <Save className="w-3 h-3 text-white" />
+                                        </Button>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content, "Wall Finishes");
+  }
+
+  // 19. Ceiling - Object with material items and prices
+  if (material.name === "Ceiling" && isObject(material.type)) {
+    const ceilingMaterials = material.type.materials || material.type;
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(ceilingMaterials).map(
+          ([materialKey, materialData], idx) => {
+            const data = materialData as any;
+            const key = `ceiling-${materialKey}`;
+
+            // Check for user override in database
+            // Find override once by material_id and region, then navigate type field
+            const userOverrideRecord = userMaterialPrices.find(
+              (p) => p.material_id === material.id && p.region === userRegion,
+            );
+
+            // Navigate to the specific material in the override's type field
+            const overrideMaterials =
+              userOverrideRecord?.type?.materials || userOverrideRecord?.type;
+            const overrideMaterialData = overrideMaterials?.[materialKey];
+
+            const effectivePrice =
+              overrideMaterialData?.price ?? data?.price ?? 0;
+            const overridePrice =
+              tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+            return (
+              <div key={idx} className="p-2 border rounded-lg">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <span className="font-medium text-sm">{materialKey}</span>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {data?.description}
+                    </p>
+                  </div>
+                  <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
+                    {data?.unit}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-gray-500">
+                    KES per {data?.unit}
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      value={overridePrice}
+                      onChange={(e) =>
+                        setTempValues({
+                          ...tempValues,
+                          [key]: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-28 h-8"
+                    />
+                    <Button
+                      className="text-white"
+                      size="sm"
+                      onClick={() =>
+                        handleSave(
+                          "Ceiling",
+                          "material",
+                          material.id,
+                          `Ceiling - ${materialKey}`,
+                          overridePrice,
+                          `ceiling-${materialKey}`,
+                        )
+                      }
+                    >
+                      <Save className="w-4 h-4 text-white" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            )}
-        </div>
-      );
+            );
+          },
+        )}
+      </div>
+    );
 
-      return renderCollapsible(content, "Roofing Materials");
-    }
+    return renderCollapsible(content);
+  }
+
+  // 20. Countertops - Object with material items, units, and prices
+  if (material.name === "Countertops" && isObject(material.type)) {
+    const countermaterials = material.type.materials || material.type;
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(countermaterials).map(
+          ([materialKey, materialData], idx) => {
+            const data = materialData as any;
+            const key = `countertop-${materialKey}`;
+
+            // Check for user override in database
+            // Find override once by material_id and region, then navigate type field
+            const userOverrideRecord = userMaterialPrices.find(
+              (p) => p.material_id === material.id && p.region === userRegion,
+            );
+
+            const overrideMaterials =
+              userOverrideRecord?.type?.materials || countermaterials;
+            const overrideMaterialData = (overrideMaterials as any)?.[
+              materialKey
+            ];
+
+            const effectivePrice = overrideMaterialData?.price ?? data?.price;
+            const overridePrice =
+              tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+            return (
+              <div key={materialKey} className="p-2 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium text-sm">{materialKey}</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      {data?.unit}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      value={overridePrice}
+                      onChange={(e) =>
+                        setTempValues({
+                          ...tempValues,
+                          [key]: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-28 h-8"
+                    />
+                    <Button
+                      className="text-white"
+                      size="sm"
+                      onClick={() =>
+                        handleSave(
+                          "Countertops",
+                          "material",
+                          material.id,
+                          `Countertops - ${materialKey}`,
+                          overridePrice,
+                          `countertop-${materialKey}`,
+                        )
+                      }
+                    >
+                      <Save className="w-4 h-4 text-white" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          },
+        )}
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
+  // 21. Joinery - Object with material items and prices
+  if (material.name === "Joinery" && isObject(material.type)) {
+    const joinerymaterials = material.type.materials || material.type;
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(joinerymaterials).map(([materialKey, price], idx) => {
+          const key = `joinery-${materialKey}`;
+
+          // Check for user override in database
+          const userOverrideRecord = userMaterialPrices.find(
+            (p) => p.material_id === material.id && p.region === userRegion,
+          );
+
+          const overrideMaterials =
+            userOverrideRecord?.type?.materials || joinerymaterials;
+          const overrideMaterialData = (overrideMaterials as any)?.[
+            materialKey
+          ];
+
+          const effectivePrice = overrideMaterialData ?? price;
+          const overridePrice =
+            tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+          return (
+            <div key={materialKey} className="p-2 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">{materialKey}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-28 h-8"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        "Joinery",
+                        "material",
+                        material.id,
+                        `Joinery - ${materialKey}`,
+                        overridePrice,
+                        `joinery-${materialKey}`,
+                      )
+                    }
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
+  // 22. Paint - Object with material items and prices
+  if (material.name === "Paint" && isObject(material.type)) {
+    const paintmaterials = material.type.materials || material.type;
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(paintmaterials).map(([materialKey, price], idx) => {
+          const key = `paint-${materialKey}`;
+
+          // Check for user override in database
+          const userOverrideRecord = userMaterialPrices.find(
+            (p) => p.material_id === material.id && p.region === userRegion,
+          );
+
+          const overrideMaterials =
+            userOverrideRecord?.type?.materials || paintmaterials;
+          const overrideMaterialData = (overrideMaterials as any)?.[
+            materialKey
+          ];
+
+          const effectivePrice = overrideMaterialData ?? price;
+          const overridePrice =
+            tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+          return (
+            <div key={materialKey} className="p-2 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">{materialKey}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-28 h-8"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        "Paint",
+                        "material",
+                        material.id,
+                        `Paint - ${materialKey}`,
+                        overridePrice,
+                        `paint-${materialKey}`,
+                      )
+                    }
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content);
+  }
+
+  // 23. Glazing - Object with material items and prices
+  if (material.name === "Glazing" && isObject(material.type)) {
+    const glazingmaterials = material.type.materials || material.type;
+
+    const content = (
+      <div className="space-y-2 mt-2">
+        {Object.entries(glazingmaterials).map(([materialKey, price], idx) => {
+          const key = `glazing-${materialKey}`;
+
+          // Check for user override in database
+          const userOverrideRecord = userMaterialPrices.find(
+            (p) => p.material_id === material.id && p.region === userRegion,
+          );
+
+          const overrideMaterials =
+            userOverrideRecord?.type?.materials || glazingmaterials;
+          const overrideMaterialData = (overrideMaterials as any)?.[
+            materialKey
+          ];
+
+          const effectivePrice = overrideMaterialData ?? price;
+          const overridePrice =
+            tempValues[key] !== undefined ? tempValues[key] : effectivePrice;
+
+          return (
+            <div key={materialKey} className="p-2 border rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-sm">{materialKey}</span>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    value={overridePrice}
+                    onChange={(e) =>
+                      setTempValues({
+                        ...tempValues,
+                        [key]: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="w-28 h-8"
+                  />
+                  <Button
+                    className="text-white"
+                    size="sm"
+                    onClick={() =>
+                      handleSave(
+                        "Glazing",
+                        "material",
+                        material.id,
+                        `Glazing - ${materialKey}`,
+                        overridePrice,
+                        `glazing-${materialKey}`,
+                      )
+                    }
+                  >
+                    <Save className="w-4 h-4 text-white" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+    return renderCollapsible(content);
   }
 
   // Default case - show a simple editor for materials with type but no specific handler

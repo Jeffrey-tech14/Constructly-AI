@@ -169,22 +169,26 @@ export default function useUniversalFinishesCalculator(
       );
 
       if (!existingJointingCompound) {
-        // Add Filler as 1/3 of gypsum board quantity
+        // Add Filler in 25kg bags: area / 10 / 3
         finishesToCalculate.push({
           id: jointingCompoundId,
           category: "ceiling",
           material: "Filler",
           area: gypsumBoard.area,
-          quantity: gypsumBoard.quantity / 3,
-          unit: gypsumBoard.unit,
+          quantity: Math.ceil(gypsumBoard.area / 10 / 3),
+          unit: "bag" as const,
           location: gypsumBoard.location,
           specifications: gypsumBoard.specifications,
         });
       } else {
-        // Update existing Filler to be 1/3 of gypsum board
+        // Update existing Filler to be area / 10 / 3
         finishesToCalculate = finishesToCalculate.map((f) =>
           f.id === jointingCompoundId
-            ? { ...f, quantity: gypsumBoard.quantity / 3 }
+            ? {
+                ...f,
+                quantity: Math.ceil(gypsumBoard.area / 10 / 3),
+                unit: "bag" as const,
+              }
             : f,
         );
       }

@@ -26,6 +26,7 @@ export interface Door {
     standardSize: string;
     height: string;
     width: string;
+    thickness?: string;
     custom: { height: string; width: string; price?: number };
   };
   architrave?: {
@@ -106,6 +107,7 @@ export interface Window {
     standardSize: string;
     height: string;
     width: string;
+    thickness?: string;
     custom: { height: string; width: string; price?: number };
   };
   ironmongery?: {
@@ -152,7 +154,15 @@ export interface Window {
       quantity?: number;
       pricePerM2?: number;
     };
-    putty?: { quantity?: number; unit?: string; price?: number; size?: string; color?: string; lengthNeeded?: number; tinsNeeded?: number };
+    putty?: {
+      quantity?: number;
+      unit?: string;
+      price?: number;
+      size?: string;
+      color?: string;
+      lengthNeeded?: number;
+      tinsNeeded?: number;
+    };
   };
   glassType?: string;
   glassThickness?: number;
@@ -477,6 +487,8 @@ interface CalculationTotals {
   netTransomPuttyCost: number;
   grossTransomPuttyCost: number;
   professionalElementsTotalCost: number;
+  hoopIronLength: number;
+  hoopIronCoils: number;
 }
 
 interface UseMasonryCalculatorProps {
@@ -651,6 +663,8 @@ export default function useMasonryCalculatorNew({
     grossTransomGlassCost: 0,
     netTransomPuttyCost: 0,
     grossTransomPuttyCost: 0,
+    hoopIronLength: 0,
+    hoopIronCoils: 0,
   });
 
   const [rebarPrices, setRebarPrices] = useState<PriceMap>({} as PriceMap);
@@ -836,7 +850,7 @@ export default function useMasonryCalculatorNew({
     netBricks: number;
   }
 
-  let thickness = 0.15; // Default thickness, will be updated based on block type 
+  let thickness = 0.15; // Default thickness, will be updated based on block type
 
   const calculateBricksUsingCenterLineMethod = useCallback(
     (
@@ -1084,7 +1098,9 @@ export default function useMasonryCalculatorNew({
           .eq("name", "Rebar")
           .single();
         if (!baseMaterial?.type) return 0;
-        const rebarType = (baseMaterial.type as any[]).find((t: any) => t.size === size);
+        const rebarType = (baseMaterial.type as any[]).find(
+          (t: any) => t.size === size,
+        );
         return rebarType?.price_kes_per_kg || 0;
       } catch (error) {
         console.error("Error getting rebar price:", error);
@@ -1362,6 +1378,279 @@ export default function useMasonryCalculatorNew({
     });
   };
 
+  // ============ PRICE CALCULATION FUNCTIONS ============
+
+  const calculateDoorPrice = useCallback(
+    (door: any): number => {
+      if (!door) return 0;
+      const customPrice = Number(door.custom?.price ?? door.price);
+      if (Number.isFinite(customPrice) && customPrice > 0) return customPrice;
+      const doorTypeMap: Record<string, string> = {
+        Steel: "Metal",
+        "Solid flush": "Flush",
+        "Semi-solid flush": "Flush",
+        Panel: "Panel",
+        "T&G": "Flush",
+      };
+      const mappedType = doorTypeMap[door.type] || door.type;
+      const doorMaterial = materialBasePrices?.find(
+        (m) => m.name?.toLowerCase() === "doors",
+      );
+      if (!doorMaterial) return 0;
+      const typeItem = doorMaterial.type?.find(
+        (t: any) => t.name === mappedType,
+      );
+      if (!typeItem) return 0;
+      const price = typeItem[door.standardSize];
+      return Number.isFinite(Number(price)) ? Number(price) : 0;
+    },
+    [materialBasePrices],
+  );
+
+  const calculateFramePrice = useCallback(
+    (frame: any, wallThickness: number): number => {
+      if (!frame) return 0;
+      const customPrice = Number(frame.custom?.price ?? frame.price);
+      if (Number.isFinite(customPrice) && customPrice > 0) return customPrice;
+      const frameMaterial = materialBasePrices?.find(
+        (m) => m.name?.toLowerCase() === "door frames",
+      );
+      if (!frameMaterial) return 0;
+      const frameType = frame.type || "Wood";
+      const typeItem = frameMaterial.type?.find(
+        (t: any) => t.name === frameType,
+      );
+      if (!typeItem) return 0;
+      const price = typeItem[frame.standardSize];
+      return Number.isFinite(Number(price)) ? Number(price) : 0;
+    },
+    [materialBasePrices],
+  );
+
+  const calculateWindowPrice = useCallback(
+    (window: any): number => {
+      if (!window) return 0;
+      const customPrice = Number(window.custom?.price ?? window.price);
+      if (Number.isFinite(customPrice) && customPrice > 0) return customPrice;
+      const windowMaterial = materialBasePrices?.find(
+        (m) => m.name?.toLowerCase() === "windows",
+      );
+      if (!windowMaterial) return 0;
+      const typeItem = windowMaterial.type?.find(
+        (t: any) => t.name === "Standard",
+      );
+      if (!typeItem) return 0;
+      const price = typeItem[window.standardSize];
+      return Number.isFinite(Number(price)) ? Number(price) : 0;
+    },
+    [materialBasePrices],
+  );
+
+  const calculateFastenerPrice = useCallback(
+    (fastenerType: string, selected: any): number => {
+      if (!selected?.type || !selected?.size) return 0;
+      const fastenersMaterial = materials.find(
+        (m) => m.name?.toLowerCase() === "fasteners",
+      );
+      if (!fastenersMaterial?.type) return 0;
+      const categoryKey = fastenerType.toLowerCase();
+      const categoryArray = fastenersMaterial.type[categoryKey];
+      if (!Array.isArray(categoryArray)) return 0;
+      const fastener = categoryArray.find(
+        (item: any) =>
+          item.type === selected.type && item.size === selected.size,
+      );
+      return fastener?.price || 0;
+    },
+    [materials],
+  );
+
+  const calculateIronmongeryPrice = useCallback(
+    (ironmongeryType: string, selected: any): number => {
+      if (!selected?.type || !selected?.size) return 0;
+      const ironmongeryMaterial = materials.find(
+        (m) => m.name?.toLowerCase() === "ironmongery",
+      );
+      if (!ironmongeryMaterial?.type) return 0;
+      const categoryKey = ironmongeryType.toLowerCase();
+      const categoryArray = ironmongeryMaterial.type[categoryKey];
+      if (!Array.isArray(categoryArray)) return 0;
+      const item = categoryArray.find(
+        (i: any) => i.type === selected.type && i.size === selected.size,
+      );
+      return item?.price || 0;
+    },
+    [materials],
+  );
+
+  const calculateDoorTotalCost = useCallback(
+    (
+      door: any,
+      sectionIndex: number,
+    ): {
+      doorCost: number;
+      frameCost: number;
+      accessories: number;
+      total: number;
+    } => {
+      const doorPrice = calculateDoorPrice(door);
+      const frameCost =
+        calculateFramePrice(door.frame, door.wallThickness) * (door.count || 1);
+      const doorCost = doorPrice * (door.count || 1);
+      let accessoriesCost = 0;
+
+      // Architrave
+      if (door.architrave?.quantity && door.architrave?.selected?.type) {
+        const price = calculateFastenerPrice(
+          "architrave",
+          door.architrave?.selected,
+        );
+        accessoriesCost +=
+          Number(door.architrave.quantity) * price * (door.count || 1);
+      }
+
+      // Quarter round
+      if (door.quarterRound?.quantity && door.quarterRound?.selected?.type) {
+        const price = calculateFastenerPrice(
+          "quarterRound",
+          door.quarterRound?.selected,
+        );
+        accessoriesCost +=
+          Number(door.quarterRound.quantity) * price * (door.count || 1);
+      }
+
+      // Ironmongery
+      if (door.ironmongery) {
+        if (
+          door.ironmongery.hinges?.quantity &&
+          door.ironmongery.hinges?.selected?.type
+        ) {
+          const price = calculateIronmongeryPrice(
+            "hinges",
+            door.ironmongery.hinges?.selected,
+          );
+          accessoriesCost +=
+            Number(door.ironmongery.hinges.quantity) *
+            price *
+            (door.count || 1);
+        }
+        if (
+          door.ironmongery.locks?.quantity &&
+          door.ironmongery.locks?.selected?.type
+        ) {
+          const price = calculateIronmongeryPrice(
+            "locks",
+            door.ironmongery.locks?.selected,
+          );
+          accessoriesCost +=
+            Number(door.ironmongery.locks.quantity) * price * (door.count || 1);
+        }
+        if (
+          door.ironmongery.handles?.quantity &&
+          door.ironmongery.handles?.selected?.type
+        ) {
+          const price = calculateIronmongeryPrice(
+            "handles",
+            door.ironmongery.handles?.selected,
+          );
+          accessoriesCost +=
+            Number(door.ironmongery.handles.quantity) *
+            price *
+            (door.count || 1);
+        }
+        if (
+          door.ironmongery.bolts?.quantity &&
+          door.ironmongery.bolts?.selected?.type
+        ) {
+          const price = calculateIronmongeryPrice(
+            "bolts",
+            door.ironmongery.bolts?.selected,
+          );
+          accessoriesCost +=
+            Number(door.ironmongery.bolts.quantity) * price * (door.count || 1);
+        }
+        if (
+          door.ironmongery.closers?.quantity &&
+          door.ironmongery.closers?.selected?.type
+        ) {
+          const price = calculateIronmongeryPrice(
+            "closers",
+            door.ironmongery.closers?.selected,
+          );
+          accessoriesCost +=
+            Number(door.ironmongery.closers.quantity) *
+            price *
+            (door.count || 1);
+        }
+      }
+
+      return {
+        doorCost,
+        frameCost,
+        accessories: accessoriesCost,
+        total: doorCost + frameCost + accessoriesCost,
+      };
+    },
+    [
+      calculateDoorPrice,
+      calculateFramePrice,
+      calculateFastenerPrice,
+      calculateIronmongeryPrice,
+    ],
+  );
+
+  const calculateWindowTotalCost = useCallback(
+    (
+      window: any,
+    ): {
+      windowCost: number;
+      frameCost: number;
+      glass: number;
+      putty: number;
+      total: number;
+    } => {
+      const windowPrice = calculateWindowPrice(window);
+      const frameCost =
+        calculateFramePrice(window.frame, window.wallThickness) *
+        (window.count || 1);
+      const windowCost = windowPrice * (window.count || 1);
+
+      let glassCost = 0;
+      let puttyCost = 0;
+
+      if (window.glass && window.glass.thickness) {
+        const glassM2 =
+          parseFloat(window.width || 0) *
+          parseFloat(window.height || 0) *
+          (window.count || 1);
+        const glassPrice = getMaterialPrice("Glazing", window.type || "Clear");
+        glassCost =
+          glassM2 *
+          (Number.isFinite(Number(glassPrice)) ? Number(glassPrice) : 0);
+
+        const puttyPrice =
+          getMaterialPrice("Sealant", "Glazing Putty") ||
+          getMaterialPrice("Sealant", "Putty") ||
+          getMaterialPrice("Sealant", "Silicone");
+        const windowPerimeter =
+          2 * (parseFloat(window.width || 0) + parseFloat(window.height || 0));
+        puttyCost =
+          windowPerimeter *
+          (Number.isFinite(Number(puttyPrice)) ? Number(puttyPrice) : 0) *
+          (window.count || 1);
+      }
+
+      return {
+        windowCost,
+        frameCost,
+        glass: glassCost,
+        putty: puttyCost,
+        total: windowCost + frameCost + glassCost + puttyCost,
+      };
+    },
+    [calculateWindowPrice, calculateFramePrice, getMaterialPrice],
+  );
+
   // ============ MAIN CALCULATION ============
 
   const calculateMasonry = useCallback(() => {
@@ -1505,6 +1794,8 @@ export default function useMasonryCalculatorNew({
       grossTransomGlassCost: 0,
       netTransomPuttyCost: 0,
       grossTransomPuttyCost: 0,
+      hoopIronCoils: 0,
+      hoopIronLength: 0,
       professionalElementsTotalCost: 0,
     };
 
@@ -1544,9 +1835,11 @@ export default function useMasonryCalculatorNew({
       materials.find((m) => m.name?.toLowerCase() === "sand")?.price || 0;
 
     // Get block types and prices for each wall type
-    const externalBlockType = wallProperties.externalBlockType || "Standard Block";
-    const internalBlockType = wallProperties.internalBlockType || "Standard Block";
-    
+    const externalBlockType =
+      wallProperties.externalBlockType || "Standard Block";
+    const internalBlockType =
+      wallProperties.internalBlockType || "Standard Block";
+
     const externalBlockPrice = getMaterialPrice("Bricks", externalBlockType);
     const internalBlockPrice = getMaterialPrice("Bricks", internalBlockType);
 
@@ -1557,12 +1850,14 @@ export default function useMasonryCalculatorNew({
     let totalGrossBlocksFeet = 0;
 
     brickCalcs.forEach((calc) => {
-      const blockPrice = calc.wallType === "external" ? externalBlockPrice : internalBlockPrice;
+      const blockPrice =
+        calc.wallType === "external" ? externalBlockPrice : internalBlockPrice;
       const blockLength = calc.blockLength * METERS_TO_FEET;
-      
+
       const netBlocksFeet = calc.netBricks * blockLength;
-      const grossBlocksFeet = calc.grossBricks * (1 + qsSettings.wastageMasonry / 100) * blockLength;
-      
+      const grossBlocksFeet =
+        calc.grossBricks * (1 + qsSettings.wastageMasonry / 100) * blockLength;
+
       netBlocksCost += netBlocksFeet * blockPrice;
       grossBlocksCost += grossBlocksFeet * blockPrice;
       totalNetBlocksFeet += netBlocksFeet;
@@ -1677,9 +1972,7 @@ export default function useMasonryCalculatorNew({
     };
 
     const getLinearGrossQuantity = (value: number) =>
-      Number(
-        (value * (1 + qsSettings.wastageMasonry / 100)).toFixed(2),
-      );
+      Number((value * (1 + qsSettings.wastageMasonry / 100)).toFixed(2));
 
     const getFastenerPrice = (
       fastenerCategory: string,
@@ -1701,7 +1994,8 @@ export default function useMasonryCalculatorNew({
         if (!Array.isArray(categoryArray)) return 0;
 
         const fastener = categoryArray.find(
-          (item: any) => item.type === selected.type && item.size === selected.size,
+          (item: any) =>
+            item.type === selected.type && item.size === selected.size,
         );
         return fastener?.price || 0;
       } catch (error) {
@@ -1771,7 +2065,8 @@ export default function useMasonryCalculatorNew({
           const qty = Number(door.architrave.quantity) * door.count;
           netDoorArchitraveQty += qty;
           if (price > 0) {
-            const architraveCost = Number(door.architrave.quantity) * price * door.count;
+            const architraveCost =
+              Number(door.architrave.quantity) * price * door.count;
             netDoorArchitraveCost += architraveCost;
             totalOpeningsCost += architraveCost;
           }
@@ -1785,7 +2080,8 @@ export default function useMasonryCalculatorNew({
           const qty = Number(door.quarterRound.quantity) * door.count;
           netDoorQuarterRoundQty += qty;
           if (price > 0) {
-            const quarterRoundCost = Number(door.quarterRound.quantity) * price * door.count;
+            const quarterRoundCost =
+              Number(door.quarterRound.quantity) * price * door.count;
             netDoorQuarterRoundCost += quarterRoundCost;
             totalOpeningsCost += quarterRoundCost;
           }
@@ -1870,7 +2166,10 @@ export default function useMasonryCalculatorNew({
 
         // Calculate transom costs (custom pricing, not from materials)
         if (door.transom?.quantity && door.transom?.price) {
-          const transomCost = Number(door.transom.quantity) * Number(door.transom.price) * door.count;
+          const transomCost =
+            Number(door.transom.quantity) *
+            Number(door.transom.price) *
+            door.count;
           netDoorTransomCost += transomCost;
           totalOpeningsCost += transomCost;
         }
@@ -1879,7 +2178,8 @@ export default function useMasonryCalculatorNew({
         }
 
         if (door.transom?.glazing?.glassAreaM2) {
-          const glassAreaPerUnit = Number(door.transom.glazing.glassAreaM2) || 0;
+          const glassAreaPerUnit =
+            Number(door.transom.glazing.glassAreaM2) || 0;
           const transomQty = Number(door.transom?.quantity) || 1;
           const glassAreaTotal = glassAreaPerUnit * transomQty * door.count;
           netTransomGlassArea += glassAreaTotal;
@@ -2225,8 +2525,7 @@ export default function useMasonryCalculatorNew({
       const thicknessForWaste =
         wallSections && wallSections.length > 0
           ? wallSections.reduce(
-              (sum, s) =>
-                sum + (s.thickness || thickness || 0.2),
+              (sum, s) => sum + (s.thickness || thickness || 0.2),
               0,
             ) / wallSections.length
           : thickness || 0.2;
@@ -2305,7 +2604,8 @@ export default function useMasonryCalculatorNew({
       netWindowArchitraveCost * (1 + qsSettings.wastageMasonry / 100),
     );
     totals.netDoorArchitraveQty = Number(netDoorArchitraveQty.toFixed(2));
-    totals.grossDoorArchitraveQty = getLinearGrossQuantity(netDoorArchitraveQty);
+    totals.grossDoorArchitraveQty =
+      getLinearGrossQuantity(netDoorArchitraveQty);
     totals.netWindowArchitraveQty = Number(netWindowArchitraveQty.toFixed(2));
     totals.grossWindowArchitraveQty = getLinearGrossQuantity(
       netWindowArchitraveQty,
@@ -2337,7 +2637,8 @@ export default function useMasonryCalculatorNew({
     totals.netWindowGlassArea = Number(netWindowGlassArea.toFixed(2));
     totals.grossWindowGlassArea = getLinearGrossQuantity(netWindowGlassArea);
     totals.netWindowPuttyLength = Number(netWindowPuttyLength.toFixed(2));
-    totals.grossWindowPuttyLength = getLinearGrossQuantity(netWindowPuttyLength);
+    totals.grossWindowPuttyLength =
+      getLinearGrossQuantity(netWindowPuttyLength);
     totals.netWindowGlassCost = Math.ceil(netWindowGlassCost);
     totals.grossWindowGlassCost = Math.ceil(
       netWindowGlassCost * (1 + qsSettings.wastageMasonry / 100),
@@ -2349,7 +2650,9 @@ export default function useMasonryCalculatorNew({
     totals.netTransomGlassArea = Number(netTransomGlassArea.toFixed(2));
     totals.grossTransomGlassArea = getLinearGrossQuantity(netTransomGlassArea);
     totals.netTransomPuttyLength = Number(netTransomPuttyLength.toFixed(2));
-    totals.grossTransomPuttyLength = getLinearGrossQuantity(netTransomPuttyLength);
+    totals.grossTransomPuttyLength = getLinearGrossQuantity(
+      netTransomPuttyLength,
+    );
     totals.netTransomGlassCost = Math.ceil(netTransomGlassCost);
     totals.grossTransomGlassCost = Math.ceil(
       netTransomGlassCost * (1 + qsSettings.wastageMasonry / 100),
@@ -2371,6 +2674,32 @@ export default function useMasonryCalculatorNew({
     totals.netTotalCost = netRoomTotalCost + professionalCost;
     totals.grossTotalCost = grossRoomTotalCost + professionalCost;
     totals.professionalElementsTotalCost = professionalCost;
+
+    // Calculate hoop iron
+    const hoopIronRollWeight = quote?.hoopIronRollWeight || "20kg";
+    const externalWallHeight = wallDimensions?.externalWallHeight || 0;
+    const externalWallPerimeter = wallDimensions?.externalWallPerimiter || 0;
+    const internalWallPerimeter = wallDimensions?.internalWallPerimiter || 0;
+
+    // Calculate number of hoops: first at ground level, then every 400mm (two courses)
+    const numberOfCourses = Math.floor(externalWallHeight / 0.4) + 1;
+
+    // Total hoop iron length needed (applied to all walls)
+    const totalHoopLength =
+      numberOfCourses * (externalWallPerimeter + internalWallPerimeter);
+
+    // Roll length per kg: 20kg = 65m, 25kg = 80m
+    const rollLength = hoopIronRollWeight === "25kg" ? 80 : 65;
+
+    // Number of rolls needed
+    const numberOfCoils = Math.ceil(totalHoopLength / rollLength);
+
+    // Get hoop iron pricing
+    const hoopIronPrice = getMaterialPrice("Hoop Iron", hoopIronRollWeight);
+    const hoopIronTotalCost = numberOfCoils * hoopIronPrice;
+
+    totals.hoopIronLength = Number(totalHoopLength.toFixed(2));
+    totals.hoopIronCoils = numberOfCoils;
 
     setResults(totals);
     setQuote((prev: any) => ({
@@ -2529,6 +2858,18 @@ export default function useMasonryCalculatorNew({
               100 || 0,
         },
       },
+      hoop_iron: {
+        input: {
+          rollWeight: hoopIronRollWeight,
+        },
+        results: {
+          numberOfCourses: numberOfCourses,
+          length: totals.hoopIronLength,
+          coils: numberOfCoils,
+          pricePerRoll: hoopIronPrice,
+          totalCost: Math.ceil(hoopIronTotalCost),
+        },
+      },
     }));
   }, [
     wallDimensions,
@@ -2609,6 +2950,13 @@ export default function useMasonryCalculatorNew({
     materialBasePrices,
     qsSettings,
     waterPrice: results.waterPrice,
+    // Price calculation functions
+    calculateDoorPrice,
+    calculateFramePrice,
+    calculateWindowPrice,
+    calculateFastenerPrice,
+    calculateIronmongeryPrice,
+    calculateDoorTotalCost,
+    calculateWindowTotalCost,
   };
 }
-

@@ -162,49 +162,6 @@ const Navbar = () => {
     );
   };
 
-  const getTierImage = (tier: string | undefined) => {
-    const t = tier || "Free";
-    switch (t) {
-      case "Free":
-        return <Home className="w-4 h-4" />;
-      case "Professional":
-        return <Shield className="w-4 h-4" />;
-      case "Enterprise":
-        return <Crown className="w-4 h-4" />;
-      default:
-        return <span className="text-sm font-medium">{t}</span>;
-    }
-  };
-
-  const getTierBadge = (tier: string | undefined) => {
-    const t = tier || "Free";
-    switch (t) {
-      case "Free":
-        return (
-          <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100">
-            <Home className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Free</span>
-          </Badge>
-        );
-      case "Professional":
-        return (
-          <Badge className="text-xs bg-purple-100 text-purple-800 hover:bg-purple-100">
-            <Shield className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Professional</span>
-          </Badge>
-        );
-      case "Enterprise":
-        return (
-          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <Crown className="w-3 h-3 mr-1" />{" "}
-            <span className="hidden md:flex ">Enterprise</span>
-          </Badge>
-        );
-      default:
-        return <Badge>{t}</Badge>;
-    }
-  };
-
   return (
     <>
       <nav className="fixed sticky top-0 z-50 glass border-b shadow-sm">

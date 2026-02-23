@@ -8,7 +8,6 @@ import React, {
 } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { Preferences } from "@capacitor/preferences";
 interface Profile {
   id: string;
   name: string;
@@ -180,12 +179,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
-    if (data.session) {
-      await Preferences.set({
-        key: "supabase_session",
-        value: JSON.stringify(data.session),
-      });
-    }
     if (error) {
       throw error;
     }

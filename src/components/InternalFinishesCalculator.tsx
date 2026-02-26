@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2, Edit, Search, Download } from "lucide-react";
 import useInternalFinishesCalculator from "@/hooks/useInternalFinishesCalculator";
 import usePaintingCalculator from "@/hooks/usePaintingCalculator";
@@ -92,12 +93,8 @@ export default function InternalFinishesCalculator({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [includePaint, setIncludePaint] = useState<boolean>(
-    (
-      quote?.paintings_specifications?.filter(
-        (p: any) => p.location === "Interior Walls",
-      ) || []
-    ).length > 0,
+  const [finishType, setFinishType] = useState<"painting" | "otherFinishes">(
+    "painting",
   );
 
   // State for dynamic tile pricing
@@ -602,293 +599,318 @@ export default function InternalFinishesCalculator({
 
   return (
     <div className="space-y-6">
-      {/* Other Finishes Section - always visible */}
-      <>
-        {/* Masonry Plaster Results */}
-        {quote?.masonry_materials?.netPlaster > 0 && (
-          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                Plaster Finishes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Plaster Area */}
-                <Card className="">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium ">
-                      Plaster Area
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-xl font-bold ">
-                      {(quote.masonry_materials.grossPlaster || 0).toFixed(2)}
-                    </div>
-                    <p className="text-xs mt-1">m²</p>
-                  </CardContent>
-                </Card>
+      {/* Finish Type Selection - Radio Buttons */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Internal Finishes Type</CardTitle>
+          <CardDescription>
+            Select the type of finishing for internal walls
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={finishType}
+            onValueChange={(value) =>
+              setFinishType(value as "painting" | "otherFinishes")
+            }
+            disabled={readonly}
+          >
+            <div className="flex items-center space-x-2 mb-4">
+              <RadioGroupItem value="painting" id="painting" />
+              <Label htmlFor="painting" className="cursor-pointer font-medium">
+                Painting
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="otherFinishes" id="otherFinishes" />
+              <Label
+                htmlFor="otherFinishes"
+                className="cursor-pointer font-medium"
+              >
+                Other Finish Types
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+      {/* Other Finishes Section - visible when otherFinishes is selected */}
+      {finishType === "otherFinishes" && (
+        <>
+          {/* Masonry Plaster Results */}
+          {quote?.masonry_materials?.netPlaster > 0 && (
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  Plaster Finishes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Plaster Area */}
+                  <Card className="">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium ">
+                        Plaster Area
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-xl font-bold ">
+                        {(quote.masonry_materials.grossPlaster || 0).toFixed(2)}
+                      </div>
+                      <p className="text-xs mt-1">m²</p>
+                    </CardContent>
+                  </Card>
 
-                {/* Plaster Cost */}
-                <Card className="">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium ">
-                      Plaster Materials Cost
-                    </CardTitle>
+                  {/* Plaster Cost */}
+                  <Card className="">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium ">
+                        Plaster Materials Cost
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-xl font-bold text-green-600">
+                        {formatCurrency(
+                          quote.masonry_materials.grossPlasterCost || 0,
+                        )}
+                      </div>
+                      <p className="text-xs mt-1">Gross Cost</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {/* Controls */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4">
+                <div>
+                  <CardTitle>Internal Finishes Materials</CardTitle>
+                  <CardDescription>
+                    Manage internal wall finishes
+                  </CardDescription>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  {!readonly && (
+                    <Button onClick={handleAddFinish} size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Item
+                    </Button>
+                  )}
+                  {filteredFinishes.length > 0 && (
+                    <Button onClick={exportToCSV} variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export CSV
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <Label htmlFor="search" className="sr-only">
+                    Search
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="search"
+                      placeholder="Search materials..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Edit Form */}
+              {editingId && editForm && (
+                <Card className="mb-6 border-l-4 border-l-blue-500">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Edit Item</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-xl font-bold text-green-600">
-                      {formatCurrency(
-                        quote.masonry_materials.grossPlasterCost || 0,
-                      )}
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="edit-material">Material</Label>
+                        <Select
+                          value={editForm.material}
+                          onValueChange={(value) =>
+                            setEditForm({ ...editForm, material: value })
+                          }
+                        >
+                          <SelectTrigger className="w-full mt-1 text-sm">
+                            <SelectValue placeholder="Select material" />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            {INTERNAL_FINISHES_MATERIALS.map((m) => (
+                              <SelectItem key={m} value={m}>
+                                {m}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit-location">
+                          Location (Optional)
+                        </Label>
+                        <Input
+                          id="edit-location"
+                          value={editForm.location || ""}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              location: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., Bedroom, Hallway"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="edit-quantity">Quantity (m²)</Label>
+                        <Input
+                          id="edit-quantity"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={editForm.quantity}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              quantity: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
-                    <p className="text-xs mt-1">Gross Cost</p>
+
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditForm(null);
+                        }}
+                        variant="outline"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (editForm && onFinishesUpdate) {
+                            const updated = internalFinishes.map((f) =>
+                              f.id === editingId ? editForm : f,
+                            );
+                            setInternalFinishes(updated);
+                            onFinishesUpdate(updated);
+                            setEditingId(null);
+                            setEditForm(null);
+                          }
+                        }}
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Finishes Table */}
+              <div className="rounded-md border mb-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Material</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead className="text-right">Quantity</TableHead>
+                      <TableHead className="text-right">Unit</TableHead>
+                      <TableHead className="text-right">Unit Cost</TableHead>
+                      <TableHead className="text-right">Total Cost</TableHead>
+                      {!readonly && (
+                        <TableHead className="text-right">Actions</TableHead>
+                      )}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFinishes.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={readonly ? 6 : 7}
+                          className="text-center py-8 text-muted-foreground"
+                        >
+                          No items found.{" "}
+                          {!readonly && "Add your first item to get started."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredFinishes.map((finish) => {
+                        const calc = finishCalcs.find(
+                          (c) => c.id === finish.id,
+                        );
+                        return (
+                          <TableRow key={finish.id}>
+                            <TableCell className="font-medium">
+                              {finish.material}
+                            </TableCell>
+                            <TableCell>{finish.location || "-"}</TableCell>
+                            <TableCell className="text-right">
+                              {finish.quantity.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {finish.unit}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(calc?.unitRate || 0)}
+                            </TableCell>
+                            <TableCell className="text-right ">
+                              {formatCurrency(calc?.totalCost || 0)}
+                            </TableCell>
+                            {!readonly && (
+                              <TableCell className="text-right">
+                                <div className="flex gap-2 justify-end">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setEditingId(finish.id);
+                                      setEditForm({ ...finish });
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() =>
+                                      handleRemoveFinish(finish.id)
+                                    }
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
-        )}
-        {/* Controls */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4">
-              <div>
-                <CardTitle>Internal Finishes Materials</CardTitle>
-                <CardDescription>Manage internal wall finishes</CardDescription>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2 items-center">
-                {!readonly && (
-                  <Button onClick={handleAddFinish} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </Button>
-                )}
-                {filteredFinishes.length > 0 && (
-                  <Button onClick={exportToCSV} variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="flex-1">
-                <Label htmlFor="search" className="sr-only">
-                  Search
-                </Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="search"
-                    placeholder="Search materials..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Edit Form */}
-            {editingId && editForm && (
-              <Card className="mb-6 border-l-4 border-l-blue-500">
-                <CardHeader>
-                  <CardTitle className="text-lg">Edit Item</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="edit-material">Material</Label>
-                      <Select
-                        value={editForm.material}
-                        onValueChange={(value) =>
-                          setEditForm({ ...editForm, material: value })
-                        }
-                      >
-                        <SelectTrigger className="w-full mt-1 text-sm">
-                          <SelectValue placeholder="Select material" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {INTERNAL_FINISHES_MATERIALS.map((m) => (
-                            <SelectItem key={m} value={m}>
-                              {m}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="edit-location">Location (Optional)</Label>
-                      <Input
-                        id="edit-location"
-                        value={editForm.location || ""}
-                        onChange={(e) =>
-                          setEditForm({
-                            ...editForm,
-                            location: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Bedroom, Hallway"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="edit-quantity">Quantity (m²)</Label>
-                      <Input
-                        id="edit-quantity"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={editForm.quantity}
-                        onChange={(e) =>
-                          setEditForm({
-                            ...editForm,
-                            quantity: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditForm(null);
-                      }}
-                      variant="outline"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        if (editForm && onFinishesUpdate) {
-                          const updated = internalFinishes.map((f) =>
-                            f.id === editingId ? editForm : f,
-                          );
-                          setInternalFinishes(updated);
-                          onFinishesUpdate(updated);
-                          setEditingId(null);
-                          setEditForm(null);
-                        }
-                      }}
-                    >
-                      Save Changes
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Finishes Table */}
-            <div className="rounded-md border mb-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Material</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Unit</TableHead>
-                    <TableHead className="text-right">Unit Cost</TableHead>
-                    <TableHead className="text-right">Total Cost</TableHead>
-                    {!readonly && (
-                      <TableHead className="text-right">Actions</TableHead>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFinishes.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={readonly ? 6 : 7}
-                        className="text-center py-8 text-muted-foreground"
-                      >
-                        No items found.{" "}
-                        {!readonly && "Add your first item to get started."}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredFinishes.map((finish) => {
-                      const calc = finishCalcs.find((c) => c.id === finish.id);
-                      return (
-                        <TableRow key={finish.id}>
-                          <TableCell className="font-medium">
-                            {finish.material}
-                          </TableCell>
-                          <TableCell>{finish.location || "-"}</TableCell>
-                          <TableCell className="text-right">
-                            {finish.quantity.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {finish.unit}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(calc?.unitRate || 0)}
-                          </TableCell>
-                          <TableCell className="text-right ">
-                            {formatCurrency(calc?.totalCost || 0)}
-                          </TableCell>
-                          {!readonly && (
-                            <TableCell className="text-right">
-                              <div className="flex gap-2 justify-end">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    setEditingId(finish.id);
-                                    setEditForm({ ...finish });
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleRemoveFinish(finish.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </>
-      {/* Paint Option */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Internal Paint Finishes</CardTitle>
-              <CardDescription>
-                Optional: Add paint finishing to interior walls
-              </CardDescription>
-            </div>
-            <Checkbox
-              id="include-paint"
-              checked={includePaint}
-              onCheckedChange={(checked) => setIncludePaint(!!checked)}
-              disabled={readonly}
-            />
-          </div>
-        </CardHeader>
-      </Card>
-      {/* Paint Finishes Section - visible when checkbox is checked */}
-      {includePaint && (
+        </>
+      )}
+      {/* Paint Finishes Section - visible when painting is selected */}
+      {finishType === "painting" && (
         <>
           {/* Internal Painting Section */}
           <Card>

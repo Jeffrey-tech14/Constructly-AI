@@ -76,6 +76,7 @@ export default function ExternalFinishesCalculator({
   const [externalPlasterEnabled, setExternalPlasterEnabled] = useState(false);
   const [externalPlasterThickness, setExternalPlasterThickness] = useState(25); // Default 25mm
   const [wallPointingEnabled, setWallPointingEnabled] = useState(false);
+  const [externalPaintingEnabled, setExternalPaintingEnabled] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -487,6 +488,18 @@ export default function ExternalFinishesCalculator({
       setWallPointingCalculations(pointingCalcs);
     }
   }, [externalFinishType]);
+
+  // Auto-enable painting when plaster is selected AND painting finish exists
+  useEffect(() => {
+    const hasPaintingFinish = externalFinishes.some(
+      (f) => f.material === "Painting",
+    );
+    if (externalFinishType === "plaster" && hasPaintingFinish) {
+      setExternalPaintingEnabled(true);
+    } else if (externalFinishType !== "plaster" || !hasPaintingFinish) {
+      setExternalPaintingEnabled(false);
+    }
+  }, [externalFinishType, externalFinishes]);
 
   return (
     <div className="space-y-6">
@@ -1134,64 +1147,70 @@ export default function ExternalFinishesCalculator({
       </div>
 
       {/* External Painting Section */}
-      {externalFinishType === "plaster" && (
-        <Card>
-          <CardHeader className="border-b rounded-t-2xl">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <span className="text-2xl">🎨</span> External Painting
-              Specifications
-            </CardTitle>
-            <CardDescription className="text-slate-700 dark:text-slate-300">
-              Multi-layer painting calculations with coverage-aware sizing
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {paintingList.length > 0 &&
-              paintingList.map((painting) => (
-                <PaintingLayerConfig
-                  key={painting.id}
-                  painting={painting}
-                  onUpdate={(updates) => updatePainting(painting.id, updates)}
-                  onDelete={() => deletePainting(painting.id)}
-                  wallDimensions={wallDimensions}
-                />
-              ))}
+      {externalFinishType === "plaster" &&
+        externalPaintingEnabled &&
+        externalFinishes.some(
+          (f) => f.material.toLowerCase() === "painting",
+        ) && (
+          <Card>
+            <CardHeader className="border-b rounded-t-2xl">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <span className="text-2xl">🎨</span> External Painting
+                Specifications
+              </CardTitle>
+              <CardDescription className="text-slate-700 dark:text-slate-300">
+                Multi-layer painting calculations with coverage-aware sizing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {paintingList.length > 0 &&
+                paintingList.map((painting) => (
+                  <PaintingLayerConfig
+                    key={painting.id}
+                    painting={painting}
+                    onUpdate={(updates) => updatePainting(painting.id, updates)}
+                    onDelete={() => deletePainting(painting.id)}
+                    wallDimensions={wallDimensions}
+                  />
+                ))}
 
-            {!readonly && paintingList.length === 0 && (
-              <Button
-                onClick={() => addPainting(externalWallArea, "Exterior Walls")}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Painting Surface
-              </Button>
-            )}
+              {!readonly && paintingList.length === 0 && (
+                <Button
+                  onClick={() =>
+                    addPainting(externalWallArea, "Exterior Walls")
+                  }
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Painting Surface
+                </Button>
+              )}
 
-            {paintingTotals && paintingTotals.totalArea > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 p-4 rounded-lg bg-muted">
-                <div className="p-3 rounded-3xl">
-                  <div className="text-xs font-bold">Total Area</div>
-                  <div className="text-lg font-bold">
-                    {paintingTotals.totalArea.toFixed(2)} m²
+              {paintingTotals && paintingTotals.totalArea > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 p-4 rounded-lg bg-muted">
+                  <div className="p-3 rounded-3xl">
+                    <div className="text-xs font-bold">Total Area</div>
+                    <div className="text-lg font-bold">
+                      {paintingTotals.totalArea.toFixed(2)} m²
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-3xl">
+                    <div className="text-xs font-bold">Total Paint</div>
+                    <div className="text-lg font-bold">
+                      {paintingTotals.totalLitres.toFixed(2)} L
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-3xl">
+                    <div className="text-xs font-bold">Total Cost</div>
+                    <div className="text-lg font-bold">
+                      Ksh.{paintingTotals.totalCostWithWastage.toFixed(2)}
+                    </div>
                   </div>
                 </div>
-                <div className="p-3 rounded-3xl">
-                  <div className="text-xs font-bold">Total Paint</div>
-                  <div className="text-lg font-bold">
-                    {paintingTotals.totalLitres.toFixed(2)} L
-                  </div>
-                </div>
-                <div className="p-3 rounded-3xl">
-                  <div className="text-xs font-bold">Total Cost</div>
-                  <div className="text-lg font-bold">
-                    Ksh.{paintingTotals.totalCostWithWastage.toFixed(2)}
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              )}
+            </CardContent>
+          </Card>
+        )}
     </div>
   );
 }

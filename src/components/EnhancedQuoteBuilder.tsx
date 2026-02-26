@@ -806,7 +806,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 element: structure.element,
                 mix: structure.mix || "C25",
                 verandahArea: structure.verandahArea || 0,
-                slabArea: structure.slabArea || 0,
+                slabArea: extractedPlan.projectInfo.totalArea || 0,
                 formwork: structure.formwork,
                 category: structure.category || "substructure",
                 number: structure.number || "1",
@@ -873,7 +873,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       extractedPlan.wallDimensions.externalWallPerimiter || 0,
                     width: externalThickness,
                     height: externalThickness,
-                    slabArea: groundFloorSlabArea,
                   },
                   {
                     ...baseRow,
@@ -883,7 +882,6 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       extractedPlan.wallDimensions.internalWallPerimiter || 0,
                     width: internalThickness,
                     height: internalThickness,
-                    slabArea: groundFloorSlabArea,
                   },
                 ];
               }

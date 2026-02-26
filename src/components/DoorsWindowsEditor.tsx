@@ -40,6 +40,7 @@ export const DOOR_TYPES = [
   "Semi-solid flush",
   "Panel",
   "T&G",
+  "Aluminium",
 ];
 // STEP 2: 5 Glass types with 7 thickness options
 export const WINDOW_GLASS_TYPES = ["Clear", "Tinted", "Frosted"];
@@ -1158,6 +1159,68 @@ const EditableDoorWindow = ({
   const autoWindowArchitraveQty = getWindowHeightM() * 2 + getWindowWidthM();
 
   const getWindowGlassArea = () => getWindowHeightM() * getWindowWidthM();
+
+  // Auto-sync frame size with door size
+  React.useEffect(() => {
+    if (type !== "door") return;
+
+    const frame = doorItem?.frame;
+    let changed = false;
+    const updatedFrame = { ...frame };
+
+    // If door size type or size changes, update frame to match
+    if (updatedFrame.sizeType !== doorItem.sizeType) {
+      updatedFrame.sizeType = doorItem.sizeType;
+      changed = true;
+    }
+
+    if (doorItem.sizeType === "standard") {
+      if (updatedFrame.standardSize !== doorItem.standardSize) {
+        updatedFrame.standardSize = doorItem.standardSize;
+        // Parse standard size and update height/width fields
+        const parsed = parseStandardSize(doorItem.standardSize);
+        if (parsed) {
+          updatedFrame.height = parsed.height.toFixed(1);
+          updatedFrame.width = parsed.width.toFixed(1);
+          updatedFrame.custom = {
+            ...updatedFrame.custom,
+            height: parsed.height.toFixed(1),
+            width: parsed.width.toFixed(1),
+          };
+        }
+        changed = true;
+      }
+    } else {
+      // Custom size - sync frame custom dimensions with door custom dimensions
+      const doorWidth = doorItem.custom?.width || "";
+      const doorHeight = doorItem.custom?.height || "";
+
+      if (
+        updatedFrame.height !== doorHeight ||
+        updatedFrame.width !== doorWidth
+      ) {
+        updatedFrame.height = doorHeight;
+        updatedFrame.width = doorWidth;
+        updatedFrame.custom = {
+          ...updatedFrame.custom,
+          height: doorHeight,
+          width: doorWidth,
+        };
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      onUpdate("frame", updatedFrame);
+    }
+  }, [
+    type,
+    doorItem.sizeType,
+    doorItem.standardSize,
+    doorItem.custom?.width,
+    doorItem.custom?.height,
+    onUpdate,
+  ]);
 
   React.useEffect(() => {
     if (type !== "door") return;

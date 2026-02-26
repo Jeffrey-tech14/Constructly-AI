@@ -74,7 +74,14 @@ const RISA_LIGHT_GRAY = "#F5F7FA";
 const RISA_MEDIUM_GRAY = "#E2E8F0";
 
 // Door and Window constants
-const doorTypes = ["Flush", "Panel", "Metal", "Glass"];
+const doorTypes = [
+  "Steel",
+  "Solid flush",
+  "Semi-solid flush",
+  "Panel",
+  "T&G",
+  "Aluminium",
+];
 const windowGlassTypes = ["Clear", "Tinted", "Frosted"];
 const frameTypes = ["Wood", "Steel", "Aluminum"];
 const standardDoorSizes = ["0.9 × 2.1 m", "1.0 × 2.1 m", "1.2 × 2.4 m"];
@@ -2849,7 +2856,7 @@ const UploadPlan = () => {
                           Analyzing Plan...
                         </>
                       ) : (
-                        <>🚀 Start Analysis</>
+                        <>Start Analysis</>
                       )}
                     </Button>
                   )}
@@ -3052,101 +3059,6 @@ function EditableDoorWindow({
         >
           <Trash2 className="w-3 h-3" />
         </Button>
-      </div>
-
-      {/* Frame Section */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 pt-2 border-t">
-        <Select
-          value={item.frame.type}
-          onValueChange={(value) =>
-            onUpdate("frame", {
-              ...item.frame,
-              type: value,
-            })
-          }
-        >
-          <SelectTrigger className="h-9 text-xs">
-            <SelectValue placeholder="Frame Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {frameTypes.map((frameType) => (
-              <SelectItem key={frameType} value={frameType}>
-                {frameType}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={item.frame?.sizeType || "standard"}
-          onValueChange={(value) =>
-            onUpdate("frame", {
-              ...item.frame,
-              sizeType: value,
-            })
-          }
-        >
-          <SelectTrigger className="h-9 text-xs">
-            <SelectValue placeholder="Frame Size Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="standard">Standard</SelectItem>
-            <SelectItem value="custom">Custom</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {item.frame?.sizeType === "custom" && (
-          <>
-            <Input
-              placeholder="Height (m)"
-              type="number"
-              step="0.01"
-              className="h-9 text-xs"
-              value={item.frame?.custom?.height || ""}
-              onChange={(e) =>
-                onUpdate("frame", {
-                  ...item.frame,
-                  custom: {
-                    ...item.frame?.custom,
-                    height: e.target.value,
-                  },
-                })
-              }
-            />
-            <Input
-              placeholder="Width (m)"
-              type="number"
-              step="0.01"
-              className="h-9 text-xs"
-              value={item.frame?.custom?.width || ""}
-              onChange={(e) =>
-                onUpdate("frame", {
-                  ...item.frame,
-                  custom: {
-                    ...item.frame?.custom,
-                    width: e.target.value,
-                  },
-                })
-              }
-            />
-            <Input
-              placeholder="Price (Ksh)"
-              type="number"
-              min="0"
-              className="h-9 text-xs"
-              value={item.frame?.custom?.price || ""}
-              onChange={(e) =>
-                onUpdate("frame", {
-                  ...item.frame,
-                  custom: {
-                    ...item.frame?.custom,
-                    price: parseFloat(e.target.value) || undefined,
-                  },
-                })
-              }
-            />
-          </>
-        )}
       </div>
     </div>
   );

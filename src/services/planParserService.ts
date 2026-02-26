@@ -289,7 +289,7 @@ FINISHES:
 Categories: "flooring", "ceiling", "wall-finishes", "joinery", "external"
 Constraint: Skip glass, blocks, or masonry not in this list.
 Common Materials:
-Flooring: "Ceramic Tiles", "Porcelain Tiles", "Hardwood", "Laminate", "Vinyl", "Carpet", "Polished Concrete", "Terrazzo", "Cement Floor Screed", "Self-leveling Floor Screed", "Anhydrite Floor Screed", "Resinous Floor Screed"
+Flooring: "Ceramic Tiles", "Porcelain Tiles", "Hardwood", "Laminate", "Vinyl", "Polished Concrete", "Terrazzo", "Cement Floor Screed", "Self-leveling Floor Screed", "Anhydrite Floor Screed", "Resinous Floor Screed"
 Ceiling: "Blundering 40x40mm", "Blundering", "Gypsum Board", "PVC", "Acoustic Tiles", "Exposed Concrete", "Suspended Grid", "Wood Panels"
 Wall-Finishes: "Wallpaper", "Stone Cladding", "Tile Cladding", "Wood Paneling"
 Joinery: "Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"

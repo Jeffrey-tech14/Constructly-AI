@@ -108,10 +108,18 @@ export default function FoundationWallingCalculator({
       wallDimensions.internalWallPerimiter || "0",
     );
 
-    // Calculate wall height
+    // Calculate wall height using formula:
+    // Foundation height = excavation depth + elevation - gf slab thickness - strip footing height + topsoil depth
     const concreteStructures = quote?.concrete_rows || [];
     const excavationDepth =
-      parseFloat(quote?.foundationDetails?.[0]?.height || "0") || 100;
+      parseFloat(quote?.foundationDetails?.[0]?.height || "0") || 0;
+    const elevation =
+      parseFloat(quote?.foundationDetails?.[0]?.groundFloorElevation || "0") ||
+      0;
+    const topsoilItem = quote?.earthwork?.find(
+      (e: any) => e.type === "topsoil-removal",
+    );
+    const topsoilDepth = parseFloat(topsoilItem?.depth || "0.2");
     const stripFooting = concreteStructures.find(
       (c: any) => c.element?.toLowerCase() === "strip-footing",
     );
@@ -127,7 +135,11 @@ export default function FoundationWallingCalculator({
       ? parseFloat(groundFloorSlab.height || "0.15")
       : 0.15;
     const calculatedHeight =
-      excavationDepth - stripFootingHeight - groundFloorSlabThickness;
+      excavationDepth +
+      elevation -
+      groundFloorSlabThickness -
+      stripFootingHeight +
+      topsoilDepth;
     const foundationWallHeight =
       calculatedHeight > 0 && calculatedHeight !== 0
         ? calculatedHeight.toFixed(2)

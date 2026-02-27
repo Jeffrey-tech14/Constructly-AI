@@ -179,7 +179,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
       src="https://jtechai.vercel.app/color-icon-left-layout.png"
       alt="JTech AI Logo"
       onClick={() => navigate("/")}
-      className="cursor-pointer h-32 w-auto"
+      className="cursor-pointer h-12 w-auto"
     />
     // <svg
     //   width="160"

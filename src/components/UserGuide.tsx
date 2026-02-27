@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ChevronRight,
   FileUp,
@@ -1762,50 +1763,62 @@ const UserGuide = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-2 text-sm">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="item1"
                     defaultChecked
-                    readOnly
+                    disabled
                     className="mt-1"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="item1"
+                    className="text-gray-700 dark:text-gray-300 cursor-pointer"
+                  >
                     Review all quantities and prices in each section
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  </label>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="item2"
                     defaultChecked
-                    readOnly
+                    disabled
                     className="mt-1"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="item2"
+                    className="text-gray-700 dark:text-gray-300 cursor-pointer"
+                  >
                     Verify material prices match current market rates
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  </label>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="item3"
                     defaultChecked
-                    readOnly
+                    disabled
                     className="mt-1"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="item3"
+                    className="text-gray-700 dark:text-gray-300 cursor-pointer"
+                  >
                     Check that wastage percentages match your standards
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
+                  </label>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="item4"
                     defaultChecked
-                    readOnly
+                    disabled
                     className="mt-1"
                   />
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="item4"
+                    className="text-gray-700 dark:text-gray-300 cursor-pointer"
+                  >
                     Add any special notes or conditions to the quote
-                  </span>
-                </label>
+                  </label>
+                </div>
               </div>
             </CardContent>
           </Card>

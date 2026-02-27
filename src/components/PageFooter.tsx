@@ -80,7 +80,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
     <img
       src="https://jtechai.vercel.app/color-icon-left-layout.png"
       alt="JTech AI Logo"
-      className="cursor-pointer h-32 w-auto"
+      className="cursor-pointer h-12 w-auto"
     />
   );
 

@@ -693,7 +693,7 @@ describe("useQuotes", () => {
 // Test a complete feature workflow
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { EnhancedQuoteBuilder } from "@/components/EnhancedQuoteBuilder";
+import { QuoteBuilder } from "@/components/QuoteBuilder";
 import { mockMaterialPrices } from "../mocks";
 
 describe("Quote Builder Integration", () => {
@@ -701,7 +701,7 @@ describe("Quote Builder Integration", () => {
     const user = userEvent.setup();
 
     render(
-      <EnhancedQuoteBuilder
+      <QuoteBuilder
         initialQuote={undefined}
         materialPrices={mockMaterialPrices}
       />

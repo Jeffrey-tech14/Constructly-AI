@@ -81,7 +81,7 @@ const [globalConcreteInput, setGlobalConcreteInput] = useState(initialInput);
 
 ```typescript
 // Structure: QuoteBuilder holds state, passes setters to children
-export function EnhancedQuoteBuilder() {
+export function QuoteBuilder() {
   const [quoteData, setQuoteData] = useState<Quote>(initialQuote);
 
   const handleConcreteUpdate = useCallback((calcs: ConcreteCalculation) => {
@@ -932,7 +932,7 @@ const globalAuthContext {
 
 ```typescript
 // ✅ Keep local state local
-function EnhancedQuoteBuilder() {
+function QuoteBuilder() {
   const [concreteInput, setConcreteInput] = useState({}); // Local
   const [masonryInput, setMasonryInput] = useState({}); // Local
 
@@ -981,7 +981,7 @@ useEffect(() => {
 
 ```typescript
 // ❌ 2000 line component with everything
-export function EnhancedQuoteBuilder() {
+export function QuoteBuilder() {
   // Concrete calculations (200 lines)
   // Masonry calculations (200 lines)
   // Paint calculations (200 lines)
@@ -994,7 +994,7 @@ export function EnhancedQuoteBuilder() {
 
 ```typescript
 // ✅ Extract into separate components
-export function EnhancedQuoteBuilder() {
+export function QuoteBuilder() {
   return (
     <>
       <ConcreteSection />

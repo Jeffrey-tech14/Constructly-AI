@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle, User, Eye, EyeOff } from "lucide-react";
+import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 // 🔴 RESTORE ORIGINAL BRAND COLORS
@@ -362,14 +362,11 @@ const Auth = () => {
                   ${isSignUp ? "translate-x-0" : "-translate-x-[20%]"}
                 `}
               >
-                <div
-                  className="mb-6 h-20 w-20 rounded-full bg-white flex items-center justify-center shadow-lg border-2"
-                  style={{ borderColor: BRAND.SUCCESS }}
-                >
-                  <User
-                    className="w-8 h-8"
-                    style={{ color: BRAND.PRIMARY }}
-                    strokeWidth={1.8}
+                <div className="mb-6 h-20 w-20 flex items-center justify-center ">
+                  <img
+                    src="https://jtechai.vercel.app/jtech-small-light.png"
+                    alt="JTech AI Logo"
+                    className="w-20 h-20 object-contain"
                   />
                 </div>
                 <h1
@@ -395,14 +392,11 @@ const Auth = () => {
                   ${isSignUp ? "translate-x-[20%]" : "translate-x-0"}
                 `}
               >
-                <div
-                  className="mb-6 h-20 w-20 rounded-full bg-white flex items-center justify-center shadow-lg border-2"
-                  style={{ borderColor: BRAND.SUCCESS }}
-                >
-                  <User
-                    className="w-8 h-8"
-                    style={{ color: BRAND.PRIMARY }}
-                    strokeWidth={1.8}
+                <div className="mb-6 h-20 w-20 flex items-center justify-center ">
+                  <img
+                    src="https://jtechai.vercel.app/jtech-small-light.png"
+                    alt="JTech AI Logo"
+                    className="w-20 h-20 object-contain"
                   />
                 </div>
                 <h1

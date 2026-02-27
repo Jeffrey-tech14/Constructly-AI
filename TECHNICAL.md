@@ -156,7 +156,9 @@ export interface ConcreteInput {
 
 ```typescript
 // Pure functions with no side effects
-export function calculateConcreteVolume(input: ConcreteInput): ConcreteCalculation {
+export function calculateConcreteVolume(
+  input: ConcreteInput,
+): ConcreteCalculation {
   let volume = 0;
 
   if (input.shape === "rectangular") {
@@ -197,8 +199,12 @@ export function useConcreteCalculator({
   onCalculationsChange,
 }: UseConcreteCalculatorProps) {
   // 1. State Management
-  const [input, setInput] = useState<ConcreteInput>(initialData || DEFAULT_INPUT);
-  const [calculations, setCalculations] = useState<ConcreteCalculation | null>(null);
+  const [input, setInput] = useState<ConcreteInput>(
+    initialData || DEFAULT_INPUT,
+  );
+  const [calculations, setCalculations] = useState<ConcreteCalculation | null>(
+    null,
+  );
 
   // 2. Material Price Fetching
   const [priceMap, setPriceMap] = useState<Record<string, number>>({});
@@ -275,7 +281,7 @@ export function ConcreteCalculatorForm({
 }
 ```
 
-#### 5. **Quote Integration** (`components/EnhancedQuoteBuilder.tsx`)
+#### 5. **Quote Integration** (`components/QuoteBuilder.tsx`)
 
 ```typescript
 const handleConcreteChange = useCallback((calcs: ConcreteCalculation) => {
@@ -297,27 +303,28 @@ const handleConcreteChange = useCallback((calcs: ConcreteCalculation) => {
 ### Calculator Hooks: Reference List
 
 All calculator hooks follow the same pattern and return:
+
 - `input`: Current form input state
 - `setInput`: Setter for form inputs
 - `calculations`: Computed results
 - `priceMap`: Material price lookup
 
-| Hook | Domain | Key Calculations |
-|------|--------|------------------|
-| `useConcreteCalculator` | Concrete | Volume, wastage, weight, cost |
-| `useMasonryCalculatorNew` | Masonry/Bricks | Brick counts, mortar, labor, doors/windows |
-| `usePaintingCalculator` | Painting | Multi-layer coverage, wastage, coats |
-| `usePlumbingCalculator` | Plumbing | Pipe lengths, fittings, labor |
-| `useElectricalCalculator` | Electrical | Wire gauges, circuits, labor |
-| `useRoofingCalculator` | Roofing | Material quantities, pitch, labor |
-| `useRebarCalculator` | Rebar | Steel bar counts, weights, spacing |
-| `useFlooringCalculator` | Flooring | Area, adhesive, subfloor, labor |
-| `useExternalFinishesCalculator` | Ext. Finishes | Cladding, plaster, painting |
-| `useInternalFinishesCalculator` | Int. Finishes | Flooring, trim, paint, wet areas |
-| `useFoundationWallingCalculator` | Foundation | Footings, blocks, concrete |
-| `useWallingCalculator` | Walling | Brick/block walls, mortar, plaster |
-| `useEquipmentCalculator` | Equipment | Rental rates, daily/weekly costs |
-| `useServicesCalculator` | Services | Third-party service pricing |
+| Hook                             | Domain         | Key Calculations                           |
+| -------------------------------- | -------------- | ------------------------------------------ |
+| `useConcreteCalculator`          | Concrete       | Volume, wastage, weight, cost              |
+| `useMasonryCalculatorNew`        | Masonry/Bricks | Brick counts, mortar, labor, doors/windows |
+| `usePaintingCalculator`          | Painting       | Multi-layer coverage, wastage, coats       |
+| `usePlumbingCalculator`          | Plumbing       | Pipe lengths, fittings, labor              |
+| `useElectricalCalculator`        | Electrical     | Wire gauges, circuits, labor               |
+| `useRoofingCalculator`           | Roofing        | Material quantities, pitch, labor          |
+| `useRebarCalculator`             | Rebar          | Steel bar counts, weights, spacing         |
+| `useFlooringCalculator`          | Flooring       | Area, adhesive, subfloor, labor            |
+| `useExternalFinishesCalculator`  | Ext. Finishes  | Cladding, plaster, painting                |
+| `useInternalFinishesCalculator`  | Int. Finishes  | Flooring, trim, paint, wet areas           |
+| `useFoundationWallingCalculator` | Foundation     | Footings, blocks, concrete                 |
+| `useWallingCalculator`           | Walling        | Brick/block walls, mortar, plaster         |
+| `useEquipmentCalculator`         | Equipment      | Rental rates, daily/weekly costs           |
+| `useServicesCalculator`          | Services       | Third-party service pricing                |
 
 ### Key Design Principles
 
@@ -343,9 +350,14 @@ export function useCalculator(props: Props) {
   const [priceMap, setPriceMap] = useState({});
 
   // 2. Fetch material prices (async)
-  useEffect(() => {
-    fetchMaterialPrices().then(setPriceMap);
-  }, [/* material dependencies only */]);
+  useEffect(
+    () => {
+      fetchMaterialPrices().then(setPriceMap);
+    },
+    [
+      /* material dependencies only */
+    ],
+  );
 
   // 3. Perform calculations (sync)
   useEffect(() => {
@@ -370,6 +382,7 @@ export function useCalculator(props: Props) {
 #### Pitfall 1: Infinite Loop from Callback
 
 **❌ Wrong:**
+
 ```typescript
 useEffect(() => {
   onCalculationsChange(calculations);
@@ -377,6 +390,7 @@ useEffect(() => {
 ```
 
 **✅ Correct:**
+
 ```typescript
 // In parent BEFORE passing to hook:
 const handleCalcsChange = useCallback((calcs) => {
@@ -397,6 +411,7 @@ useEffect(() => {
 #### Pitfall 2: Stale Closures with Material Prices
 
 **❌ Wrong:**
+
 ```typescript
 const [priceMap, setPriceMap] = useState({});
 
@@ -407,6 +422,7 @@ useEffect(() => {
 ```
 
 **✅ Correct:**
+
 ```typescript
 useEffect(() => {
   const result = calculateCost(input, priceMap);
@@ -417,6 +433,7 @@ useEffect(() => {
 #### Pitfall 3: Unnecessary Re-renders from Object Creation
 
 **❌ Wrong:**
+
 ```typescript
 <Calculator
   config={{ material: "concrete", size: "20mm" }} // 🔴 New object each render
@@ -424,6 +441,7 @@ useEffect(() => {
 ```
 
 **✅ Correct:**
+
 ```typescript
 const config = useMemo(
   () => ({ material: "concrete", size: "20mm" }),
@@ -454,10 +472,10 @@ Three contexts manage global application state:
 
 ```typescript
 interface AuthContextType {
-  user: User | null;           // Supabase Auth User
-  profile: Profile | null;      // User profile from DB
-  loading: boolean;             // Initial load state
-  authReady: boolean;           // Auth initialized
+  user: User | null; // Supabase Auth User
+  profile: Profile | null; // User profile from DB
+  loading: boolean; // Initial load state
+  authReady: boolean; // Auth initialized
 
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
@@ -469,6 +487,7 @@ interface AuthContextType {
 ```
 
 **Usage Pattern:**
+
 ```typescript
 const { user, profile, signOut } = useAuth();
 
@@ -489,6 +508,7 @@ interface ThemeContextType {
 ```
 
 **Implementation Details:**
+
 - Persists to `localStorage` under key `"theme"`
 - Applies CSS class `dark` to document root
 - Integrates with Tailwind CSS dark mode
@@ -516,6 +536,7 @@ interface ExtractedPlan {
 ```
 
 **Usage Pattern:**
+
 ```typescript
 const { extractedPlan } = usePlan();
 
@@ -526,7 +547,7 @@ setExtractedPlan(results);
 
 ### Local State Patterns
 
-#### Quote State in EnhancedQuoteBuilder
+#### Quote State in QuoteBuilder
 
 ```typescript
 interface QuoteData {
@@ -539,13 +560,13 @@ interface QuoteData {
   // Calculator inputs & outputs
   concrete_input: ConcreteInput;
   concrete_totals: ConcreteCalculation;
-  
+
   masonry_walls: WallSection[];
   doors: Door[];
   windows: Window[];
-  
+
   paintings_specifications: PaintingSpecification[];
-  
+
   // Summary
   total_cost: number;
   contingency_percent: number;
@@ -565,6 +586,7 @@ setQuoteData((prev) => ({
 ### State Synchronization Strategy
 
 **Real-time Updates:**
+
 ```typescript
 // In Dashboard.tsx
 useEffect(() => {
@@ -581,13 +603,14 @@ useEffect(() => {
 ```
 
 **Auto-save Strategy:**
+
 ```typescript
 // Debounced save to Supabase
 const debouncedSave = useCallback(
   debounce(async (data: QuoteData) => {
     await supabase.from("quotes").upsert(data);
   }, 2000),
-  []
+  [],
 );
 
 useEffect(() => {
@@ -606,6 +629,7 @@ Many components support **optional features controlled by checkboxes**. This pat
 #### Example: Internal Finishes Paint Checkbox
 
 **Component Structure:**
+
 ```typescript
 export function InternalFinishesCalculator({
   quoteData,
@@ -672,6 +696,7 @@ export function InternalFinishesCalculator({
 ```
 
 **Key Principles:**
+
 1. **State for checkbox**: Separate boolean state for visibility
 2. **Smart initialization**: Check if data already exists to auto-enable
 3. **Conditional rendering**: Use `{includePaint && <Component />}`
@@ -808,6 +833,7 @@ Final Calculated Price
 #### 1. Base Prices (Database)
 
 **Table: `material_prices`**
+
 ```sql
 CREATE TABLE material_prices (
   id UUID PRIMARY KEY,
@@ -835,6 +861,7 @@ CREATE TABLE material_prices (
 #### 2. Regional Multipliers
 
 **Table: `regional_multipliers`**
+
 ```sql
 CREATE TABLE regional_multipliers (
   id UUID PRIMARY KEY,
@@ -853,6 +880,7 @@ CREATE TABLE regional_multipliers (
 #### 3. User Price Overrides
 
 **Table: `user_material_prices`**
+
 ```sql
 CREATE TABLE user_material_prices (
   id UUID PRIMARY KEY,
@@ -868,9 +896,9 @@ CREATE TABLE user_material_prices (
 ```typescript
 export function getMaterialPrice(
   materialName: string,
-  specificType?: string,  // e.g., "20mm", "Grade C20"
+  specificType?: string, // e.g., "20mm", "Grade C20"
   materialPrices: Material[] = [],
-  userMultiplier: number = 1.0
+  userMultiplier: number = 1.0,
 ): number {
   // Find material and variant
   const material = materialPrices.find((m) => m.material_name === materialName);
@@ -908,9 +936,7 @@ export function useMaterialPrices() {
   const [loading, setLoading] = useState(true);
 
   const userMultiplier = useMemo(() => {
-    const regionMult = multipliers.find(
-      (m) => m.region === profile?.region
-    );
+    const regionMult = multipliers.find((m) => m.region === profile?.region);
     return regionMult?.multiplier || 1.0;
   }, [multipliers, profile?.region]);
 
@@ -990,11 +1016,11 @@ interface Quote {
 
   // Quote Settings
   qsSettings: {
-    wastageFinishes: number;       // % wastage for paint/finishes
-    finishingWalls: boolean;       // Include finishes by default
+    wastageFinishes: number; // % wastage for paint/finishes
+    finishingWalls: boolean; // Include finishes by default
     includePreliminary: boolean;
-    preliminaryPercent: number;    // Margin above materials
-    contingency: number;           // % buffer for unknowns
+    preliminaryPercent: number; // Margin above materials
+    contingency: number; // % buffer for unknowns
   };
 
   // Calculator Data (Input + Output)
@@ -1017,7 +1043,7 @@ interface Quote {
   subcontractor_selections: SubcontractorSelection[];
 
   // Summary
-  custom_specs: string;           // User notes
+  custom_specs: string; // User notes
   total_materials: number;
   total_labor: number;
   total_equipment: number;
@@ -1212,6 +1238,7 @@ const handleUpload = async (file: File) => {
 #### Format Safe Extraction
 
 The Gemini service is designed to:
+
 1. **Extract only JSON** - No markdown, no explanations
 2. **Handle missing data** - Return error objects if data not found
 3. **Validate structure** - Ensure extracted plan matches expected schema
@@ -1224,20 +1251,23 @@ The Gemini service is designed to:
 export async function initializePaystackPayment(
   amount: number,
   email: string,
-  quoteId: string
+  quoteId: string,
 ): Promise<string> {
-  const response = await fetch("https://api.paystack.co/transaction/initialize", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-      "Content-Type": "application/json",
+  const response = await fetch(
+    "https://api.paystack.co/transaction/initialize",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: amount * 100, // Paystack uses cents
+        email,
+        metadata: { quoteId },
+      }),
     },
-    body: JSON.stringify({
-      amount: amount * 100, // Paystack uses cents
-      email,
-      metadata: { quoteId },
-    }),
-  });
+  );
 
   const { data } = await response.json();
   return data.authorization_url;
@@ -1251,7 +1281,7 @@ export async function verifyPaystackPayment(reference: string) {
       headers: {
         Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
       },
-    }
+    },
   );
 
   const { data } = await response.json();
@@ -1296,7 +1326,7 @@ CREATE TABLE quotes (
   client_name VARCHAR,
   client_email VARCHAR,
   project_location VARCHAR,
-  
+
   -- Calculator data (JSONB for flexibility)
   concrete_input JSONB,
   concrete_totals JSONB,
@@ -1304,17 +1334,17 @@ CREATE TABLE quotes (
   doors JSONB,
   windows JSONB,
   paintings_specifications JSONB,
-  
+
   -- Settings
   qs_settings JSONB,
-  
+
   -- Totals
   total_cost DECIMAL,
   status VARCHAR DEFAULT 'draft',
-  
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   INDEX (user_id),
   INDEX (status),
   INDEX (created_at DESC)
@@ -1322,6 +1352,7 @@ CREATE TABLE quotes (
 ```
 
 **Why JSONB?**
+
 - Flexible schema - calculators can add fields without migrations
 - Efficient queries - can filter by nested fields
 - Versioning - old quotes don't break with schema changes
@@ -1338,7 +1369,7 @@ CREATE TABLE material_prices (
   type JSONB, -- Array of variants with prices
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   UNIQUE(material_name, unit)
 );
 
@@ -1374,7 +1405,7 @@ CREATE TABLE subscriptions (
   cancel_at_period_end BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   INDEX (user_id),
   INDEX (status)
 );
@@ -1392,7 +1423,7 @@ CREATE TABLE quote_events (
   event_type VARCHAR, -- created, updated, exported, deleted
   changes JSONB, -- What changed
   created_at TIMESTAMP DEFAULT NOW(),
-  
+
   INDEX (quote_id),
   INDEX (created_at DESC)
 );
@@ -1431,20 +1462,20 @@ const { data: quotes } = await supabase
 // Get quote details with all relations
 const { data: quote } = await supabase
   .from("quotes")
-  .select(`
+  .select(
+    `
     *,
     user_id,
     quote_events(*)
-  `)
+  `,
+  )
   .eq("id", quoteId)
   .single();
 
 // Upsert quote (create or update)
-const { data, error } = await supabase
-  .from("quotes")
-  .upsert(quoteData, {
-    onConflict: "id",
-  });
+const { data, error } = await supabase.from("quotes").upsert(quoteData, {
+  onConflict: "id",
+});
 
 // Get active subscriptions
 const { data: subs } = await supabase
@@ -1513,7 +1544,7 @@ const debouncedSave = useCallback(
   debounce(async (data: Quote) => {
     await supabase.from("quotes").upsert(data);
   }, 2000),
-  []
+  [],
 );
 
 useEffect(() => {
@@ -1531,6 +1562,7 @@ npm install -g vite-plugin-visualizer
 ```
 
 Exclude heavy dependencies from bundle:
+
 ```typescript
 // Use dynamic imports
 const PDFGenerator = lazy(() => import("./PDFGenerator"));
@@ -1574,6 +1606,7 @@ class ErrorBoundary extends React.Component {
 ```
 
 **Wrap App:**
+
 ```typescript
 <ErrorBoundary>
   <App />
@@ -1585,9 +1618,7 @@ class ErrorBoundary extends React.Component {
 ```typescript
 async function saveQuote(quoteData: Quote) {
   try {
-    const { data, error } = await supabase
-      .from("quotes")
-      .upsert(quoteData);
+    const { data, error } = await supabase.from("quotes").upsert(quoteData);
 
     if (error) {
       throw new Error(`Supabase error: ${error.message}`);
@@ -1752,14 +1783,14 @@ src/
 
 ### Naming Conventions
 
-| Artifact | Convention | Example |
-|----------|-----------|---------|
-| Components | PascalCase | `ConcreteCalculatorForm` |
-| Hooks | `use*` prefix | `useConcreteCalculator` |
-| Types | PascalCase | `ConcreteInput`, `ConcreteCalculation` |
-| Utilities | camelCase | `calculateConcreteVolume` |
-| Constants | UPPER_SNAKE_CASE | `DEFAULT_WASTAGE_PERCENT` |
-| CSS Classes | kebab-case (Tailwind) | `text-gray-900 dark:text-white` |
+| Artifact    | Convention            | Example                                |
+| ----------- | --------------------- | -------------------------------------- |
+| Components  | PascalCase            | `ConcreteCalculatorForm`               |
+| Hooks       | `use*` prefix         | `useConcreteCalculator`                |
+| Types       | PascalCase            | `ConcreteInput`, `ConcreteCalculation` |
+| Utilities   | camelCase             | `calculateConcreteVolume`              |
+| Constants   | UPPER_SNAKE_CASE      | `DEFAULT_WASTAGE_PERCENT`              |
+| CSS Classes | kebab-case (Tailwind) | `text-gray-900 dark:text-white`        |
 
 ### TypeScript Best Practices
 
@@ -1771,7 +1802,8 @@ interface Props {
 }
 
 // ❌ Bad: Implicit `any`
-function handleUpdate(data) { // What type is data?
+function handleUpdate(data) {
+  // What type is data?
   const updated = { ...data };
 }
 
@@ -1832,7 +1864,7 @@ Create `src/utils/newdomainCalculations.ts`:
 ```typescript
 export function calculateNewDomain(
   input: NewDomainInput,
-  unitPrice: number
+  unitPrice: number,
 ): NewDomainCalculation {
   const volume = input.length * input.width;
   const cost = volume * unitPrice;
@@ -1855,7 +1887,8 @@ export function useNewDomainCalculator({
   onCalculationsChange,
 }: Props) {
   const [input, setInput] = useState(initialData || DEFAULT_NEW_DOMAIN_INPUT);
-  const [calculations, setCalculations] = useState<NewDomainCalculation | null>();
+  const [calculations, setCalculations] =
+    useState<NewDomainCalculation | null>();
   const [unitPrice, setUnitPrice] = useState(0);
 
   // Fetch material price
@@ -1934,7 +1967,7 @@ export function NewDomainCalculator({
 
 #### Step 5: Integrate into Quote Builder
 
-In `components/EnhancedQuoteBuilder.tsx`:
+In `components/QuoteBuilder.tsx`:
 
 ```typescript
 <TabsContent value="newdomain">
@@ -1956,7 +1989,7 @@ Example: Add "Include XYZ" checkbox to existing calculator
 ```typescript
 const [includeFeature, setIncludeFeature] = useState<boolean>(
   // Smart initialization: check if feature data exists
-  (quoteData?.feature_data?.length || 0) > 0
+  (quoteData?.feature_data?.length || 0) > 0,
 );
 ```
 
@@ -2024,6 +2057,7 @@ const [includeAdvanced, setIncludeAdvanced] = useState(false);
 ```
 
 **Benefits:**
+
 - Users can include both basic AND advanced (not mutually exclusive)
 - Better UX for additive features
 - Simpler state management (boolean vs enum)
@@ -2039,6 +2073,7 @@ const [includeAdvanced, setIncludeAdvanced] = useState(false);
 **Symptoms:** "Maximum update depth exceeded"
 
 **Solution:**
+
 ```typescript
 // ❌ Bad: callback in dependencies
 useEffect(() => {
@@ -2048,7 +2083,7 @@ useEffect(() => {
 // ✅ Good: wrap callback in useCallback at call site
 const memoCallback = useCallback(
   (calcs) => setData((prev) => ({ ...prev, calcs })),
-  []
+  [],
 );
 useHook({ onCalcsChange: memoCallback });
 
@@ -2063,6 +2098,7 @@ useEffect(() => {
 **Symptoms:** Calculator shows old prices even after updating material prices
 
 **Solution:**
+
 ```typescript
 // Ensure prices are in useEffect dependencies:
 useEffect(() => {
@@ -2076,6 +2112,7 @@ useEffect(() => {
 **Symptoms:** Data changes but not persisted to Supabase
 
 **Debug checklist:**
+
 1. Check network tab - is request being sent?
 2. Check Supabase auth - is user authenticated?
 3. Check Row Level Security (RLS) policies
@@ -2098,6 +2135,7 @@ try {
 **Symptoms:** Calculations show zero cost
 
 **Debug:**
+
 ```typescript
 // Check if materials loaded
 useEffect(() => {
@@ -2114,6 +2152,7 @@ useEffect(() => {
 **Symptoms:** "Export failed" toast notification
 
 **Check:**
+
 1. Is quote data complete? (all required fields)
 2. Are there calculation errors? (look at console)
 3. Is PDF generation library loaded?
@@ -2134,6 +2173,7 @@ try {
 #### Slow Calculator Rendering
 
 **Check:**
+
 ```typescript
 // Use React DevTools Profiler
 // 1. Record a session
@@ -2148,6 +2188,7 @@ const config = useMemo(() => ({ a, b, c }), [a, b, c]);
 #### Laggy Quote Builder
 
 **Optimize:**
+
 ```typescript
 // 1. Use Suspense for lazy calculator loading
 <Suspense fallback={<Skeleton />}>
@@ -2173,6 +2214,7 @@ const debouncedInput = useMemo(
 **Error:** "new row violates row level security policy"
 
 **Check RLS policies:**
+
 ```sql
 -- User can only see their own quotes
 CREATE POLICY "Users see own quotes" ON quotes

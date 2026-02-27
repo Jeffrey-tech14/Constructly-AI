@@ -2,7 +2,7 @@
 Unauthorized copying, distribution, or modification of this file is strictly prohibited. */
 
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Gabarito&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Spline+Sans&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -241,8 +241,7 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     @apply border-border;
   }
   body {
-   @apply bg-background transition-colors duration-300 text-foreground font-['Outfit'];
-
+    @apply bg-background transition-colors duration-300 text-foreground font-['Outfit'];
   }
 
   h1,
@@ -251,7 +250,7 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
   h4,
   h5,
   h6 {
-    @apply font-['Gabarito'] font-[400];
+    @apply font-['Spline_Sans'] font-[600];
   }
 }
 

@@ -286,7 +286,7 @@ Constructly-AI/
 │   │   ├── Testimonials.tsx
 │   │   ├── ThemeToggle.tsx
 │   │   ├── Calculator.tsx
-│   │   ├── EnhancedQuoteBuilder.tsx
+│   │   ├── QuoteBuilder.tsx
 │   │   ├── BOQBuilder.tsx
 │   │   ├── PreliminariesBuilder.tsx
 │   │   ├── PreliminariesOptionsPage.tsx
@@ -485,7 +485,7 @@ npm run preview
 
 ### Quote & BOQ Components
 
-**EnhancedQuoteBuilder.tsx** - Main quote builder with multi-section support.
+**QuoteBuilder.tsx** - Main quote builder with multi-section support.
 **BOQBuilder.tsx** - Bill of quantities builder.
 **PreliminariesBuilder.tsx** - AI-generated preliminaries.
 **QuotesTab.tsx** - Quote management interface.

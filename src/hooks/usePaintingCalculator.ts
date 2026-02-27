@@ -24,7 +24,7 @@ export interface UsePaintingCalculatorProps {
   materialPrices?: any[];
   quote?: any;
   onPaintingsChange?: (paintings: PaintingSpecification[]) => void;
-  location?: "Interior Walls" | "Exterior Walls";
+  location?: "Interior Walls" | "Exterior Walls" | "Ceiling";
   surfaceArea?: number;
   autoInitialize?: boolean;
 }

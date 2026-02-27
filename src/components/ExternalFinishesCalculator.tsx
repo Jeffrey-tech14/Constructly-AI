@@ -45,6 +45,7 @@ interface Props {
   finishes: FinishElement[];
   materialPrices: any[];
   onFinishesUpdate?: (finishes: FinishElement[]) => void;
+  onFinishTypeChange?: (type: "keying" | "plaster") => void;
   readonly?: boolean;
   quote?: any;
   wallDimensions?: any;
@@ -63,13 +64,14 @@ export default function ExternalFinishesCalculator({
   finishes,
   materialPrices,
   onFinishesUpdate,
+  onFinishTypeChange,
   readonly = false,
   quote,
   wallDimensions,
 }: Props) {
   const [externalFinishType, setExternalFinishType] = useState<
     "keying" | "plaster"
-  >("plaster");
+  >(quote?.finishes_calculations?.external_walls?.type || "keying");
   const [externalFinishes, setExternalFinishes] = useState<FinishElement[]>(
     finishes.filter((f) => f.category === "external-walling"),
   );
@@ -89,11 +91,6 @@ export default function ExternalFinishesCalculator({
   const CEMENT_VOLUME_PER_BAG = 0.035; // m³
   const WALL_POINTING_THICKNESS_MM = 5; // 5mm for wall pointing
   const PLASTER_THICKNESS_MM = externalPlasterThickness || 25; // Default 25mm
-
-  // Calculate external wall area (perimeter × height)
-  const externalWallArea =
-    (wallDimensions?.externalWallPerimiter || 0) *
-    (wallDimensions?.externalWallHeight || 0);
 
   // Helper function to calculate net wall area (deducting doors and windows)
   const calculateNetWallArea = (wallType: "external" | "internal"): number => {
@@ -124,10 +121,10 @@ export default function ExternalFinishesCalculator({
         section.doors.forEach((door: any) => {
           let doorArea = 0;
           if (door.sizeType === "standard" && door.standardSize) {
-            const parts = door.standardSize.split("x");
+            const parts = door.standardSize.split("×");
             if (parts.length === 2) {
-              const h = parseFloat(parts[0]);
-              const w = parseFloat(parts[1]);
+              const h = parseFloat(parts[0].trim().replace(/\s*m$/, ""));
+              const w = parseFloat(parts[1].trim().replace(/\s*m$/, ""));
               doorArea = isNaN(h) || isNaN(w) ? 0 : h * w;
             }
           } else if (door.custom) {
@@ -144,10 +141,10 @@ export default function ExternalFinishesCalculator({
         section.windows.forEach((window: any) => {
           let windowArea = 0;
           if (window.sizeType === "standard" && window.standardSize) {
-            const parts = window.standardSize.split("x");
+            const parts = window.standardSize.split("×");
             if (parts.length === 2) {
-              const h = parseFloat(parts[0]);
-              const w = parseFloat(parts[1]);
+              const h = parseFloat(parts[0].trim().replace(/\s*m$/, ""));
+              const w = parseFloat(parts[1].trim().replace(/\s*m$/, ""));
               windowArea = isNaN(h) || isNaN(w) ? 0 : h * w;
             }
           } else if (window.custom) {
@@ -159,7 +156,6 @@ export default function ExternalFinishesCalculator({
         });
       }
     });
-
     // Return net area (ensure it doesn't go negative)
     return Math.max(0, grossArea - openingsArea);
   };
@@ -244,7 +240,7 @@ export default function ExternalFinishesCalculator({
       externalFinishes,
       materialPrices,
       quote,
-      externalWallArea,
+      netExternalWallArea,
     );
 
   const {
@@ -261,7 +257,7 @@ export default function ExternalFinishesCalculator({
     materialPrices,
     quote,
     location: "Exterior Walls",
-    surfaceArea: externalWallArea,
+    surfaceArea: netExternalWallArea,
     autoInitialize: true,
   });
 
@@ -515,7 +511,11 @@ export default function ExternalFinishesCalculator({
           <RadioGroup
             value={externalFinishType}
             onValueChange={(value) => {
-              setExternalFinishType(value as "keying" | "plaster");
+              const newType = value as "keying" | "plaster";
+              setExternalFinishType(newType);
+              if (onFinishTypeChange) {
+                onFinishTypeChange(newType);
+              }
               // Clear finishes when switching to keying
               if (value === "keying") {
                 setExternalFinishes([]);
@@ -712,7 +712,7 @@ export default function ExternalFinishesCalculator({
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       Wall Area
                     </p>
-                    <p className="">{externalWallArea.toFixed(2)} m²</p>
+                    <p className="">{netExternalWallArea.toFixed(2)} m²</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
@@ -1074,7 +1074,7 @@ export default function ExternalFinishesCalculator({
                 <div>
                   <div className="text-xs font-bold">Total Area</div>
                   <div className="text-lg font-bold">
-                    {externalWallArea.toFixed(2)} m²
+                    {netExternalWallArea.toFixed(2)} m²
                   </div>
                 </div>
                 <div>
@@ -1106,46 +1106,6 @@ export default function ExternalFinishesCalculator({
         </CardContent>
       </Card>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Area</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {externalWallArea.toFixed(2)} m²
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                externalFinishes.filter(
-                  (f) => !f.material?.toLowerCase().includes("plaster"),
-                ).length
-              }
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(finishTotals.totalCost)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* External Painting Section */}
       {externalFinishType === "plaster" &&
         externalPaintingEnabled &&
@@ -1155,8 +1115,7 @@ export default function ExternalFinishesCalculator({
           <Card>
             <CardHeader className="border-b rounded-t-2xl">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="text-2xl">🎨</span> External Painting
-                Specifications
+                External Painting Specifications
               </CardTitle>
               <CardDescription className="text-slate-700 dark:text-slate-300">
                 Multi-layer painting calculations with coverage-aware sizing
@@ -1177,7 +1136,7 @@ export default function ExternalFinishesCalculator({
               {!readonly && paintingList.length === 0 && (
                 <Button
                   onClick={() =>
-                    addPainting(externalWallArea, "Exterior Walls")
+                    addPainting(netExternalWallArea, "Exterior Walls")
                   }
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
                 >
@@ -1211,6 +1170,45 @@ export default function ExternalFinishesCalculator({
             </CardContent>
           </Card>
         )}
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Area</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {netExternalWallArea.toFixed(2)} m²
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {
+                externalFinishes.filter(
+                  (f) => !f.material?.toLowerCase().includes("plaster"),
+                ).length
+              }
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(finishTotals.totalCost)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

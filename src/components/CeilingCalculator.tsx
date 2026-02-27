@@ -31,36 +31,51 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Plus, Trash2, Edit } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import useUniversalFinishesCalculator, {
   FinishElement,
   FinishCalculation,
 } from "@/hooks/useUniversalFinishesCalculator";
+import usePaintingCalculator from "@/hooks/usePaintingCalculator";
+import PaintingLayerConfig from "@/components/PaintingLayerConfig";
+import {
+  PaintingSpecification,
+  DEFAULT_PAINTING_CONFIG,
+  DEFAULT_COVERAGE_RATES,
+} from "@/types/painting";
 
-const CEILING_MATERIALS = [
-  "Gypsum Board 1.2x2.4m",
+// Gypsum Ceiling Materials
+const GYPSUM_MATERIALS = ["Gypsum Board 1.2x2.4m"];
+
+// Other Ceiling Types
+const OTHER_CEILING_MATERIALS = [
   "PVC",
   "Acoustic Tiles",
-  "Exposed Concrete",
   "Suspended Grid",
+  "Blundering 40x40mm",
   "Wood Panels",
 ];
 
-const CEILING_SUPPLEMENTARY_MATERIALS = [
-  "Paint - Ceiling",
+// Supplementary materials specific to gypsum
+const GYPSUM_SUPPLEMENTARY_MATERIALS = [
   "Blundering 40x40mm",
   "Metal Ceiling Channel",
   "Metal Ceiling Stud",
   "Gypsum Screws",
   "Corner Tape",
   "Fiber Mesh",
-  "Cornice",
   "Filler",
+  "Cornice",
 ];
+
+// Painting supplementary (cornice is optional)
+const PAINTING_SUPPLEMENTARY_MATERIALS = ["Cornice"];
 
 interface CeilingCalculatorProps {
   finishes: FinishElement[];
   materialPrices: any[];
   onFinishesUpdate?: (finishes: FinishElement[]) => void;
+  onCeilingTypeChange?: (type: "gypsum" | "painting" | "other") => void;
   readonly?: boolean;
   quote?: any;
 }
@@ -69,24 +84,64 @@ export default function CeilingCalculator({
   finishes,
   materialPrices,
   onFinishesUpdate,
+  onCeilingTypeChange,
   readonly = false,
   quote,
 }: CeilingCalculatorProps) {
   // Filter only ceiling items
   const ceilingFinishes = finishes.filter((f) => f.category === "ceiling");
 
+  // Ceiling type state - initialize from quote if available
+  const [ceilingType, setCeilingType] = useState<
+    "gypsum" | "painting" | "other"
+  >(quote?.finishes_calculations?.ceiling?.type || "gypsum");
+
+  // Calculate ceiling area from ground floor slab
+  const groundFloorSlab = quote?.concrete_rows?.find(
+    (f: any) =>
+      f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+  );
+  const ceilingArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+
   const { calculations, totals, calculateAll, wastagePercentage } =
     useUniversalFinishesCalculator(ceilingFinishes, materialPrices, quote);
+
+  // Initialize painting calculator for ceiling painting
+  const {
+    paintings: paintingList,
+    totals: paintingTotals,
+    addPainting,
+    updatePainting,
+    calculateAll: calculatePainting,
+    deletePainting,
+  } = usePaintingCalculator({
+    initialPaintings:
+      quote?.paintings_specifications?.filter(
+        (p: any) => p.location === "Ceiling",
+      ) || [],
+    materialPrices,
+    quote,
+    location: "Ceiling",
+    surfaceArea: ceilingArea,
+    autoInitialize: false, // Manual initialization with custom specs
+  });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
 
   /**
-   * Auto-create a default gypsum board ceiling if none exists
+   * Handle ceiling type change - clear all finishes and auto-populate with correct items
    */
-  useEffect(() => {
-    if (readonly || ceilingFinishes.length > 0) return;
+  const handleCeilingTypeChange = (
+    newType: "gypsum" | "painting" | "other",
+  ) => {
+    setCeilingType(newType);
+    if (onCeilingTypeChange) {
+      onCeilingTypeChange(newType);
+    }
+
+    if (readonly) return;
 
     const groundFloorSlab = quote?.concrete_rows?.find(
       (f: any) =>
@@ -94,28 +149,157 @@ export default function CeilingCalculator({
     );
     const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
 
-    // Only auto-create if we have a valid slab area
-    if (slabArea > 0) {
-      const defaultCeiling: FinishElement = {
-        id: `ceiling-gypsum-default-${Date.now()}`,
+    if (slabArea <= 0) return;
+
+    const newFinishes: FinishElement[] = [];
+
+    // Add default items based on ceiling type
+    if (newType === "gypsum") {
+      // Add gypsum board as main material
+      newFinishes.push({
+        id: `ceiling-gypsum-${Date.now()}`,
         category: "ceiling",
         material: "Gypsum Board 1.2x2.4m",
         area: slabArea,
         quantity: slabArea,
         unit: "m²",
         location: "All Rooms",
-      };
+      });
+      // Add supporting components
+      newFinishes.push({
+        id: `ceiling-blundering-${Date.now()}`,
+        category: "ceiling",
+        material: "Blundering 40x40mm",
+        area: slabArea,
+        quantity: slabArea,
+        unit: "m²",
+        location: "All Rooms",
+      });
+    } else if (newType === "painting") {
+      // Clear all finishes and add cornice
+      const corniceLength = Math.ceil(
+        parseFloat(quote?.wallDimensions?.internalWallPerimiter) || 0,
+      );
+
+      newFinishes.push({
+        id: `ceiling-cornice-${Date.now()}`,
+        category: "ceiling",
+        material: "Cornice",
+        area: corniceLength,
+        quantity: corniceLength,
+        unit: "m",
+        location: "All Rooms",
+      });
+      calculatePainting(); // Trigger painting calculator to add the paint item with correct area
+    } else if (newType === "other") {
+      // Add default other ceiling type
+      newFinishes.push({
+        id: `ceiling-other-${Date.now()}`,
+        category: "ceiling",
+        material: "PVC",
+        area: slabArea,
+        quantity: slabArea,
+        unit: "m²",
+        location: "All Rooms",
+      });
+    }
+
+    if (onFinishesUpdate) {
+      onFinishesUpdate(newFinishes);
+    }
+  };
+
+  /**
+   * Auto-create ceiling painting with simplified specs (1 coat skimming + 1 coat emulsion)
+   * when switching to painting mode
+   */
+  useEffect(() => {
+    if (
+      ceilingType !== "painting" ||
+      ceilingArea <= 0 ||
+      paintingList.length > 0 ||
+      readonly
+    ) {
+      return;
+    }
+
+    // Create a default painting with the hook's addPainting
+    addPainting(ceilingArea, "Ceiling");
+  }, [ceilingType, ceilingArea, paintingList.length, readonly, addPainting]);
+
+  /**
+   * Update ceiling paintings to use simplified specs (1 coat each)
+   * This runs after the painting is created
+   */
+  useEffect(() => {
+    if (paintingList.length === 0) return;
+
+    // Check if we need to update the specs
+    const needsUpdate = paintingList.some(
+      (p) =>
+        p.location === "Ceiling" &&
+        (p.skimming.coats !== 1 ||
+          p.undercoat.enabled !== false ||
+          p.finishingPaint.coats !== 1),
+    );
+
+    if (needsUpdate) {
+      paintingList.forEach((painting) => {
+        if (painting.location === "Ceiling") {
+          updatePainting(painting.id, {
+            ...painting,
+            skimming: {
+              ...painting.skimming,
+              coats: 1,
+            },
+            undercoat: {
+              ...painting.undercoat,
+              enabled: false,
+            },
+            finishingPaint: {
+              ...painting.finishingPaint,
+              coats: 1,
+            },
+          });
+        }
+      });
+    }
+  }, [paintingList, updatePainting]);
+
+  /**
+   * Handle ceiling type changes - clear non-matching materials
+   */
+  useEffect(() => {
+    if (readonly || ceilingFinishes.length === 0) return;
+
+    const currentMaterials = ceilingFinishes.map((f) => f.material);
+    let validMaterials: string[] = [];
+    let shouldUpdate = false;
+
+    if (ceilingType === "gypsum") {
+      validMaterials = [...GYPSUM_MATERIALS, ...GYPSUM_SUPPLEMENTARY_MATERIALS];
+    } else if (ceilingType === "painting") {
+      validMaterials = [...PAINTING_SUPPLEMENTARY_MATERIALS];
+    } else if (ceilingType === "other") {
+      validMaterials = OTHER_CEILING_MATERIALS;
+    }
+
+    // Check if any current material is invalid for this ceiling type
+    const hasInvalidMaterial = currentMaterials.some(
+      (m) => !validMaterials.includes(m),
+    );
+
+    if (hasInvalidMaterial) {
+      // Filter out invalid materials
+      const updatedFinishes = ceilingFinishes.filter((f) =>
+        validMaterials.includes(f.material),
+      );
 
       if (onFinishesUpdate) {
-        onFinishesUpdate([defaultCeiling]);
+        onFinishesUpdate(updatedFinishes);
       }
     }
-  }, [
-    readonly,
-    ceilingFinishes.length,
-    quote?.concrete_rows?.length,
-    onFinishesUpdate,
-  ]);
+  }, [ceilingType, readonly, ceilingFinishes.length, onFinishesUpdate]);
 
   /**
    * Helper function to get ceiling material price from materialsPrice (Supabase nested structure)
@@ -159,10 +343,18 @@ export default function CeilingCalculator({
         f.element === "slab" && f.name?.toLowerCase().includes("ground"),
     );
     const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+
+    let defaultMaterial = "Gypsum Board 1.2x2.4m";
+    if (ceilingType === "painting") {
+      defaultMaterial = "Paint - Ceiling";
+    } else if (ceilingType === "other") {
+      defaultMaterial = "PVC";
+    }
+
     const newFinish: FinishElement = {
       id: `ceiling-${Date.now()}`,
       category: "ceiling",
-      material: CEILING_MATERIALS[0],
+      material: defaultMaterial,
       area: slabArea,
       quantity: slabArea,
       unit: "m²",
@@ -220,15 +412,6 @@ export default function CeilingCalculator({
     calc.material.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  // Track stable references to prevent infinite loops
-  const hasNonExposedConcrete = React.useMemo(() => {
-    // Only check main ceiling materials, not supplementary ones
-    const mainMaterials = CEILING_MATERIALS.filter(
-      (m) => m !== "Exposed Concrete",
-    );
-    return ceilingFinishes.some((f) => mainMaterials.includes(f.material));
-  }, [ceilingFinishes]);
-
   const gypsumItemsCount = React.useMemo(() => {
     return ceilingFinishes.filter((f) => f.material === "Gypsum Board 1.2x2.4m")
       .length;
@@ -278,11 +461,11 @@ export default function CeilingCalculator({
 
   // Auto-manage blundering for ceiling items (STEP 6: Only on last floor)
   useEffect(() => {
-    if (readonly) return;
+    if (readonly || ceilingType === "painting") return;
 
     // STEP 6: Only apply blundering to the last floor for multi-storey buildings
-    // Blundering should exist for all ceiling types except Exposed Concrete
-    const shouldHaveBlundering = hasNonExposedConcrete;
+    // Blundering should exist for all ceiling types except Exposed Concrete and Painting
+    const shouldHaveBlundering = true;
 
     const totalArea = slabArea;
     const blunderingMeters = Math.ceil(totalArea * 3.36 * 1.15);
@@ -347,7 +530,7 @@ export default function CeilingCalculator({
         }
       }
     }
-  }, [hasNonExposedConcrete, readonly, blunderingExists, slabArea]);
+  }, [readonly, blunderingExists, slabArea, ceilingType, onFinishesUpdate]);
 
   // Auto-manage gypsum board ceiling components
   useEffect(() => {
@@ -488,7 +671,7 @@ export default function CeilingCalculator({
           area: totalArea,
           unit: component.unit,
           quantity: component.quantity,
-          location: "Auto-calculated for Gypsum Ceiling",
+          location: "Auto-calculated",
         });
       } else if (existing.quantity !== component.quantity) {
         needsUpdate = true;
@@ -649,6 +832,52 @@ export default function CeilingCalculator({
 
   return (
     <div className="space-y-6">
+      {/* Ceiling Type Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ceiling Type</CardTitle>
+          <CardDescription>
+            Select the type of ceiling configuration
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={ceilingType}
+            onValueChange={(value) =>
+              handleCeilingTypeChange(value as "gypsum" | "painting" | "other")
+            }
+          >
+            <div className="flex items-center space-x-2 mb-4">
+              <RadioGroupItem value="gypsum" id="gypsum" />
+              <Label htmlFor="gypsum" className="cursor-pointer font-medium">
+                Gypsum Ceiling
+              </Label>
+              <span className="text-sm text-gray-500">
+                (With automatic support components)
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 mb-4">
+              <RadioGroupItem value="painting" id="painting" />
+              <Label htmlFor="painting" className="cursor-pointer font-medium">
+                Painting Ceiling
+              </Label>
+              <span className="text-sm text-gray-500">
+                (Paint, skimming, optional cornice)
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="other" id="other" />
+              <Label htmlFor="other" className="cursor-pointer font-medium">
+                Other Ceiling Types
+              </Label>
+              <span className="text-sm text-gray-500">
+                (PVC, Acoustic Tiles, etc.)
+              </span>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -688,9 +917,19 @@ export default function CeilingCalculator({
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4">
             <div>
-              <CardTitle>Ceiling Materials & Components</CardTitle>
+              <CardTitle>
+                {ceilingType === "gypsum" &&
+                  "Gypsum Ceiling Materials & Components"}
+                {ceilingType === "painting" && "Painting Ceiling Configuration"}
+                {ceilingType === "other" && "Ceiling Types & Materials"}
+              </CardTitle>
               <CardDescription>
-                Configure ceiling with automatic blundering on ceiling items
+                {ceilingType === "gypsum" &&
+                  "Configure gypsum ceiling with automatic support components (blundering, channels, studs, etc.)"}
+                {ceilingType === "painting" &&
+                  "Configure ceiling with paint, light skimming, covermat, and optional cornice"}
+                {ceilingType === "other" &&
+                  "Select from alternative ceiling types (PVC, Acoustic, Concrete, etc.)"}
               </CardDescription>
             </div>
 
@@ -748,26 +987,60 @@ export default function CeilingCalculator({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">
-                            Main Materials
-                          </SelectLabel>
-                          {CEILING_MATERIALS.map((material) => (
-                            <SelectItem key={material} value={material}>
-                              {material}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                        <SelectGroup>
-                          <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">
-                            Supplementary Materials
-                          </SelectLabel>
-                          {CEILING_SUPPLEMENTARY_MATERIALS.map((material) => (
-                            <SelectItem key={material} value={material}>
-                              {material}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
+                        {ceilingType === "gypsum" && (
+                          <>
+                            <SelectGroup>
+                              <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">
+                                Main Materials
+                              </SelectLabel>
+                              {GYPSUM_MATERIALS.map((material) => (
+                                <SelectItem key={material} value={material}>
+                                  {material}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">
+                                Supplementary Materials
+                              </SelectLabel>
+                              {GYPSUM_SUPPLEMENTARY_MATERIALS.map(
+                                (material) => (
+                                  <SelectItem key={material} value={material}>
+                                    {material}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectGroup>
+                          </>
+                        )}
+                        {ceilingType === "painting" && (
+                          <>
+                            <SelectGroup>
+                              <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">
+                                Supplementary Materials
+                              </SelectLabel>
+                              {PAINTING_SUPPLEMENTARY_MATERIALS.map(
+                                (material) => (
+                                  <SelectItem key={material} value={material}>
+                                    {material}
+                                  </SelectItem>
+                                ),
+                              )}
+                            </SelectGroup>
+                          </>
+                        )}
+                        {ceilingType === "other" && (
+                          <SelectGroup>
+                            <SelectLabel className="font-semibold bg-gray-100 dark:bg-primary rounded-3xl">
+                              Ceiling Types
+                            </SelectLabel>
+                            {OTHER_CEILING_MATERIALS.map((material) => (
+                              <SelectItem key={material} value={material}>
+                                {material}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -947,6 +1220,89 @@ export default function CeilingCalculator({
           </div>
         </CardContent>
       </Card>
+
+      {/* Ceiling Painting Layers Section */}
+      {ceilingType === "painting" && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              Ceiling Painting Specifications
+            </CardTitle>
+            <CardDescription className="text-slate-700 dark:text-slate-300">
+              Simplified painting with skimming and emulsion paint (1 coat each)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {paintingList.length > 0 &&
+              paintingList.map((painting) => (
+                <PaintingLayerConfig
+                  key={painting.id}
+                  painting={painting}
+                  onUpdate={(updates) => updatePainting(painting.id, updates)}
+                  onDelete={() => deletePainting(painting.id)}
+                  wallDimensions={{
+                    internalWallPerimiter: 0,
+                    internalWallHeight: 0,
+                  }}
+                />
+              ))}
+
+            {!readonly && paintingList.length === 0 && (
+              <Button
+                onClick={() => addPainting(ceilingArea, "Ceiling")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Ceiling Painting
+              </Button>
+            )}
+
+            {paintingTotals && paintingTotals.totalArea > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 p-4 rounded-lg bg-muted">
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold">Total Area</div>
+                  <div className="text-lg font-bold">
+                    {paintingTotals.totalArea.toFixed(2)} m²
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold">Skimming Bags</div>
+                  <div className="text-lg font-bold">
+                    {paintingTotals.skimmingBags}
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold">Emulsion Paint</div>
+                  <div className="text-lg font-bold">
+                    {paintingTotals.finishingLitres.toFixed(1)} L
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold">Skimming Cost</div>
+                  <div className="text-lg font-bold text-green-600">
+                    {formatCurrency(paintingTotals.skimmingCost)}
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold">Paint Cost</div>
+                  <div className="text-lg font-bold text-green-600">
+                    {formatCurrency(paintingTotals.finishingCost)}
+                  </div>
+                </div>
+                <div className="p-3 rounded-3xl">
+                  <div className="text-xs font-bold">Total Paint Cost</div>
+                  <div className="text-lg font-bold text-green-700">
+                    {formatCurrency(
+                      paintingTotals.skimmingCost +
+                        paintingTotals.finishingCost,
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

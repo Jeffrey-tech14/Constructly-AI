@@ -20,7 +20,7 @@ import {
  * Validate a painting specification
  */
 export function validatePaintingSpec(
-  spec: PaintingSpecification
+  spec: PaintingSpecification,
 ): PaintingValidationResult {
   const errors: PaintingValidationError[] = [];
 
@@ -82,7 +82,7 @@ export function validatePaintingSpec(
 
   if (
     !subtypeMap[spec.finishingPaint.category]?.includes(
-      spec.finishingPaint.subtype
+      spec.finishingPaint.subtype,
     )
   ) {
     errors.push({
@@ -106,7 +106,7 @@ function calculateLayerQuantity(
   surfaceArea: number,
   coats: number,
   coverage: number,
-  unit: "bags" | "litres"
+  unit: "bags" | "litres",
 ): { raw: number; rounded: number } {
   const raw = (surfaceArea / coverage) * coats;
 
@@ -127,9 +127,9 @@ export function calculateLayer(
   config: any, // SkimmingConfig | UndercoatConfig | FinishingPaintConfig
   coverageRates: CoverageRates,
   materialPrice: number,
-  wastagePercentage: number = 0.1
+  wastagePercentage: number = 0.1,
 ): LayerCalculation | null {
-  if (!config.enabled) {
+  if (!config.enabled && layerType !== "finishing") {
     return null;
   }
 
@@ -159,7 +159,7 @@ export function calculateLayer(
     surfaceArea,
     coats,
     coverage,
-    unit
+    unit,
   );
 
   // Apply wastage to gross quantity for pricing
@@ -199,7 +199,7 @@ export function calculatePaintingLayers(
     undercoat?: number;
     finishing?: number;
   } = {},
-  wastagePercentage: number = 0.1
+  wastagePercentage: number = 0.1,
 ): PaintingSpecification {
   // Default prices (per unit)
   const prices = {
@@ -216,7 +216,7 @@ export function calculatePaintingLayers(
           spec.skimming,
           coverageRates,
           prices.skimming,
-          wastagePercentage
+          wastagePercentage,
         )
       : null;
 
@@ -228,7 +228,7 @@ export function calculatePaintingLayers(
           spec.undercoat,
           coverageRates,
           prices.undercoat,
-          wastagePercentage
+          wastagePercentage,
         )
       : null;
 
@@ -239,11 +239,11 @@ export function calculatePaintingLayers(
           "finishing",
           spec.finishingPaint,
           coverageRates,
+
           prices.finishing,
-          wastagePercentage
+          wastagePercentage,
         )
       : null;
-
   return {
     ...spec,
     calculations: {
@@ -259,7 +259,7 @@ export function calculatePaintingLayers(
  * Calculate totals across all painting surfaces
  */
 export function calculatePaintingTotals(
-  specifications: PaintingSpecification[]
+  specifications: PaintingSpecification[],
 ): PaintingTotals {
   const totals: PaintingTotals = {
     totalArea: 0,
@@ -315,7 +315,7 @@ export function extractPaintingPrices(materialPrices: any[]): {
 
   // Find paint category
   const paintCategory = materialPrices.find(
-    (p: any) => p.name.toLowerCase() === "paint"
+    (p: any) => p.name.toLowerCase() === "paint",
   );
 
   if (!paintCategory?.type?.materials) {
@@ -342,7 +342,7 @@ export function extractPaintingPrices(materialPrices: any[]): {
  */
 export function migrateLegacyPainting(
   legacyPaintFinish: any,
-  coverageRates: CoverageRates = DEFAULT_COVERAGE_RATES
+  coverageRates: CoverageRates = DEFAULT_COVERAGE_RATES,
 ): PaintingSpecification {
   const now = new Date().toISOString();
 

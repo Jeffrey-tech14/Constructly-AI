@@ -48,6 +48,7 @@ interface Props {
   finishes: FinishElement[];
   materialPrices: any[];
   onFinishesUpdate?: (finishes: FinishElement[]) => void;
+  onFinishTypeChange?: (type: "painting" | "otherFinishes") => void;
   readonly?: boolean;
   quote?: any;
   wallDimensions?: any;
@@ -83,6 +84,7 @@ export default function InternalFinishesCalculator({
   finishes,
   materialPrices,
   onFinishesUpdate,
+  onFinishTypeChange,
   readonly = false,
   quote,
   wallDimensions,
@@ -94,7 +96,7 @@ export default function InternalFinishesCalculator({
   const [editForm, setEditForm] = useState<FinishElement | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [finishType, setFinishType] = useState<"painting" | "otherFinishes">(
-    "painting",
+    quote?.finishes_calculations?.internal_walls?.type || "painting",
   );
 
   // State for dynamic tile pricing
@@ -153,12 +155,6 @@ export default function InternalFinishesCalculator({
   const { calculations: finishCalcs, totals: finishTotals } =
     useInternalFinishesCalculator(internalFinishes, materialPrices, quote);
 
-  // Calculate internal wall area (perimeter × height × 2 for walls all around)
-  const internalWallArea =
-    (wallDimensions?.internalWallPerimiter || 0) *
-    (wallDimensions?.internalWallHeight || 0) *
-    2;
-
   // Helper function to calculate net wall area (deducting doors and windows)
   const calculateNetWallArea = (wallType: "external" | "internal"): number => {
     if (!quote?.wallSections || !wallDimensions) return 0;
@@ -168,9 +164,7 @@ export default function InternalFinishesCalculator({
 
     // Get dimensions based on wall type
     if (wallType === "external") {
-      grossArea =
-        (wallDimensions.externalWallPerimiter || 0) *
-        (wallDimensions.externalWallHeight || 0);
+      grossArea = 0;
     } else {
       grossArea =
         (wallDimensions.internalWallPerimiter || 0) *
@@ -187,10 +181,10 @@ export default function InternalFinishesCalculator({
         section.doors.forEach((door: any) => {
           let doorArea = 0;
           if (door.sizeType === "standard" && door.standardSize) {
-            const parts = door.standardSize.split("x");
+            const parts = door.standardSize.split("×");
             if (parts.length === 2) {
-              const h = parseFloat(parts[0]);
-              const w = parseFloat(parts[1]);
+              const h = parseFloat(parts[0].trim().replace(/\s*m$/, ""));
+              const w = parseFloat(parts[1].trim().replace(/\s*m$/, ""));
               doorArea = isNaN(h) || isNaN(w) ? 0 : h * w;
             }
           } else if (door.custom) {
@@ -207,10 +201,10 @@ export default function InternalFinishesCalculator({
         section.windows.forEach((window: any) => {
           let windowArea = 0;
           if (window.sizeType === "standard" && window.standardSize) {
-            const parts = window.standardSize.split("x");
+            const parts = window.standardSize.split("×");
             if (parts.length === 2) {
-              const h = parseFloat(parts[0]);
-              const w = parseFloat(parts[1]);
+              const h = parseFloat(parts[0].trim().replace(/\s*m$/, ""));
+              const w = parseFloat(parts[1].trim().replace(/\s*m$/, ""));
               windowArea = isNaN(h) || isNaN(w) ? 0 : h * w;
             }
           } else if (window.custom) {
@@ -610,9 +604,13 @@ export default function InternalFinishesCalculator({
         <CardContent>
           <RadioGroup
             value={finishType}
-            onValueChange={(value) =>
-              setFinishType(value as "painting" | "otherFinishes")
-            }
+            onValueChange={(value) => {
+              const newType = value as "painting" | "otherFinishes";
+              setFinishType(newType);
+              if (onFinishTypeChange) {
+                onFinishTypeChange(newType);
+              }
+            }}
             disabled={readonly}
           >
             <div className="flex items-center space-x-2 mb-4">
@@ -633,54 +631,54 @@ export default function InternalFinishesCalculator({
           </RadioGroup>
         </CardContent>
       </Card>
+      {/* Masonry Plaster Results */}
+      {quote?.masonry_materials?.netPlaster > 0 && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              Plaster Finishes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Plaster Area */}
+              <Card className="">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium ">
+                    Plaster Area
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold ">
+                    {(quote.masonry_materials.grossPlaster || 0).toFixed(2)}
+                  </div>
+                  <p className="text-xs mt-1">m²</p>
+                </CardContent>
+              </Card>
+
+              {/* Plaster Cost */}
+              <Card className="">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium ">
+                    Plaster Materials Cost
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-green-600">
+                    {formatCurrency(
+                      quote.masonry_materials.grossPlasterCost || 0,
+                    )}
+                  </div>
+                  <p className="text-xs mt-1">Gross Cost</p>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Other Finishes Section - visible when otherFinishes is selected */}
       {finishType === "otherFinishes" && (
         <>
-          {/* Masonry Plaster Results */}
-          {quote?.masonry_materials?.netPlaster > 0 && (
-            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  Plaster Finishes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Plaster Area */}
-                  <Card className="">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium ">
-                        Plaster Area
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-xl font-bold ">
-                        {(quote.masonry_materials.grossPlaster || 0).toFixed(2)}
-                      </div>
-                      <p className="text-xs mt-1">m²</p>
-                    </CardContent>
-                  </Card>
-
-                  {/* Plaster Cost */}
-                  <Card className="">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium ">
-                        Plaster Materials Cost
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-xl font-bold text-green-600">
-                        {formatCurrency(
-                          quote.masonry_materials.grossPlasterCost || 0,
-                        )}
-                      </div>
-                      <p className="text-xs mt-1">Gross Cost</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          )}
           {/* Controls */}
           <Card>
             <CardHeader>
@@ -937,7 +935,7 @@ export default function InternalFinishesCalculator({
               {!readonly && paintingList.length === 0 && (
                 <Button
                   onClick={() =>
-                    addPainting(internalWallArea, "Interior Walls")
+                    addPainting(netInternalWallArea, "Interior Walls")
                   }
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
                 >
@@ -1249,7 +1247,7 @@ export default function InternalFinishesCalculator({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {internalWallArea.toFixed(2)} m²
+              {netInternalWallArea.toFixed(2)} m²
             </div>
           </CardContent>
         </Card>

@@ -193,7 +193,7 @@ export default function DoorWindowPaintCalculator({
       <Card>
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
-            <CardTitle>Other Paint Finishes</CardTitle>
+            <CardTitle>Paint Finishes</CardTitle>
             {!readonly && (
               <Button onClick={addPaint} size="sm" variant="outline">
                 <Plus className="w-4 h-4 mr-2" />

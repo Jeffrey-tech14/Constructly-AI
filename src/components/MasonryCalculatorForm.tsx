@@ -43,6 +43,29 @@ const blockTypes = [
   { id: 4, displayName: "Custom", name: "Custom", size: null },
 ];
 const plasterOptions = ["None", "One Side", "Both Sides"];
+
+// Helper function to get block type from thickness
+const getBlockTypeFromThickness = (thickness?: number): string => {
+  if (!thickness) return "Standard Block";
+  if (thickness >= 0.19 && thickness <= 0.21) return "Large Block";
+  if (thickness >= 0.14 && thickness <= 0.16) return "Standard Block";
+  if (thickness >= 0.09 && thickness <= 0.11) return "Small Block";
+  return "Standard Block"; // Default fallback
+};
+
+// Helper function to get thickness from block type
+const getThicknessFromBlockType = (blockType: string): number => {
+  switch (blockType) {
+    case "Large Block":
+      return 0.2;
+    case "Standard Block":
+      return 0.15;
+    case "Small Block":
+      return 0.1;
+    default:
+      return 0.15;
+  }
+};
 interface MasonryCalculatorFormProps {
   quote: any;
   setQuote: (quote: any) => void;
@@ -308,7 +331,7 @@ export default function MasonryCalculatorForm({
               </h4>
             </div>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2"> 
+              <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-700 dark:text-gray-300">
                     Total Length (m):
@@ -719,14 +742,12 @@ export default function MasonryCalculatorForm({
               <div>
                 <Label htmlFor="ext-block-type">External Wall Block Type</Label>
                 <Select
-                  value={
+                  value={getBlockTypeFromThickness(
                     quote?.wallSections?.find((s) => s.type === "external")
-                      ?.blockType || ""
-                  }
+                      ?.thickness,
+                  )}
                   onValueChange={(value) => {
-                    const selectedBlockType = blockTypes.find(
-                      (b) => b.name === value,
-                    );
+                    const thickness = getThicknessFromBlockType(value);
                     setQuote((prev) => ({
                       ...prev,
                       wallSections: prev.wallSections?.map((section) =>
@@ -734,9 +755,7 @@ export default function MasonryCalculatorForm({
                           ? {
                               ...section,
                               blockType: value,
-                              thickness:
-                                selectedBlockType?.size?.thickness ||
-                                section.thickness,
+                              thickness: thickness,
                             }
                           : section,
                       ),
@@ -748,25 +767,27 @@ export default function MasonryCalculatorForm({
                     <SelectValue placeholder="Select Block Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {blockTypes.map((block) => (
-                      <SelectItem key={`${block.id}-ext`} value={block.name}>
-                        {block.displayName}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Large Block">
+                      Large Block (200mm/9x9)
+                    </SelectItem>
+                    <SelectItem value="Standard Block">
+                      Standard Block (150mm/6x9)
+                    </SelectItem>
+                    <SelectItem value="Small Block">
+                      Small Block (100mm/4x9)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label htmlFor="int-block-type">Internal Wall Block Type</Label>
                 <Select
-                  value={
+                  value={getBlockTypeFromThickness(
                     quote?.wallSections?.find((s) => s.type === "internal")
-                      ?.blockType || ""
-                  }
+                      ?.thickness,
+                  )}
                   onValueChange={(value) => {
-                    const selectedBlockType = blockTypes.find(
-                      (b) => b.name === value,
-                    );
+                    const thickness = getThicknessFromBlockType(value);
                     setQuote((prev) => ({
                       ...prev,
                       wallSections: prev.wallSections?.map((section) =>
@@ -774,9 +795,7 @@ export default function MasonryCalculatorForm({
                           ? {
                               ...section,
                               blockType: value,
-                              thickness:
-                                selectedBlockType?.size?.thickness ||
-                                section.thickness,
+                              thickness: thickness,
                             }
                           : section,
                       ),
@@ -788,11 +807,15 @@ export default function MasonryCalculatorForm({
                     <SelectValue placeholder="Select Block Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {blockTypes.map((block) => (
-                      <SelectItem key={`${block.id}-int`} value={block.name}>
-                        {block.displayName}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Large Block">
+                      Large Block (200mm/9x9)
+                    </SelectItem>
+                    <SelectItem value="Standard Block">
+                      Standard Block (150mm/6x9)
+                    </SelectItem>
+                    <SelectItem value="Small Block">
+                      Small Block (100mm/4x9)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

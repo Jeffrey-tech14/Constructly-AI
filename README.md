@@ -1021,6 +1021,296 @@ VITE_APP_URL=https://constructly-ai.com
 
 ---
 
+## 🔧 Troubleshooting & Common Errors
+
+This section helps users identify and resolve common issues encountered while using Constructly AI.
+
+### 1. **Plaster/Finish Showing Zero Values Across All Items**
+
+**Problem:** When reviewing masonry or finishes calculations, all plaster/finish items display 0.
+
+**Root Cause:** Missing masonry work configuration. Plaster calculations depend on masonry wall dimensions and surface areas.
+
+**Solution:**
+
+1. Navigate back to the **Masonry Calculator** section
+2. Verify that you have:
+   - Selected a **Block Type** (Large Block, Standard Block, or Small Block)
+   - Entered **Wall Height** (in meters)
+   - Entered **Wall Perimeter** (total linear meters of walls)
+   - Ensured **Thickness values are numbers**, not NaN or blank
+3. Check that block dimensions show actual numbers (e.g., "0.19", "0.14", "0.09")
+4. Return to Finishes section - values should now calculate correctly
+
+**Prevention:** Always complete masonry configuration before moving to finishes calculations.
+
+### 2. **NaN (Not a Number) Values Appearing on Any Page**
+
+**Problem:** Pages show "NaN" instead of calculated values, making quotes unusable.
+
+**Root Cause:** Missing or incomplete QS (Quantity Surveying) Settings that calculators depend on.
+
+**Solution:**
+
+1. Go to **Dashboard** → **QS Settings** (gear icon)
+2. Verify all required fields are populated:
+   - **Material Prices** - All material categories have prices set
+   - **Labor Rates** - Hourly or daily rates configured
+   - **Equipment Costs** - If using equipment in calculations
+   - **Regional Adjustments** - Location-based multipliers set
+   - **Wastage Percentages** - Default wastage for materials (5-15%)
+3. Check for any red validation alerts
+4. Save settings and refresh the quote page
+5. If NaN persists, clear browser cache and reload
+
+**Common Missing Settings:**
+
+- Concrete prices (affects Concrete, Foundation, Rebar calculators)
+- Masonry block/brick prices
+- Paint/finishing material prices
+- Labor rates for skilled trades
+- Equipment rental rates
+
+### 3. **Door/Window Paint Calculations Show Zero**
+
+**Problem:** Door and window paint calculations aren't computing quantities or costs.
+
+**Root Cause:** Glass type, dimensions, or frame specifications are incomplete.
+
+**Solution:**
+
+1. In **DoorsWindowsEditor**, verify:
+   - Glass Type is selected (Clear, Tinted, or Frosted)
+   - Standard sizes are selected with valid dimensions (not custom with blank fields)
+   - If custom size: Height AND Width both have numeric values
+   - Frame Type is specified (Wood, Steel, Aluminum)
+2. Ensure glass prices are configured in QS Settings under "Windows"
+3. For transom/fanlight calculations, verify transom Height and Width are set
+4. Check that door/window count is at least 1
+
+**Prevention:** Complete all door/window specifications before moving to paint calculations.
+
+### 4. **Ceiling Calculator Not Showing All Three Options**
+
+**Problem:** Ceiling calculator only shows one ceiling type option instead of three (Gypsum, Painting, Other).
+
+**Root Cause:** Material data not loaded or incomplete glass/ceiling material definitions.
+
+**Solution:**
+
+1. Navigate to **QS Settings**
+2. Verify **Ceiling Materials** section includes:
+   - Gypsum board products
+   - Paint products (for painted ceilings)
+   - Other ceiling types (wood, metal, etc.)
+3. Refresh page
+4. Try different ceiling type radio buttons - they should toggle independent material sets
+
+### 5. **Concrete Calculator Showing Wrong Volume**
+
+**Problem:** Concrete volume doesn't match manual calculations (L × W × H).
+
+**Root Cause:** Typically confusion between different unit inputs or incorrect form work assumptions.
+
+**Solution:**
+
+1. Verify all dimensions are in **meters**, not centimeters or mixed units
+2. Check if **Form Work** is enabled (affects calculations)
+3. Verify **Concrete Mix Ratio** selected is appropriate
+4. Confirm **Wastage %** is reasonable (typically 5-10%)
+5. For slabs: Ensure you're using clear span, not including beams
+6. For columns: Verify height calculation includes all stories
+
+**Common Errors:**
+
+- Entering 300cm instead of 3m
+- Using perimeter instead of length for linear elements
+- Mixing 1:3:6 and 1:4:8 mixes without intent
+
+### 6. **Rebar Calculator Showing Incorrect Quantities**
+
+**Problem:** Reinforcement bar counts don't match specifier drawings.
+
+**Root Cause:** Spacing, length, or hook configuration mismatched with specifications.
+
+**Solution:**
+
+1. Verify **Bar Spacing** matches the drawing (e.g., 150mm, 200mm)
+2. Check **Main Bar Size** and **Distribution Bar Size** match specs
+3. Confirm **Effective Depth** is correctly calculated: d = h - (cover + link size + main bar radius)
+4. For hooked bars: Verify **Hook Length** configuration if applicable
+5. Validate **Cover** matches structural requirements (typically 25-50mm)
+
+**Prevention:** Reference structural drawings before inputting rebar specifications.
+
+### 7. **Plumbing/Electrical Pipe Sizing Shows Warnings**
+
+**Problem:** Pipe size recommendations appear incorrect or cause validation errors.
+
+**Root Cause:** Load calculation or pressure drop considerations not properly configured.
+
+**Solution:**
+
+1. For **Plumbing**:
+   - Verify fixture unit values match actual fixtures
+   - Check water supply pressure settings (typically 300-400 kPa)
+   - Confirm pipe material (PVC, copper, HDPE) is selected
+2. For **Electrical**:
+   - Verify cable size matches load current calculation
+   - Check voltage drop doesn't exceed 3% (5% acceptable for sub-circuits)
+   - Confirm circuit breaker rating matches cable ampacity
+
+### 8. **Saving Quote Show Errors or Quote Disappears**
+
+**Problem:** Quote fails to save or disappears after refresh.
+
+**Root Cause:** Common causes include NaN values, missing core data, or authentication issues.
+
+**Solution:**
+
+1. **Before Saving**: Check entire quote for NaN values (use Find: "NaN")
+2. **Check Authentication**: Verify you're logged in (check profile icon)
+3. **Core Data Check**: Ensure these sections are complete:
+   - Project Name provided
+   - Location selected
+   - At least one calculator with valid values
+4. **Browser Console**: Press F12 → Console, check for errors
+5. **Try Exporting**: Attempt PDF/Excel export to identify problematic sections
+6. **Manual Save**: Complete high-value sections one at a time and save
+
+### 9. **PDF/Excel Export Shows Blank Values or Wrong Calculations**
+
+**Problem:** Exported documents contain blank cells, NaN, or calculations differ from on-screen.
+
+**Root Cause:** Export templates may not be sync'd with live calculations or formatting issues.
+
+**Solution:**
+
+1. **Verify On-Screen Values**: Confirm all values display correctly before exporting
+2. **Clear Cache**: Hard refresh browser (Ctrl+Shift+R) then re-export
+3. **Try Different Format**: If PDF fails, try Excel export (or vice versa)
+4. **Check Printer Settings**: For PDF exports, ensure proper page orientation (landscape recommended)
+5. **Flatten Values**: Some exports calculate formulas - ensure base data is correct
+6. **File Size**: If file is unusually large/small, export may be corrupted - retry
+
+**Prevention:** Always visually verify quote on-screen before exporting for client delivery.
+
+### 10. **Material Prices Not Updating When QS Settings Changed**
+
+**Problem:** Calculators show old prices even after updating QS Settings.
+
+**Root Cause:** Cached values or missing refresh trigger.
+
+**Solution:**
+
+1. **Save QS Settings** - Ensure you hit Save/Update button
+2. **Navigate Away and Back** - Go to another section then return
+3. **Hard Refresh**: Press Ctrl+Shift+R (full cache clear)
+4. **Check Effective Date**: Some pricing may have start/end dates
+5. **Verify Material Names**: Material names in calculator must exactly match QS Settings names
+6. **Browser Console**: Check for load errors (F12 → Console)
+
+### 11. **Door/Window Count Not Syncing with BOQ Builder**
+
+**Problem:** Door/window totals in DoorsWindowsEditor don't match BOQ quantities.
+
+**Root Cause:** Count field or BOQ refresh not syncing properly.
+
+**Solution:**
+
+1. Verify each door/window item has a **Qty** value ≥ 1
+2. Check that all items are in the **same room/section** if grouped
+3. Save the quote (Force Save to trigger sync)
+4. Navigate to BOQ Builder and **refresh** the page
+5. Verify that sums show: (Individual Qty × Item Count)
+
+**Common Mistake:** Setting Count = 0 (disabled items don't export)
+
+### 12. **Custom Size Door/Window Not Calculating Price**
+
+**Problem:** Custom-sized doors/windows show blank price or won't calculate.
+
+**Root Cause:** Custom pricing not entered or dimensions incomplete.
+
+**Solution:**
+
+1. In **DoorsWindowsEditor**, select custom size option
+2. Enter **both Height and Width** in meters (required)
+3. For custom pricing: Enter **Price (Ksh)** field (optional - will use material rates if blank)
+4. Verify frame specifications are complete
+5. Check that glass type is selected if transom is enabled
+
+**Prevention:** For production quotes, prefer standard sizes when possible - they have pre-configured pricing.
+
+### 13. **Kitchen/Wardrobes Calculator Not Showing Component Breakdown**
+
+**Problem:** Kitchen layout shows as lump sum only, can't see individual cabinet costs.
+
+**Root Cause:** Calculator mode not switched to detailed component view.
+
+**Solution:**
+
+1. In **Kitchen and Wardrobes Calculator**, toggle between:
+   - **Lump Sum** mode (quick pricing for entire kitchen)
+   - **Detailed Components** mode (individual cabinet breakdown)
+2. Select appropriate mode for your quotation style
+3. Ensure all cabinet dimensions are in meters
+4. Verify material selections match available pricing in QS Settings
+
+### 14. **Ceiling Paint Coverage Shows Higher Than Expected**
+
+**Problem:** Paint quantity for ceiling seems excessive compared to floor area.
+
+**Root Cause:** Multi-coat specification or primer included in calculation.
+
+**Solution:**
+
+1. Review **Painting Calculator** settings for:
+   - Number of coats (typically 2 for finish, may include primer)
+   - Paint type selection (affects coverage rate)
+   - Surface condition (new vs. repaint affects coverage)
+2. Verify **Room Height/Slope** doesn't inflate the ceiling area
+3. Check **Waste Factor %** (typically 10-15% for ceiling application)
+4. Compare with manufacturer's coverage rates (typically 10-12 m²/liter for ceilings)
+
+### 15. **Profile Picture Upload Fails**
+
+**Problem:** Avatar upload shows error or image doesn't appear.
+
+**Root Cause:** File size, format, or permission issues.
+
+**Solution:**
+
+1. **File Format**: Use JPG, PNG, or WebP only
+2. **File Size**: Keep under 5MB (recommended: 1-2MB)
+3. **Image Dimensions**: Minimum 200×200 pixels recommended
+4. **Permissions**: Ensure browser has camera/file access permission
+5. **Storage**: Check your account isn't at storage limit
+6. Try uploading from a different browser or device
+
+---
+
+### Quick Diagnostic Checklist
+
+When something isn't working, go through this checklist:
+
+- [ ] Have you refreshed the page (Ctrl+F5)?
+- [ ] Are you logged in? (Check profile icon)
+- [ ] Have you saved the quote? (Try manual save)
+- [ ] Do QS Settings have all required data? (Check for blank/NaN)
+- [ ] Are dependent calculators complete? (E.g., masonry before finishes)
+- [ ] Does browser console show errors? (F12 → Console)
+- [ ] Try using a different browser or private/incognito window
+- [ ] Clear browser cache completely and retry
+
+**Still Having Issues?**
+
+- Check documentation: [TECHNICAL.md](TECHNICAL.md), [DESIGN_PATTERNS.md](DESIGN_PATTERNS.md)
+- Review recent changes in project
+- Contact support with: browser type, screen screenshot, and steps to reproduce
+
+---
+
 ## 🎨 UI Components
 
 40+ shadcn/ui components including:

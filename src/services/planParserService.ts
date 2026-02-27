@@ -163,7 +163,7 @@ Plaster → "Both Sides"
 Electrical voltage → 230V
 Fixture quality → "standard"
 Timber → "structural", "pressure-treated"
-Foundation height → 0.65 m (if undefined)
+Excavation height → 0.65 m (if undefined)
 Ground floor slab thickness → 0.15 m
 SCHEMA & ENUM LOCK:
 Field names must match the expected structure exactly.
@@ -359,6 +359,7 @@ Return ONLY valid JSON with the structure implied by the fields above.
 Use reasonable estimates if exact dimensions are not visible, but adhere strictly to the Foundation Constraint (Single Concrete Footing System).
 Never guess. Never invent. Never explain.
 Use ALL available views to resolve dimensions.
+**FOR BUNGALOWS, WE ONLY HAVE TWO COCRETE AND REINFORCEMENT OPRIONS; STRIP FOOTING AND GROUND FLOOR SLAB. DO NOT CREATE EXTRA ITEMS IF HOUSE IS A BUNGALOW.**
 
 
 

@@ -1338,14 +1338,14 @@ const EditableDoorWindow = ({
     }
   };
 
-  const getGlassUnitM2Price = (glassType?: string, area?: number) => {
-    const price = getMaterialTypePrice(
+  const getGlassUnitM2Price = (glassType?: string, standardSize?: string) => {
+    const glassData = getMaterialTypePrice(
       materialData,
       "Windows",
       glassType || "Clear",
     );
-    const pricePerM = price / (area || 1);
-    return pricePerM;
+    // Look up price_per_m2 directly from the glass data
+    return glassData?.m2 || 0;
   };
 
   const getGlassUnitPrice = (glassType?: string) =>
@@ -1393,18 +1393,21 @@ const EditableDoorWindow = ({
       return Number.isFinite(fallbackNumber) ? fallbackNumber : 0;
     };
 
-    const defaultGlass = getGlassUnitPrice("Clear");
-    const defaultPutty = getPuttyUnitPrice();
     const transom = doorItem.transom || {};
     const glazing = transom.glazing || {};
     let changed = false;
 
-    // Auto-fill glass price if not set or zero
+    // Initialize glass type if missing (default to "Clear")
+    const glassType = glazing.glassType || "Clear";
+    if (!glazing.glassType) {
+      glazing.glassType = "Clear";
+      changed = true;
+    }
+
+    // Auto-fill glass price using the new pricing function
     const currentGlassPrice = glazing.glassPricePerM2;
-    const resolvedGlassPrice = resolvePrice(
-      currentGlassPrice,
-      defaultGlass["1.2 × 1.2 m"],
-    );
+    const transomSizeKey = `${transom.height || 0.6} × ${transom.width || 1.2} m`;
+    const resolvedGlassPrice = getGlassUnitM2Price(glassType, transomSizeKey);
     if (
       resolvedGlassPrice > 0 &&
       (!currentGlassPrice ||
@@ -1705,7 +1708,7 @@ const EditableDoorWindow = ({
   // Clear architrave, quarter round, transom, and ironmongery for steel doors
   React.useEffect(() => {
     if (type !== "door") return;
-    if (doorItem.type !== "Steel") return;
+    if (doorItem.type !== "Steel" && doorItem.type !== "Aluminium") return;
 
     let changed = false;
     const updates: Record<string, any> = {};
@@ -2238,20 +2241,19 @@ const EditableDoorWindow = ({
       return Number.isFinite(fallbackNumber) ? fallbackNumber : 0;
     };
 
-    const defaultGlass = getGlassUnitPrice(
-      windowItem.glazing?.glass?.type || windowItem.glassType,
-    );
+    const glassType =
+      windowItem.glazing?.glass?.type || windowItem.glassType || "Clear";
     const defaultPutty = getPuttyUnitPrice();
     const glazing = windowItem.glazing || {};
     const glass = glazing.glass || {};
     const putty = glazing.putty || {};
     let changed = false;
 
-    // Auto-fill glass price if not set or zero
+    // Auto-fill glass price using the new pricing function with standard size
     const currentGlassPrice = glass.pricePerM2;
-    const resolvedGlassPrice = resolvePrice(
-      currentGlassPrice,
-      defaultGlass[windowItem.standardSize],
+    const resolvedGlassPrice = getGlassUnitM2Price(
+      glassType,
+      windowItem.standardSize,
     );
     if (
       resolvedGlassPrice > 0 &&
@@ -2287,6 +2289,7 @@ const EditableDoorWindow = ({
     type,
     windowItem.glazing?.glass?.type,
     windowItem.glassType,
+    windowItem.standardSize,
     materialData,
     onUpdate,
   ]);
@@ -2495,7 +2498,9 @@ const EditableDoorWindow = ({
       </div>
 
       {(type === "window" ||
-        (type === "door" && doorItem.type !== "Steel")) && (
+        (type === "door" &&
+          doorItem.type !== "Steel" &&
+          doorItem.type !== "Aluminium")) && (
         <div className="space-y-3 pt-2 border-t">
           <Accordion type="single" collapsible className="space-y-2">
             <AccordionItem
@@ -2534,30 +2539,6 @@ const EditableDoorWindow = ({
 
                   <div>
                     <label className="text-xs font-medium">
-                      Frame Size Type
-                    </label>
-                    <Select
-                      value={item.frame?.sizeType || "standard"}
-                      onValueChange={(value) =>
-                        onUpdate("frame", {
-                          ...item.frame,
-                          sizeType: value,
-                        })
-                      }
-                      disabled={readonly}
-                    >
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue placeholder="Frame Size Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="standard">Standard</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-medium">
                       Frame Thickness
                     </label>
                     <Select
@@ -2583,50 +2564,6 @@ const EditableDoorWindow = ({
 
                   {item.frame?.sizeType === "custom" && (
                     <>
-                      <div>
-                        <label className="text-xs font-medium">
-                          Height (m)
-                        </label>
-                        <Input
-                          placeholder="Height (m)"
-                          type="number"
-                          step="0.01"
-                          className="h-8 text-xs"
-                          value={item.frame?.custom?.height || ""}
-                          onChange={(e) =>
-                            onUpdate("frame", {
-                              ...item.frame,
-                              height: e.target.value,
-                              custom: {
-                                ...item.frame?.custom,
-                                height: e.target.value,
-                              },
-                            })
-                          }
-                          disabled={readonly}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium">Width (m)</label>
-                        <Input
-                          placeholder="Width (m)"
-                          type="number"
-                          step="0.01"
-                          className="h-8 text-xs"
-                          value={item.frame?.custom?.width || ""}
-                          onChange={(e) =>
-                            onUpdate("frame", {
-                              ...item.frame,
-                              width: e.target.value,
-                              custom: {
-                                ...item.frame?.custom,
-                                width: e.target.value,
-                              },
-                            })
-                          }
-                          disabled={readonly}
-                        />
-                      </div>
                       <div>
                         <label className="text-xs font-medium">
                           Price (Ksh)
@@ -2661,7 +2598,7 @@ const EditableDoorWindow = ({
       {type === "door" && (
         <div className="space-y-3 ">
           <Accordion type="single" collapsible className="space-y-2">
-            {doorItem.type !== "Steel" && (
+            {doorItem.type !== "Steel" && doorItem.type !== "Aluminium" && (
               <AccordionItem
                 value="architrave"
                 className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
@@ -2823,7 +2760,7 @@ const EditableDoorWindow = ({
               </AccordionItem>
             )}
 
-            {doorItem.type !== "Steel" && (
+            {doorItem.type !== "Steel" && doorItem.type !== "Aluminium" && (
               <AccordionItem
                 value="quarter-round"
                 className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
@@ -2987,7 +2924,7 @@ const EditableDoorWindow = ({
               </AccordionItem>
             )}
 
-            {doorItem.type !== "Steel" && (
+            {doorItem.type !== "Steel" && doorItem.type !== "Aluminium" && (
               <AccordionItem
                 value="ironmongery"
                 className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
@@ -3955,7 +3892,7 @@ const EditableDoorWindow = ({
               </AccordionItem>
             )}
 
-            {doorItem.type !== "Steel" && (
+            {doorItem.type !== "Steel" && doorItem.type !== "Aluminium" && (
               <AccordionItem
                 value="transom"
                 className="border rounded-2xl bg-slate-50/60 dark:bg-slate-900/40"
@@ -4069,7 +4006,34 @@ const EditableDoorWindow = ({
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
+                    <div>
+                      <label className="text-xs font-medium">Glass Type</label>
+                      <Select
+                        value={doorItem.transom?.glazing?.glassType || "Clear"}
+                        onValueChange={(value) =>
+                          onUpdate("transom", {
+                            ...doorItem.transom,
+                            glazing: {
+                              ...doorItem.transom?.glazing,
+                              glassType: value,
+                              // Reset price when type changes to allow auto-fill
+                              glassPricePerM2: undefined,
+                            },
+                          })
+                        }
+                        disabled={readonly || !doorItem.transom?.enabled}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Glass Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Clear">Clear</SelectItem>
+                          <SelectItem value="Tinted">Tinted</SelectItem>
+                          <SelectItem value="Frosted">Frosted</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div>
                       <label className="text-xs font-medium">
                         Glass Area (m²)
@@ -4092,8 +4056,8 @@ const EditableDoorWindow = ({
                         value={
                           doorItem.transom?.glazing?.glassPricePerM2 ??
                           getGlassUnitM2Price(
-                            "Clear",
-                            doorItem.transom?.glazing?.glassAreaM2 || 0,
+                            doorItem.transom?.glazing?.glassType || "Clear",
+                            `${doorItem.transom?.height || 0.6} \u00d7 ${doorItem.transom?.width || 1.2} m`,
                           ) ??
                           ""
                         }
@@ -4120,8 +4084,8 @@ const EditableDoorWindow = ({
                           doorItem.transom?.glazing?.glassAreaM2 || 0,
                           doorItem.transom?.glazing?.glassPricePerM2 ??
                             getGlassUnitM2Price(
-                              "Clear",
-                              doorItem.transom?.glazing?.glassAreaM2 || 0,
+                              doorItem.transom?.glazing?.glassType || "Clear",
+                              `${doorItem.transom?.height || 0.6} \u00d7 ${doorItem.transom?.width || 1.2} m`,
                             ) ??
                             0,
                           (doorItem.transom?.quantity || 1) * doorItem.count,
@@ -4288,15 +4252,18 @@ const EditableDoorWindow = ({
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-medium">Price (Ksh)</label>
+                      <label className="text-xs font-medium">
+                        Price (Ksh/m²)
+                      </label>
                       <Input
                         className="h-8 text-xs"
                         type="number"
                         value={
                           windowItem.glazing?.glass?.pricePerM2 ??
-                          getGlassUnitPrice(
+                          getGlassUnitM2Price(
                             windowItem.glazing?.glass?.type ||
                               windowItem.glassType,
+                            windowItem.standardSize,
                           ) ??
                           ""
                         }

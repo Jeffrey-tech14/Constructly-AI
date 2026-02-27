@@ -88,6 +88,7 @@ export interface Door {
       included?: boolean;
       glassAreaM2?: number;
       glassPricePerM2?: number;
+      glassType?: string;
     };
   };
 }

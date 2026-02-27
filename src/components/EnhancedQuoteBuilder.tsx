@@ -128,7 +128,6 @@ import PlumbingCalculator from "./PlumbingCalculator";
 import ElectricalCalculator from "./ElectricalCalculator";
 import RoofingCalculator from "./RoofingCalculator";
 import FlooringCalculator from "./FlooringCalculator";
-import WallingCalculator from "./WallingCalculator";
 import InternalFinishesCalculator from "./InternalFinishesCalculator";
 import ExternalFinishesCalculator from "./ExternalFinishesCalculator";
 import CeilingCalculator from "./CeilingCalculator";
@@ -463,10 +462,78 @@ const EnhancedQuoteBuilder = ({ quote }) => {
           ...prev,
           finishes_calculations: {
             ...prev.finishes_calculations,
-            [category]: updatedFinishes, // Only update this category
+            [category]:
+              category === "ceiling"
+                ? {
+                    type: prev.finishes_calculations?.ceiling?.type || "gypsum",
+                    items: updatedFinishes,
+                  }
+                : category === "internal-walling"
+                  ? {
+                      type:
+                        prev.finishes_calculations?.internal_walls?.type ||
+                        "painting",
+                      items: updatedFinishes,
+                    }
+                  : category === "external-walling"
+                    ? {
+                        type:
+                          prev.finishes_calculations?.external_walls?.type ||
+                          "keying",
+                        items: updatedFinishes,
+                      }
+                    : updatedFinishes,
           },
         }));
       }
+    },
+    [],
+  );
+
+  const handleCeilingTypeChange = useCallback(
+    (ceilingType: "gypsum" | "painting" | "other") => {
+      setQuoteData((prev: any) => ({
+        ...prev,
+        finishes_calculations: {
+          ...prev.finishes_calculations,
+          ceiling: {
+            type: ceilingType,
+            items: prev.finishes_calculations?.ceiling?.items || [],
+          },
+        },
+      }));
+    },
+    [],
+  );
+
+  const handleInternalWallTypeChange = useCallback(
+    (type: "painting" | "otherFinishes") => {
+      setQuoteData((prev: any) => ({
+        ...prev,
+        finishes_calculations: {
+          ...prev.finishes_calculations,
+          internal_walls: {
+            type,
+            items: prev.finishes_calculations?.internal_walls?.items || [],
+          },
+        },
+      }));
+    },
+    [],
+  );
+
+  const handleExternalWallTypeChange = useCallback(
+    (type: "keying" | "plaster") => {
+      setQuoteData((prev: any) => ({
+        ...prev,
+        finishes_calculations: {
+          ...prev.finishes_calculations,
+          external_walls: {
+            type,
+            items: prev.finishes_calculations?.external_walls?.items || [],
+          },
+        },
+      }));
     },
     [],
   );
@@ -2314,7 +2381,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                   <span className="sm:hidden">C</span>
                 </TabsTrigger>
                 <TabsTrigger value="others">
-                  <span className="hidden sm:inline">Other Finishes</span>
+                  <span className="hidden sm:inline">Extra/Other Finishes</span>
                   <span className="sm:hidden">OF</span>
                 </TabsTrigger>
               </TabsList>
@@ -2347,6 +2414,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     <InternalFinishesCalculator
                       finishes={finishes}
                       onFinishesUpdate={handleFinishesUpdate}
+                      onFinishTypeChange={handleInternalWallTypeChange}
                       materialPrices={materials}
                       quote={quoteData}
                       wallDimensions={quoteData.wallDimensions}
@@ -2356,6 +2424,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                     <ExternalFinishesCalculator
                       finishes={finishes}
                       onFinishesUpdate={handleFinishesUpdate}
+                      onFinishTypeChange={handleExternalWallTypeChange}
                       materialPrices={materials}
                       quote={quoteData}
                       wallDimensions={quoteData.wallDimensions}
@@ -2368,6 +2437,7 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                 <CeilingCalculator
                   finishes={finishes}
                   onFinishesUpdate={handleFinishesUpdate}
+                  onCeilingTypeChange={handleCeilingTypeChange}
                   materialPrices={materials}
                   quote={quoteData}
                 />
@@ -2386,11 +2456,13 @@ const EnhancedQuoteBuilder = ({ quote }) => {
                       <span className="sm:hidden">K&W</span>
                     </TabsTrigger>
                     <TabsTrigger value="door-paint">
-                      <span className="hidden sm:inline">Other Paint</span>
+                      <span className="hidden sm:inline">Wood/Metal Paint</span>
                       <span className="sm:hidden">Paint</span>
                     </TabsTrigger>
                     <TabsTrigger value="otherFinishes">
-                      <span className="hidden sm:inline">Other Finishes</span>
+                      <span className="hidden sm:inline">
+                        Extra/Other Finishes
+                      </span>
                       <span className="sm:hidden">OF</span>
                     </TabsTrigger>
                   </TabsList>

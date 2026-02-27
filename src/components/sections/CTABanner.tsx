@@ -3,44 +3,49 @@ import { motion } from "framer-motion";
 
 // JTech AI Logo Component
 const JTechAILogo = () => (
-  <svg
-    width="80"
-    height="20"
-    viewBox="0 0 135 36"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill="#ffffff" />
-    <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill="#ffffff" />
-    <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill="#ffffff" />
-    <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill="#ffffff" />
-    <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill="#ffffff" />
-    <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill="#ffffff" />
-    <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill="#ffffff" />
-    <circle cx="22.5" cy="13.5" r="2.25" fill="#86bc25" />
-    <circle cx="22.5" cy="22.5" r="2.25" fill="#86bc25" />
-    <path d="M22.5 15.75V20.25" stroke="#86bc25" strokeWidth="1.5" />
-    <text
-      x="45"
-      y="24"
-      fontFamily="system-ui, sans-serif"
-      fontWeight="800"
-      fontSize="22"
-      fill="#ffffff"
-    >
-      JTech
-    </text>
-    <text
-      x="108"
-      y="24"
-      fontFamily="system-ui, sans-serif"
-      fontWeight="800"
-      fontSize="22"
-      fill="#86bc25"
-    >
-      AI
-    </text>
-  </svg>
+  <img
+    src="https://jtechai.vercel.app/jtech-logo-transparent.png"
+    alt="JTech AI Logo"
+    className="cursor-pointer h-9 w-auto"
+  />
+  // <svg
+  //   width="80"
+  //   height="20"
+  //   viewBox="0 0 135 36"
+  //   fill="none"
+  //   xmlns="http://www.w3.org/2000/svg"
+  // >
+  //   <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill="#ffffff" />
+  //   <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill="#ffffff" />
+  //   <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill="#ffffff" />
+  //   <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill="#ffffff" />
+  //   <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill="#ffffff" />
+  //   <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill="#ffffff" />
+  //   <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill="#ffffff" />
+  //   <circle cx="22.5" cy="13.5" r="2.25" fill="#86bc25" />
+  //   <circle cx="22.5" cy="22.5" r="2.25" fill="#86bc25" />
+  //   <path d="M22.5 15.75V20.25" stroke="#86bc25" strokeWidth="1.5" />
+  //   <text
+  //     x="45"
+  //     y="24"
+  //     fontFamily="system-ui, sans-serif"
+  //     fontWeight="800"
+  //     fontSize="22"
+  //     fill="#ffffff"
+  //   >
+  //     JTech
+  //   </text>
+  //   <text
+  //     x="108"
+  //     y="24"
+  //     fontFamily="system-ui, sans-serif"
+  //     fontWeight="800"
+  //     fontSize="22"
+  //     fill="#86bc25"
+  //   >
+  //     AI
+  //   </text>
+  // </svg>
 );
 
 const GlobalStyles = () => (
@@ -111,7 +116,7 @@ export default function CTABanner({ scrollTo }: CTABannerProps) {
 
             {/* Right Side: Icon */}
             <div className="hidden md:flex justify-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-[#D85C2C] to-[#c2451e] rounded-full flex items-center justify-center text-white shadow-2xl border-4 border-white/20">
+              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-white shadow-2xl border-4 border-white/20">
                 <JTechAILogo />
               </div>
             </div>

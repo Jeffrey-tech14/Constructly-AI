@@ -13,6 +13,7 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Inside HashRouter, pathname already contains the parsed route
     console.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname,

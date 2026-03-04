@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist_electron
+.electron-dist
 *.local
 *.env
 
@@ -27,3 +29,8 @@ release-build/
 *.sln
 *.sw?
 .env
+
+# Electron build artifacts
+dist_electron/
+out/
+release/

@@ -13,13 +13,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Initialize cookie-based storage for secure token persistence
-const cookieStorage = createCookieStorage();
+// Detect if running in Electron
+const isElectron = () => {
+  try {
+    return (
+      typeof window !== "undefined" && (window as any).electronAPI !== undefined
+    );
+  } catch {
+    return false;
+  }
+};
+
+// For Electron, use localStorage; for web, use cookies
+const storage = isElectron() ? localStorage : createCookieStorage();
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    // Use secure HTTP-only cookies (HTTPS only) instead of localStorage
-    storage: cookieStorage,
+    storage: storage,
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,

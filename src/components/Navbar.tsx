@@ -66,6 +66,8 @@ const Navbar = () => {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSubAlert, setShowSubAlert] = useState(true);
+  const isElectron =
+    typeof window !== "undefined" && window.electronAPI !== undefined;
 
   const handleSignOut = async () => {
     setTimeout(async () => {
@@ -76,16 +78,27 @@ const Navbar = () => {
       navigate("/");
     });
   };
-  const isActive = (path: string) => location.pathname === path;
+
+  // Inside HashRouter, useLocation().pathname already contains the parsed route
+  // e.g. "#/dashboard" is parsed to pathname="/dashboard"
+  const currentRoute = location.pathname;
+
+  // Hide navbar on public pages
+  if (
+    currentRoute === "/" ||
+    currentRoute === "/auth" ||
+    currentRoute === "/auth/update-password"
+  ) {
+    return null;
+  }
+
+  const isActive = (path: string) => currentRoute === path;
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart },
     { path: "/quotes/new", label: "New Quote", icon: Building2 },
     { path: "/quotes/all", label: "All Quotes", icon: Eye },
     { path: "/variables", label: "Settings", icon: Settings },
   ];
-  if (location.pathname === "/" || location.pathname === "/auth") {
-    return null;
-  }
 
   const THEME = {
     PRIMARY: "#002d5c",
@@ -170,7 +183,9 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed sticky top-0 z-50 glass border-b shadow-sm">
+      <nav
+        className={`sticky ${isElectron ? "top-[40px]" : "top-0"} z-50 glass border-b shadow-sm`}
+      >
         <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-1">

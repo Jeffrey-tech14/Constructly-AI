@@ -1,24 +1,24 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "jtech-construction",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
-  "build": {
-    "asar": true,
-    "files": [
-      "dist/**/*"
-    ],
-    "directories": {
-      "buildResources": "assets"
-    }
-  },
+  "main": "dist/electron/main.js",
+  "homepage": "./",
   "scripts": {
     "dev": "npm run dev:frontend",
+    "dev:electron": "concurrently \"npm run build:electron-main && npm run dev:frontend\" \"wait-on http://localhost:8080 && electron .\"",
     "build": "vite build",
+    "build:electron-main": "tsc --project tsconfig.electron.json",
+    "copy:electron": "node scripts/copy-electron.js",
+    "build:electron": "npm run build:electron-main && vite build --mode electron && npm run copy:electron && electron-builder",
+    "build:electron:win": "npm run build:electron-main && vite build --mode electron && npm run copy:electron && electron-builder --win",
+    "build:electron:mac": "npm run build:electron-main && vite build --mode electron && npm run copy:electron && electron-builder --mac",
+    "build:electron:all": "npm run build:electron-main && vite build --mode electron && npm run copy:electron && electron-builder -mwl",
     "preview": "vite preview",
     "secure-build": "node --max-old-space-size=8192 node_modules/vite/bin/vite.js build",
     "dev:frontend": "vite",
-    "dev:backend": "cd jtech-plan-api && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:backend": "cd elaris-plan-api && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
     "build:dev": "vite build --mode development",
     "lint": "eslint ."
   },
@@ -106,7 +106,8 @@
     "vitest": "^4.0.16",
     "web-ifc": "^0.0.69",
     "xlsx": "^0.18.5",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "electron-updater": "^6.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
@@ -120,6 +121,8 @@
     "autoprefixer": "^10.4.20",
     "concurrently": "^9.2.0",
     "cross-env": "^10.0.0",
+    "electron": "^40.6.1",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
@@ -133,6 +136,7 @@
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.20",
     "vite-plugin-bundle-obfuscator": "^1.8.0",
-    "vite-plugin-javascript-obfuscator": "^3.1.0"
+    "vite-plugin-javascript-obfuscator": "^3.1.0",
+    "wait-on": "^9.0.4"
   }
 }

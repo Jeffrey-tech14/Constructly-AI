@@ -29,12 +29,13 @@
 
 For detailed technical information, developers should refer to our comprehensive documentation:
 
-| Document                                     | Purpose                                                                                                                                                                                                  | Audience                                  |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [**TECHNICAL.md**](TECHNICAL.md)             | Complete system architecture, calculator patterns, hooks, state management, API integration, database schema deep dive, performance optimization, error handling, and deployment architecture            | Backend & Frontend Developers, Architects |
-| [**DESIGN_PATTERNS.md**](DESIGN_PATTERNS.md) | Reusable patterns, best practices, form handling patterns, calculation patterns, pricing patterns, UI patterns, error handling approaches, performance optimization patterns, and anti-patterns to avoid | All Developers                            |
-| [**TESTING_GUIDE.md**](TESTING_GUIDE.md)     | Comprehensive testing strategy, unit tests for calculations, hook testing, component testing, async testing, integration testing, E2E testing, and test utilities                                        | QA Engineers, Test Developers             |
-| [**DATA_MODEL.md**](DATA_MODEL.md)           | Complete TypeScript interfaces, database schema relationships, validation schemas, material pricing models, and component data structures                                                                | Developers working with data              |
+| Document                                           | Purpose                                                                                                                                                                                                  | Audience                                  |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [**TECHNICAL.md**](TECHNICAL.md)                   | Complete system architecture, calculator patterns, hooks, state management, API integration, database schema deep dive, performance optimization, error handling, and deployment architecture            | Backend & Frontend Developers, Architects |
+| [**DESIGN_PATTERNS.md**](DESIGN_PATTERNS.md)       | Reusable patterns, best practices, form handling patterns, calculation patterns, pricing patterns, UI patterns, error handling approaches, performance optimization patterns, and anti-patterns to avoid | All Developers                            |
+| [**TESTING_GUIDE.md**](TESTING_GUIDE.md)           | Comprehensive testing strategy, unit tests for calculations, hook testing, component testing, async testing, integration testing, E2E testing, and test utilities                                        | QA Engineers, Test Developers             |
+| [**DATA_MODEL.md**](DATA_MODEL.md)                 | Complete TypeScript interfaces, database schema relationships, validation schemas, material pricing models, and component data structures                                                                | Developers working with data              |
+| [**ELECTRON_CAPACITOR.md**](ELECTRON_CAPACITOR.md) | Electron desktop wrapper, Capacitor mobile wrapper, build pipelines, auto-updater, custom titlebar, platform detection, routing, and common pitfalls                                                     | Desktop & Mobile Developers               |
 
 **Quick Start for Developers:**
 
@@ -42,6 +43,7 @@ For detailed technical information, developers should refer to our comprehensive
 2. Reference **DESIGN_PATTERNS.md** when building new calculators or components
 3. Use **DATA_MODEL.md** for TypeScript interface definitions
 4. Follow **TESTING_GUIDE.md** for writing tests
+5. See **ELECTRON_CAPACITOR.md** for desktop and mobile build setup
 
 ---
 
@@ -246,9 +248,15 @@ For detailed technical information, developers should refer to our comprehensive
 - **UUID** - Unique identifier generation
 - **File Saver** - Client-side file downloads
 
-### Mobile & Desktop
+### Desktop
 
-- **Capacitor** - Cross-platform mobile framework (iOS/Android)
+- **Electron 40+** - Desktop app wrapper (Windows/macOS/Linux)
+- **electron-builder** - Installer packaging (NSIS, portable, DMG)
+- **electron-updater** - Auto-update via GitHub Releases
+
+### Mobile
+
+- **Capacitor** - Cross-platform mobile framework (Android)
 
 ### Development Tools
 
@@ -262,6 +270,12 @@ For detailed technical information, developers should refer to our comprehensive
 
 ```
 Constructly-AI/
+├── electron/
+│   ├── main.ts               # Electron main process
+│   ├── preload.ts            # Secure IPC bridge (contextBridge)
+│   └── updater.ts            # Auto-update via electron-updater
+├── electron-builder.yml      # Installer configuration
+├── tsconfig.electron.json    # TypeScript config for Electron
 ├── src/
 │   ├── pages/                    # Route pages
 │   │   ├── Index.tsx             # Landing page
@@ -331,6 +345,8 @@ Constructly-AI/
 │   │   ├── QuoteExportDialog.tsx
 │   │   ├── UserGuide.tsx
 │   │   ├── ErrorBoundary.tsx
+│   │   ├── CustomTitleBar.tsx    # Electron custom titlebar
+│   │   ├── UpdateNotifier.tsx    # Electron auto-update UI
 │   │   ├── PublicLayout.tsx
 │   │   ├── ProtectedRoute.tsx
 │   │   └── ui/                   # shadcn UI components
@@ -397,6 +413,7 @@ Constructly-AI/
 │   │   └── materialConfig.ts
 │   │
 │   ├── types/
+│   ├── electron.d.ts             # TypeScript declarations for Electron API
 │   ├── lib/
 │   ├── assets/
 │   ├── App.tsx

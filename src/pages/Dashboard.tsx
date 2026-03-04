@@ -50,6 +50,7 @@ import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Calendar from "@/components/Calendar";
+import { setCookie, getCookie } from "@/utils/cookies";
 
 const Dashboard = () => {
   const { profile, user } = useAuth();
@@ -163,10 +164,14 @@ const Dashboard = () => {
     fetchAndSet();
   }, [user, profile?.id]);
 
-  // Show guide popup if user has no quotes
+  // Show guide popup if user has no quotes and hasn't seen it before
   useEffect(() => {
     if (!localDashboardLoading && dashboardData.allQuotes.length === 0) {
-      setShowGuidePopup(true);
+      // Check if user has already seen this prompt
+      const hasSeenGuidePrompt = getCookie("guide_prompt_shown");
+      if (!hasSeenGuidePrompt) {
+        setShowGuidePopup(true);
+      }
     }
   }, [localDashboardLoading, dashboardData.allQuotes.length]);
 
@@ -211,7 +216,16 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen inset-0 scrollbar-hide">
-      <AlertDialog open={showGuidePopup} onOpenChange={setShowGuidePopup}>
+      <AlertDialog
+        open={showGuidePopup}
+        onOpenChange={(open) => {
+          setShowGuidePopup(open);
+          // Set cookie when dialog is closed (whether by cancel or action)
+          if (!open) {
+            setCookie("guide_prompt_shown", "true", { days: 365 });
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Welcome to JTech AI!</AlertDialogTitle>

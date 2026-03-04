@@ -10,6 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
+import UpdateNotifier from "@/components/UpdateNotifier";
 import { useEffect, useState } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -28,6 +29,7 @@ import QuoteDetailsPage from "./pages/QuoteDetailsPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
 import UserGuide from "./components/UserGuide";
+import CustomTitleBar from "./components/CustomTitleBar";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
   const isOnline = useOnlineStatus();
+  const isElectron =
+    typeof window !== "undefined" && window.electronAPI !== undefined;
 
   useEffect(() => {
     // Check initial theme
@@ -68,9 +72,13 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400 relative">
+      {/* Custom titlebar for Electron only */}
+      {isElectron && <CustomTitleBar />}
+
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
+          top: isElectron ? "40px" : "0px",
           backgroundImage: `
           linear-gradient(to right, ${
             isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.04)"
@@ -185,6 +193,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <UpdateNotifier />
           <AppContent />
         </TooltipProvider>
       </ThemeProvider>

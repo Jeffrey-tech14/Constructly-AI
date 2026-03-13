@@ -1,0 +1,2006 @@
+// © 2025 Jeff. All rights reserved.
+// Unauthorized copying, distribution, or modification of this file is strictly prohibited.
+
+import React, { useState, useCallback, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Search, Download, Plus, Trash2, Edit } from "lucide-react";
+import useFlooringCalculator from "@/hooks/useFlooringCalculator";
+import type { FinishElement } from "@/hooks/useUniversalFinishesCalculator";
+
+const FLOORING_MATERIALS = [
+  "Ceramic Tiles",
+  "Granite Tiles",
+  "Granite",
+  "Hardwood Wooden Panels",
+  "Cement paste (Niro finish)",
+  "PVC vinyl flooring",
+  "Epoxy flooring",
+  "Terrazzo",
+  "SPC flooring",
+];
+
+// Mapping of floor types to their corresponding skirting types
+const FLOOR_TO_SKIRTING_MAP: Record<string, string | null> = {
+  "Ceramic Tiles": "tile", // Tile skirting
+  "Granite Tiles": "tile", // Tile skirting
+  Granite: "stone", // Stone skirting
+  "Hardwood Wooden Panels": "hardwood", // Hardwood skirting
+  "Cement paste (Niro finish)": null, // NO SKIRTING - Niro finish
+  "PVC vinyl flooring": "pvc", // PVC skirting (default)
+  "Epoxy flooring": "pvc", // PVC skirting (default)
+  Terrazzo: "stone", // Stone skirting
+  "SPC flooring": "pvc", // PVC skirting (default)
+};
+
+// Helper function to check if flooring type requires/allows skirting
+// Returns null if no skirting (Niro), or the skirting type if allowed
+const getSkiritingTypeForFloor = (floorMaterial: string): string | null => {
+  return FLOOR_TO_SKIRTING_MAP[floorMaterial] ?? "pvc"; // Default to PVC if not found
+};
+
+// Helper function to check if flooring type is skirting-enabled (not Niro)
+const isSkirtingRequired = (materialName: string): boolean => {
+  const skirtingType = getSkiritingTypeForFloor(materialName);
+  return skirtingType !== null; // null means Niro (no skirting)
+};
+
+// Helper function to build ALL SKIRTING types from materials (tiles, hardwood, stone, pvc)
+const buildSkirtingTypesFromMaterials = (
+  materialPrices: any[],
+): Record<string, { label: string; pricePerM2: number }> => {
+  if (!Array.isArray(materialPrices)) return {};
+
+  const skirtingTypes: Record<string, { label: string; pricePerM2: number }> =
+    {};
+
+  // Find the Flooring material
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial || !flooringMaterial.type?.flooringMaterials) {
+    return {};
+  }
+
+  const flooringMaterials = flooringMaterial.type.flooringMaterials;
+
+  // Map floor material names to their skirting equivalents
+  const skirtingMaterialMap: Record<string, string> = {
+    "ceramic tiles": "tiles",
+    "granite tiles": "tiles",
+    "hardwood wooden panels": "hardwood",
+    granite: "stone",
+    terrazzo: "stone",
+    "pvc vinyl flooring": "pvc",
+    "epoxy flooring": "pvc",
+    "spc flooring": "pvc",
+  };
+
+  const collectedTypes: Record<string, { label: string; price: number }> = {};
+
+  flooringMaterials.forEach((material: any) => {
+    const materialName = material.name?.toLowerCase() || "";
+    const skirtingKey = skirtingMaterialMap[materialName];
+
+    if (
+      skirtingKey &&
+      Array.isArray(material.type) &&
+      material.type.length > 0
+    ) {
+      const firstType = material.type[0];
+      const price = firstType.price_kes || 0;
+
+      // Store by skirting type key, using first occurrence
+      if (!collectedTypes[skirtingKey]) {
+        collectedTypes[skirtingKey] = {
+          label: getSkiritingTypeLabel(skirtingKey),
+          price: price,
+        };
+      }
+    }
+  });
+
+  // Convert to final format
+  Object.entries(collectedTypes).forEach(([key, data]) => {
+    skirtingTypes[key] = {
+      label: data.label,
+      pricePerM2: data.price,
+    };
+  });
+
+  return skirtingTypes;
+};
+
+// Helper function to get label for skirting type
+const getSkiritingTypeLabel = (skirtingType: string): string => {
+  const labels: Record<string, string> = {
+    tiles: "Tile Skirting",
+    hardwood: "Hardwood Skirting",
+    stone: "Stone Skirting",
+    pvc: "PVC Skirting",
+  };
+  return labels[skirtingType] || skirtingType;
+};
+
+// Helper function to get compatible skirting types for a given floor material
+const getCompatibleSkirtingTypes = (
+  floorMaterial: string,
+  allSkirtingTypes: Record<string, { label: string; pricePerM2: number }>,
+): Record<string, { label: string; pricePerM2: number }> => {
+  const skirtingType = getSkiritingTypeForFloor(floorMaterial);
+
+  if (!skirtingType) {
+    return {}; // No skirting for Niro
+  }
+
+  // Return only the compatible skirting type
+  if (allSkirtingTypes[skirtingType]) {
+    return {
+      [skirtingType]: allSkirtingTypes[skirtingType],
+    };
+  }
+
+  return allSkirtingTypes; // Fallback to all types if specific type not found
+};
+
+// Helper function to build tile types with prices from materialPrices
+const buildTileTypesFromMaterials = (
+  materialPrices: any[],
+): Record<string, { label: string; pricePerM2: number }> => {
+  if (!Array.isArray(materialPrices)) return {};
+
+  const tileTypes: Record<string, { label: string; pricePerM2: number }> = {};
+
+  // Find the Flooring material
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial || !flooringMaterial.type?.flooringMaterials) {
+    return {};
+  }
+
+  const flooringMaterials = flooringMaterial.type.flooringMaterials;
+
+  // Build tileTypes from flooringMaterials array
+  flooringMaterials.forEach((material: any) => {
+    if (Array.isArray(material.type) && material.type.length > 0) {
+      const firstType = material.type[0];
+      const price = firstType.price_kes || 0;
+      const key =
+        firstType.type || material.name?.toLowerCase().replace(/\s+/g, "-");
+      tileTypes[key] = {
+        label: material.name,
+        pricePerM2: price,
+      };
+    }
+  });
+
+  return tileTypes;
+};
+
+// Helper function to build corner strip types with prices from materialPrices
+const buildCornerStripTypes = (
+  materialPrices: any[],
+): Record<string, { label: string; pricePerM: number }> => {
+  if (!Array.isArray(materialPrices)) return {};
+
+  const cornerStripTypes: Record<string, { label: string; pricePerM: number }> =
+    {};
+
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial) return {};
+
+  const accessories = flooringMaterial.type?.skirtingAccessories;
+  if (!Array.isArray(accessories)) return {};
+
+  const cornerStrips = accessories.find(
+    (m: any) => m.name?.toLowerCase() === "corner strips",
+  );
+
+  if (cornerStrips && Array.isArray(cornerStrips.type)) {
+    cornerStrips.type.forEach((type: any) => {
+      const key = type.type || type.name?.toLowerCase().replace(/\s+/g, "-");
+      cornerStripTypes[key] = {
+        label: type.name,
+        pricePerM: type.price_kes || 0,
+      };
+    });
+  }
+
+  return cornerStripTypes;
+};
+
+// Helper function to build edge trim types with prices from materialPrices
+const buildEdgeTrimTypes = (
+  materialPrices: any[],
+): Record<string, { label: string; pricePerM: number }> => {
+  if (!Array.isArray(materialPrices)) return {};
+
+  const edgeTrimTypes: Record<string, { label: string; pricePerM: number }> =
+    {};
+
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial) return {};
+
+  const accessories = flooringMaterial.type?.skirtingAccessories;
+  if (!Array.isArray(accessories)) return {};
+
+  const edgeTrims = accessories.find(
+    (m: any) => m.name?.toLowerCase() === "edge trims",
+  );
+
+  if (edgeTrims && Array.isArray(edgeTrims.type)) {
+    edgeTrims.type.forEach((type: any) => {
+      const key = type.type || type.name?.toLowerCase().replace(/\s+/g, "-");
+      edgeTrimTypes[key] = {
+        label: type.name,
+        pricePerM: type.price_kes || 0,
+      };
+    });
+  }
+
+  return edgeTrimTypes;
+};
+
+// Helper function to get tile price by material name or type and tile size
+const getTilePriceBySize = (
+  materialPrices: any[],
+  materialNameOrType: string,
+  tileSize: string,
+): number => {
+  if (!Array.isArray(materialPrices) || !materialNameOrType || !tileSize)
+    return 0;
+
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial) return 0;
+
+  const flooringMaterials = flooringMaterial.type?.flooringMaterials;
+  if (!Array.isArray(flooringMaterials)) return 0;
+
+  // Try to find material by exact name match first
+  let material = flooringMaterials.find(
+    (m: any) => m.name?.toLowerCase() === materialNameOrType.toLowerCase(),
+  );
+
+  // If not found by name, try to find by type
+  if (!material) {
+    material = flooringMaterials.find(
+      (m: any) =>
+        m.type?.[0]?.type?.toLowerCase() === materialNameOrType.toLowerCase(),
+    );
+  }
+
+  if (!material || !Array.isArray(material.type)) return 0;
+
+  const firstType = material.type[0];
+  if (!firstType) return 0;
+
+  // Check if tileTypes map exists and has the size
+  const tileTypesMap = firstType.tileTypes;
+  if (
+    tileTypesMap &&
+    typeof tileTypesMap === "object" &&
+    tileSize in tileTypesMap
+  ) {
+    const price = tileTypesMap[tileSize];
+    return price || firstType.price_kes || 0;
+  }
+
+  // Fallback to base price_kes if size not found
+  return firstType.price_kes || 0;
+};
+
+// Helper function to get available tile sizes for a material type
+const getAvailableTileSizes = (
+  materialPrices: any[],
+  materialType: string,
+): Record<string, number> => {
+  if (!Array.isArray(materialPrices)) return {};
+
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial) return {};
+
+  const flooringMaterials = flooringMaterial.type?.flooringMaterials;
+  if (!Array.isArray(flooringMaterials)) return {};
+
+  // Find material by type
+  const material = flooringMaterials.find(
+    (m: any) => m.type?.[0]?.type?.toLowerCase() === materialType.toLowerCase(),
+  );
+
+  if (!material || !Array.isArray(material.type)) return {};
+
+  const firstType = material.type[0];
+  return firstType.tileTypes || {};
+};
+
+// Helper function to get material type key from material name
+const getMaterialTypeByName = (
+  materialPrices: any[],
+  materialName: string,
+): string => {
+  if (!Array.isArray(materialPrices)) return "";
+
+  const flooringMaterial = materialPrices.find(
+    (m: any) => m.name?.toLowerCase() === "flooring",
+  );
+
+  if (!flooringMaterial) return "";
+
+  const flooringMaterials = flooringMaterial.type?.flooringMaterials;
+  if (!Array.isArray(flooringMaterials)) return "";
+
+  const material = flooringMaterials.find(
+    (m: any) => m.name?.toLowerCase() === materialName.toLowerCase(),
+  );
+
+  if (!material || !Array.isArray(material.type)) return "";
+
+  return material.type[0]?.type || "";
+};
+
+// Helper function to parse tile size string and get dimensions in meters
+const getTileDimensions = (
+  tileSizeKey: string,
+): { widthM: number; heightM: number } => {
+  const [w, h] = tileSizeKey.split("x").map((v) => parseFloat(v) / 1000);
+  return { widthM: w || 0, heightM: h || 0 };
+};
+
+const TILE_SIZE_FACTORS: Record<
+  string,
+  { label: string; groutKgPerM2: number }
+> = {
+  "150x150": { label: "150x150mm", groutKgPerM2: 0.8 },
+  "200x200": { label: "200x200mm", groutKgPerM2: 0.7 },
+  "300x300": { label: "300x300mm", groutKgPerM2: 0.55 },
+  "400x400": { label: "400x400mm", groutKgPerM2: 0.45 },
+  "450x450": { label: "450x450mm", groutKgPerM2: 0.4 },
+  "300x600": { label: "300x600mm", groutKgPerM2: 0.35 },
+  "600x600": { label: "600x600mm", groutKgPerM2: 0.3 },
+  "600x900": { label: "600x900mm", groutKgPerM2: 0.28 },
+  "800x800": { label: "800x800mm", groutKgPerM2: 0.25 },
+  "900x900": { label: "900x900mm", groutKgPerM2: 0.22 },
+  "1200x600": { label: "1200x600mm", groutKgPerM2: 0.24 },
+};
+
+// STEP 3: Floor Finishes - Screeding Base Components
+interface ScreeningBase {
+  area: number; // m²
+  thickness: number; // mm
+  cementBags: number; // auto-calculated
+  screedVolume: number; // m³ auto-calculated
+}
+
+interface SkirtingCalculation {
+  externalWallLength: number; // m
+  internalWallLength: number; // m
+  totalSkirtingLength: number; // m (auto-calculated)
+}
+
+interface CustomSkirtingMaterial {
+  useCustom: boolean;
+  name: string;
+  widthMm: number; // in millimeters
+  heightMm: number; // in millimeters
+  pricePerUnit: number; // in KES
+}
+
+interface FlooringCalculatorProps {
+  finishes: FinishElement[];
+  materialPrices: any[];
+  onFinishesUpdate?: (finishes: FinishElement[]) => void;
+  readonly?: boolean;
+  quote?: any;
+}
+
+export default function FlooringCalculator({
+  finishes,
+  materialPrices,
+  onFinishesUpdate,
+  readonly = false,
+  quote,
+}: FlooringCalculatorProps) {
+  // Filter only flooring items
+  const flooringFinishes = finishes.filter((f) => f.category === "flooring");
+
+  // Build tile types dynamically from materialPrices
+  const tileTypesWithPrices = buildTileTypesFromMaterials(materialPrices);
+  const defaultTileType = Object.keys(tileTypesWithPrices)[0] || "ceramic";
+  const defaultTilePrice =
+    tileTypesWithPrices[defaultTileType]?.pricePerM2 || 0;
+
+  // Build SKIRTING types (only tiles and hardwood)
+  const skirtingTypesWithPrices =
+    buildSkirtingTypesFromMaterials(materialPrices);
+  const defaultSkirtingType =
+    Object.keys(skirtingTypesWithPrices)[0] || "tiles";
+
+  // Build accessory types dynamically from materialPrices
+  const cornerStripTypes = buildCornerStripTypes(materialPrices);
+  const edgeTrimTypes = buildEdgeTrimTypes(materialPrices);
+  const defaultCornerStripType =
+    Object.keys(cornerStripTypes)[0] || "aluminum-corner";
+  const defaultCornerStripPrice =
+    cornerStripTypes[defaultCornerStripType]?.pricePerM || 0;
+  const defaultEdgeTrimType = Object.keys(edgeTrimTypes)[0] || "aluminum-edge";
+  const defaultEdgeTrimPrice =
+    edgeTrimTypes[defaultEdgeTrimType]?.pricePerM || 0;
+
+  // PHASE 2: Get calculations including skirting from updated hook
+  const {
+    calculations,
+    totals,
+    calculateAll,
+    wastagePercentage,
+    skirting: hookedSkirting,
+    skirtingConfig,
+  } = useFlooringCalculator(
+    flooringFinishes,
+    materialPrices,
+    quote,
+    onFinishesUpdate,
+  );
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<FinishElement | null>(null);
+
+  // PHASE 2: Auto-disable skirting if floor type is Niro
+  useEffect(() => {
+    if (
+      skirtingConfig &&
+      !skirtingConfig.enabled &&
+      skirting.totalSkirtingLength > 0
+    ) {
+      // Clear skirting if Niro floor is detected
+      setSkirting({
+        externalWallLength: 0,
+        internalWallLength: 0,
+        totalSkirtingLength: 0,
+      });
+    }
+  }, [skirtingConfig?.enabled]);
+
+  // STEP 3: Floor Finishes - Screeding Base and Skirting
+  const [screeningBase, setScreeningBase] = useState<ScreeningBase>({
+    area: 0,
+    thickness: 50, // mm (default 50mm)
+    cementBags: 0,
+    screedVolume: 0,
+  });
+
+  const [tileSize, setTileSize] =
+    useState<keyof typeof TILE_SIZE_FACTORS>("300x300");
+
+  const [tileType, setTileType] = useState<string>(defaultTileType);
+  const [tileUnitPrice, setTileUnitPrice] = useState<number>(defaultTilePrice);
+
+  const [skirtingTileHeightM, setSkirtingTileHeightM] = useState(0.12);
+  const [skirtingTileSize, setSkirtingTileSize] =
+    useState<keyof typeof TILE_SIZE_FACTORS>("400x400");
+  const [skirtingTileType, setSkirtingTileType] =
+    useState<string>(defaultSkirtingType);
+  const [skirtingTileUnitPrice, setSkirtingTileUnitPrice] = useState(0);
+
+  const [accessories, setAccessories] = useState({
+    cornerStripsLength: 0,
+    edgeTrimsLength: 0,
+    cornerStripType: defaultCornerStripType,
+    edgeTrimType: defaultEdgeTrimType,
+    cornerStripUnitPrice: defaultCornerStripPrice,
+    edgeTrimUnitPrice: defaultEdgeTrimPrice,
+  });
+
+  const [skirting, setSkirting] = useState<SkirtingCalculation>({
+    externalWallLength: 0,
+    internalWallLength: 0,
+    totalSkirtingLength: 0,
+  });
+
+  const [customSkirtingMaterial, setCustomSkirtingMaterial] =
+    useState<CustomSkirtingMaterial>({
+      useCustom: false,
+      name: "Custom Skirting",
+      widthMm: 400,
+      heightMm: 100,
+      pricePerUnit: 0,
+    });
+
+  // Filter calculations based on search
+  const filteredCalculations = calculations.filter((calc) =>
+    calc.material.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  // Update skirting type when floor material changes
+  // Preserves user's selection if still compatible, auto-fills default if not
+  useEffect(() => {
+    if (flooringFinishes.length > 0) {
+      const floorMaterial = flooringFinishes[0].material;
+      const compatibleTypes = getCompatibleSkirtingTypes(
+        floorMaterial,
+        skirtingTypesWithPrices,
+      );
+      const compatibleTypeKeys = Object.keys(compatibleTypes);
+
+      if (compatibleTypeKeys.length > 0) {
+        // Check if current selection is still compatible with the new floor material
+        if (
+          !skirtingTileType ||
+          !compatibleTypeKeys.includes(skirtingTileType)
+        ) {
+          // Current selection is empty or incompatible: auto-fill with default
+          const defaultSkirtingType = compatibleTypeKeys[0];
+          setSkirtingTileType(defaultSkirtingType);
+          setSkirtingTileUnitPrice(
+            compatibleTypes[defaultSkirtingType]?.pricePerM2 || 0,
+          );
+        } else {
+          // Current selection is still compatible: preserve it but update price
+          setSkirtingTileUnitPrice(
+            compatibleTypes[skirtingTileType]?.pricePerM2 || 0,
+          );
+        }
+      }
+    }
+  }, [
+    flooringFinishes[0]?.material,
+    skirtingTypesWithPrices,
+    skirtingTileType,
+  ]);
+
+  const handleAddFinish = () => {
+    const newFinish: FinishElement = {
+      id: `flooring-manual-${Math.random().toString(36).substr(2, 9)}`, // Unique random ID for user-added items
+      category: "flooring",
+      material: FLOORING_MATERIALS[0],
+      area: 0,
+      quantity: 0,
+      unit: "m²",
+      location: "",
+    };
+
+    const updatedFinishes = [...finishes, newFinish];
+    if (onFinishesUpdate) {
+      onFinishesUpdate(updatedFinishes);
+    }
+    setEditingId(newFinish.id);
+    setEditForm(newFinish);
+  };
+
+  const handleEditFormChange = (field: string, value: any) => {
+    if (editForm) {
+      const updated = { ...editForm, [field]: value };
+      setEditForm(updated);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editForm && onFinishesUpdate && editingId) {
+      // First, deduplicate any items with the same ID (keep only the first occurrence)
+      const seen = new Set<string>();
+      let dedupedFinishes = finishes.filter((f) => {
+        if (seen.has(f.id)) {
+          return false; // Skip duplicate IDs
+        }
+        seen.add(f.id);
+        return true;
+      });
+
+      // Then update or add the edited item
+      let itemFound = false;
+      const updatedFinishes = dedupedFinishes.map((f) => {
+        if (f.id === editingId) {
+          itemFound = true;
+          return editForm;
+        }
+        return f;
+      });
+
+      // If item wasn't found (shouldn't happen), add it
+      if (!itemFound) {
+        updatedFinishes.push(editForm);
+      }
+
+      onFinishesUpdate(updatedFinishes);
+      setEditingId(null);
+      setEditForm(null);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const handleDeleteFinish = (id: string) => {
+    if (onFinishesUpdate) {
+      const updatedFinishes = finishes.filter((f) => f.id !== id);
+      onFinishesUpdate(updatedFinishes);
+    }
+  };
+
+  const handleEditFinish = (finish: FinishElement) => {
+    setEditingId(finish.id);
+    setEditForm({ ...finish });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-KE", {
+      style: "currency",
+      currency: "KES",
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+
+  // STEP 3: Calculate screeding base materials (cement only - for base layer)
+  const calculateScreeningBase = (area: number, thicknessMm: number) => {
+    const volume = (area * thicknessMm) / 1000000; // m³
+    const cementDensity = 1440; // kg/m³
+    const cementKg = volume * cementDensity * 0.5;
+    const cementBags = cementKg / 50;
+
+    return {
+      volume,
+      cementBags: Math.ceil(cementBags),
+      screedVolume: volume.toFixed(3),
+    };
+  };
+
+  // STEP 3b: Calculate tiling materials (cement, adhesive and grout for tiles)
+  // Ratio: Cement : Adhesive : Grout = 2 : 2 : 1 (by weight)
+  const calculateTilingMaterials = (area: number, tileSize: string) => {
+    // Get grout consumption rate based on tile size
+    const groutKgPerM2 =
+      TILE_SIZE_FACTORS[tileSize as keyof typeof TILE_SIZE_FACTORS]
+        ?.groutKgPerM2 || 0.5;
+    const groutKg = area * groutKgPerM2;
+
+    // Using ratio Cement : Adhesive : Grout = 2 : 2 : 1
+    // So if Grout = 1 part, then Cement = 2 parts, Adhesive = 2 parts
+    const cementKg = groutKg * 2; // Cement (2 parts) = Grout (1 part) × 2
+    const adhesiveKg = groutKg * 2; // Adhesive (2 parts) = Grout (1 part) × 2
+
+    return {
+      cementKg: cementKg.toFixed(2),
+      adhesiveKg: adhesiveKg.toFixed(2),
+      groutKg: groutKg.toFixed(2),
+    };
+  };
+
+  // STEP 3: Calculate skirting length
+  const calculateSkirtingLength = (
+    externalLength: number,
+    internalLength: number,
+  ) => {
+    // Formula: (external walls) + (internal walls x 2)
+    return externalLength + internalLength * 2;
+  };
+
+  const parseTileSizeToMeters = (sizeKey: string) => {
+    const [w, h] = sizeKey.split("x").map((v) => parseFloat(v) / 1000);
+    return { widthM: w || 0, heightM: h || 0 };
+  };
+
+  // Helper function to calculate custom skirting material units needed
+  const calculateCustomSkirtingUnitsNeeded = (
+    totalLengthM: number,
+    heightM: number,
+    materialWidthMm: number,
+    materialHeightMm: number,
+  ): number => {
+    if (materialWidthMm <= 0 || materialHeightMm <= 0) return 0;
+
+    const materialWidthM = materialWidthMm / 1000;
+    const materialHeightM = materialHeightMm / 1000;
+    const materialArea = materialWidthM * materialHeightM;
+    const requiredArea = totalLengthM * heightM;
+
+    if (materialArea <= 0) return 0;
+    return Math.ceil(requiredArea / materialArea);
+  };
+
+  const handleScreeningBaseChange = (
+    field: keyof ScreeningBase,
+    value: number,
+  ) => {
+    const updated = { ...screeningBase, [field]: value };
+    if (field === "area" || field === "thickness") {
+      const calculations = calculateScreeningBase(
+        updated.area,
+        updated.thickness,
+      );
+      setScreeningBase({
+        ...updated,
+        cementBags: calculations.cementBags,
+        screedVolume: parseFloat(calculations.screedVolume as any),
+      });
+    } else {
+      setScreeningBase(updated);
+    }
+  };
+
+  // Sync effect removed - onFinishesUpdate callback handles state updates
+  useEffect(() => {
+    if (screeningBase.area === 0 && quote?.concrete_rows) {
+      const groundFloorSlab = quote.concrete_rows?.find(
+        (f: any) =>
+          f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+      );
+      const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+
+      if (slabArea > 0) {
+        const calculations = calculateScreeningBase(
+          slabArea,
+          screeningBase.thickness,
+        );
+        setScreeningBase((prev) => ({
+          ...prev,
+          area: slabArea,
+          cementBags: calculations.cementBags,
+          screedVolume: parseFloat(calculations.screedVolume as any),
+        }));
+      }
+    }
+  }, [quote?.concrete_rows]);
+
+  const handleSkirtingChange = (
+    field: keyof SkirtingCalculation,
+    value: number,
+  ) => {
+    const updated = { ...skirting, [field]: value };
+    if (field === "externalWallLength" || field === "internalWallLength") {
+      updated.totalSkirtingLength = calculateSkirtingLength(
+        updated.externalWallLength,
+        updated.internalWallLength,
+      );
+      setAccessories((prev) => ({
+        ...prev,
+        cornerStripsLength:
+          prev.cornerStripsLength || updated.totalSkirtingLength,
+        edgeTrimsLength: prev.edgeTrimsLength || updated.totalSkirtingLength,
+      }));
+    }
+    setSkirting(updated);
+  };
+
+  useEffect(() => {
+    const external = quote?.wallDimensions?.externalWallPerimiter || 0;
+    const internal = quote?.wallDimensions?.internalWallPerimiter || 0;
+    if (
+      (external > 0 || internal > 0) &&
+      skirting.externalWallLength === 0 &&
+      skirting.internalWallLength === 0
+    ) {
+      const totalSkirtingLength = calculateSkirtingLength(external, internal);
+      setSkirting({
+        externalWallLength: external,
+        internalWallLength: internal,
+        totalSkirtingLength,
+      });
+    }
+  }, [quote, skirting.externalWallLength, skirting.internalWallLength]);
+
+  // Auto-add ceramic tiles if no floor items exist
+  useEffect(() => {
+    if (
+      flooringFinishes.length === 0 &&
+      quote?.concrete_rows &&
+      onFinishesUpdate
+    ) {
+      // Check if ceramic tile already exists to prevent duplicates
+      const ceramicTileExists = finishes.some(
+        (f) => f.id === "flooring-ceramic-ground-floor",
+      );
+
+      if (!ceramicTileExists) {
+        const groundFloorSlab = quote.concrete_rows?.find(
+          (f: any) =>
+            f.element === "slab" && f.name?.toLowerCase().includes("ground"),
+        );
+        const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+
+        if (slabArea > 0) {
+          const newCeramicTile: FinishElement = {
+            id: `flooring-ceramic-ground-floor`, // Stable ID for auto-generated ceramic tile
+            category: "flooring",
+            material: "Ceramic Tiles",
+            area: slabArea,
+            quantity: slabArea,
+            unit: "m²",
+            location: "Ground Floor",
+            tileSize: "400x400mm", // Default tile size
+          };
+
+          onFinishesUpdate([...finishes, newCeramicTile]);
+        }
+      }
+    }
+  }, [quote?.concrete_rows, flooringFinishes.length, onFinishesUpdate]);
+
+  // Update tile price when tile type or size changes
+  useEffect(() => {
+    if (tileType) {
+      // tileType stores the material name like "Ceramic Tiles"
+      const price = getTilePriceBySize(materialPrices, tileType, tileSize);
+      setTileUnitPrice(price || defaultTilePrice);
+    }
+  }, [tileType, tileSize, materialPrices, defaultTilePrice]);
+
+  const exportToCSV = () => {
+    const headers = [
+      "Material",
+      "Location",
+      "Quantity",
+      "Adjusted Quantity",
+      "Unit",
+      "Unit Rate",
+      "Material Cost",
+      "Material Cost (with Wastage)",
+      "Total Cost",
+      "Total Cost (with Wastage)",
+      "Wastage %",
+      "Wastage Quantity",
+      "Wastage Cost",
+    ];
+    const csvData = calculations.map((calc) => [
+      calc.material,
+      finishes.find((f) => f.id === calc.id)?.location || "",
+      calc.quantity,
+      calc.adjustedQuantity,
+      calc.unit,
+      calc.unitRate,
+      calc.materialCost,
+      calc.materialCostWithWastage,
+      calc.totalCost,
+      calc.totalCostWithWastage,
+      calc.wastage.percentage * 100,
+      calc.wastage.wastageQuantity,
+      calc.wastage.totalWastageCost,
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map((row) => row.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "flooring-calculations.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const skirtingTileArea = skirting.totalSkirtingLength * skirtingTileHeightM;
+  const skirtingTileSizeM = parseTileSizeToMeters(skirtingTileSize);
+  const skirtingTileUnitArea =
+    skirtingTileSizeM.widthM * skirtingTileSizeM.heightM;
+  const skirtingTileCount =
+    skirtingTileUnitArea > 0
+      ? Math.ceil(skirtingTileArea / skirtingTileUnitArea)
+      : 0;
+  const skirtingTileTotalCost = skirtingTileArea * skirtingTileUnitPrice;
+  const cornerStripTotalCost =
+    accessories.cornerStripsLength * accessories.cornerStripUnitPrice;
+  const edgeTrimTotalCost =
+    accessories.edgeTrimsLength * accessories.edgeTrimUnitPrice;
+
+  // Calculate total tiling materials (cement, adhesive and grout) for all tile-based floors
+  const calculateTotalTilingMaterials = () => {
+    let totalCement = 0;
+    let totalAdhesive = 0;
+    let totalGrout = 0;
+
+    filteredCalculations.forEach((calc) => {
+      const finish = flooringFinishes.find((f) => f.id === calc.id);
+      if (finish && isSkirtingRequired(finish.material) && finish.tileSize) {
+        const tilingMats = calculateTilingMaterials(
+          calc.quantity,
+          finish.tileSize,
+        );
+        totalCement += parseFloat(tilingMats.cementKg);
+        totalAdhesive += parseFloat(tilingMats.adhesiveKg);
+        totalGrout += parseFloat(tilingMats.groutKg);
+      }
+    });
+
+    return {
+      cementKg: totalCement.toFixed(2),
+      adhesiveKg: totalAdhesive.toFixed(2),
+      groutKg: totalGrout.toFixed(2),
+    };
+  };
+
+  const tilingMaterials = calculateTotalTilingMaterials();
+
+  return (
+    <div className="space-y-6">
+      {/* Section 1: Screeding Base - Input Only */}
+      <Card>
+        <CardHeader className="bg-blue-50 dark:bg-blue-950/20">
+          <CardTitle>Screeding Base</CardTitle>
+          <CardDescription>
+            Set base layer thickness for tiled floors
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="screed-area">Screeding Area (m²)</Label>
+              <Input
+                id="screed-area"
+                type="number"
+                min="0"
+                step="0.01"
+                value={screeningBase.area}
+                onChange={(e) =>
+                  handleScreeningBaseChange(
+                    "area",
+                    parseFloat(e.target.value) || 0,
+                  )
+                }
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {quote?.concrete_rows?.find(
+                  (f: any) =>
+                    f.element === "slab" &&
+                    f.name?.toLowerCase().includes("ground"),
+                )?.slabArea
+                  ? "Auto-filled from ground floor slab (editable)"
+                  : "Enter ground floor area"}
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="screed-thickness">Thickness (mm)</Label>
+              <Input
+                id="screed-thickness"
+                type="number"
+                min="10"
+                max="200"
+                step="10"
+                value={screeningBase.thickness}
+                onChange={(e) =>
+                  handleScreeningBaseChange(
+                    "thickness",
+                    parseFloat(e.target.value) || 50,
+                  )
+                }
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-1">Default: 50mm</p>
+            </div>
+          </div>
+          {/* Screeding Materials - Base Layer */}
+          {screeningBase.area > 0 && (
+            <div className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <h3 className="text-sm  text-slate-700 dark:text-slate-300">
+                  Screeding Materials (Base Layer)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-300 dark:border-blue-700">
+                  <div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Cement Bags (50kg)
+                    </div>
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-400 mt-2">
+                      {screeningBase.cementBags}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Screed Volume (m³)
+                    </div>
+                    <div className="text-2xl font-bold text-amber-700 dark:text-amber-400 mt-2">
+                      {screeningBase.screedVolume}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Floor Finishes Materials */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:gap-4">
+            <div>
+              <CardTitle>Floor Finishes</CardTitle>
+              <CardDescription>
+                Ceramic Tiles, Granite, Hardwood, Niro finish, PVC vinyl, Epoxy,
+                Terrazzo, SPC
+              </CardDescription>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 items-center">
+              {!readonly && (
+                <Button onClick={handleAddFinish} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Flooring
+                </Button>
+              )}
+              <Button onClick={exportToCSV} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <Label htmlFor="search" className="sr-only">
+                Search
+              </Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder="Search materials..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Edit Form */}
+          {editingId && editForm && (
+            <Card className="mb-6 border-l-4 border-l-blue-500">
+              <CardHeader>
+                <CardTitle className="text-lg">Edit Flooring Item</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="edit-material">Material</Label>
+                    <Select
+                      value={editForm.material}
+                      onValueChange={(value) =>
+                        handleEditFormChange("material", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FLOORING_MATERIALS.map((material) => (
+                          <SelectItem key={material} value={material}>
+                            {material}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-location">Location (Optional)</Label>
+                    <Input
+                      id="edit-location"
+                      value={editForm.location || ""}
+                      onChange={(e) =>
+                        handleEditFormChange("location", e.target.value)
+                      }
+                      placeholder="e.g., Living Room, Kitchen"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-quantity">Quantity (m²)</Label>
+                    <Input
+                      id="edit-quantity"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editForm.quantity}
+                      onChange={(e) =>
+                        handleEditFormChange(
+                          "quantity",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                    />
+                  </div>
+
+                  {(editForm.material === "Ceramic Tiles" ||
+                    editForm.material === "Granite Tiles") && (
+                    <div>
+                      <Label htmlFor="edit-tile-size">Tile Size</Label>
+                      <Select
+                        value={editForm?.tileSize}
+                        onValueChange={(value) =>
+                          handleEditFormChange("tileSize", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(TILE_SIZE_FACTORS).map(
+                            ([key, data]) => (
+                              <SelectItem key={key} value={key}>
+                                {data.label}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                {(editForm.material === "Ceramic Tiles" ||
+                  editForm.material === "Granite Tiles") && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-3 bg-slate-100 dark:bg-slate-800 rounded mt-4">
+                    <div>
+                      <Label className="text-xs text-slate-600 dark:text-slate-400">
+                        Tile Size
+                      </Label>
+                      <div className="text-sm  mt-1">
+                        {editForm?.tileSize &&
+                          TILE_SIZE_FACTORS[editForm.tileSize]?.label}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-600 dark:text-slate-400">
+                        Price/m²
+                      </Label>
+                      <div className="text-sm  mt-1">
+                        {formatCurrency(
+                          getTilePriceBySize(
+                            materialPrices,
+                            editForm?.material || "",
+                            editForm?.tileSize || "400x400mm",
+                          ),
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-600 dark:text-slate-400">
+                        Tile Dimensions
+                      </Label>
+                      <div className="text-sm  mt-1">
+                        {editForm?.tileSize}mm
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-600 dark:text-slate-400">
+                        Est. Tiles Needed
+                      </Label>
+                      <div className="text-sm  mt-1">
+                        {(() => {
+                          const tileDim = getTileDimensions(
+                            editForm?.tileSize || "300x300",
+                          );
+                          const tileArea = tileDim.widthM * tileDim.heightM;
+                          return tileArea > 0
+                            ? Math.ceil(editForm.quantity / tileArea)
+                            : 0;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2 justify-end mt-4">
+                  <Button onClick={handleCancelEdit} variant="outline">
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveEdit}>Save Changes</Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Calculations Table */}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Material</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Tiles</TableHead>
+                  <TableHead className="text-right">Unit Rate</TableHead>
+                  <TableHead className="text-right">Total Cost</TableHead>
+                  <TableHead className="text-right">
+                    Total (w/ Wastage)
+                  </TableHead>
+                  {!readonly && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCalculations.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={readonly ? 7 : 8}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No flooring items found.{" "}
+                      {!readonly &&
+                        "Add your first flooring item to get started."}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCalculations.map((calc) => {
+                    const finish = flooringFinishes.find(
+                      (f) => f.id === calc.id,
+                    );
+                    return (
+                      <TableRow key={calc.id}>
+                        <TableCell className="font-medium">
+                          {calc.material}
+                        </TableCell>
+                        <TableCell>{finish?.location || "-"}</TableCell>
+                        <TableCell className="text-right">
+                          {calc.quantity.toFixed(2)} m²
+                        </TableCell>
+                        <TableCell className="text-right text-sm">
+                          {(finish?.material === "Ceramic Tiles" ||
+                            finish?.material === "Granite Tiles") &&
+                          finish?.tileSize
+                            ? (() => {
+                                const tileDim = getTileDimensions(
+                                  finish.tileSize,
+                                );
+                                const tileArea =
+                                  tileDim.widthM * tileDim.heightM;
+                                return tileArea > 0
+                                  ? Math.ceil(calc.quantity / tileArea)
+                                  : "-";
+                              })()
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(calc.unitRate)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(calc.totalCost)}
+                        </TableCell>
+                        <TableCell className="text-right ">
+                          {formatCurrency(calc.totalCostWithWastage)}
+                        </TableCell>
+                        {!readonly && (
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() =>
+                                  finish && handleEditFinish(finish)
+                                }
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeleteFinish(calc.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Tiling Materials - Tile Installation */}
+          {flooringFinishes.some(
+            (f) =>
+              (f.material === "Ceramic Tiles" ||
+                f.material === "Granite Tiles") &&
+              f.tileSize,
+          ) && (
+            <div className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <h3 className="text-sm  text-slate-700 dark:text-slate-300">
+                  Tiling Materials
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/30 border border-slate-300 dark:border-slate-700">
+                  <div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Cement (kg)
+                    </div>
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-400 mt-2">
+                      {tilingMaterials.cementKg}
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      {Math.ceil(parseFloat(tilingMaterials.cementKg) / 50)}{" "}
+                      bags (50kg)
+                    </p>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Adhesive (kg)
+                    </div>
+                    <div className="text-2xl font-bold text-purple-700 dark:text-purple-400 mt-2">
+                      {tilingMaterials.adhesiveKg}
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      {Math.ceil(parseFloat(tilingMaterials.adhesiveKg) / 25)}{" "}
+                      bags (25kg)
+                    </p>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Grout (kg)
+                    </div>
+                    <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mt-2">
+                      {tilingMaterials.groutKg}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Totals Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 p-4 rounded-lg bg-muted">
+            <div>
+              <div className="text-xs font-bold">Total Quantity</div>
+              <div className="text-lg font-bold">
+                {totals.totalArea.toFixed(2)} m²
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-bold">Base Cost</div>
+              <div className="text-lg font-bold">
+                {formatCurrency(totals.totalMaterialCost)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-bold">
+                Wastage ({wastagePercentage}%)
+              </div>
+              <div className="text-lg font-bold">
+                {formatCurrency(
+                  totals.totalMaterialCostWithWastage -
+                    totals.totalMaterialCost,
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-bold">Total with Wastage</div>
+              <div className="text-lg font-bold text-green-600">
+                {formatCurrency(totals.totalMaterialCostWithWastage)}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Skirting Calculation */}
+      <Card>
+        <CardHeader className="bg-orange-50 dark:bg-orange-950/20">
+          <CardTitle>Skirting Calculation</CardTitle>
+          {/* PHASE 2: Show skirting status */}
+          {skirtingConfig && (
+            <div className="mt-3">
+              {skirtingConfig.enabled ? (
+                <div />
+              ) : (
+                <Badge className="bg-amber-600">
+                  ⚠ Skirting Disabled (Niro floors do not require skirting)
+                </Badge>
+              )}
+            </div>
+          )}
+        </CardHeader>
+        <CardContent className="pt-6">
+          {skirtingConfig?.enabled === false ? (
+            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded p-4">
+              <p className="text-amber-900 dark:text-amber-100 text-sm">
+                Skirting calculation is disabled for this floor type. Niro
+                (cement paste) finishes do not typically include skirting.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="ext-wall">External Wall Length (m)</Label>
+                <Input
+                  id="ext-wall"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={skirting.externalWallLength}
+                  onChange={(e) =>
+                    handleSkirtingChange(
+                      "externalWallLength",
+                      parseFloat(e.target.value) || 0,
+                    )
+                  }
+                  className="mt-2"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="int-wall">Internal Wall Length (m)</Label>
+                <Input
+                  id="int-wall"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={skirting.internalWallLength}
+                  onChange={(e) =>
+                    handleSkirtingChange(
+                      "internalWallLength",
+                      parseFloat(e.target.value) || 0,
+                    )
+                  }
+                  className="mt-2"
+                />
+              </div>
+
+              <div className="bg-orange-50 dark:bg-orange-950/20 p-3 rounded border border-orange-200 flex flex-col justify-end">
+                <Label className="text-xs font-bold text-orange-900 dark:text-orange-100">
+                  Total Skirting Length
+                </Label>
+                <div className="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-2">
+                  {skirting.totalSkirtingLength.toFixed(2)} m
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section 2a: Skirting Tiles - Only shows for skirting-enabled finishes */}
+      {flooringFinishes.length > 0 &&
+        isSkirtingRequired(flooringFinishes[0].material) && (
+          <Card>
+            <CardHeader className="bg-slate-50 dark:bg-slate-900/30">
+              <CardTitle>Skirting Material</CardTitle>
+              <CardDescription>
+                {(() => {
+                  const skirtingType = getSkiritingTypeForFloor(
+                    flooringFinishes[0].material,
+                  );
+                  const descriptions: Record<string, string> = {
+                    tile: "Tile skirting - cut from matching floor tiles",
+                    hardwood: "Hardwood skirting - paired with hardwood floors",
+                    stone:
+                      "Stone skirting - for marble, granite, or terrazzo floors",
+                    pvc: "PVC/Plastic skirting - budget-friendly option",
+                  };
+                  return (
+                    descriptions[skirtingType || "pvc"] ||
+                    "Configure skirting type, dimensions, and pricing"
+                  );
+                })()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {/* Custom vs Predefined Toggle */}
+              <div className="mb-6 p-4 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300">
+                <div className="flex items-center gap-4">
+                  <Label className="text-sm ">Material Source:</Label>
+                  <RadioGroup
+                    value={
+                      customSkirtingMaterial.useCustom ? "custom" : "predefined"
+                    }
+                    onValueChange={(value) =>
+                      setCustomSkirtingMaterial((prev) => ({
+                        ...prev,
+                        useCustom: value === "custom",
+                      }))
+                    }
+                    className="flex gap-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="predefined" id="predefined" />
+                      <Label
+                        htmlFor="predefined"
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Predefined Materials
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="custom" id="custom" />
+                      <Label
+                        htmlFor="custom"
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        Custom Material
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="skirting-height">Skirting Height (m)</Label>
+                  <Input
+                    id="skirting-height"
+                    type="number"
+                    min="0.1"
+                    max="0.5"
+                    step="0.01"
+                    value={skirtingTileHeightM}
+                    onChange={(e) =>
+                      setSkirtingTileHeightM(parseFloat(e.target.value) || 0.12)
+                    }
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Typical: 0.10-0.15m
+                  </p>
+                </div>
+
+                {!customSkirtingMaterial.useCustom ? (
+                  <>
+                    <div>
+                      <Label htmlFor="skirting-tile-type">Skirting Type</Label>
+                      <Select
+                        value={skirtingTileType}
+                        onValueChange={(value) => {
+                          setSkirtingTileType(value);
+                          // Update price when user manually changes skirting type
+                          const compatibleTypes = getCompatibleSkirtingTypes(
+                            flooringFinishes[0].material,
+                            skirtingTypesWithPrices,
+                          );
+                          if (compatibleTypes[value]) {
+                            setSkirtingTileUnitPrice(
+                              compatibleTypes[value]?.pricePerM2 || 0,
+                            );
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(
+                            getCompatibleSkirtingTypes(
+                              flooringFinishes[0].material,
+                              skirtingTypesWithPrices,
+                            ),
+                          ).map(([key, data]) => (
+                            <SelectItem key={key} value={key}>
+                              {data.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="skirting-tile-unit">
+                        Skirting Unit Price (Ksh/m²)
+                      </Label>
+                      <Input
+                        id="skirting-tile-unit"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={skirtingTileUnitPrice}
+                        onChange={(e) =>
+                          setSkirtingTileUnitPrice(
+                            parseFloat(e.target.value) || 0,
+                          )
+                        }
+                        className="mt-2 bg-gray-100 dark:bg-slate-700"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Auto-populated from skirting type
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label htmlFor="custom-skirting-name">
+                        Material Name
+                      </Label>
+                      <Input
+                        id="custom-skirting-name"
+                        type="text"
+                        value={customSkirtingMaterial.name}
+                        onChange={(e) =>
+                          setCustomSkirtingMaterial((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
+                        }
+                        placeholder="e.g., Marble Skirting"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="custom-skirting-width">Width (mm)</Label>
+                      <Input
+                        id="custom-skirting-width"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={customSkirtingMaterial.widthMm}
+                        onChange={(e) =>
+                          setCustomSkirtingMaterial((prev) => ({
+                            ...prev,
+                            widthMm: parseFloat(e.target.value) || 300,
+                          }))
+                        }
+                        className="mt-2"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">e.g., 300</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="custom-skirting-height">
+                        Height per Unit (mm)
+                      </Label>
+                      <Input
+                        id="custom-skirting-height"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={customSkirtingMaterial.heightMm}
+                        onChange={(e) =>
+                          setCustomSkirtingMaterial((prev) => ({
+                            ...prev,
+                            heightMm: parseFloat(e.target.value) || 120,
+                          }))
+                        }
+                        className="mt-2"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">e.g., 120</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="custom-skirting-price">
+                        Price per Unit (Ksh)
+                      </Label>
+                      <Input
+                        id="custom-skirting-price"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={customSkirtingMaterial.pricePerUnit}
+                        onChange={(e) =>
+                          setCustomSkirtingMaterial((prev) => ({
+                            ...prev,
+                            pricePerUnit: parseFloat(e.target.value) || 0,
+                          }))
+                        }
+                        className="mt-2"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Result Display */}
+                {customSkirtingMaterial.useCustom ? (
+                  <>
+                    <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
+                      <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                        Units Needed
+                      </Label>
+                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                        {calculateCustomSkirtingUnitsNeeded(
+                          skirting.totalSkirtingLength,
+                          skirtingTileHeightM,
+                          customSkirtingMaterial.widthMm,
+                          customSkirtingMaterial.heightMm,
+                        )}
+                      </div>
+                      <p className="text-xs text-blue-700 dark:text-blue-200 mt-1">
+                        {customSkirtingMaterial.widthMm}×
+                        {customSkirtingMaterial.heightMm}mm each
+                      </p>
+                    </div>
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded border border-emerald-200">
+                      <Label className="text-xs font-bold text-emerald-900 dark:text-emerald-100">
+                        Skirting Length
+                      </Label>
+                      <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-2">
+                        {skirting.totalSkirtingLength.toFixed(2)} m
+                      </div>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded border border-amber-200">
+                      <Label className="text-xs font-bold text-amber-900 dark:text-amber-100">
+                        Total Cost (Ksh)
+                      </Label>
+                      <div className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-2">
+                        {formatCurrency(
+                          calculateCustomSkirtingUnitsNeeded(
+                            skirting.totalSkirtingLength,
+                            skirtingTileHeightM,
+                            customSkirtingMaterial.widthMm,
+                            customSkirtingMaterial.heightMm,
+                          ) * customSkirtingMaterial.pricePerUnit,
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Tile-specific results - ONLY for Tile Skirting */}
+                    {getSkiritingTypeForFloor(flooringFinishes[0].material) ===
+                      "tile" && (
+                      <>
+                        <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
+                          <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                            Skirting Tile Area (m²)
+                          </Label>
+                          <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                            {skirtingTileArea.toFixed(2)}
+                          </div>
+                          <p className="text-xs text-blue-700 dark:text-blue-200 mt-1">
+                            Est. tiles: {skirtingTileCount}
+                          </p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Generic results - For all skirting types */}
+                    <div className="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded border border-emerald-200">
+                      <Label className="text-xs font-bold text-emerald-900 dark:text-emerald-100">
+                        Skirting Length (m)
+                      </Label>
+                      <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-2">
+                        {skirting.totalSkirtingLength.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded border border-amber-200">
+                      <Label className="text-xs font-bold text-amber-900 dark:text-amber-100">
+                        Skirting Total (Ksh)
+                      </Label>
+                      <div className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-2">
+                        {formatCurrency(skirtingTileTotalCost)}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+      {/* Section 2b: Skirting Accessories - Only shows for skirting-enabled finishes */}
+      {flooringFinishes.length > 0 &&
+        isSkirtingRequired(flooringFinishes[0].material) && (
+          <Card>
+            <CardHeader className="bg-slate-50 dark:bg-slate-900/30">
+              <CardTitle>Skirting Accessories</CardTitle>
+              <CardDescription>
+                Corner strips and edge trims for finished floors
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="corner-strips">
+                    Corner Strips Length (m)
+                  </Label>
+                  <Input
+                    id="corner-strips"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={accessories.cornerStripsLength}
+                    onChange={(e) =>
+                      setAccessories((prev) => ({
+                        ...prev,
+                        cornerStripsLength: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edge-trims">Edge Trims Length (m)</Label>
+                  <Input
+                    id="edge-trims"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={accessories.edgeTrimsLength}
+                    onChange={(e) =>
+                      setAccessories((prev) => ({
+                        ...prev,
+                        edgeTrimsLength: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="corner-strip-type">Corner Strip Type</Label>
+                  <Select
+                    value={accessories.cornerStripType}
+                    onValueChange={(value) =>
+                      setAccessories((prev) => ({
+                        ...prev,
+                        cornerStripType: value,
+                        cornerStripUnitPrice:
+                          cornerStripTypes[value]?.pricePerM || 0,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(cornerStripTypes).map(([key, data]) => (
+                        <SelectItem key={key} value={key}>
+                          {data.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edge-trim-type">Edge Trim Type</Label>
+                  <Select
+                    value={accessories.edgeTrimType}
+                    onValueChange={(value) =>
+                      setAccessories((prev) => ({
+                        ...prev,
+                        edgeTrimType: value,
+                        edgeTrimUnitPrice: edgeTrimTypes[value]?.pricePerM || 0,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(edgeTrimTypes).map(([key, data]) => (
+                        <SelectItem key={key} value={key}>
+                          {data.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="corner-strip-unit">
+                    Corner Strip Unit Price (Ksh/m)
+                  </Label>
+                  <Input
+                    id="corner-strip-unit"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={accessories.cornerStripUnitPrice}
+                    onChange={(e) =>
+                      setAccessories((prev) => ({
+                        ...prev,
+                        cornerStripUnitPrice: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edge-trim-unit">
+                    Edge Trim Unit Price (Ksh/m)
+                  </Label>
+                  <Input
+                    id="edge-trim-unit"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={accessories.edgeTrimUnitPrice}
+                    onChange={(e) =>
+                      setAccessories((prev) => ({
+                        ...prev,
+                        edgeTrimUnitPrice: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="mt-2"
+                  />
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
+                  <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                    Corner Strip Total (Ksh)
+                  </Label>
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                    {formatCurrency(cornerStripTotalCost)}
+                  </div>
+                </div>
+                <div className="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded border border-emerald-200">
+                  <Label className="text-xs font-bold text-emerald-900 dark:text-emerald-100">
+                    Edge Trim Total (Ksh)
+                  </Label>
+                  <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-2">
+                    {formatCurrency(edgeTrimTotalCost)}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Area</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {totals.totalArea.toFixed(2)} m²
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Material Cost</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totals.totalMaterialCostWithWastage)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(totals.totalCostWithWastage)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

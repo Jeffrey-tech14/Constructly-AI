@@ -2,20 +2,20 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function CTABanner({ scrollTo }: any) {
+export default function CTABanner({ scrollTo }: { scrollTo: (elementId: string) => void }) {
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const navigate = useNavigate();
   const turnstileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let widgetId: any = undefined;
+    let widgetId: string | undefined = undefined;
 
     function renderTurnstile() {
-      if (turnstileRef.current && (window as any).turnstile) {
+      if (turnstileRef.current && (window as unknown as { turnstile: unknown }).turnstile) {
         // Clear any inner HTML just in case
         turnstileRef.current.innerHTML = '';
-        widgetId = (window as any).turnstile.render(turnstileRef.current, {
+        widgetId = (window as unknown as { turnstile: unknown }).turnstile.render(turnstileRef.current, {
           sitekey: "1x00000000000000000000AA",
           theme: "dark",
           callback: function(token: string) {
@@ -26,7 +26,7 @@ export default function CTABanner({ scrollTo }: any) {
     }
 
     // Make sure we have the turnstile function globally
-    if (!(window as any).turnstile) {
+    if (!(window as unknown as { turnstile: unknown }).turnstile) {
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
@@ -42,8 +42,8 @@ export default function CTABanner({ scrollTo }: any) {
 
     // Cleanup for React StrictMode
     return () => {
-      if (widgetId !== undefined && (window as any).turnstile) {
-        (window as any).turnstile.remove(widgetId);
+      if (widgetId !== undefined && (window as unknown as { turnstile: unknown }).turnstile) {
+        (window as unknown as { turnstile: unknown }).turnstile.remove(widgetId);
       }
     };
   }, []);

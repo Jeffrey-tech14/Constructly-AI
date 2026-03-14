@@ -1,4 +1,4 @@
-﻿// src/components/sections/WhoItsForSection.tsx
+// src/components/sections/WhoItsForSection.tsx
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -50,26 +50,26 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
       {/* SECTION 1: TECHNICAL HERO / KNOWLEDGE BASE */}
       <section className="bg-gradient-to-b from-white to-[#f8f9fa] overflow-hidden">
         {/* CHANGED: Removed 'flex-col', used 'flex-row' to force side-by-side on all screens. Added 'items-center' for vertical alignment. */}
-        <div className="max-w-[1200px] mx-auto flex flex-row items-center">
+        <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-0 min-h-[500px]">
           {/* LEFT COLUMN (TEXT) */}
           {/* CHANGED: Width is now 45% on all screens. Padding reduces to 'p-4' on mobile. */}
-          <div className="w-[45%] p-4 md:p-12 lg:p-16 flex flex-col justify-center">
+          <div className="w-full md:w-[45%] p-6 md:p-12 lg:p-16 flex flex-col justify-center px-6">
             <div className="flex items-center gap-2 mb-3 md:mb-6">
-              <span className="bg-[#00356B] text-white text-[7px] md:text-[9px] font-bold px-2 py-0.5 tracking-tighter uppercase rounded">
+              <span className="bg-[#00356B] text-white text-[10px] md:text-[11px] font-bold px-2 py-0.5 tracking-tighter uppercase rounded">
                 V 4.2.0
               </span>
-              <span className="text-[#00356B] text-[7px] md:text-[9px] font-bold uppercase tracking-[2px]">
+              <span className="text-[#00356B] text-[10px] md:text-[11px] font-bold uppercase tracking-[2px]">
                 Process Documentation
               </span>
             </div>
 
             {/* CHANGED: Text size scales down (text-lg) on small screens */}
-            <h1 className="text-xl md:text-3xl lg:text-4xl font-light text-[#00356B] mb-3 md:mb-6 leading-[1.2] tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-light text-[#00356B] mb-4 md:mb-6 leading-[1.2] tracking-tight">
               Automated <span className="font-bold">Quantity Takeoff</span>
               <br />& Costing Pipeline
             </h1>
 
-            <p className="text-[10px] md:text-[13px] text-gray-600 leading-relaxed mb-4 md:mb-8 max-w-md font-medium">
+            <p className="text-[15px] md:text-[16px] text-gray-600 leading-relaxed mb-4 md:mb-8 max-w-md font-medium">
               Our system transforms construction plans (PDF, DWG) into precise
               quantities and cost data in four automated, highly efficient
               phases.
@@ -79,7 +79,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
               <button
                 onClick={goToWorkflowDetails}
                 // CHANGED: Button padding and text size reduced for small screens
-                className="w-fit flex items-center gap-2 bg-[#D85C2C] text-white px-3 py-2 md:px-6 md:py-3 text-[8px] md:text-[10px] font-black uppercase tracking-[1.5px] hover:bg-[#b84520] transition-colors rounded-md shadow-sm"
+                className="w-fit flex items-center gap-2 bg-[#D85C2C] text-white px-3 py-2 md:px-6 md:py-3 text-[11px] md:text-[12px] font-black uppercase tracking-[1.5px] hover:bg-[#b84520] transition-colors rounded-md shadow-sm"
               >
                 Access Workflow Details{" "}
                 <ChevronRight
@@ -92,7 +92,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
 
           {/* RIGHT COLUMN (IMAGE) */}
           {/* CHANGED: Width is now 55% on all screens. Reduced padding significantly on mobile. */}
-          <div className="w-[55%] relative flex items-center justify-center p-2 md:p-12 lg:p-16">
+          <div className="w-full md:w-[55%] relative flex items-center justify-center px-4 py-8 md:p-12 lg:p-16">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -108,7 +108,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                   <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#28c840] rounded-full" />
                 </div>
                 {/* Hide title on very small screens if needed, or scale text */}
-                <div className="text-[6px] md:text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1 md:gap-2">
+                <div className="text-[9px] md:text-[11px] font-mono font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1 md:gap-2">
                   <Activity
                     className="w-2 h-2 md:w-3.5 md:h-3.5"
                     strokeWidth={1.8}
@@ -136,13 +136,13 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
 
                 {/* Floating Badge */}
                 <div className="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-black/80 border border-white/10 px-1.5 py-0.5 md:px-2.5 md:py-1 flex items-center gap-2 rounded">
-                  <div className="flex items-center gap-1 text-[6px] md:text-[9px] font-mono text-[#86bc25] font-bold tracking-wider">
+                  <div className="flex items-center gap-1 text-[10px] md:text-[11px] font-mono text-[#86bc25] font-bold tracking-wider">
                     <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-[#86bc25] rounded-full animate-pulse" />
                     <span className="hidden md:inline">AI ANALYSIS</span>
                     <span className="md:hidden">AI</span>
                   </div>
                   <div className="w-[1px] h-1.5 md:h-2.5 bg-white/20" />
-                  <div className="text-[6px] md:text-[9px] font-mono text-white/70 tracking-wider truncate max-w-[50px] md:max-w-none">
+                  <div className="text-[10px] md:text-[11px] font-mono text-white/70 tracking-wider truncate max-w-[50px] md:max-w-none">
                     Plan: A-01
                   </div>
                 </div>

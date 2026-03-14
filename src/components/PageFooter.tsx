@@ -78,7 +78,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
     //   </text>
     // </svg>
     <img
-      src="/logo4.jpg"
+      src="/logo.jpg"
       alt="JTech AI Logo"
       className="cursor-pointer h-9 w-auto"
     />
@@ -86,7 +86,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 
   return (
     <>
-      <footer id="footer" className="bg-white pt-16 pb-8 text-[#1a1a1a]">
+      <footer id="footer" className="bg-[#0a0a0a] pt-16 pb-8 text-[#eceff4]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 mb-16">
             {/* COLUMN 1: BRAND & COMPLIANCE */}
@@ -99,25 +99,25 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 
               {/* Compliance Badges */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-[#002d5c]">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-white">
                   Security Standards
                 </h4>
                 <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-[#e5f0f7] border border-[#d1d5db] rounded">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded">
                     <ShieldCheck
-                      className="w-4 h-4 text-[#002d5c]"
+                      className="w-4 h-4 text-white"
                       strokeWidth={1.8}
                     />
-                    <span className="text-xs font-bold text-[#002d5c]">
+                    <span className="text-xs font-bold text-white">
                       ISO 27001
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-[#e5f0f7] border border-[#d1d5db] rounded">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded">
                     <Lock
-                      className="w-4 h-4 text-[#002d5c]"
+                      className="w-4 h-4 text-white"
                       strokeWidth={1.8}
                     />
-                    <span className="text-xs font-bold text-[#002d5c]">
+                    <span className="text-xs font-bold text-white">
                       SOC 2 Type II
                     </span>
                   </div>
@@ -128,7 +128,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
             {/* LINK COLUMNS */}
             {linkGroups.map((group) => (
               <div key={group.title} className="lg:col-span-2">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-[#002d5c] mb-6 pb-2 border-b border-[#e5e7eb] inline-block">
+                <h3 className="text-xl font-normal text-[#f0514e] mb-4 pb-3 border-b border-[#f0514e]/30 block w-full">
                   {group.title}
                 </h3>
                 <ul className="space-y-3">
@@ -136,10 +136,10 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                     <li key={link.id}>
                       <button
                         onClick={() => scrollTo(link.id)}
-                        className="group relative inline-block text-sm font-normal text-[#002d5c] hover:text-[#001226] transition-colors"
+                        className="group relative inline-block text-sm font-normal text-gray-400 hover:text-white transition-colors"
                       >
                         {link.label}
-                        <span className="absolute bottom-0 left-0 w-full h-[1.5px] bg-[#002d5c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                        <span className="absolute bottom-0 left-0 w-full h-[1.5px] bg-[#f0514e] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                       </button>
                     </li>
                   ))}
@@ -149,13 +149,13 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 
             {/* COLUMN 4: CONTACT & NEWSLETTER */}
             <div className="lg:col-span-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[#002d5c] mb-6 pb-2 border-b border-[#e5e7eb] inline-block">
+              <h3 className="text-xl font-normal text-[#f0514e] mb-4 pb-3 border-b border-[#f0514e]/30 block w-full">
                 Regional Headquarters
               </h3>
 
-              <div className="mb-8 space-y-4 text-[#1a1a1a]">
+              <div className="mb-8 space-y-4 text-gray-300">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#002d5c] mt-0.5 flex-shrink-0" />
+                  <MapPin className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
                   <div className="text-sm font-normal">
                     <span className="font-bold block">NAIROBI, KENYA</span>
                     JTech Plaza, 4th Floor
@@ -167,14 +167,14 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                 <div className="pl-8 space-y-2">
                   <a
                     href="tel:+254706927062"
-                    className="flex items-center gap-2 text-xs font-medium text-[#002d5c] hover:text-[#001226] transition-colors"
+                    className="flex items-center gap-2 text-xs font-medium text-gray-400 hover:text-white transition-colors"
                   >
                     <Phone className="w-4 h-4" strokeWidth={1.8} />
                     +254 706 927062
                   </a>
                   <a
                     href="mailto:support@jtechai.com"
-                    className="flex items-center gap-2 text-xs font-medium text-[#002d5c] hover:text-[#001226] transition-colors"
+                    className="flex items-center gap-2 text-xs font-medium text-gray-400 hover:text-white transition-colors"
                   >
                     <Mail className="w-4 h-4" strokeWidth={1.8} />
                     support@jtechai.com
@@ -184,13 +184,13 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 
               {/* Newsletter – Sharp, clean form */}
               <div className="relative">
-                <div className="flex border border-[#d1d5db] rounded-md overflow-hidden shadow-sm">
+                <div className="flex border border-white/10 rounded-md overflow-hidden shadow-sm">
                   <input
                     type="email"
                     placeholder="Enter email for updates"
-                    className="w-full bg-white py-3 pl-4 text-sm font-normal text-[#1a1a1a] placeholder:text-gray-400 focus:outline-none"
+                    className="w-full bg-[#1a1c1e] py-3 pl-4 text-sm font-normal text-gray-300 placeholder:text-gray-400 focus:outline-none"
                   />
-                  <button className="bg-[#002d5c] text-white px-4 flex items-center justify-center hover:bg-[#001226] transition-colors">
+                  <button className="bg-[#f0514e] text-white px-4 flex items-center justify-center hover:brightness-110 transition-colors">
                     <ArrowRight className="w-4 h-4" strokeWidth={2} />
                   </button>
                 </div>
@@ -200,7 +200,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
         </div>
 
         {/* BOTTOM BAR */}
-        <div className="bg-[#002d5c] py-4">
+        <div className="bg-black py-4">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-3 text-xs font-bold uppercase tracking-wider text-white/80">
             <div className="flex items-center gap-3">
               <span className="relative flex h-2 w-2">
@@ -240,3 +240,6 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 };
 
 export default PageFooter;
+
+
+

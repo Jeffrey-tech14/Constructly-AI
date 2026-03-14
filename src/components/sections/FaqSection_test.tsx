@@ -21,7 +21,7 @@ const GlobalStyles = () => (
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
     .font-technical { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #222222; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef443b; border-radius: 2px; }
   `}</style>
 );
@@ -31,7 +31,7 @@ const THEME = {
   brandBlue: "#ef443b",
   accentGreen: "#ef443b", // matching your other sections
   bgLight: "#141414",
-  textDark: "#ffffff",
+  textDark: "#1a1a1a",
 };
 
 const faqCategories = [
@@ -87,7 +87,7 @@ const CategorySidebar = () => (
   <aside className="w-full max-w-[220px] hidden md:block flex-shrink-0">
     <div className="bg-[#1a1a1a] border border-[#d1d5db] rounded-xl shadow-none mb-6 sticky top-24 overflow-hidden">
       <div className="p-4 bg-[#141414] flex justify-between items-center">
-        <span className="text-xs font-bold text-[#ef443b] uppercase tracking-widest flex items-center gap-2">
+        <span className="text-[10px] font-bold text-[#ef443b] uppercase tracking-widest flex items-center gap-2">
           <Filter className="w-3 h-3" />
           Filters
         </span>
@@ -97,7 +97,7 @@ const CategorySidebar = () => (
         {faqCategories.map((category, index) => (
           <label
             key={index}
-            className="flex items-center text-base font-medium text-[#a0a0a0] hover:text-[#ef443b] cursor-pointer transition-colors group"
+            className="flex items-center text-[13px] font-medium text-[#a0a0a0] hover:text-[#ef443b] cursor-pointer transition-colors group"
           >
             <input
               type="checkbox"
@@ -140,13 +140,13 @@ const FaqItem = ({ faq, index }) => {
         <div className="p-6 md:p-8">
           {/* Tags */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="text-[#ef443b] text-xs font-bold font-mono bg-[#eef5ff] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[#ef443b] text-[10px] font-bold font-mono bg-[#eef5ff] px-2 py-0.5 rounded uppercase tracking-wider">
               {faq.id}
             </span>
             {faq.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-[#a0a0a0] bg-gray-100 rounded"
+                className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#a0a0a0] bg-gray-100 rounded"
               >
                 {tag}
               </span>
@@ -154,7 +154,7 @@ const FaqItem = ({ faq, index }) => {
           </div>
 
           {/* Title */}
-          <h3 className="text-lg md:text-xl font-bold text-[#ef443b] mb-6 uppercase tracking-tight">
+          <h3 className="text-[15px] font-bold text-[#ef443b] mb-6 uppercase tracking-tight">
             {faq.title}
           </h3>
 
@@ -167,7 +167,7 @@ const FaqItem = ({ faq, index }) => {
               }`}
             >
               <span
-                className={`font-medium text-sm md:text-base ${isOpenMain ? "text-[#ef443b]" : "text-gray-700"}`}
+                className={`font-medium text-[12px] ${isOpenMain ? "text-[#ef443b]" : "text-gray-700"}`}
               >
                 {faq.question}
               </span>
@@ -185,7 +185,7 @@ const FaqItem = ({ faq, index }) => {
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="p-4 pt-0 bg-[#141414] text-sm md:text-base text-[#a0a0a0] leading-relaxed">
+                  <div className="p-4 pt-0 bg-[#141414] text-[12px] text-[#a0a0a0] leading-relaxed">
                     <p
                       dangerouslySetInnerHTML={{
                         __html: faq.answer.replace(
@@ -210,7 +210,7 @@ const FaqItem = ({ faq, index }) => {
                 }`}
               >
                 <span
-                  className={`font-medium text-sm md:text-base ${isOpenSub ? "text-[#ef443b]" : "text-[#a0a0a0]"}`}
+                  className={`font-medium text-[12px] ${isOpenSub ? "text-[#ef443b]" : "text-[#a0a0a0]"}`}
                 >
                   {faq.historyText}
                 </span>
@@ -228,7 +228,7 @@ const FaqItem = ({ faq, index }) => {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="p-4 pt-0 bg-[#141414] text-sm md:text-base text-[#a0a0a0] leading-relaxed">
+                    <div className="p-4 pt-0 bg-[#141414] text-[12px] text-[#a0a0a0] leading-relaxed">
                       <p
                         dangerouslySetInnerHTML={{
                           __html: faq.historyAnswer?.replace(
@@ -262,7 +262,7 @@ const FaqSection = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="w-full max-w-lg">
                 <div className="flex items-center gap-3 mb-6">
-                  <span className="text-[#ef443b] font-mono text-xs font-bold uppercase tracking-[3px]">
+                  <span className="text-[#ef443b] font-mono text-[10px] font-bold uppercase tracking-[3px]">
                     Support Center
                   </span>
                   <div className="h-[1px] w-12 bg-[#ef443b]/30" />
@@ -280,7 +280,7 @@ const FaqSection = () => {
                   </span>
                 </motion.h1>
 
-                <p className="text-[#a0a0a0] text-base leading-relaxed mb-8 font-medium max-w-sm">
+                <p className="text-[#a0a0a0] text-[13px] leading-relaxed mb-8 font-medium max-w-sm">
                   Find answers about file uploads, AI takeoff, cost calculation,
                   and exporting quotes.
                 </p>
@@ -292,10 +292,10 @@ const FaqSection = () => {
                     <input
                       type="text"
                       placeholder="Search by topic or keyword..."
-                      className="w-full text-sm md:text-base font-medium text-white placeholder-gray-400 focus:outline-none bg-transparent"
+                      className="w-full text-[12px] font-medium text-white placeholder-gray-400 focus:outline-none bg-transparent"
                     />
                   </div>
-                  <button className="h-full px-6 bg-[#ef443b] text-white font-black text-xs uppercase tracking-[1.5px] hover:bg-[#002a54] transition-colors">
+                  <button className="h-full px-6 bg-[#ef443b] text-white font-black text-[10px] uppercase tracking-[1.5px] hover:bg-[#002a54] transition-colors">
                     Search
                   </button>
                 </div>
@@ -313,7 +313,7 @@ const FaqSection = () => {
         <main className="max-w-[1200px] mx-auto flex py-16 px-5 gap-10">
           <CategorySidebar />
           <div className="w-full md:flex-1">
-            <div className="flex flex-col sm:flex-row items-center justify-between text-sm md:text-base text-[#a0a0a0] mb-8 pb-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-[12px] text-[#a0a0a0] mb-8 pb-4">
               <span className="font-bold text-white uppercase tracking-wider">
                 Displaying <span className="text-[#ef443b]">3</span> Entries
               </span>
@@ -321,7 +321,7 @@ const FaqSection = () => {
                 <span className="font-bold uppercase tracking-wider text-[#a0a0a0]">
                   Sort By:
                 </span>
-                <select className="bg-transparent font-bold text-[#ef443b] focus:outline-none cursor-pointer uppercase tracking-wide text-sm">
+                <select className="bg-transparent font-bold text-[#ef443b] focus:outline-none cursor-pointer uppercase tracking-wide text-[11px]">
                   <option>Relevance</option>
                   <option>Date Added</option>
                   <option>ID</option>
@@ -336,7 +336,7 @@ const FaqSection = () => {
             </div>
 
             <div className="mt-12 text-center">
-              <button className="px-8 py-3 border border-[#d1d5db] text-[#ef443b] font-black text-xs uppercase tracking-[1.5px] hover:bg-[#ef443b] hover:text-white transition-all rounded-md">
+              <button className="px-8 py-3 border border-[#d1d5db] text-[#ef443b] font-black text-[10px] uppercase tracking-[1.5px] hover:bg-[#ef443b] hover:text-white transition-all rounded-md">
                 View All FAQs
               </button>
             </div>

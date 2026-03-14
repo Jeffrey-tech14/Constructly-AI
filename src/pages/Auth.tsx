@@ -111,15 +111,9 @@ const Auth = () => {
   return (
     <>
       <div
-        className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative"
-        style={{
-          backgroundImage: `url('https://t4.ftcdn.net/jpg/03/57/34/39/360_F_357343965_u58BFcRrziBVMqgt6liwPHJKcIjHsPnc.jpg')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
+        className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative bg-[#0a0a0a] overflow-hidden"
       >
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 0%, rgba(240, 81, 78, 0.15), transparent 70%)' }}></div>
 
         <div className="relative bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-[850px] min-h-[600px] md:min-h-[520px] z-10">
           {/* SIGN UP FORM */}
@@ -364,9 +358,9 @@ const Auth = () => {
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
                   <img
-                    src="https://jtechai.vercel.app/jtech-small-light.png"
+                    src="/logo.jpg"
                     alt="JTech AI Logo"
-                    className="w-20 h-20 object-contain"
+                    className="w-20 h-20 object-cover rounded-xl shadow-lg border-2 border-white/20"
                   />
                 </div>
                 <h1
@@ -394,9 +388,9 @@ const Auth = () => {
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
                   <img
-                    src="https://jtechai.vercel.app/jtech-small-light.png"
+                    src="/logo.jpg"
                     alt="JTech AI Logo"
-                    className="w-20 h-20 object-contain"
+                    className="w-20 h-20 object-cover rounded-xl shadow-lg border-2 border-white/20"
                   />
                 </div>
                 <h1

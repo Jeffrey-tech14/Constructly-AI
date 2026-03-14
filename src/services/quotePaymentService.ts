@@ -24,7 +24,7 @@ class QuotePaymentService {
   async createQuotePayment(
     quoteId: string,
     userId: string,
-    amountKsh: number = 1000,
+    amountKsh: number = 200,
   ): Promise<QuotePayment> {
     const { data, error } = await supabase
       .from("quote_payments")

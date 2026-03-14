@@ -29,6 +29,7 @@ import QuoteDetailsPage from "./pages/QuoteDetailsPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
 import UserGuide from "./components/UserGuide";
+import FaqPage from "./pages/FaqPage";
 import CustomTitleBar from "./components/CustomTitleBar";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
@@ -164,8 +165,7 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/guide" element={<UserGuide />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/guide" element={<UserGuide />} />            <Route path="/faq" element={<FaqPage />} />          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </div>

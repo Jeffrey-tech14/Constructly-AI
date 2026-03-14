@@ -2,57 +2,42 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Menu,
-  Search,
   ArrowRight,
   ChevronRight,
   ChevronDown,
+  Phone,
   User,
-  HelpCircle,
-  Sun,
-  Moon,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";      
-import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "@/contexts/ThemeContext";
+import { motion } from "framer-motion";
 
 // --- Global Styles ---
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
     .font-technical { font-family: 'Outfit', sans-serif; }
-    
-    /* Sharp box shadow for dropdown */
-    .dropdown-shadow {
-      box-shadow: 0 4px 20px -5px rgba(0,0,0,0.2);
-    }
   `}</style>
 );
 
 const NAV_ITEMS = [
-  "Home",
-  "Who It's For",
-  "How It Works",
-  "Features",
-  "Pricing",
-  "Payment Options",
-  "Testimonials",
+  "Why JTech",
   "FAQ",
-  "Guide",
+  "Support",
 ];
 
 const NAV_GROUPS = {
-  home: "Home",
-  about: ["Who It's For", "How It Works", "Testimonials"],
-  services: ["Features"],
-  packages: ["Pricing", "Payment Options"],
+  why: "Why JTech",
   faq: "FAQ",
+  support: "Support",
 };
 
 // --- THEME CONSTANTS ---
 const THEME = {
-  NAVY: "#00356B",
-  ORANGE: "#D85C2C",
-  GREEN: "#86bc25",
+  BG: "#000000",
+  PANEL: "#1a1b22",
+  ORANGE: "#f0514e",
+  TEXT: "#eceff4",
+  MUTED: "#9fa5b3",
 };
 
 interface NavbarProps {
@@ -62,7 +47,6 @@ interface NavbarProps {
 
 const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -74,15 +58,9 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
 
   const navigateToSection = (item: string) => {
     const routes: { [key: string]: string } = {
-      Home: "/",
-      "Who It's For": "/features",
-      "How It Works": "/how-it-works",
-      Features: "/who-its-for",
-      Pricing: "/pricing",
-      "Payment Options": "/payment-options",
-      Testimonials: "/testimonials",
+      "Why JTech": "/",
       FAQ: "/faq",
-      Guide: "/guide",
+      Support: "/guide",
     };
     const route = routes[item] || "/";
     navigate(route);
@@ -90,100 +68,13 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
     setMenuOpen(false);
   };
 
-  // ✅ DROPDOWN COMPONENT (Sharp, Text Only)
-  const NavDropdown = ({
-    label,
-    items,
-  }: {
-    label: string;
-    items: string[];
-  }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const menuVariants = {
-      hidden: { opacity: 0, y: 10 },
-      visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.2, staggerChildren: 0.05 },
-      },
-      exit: { opacity: 0, y: 10, transition: { duration: 0.15 } },
-    };
-
-    const itemVariants = {
-      hidden: { opacity: 0, x: -5 },
-      visible: { opacity: 1, x: 0 },
-    };
-
-    return (
-      <div
-        className="relative h-full rounded-3xl flex items-center"
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
-      >
-        {/* Trigger Button - Unbolded (Medium) */}
-        <button
-          className={`relative group h-full flex items-center gap-1.5 text-[16px] font-medium transition-colors duration-300 px-2
-            text-[#00356B] hover:text-[#002a54]
-          `}
-        >
-          {label}
-          <ChevronDown
-            className={`w-4 h-4 opacity-80 transition-transform duration-300 ${
-              isOpen
-                ? "rotate-180 text-[#D85C2C]"
-                : "rotate-0 group-hover:text-[#D85C2C]"
-            }`}
-          />
-          {/* ✅ ORANGE UNDERLINE: Thinned to 2px (Unbolded) */}
-          <span
-            className={`absolute bottom-0 left-0 w-full h-[2px] bg-[#D85C2C] transition-transform duration-300 origin-left ${
-              isOpen ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-            }`}
-          />
-        </button>
-
-        {/* Dropdown Menu - SHARP CORNERS */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              variants={menuVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute rounded-3xl top-full left-0 pt-0 w-64 z-50"
-            >
-              <div className="relative bg-white border border-gray-100 dropdown-shadow p-0 rounded-3xl overflow-hidden">
-                {items.map((item) => (
-                  <motion.button
-                    key={item}
-                    variants={itemVariants}
-                    onClick={() => {
-                      navigateToSection(item);
-                      setIsOpen(false);
-                    }}
-                    className="w-full text-left px-5 py-3.5 text-[15px] font-medium text-gray-700 transition-all duration-200 
-                               hover:bg-[#f8f9fa] hover:text-[#00356B] hover:pl-7 flex items-center justify-between group border-b border-gray-50 last:border-0"
-                  >
-                    <span>{item}</span>
-                    <ChevronRight className="w-4 h-4 text-[#D85C2C] opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
   // ✅ JTech Logo
   const JTechAILogo = () => (
     <img
-      src="/logo4.jpg"
+      src="/logo.jpg"
       alt="JTech AI Logo"
       onClick={() => navigate("/")}
-      className="cursor-pointer h-9 w-auto"
+      className="cursor-pointer h-10 w-auto object-contain"
     />
     // <svg
     //   width="160"
@@ -233,36 +124,38 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
       {/* Fixed Navbar Wrapper */}
       <div
         className={`fixed top-0 w-full z-50 font-technical transition-all duration-300 ${
-          scrolled ? "shadow-md bg-white/95 backdrop-blur-md" : "bg-white"
+          ""
         }`}
+        style={{ backgroundColor: THEME.BG }}
       >
-        {/* ✅ UTILITY STRIP: Navy Background + Black Text + No Icons */}
+        {/* Top utility strip */}
         <div
-          className="text-[11px] font-bold py-2.5 px-4 sm:px-6 hidden md:block tracking-widest uppercase transition-colors duration-300"
-          style={{ backgroundColor: THEME.NAVY, color: "white" }}
+          className="text-[12px] font-semibold py-2.5 px-4 sm:px-6 hidden md:block border-b border-white/10"
+          style={{ backgroundColor: THEME.BG, color: THEME.MUTED }}
         >
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
-            <div className="flex items-center gap-6">
-              <span className="cursor-pointer transition-colors hover:opacity-70">
-                Global / EN-US
-              </span>
-              <span className="w-px h-3 bg-black/30"></span>
-              <span className="cursor-pointer transition-colors hover:opacity-70">
-                +254 706 927062
-              </span>
+            <div className="flex items-center gap-2 text-[#f0514e]">
+              <Phone className="w-4 h-4" />
+              <span className="font-bold">Call Sales:</span>
+              <span className="text-[#a3a9b7]">+254 706 927062</span>
             </div>
-            <div className="flex items-center gap-6">
-              <button className="hover:opacity-70 transition-opacity text-[11px] font-bold uppercase tracking-widest">
-                Support Center
+            <div className="flex items-center gap-5">
+              <span className="text-[#a3a9b7] hover:text-white cursor-pointer transition-colors">
+                My Portal
+              </span>
+              <button className="flex items-center gap-1 text-[#a3a9b7] hover:text-white transition-colors">
+                <User className="w-3.5 h-3.5" />
+                <span className="text-xs">$</span>
+                <ChevronDown className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* ✅ MAIN NAV */}
+        {/* Main nav */}
         <nav
-          className="flex items-center relative z-20 border-b border-gray-100"
-          style={{ height: "88px" }}
+          className="flex items-center relative z-20"
+          style={{ height: "66px", backgroundColor: THEME.PANEL }}
         >
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 w-full">
             <div className="flex items-center justify-between">
@@ -274,104 +167,64 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
                 <JTechAILogo />
               </div>
 
-              {/* Desktop Nav Items - NO ICONS, UNBOLDED */}
-              <div className="hidden lg:flex items-center gap-8 flex-1 justify-center h-full">
-                {/* Home */}
+              {/* Desktop nav */}
+              <div className="hidden lg:flex items-center gap-10 flex-1 justify-start pl-8 h-full">
                 <button
-                  onClick={() => navigateToSection(NAV_GROUPS.home)}
-                  className="relative group h-full flex items-center px-1 text-[16px] font-medium text-[#00356B] hover:text-[#002a54] transition-colors tracking-normal"
+                  onClick={() => navigateToSection(NAV_GROUPS.why)}
+                  className="relative group h-full flex items-center px-1 text-[16px] font-semibold text-[#eceff4] hover:text-white transition-colors"
                 >
-                  {NAV_GROUPS.home}
-                  {/* ✅ ORANGE UNDERLINE: Thinned to 2px */}
-                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D85C2C] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
+                  {NAV_GROUPS.why}
+                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f0514e] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
                 </button>
-
-                {/* Dropdowns */}
-                <NavDropdown label="About" items={NAV_GROUPS.about} />
-                <NavDropdown label="Services" items={NAV_GROUPS.services} />
-                <NavDropdown label="Packages" items={NAV_GROUPS.packages} />
-
-                {/* FAQ */}
                 <button
                   onClick={() => navigateToSection(NAV_GROUPS.faq)}
-                  className="relative group h-full flex items-center px-1 text-[16px] font-medium text-[#00356B] hover:text-[#002a54] transition-colors tracking-normal"
+                  className="relative group h-full flex items-center px-1 text-[16px] font-semibold text-[#eceff4] hover:text-white transition-colors"
                 >
                   {NAV_GROUPS.faq}
-                  {/* ✅ ORANGE UNDERLINE: Thinned to 2px */}
-                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D85C2C] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
+                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f0514e] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
                 </button>
-
-                {/* Guide */}
                 <button
-                  onClick={() => navigate("/guide")}
-                  className="relative group h-full flex items-center gap-1 px-1 text-[16px] font-medium text-[#00356B] hover:text-[#002a54] transition-colors tracking-normal"
+                  onClick={() => navigateToSection(NAV_GROUPS.support)}
+                  className="relative group h-full flex items-center px-1 text-[16px] font-semibold text-[#eceff4] hover:text-white transition-colors"
                 >
-                  <HelpCircle className="w-4 h-4" />
-                  Guide
-                  {/* ✅ ORANGE UNDERLINE: Thinned to 2px */}
-                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#D85C2C] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
+                  {NAV_GROUPS.support}
+                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#f0514e] transition-transform duration-300 origin-left scale-x-0 group-hover:scale-x-100" />
                 </button>
               </div>
 
               {/* Actions Area */}
-              <div className="flex items-center gap-4 pl-4">
-                {/* Theme Toggle Navbar Button */}
-                <button
-                  onClick={toggleTheme}
-                  className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                  title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-                >
-                  <div className={`relative w-8 h-4 rounded-full transition-colors duration-300 ${theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                    <span className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform duration-300 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
-                  </div>
-                  <span className="text-[11px] font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest pointer-events-none select-none">
-                    {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-                  </span>
-                </button>
-
-                {/* Search Icon */}
-                <button className="hidden lg:flex p-2 text-gray-400 hover:text-[#00356B] hover:bg-gray-50 rounded-full transition-all">
-                  <Search className="w-5 h-5" />
-                </button>
-
-                {/* Login Button */}
-                <button
-                  onClick={() => navigate("/auth?mode=signin")}
-                  className="hidden lg:flex items-center gap-2 px-5 py-2.5 text-[12px] font-extrabold uppercase tracking-widest text-[#00356B] hover:text-[#86bc25] hover:bg-gray-50 rounded-full transition-all border border-transparent hover:border-gray-100"
-                >
-                  <User className="w-4 h-4 mb-0.5" />
-                  Login
-                </button>
-
-                {/* CTA Button */}
+              <div className="flex items-center gap-3 pl-4">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ y: -1 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/auth?mode=signup")}
-                  className="hidden sm:flex items-center justify-center gap-2 text-white text-[12px] font-extrabold uppercase tracking-widest px-8 py-3 rounded-full shadow-lg shadow-green-600/20 hover:shadow-xl transition-all"
-                  style={{ backgroundColor: THEME.GREEN }}
+                  className="hidden sm:flex items-center justify-center text-white text-[16px] font-bold px-8 py-2.5 rounded-none transition-all"
+                  style={{ backgroundColor: THEME.ORANGE }}
                 >
                   Get Started
                 </motion.button>
+                <button
+                  onClick={() => navigate("/auth?mode=signin")}
+                  className="hidden lg:flex items-center gap-2 px-6 py-2.5 text-[16px] font-semibold text-[#f0514e] hover:text-[#ff726f] border border-white/10 hover:border-white/20 transition-all"
+                >
+                  Sign In
+                </button>
 
                 {/* Mobile Menu Trigger */}
                 <div className="lg:hidden ml-2">
                   <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
                     <SheetTrigger asChild>
-                      <button className="p-2 text-[#00356B] hover:bg-gray-50 rounded-full transition-colors">
+                      <button className="p-2 text-white/90 hover:bg-white/10 rounded transition-colors">
                         <Menu className="h-8 w-8" />
                       </button>
                     </SheetTrigger>
 
                     <SheetContent
                       side="right"
-                      className="w-[300px] p-0 font-technical border-l-0 shadow-2xl"
+                      className="w-[300px] p-0 font-technical border-l-0 shadow-2xl bg-[#1b1e27]"
                     >
                       {/* Mobile Header */}
-                      <div
-                        className="h-full flex flex-col"
-                        style={{ backgroundColor: THEME.NAVY }}
-                      >
+                      <div className="h-full flex flex-col bg-[#1b1e27]">
                         <div className="p-8 pb-4">
                           <h2 className="text-white text-2xl font-bold">
                             Menu
@@ -393,13 +246,13 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
                         </div>
 
                         {/* Mobile Footer Actions */}
-                        <div className="p-6 bg-[#002855] pb-10">
+                        <div className="p-6 bg-[#151820] pb-10">
                           <button
                             onClick={() => {
                               navigate("/auth?mode=signin");
                               setMenuOpen(false);
                             }}
-                            className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-white/20 text-white text-[13px] font-bold uppercase tracking-widest rounded-full hover:bg-white/10 transition-all"
+                            className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-white/20 text-white text-[13px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
                           >
                             <User className="w-4 h-4" /> Sign In
                           </button>
@@ -409,8 +262,8 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
                               navigate("/auth?mode=signup");
                               setMenuOpen(false);
                             }}
-                            className="w-full text-white text-[13px] font-bold uppercase tracking-widest py-4 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
-                            style={{ backgroundColor: THEME.GREEN }}
+                            className="w-full text-white text-[13px] font-bold uppercase tracking-widest py-4 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+                            style={{ backgroundColor: THEME.ORANGE }}
                           >
                             Create Account <ArrowRight className="w-4 h-4" />
                           </button>
@@ -425,7 +278,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
         </nav>
       </div>
 
-      <div className="h-[88px]" />
+      <div className="h-[104px]" style={{ backgroundColor: THEME.BG }} />
     </>
   );
 };

@@ -32,7 +32,7 @@ const QuotePaymentPage = () => {
   const {
     quoteId,
     quoteTitle,
-    amount = 1000,
+    amount = 200,
     onPaymentComplete,
   } = location.state || {};
 

@@ -1,141 +1,121 @@
-﻿import { ChevronRight } from "lucide-react";
+// src/components/sections/Hero.tsx
+import { PlayCircle, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const GlobalStyles = () => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
-    .font-display { font-family: 'Outfit', sans-serif; }
+// Updated theme using your brand colors
+const THEME = {
+  HERO_BG: "#000B29", // Keep dark for contrast
+  OVERLAY: "rgba(0, 11, 41, 0.65)", // Slightly lighter for better text legibility
+  BRAND_BLUE: "#0067b1",
+  ACCENT_GREEN: "#43b02a",
+  TEXT_LIGHT: "#f0f9ff",
+};
 
-    .hero-pattern {
-      background: #000000;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-pattern::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      /* AnyDesk style angled background */
-      background: linear-gradient(105deg, #181818 0%, #181818 42%, transparent 42.2%);
-      pointer-events: none;
-      z-index: -2;
-    }
-
-    .hero-pattern::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(-75deg, #111111 0%, #111111 30%, transparent 30.2%);
-      pointer-events: none;
-      z-index: -2;
-    }
-
-    .hero-diagonal::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: -1;
-      background: radial-gradient(circle at 70% 30%, rgba(240, 81, 78, 0.08), transparent 60%);
-    }
-  `}</style>
-);
+const openDemoVideo = () => {
+  window.open("/Demo1.mp4", "_blank");
+};
 
 const Hero = ({ scrollTo }: any) => {
   const navigate = useNavigate();
 
   return (
-    <section className="antialiased w-full relative font-display hero-pattern hero-diagonal overflow-hidden">
-      <GlobalStyles />
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 pb-12 sm:pt-14 sm:pb-16">
-        <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-8">
+    <div className="antialiased text-white selection:bg-[#43b02a] selection:text-white bg-[#000B29] relative">
+      <style>{`
+        @keyframes scan-line {
+          0% { top: 0%; opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { top: 100%; opacity: 0.3; }
+        }
+        @keyframes pulse-node {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.6); opacity: 0.6; }
+        }
+        .animate-scan-line {
+          animation: scan-line 3.5s infinite ease-in-out;
+        }
+        .animate-pulse-node {
+          animation: pulse-node 2.2s infinite ease-in-out;
+        }
+      `}</style>
 
-          {/* LEFT SIDE: Floating Graphic */}
-          <div className="hidden md:flex w-full md:w-1/2 relative h-[300px] sm:h-[400px] lg:h-[470px] items-center justify-center">
-            <motion.div 
-              className="relative w-full h-full z-10 flex items-center justify-center p-4 sm:p-8"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              <img
-                src="https://png.pngtree.com/png-vector/20240314/ourmid/pngtree-trendy-civil-engineering-png-image_11952952.png"
-                alt="Civil Engineering Graphic" 
-                className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-[0_20px_55px_rgba(240,81,78,0.22)]"
-              />
-            </motion.div>
-            <div className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 w-[52%] h-[20px] sm:h-[32px] bg-black blur-[22px] rounded-full opacity-80 pointer-events-none flex items-center justify-center z-0">
-              <div className="w-[80%] h-[50%] bg-[#f0514e]/30 blur-[15px] rounded-full"></div>
-            </div>
-          </div>
+      <section className="relative h-auto min-h-[550px] lg:h-[80vh] w-full overflow-hidden flex items-center pt-20 pb-16 lg:py-0 border-b border-white/10">
+        {/* Background Image + Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+            alt="Construction professionals reviewing blueprints"
+            className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ backgroundColor: THEME.OVERLAY }}
+          ></div>
+        </div>
 
-          {/* RIGHT SIDE: Content */}
-          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left pt-0 lg:pt-8 relative z-20">
-            {/* Tagline pill */}
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1 lg:px-4 lg:py-1.5 rounded-full bg-white/[0.03] border border-white/15 text-[#ed6a32] text-xs sm:text-sm font-semibold mb-6 lg:mb-8 tracking-wide"
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full lg:w-[65%] text-center lg:text-left mx-auto lg:mx-0">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ed6a32] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ed6a32]"></span>
-              </span>
-              Next-Gen Construction Costing
-            </motion.div>
-            
-            <motion.h1 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-[2.2rem] sm:text-[3rem] md:text-[2.6rem] lg:text-[4rem] xl:text-[4.2rem] font-bold leading-[1.05] tracking-tight mb-6 flex flex-col md:block"
-            >
-              <span className="text-[#ed6a32] whitespace-nowrap">Generate Accurate</span> <br className="hidden md:block" />
-              <span className="text-[#f0f2f6] font-normal">BOQ in Minutes</span>
-            </motion.h1>
+              <p className="text-[9px] font-bold tracking-[0.3em] uppercase mb-3 lg:mb-4 text-[#43b02a]">
+                THE SOLUTION
+              </p>
 
-            <motion.p 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg sm:text-xl md:text-lg lg:text-xl text-[#8f95a3] max-w-[560px] font-semibold leading-relaxed mb-8 sm:mb-12"
-            >
-              JTech simplifies estimating, letting you generate accurate Bills of Quantities in a fraction of the time.
-            </motion.p>
-            
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
-            >
-              <button
-                onClick={() => navigate('/auth?mode=signup')}
-                className="group relative px-8 sm:px-10 md:px-6 lg:px-10 py-4 sm:py-4 md:py-3 lg:py-4 bg-[#f0514e] text-white text-lg sm:text-[1.1rem] md:text-base lg:text-[1.1rem] font-bold rounded-[4px] overflow-hidden transition-all duration-300 hover:brightness-110 active:scale-[0.98] shadow-[0_0_24px_rgba(240,81,78,0.38)] w-full sm:w-auto z-10"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <span>Get Started</span>
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </button>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-light leading-tight mb-4 lg:mb-5 tracking-tight text-white">
+                <span className="block whitespace-nowrap">Generate Accurate Quotes</span>
+                <span className="block font-light">In Minutes.</span>
+              </h1>
+
+              <p className="text-sm text-white/90 max-w-lg mx-auto lg:mx-0 mb-6 leading-relaxed font-medium">
+                Generate and edit precise quotes. Connect workflows, validate
+                costs, and produce automated takeoffs with 99.9% accuracy.
+              </p>
+
+              <div className="w-12 h-0.5 bg-[#43b02a] mb-6 mx-auto lg:mx-0 opacity-90"></div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
+                <motion.button
+                  whileHover={{
+                    y: -3,
+                    boxShadow: "0 6px 16px rgba(67, 176, 42, 0.4)",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={openDemoVideo}
+                  className="bg-[#43b02a] text-white text-[11px] font-black uppercase tracking-wider px-7 py-3 rounded-full flex items-center justify-center gap-2 shadow-md hover:bg-[#3a9a25] transition-all duration-300"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  Watch Demo
+                </motion.button>
+
+                <motion.button
+                  whileHover={{
+                    y: -3,
+                    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.15)",
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate("/auth?mode=signup")}
+                  className="bg-white text-[#0067b1] text-[11px] font-black uppercase tracking-wider px-7 py-3 rounded-full flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors duration-300 shadow-md"
+                >
+                  Get Started
+                  <ChevronRight className="w-4 h-4 text-[#43b02a]" />
+                </motion.button>
+              </div>
+
+              <p className="text-[10px] text-white/70 uppercase tracking-widest ">
+                Trusted by 500+ Top Construction Firms
+              </p>
             </motion.div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 
 export default Hero;
-
-
-

@@ -2,31 +2,15 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function CTABanner({ scrollTo }: { scrollTo: (elementId: string) => void }) {
+export default function CTABanner({ scrollTo }: any) {
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const navigate = useNavigate();
   const turnstileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let widgetId: string | undefined = undefined;
-
-    function renderTurnstile() {
-      if (turnstileRef.current && (window as unknown as { turnstile: unknown }).turnstile) {
-        // Clear any inner HTML just in case
-        turnstileRef.current.innerHTML = '';
-        widgetId = (window as unknown as { turnstile: unknown }).turnstile.render(turnstileRef.current, {
-          sitekey: "1x00000000000000000000AA",
-          theme: "dark",
-          callback: function(token: string) {
-            setTurnstileToken(token);
-          },
-        });
-      }
-    }
-
     // Make sure we have the turnstile function globally
-    if (!(window as unknown as { turnstile: unknown }).turnstile) {
+    if (!(window as any).turnstile) {
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
@@ -40,12 +24,17 @@ export default function CTABanner({ scrollTo }: { scrollTo: (elementId: string) 
       renderTurnstile();
     }
 
-    // Cleanup for React StrictMode
-    return () => {
-      if (widgetId !== undefined && (window as unknown as { turnstile: unknown }).turnstile) {
-        (window as unknown as { turnstile: unknown }).turnstile.remove(widgetId);
+    function renderTurnstile() {
+      if (turnstileRef.current && (window as any).turnstile) {
+        (window as any).turnstile.render(turnstileRef.current, {
+          sitekey: "1x00000000000000000000AA",
+          theme: "dark",
+          callback: function(token: string) {
+            setTurnstileToken(token);
+          },
+        });
       }
-    };
+    }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -59,8 +48,8 @@ export default function CTABanner({ scrollTo }: { scrollTo: (elementId: string) 
   };
 
   return (
-    <section className="py-8 px-4 sm:px-6 lg:px-8 bg-[#181a1f] relative overflow-hidden flex items-center justify-center min-h-[200px]">
-      <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+    <section className="py-12 px-4 sm:px-6 lg:px-8 bg-[#111315] relative overflow-hidden flex items-center justify-center min-h-[300px]">
+      <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
         
         {/* Left Side: Form */}
         <div className="flex-1 w-full max-w-xl text-left space-y-6">

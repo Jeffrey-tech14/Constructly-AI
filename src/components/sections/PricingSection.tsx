@@ -42,7 +42,7 @@ export default function PricingSection({
   ];
 
   return (
-    <div id="pricing" className="bg-white py-24 flex items-center justify-center font-sans tracking-wide">
+    <div id="pricing" className="bg-white py-16 flex items-center justify-center font-sans tracking-wide">
       <div className="max-w-4xl w-full px-4 sm:px-6 lg:px-8">
         
         <motion.div
@@ -76,14 +76,17 @@ export default function PricingSection({
           {/* Right Column */}
           <div className="w-full md:w-[340px] flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-[#3f3f46] pt-8 md:pt-0 md:pl-12">
             
-<div className="flex flex-col items-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-[24px] text-gray-400 line-through">1000 KES</span>
-                  <span className="bg-red-500 text-white text-[12px] font-bold px-2 py-1 rounded ml-2">80% OFF</span>
-                </div>
-                <div className="text-[46px] text-white font-light mt-1 mb-4 md:mt-0 leading-none">
-                  200 <span className="text-3xl">KES</span>
-                </div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-xl text-gray-400 line-through decoration-gray-500">
+                1,000 KES
+              </span>
+              <span className="bg-[#f0514e] text-white text-[11px] font-bold px-2 py-1 rounded-sm leading-none">
+                80%<br/>OFF
+              </span>
+            </div>
+
+            <div className="text-[46px] text-white font-light mb-2 leading-none">
+              200 <span className="text-3xl">KES</span>
             </div>
             
             <p className="text-[12px] text-gray-300 mb-8">
@@ -108,4 +111,3 @@ export default function PricingSection({
     </div>
   );
 }
-

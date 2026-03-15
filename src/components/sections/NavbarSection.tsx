@@ -74,11 +74,17 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
       onClick={() => navigate("/")} 
       className="flex items-center gap-2.5 cursor-pointer group"
     >
-      <img
-        src="/logo.jpg"
-        alt="JTech AI Logo"
-        className="h-7 w-auto object-contain"
-      />
+      <div className="flex items-center justify-center">
+        <svg 
+          viewBox="0 0 44 32" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg" 
+          className="h-7 w-auto text-[#f0514e] transition-transform duration-300 group-hover:scale-105 flex-shrink-0"
+        >
+          <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
+          <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+        </svg>
+      </div>
       <span className="text-[#f0f2f6] text-[26px] font-[800] tracking-wide" style={{ fontFamily: 'Outfit, sans-serif' }}>
         JTech AI
       </span>

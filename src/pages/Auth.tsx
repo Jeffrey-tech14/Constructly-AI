@@ -357,11 +357,17 @@ const Auth = () => {
                 `}
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
-                  <img
-                    src="/logo.jpg"
-                    alt="JTech AI Logo"
-                    className="w-12 h-12 object-cover rounded-xl shadow-lg border-2 border-white/20"
-                  />
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-white/10 backdrop-blur-sm p-2">
+                    <svg 
+                      viewBox="0 0 44 32" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="w-full h-full text-[#f0514e]"
+                    >
+                      <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
+                      <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+                    </svg>
+                  </div>
                 </div>
                 <h1
                   className="font-bold text-2xl md:text-3xl mb-3"
@@ -387,11 +393,17 @@ const Auth = () => {
                 `}
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
-                  <img
-                    src="/logo.jpg"
-                    alt="JTech AI Logo"
-                    className="w-12 h-12 object-cover rounded-xl shadow-lg border-2 border-white/20"
-                  />
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-white/10 backdrop-blur-sm p-2">
+                    <svg 
+                      viewBox="0 0 44 32" 
+                      fill="none" 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="w-full h-full text-[#f0514e]"
+                    >
+                      <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
+                      <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+                    </svg>
+                  </div>
                 </div>
                 <h1
                   className="font-bold text-2xl md:text-3xl mb-3"

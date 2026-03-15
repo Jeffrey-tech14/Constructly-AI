@@ -330,7 +330,7 @@ const ProjectProgress = ({
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                className="glass"
+                className=" "
                 selected={
                   progressData.milestone_date
                     ? new Date(progressData.milestone_date)

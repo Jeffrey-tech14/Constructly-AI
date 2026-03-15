@@ -53,7 +53,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg  mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+        <h3 className="text-lg  mb-4 flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
           <Wrench className="w-5 h-5" />
           Select Required Equipment
         </h3>
@@ -81,7 +81,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           }}
                         />
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
+                          <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                             {equipmentItem.name}
                           </h4>
                           {equipmentItem.description && (
@@ -97,7 +97,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                             <div>
                               <Label
                                 htmlFor={`quantity-${equipmentItem.id}`}
-                                className="text-gray-900 dark:text-white"
+                                className="text-[#1a1a1a] dark:text-[#eceff4]"
                               >
                                 Quantity
                               </Label>
@@ -118,7 +118,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                             <div>
                               <Label
                                 htmlFor={`unit-${equipmentItem.id}`}
-                                className="text-gray-900 dark:text-white"
+                                className="text-[#1a1a1a] dark:text-[#eceff4]"
                               >
                                 Unit
                               </Label>
@@ -147,7 +147,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           <div>
                             <Label
                               htmlFor={`rate-${equipmentItem.id}`}
-                              className="text-gray-900 dark:text-white"
+                              className="text-[#1a1a1a] dark:text-[#eceff4]"
                             >
                               Rate per {selectedEquipment.usage_unit || "unit"}
                             </Label>
@@ -168,7 +168,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           <div>
                             <Label
                               htmlFor={`total-${equipmentItem.id}`}
-                              className="text-gray-900 dark:text-white"
+                              className="text-[#1a1a1a] dark:text-[#eceff4]"
                             >
                               Total Cost
                             </Label>
@@ -182,7 +182,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}`}
-                              className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
+                              className="bg-gray-100 dark:bg-gray-600 font-medium text-[#1a1a1a] dark:text-[#eceff4]"
                             />
                             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                               {selectedEquipment.usage_quantity || 0}{" "}
@@ -230,7 +230,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           }}
                         />
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
+                          <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                             {customEq.equipment_name}
                             <Badge className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
                               Custom
@@ -249,7 +249,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                             <div>
                               <Label
                                 htmlFor={`quantity-${customEq.id}`}
-                                className="text-gray-900 dark:text-white"
+                                className="text-[#1a1a1a] dark:text-[#eceff4]"
                               >
                                 Quantity
                               </Label>
@@ -270,7 +270,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                             <div>
                               <Label
                                 htmlFor={`unit-${customEq.id}`}
-                                className="text-gray-900 dark:text-white"
+                                className="text-[#1a1a1a] dark:text-[#eceff4]"
                               >
                                 Unit
                               </Label>
@@ -299,7 +299,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           <div>
                             <Label
                               htmlFor={`rate-${customEq.id}`}
-                              className="text-gray-900 dark:text-white"
+                              className="text-[#1a1a1a] dark:text-[#eceff4]"
                             >
                               Rate per {selectedEquipment.usage_unit || "unit"}
                             </Label>
@@ -320,7 +320,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           <div>
                             <Label
                               htmlFor={`total-${customEq.id}`}
-                              className="text-gray-900 dark:text-white"
+                              className="text-[#1a1a1a] dark:text-[#eceff4]"
                             >
                               Total Cost
                             </Label>
@@ -334,7 +334,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}`}
-                              className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
+                              className="bg-gray-100 dark:bg-gray-600 font-medium text-[#1a1a1a] dark:text-[#eceff4]"
                             />
                             <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                               {selectedEquipment.usage_quantity || 0}{" "}
@@ -373,7 +373,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
               return (
                 <Card
                   key={eq.equipment_type_id}
-                  className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  className="p-4 border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418]"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -408,7 +408,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                       <div>
                         <Label
                           htmlFor={`custom-quantity-${eq.equipment_type_id}`}
-                          className="text-gray-900 dark:text-white"
+                          className="text-[#1a1a1a] dark:text-[#eceff4]"
                         >
                           Quantity
                         </Label>
@@ -429,7 +429,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                       <div>
                         <Label
                           htmlFor={`custom-unit-${eq.equipment_type_id}`}
-                          className="text-gray-900 dark:text-white"
+                          className="text-[#1a1a1a] dark:text-[#eceff4]"
                         >
                           Unit
                         </Label>
@@ -456,7 +456,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                     <div>
                       <Label
                         htmlFor={`custom-rate-${eq.equipment_type_id}`}
-                        className="text-gray-900 dark:text-white"
+                        className="text-[#1a1a1a] dark:text-[#eceff4]"
                       >
                         Rate per {eq.usage_unit || "unit"}
                       </Label>
@@ -477,7 +477,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                     <div>
                       <Label
                         htmlFor={`custom-total-${eq.equipment_type_id}`}
-                        className="text-gray-900 dark:text-white"
+                        className="text-[#1a1a1a] dark:text-[#eceff4]"
                       >
                         Total Cost
                       </Label>
@@ -489,7 +489,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}`}
-                        className="bg-gray-100 dark:bg-gray-600 font-medium text-gray-900 dark:text-white"
+                        className="bg-gray-100 dark:bg-gray-600 font-medium text-[#1a1a1a] dark:text-[#eceff4]"
                       />
                       <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                         {eq.usage_quantity || 0} {eq.usage_unit || "unit"} × KES
@@ -506,7 +506,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
             })}
 
           {/* Add Custom Equipment Button */}
-          <Card className="p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col items-center justify-center">
+          <Card className="p-4 border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418] flex flex-col items-center justify-center">
             <Button
               onClick={() => {
                 const customId = uuidv4();

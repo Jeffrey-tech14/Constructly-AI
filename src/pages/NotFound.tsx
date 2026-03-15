@@ -165,7 +165,7 @@ const NotFound = () => {
           {/* Footer Links Card */}
           <motion.div
             variants={itemVariants}
-            className="glass-card rounded-2xl p-6 sm:p-8 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+            className=" -card rounded-2xl p-6 sm:p-8 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
           >
             <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium">
               Need help finding something?

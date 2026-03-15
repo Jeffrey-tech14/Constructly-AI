@@ -602,7 +602,7 @@ const UserGuide = () => {
                   </div>
 
                   {/* Wastage Settings Section */}
-                  <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-4">
+                  <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-4">
                     <h4 className="text-white dark:text-white mb-3">
                       Material Wastage Percentages:
                     </h4>
@@ -641,7 +641,7 @@ const UserGuide = () => {
                   </div>
 
                   {/* Professional QS Elements Section */}
-                  <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-4">
+                  <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-4">
                     <h4 className="text-white dark:text-white mb-3">
                       Professional QS Elements (Toggle Options):
                     </h4>
@@ -694,7 +694,7 @@ const UserGuide = () => {
                   </div>
 
                   {/* Concrete & Masonry Settings */}
-                  <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-4">
+                  <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-4">
                     <h4 className="text-white dark:text-white mb-3">
                       Concrete & Masonry Configuration:
                     </h4>
@@ -1337,7 +1337,7 @@ const UserGuide = () => {
                   </div>
 
                   {/* External Finishes Section */}
-                  <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-4">
+                  <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-4">
                     <h4 className="text-white dark:text-white mb-3">
                       External Wall Finishes (Required Inputs):
                     </h4>
@@ -1373,7 +1373,7 @@ const UserGuide = () => {
                   </div>
 
                   {/* Ceiling Finishes Section */}
-                  <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-4">
+                  <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-4">
                     <h4 className="text-white dark:text-white mb-3">
                       Ceiling Finishes (Required Inputs):
                     </h4>
@@ -1963,7 +1963,7 @@ const UserGuide = () => {
               <CardTitle className="text-base">Updating Your Profile</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="bg-[#1a1a1a] dark:bg-gray-900 p-4 rounded space-y-2 text-sm">
+              <div className="bg-[#1a1a1a] dark:bg-[#111418] p-4 rounded space-y-2 text-sm">
                 <div className="flex gap-3">
                   <CheckCircle2 className="w-5 h-5 text-[#ef443b] flex-shrink-0 mt-0.5" />
                   <p>
@@ -2122,7 +2122,7 @@ const UserGuide = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-[#1a1a1a] dark:bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-[#1a1a1a] dark:bg-[#111418] p-3 rounded text-sm">
                   <p className=" text-white dark:text-white mb-1">
                     Project Information
                   </p>
@@ -2130,7 +2130,7 @@ const UserGuide = () => {
                     Project name, location, client details
                   </p>
                 </div>
-                <div className="bg-[#1a1a1a] dark:bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-[#1a1a1a] dark:bg-[#111418] p-3 rounded text-sm">
                   <p className=" text-white dark:text-white mb-1">
                     Itemized Costs
                   </p>
@@ -2138,7 +2138,7 @@ const UserGuide = () => {
                     Every material item with quantities and prices
                   </p>
                 </div>
-                <div className="bg-[#1a1a1a] dark:bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-[#1a1a1a] dark:bg-[#111418] p-3 rounded text-sm">
                   <p className=" text-white dark:text-white mb-1">
                     Section Totals
                   </p>
@@ -2146,7 +2146,7 @@ const UserGuide = () => {
                     Subtotals for each trade (painting, concrete, etc.)
                   </p>
                 </div>
-                <div className="bg-[#1a1a1a] dark:bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-[#1a1a1a] dark:bg-[#111418] p-3 rounded text-sm">
                   <p className=" text-white dark:text-white mb-1">
                     Grand Total
                   </p>
@@ -2154,7 +2154,7 @@ const UserGuide = () => {
                     Final project cost with taxes and fees
                   </p>
                 </div>
-                <div className="bg-[#1a1a1a] dark:bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-[#1a1a1a] dark:bg-[#111418] p-3 rounded text-sm">
                   <p className=" text-white dark:text-white mb-1">
                     Company Details
                   </p>
@@ -2162,7 +2162,7 @@ const UserGuide = () => {
                     Your logo, name, contact info, registration
                   </p>
                 </div>
-                <div className="bg-[#1a1a1a] dark:bg-gray-900 p-3 rounded text-sm">
+                <div className="bg-[#1a1a1a] dark:bg-[#111418] p-3 rounded text-sm">
                   <p className=" text-white dark:text-white mb-1">
                     Terms & Notes
                   </p>
@@ -2343,7 +2343,7 @@ const UserGuide = () => {
               <CardTitle className="text-base">Payment Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-[#1a1a1a] dark:bg-gray-900 p-4 rounded space-y-3">
+              <div className="bg-[#1a1a1a] dark:bg-[#111418] p-4 rounded space-y-3">
                 <div>
                   <p className=" text-white dark:text-white mb-1">
                     Payment Method
@@ -2354,7 +2354,7 @@ const UserGuide = () => {
                   </p>
                 </div>
 
-                <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-3">
+                <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-3">
                   <p className=" text-white dark:text-white mb-1">
                     Payment Type
                   </p>
@@ -2363,7 +2363,7 @@ const UserGuide = () => {
                   </p>
                 </div>
 
-                <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-3">
+                <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-3">
                   <p className=" text-white dark:text-white mb-1">
                     Invoice & Receipt
                   </p>
@@ -2373,7 +2373,7 @@ const UserGuide = () => {
                   </p>
                 </div>
 
-                <div className="border-t border-[#d1d5db] dark:border-gray-700 pt-3">
+                <div className="border-t border-[#d1d5db] dark:border-[#2a2d35] pt-3">
                   <p className=" text-white dark:text-white mb-1">
                     Security
                   </p>

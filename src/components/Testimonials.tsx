@@ -126,7 +126,7 @@ export function TestimonialsSection() {
         <div className="max-w-5xl mx-auto relative mb-20 mt-10">
           <button
             onClick={prevTestimonial}
-            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-[#111418] dark:text-gray-300 dark:border-[#2a2d35] dark:hover:text-primary"
             aria-label="Previous testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -135,7 +135,7 @@ export function TestimonialsSection() {
 
           <button
             onClick={nextTestimonial}
-            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-[#111418] dark:text-gray-300 dark:border-[#2a2d35] dark:hover:text-primary"
             aria-label="Next testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -153,7 +153,7 @@ export function TestimonialsSection() {
                   transition={{ duration: 0.5 }}
                   className={`rounded-2xl shadow-xl overflow-hidden border`}
                 >
-                  <div className="rounded-2xl shadow-xl overflow-hidden border bg-gray-900 border-gray-800 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="rounded-2xl shadow-xl overflow-hidden border bg-gray-900 border-gray-800 dark:bg-[#111418] dark:border-[#2a2d35]">
                     <div className="grid grid-cols-1 lg:grid-cols-3">
                       <div className="lg:col-span-2 p-8 md:p-10">
                         <div className="text-blue-600 text-5xl mb-6">
@@ -192,7 +192,7 @@ export function TestimonialsSection() {
                         </div>
                       </div>
 
-                      <div className="p-8 md:p-10 border-t lg:border-t-0 lg:border-l bg-gray-900 border-gray-700 dark:bg-gray-900 dark:border-gray-700">
+                      <div className="p-8 md:p-10 border-t lg:border-t-0 lg:border-l bg-gray-900 border-gray-700 dark:bg-[#111418] dark:border-[#2a2d35]">
                         <h3 className="text-lg text-white mb-6">
                           Key Achievements
                         </h3>
@@ -200,7 +200,7 @@ export function TestimonialsSection() {
                           {currentTestimonial.results.map((result) => (
                             <div
                               key={result.label}
-                              className="p-4 rounded-xl border shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center bg-gray-800 border-gray-700 dark:bg-gray-800 dark:border-gray-700"
+                              className="p-4 rounded-xl border shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center bg-gray-800 border-gray-700 dark:bg-[#111418] dark:border-[#2a2d35]"
                             >
                               <div className="text-3xl font-extrabold mb-1 text-white">
                                 {result.value}
@@ -211,7 +211,7 @@ export function TestimonialsSection() {
                             </div>
                           ))}
                         </div>
-                        <div className="mt-6 pt-5 border-t border-gray-700 dark:border-gray-600">
+                        <div className="mt-6 pt-5 border-t border-gray-700 dark:border-[#2a2d35]">
                           <div className="text-sm mb-2 text-gray-300 dark:text-gray-400">
                             Project Type:
                           </div>
@@ -262,7 +262,7 @@ export function TestimonialsSection() {
             {companies.map((company, index) => (
               <div
                 key={index}
-                className="rounded-xl p-5 flex items-center justify-center h-24 border shadow-sm hover:shadow-md transition-all duration-300 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                className="rounded-xl p-5 flex items-center justify-center h-24 border shadow-sm hover:shadow-md transition-all duration-300 bg-white border-gray-200 dark:bg-[#111418] dark:border-[#2a2d35]"
               >
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-lg border border-gray-400 dark:border-white/80 flex items-center justify-center font-bold mr-3 flex-shrink-0">

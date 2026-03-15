@@ -40,7 +40,7 @@ export function TimePicker({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="glass w-64 p-2">
+      <PopoverContent className="  w-64 p-2">
         <div className="flex justify-between text-center">
           <div className="w-1/2">
             <Label className="text-xs text-muted-foreground">Hour</Label>

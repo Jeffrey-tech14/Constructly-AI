@@ -565,7 +565,7 @@ export default function ExternalFinishesCalculator({
                 </p>
 
                 {/* Cement */}
-                <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-[#111418] rounded">
                   <div>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       Cement
@@ -593,7 +593,7 @@ export default function ExternalFinishesCalculator({
                 </div>
 
                 {/* Sand */}
-                <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-[#111418] rounded">
                   <div>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       Sand
@@ -621,7 +621,7 @@ export default function ExternalFinishesCalculator({
                 </div>
 
                 {/* Total */}
-                <div className="flex justify-between items-center p-2 bg-white dark:bg-gray-800 rounded border border-amber-300 dark:border-amber-700">
+                <div className="flex justify-between items-center p-2 bg-white dark:bg-[#111418] rounded border border-amber-300 dark:border-amber-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Total Wall Pointing Cost
                   </p>
@@ -679,7 +679,7 @@ export default function ExternalFinishesCalculator({
             {plasterFinish ? (
               <div className="space-y-4">
                 {/* Thickness Input */}
-                <div className="bg-white dark:bg-gray-900/50 p-3 rounded-lg">
+                <div className="bg-white dark:bg-[#111418] p-3 rounded-lg">
                   <Label
                     htmlFor="plaster-thickness"
                     className="text-sm font-medium"
@@ -707,7 +707,7 @@ export default function ExternalFinishesCalculator({
                 </div>
 
                 {/* Calculations Display */}
-                <div className="grid grid-cols-2 gap-2 text-sm bg-white dark:bg-gray-900/50 p-2 rounded">
+                <div className="grid grid-cols-2 gap-2 text-sm bg-white dark:bg-[#111418] p-2 rounded">
                   <div>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       Wall Area
@@ -728,7 +728,7 @@ export default function ExternalFinishesCalculator({
                     <h4 className="text-sm">Material Breakdown</h4>
 
                     {/* Cement */}
-                    <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                    <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-[#111418] rounded">
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Cement
@@ -759,7 +759,7 @@ export default function ExternalFinishesCalculator({
                     </div>
 
                     {/* Sand */}
-                    <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                    <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-white dark:bg-[#111418] rounded">
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Sand
@@ -787,7 +787,7 @@ export default function ExternalFinishesCalculator({
                     </div>
 
                     {/* Ratio & Total */}
-                    <div className="flex justify-between items-center p-2 bg-white dark:bg-gray-800 rounded border border-blue-300 dark:border-blue-700">
+                    <div className="flex justify-between items-center p-2 bg-white dark:bg-[#111418] rounded border border-blue-300 dark:border-blue-700">
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Ratio (C:S)

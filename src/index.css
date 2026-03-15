@@ -38,11 +38,11 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     --success-lime: 82 66% 45%;       /* #86bc25 - Lime Green */
     --success-lime-hex: #86bc25;
     
-    /* 🎨 ORIGINAL THEME COLORS (Preserved) */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 10 0% 90%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* 🎨 ORIGINAL THEME COLORS (Preserved but matched to Index) */
+    --background: 180 33% 99%; /* #fcfdfd */
+    --foreground: 0 0% 10%; /* #1a1a1a */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 0 0% 10%;
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 98%;
@@ -176,16 +176,15 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
   }
 
   .dark {
-    /* 🌙 DARK MODE - UPDATED WITH AUTH COLORS */
-    --background: 210 20% 10%;
-    --foreground: 220 25% 95%;
+      /* 🌙 DARK MODE - UPDATED TO MATCH INDEX.TSX */
+      --background: 220 16% 4%; /* #08090b */
+      --foreground: 220 25% 95%; /* #eceff4 */
 
-    --card: 210 10% 16%;
-    --card-foreground: 210 20% 98%;
+      --card: 216 18% 8%; /* #14161a */
+      --card-foreground: 220 25% 95%;
 
-    --popover: 222.2 10% 25%;
-    --popover-foreground: 210 40% 98%;
-
+      --popover: 216 18% 8%;
+      --popover-foreground: 220 25% 95%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 84% 4.9%;
     --secondary: 217.2 32.6% 17.5%;

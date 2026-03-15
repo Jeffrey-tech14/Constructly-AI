@@ -333,7 +333,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
         <div className="mb-8">
-          <div className="flex items-center sm:text-2xl text-xl font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+          <div className="flex items-center sm:text-2xl text-xl font-bold text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
             <Crown className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
             <h2 className="text-xl sm:text-2xl">Admin Dashboard</h2>
           </div>

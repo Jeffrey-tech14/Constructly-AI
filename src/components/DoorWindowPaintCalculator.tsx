@@ -219,7 +219,7 @@ export default function DoorWindowPaintCalculator({
                 >
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex items-start justify-between mb-4">
-                      <h4 className="font-medium text-gray-900 dark:text-white">
+                      <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                         Item #{index + 1}:{" "}
                         {getPaintTypeLabel(paint.surfaceType, paint.paintType)}
                       </h4>
@@ -322,7 +322,7 @@ export default function DoorWindowPaintCalculator({
                           <div className="text-xs text-gray-600 dark:text-gray-400">
                             Area
                           </div>
-                          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="text-lg font-semibold text-[#1a1a1a] dark:text-[#eceff4]">
                             {paint.area.toFixed(2)} m²
                           </div>
                         </div>
@@ -330,7 +330,7 @@ export default function DoorWindowPaintCalculator({
                           <div className="text-xs text-gray-600 dark:text-gray-400">
                             Litres Needed
                           </div>
-                          <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="text-lg font-semibold text-[#1a1a1a] dark:text-[#eceff4]">
                             {Math.ceil(paint.area / paint.coverage)} L
                           </div>
                         </div>
@@ -362,7 +362,7 @@ export default function DoorWindowPaintCalculator({
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       Total Area
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-2xl font-bold text-[#1a1a1a] dark:text-[#eceff4]">
                       {totalArea.toFixed(2)} m²
                     </div>
                   </div>
@@ -370,7 +370,7 @@ export default function DoorWindowPaintCalculator({
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       Items
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-2xl font-bold text-[#1a1a1a] dark:text-[#eceff4]">
                       {paintItems.length}
                     </div>
                   </div>

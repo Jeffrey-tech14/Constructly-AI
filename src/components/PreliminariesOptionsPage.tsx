@@ -211,7 +211,7 @@ const PreliminariesOptionsPage = ({
       className="space-y-6"
     >
       <div>
-        <h2 className="text-2xl text-gray-900 dark:text-white mb-2">
+        <h2 className="text-2xl text-[#1a1a1a] dark:text-[#eceff4] mb-2">
           Preliminaries & Statutory Requirements
         </h2>
         <p className="text-gray-600 dark:text-gray-300">
@@ -245,7 +245,7 @@ const PreliminariesOptionsPage = ({
           return (
             <Card
               key={preliminary.id}
-              className="transition-all border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800"
+              className="transition-all border-blue-200 dark:border-blue-700 bg-white dark:bg-[#111418]"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -259,7 +259,7 @@ const PreliminariesOptionsPage = ({
                       title={preliminary.name}
                     />
                     <div className="flex-1">
-                      <CardTitle className="text-lg text-gray-900 dark:text-white">
+                      <CardTitle className="text-lg text-[#1a1a1a] dark:text-[#eceff4]">
                         {preliminary.name}
                       </CardTitle>
                       <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
@@ -375,7 +375,7 @@ const PreliminariesOptionsPage = ({
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <div className="pt-2 border-t border-gray-200 dark:border-[#2a2d35]">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                         Total Cost:
@@ -405,7 +405,7 @@ const PreliminariesOptionsPage = ({
       {/* Summary Card */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-700">
         <CardHeader>
-          <CardTitle className="text-gray-900 dark:text-white">
+          <CardTitle className="text-[#1a1a1a] dark:text-[#eceff4]">
             Preliminaries Summary
           </CardTitle>
         </CardHeader>
@@ -418,7 +418,7 @@ const PreliminariesOptionsPage = ({
                   <span className="text-gray-600 dark:text-gray-300">
                     {p.name}
                   </span>
-                  <span className=" text-gray-900 dark:text-white">
+                  <span className=" text-[#1a1a1a] dark:text-[#eceff4]">
                     KES {p.totalCost.toLocaleString()}
                   </span>
                 </div>
@@ -426,7 +426,7 @@ const PreliminariesOptionsPage = ({
           </div>
           <div className="pt-3 border-t border-blue-200 dark:border-blue-700">
             <div className="flex justify-between items-center">
-              <span className="text-base font-bold text-gray-900 dark:text-white">
+              <span className="text-base font-bold text-[#1a1a1a] dark:text-[#eceff4]">
                 Total Preliminaries Cost
               </span>
               <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -437,7 +437,7 @@ const PreliminariesOptionsPage = ({
         </CardContent>
       </Card>
 
-      <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="p-4 bg-gray-50 dark:bg-[#111418] rounded-lg border border-gray-200 dark:border-[#2a2d35]">
         <p className="text-sm text-gray-600 dark:text-gray-300">
           <strong>Note:</strong> These preliminaries will be included in your
           final Bill of Quantities. Prices and quantities can be adjusted based

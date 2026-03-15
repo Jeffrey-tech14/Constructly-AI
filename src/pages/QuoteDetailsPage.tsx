@@ -223,7 +223,7 @@ const QuoteDetailsPage = () => {
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-2xl md:text-3xl  flex items-center gap-3 bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl  flex items-center gap-3 text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
                   <Building2 className="w-7 h-7 text-primary dark:text-white" />
                   {quote.title}
                 </h1>

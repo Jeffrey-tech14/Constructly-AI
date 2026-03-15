@@ -355,7 +355,7 @@ export default function FoundationWallingCalculator({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-2xl  text-gray-900 dark:text-white">
+        <h3 className="text-2xl  text-[#1a1a1a] dark:text-[#eceff4]">
           Foundation Wall Calculator
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
@@ -505,7 +505,7 @@ export default function FoundationWallingCalculator({
                         </div>
 
                         {/* Return Fill Section */}
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#2a2d35] space-y-3">
                           <h2>Return Fill</h2>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             <div>
@@ -679,13 +679,13 @@ export default function FoundationWallingCalculator({
                         </div>
 
                         {/* Calculations Summary */}
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#2a2d35]">
                           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm mb-3">
                             <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Volume
                               </p>
-                              <p className=" text-gray-900 dark:text-white">
+                              <p className=" text-[#1a1a1a] dark:text-[#eceff4]">
                                 {calculations.volume?.toFixed(2) || 0} m³
                               </p>
                             </div>
@@ -693,7 +693,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Blocks
                               </p>
-                              <p className=" text-gray-900 dark:text-white">
+                              <p className=" text-[#1a1a1a] dark:text-[#eceff4]">
                                 {calculations.blocks || 0}
                               </p>
                             </div>
@@ -701,7 +701,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Block Ft
                               </p>
-                              <p className=" text-gray-900 dark:text-white">
+                              <p className=" text-[#1a1a1a] dark:text-[#eceff4]">
                                 {calculations.blocksFeet?.toFixed(0) || 0}
                               </p>
                             </div>
@@ -709,7 +709,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Cement (bags)
                               </p>
-                              <p className=" text-gray-900 dark:text-white">
+                              <p className=" text-[#1a1a1a] dark:text-[#eceff4]">
                                 {calculations.mortarCement || 0}
                               </p>
                             </div>
@@ -717,7 +717,7 @@ export default function FoundationWallingCalculator({
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Sand (m³)
                               </p>
-                              <p className=" text-gray-900 dark:text-white">
+                              <p className=" text-[#1a1a1a] dark:text-[#eceff4]">
                                 {calculations.mortarSand?.toFixed(2) || 0}
                               </p>
                             </div>
@@ -731,7 +731,7 @@ export default function FoundationWallingCalculator({
                                   <p className="text-xs text-gray-600 dark:text-gray-400">
                                     Standard Natural Stone
                                   </p>
-                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  <p className="text-sm font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                                     {calculations.blocksFeet?.toFixed(0) || 0}{" "}
                                     ft × KES{" "}
                                     {blockPricePerFoot.toLocaleString()}
@@ -849,7 +849,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 External Walls
               </p>
-              <p className="text-lg  text-gray-900 dark:text-white">
+              <p className="text-lg  text-[#1a1a1a] dark:text-[#eceff4]">
                 {blockPricePerFoot > 0
                   ? `KES ${totals.externalCost.toLocaleString()}`
                   : "No price set"}
@@ -859,7 +859,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Internal Walls
               </p>
-              <p className="text-lg  text-gray-900 dark:text-white">
+              <p className="text-lg  text-[#1a1a1a] dark:text-[#eceff4]">
                 {blockPricePerFoot > 0
                   ? `KES ${totals.internalCost.toLocaleString()}`
                   : "No price set"}

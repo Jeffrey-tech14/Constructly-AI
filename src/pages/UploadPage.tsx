@@ -1103,7 +1103,7 @@ const UploadPlan = () => {
                               ? "bg-green-500 text-white shadow-lg"
                               : isActive
                                 ? "bg-primary text-white shadow-lg animate-pulse"
-                                : "bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+                                : "bg-gray-100 text-gray-500 dark:bg-[#1a1b22] dark:text-gray-400"
                           }`}
                         >
                           {isDone ? (
@@ -1125,7 +1125,7 @@ const UploadPlan = () => {
                     );
                   })}
                 </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-100 dark:bg-[#1a1b22] rounded-full h-2">
                   <motion.div
                     className="h-2 rounded-full"
                     initial={{ width: "0%" }}
@@ -2470,7 +2470,7 @@ const UploadPlan = () => {
 
                                 <Label
                                   htmlFor="fileUpload"
-                                  className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                                  className="cursor-pointer  -button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                                 >
                                   📁 Select Plan File
                                 </Label>
@@ -2570,7 +2570,7 @@ const UploadPlan = () => {
 
                                   <Label
                                     htmlFor="bbsFileUpload"
-                                    className="cursor-pointer glass-button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                                    className="cursor-pointer  -button inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                                   >
                                     📊 Select BBS File
                                   </Label>
@@ -2591,7 +2591,7 @@ const UploadPlan = () => {
 
                                   <Label
                                     htmlFor="bbsFileUpload"
-                                    className="cursor-pointer glass-button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm "
+                                    className="cursor-pointer  -button inline-flex items-center px-6 py-2 rounded-lg transition-all text-sm "
                                   >
                                     📊 Replace BBS File
                                   </Label>
@@ -2739,7 +2739,7 @@ const UploadPlan = () => {
 
                       <Label
                         htmlFor="fileUpload"
-                        className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                        className="cursor-pointer   inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                       >
                         Select Plan File
                       </Label>
@@ -2811,7 +2811,7 @@ const UploadPlan = () => {
 
                       <Label
                         htmlFor="bbsFileUpload2"
-                        className="cursor-pointer glass inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
+                        className="cursor-pointer   inline-flex items-center px-8 py-3 rounded-lg transition-all text-base "
                       >
                         📊 Select BBS File
                       </Label>
@@ -2897,10 +2897,10 @@ const UploadPlan = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-white dark:bg-[#111418] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#2a2d35]">
                 <h3 className="text-lg ">Plan Preview</h3>
                 <Button
                   variant="ghost"

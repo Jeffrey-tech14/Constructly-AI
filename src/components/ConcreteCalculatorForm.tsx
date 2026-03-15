@@ -670,7 +670,7 @@ export default function ConcreteCalculatorForm({
     switch (row.element) {
       case "staircase":
         return (
-          <div className="grid sm:grid-cols-3 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+          <div className="grid sm:grid-cols-3 gap-2 p-2 bg-gray-50 dark:bg-[#111418] rounded-md">
             <Input
               type="number"
               value={row.staircaseDetails?.riserHeight || ""}
@@ -1229,7 +1229,7 @@ export default function ConcreteCalculatorForm({
 
       case "water-tank":
         return (
-          <div className="grid sm:grid-cols-3 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+          <div className="grid sm:grid-cols-3 gap-2 p-2 bg-gray-50 dark:bg-[#111418] rounded-md">
             <Input
               type="number"
               value={row.tankDetails?.capacity || ""}
@@ -1277,7 +1277,7 @@ export default function ConcreteCalculatorForm({
 
       case "retaining-wall":
         return (
-          <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+          <div className="p-2 bg-gray-50 dark:bg-[#111418] rounded-md">
             <Label className="text-sm font-medium">
               Retaining Wall Configuration
             </Label>
@@ -1336,7 +1336,7 @@ export default function ConcreteCalculatorForm({
         {row.foundationSteps?.map((step, index) => (
           <div
             key={step.id}
-            className="grid sm:grid-cols-5 gap-2 p-3 bg-white dark:bg-gray-800 rounded-2xl border"
+            className="grid sm:grid-cols-5 gap-2 p-3 bg-white dark:bg-[#111418] rounded-2xl border"
           >
             <div className="flex items-center">
               <Badge
@@ -2274,7 +2274,7 @@ export default function ConcreteCalculatorForm({
             {(row.element === "raft-foundation" ||
               row.element === "strip-footing") && (
               <div className="space-y-4">
-                {/* <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                {/* <div className="grid sm:grid-cols-2 gap-2 p-2 bg-gray-50 dark:bg-[#111418] rounded-md">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`stepped-${row.id}`}

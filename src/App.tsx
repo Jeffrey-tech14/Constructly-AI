@@ -74,7 +74,10 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen scrollbar-hide bg-gradient-to-br from-blue-100 via-purple-100 to-gray-100 dark:from-background dark:via-background dark:to-background transition-colors duration-400 relative">
+    <div 
+      className="min-h-screen scrollbar-hide bg-[#fcfdfd] dark:bg-[#08090b] text-[#1a1a1a] dark:text-[#eceff4] transition-colors duration-400 relative" 
+      style={{ fontFamily: 'Outfit, sans-serif' }}
+    >
       {/* Custom titlebar for Electron only */}
       {isElectron && <CustomTitleBar />}
 

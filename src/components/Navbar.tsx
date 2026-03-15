@@ -273,10 +273,10 @@ const Navbar = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-64 border border-gray-200 dark:border-gray-700 shadow-xl glass rounded-xl p-2"
+                      className="w-64 border border-gray-200 dark:border-[#2a2d35] shadow-xl   rounded-xl p-2"
                     >
-                      <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
-                        <p className=" text-gray-900 dark:text-white truncate">
+                      <div className="px-3 py-2 border-b border-gray-100 dark:border-[#2a2d35] mb-2">
+                        <p className=" text-[#1a1a1a] dark:text-[#eceff4] truncate">
                           {profile?.name || user.email}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -323,7 +323,7 @@ const Navbar = () => {
                         </DropdownMenuItem>
                       )}
 
-                      <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-gray-700" />
+                      <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-[#1a1b22]" />
                       <DropdownMenuItem
                         onClick={() => navigate("/guide")}
                         className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
@@ -353,15 +353,15 @@ const Navbar = () => {
                             </div>
                           </div>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="border border-gray-200 dark:border-gray-700 rounded-3xl shadow-xl">
+                        <AlertDialogContent className="border border-gray-200 dark:border-[#2a2d35] rounded-3xl shadow-xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+                            <AlertDialogTitle className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
                               <LogOut className="w-5 h-5 text-red-500" />
                               Confirm Sign Out
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
                               Are you sure you want to sign out as{" "}
-                              <span className=" text-gray-900 dark:text-white">
+                              <span className=" text-[#1a1a1a] dark:text-[#eceff4]">
                                 {profile?.name || user.email}
                               </span>
                               ? You will need to sign in again to access your
@@ -369,7 +369,7 @@ const Navbar = () => {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-lg border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <AlertDialogCancel className="rounded-lg border-gray-300 dark:border-[#2a2d35] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                               Cancel
                             </AlertDialogCancel>
                             <AlertDialogAction

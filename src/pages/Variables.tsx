@@ -564,7 +564,7 @@ const Variables = () => {
     <div className=" scrollbar-hide min-h-screen animate-fade-in">
       <div className="container  scrollbar-hide mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="sm:text-2xl text-xl flex items-center bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+          <h1 className="sm:text-2xl text-xl flex items-center text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
             <Settings className="sm:w-7 sm:h-7 mr-3 text-primary dark:text-white" />
             <h2 className="text-xl sm:text-2xl">Variables & Pricing</h2>
           </h1>
@@ -1129,7 +1129,7 @@ const Variables = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-gray-800/20">
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-[#111418]">
                     No custom materials added yet. Click "Add Material" to
                     create one.
                   </div>
@@ -1597,7 +1597,7 @@ const Variables = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-gray-800/20">
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-[#111418]">
                     No custom equipment added yet. Click "Add Equipment" to
                     create one.
                   </div>

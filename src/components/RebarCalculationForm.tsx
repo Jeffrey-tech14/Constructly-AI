@@ -1270,7 +1270,7 @@ export default function RebarCalculatorForm({
         </div>
 
         {rowsState.length === 0 && (
-          <Card className="border-dashed border-2 border-gray-300 bg-gray-50 dark:bg-gray-900">
+          <Card className="border-dashed border-2 border-gray-300 bg-[#fcfdfd] dark:bg-[#08090b]">
             <CardContent className="py-8 text-center">
               <Calculator className="w-12 h-12 mx-auto mb-4" />
               <h4 className="text-lg font-medium mb-2">
@@ -1329,7 +1329,7 @@ export default function RebarCalculatorForm({
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="bg-gray-100 dark:bg-gray-900 mr-2"
+                      className="bg-gray-100 dark:bg-[#111418] mr-2"
                     >
                       {row.category}
                     </Badge>

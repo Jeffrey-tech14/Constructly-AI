@@ -130,7 +130,7 @@ const ProfilePictureUpload = ({
     }
   };
   return (
-    <Card className="w-full max-w-md glass">
+    <Card className="w-full max-w-md  ">
       <CardContent className="pt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg  text-white">

@@ -343,7 +343,7 @@ const PreliminariesBuilder = ({
                       key={`${sectionIndex}-${itemIndex}-${item.itemNo}`}
                       className={
                         item.isHeader
-                          ? "bg-gray-100 dark:bg-gray-700 rounded-lg "
+                          ? "bg-gray-100 dark:bg-[#1a1b22] rounded-lg "
                           : ""
                       }
                     >

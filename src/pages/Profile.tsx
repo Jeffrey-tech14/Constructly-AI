@@ -63,7 +63,7 @@ const Profile = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="animate-spin rounded-full h-8 w-8" />
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold mb-4 text-[#1a1a1a] dark:text-[#eceff4]">
             Loading Profile...
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
@@ -197,11 +197,11 @@ const Profile = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between items-start">
           <div className="items-center">
-            <h1 className="sm:text-3xl items-center text-2xl flex bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+            <h1 className="sm:text-3xl items-center text-2xl flex text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
               <LucidePersonStanding className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
               <h2 className="text-xl sm:text-2xl">Profile</h2>
             </h1>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
+            <p className="text-sm sm:text-lg text-[#4b5563] dark:text-gray-300 mt-2">
               Manage your account and subscription
             </p>
           </div>
@@ -230,7 +230,7 @@ const Profile = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <Card className="bg-white dark:bg-[#111418] border border-gray-200 dark:border-[#2a2d35] shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="w-5 h-5 mr-2" />
@@ -375,7 +375,7 @@ const Profile = () => {
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                      <p className="text-xl md:text-2xl font-bold text-[#1a1a1a] dark:text-[#eceff4]">
                         KSh {formatCurrency(stats.total_revenue)}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -463,7 +463,7 @@ const Profile = () => {
                   <span className="text-gray-600 dark:text-gray-400">
                     Member since:
                   </span>
-                  <span className="text-gray-900 dark:text-white">
+                  <span className="text-[#1a1a1a] dark:text-[#eceff4]">
                     {new Date(profile.created_at).toLocaleDateString()}
                   </span>
                 </div>
@@ -471,7 +471,7 @@ const Profile = () => {
                   <span className="text-gray-600 dark:text-gray-400">
                     Last updated:
                   </span>
-                  <span className="text-gray-900 dark:text-white">
+                  <span className="text-[#1a1a1a] dark:text-[#eceff4]">
                     {new Date(profile.updated_at).toLocaleDateString()}
                   </span>
                 </div>
@@ -479,7 +479,7 @@ const Profile = () => {
                   <span className="text-gray-600 dark:text-gray-400">
                     Account type:
                   </span>
-                  <span className="text-gray-900 dark:text-white">
+                  <span className="text-[#1a1a1a] dark:text-[#eceff4]">
                     {profile.is_admin ? "Administrator" : "User"}
                   </span>
                 </div>

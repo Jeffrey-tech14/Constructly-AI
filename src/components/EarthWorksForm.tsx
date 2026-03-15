@@ -438,7 +438,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-2xl mt-4 mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+        <h3 className="text-2xl mt-4 mb-4 flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
           Earthworks Calculation
         </h3>
 
@@ -448,7 +448,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
             <Card key={earthwork.id} className="p-6">
               <CardContent className="p-0">
                 <div className="flex items-start justify-between mb-4">
-                  <h4 className="font-medium text-gray-900 dark:text-white">
+                  <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                     Earthwork Item #{index + 1}
                   </h4>
                   <Button
@@ -760,7 +760,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="text-gray-900 dark:text-white">
+                  <h4 className="text-[#1a1a1a] dark:text-[#eceff4]">
                     Total Earthworks Cost
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">

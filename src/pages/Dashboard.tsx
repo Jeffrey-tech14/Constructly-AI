@@ -251,14 +251,14 @@ const Dashboard = () => {
         <div className="mb-4 animate-fade-in">
           <div className="sm:flex flex-1 justify-between items-center">
             <div>
-              <div className="sm:text-2xl items-center text-xl flex font-bold bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+              <div className="sm:text-2xl items-center text-xl flex font-bold text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
                 <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
                 <h2 className="text-xl sm:text-2xl">
                   {" "}
                   Welcome back, {profile.name}!
                 </h2>
               </div>
-              <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
+              <p className="text-sm sm:text-lg text-[#4b5563] dark:text-gray-300 mt-2">
                 Here's what's happening with your construction business today.
               </p>
             </div>
@@ -357,7 +357,7 @@ const Dashboard = () => {
                       dashboardData.recentQuotes.map((quote) => (
                         <div
                           key={quote.id}
-                          className="flex items-center justify-between p-4 glass border border-gray-300 dark:border-gray-600/40 rounded-lg hover:shadow-lg transition-shadow"
+                          className="flex items-center justify-between p-4   border border-gray-300 dark:border-[#2a2d35] rounded-lg hover:shadow-lg transition-shadow"
                         >
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
@@ -440,8 +440,8 @@ const Dashboard = () => {
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white text-lg">
+                  <CardHeader className="pb-4 border-b border-gray-200 dark:border-[#2a2d35]">
+                    <CardTitle className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] text-lg">
                       <Zap className="w-5 h-5" />
                       Quick Actions
                     </CardTitle>
@@ -450,13 +450,13 @@ const Dashboard = () => {
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => navigate("/quotes/new")}
-                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-[#2a2d35] hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-[#1a1b22] flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
                           <FileText className="w-4 h-4" />
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                           New Quote
                         </span>
                       </div>
@@ -466,13 +466,13 @@ const Dashboard = () => {
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowCalculator(true)}
-                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-gray-700/30 flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-[#2a2d35] hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-[#1a1b22] flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
                           <DollarSign className="w-4 h-4" />
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
                           Cost Calculator
                         </span>
                       </div>

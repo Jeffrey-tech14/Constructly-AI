@@ -1223,7 +1223,7 @@ export default function renderMaterialEditor(
                   {roofItem.structuralTimber &&
                     isArray(roofItem.structuralTimber) && (
                       <div className="border-b pb-4">
-                        <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                        <h4 className="font-semibold text-sm mb-3 text-[#1a1a1a] dark:text-[#eceff4]">
                           Structural Timber
                         </h4>
                         <div className="space-y-2">
@@ -1300,7 +1300,7 @@ export default function renderMaterialEditor(
                   {roofItem.roofingSheets &&
                     isArray(roofItem.roofingSheets) && (
                       <div className="border-b pb-4">
-                        <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                        <h4 className="font-semibold text-sm mb-3 text-[#1a1a1a] dark:text-[#eceff4]">
                           Roofing Sheets
                         </h4>
                         <div className="space-y-3">
@@ -1391,7 +1391,7 @@ export default function renderMaterialEditor(
                   {roofItem.roofingFinishing &&
                     isArray(roofItem.roofingFinishing) && (
                       <div className="border-b pb-4">
-                        <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                        <h4 className="font-semibold text-sm mb-3 text-[#1a1a1a] dark:text-[#eceff4]">
                           Roofing Finishing
                         </h4>
                         <div className="space-y-3">
@@ -1489,7 +1489,7 @@ export default function renderMaterialEditor(
                   {/* Accessories */}
                   {roofItem.accessories && roofItem.accessories.items && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+                      <h4 className="font-semibold text-sm mb-3 text-[#1a1a1a] dark:text-[#eceff4]">
                         Accessories
                       </h4>
                       <div className="space-y-2">
@@ -1770,7 +1770,7 @@ export default function renderMaterialEditor(
 
           return (
             <div key={category.key} className="border rounded-lg p-3">
-              <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+              <h4 className="font-semibold text-sm mb-3 text-[#1a1a1a] dark:text-[#eceff4]">
                 {category.label}
               </h4>
               <div className="space-y-3">
@@ -1778,7 +1778,7 @@ export default function renderMaterialEditor(
                   const overrideMaterial = (overrideItems as any)?.[matIdx];
                   return (
                     <div key={matIdx} className="p-2 border rounded-lg">
-                      <div className="font-medium text-sm mb-2 text-gray-900 dark:text-white">
+                      <div className="font-medium text-sm mb-2 text-[#1a1a1a] dark:text-[#eceff4]">
                         {material.name}
                       </div>
 
@@ -1955,7 +1955,7 @@ export default function renderMaterialEditor(
 
           return (
             <div key={category.key} className="border rounded-lg p-3">
-              <h4 className="font-semibold text-sm mb-3 text-gray-900 dark:text-white">
+              <h4 className="font-semibold text-sm mb-3 text-[#1a1a1a] dark:text-[#eceff4]">
                 {category.label}
               </h4>
               <div className="space-y-3">
@@ -1963,7 +1963,7 @@ export default function renderMaterialEditor(
                   const overrideMaterial = (overrideItems as any)?.[matIdx];
                   return (
                     <div key={matIdx} className="p-2 border rounded-lg">
-                      <div className="font-medium text-sm mb-2 text-gray-900 dark:text-white">
+                      <div className="font-medium text-sm mb-2 text-[#1a1a1a] dark:text-[#eceff4]">
                         {material.name}
                       </div>
 

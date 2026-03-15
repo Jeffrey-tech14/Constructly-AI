@@ -109,75 +109,26 @@ const Navbar = () => {
   };
 
   const JTechAILogo = () => {
-    const isDark = theme === "dark";
-    const logoDarkColor = isDark ? "#0077B6" : "#002855";
-    const logoLightColor = isDark ? "#002855" : "#0077B6";
-
     return (
-      <img
-        src="/logo4.jpg"
-        alt="JTech AI Logo"
+      <div
         onClick={() => navigate("/")}
-        className="cursor-pointer h-9 w-auto"
-      />
-      // <svg
-      //   width="135"
-      //   height="36"
-      //   viewBox="0 0 135 36"
-      //   onClick={() => navigate("/")}
-      //   fill="none"
-      //   className="cursor-pointer"
-      //   xmlns="http://www.w3.org/2000/svg"
-      // >
-      //   <path
-      //     d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z"
-      //     fill={logoDarkColor}
-      //   />
-      //   <path
-      //     d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z"
-      //     fill={logoDarkColor}
-      //   />
-      //   <path
-      //     d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z"
-      //     fill={logoDarkColor}
-      //   />
-      //   <path
-      //     d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z"
-      //     fill={logoDarkColor}
-      //   />
-      //   <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={logoDarkColor} />
-      //   <path
-      //     d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z"
-      //     fill={logoDarkColor}
-      //   />
-      //   <path
-      //     d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z"
-      //     fill={logoDarkColor}
-      //   />
-      //   <circle cx="22.5" cy="13.5" r="2.25" fill={logoLightColor} />
-      //   <circle cx="22.5" cy="22.5" r="2.25" fill={logoLightColor} />
-      //   <path d="M22.5 15.75V20.25" stroke={logoLightColor} strokeWidth="1.5" />
-      //   <text
-      //     x="45"
-      //     y="24"
-      //     fontFamily="Outfit"
-      //     fontWeight="800"
-      //     fontSize="22"
-      //     fill={logoDarkColor}
-      //   >
-      //     JTech
-      //   </text>
-      //   <text
-      //     x="108"
-      //     y="24"
-      //     fontFamily="Outfit"
-      //     fontWeight="800"
-      //     fontSize="22"
-      //     fill={logoLightColor}
-      //   >
-      //     AI
-      //   </text>
-      // </svg>
+        className="flex items-center gap-2.5 cursor-pointer group"
+      >
+        <div className="flex items-center justify-center">
+          <svg
+            viewBox="0 0 44 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-7 w-auto text-[#f0514e] transition-transform duration-300 group-hover:scale-105 flex-shrink-0"
+          >
+            <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
+            <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <span className="text-foreground text-[26px] font-[800] tracking-wide" style={{ fontFamily: 'Outfit, sans-serif' }}>
+          JTech AI
+        </span>
+      </div>
     );
   };
 

@@ -105,3 +105,5 @@ export default function CTABanner({ scrollTo }: any) {
     </section>
   );
 }
+
+// Adjusted logo sizing and UI spacing

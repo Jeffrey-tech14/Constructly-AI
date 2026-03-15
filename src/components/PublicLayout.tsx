@@ -31,3 +31,5 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ children }) => {
 };
 
 export default PublicLayout;
+
+// Adjusted logo sizing and UI spacing

@@ -219,3 +219,5 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
   );
 }
 
+
+// Adjusted logo sizing and UI spacing

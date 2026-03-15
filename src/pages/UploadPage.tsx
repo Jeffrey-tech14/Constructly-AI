@@ -1339,7 +1339,7 @@ const UploadPlan = () => {
                             className="flex justify-center"
                           >
                             <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-green-400 dark:from-blue-500 dark:to-green-500 flex items-center justify-center shadow-lg">
-                              <BarChart3 className="w-10 h-10 text-white animate-pulse" />
+                              <BarChart3 className="w-6 h-6 text-white animate-pulse" />
                               {/* Decorative rings */}
                               <motion.div
                                 className="absolute inset-0 rounded-full border-2 border-blue-400 dark:border-blue-500"
@@ -2398,7 +2398,7 @@ const UploadPlan = () => {
                         {fileUrl ? (
                           <div className="space-y-6">
                             <div className="flex items-center space-x-4 p-5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-sm">
-                              <LucideFileText className="w-10 h-10 text-green-500" />
+                              <LucideFileText className="w-6 h-6 text-green-500" />
                               <p className="text-xl  truncate flex-1">
                                 {fileUrl.split("/").pop() || "Uploaded Plan"}
                               </p>

@@ -224,3 +224,5 @@ export default function TestimonialsSection() {
   );
 }
 
+
+// Adjusted logo sizing and UI spacing

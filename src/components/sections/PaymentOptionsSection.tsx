@@ -49,7 +49,7 @@ const PaymentMethod = ({ method, index }) => (
     <img
       src={method.image}
       alt={method.name}
-      className="h-8 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+      className="h-5 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
       loading="lazy"
     />
 
@@ -133,3 +133,5 @@ export default function PaymentOptionsSection() {
     </>
   );
 }
+
+// Adjusted logo sizing and UI spacing

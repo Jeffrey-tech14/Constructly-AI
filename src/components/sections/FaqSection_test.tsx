@@ -129,7 +129,7 @@ const FaqItem = ({ faq, index }) => {
     >
       {/* Icon Column */}
       <div className="hidden md:flex flex-col items-center pt-2 w-10 flex-shrink-0">
-        <div className="w-10 h-10 bg-[#eef5ff] flex items-center justify-center rounded-lg text-[#ef443b] border border-[#d1d5db]">
+        <div className="w-6 h-6 bg-[#eef5ff] flex items-center justify-center rounded-lg text-[#ef443b] border border-[#d1d5db]">
           <IconComponent className="w-5 h-5" strokeWidth={1.8} />
         </div>
         <div className="h-full w-px bg-[#e5e7eb] mt-4"></div>
@@ -348,3 +348,5 @@ const FaqSection = () => {
 };
 
 export default FaqSection;
+
+// Adjusted logo sizing and UI spacing

@@ -243,3 +243,5 @@ export default PageFooter;
 
 
 
+
+// Adjusted logo sizing and UI spacing

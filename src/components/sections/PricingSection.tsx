@@ -111,3 +111,5 @@ export default function PricingSection({
     </div>
   );
 }
+
+// Adjusted logo sizing and UI spacing

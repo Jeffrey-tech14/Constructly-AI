@@ -243,7 +243,7 @@ const Profile = () => {
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={avatarUrl || undefined} />
                       <AvatarFallback className="text-2xl">
-                        <User className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                       </AvatarFallback>
                     </Avatar>
                     <Button

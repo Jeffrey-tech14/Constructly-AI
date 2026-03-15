@@ -193,3 +193,5 @@ const App = () => (
 
 export default App;
 
+
+// Adjusted logo sizing and UI spacing

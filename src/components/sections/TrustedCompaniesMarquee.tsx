@@ -85,3 +85,5 @@ export default function TrustedCompaniesMarquee() {
     </section>
   );
 }
+
+// Adjusted logo sizing and UI spacing

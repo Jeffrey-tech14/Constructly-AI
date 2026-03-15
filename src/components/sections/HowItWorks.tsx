@@ -122,3 +122,5 @@ export default function HowItWorks() {
     </>
   );
 }
+
+// Adjusted logo sizing and UI spacing

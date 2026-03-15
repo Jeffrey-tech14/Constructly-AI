@@ -2636,3 +2636,5 @@ const UserGuide = () => {
 };
 
 export default UserGuide;
+
+// Adjusted logo sizing and UI spacing

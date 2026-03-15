@@ -360,7 +360,7 @@ const Auth = () => {
                   <img
                     src="/logo.jpg"
                     alt="JTech AI Logo"
-                    className="w-20 h-20 object-cover rounded-xl shadow-lg border-2 border-white/20"
+                    className="w-12 h-12 object-cover rounded-xl shadow-lg border-2 border-white/20"
                   />
                 </div>
                 <h1
@@ -390,7 +390,7 @@ const Auth = () => {
                   <img
                     src="/logo.jpg"
                     alt="JTech AI Logo"
-                    className="w-20 h-20 object-cover rounded-xl shadow-lg border-2 border-white/20"
+                    className="w-12 h-12 object-cover rounded-xl shadow-lg border-2 border-white/20"
                   />
                 </div>
                 <h1
@@ -475,3 +475,5 @@ const GoogleButton = ({ onClick, disabled, text }: any) => (
 );
 
 export default Auth;
+
+// Adjusted logo sizing and UI spacing

@@ -74,7 +74,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
       src="/logo.jpg"
       alt="JTech AI Logo"
       onClick={() => navigate("/")}
-      className="cursor-pointer h-10 w-auto object-contain"
+      className="cursor-pointer h-6 w-auto object-contain"
     />
     // <svg
     //   width="160"
@@ -285,3 +285,5 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
 
 export default NavbarSection;
 
+
+// Adjusted logo sizing and UI spacing

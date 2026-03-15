@@ -139,3 +139,5 @@ export default Hero;
 
 
 
+
+// Adjusted logo sizing and UI spacing

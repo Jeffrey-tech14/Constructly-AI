@@ -72,3 +72,5 @@ const Index = () => {
 };
 
 export default Index;
+
+// Adjusted logo sizing and UI spacing

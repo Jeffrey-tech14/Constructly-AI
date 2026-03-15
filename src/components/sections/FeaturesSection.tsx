@@ -313,3 +313,5 @@ export default function FeaturesSection({ scrollTo }: FeaturesSectionProps) {
     </>
   );
 }
+
+// Adjusted logo sizing and UI spacing

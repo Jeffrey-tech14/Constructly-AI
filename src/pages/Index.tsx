@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import Hero from "@/components/Hero";
-import TrustedCompaniesMarquee from "@/components/sections/TrustedCompaniesMarquee";
 import WhoItsForSection from "@/components/sections/WhoItsForSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import PricingSection from "@/components/sections/PricingSection";    
@@ -55,9 +54,6 @@ const Index = () => {
 
       {/* Hero Section */}
       <Hero scrollTo={scrollTo} demoOpen={demoOpen} setDemoOpen={setDemoOpen} />
-
-      {/* Trusted Companies Marquee */}
-      <TrustedCompaniesMarquee />
 
       {/* Who It's For Section */}
       <WhoItsForSection scrollTo={scrollTo} />

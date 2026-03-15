@@ -565,7 +565,7 @@ const Variables = () => {
       <div className="container  scrollbar-hide mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
           <h1 className="sm:text-2xl text-xl flex items-center text-foreground tracking-tight">
-            <Settings className="sm:w-7 sm:h-7 mr-3 text-primary dark:text-white" />
+            <Settings className="sm:w-7 sm:h-7 mr-3 text-[#f0514e] dark:text-white" />
             <h2 className="text-xl sm:text-2xl">Variables & Pricing</h2>
           </h1>
           <p className="text-sm sm:text-lg text-foreground tracking-tight mt-2">
@@ -606,8 +606,8 @@ const Variables = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-3 p-3 sm:p-4 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                  <p className="text-xs sm:text-sm text-primary dark:text-primary">
+                <div className="mb-3 p-3 sm:p-4 bg-[#f0514e]/10 dark:bg-primary/20 rounded-lg">
+                  <p className="text-xs sm:text-sm text-[#f0514e] dark:text-[#f0514e]">
                     <strong>Region:</strong> {profile?.location || "Nairobi"} -
                     Prices shown include regional multipliers for base prices.
                   </p>
@@ -639,7 +639,7 @@ const Variables = () => {
                             </div>
                             <div className="text-right">
                               <Badge
-                                className="text-gray-700"
+                                className="text-gray-300"
                                 variant="secondary"
                               >
                                 {material.unit}
@@ -829,7 +829,7 @@ const Variables = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-primary" />
+                    <Building className="w-5 h-5 mr-2 text-[#f0514e]" />
                     My Custom Materials
                   </CardTitle>
                   <Button
@@ -844,7 +844,7 @@ const Variables = () => {
               </CardHeader>
               <CardContent>
                 {showAddMaterial && (
-                  <Card className="mb-4 p-4 bg-primary/10 dark:bg-primary/30">
+                  <Card className="mb-4 p-4 bg-[#f0514e]/10 dark:bg-primary/30">
                     <div className="flex gap-2 mb-4">
                       <Button
                         size="sm"
@@ -1129,7 +1129,7 @@ const Variables = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-[#111418]">
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-[#08090b] dark:bg-[#111418]">
                     No custom materials added yet. Click "Add Material" to
                     create one.
                   </div>
@@ -1186,7 +1186,7 @@ const Variables = () => {
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{equipment.name}</h4>
                             <Badge
-                              className="text-gray-700"
+                              className="text-gray-300"
                               variant="secondary"
                             >
                               KSh {displayRate?.toLocaleString()}/{displayUnit}
@@ -1454,7 +1454,7 @@ const Variables = () => {
                                 {equipment.equipment_name}
                               </h4>
                               <Badge
-                                className="text-gray-700"
+                                className="text-gray-300"
                                 variant="secondary"
                               >
                                 KSh {displayRate?.toLocaleString()}/
@@ -1597,7 +1597,7 @@ const Variables = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-[#111418]">
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-[#08090b] dark:bg-[#111418]">
                     No custom equipment added yet. Click "Add Equipment" to
                     create one.
                   </div>
@@ -1615,8 +1615,8 @@ const Variables = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-4 p-4 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                  <p className="text-sm text-primary dark:text-primary">
+                <div className="mb-4 p-4 bg-[#f0514e]/10 dark:bg-primary/20 rounded-lg">
+                  <p className="text-sm text-[#f0514e] dark:text-[#f0514e]">
                     <strong>Your Region:</strong>{" "}
                     {profile?.location || "Not set"} - Transport rates shown for
                     all regions. Custom prices will override defaults.
@@ -1632,7 +1632,7 @@ const Variables = () => {
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="font-medium">{rate.region}</h4>
                             {rate.region === profile?.location && (
-                              <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                              <span className="px-2 py-1 text-xs bg-[#f0514e]/10 text-[#f0514e] rounded-full">
                                 Your Region
                               </span>
                             )}
@@ -1745,7 +1745,7 @@ const Variables = () => {
                           <div className="flex justify-between items-center mb-2">
                             <h4 className="font-medium">{service.name}</h4>
                             <Badge
-                              className="text-gray-700"
+                              className="text-gray-300"
                               variant="secondary"
                             >
                               {service.category}
@@ -1815,7 +1815,7 @@ const Variables = () => {
                       <CardContent className="p-4">
                         <div className="flex justify-between items-center mb-2">
                           <h4 className="font-medium">{sub.name}</h4>
-                          <Badge className="text-gray-700" variant="secondary">
+                          <Badge className="text-gray-300" variant="secondary">
                             KSh {Number(sub.price || 0).toLocaleString()}/
                             {sub.unit ?? "unit"}
                           </Badge>

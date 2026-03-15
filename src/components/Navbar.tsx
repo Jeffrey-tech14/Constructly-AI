@@ -226,7 +226,7 @@ const Navbar = () => {
                       align="end"
                       className="w-64 border border-border shadow-xl   rounded-xl p-2"
                     >
-                      <div className="px-3 py-2 border-b border-gray-100 dark:border-[#2a2d35] mb-2">
+                      <div className="px-3 py-2 border-b border-white/5 dark:border-[#2a2d35] mb-2">
                         <p className=" text-foreground truncate">
                           {profile?.name || user.email}
                         </p>
@@ -237,7 +237,7 @@ const Navbar = () => {
 
                       <DropdownMenuItem
                         onClick={() => navigate("/profile")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-300 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
                       >
                         <div className="rounded-lg bg-primary/10 dark:bg-primary/30 items-center">
                           <Avatar className="w-8 h-8 items-center justify-center text-center">
@@ -245,7 +245,7 @@ const Navbar = () => {
                               src={profile?.avatar_url || undefined}
                             />
                             <AvatarFallback className="items-center justify-center text-center">
-                              <User className="w-4 h-4 justify-center text-center text-primary dark:text-primary"></User>
+                              <User className="w-4 h-4 justify-center text-center text-[#f0514e] dark:text-[#f0514e]"></User>
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -260,10 +260,10 @@ const Navbar = () => {
                       {profile?.is_admin && (
                         <DropdownMenuItem
                           onClick={() => navigate("/admin")}
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-300 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
                         >
                           <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/30">
-                            <Settings2 className="w-4 h-4 text-primary dark:text-primary" />
+                            <Settings2 className="w-4 h-4 text-[#f0514e] dark:text-[#f0514e]" />
                           </div>
                           <div>
                             <p className="font-medium">Admin Dashboard</p>
@@ -274,13 +274,13 @@ const Navbar = () => {
                         </DropdownMenuItem>
                       )}
 
-                      <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-[#1a1b22]" />
+                      <DropdownMenuSeparator className="my-2 bg-[#1a1c1e] dark:bg-[#1a1b22]" />
                       <DropdownMenuItem
                         onClick={() => navigate("/guide")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-300 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
                       >
                         <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/30">
-                          <HelpCircle className="w-4 h-4 text-primary dark:text-primary" />
+                          <HelpCircle className="w-4 h-4 text-[#f0514e] dark:text-[#f0514e]" />
                         </div>
                         <div>
                           <p className="font-medium">User Guide</p>
@@ -310,7 +310,7 @@ const Navbar = () => {
                               <LogOut className="w-5 h-5 text-red-500" />
                               Confirm Sign Out
                             </AlertDialogTitle>
-                            <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
+                            <AlertDialogDescription className="text-gray-400 dark:text-gray-300">
                               Are you sure you want to sign out as{" "}
                               <span className=" text-foreground">
                                 {profile?.name || user.email}
@@ -320,7 +320,7 @@ const Navbar = () => {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-lg border-gray-300 dark:border-[#2a2d35] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <AlertDialogCancel className="rounded-lg border-white/20 dark:border-[#2a2d35] text-gray-300 dark:text-gray-300 hover:bg-[#08090b] dark:hover:bg-gray-700">
                               Cancel
                             </AlertDialogCancel>
                             <AlertDialogAction

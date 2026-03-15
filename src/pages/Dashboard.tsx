@@ -177,16 +177,16 @@ const Dashboard = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      draft: "bg-gray-100 text-gray-800 hover:bg-gray-300",
+      draft: "bg-[#14161a] text-[#f0f2f6] hover:bg-gray-300",
       planning: "bg-purple-100 text-purple-800 hover:bg-purple-300",
-      started: "bg-primary/10 text-primary/80 hover:bg-primary/30",
+      started: "bg-[#f0514e]/10 text-[#f0514e]/80 hover:bg-primary/30",
       in_progress: "bg-amber-100 text-amber-800 hover:bg-amber-300",
       completed: "bg-green-100 text-green-800 hover:bg-green-300",
       on_hold: "bg-red-100 text-red-800 hover:bg-red-300",
     };
     return (
       colors[status as keyof typeof colors] ||
-      "bg-gray-100 hover:bg-gray-100 text-gray-800"
+      "bg-[#14161a] hover:bg-[#14161a] text-[#f0f2f6]"
     );
   };
 
@@ -251,8 +251,8 @@ const Dashboard = () => {
         <div className="mb-4 animate-fade-in">
           <div className="sm:flex flex-1 justify-between items-center">
             <div>
-              <div className="sm:text-2xl items-center text-xl flex font-bold text-foreground tracking-tight">
-                <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
+              <div className="sm:text-2xl items-center text-xl flex font-bold font-['Outfit'] tracking-wide text-foreground tracking-tight">
+                <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-[#f0514e] dark:text-white" />
                 <h2 className="text-xl sm:text-2xl">
                   {" "}
                   Welcome back, {profile.name}!
@@ -280,7 +280,7 @@ const Dashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold">
+              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
                 KSh {formatCurrency(dashboardData.totalQuotesValue)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -297,7 +297,7 @@ const Dashboard = () => {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold">
+              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
                 {dashboardData.activeProjects}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -314,7 +314,7 @@ const Dashboard = () => {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold">
+              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
                 {dashboardData.completedProjects}
               </div>
               <p className="text-xs text-muted-foreground">Projects finished</p>
@@ -357,7 +357,7 @@ const Dashboard = () => {
                       dashboardData.recentQuotes.map((quote) => (
                         <div
                           key={quote.id}
-                          className="flex items-center justify-between p-4   border border-gray-300 dark:border-[#2a2d35] rounded-lg hover:shadow-lg transition-shadow"
+                          className="flex items-center justify-between p-4   border border-white/20 dark:border-[#2a2d35] rounded-lg hover:shadow-lg transition-shadow"
                         >
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
@@ -453,14 +453,14 @@ const Dashboard = () => {
                       className="w-full text-left p-4 rounded-lg border border-border hover:border-primary/30 dark:hover:border-primary transition-all duration-300 bg-card flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20 group-hover:bg-primary/20 dark:group-hover:bg-primary/80/50 transition-colors">
+                        <div className="p-2 rounded-full bg-[#f0514e]/10 dark:bg-primary/20 group-hover:bg-primary/20 dark:group-hover:bg-primary/80/50 transition-colors">
                           <FileText className="w-4 h-4" />
                         </div>
                         <span className="font-medium text-foreground">
                           New Quote
                         </span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary dark:group-hover:text-primary/40 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#f0514e] dark:group-hover:text-[#f0514e]/40 transition-colors" />
                     </motion.button>
 
                     <motion.button
@@ -476,7 +476,7 @@ const Dashboard = () => {
                           Cost Calculator
                         </span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary dark:group-hover:text-primary/40 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#f0514e] dark:group-hover:text-[#f0514e]/40 transition-colors" />
                     </motion.button>
                   </CardContent>
                 </Card>

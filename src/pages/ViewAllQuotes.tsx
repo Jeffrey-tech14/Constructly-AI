@@ -81,11 +81,11 @@ const ViewAllQuotes = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "draft":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+        return "bg-[#14161a] text-[#f0f2f6] hover:bg-[#1a1c1e]";
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-primary/10 text-primary hover:bg-primary/20";
+        return "bg-[#f0514e]/10 text-[#f0514e] hover:bg-primary/20";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -93,7 +93,7 @@ const ViewAllQuotes = () => {
       case "on_hold":
         return "bg-red-100 text-red-800 hover:bg-red-200";
       default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+        return "bg-[#14161a] text-[#f0f2f6] hover:bg-[#1a1c1e]";
     }
   };
   useEffect(() => {
@@ -206,8 +206,8 @@ const ViewAllQuotes = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
-            <h1 className="sm:text-2xl text-xl font-bold flex items-center gap-3 text-foreground tracking-tight">
-              <Building2 className="sm:w-7 sm:h-7 text-primary dark:text-white" />
+            <h1 className="sm:text-2xl text-xl font-bold font-['Outfit'] tracking-wide flex items-center gap-3 text-foreground tracking-tight">
+              <Building2 className="sm:w-7 sm:h-7 text-[#f0514e] dark:text-white" />
               <h2 className="text-xl sm:text-2xl">All Construction Quotes</h2>
             </h1>
             <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
@@ -215,7 +215,7 @@ const ViewAllQuotes = () => {
             </p>
           </div>
           <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <Badge variant="secondary" className="px-3 py-1 text-gray-700">
+            <Badge variant="secondary" className="px-3 py-1 text-gray-300">
               Total: {filteredQuotes.length}
             </Badge>
           </div>
@@ -288,7 +288,7 @@ const ViewAllQuotes = () => {
                       <div className="flex-1">
                         <CardTitle className="text-xl mb-2 sm:flex flex-1 items-center gap-2">
                           <div className="flex gap-2">
-                            <Building2 className="w-5 h-5 text-primary dark:text-white" />
+                            <Building2 className="w-5 h-5 text-[#f0514e] dark:text-white" />
                             {quote.title}
                           </div>
                           <p className="font-normal text-sm">
@@ -326,7 +326,7 @@ const ViewAllQuotes = () => {
                           </Badge>
                         )}
                         <div className="text-right">
-                          <div className="sm:text-2xl text-lg font-bold text-primary dark:text-white">
+                          <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide text-[#f0514e] dark:text-white">
                             KSh{" "}
                             {formatCurrency(
                               quote.total_amount,
@@ -356,7 +356,7 @@ const ViewAllQuotes = () => {
                           <div className="text-sm text-muted-foreground mb-1">
                             Labor
                           </div>
-                          <div className="text-lg  text-primary">
+                          <div className="text-lg  text-[#f0514e]">
                             KSh{" "}
                             {formatCurrency(quote.labor_cost).toLocaleString()}
                           </div>

@@ -111,11 +111,11 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
   const getTierBadge = (tier: string) => {
     switch (tier) {
       case "draft":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+        return "bg-[#14161a] text-[#f0f2f6] hover:bg-[#1a1c1e]";
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-primary/10 text-primary hover:bg-primary/20";
+        return "bg-primary/10 text-[#f0514e] hover:bg-primary/20";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -123,7 +123,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
       case "on_hold":
         return "bg-red-100 text-red-800 hover:bg-red-200";
       default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+        return "bg-[#14161a] text-[#f0f2f6] hover:bg-[#1a1c1e]";
     }
   };
 
@@ -258,7 +258,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
                 <Progress
                   indicatorColor={`${getStatusColor(quote.status)} `}
                   value={quote.progress_percentage}
-                  className="w-full h-3 bg-primary/10 dark:bg-white/80"
+                  className="w-full h-3 bg-primary/10 dark:bg-[#14161a]/80"
                 />
               </div>
             </Card>

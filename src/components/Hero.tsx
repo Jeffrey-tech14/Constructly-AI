@@ -62,9 +62,9 @@ const Hero = ({ scrollTo }: any) => {
           <div className="hidden md:flex w-full md:w-1/2 relative h-[300px] sm:h-[400px] lg:h-[470px] items-center justify-center">
             <motion.div 
               className="relative w-full h-full z-10 flex items-center justify-center p-4 sm:p-8"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
+              initial={{ opacity: 0, scale: 0.8, x: -40 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut", delay: 4.5 }}
             >
               <img
                 src="https://png.pngtree.com/png-vector/20240314/ourmid/pngtree-trendy-civil-engineering-png-image_11952952.png"
@@ -72,18 +72,23 @@ const Hero = ({ scrollTo }: any) => {
                 className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-[0_20px_55px_rgba(240,81,78,0.22)]"
               />
             </motion.div>
-            <div className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 w-[52%] h-[20px] sm:h-[32px] bg-black blur-[22px] rounded-full opacity-80 pointer-events-none flex items-center justify-center z-0">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.8 }}
+              transition={{ duration: 1.5, delay: 5.0 }}
+              className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 w-[52%] h-[20px] sm:h-[32px] bg-black blur-[22px] rounded-full pointer-events-none flex items-center justify-center z-0"
+            >
               <div className="w-[80%] h-[50%] bg-[#f0514e]/30 blur-[15px] rounded-full"></div>
-            </div>
+            </motion.div>
           </div>
 
           {/* RIGHT SIDE: Content */}
           <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left pt-0 lg:pt-8 relative z-20">
             {/* Tagline pill */}
             <motion.div 
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 4.7 }}
               className="inline-flex items-center gap-2 px-3 py-1 lg:px-4 lg:py-1.5 rounded-full bg-white/[0.03] border border-white/15 text-[#ed6a32] text-xs sm:text-sm font-semibold mb-6 lg:mb-8 tracking-wide"
             >
               <span className="relative flex h-2 w-2">
@@ -94,9 +99,9 @@ const Hero = ({ scrollTo }: any) => {
             </motion.div>
             
             <motion.h1 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 4.9 }}
               className="text-[2.2rem] sm:text-[3rem] md:text-[2.6rem] lg:text-[4rem] xl:text-[4.2rem] font-bold leading-[1.05] tracking-tight mb-6 flex flex-col md:block"
             >
               <span className="text-[#ed6a32] whitespace-nowrap">Generate Accurate</span> <br className="hidden md:block" />
@@ -104,18 +109,18 @@ const Hero = ({ scrollTo }: any) => {
             </motion.h1>
 
             <motion.p 
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 5.1 }}
               className="text-lg sm:text-xl md:text-lg lg:text-xl text-[#8f95a3] max-w-[560px] font-semibold leading-relaxed mb-8 sm:mb-12"
             >
               JTech simplifies estimating, letting you generate accurate Bills of Quantities in a fraction of the time.
             </motion.p>
             
             <motion.div 
-              initial={{ y: 20, opacity: 0 }}
+              initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 5.3 }}
               className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
             >
               <button

@@ -70,51 +70,19 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
 
   // ✅ JTech Logo
   const JTechAILogo = () => (
-    <img
-      src="/logo.jpg"
-      alt="JTech AI Logo"
-      onClick={() => navigate("/")}
-      className="cursor-pointer h-6 w-auto object-contain"
-    />
-    // <svg
-    //   width="160"
-    //   height="34"
-    //   viewBox="0 0 135 36"
-    //   fill="none"
-    //   xmlns="http://www.w3.org/2000/svg"
-    //   className="transition-all duration-200 hover:opacity-90"
-    // >
-    //   <path d="M19.2857 11.25H12.8571V15.75H19.2857V11.25Z" fill={THEME.NAVY} />
-    //   <path d="M19.2857 20.25H12.8571V24.75H19.2857V20.25Z" fill={THEME.NAVY} />
-    //   <path d="M9.64286 6.75H25.7143V2.25H9.64286V6.75Z" fill={THEME.NAVY} />
-    //   <path d="M9.64286 29.25H25.7143V24.75H9.64286V29.25Z" fill={THEME.NAVY} />
-    //   <path d="M6.42857 11.25H0V24.75H6.42857V11.25Z" fill={THEME.NAVY} />
-    //   <path d="M32.1429 11.25H25.7143V24.75H32.1429V11.25Z" fill={THEME.NAVY} />
-    //   <path d="M38.5714 15.75H32.1429V20.25H38.5714V15.75Z" fill={THEME.NAVY} />
-    //   <circle cx="22.5" cy="13.5" r="2.25" fill={THEME.ORANGE} />
-    //   <circle cx="22.5" cy="22.5" r="2.25" fill={THEME.ORANGE} />
-    //   <path d="M22.5 15.75V20.25" stroke={THEME.ORANGE} strokeWidth="1.5" />
-    //   <text
-    //     x="45"
-    //     y="24"
-    //     fontFamily="Outfit"
-    //     fontWeight="800"
-    //     fontSize="22"
-    //     fill={THEME.NAVY}
-    //   >
-    //     JTech
-    //   </text>
-    //   <text
-    //     x="108"
-    //     y="24"
-    //     fontFamily="Outfit"
-    //     fontWeight="800"
-    //     fontSize="22"
-    //     fill={THEME.GREEN}
-    //   >
-    //     AI
-    //   </text>
-    // </svg>
+    <div 
+      onClick={() => navigate("/")} 
+      className="flex items-center gap-2.5 cursor-pointer group"
+    >
+      <img
+        src="/logo.jpg"
+        alt="JTech AI Logo"
+        className="h-7 w-auto object-contain"
+      />
+      <span className="text-[#f0f2f6] text-[26px] font-[800] tracking-wide" style={{ fontFamily: 'Outfit, sans-serif' }}>
+        JTech AI
+      </span>
+    </div>
   );
 
   return (
@@ -124,14 +92,15 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
       {/* Fixed Navbar Wrapper */}
       <div
         className={`fixed top-0 w-full z-[999] font-technical transition-all duration-300 ${
-          ""
+          scrolled ? "bg-[#111418] border-b border-white/10 shadow-lg" : "bg-transparent"
         }`}
-        style={{ backgroundColor: THEME.BG }}
       >
         {/* Top utility strip */}
         <div
-          className="text-[12px] font-semibold py-2.5 px-4 sm:px-6 hidden md:block border-b border-white/10"
-          style={{ backgroundColor: THEME.BG, color: THEME.MUTED }}
+          className={`text-[12px] font-semibold py-2.5 px-4 sm:px-6 hidden md:block transition-all duration-300 ${
+            scrolled ? "border-b border-white/10" : ""
+          }`}
+          style={{ color: THEME.MUTED }}
         >
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
             <div className="flex items-center gap-2 text-[#f0514e]">
@@ -154,8 +123,8 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
 
         {/* Main nav */}
         <nav
-          className="flex items-center relative z-20"
-          style={{ height: "66px", backgroundColor: THEME.PANEL }}
+          className="flex items-center relative z-20 transition-all duration-300"
+          style={{ height: "66px", backgroundColor: "transparent" }}
         >
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 w-full">
             <div className="flex items-center justify-between">
@@ -198,14 +167,14 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
                   whileHover={{ y: -1 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigate("/auth?mode=signup")}
-                  className="hidden sm:flex items-center justify-center text-white text-[16px] font-bold px-8 py-2.5 rounded-none transition-all"
+                  className="hidden sm:flex items-center justify-center text-white text-[16px] font-bold px-8 py-2.5 rounded-md transition-all shadow-sm hover:brightness-110"
                   style={{ backgroundColor: THEME.ORANGE }}
                 >
                   Get Started
                 </motion.button>
                 <button
                   onClick={() => navigate("/auth?mode=signin")}
-                  className="hidden lg:flex items-center gap-2 px-6 py-2.5 text-[16px] font-semibold text-[#f0514e] hover:text-[#ff726f] border border-white/10 hover:border-white/20 transition-all"
+                  className="hidden lg:flex items-center gap-2 px-6 py-2.5 text-[16px] font-semibold text-[#f0514e] hover:text-[#ff726f] border border-[#f0514e] rounded-md hover:bg-[#f0514e]/10 transition-all"
                 >
                   Sign In
                 </button>
@@ -278,7 +247,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
         </nav>
       </div>
 
-      <div className="h-[104px]" style={{ backgroundColor: THEME.BG }} />
+      {/* Spacer removed so background can extend to nav */}
     </>
   );
 };

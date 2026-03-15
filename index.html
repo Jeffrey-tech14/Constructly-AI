@@ -42,7 +42,7 @@
 
     <style>
       :root {
-        --bg-color: #000B29; /* Matches Hero background */
+        --bg-color: #111418; /* Matches Hero background */
         --logo-gold: #d4af37;
         --text-color: #ffffff;
         --accent: #43b02a;
@@ -51,10 +51,35 @@
 
       body {
         margin: 0;
-        background-color: var(--bg-color);
+        background-color: var(--bg-color) !important;
         font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
         color: var(--text-color);
         overflow-x: hidden;
+      }
+
+      /* Hero pattern replicated for loading screen */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(105deg, #222831 0%, #222831 42%, transparent 42.2%);
+        pointer-events: none;
+        z-index: -2;
+      }
+
+      body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(-75deg, #1a1e24 0%, #1a1e24 30%, transparent 30.2%);
+        pointer-events: none;
+        z-index: -2;
       }
 
       .app-loader {
@@ -65,8 +90,8 @@
         justify-content: center;
         align-items: center;
         z-index: 9999;
-        /* Matches the background of the image to blend it seamlessly */
-        background: #000B29;
+        /* Transparent so body pattern shows through */
+        background: transparent;
         gap: 30px;
         opacity: 0;
         animation: fade-in var(--transition-duration) ease-out forwards;
@@ -155,7 +180,7 @@
       .box-1 { top: 0; left: 0; background: #e63946; animation: box-pulse 1.5s infinite ease-in-out; }
       .box-2 { top: 0; right: 0; background: #ffcc00; animation: box-pulse 1.5s infinite ease-in-out 0.2s; }
       .box-3 { bottom: 0; left: 0; background: #43b02a; animation: box-pulse 1.5s infinite ease-in-out 0.6s; }
-      .box-4 { bottom: 0; right: 0; background: #ffffff; animation: box-pulse 1.5s infinite ease-in-out 0.4s; }
+      .box-4 { bottom: 0; right: 0; background: #0077b6; animation: box-pulse 1.5s infinite ease-in-out 0.4s; }
 
       /* Animations */
 
@@ -364,24 +389,21 @@
         opacity: 0;
         white-space: nowrap;
       }
-      .step-1 { 
-        background: linear-gradient(to bottom, #ffea8c 0%, #d4af37 40%, #8a5a19 100%);
+      .welcome-text {
+        background: linear-gradient(to right, #f0514e 0%, #f0f2f6 50%, #f0514e 100%);
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-size: 2.6rem; 
-        letter-spacing: 0.12em; 
-        filter: drop-shadow(0 4px 15px rgba(212, 175, 55, 0.5));
-        animation: text-pulse-fade 2.4s forwards 0s; 
+        font-size: 1.6rem;
+        filter: drop-shadow(0 2px 10px rgba(240, 81, 78, 0.4));
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+        animation: come-in 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 1.2s; 
       }
-      .step-2 { 
-        background: linear-gradient(to right, #ffea8c 0%, #d4af37 50%, #8a5a19 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 1.3rem;
-        filter: drop-shadow(0 2px 10px rgba(212, 175, 55, 0.4));
-        animation: step-fade-stay 2s forwards 2.6s; 
+      
+      @keyframes come-in {
+        0% { opacity: 0; transform: translateY(30px) scale(0.9); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
       }
 
       /* Keyframes */
@@ -548,14 +570,13 @@
 
       <!-- Dynamic Story Text -->
       <div class="story-text-container">
-        <span class="story-text step-1">Jtech Ai</span>
-        <span class="story-text step-2">ACCURATE QUOTES IN MINUTES</span>
+        <span class="story-text welcome-text">WELCOME TO JTECH AI</span>
       </div>
       
     </div>
 
     <!-- React App Container -->
-    <div id="root"></div>
+    <div id="root" style="opacity: 0; transition: opacity 0.8s ease-in;"></div>
 
     <script type="module" src="/src/main.tsx"></script>
 
@@ -568,10 +589,18 @@
         // Force the loader to display for 4.5 seconds so all animations finish cleanly
         setTimeout(() => {
           const loader = document.getElementById('global-loader');
+          const root = document.getElementById('root');
+          
           if (loader) {
             loader.style.transition = 'opacity 0.8s ease-out, visibility 0.8s ease-out';
             loader.style.opacity = '0';
             loader.style.visibility = 'hidden';
+            
+            // Reveal the actual React application now that the animation is over
+            if (root) {
+              root.style.opacity = '1';
+            }
+
             // Restore scrolling once loader fades out
             document.body.style.overflow = 'auto'; // or '' to remove
             // Remove it from the DOM after the fade-out

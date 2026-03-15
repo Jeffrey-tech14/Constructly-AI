@@ -55,7 +55,7 @@ const Hero = ({ scrollTo }: any) => {
   return (
     <section className="antialiased w-full relative font-display hero-pattern hero-diagonal overflow-hidden">
       <GlobalStyles />
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 pb-12 sm:pt-14 sm:pb-16">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-[136px] pb-12 sm:pt-[160px] sm:pb-16">
         <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-8">
 
           {/* LEFT SIDE: Floating Graphic */}

@@ -91,11 +91,11 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
 
           {/* RIGHT COLUMN (IMAGE) */}
           {/* CHANGED: Width is now 55% on all screens. Reduced padding significantly on mobile. */}
-          <div className="w-full md:w-[55%] md:shrink-0">
+          <div className="w-full md:w-[50%] md:shrink-0 flex items-center justify-center p-4 lg:p-0">
             <img
               src="https://gegosoft.com/wp-content/uploads/2023/03/boq_software_for_construction_projects.jpg"
               alt="Automated quantity takeoff preview"
-              className="w-full h-auto object-contain"
+              className="w-[90%] md:w-[85%] max-w-[480px] h-auto object-contain rounded-[20px] shadow-[0_15px_40px_rgba(0,0,0,0.15)] mx-auto lg:mr-0"
             />
           </div>
         </div>

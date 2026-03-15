@@ -180,7 +180,7 @@ export default function TestimonialsSection() {
                         className="absolute inset-0"
                         style={{ background: item.overlay }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/20 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
                       <div className="absolute bottom-4 left-4 right-4">
                         <p className="text-[#f05847] text-[14px] md:text-[16px] font-medium">
                           {item.company}
@@ -193,7 +193,7 @@ export default function TestimonialsSection() {
                       <h3 className="text-[#f05847] text-[32px] md:text-[40px] font-medium leading-[1.05] tracking-tight">
                         {item.name}
                       </h3>
-                      <p className="mt-2.5 text-white/92 text-[12px] md:text-[13px] leading-relaxed font-medium">
+                      <p className="mt-2.5 text-white/90 text-[12px] md:text-[13px] leading-relaxed font-medium">
                         “{item.quote}”
                       </p>
                     </div>

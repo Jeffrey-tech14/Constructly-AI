@@ -159,7 +159,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
 
       {/* SECTION 3: PLAN GUIDANCE */}
       <section
-        className="bg-white antialiased"
+        className="bg-white antialiased py-10 md:py-16"
         style={{
           fontFamily: "'Outfit', sans-serif",
           WebkitFontSmoothing: "antialiased",
@@ -167,17 +167,18 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
           textRendering: "geometricPrecision",
         }}
       >
-        <div className="max-w-[1920px] mx-auto grid grid-cols-1 lg:grid-cols-2">
-          <div className="relative min-h-[300px] lg:min-h-[480px] overflow-hidden">
-            <img
-              src="https://snu.edu.in/site/assets/files/18047/floating-industrial-landscape-with-chimneys-tank-mixed-media.1600x0.webp"
-              alt="Construction planning visual"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-white/74" />
-          </div>
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 rounded-[20px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)] bg-white">
+            <div className="relative min-h-[300px] lg:min-h-[480px] overflow-hidden">
+              <img
+                src="https://snu.edu.in/site/assets/files/18047/floating-industrial-landscape-with-chimneys-tank-mixed-media.1600x0.webp"
+                alt="Construction planning visual"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-white/74" />
+            </div>
 
-          <div className="bg-[#f18a2b] min-h-[300px] lg:min-h-[480px] px-8 py-10 md:px-12 lg:px-14 lg:py-16 text-white flex flex-col justify-center">
+            <div className="bg-[#f18a2b] min-h-[300px] lg:min-h-[480px] px-8 py-10 md:px-12 lg:px-14 lg:py-16 text-white flex flex-col justify-center">
             <h3 className="text-[28px] md:text-[42px] leading-[1.03] font-normal max-w-2xl tracking-[-0.01em]">
               Let us guide you to the right plan in less than a minute.
             </h3>
@@ -212,6 +213,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                 Try our User Guide
               </button>
             </div>
+          </div>
           </div>
         </div>
       </section>

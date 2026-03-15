@@ -9,6 +9,27 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
 
 @layer base {
   :root {
+    /* ✨ JTECH GLOBAL BRAND COLORS */
+    --jtech-brand: #f0514e;
+    --jtech-accent: #ed6a32;
+    --jtech-gold: #d4af37;
+    --jtech-blue: #0077b6;
+    --jtech-navy: #002855;
+    --jtech-green: #86bc25;
+    
+    /* 🌑 JTECH DARK THEME GLOBALS */
+    --jtech-dark: #111418;
+    --jtech-dark-panel: #1a1b22;
+    --jtech-dark-paper: #1a1e24;
+    --jtech-dark-nav: #1b1e27;
+
+    /* 📝 JTECH TEXT COLORS */
+    --jtech-text: #eceff4;
+    --jtech-text-brighter: #f0f2f6;
+    --jtech-text-muted: #9fa5b3;
+    --jtech-text-muted-light: #8f95a3;
+    --jtech-text-muted-dark: #a3a9b7;
+
     /* 🔵 AUTH PAGE COLOR THEME - EXTRACTED FROM COMPONENT */
     --primary-navy: 210 100% 20%;     /* #00356B - Deep Navy */
     --primary-navy-hex: #00356B;

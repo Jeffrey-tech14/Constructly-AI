@@ -215,7 +215,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
                 {/* Conditional Content Based on Quote Type */}
                 {wardrobe.quotationType === "lump-sum" ? (
                   // LUMP-SUM SECTION
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                  <div className="bg-primary/10 dark:bg-primary/30 p-4 rounded-lg mb-4">
                     <h5 className=" text-foreground mb-4">
                       Lump-Sum Pricing
                     </h5>
@@ -434,7 +434,7 @@ const WardrobesCalculator: React.FC<WardrobesCalculatorProps> = ({
 
         {/* Total Summary */}
         {wardrobes.length > 0 && (
-          <Card className="mt-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20">
+          <Card className="mt-6 bg-gradient-to-r from-primary to-green-50 dark:from-primary/20 dark:to-green-900/20">
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div>

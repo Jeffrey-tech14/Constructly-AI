@@ -389,7 +389,7 @@ const PreliminariesBuilder = ({
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             item.source === "ai"
-                              ? "bg-blue-100 text-blue-800"
+                              ? "bg-primary/10 text-primary"
                               : "bg-green-100 text-green-800"
                           }`}
                         >
@@ -451,14 +451,14 @@ const PreliminariesBuilder = ({
       ))}
 
       {sections.length > 0 && sections.some((s) => s.items.length > 0) && (
-        <Card className="bg-primary/10 border-primary dark:border-blue-300">
+        <Card className="bg-primary/10 border-primary dark:border-primary/20">
           <CardHeader>
-            <CardTitle className="text-primary dark:text-blue-300">
+            <CardTitle className="text-primary dark:text-primary">
               Grand Total
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary dark:text-blue-300">
+            <div className="text-2xl font-bold text-primary dark:text-primary">
               KSh {calculateGrandTotal().toLocaleString()}
             </div>
           </CardContent>

@@ -74,16 +74,13 @@ const AppContent = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen scrollbar-hide bg-[#fcfdfd] dark:bg-[#08090b] text-[#1a1a1a] dark:text-[#eceff4] transition-colors duration-400 relative" 
+    <div
+      className="min-h-screen scrollbar-hide bg-[#fcfdfd] dark:bg-[#08090b] text-[#1a1a1a] dark:text-[#eceff4] transition-colors duration-400 relative"
       style={{ fontFamily: 'Outfit, sans-serif' }}
     >
       {/* Custom titlebar for Electron only */}
       {isElectron && <CustomTitleBar />}
 
-      {!usesPublicLayoutNavbar && (
-        <div className={`fixed inset-0 pointer-events-none z-0 ${isDark ? 'bg-partan-dark opacity-30' : 'bg-partan-light opacity-50'}`} style={{ top: isElectron ? "40px" : "0px" }} />
-      )}
       {!usesPublicLayoutNavbar && <Navbar />}
       <div className="relative z-10">
         <Routes>

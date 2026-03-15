@@ -836,7 +836,7 @@ export default function RebarCalculatorForm({
 
   const getElementColor = (element: ElementTypes) => {
     const colors = {
-      slab: "bg-blue-100 text-blue-800 border-blue-200",
+      slab: "bg-primary/10 text-primary border-primary/20",
       beam: "bg-green-100 text-green-800 border-green-200",
       column: "bg-purple-100 text-purple-800 border-purple-200",
       foundation: "bg-orange-100 text-orange-800 border-orange-200",
@@ -906,9 +906,9 @@ export default function RebarCalculatorForm({
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 border-blue-200">
+      <Card className="bg-gradient-to-r from-primary to-indigo-50 dark:from-slate-900 border-primary/20">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-primary dark:text-blue-100">
+          <CardTitle className="flex items-center gap-2 text-primary dark:text-primary">
             <Calculator className="w-5 h-5" />
             Reinforcement Calculator Summary
           </CardTitle>
@@ -916,8 +916,8 @@ export default function RebarCalculatorForm({
         <CardContent className="sm:p-6 p-1">
           <div className="grid grid-cols-2 md:grid-cols-4 items-center justify-center text-center justify-center gap-4 text-sm">
             <div className="space-y-1">
-              <div className="text-blue-700 font-medium">Total Length</div>
-              <div className="text-lg font-bold text-primary dark:text-blue-600">
+              <div className="text-primary font-medium">Total Length</div>
+              <div className="text-lg font-bold text-primary dark:text-primary">
                 {totals.totalLengthM?.toFixed(0) || 0} m
               </div>
             </div>
@@ -942,8 +942,8 @@ export default function RebarCalculatorForm({
           </div>
 
           {totals.breakdown && totals.totalLengthM > 0 && (
-            <div className="mt-4 pt-4 border-t border-blue-200">
-              <div className="text-sm text-blue-700 dark:text-blue-50 font-medium mb-2">
+            <div className="mt-4 pt-4 border-t border-primary/20">
+              <div className="text-sm text-primary dark:text-primary font-medium mb-2">
                 Bar Length Breakdown:
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
@@ -1261,7 +1261,7 @@ export default function RebarCalculatorForm({
           <div className="flex gap-2 items-center">
             <Button
               onClick={addRow}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary/30 text-white"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add Element
@@ -1282,7 +1282,7 @@ export default function RebarCalculatorForm({
               </p>
               <Button
                 onClick={addRow}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary/30 text-white"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add First Element
@@ -1573,7 +1573,7 @@ export default function RebarCalculatorForm({
                             }
                             placeholder="e.g., 5.0"
                           />
-                          <p className="text-xs text-blue-600 dark:text-blue-300">
+                          <p className="text-xs text-primary dark:text-primary">
                             Direct area input
                           </p>
                         </div>
@@ -1944,7 +1944,7 @@ export default function RebarCalculatorForm({
                           <div
                             className={`grid grid-cols-1 md:grid-cols-3 gap-4 p-4 ${
                               row.element === "slab"
-                                ? "bg-blue-100 dark:bg-blue-700 text-blue-700 dark:text-blue-50"
+                                ? "bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary"
                                 : row.element === "raft-foundation"
                                   ? "bg-orange-100 dark:bg-orange-700 text-orange-700 dark:text-orange-50"
                                   : "bg-red-100 dark:bg-red-700 text-red-700 dark:text-red-50"
@@ -1966,7 +1966,7 @@ export default function RebarCalculatorForm({
                                   )
                                 }
                                 placeholder="200"
-                                className="border-blue-200"
+                                className="border-primary/20"
                               />
                             </div>
                             <div className="space-y-2">
@@ -1985,7 +1985,7 @@ export default function RebarCalculatorForm({
                                   )
                                 }
                                 placeholder="200"
-                                className="border-blue-200"
+                                className="border-primary/20"
                               />
                             </div>
                             {row.element === "slab" && (
@@ -2006,7 +2006,7 @@ export default function RebarCalculatorForm({
                                     )
                                   }
                                   placeholder="1"
-                                  className="border-blue-200"
+                                  className="border-primary/20"
                                 />
                               </div>
                             )}
@@ -2536,9 +2536,9 @@ export default function RebarCalculatorForm({
                             </div>
 
                             {/* Stem Reinforcement */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-primary/10 dark:bg-primary/30 rounded-lg">
                               <div className="space-y-2">
-                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                <Label className="text-sm font-medium text-primary dark:text-primary">
                                   Stem Vertical Bars
                                 </Label>
                                 <Select
@@ -2551,7 +2551,7 @@ export default function RebarCalculatorForm({
                                     )
                                   }
                                 >
-                                  <SelectTrigger className="border-blue-300">
+                                  <SelectTrigger className="border-primary/20">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -2565,7 +2565,7 @@ export default function RebarCalculatorForm({
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                <Label className="text-sm font-medium text-primary dark:text-primary">
                                   Stem Horizontal Bars
                                 </Label>
                                 <Select
@@ -2578,7 +2578,7 @@ export default function RebarCalculatorForm({
                                     )
                                   }
                                 >
-                                  <SelectTrigger className="border-blue-300">
+                                  <SelectTrigger className="border-primary/20">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -2592,7 +2592,7 @@ export default function RebarCalculatorForm({
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                <Label className="text-sm font-medium text-primary dark:text-primary">
                                   Vertical Spacing (mm)
                                 </Label>
                                 <Input
@@ -2606,13 +2606,13 @@ export default function RebarCalculatorForm({
                                       e.target.value,
                                     )
                                   }
-                                  className="border-blue-300"
+                                  className="border-primary/20"
                                   placeholder="150"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label className="text-sm font-medium text-blue-700 dark:text-blue-50">
+                                <Label className="text-sm font-medium text-primary dark:text-primary">
                                   Horizontal Spacing (mm)
                                 </Label>
                                 <Input
@@ -2626,7 +2626,7 @@ export default function RebarCalculatorForm({
                                       e.target.value,
                                     )
                                   }
-                                  className="border-blue-300"
+                                  className="border-primary/20"
                                   placeholder="200"
                                 />
                               </div>

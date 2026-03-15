@@ -232,7 +232,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                         <div>
                           <h4 className="font-medium text-foreground">
                             {customEq.equipment_name}
-                            <Badge className="ml-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                            <Badge className="ml-2 bg-primary/10 text-primary dark:bg-primary/30 dark:text-primary">
                               Custom
                             </Badge>
                           </h4>

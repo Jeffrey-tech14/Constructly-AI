@@ -729,8 +729,8 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                 </div>
 
                 {/* Calculation Breakdown */}
-                <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                <div className="mt-4 p-3 bg-primary/10 dark:bg-primary/30 rounded-lg">
+                  <p className="text-sm text-primary dark:text-primary">
                     Calculation: {earthwork.volume}m³ × KES{" "}
                     {earthworkRate.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
@@ -756,7 +756,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
 
         {/* Total Summary */}
         {earthworks.length > 0 && (
-          <Card className="mt-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20">
+          <Card className="mt-6 bg-gradient-to-r from-primary to-green-50 dark:from-primary/20 dark:to-green-900/20">
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div>

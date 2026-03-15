@@ -384,7 +384,7 @@ export default function FoundationWallingCalculator({
                   return (
                     <Card
                       key={wall.id}
-                      className="border-blue-200 dark:border-blue-700"
+                      className="border-primary/20 dark:border-primary/30"
                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
@@ -681,7 +681,7 @@ export default function FoundationWallingCalculator({
                         {/* Calculations Summary */}
                         <div className="mt-4 pt-4 border-t border-border">
                           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm mb-3">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                            <div className="bg-primary/10 dark:bg-primary/30 p-2 rounded">
                               <p className="text-gray-600 dark:text-gray-400 text-xs">
                                 Volume
                               </p>
@@ -771,7 +771,7 @@ export default function FoundationWallingCalculator({
       </Tabs>
 
       {/* Total Summary */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-700">
+      <Card className="bg-gradient-to-r from-primary to-indigo-50 dark:from-primary/20 dark:to-indigo-900/20 border-primary/20 dark:border-primary/30">
         <CardHeader>
           <CardTitle>Total Foundation Walling</CardTitle>
         </CardHeader>
@@ -789,7 +789,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Total Volume
               </p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-2xl font-bold text-primary dark:text-primary">
                 {totals.totalVolume.toFixed(2)} m³
               </p>
             </div>
@@ -844,7 +844,7 @@ export default function FoundationWallingCalculator({
           )}
 
           {/* Wall Type Breakdown */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-primary/20 dark:border-primary/30">
             <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 External Walls
@@ -906,11 +906,11 @@ export default function FoundationWallingCalculator({
               </div>
               {/* Breakdown by wall type */}
               <div className="grid grid-cols-2 gap-3 mt-3">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-700">
-                  <p className="text-xs  text-blue-900 dark:text-blue-100">
+                <div className="bg-primary/10 dark:bg-primary/30 p-3 rounded border border-primary/20 dark:border-primary/30">
+                  <p className="text-xs  text-primary dark:text-primary">
                     External Wall Return Fill
                   </p>
-                  <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-lg font-bold text-primary dark:text-primary">
                     {returnFillCalculations.externalVolume.toFixed(2)} m³
                   </p>
                 </div>

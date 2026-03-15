@@ -140,8 +140,8 @@ class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Helpful Message */}
-              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                <p className="text-sm text-blue-900 dark:text-blue-100">
+              <div className="p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
+                <p className="text-sm text-primary dark:text-primary">
                   If this problem persists, please try refreshing the page or
                   contact support.
                 </p>

@@ -106,16 +106,16 @@ const UserGuide = () => {
       description: "Understand the basics of creating a construction quote",
       content: (
         <div className="space-y-6">
-          <div className="bg-[#141414] dark:bg-blue-950/20 border border-[#d1d5db] dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg  text-white dark:text-blue-100 mb-4">
+          <div className="bg-[#141414] dark:bg-primary/20 border border-[#d1d5db] dark:border-primary/30 rounded-lg p-6">
+            <h3 className="text-lg  text-white dark:text-primary mb-4">
               How JTech Works
             </h3>
-            <p className="text-[#ef443b] dark:text-blue-200 mb-4">
+            <p className="text-[#ef443b] dark:text-primary mb-4">
               JTech AI helps construction professionals quickly create accurate
               cost estimates by analyzing your floor plans and calculating
               material and labor requirements.
             </p>
-            <p className="text-[#ef443b] dark:text-blue-200">
+            <p className="text-[#ef443b] dark:text-primary">
               The system asks you for basic project information, then
               automatically calculates quantities and costs based on
               industry-standard methods.
@@ -432,7 +432,7 @@ const UserGuide = () => {
             </Card>
 
             <Card>
-              <CardHeader className="bg-[#141414] border-[#333333]:from-blue-950/30">
+              <CardHeader className="bg-[#141414] border-[#333333]:from-primary/30">
                 <CardTitle className="text-base">MEP Systems</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
@@ -459,11 +459,11 @@ const UserGuide = () => {
       duration: "15 minutes",
       content: (
         <div className="space-y-6">
-          <div className="bg-[#141414] dark:bg-blue-950/20 border border-[#d1d5db] dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-white dark:text-blue-100 mb-3">
+          <div className="bg-[#141414] dark:bg-primary/20 border border-[#d1d5db] dark:border-primary/30 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white dark:text-primary mb-3">
               How to Use Each Calculator
             </h3>
-            <p className="text-[#ef443b] dark:text-blue-200">
+            <p className="text-[#ef443b] dark:text-primary">
               Each calculator section requires specific inputs and automatically
               calculates quantities and costs. Follow the order below for the
               most accurate results.
@@ -514,19 +514,19 @@ const UserGuide = () => {
                       Required Inputs:
                     </h4>
                     <div className="space-y-2 text-sm">
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Project Name</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           e.g., "Nairobi Residential 2BR"
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Client Name</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           e.g., "John Mwangi"
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Location/Region</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Affects regional price multipliers - Choose accurately
@@ -646,25 +646,25 @@ const UserGuide = () => {
                       Professional QS Elements (Toggle Options):
                     </h4>
                     <div className="space-y-2 text-sm">
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Include Ring Beams</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Structural reinforcement at wall tops
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Include Lintels</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Over doors and windows
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Include Reinforcement</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Rebar in concrete and masonry
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">
                           Include DPC (Damp Proof Course)
                         </p>
@@ -672,19 +672,19 @@ const UserGuide = () => {
                           Moisture barrier in foundations
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Include Scaffolding</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           With daily rates configured
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Include Movement Joints</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Expansion joint spacing (6m typical)
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Include Waste Removal</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           At configured rate per m³
@@ -1158,11 +1158,11 @@ const UserGuide = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
                     <div>
-                      <h5 className="font-semibold text-white dark:text-blue-100 mb-2">
+                      <h5 className="font-semibold text-white dark:text-primary mb-2">
                         Electrical Calculator
                       </h5>
                       <div className="space-y-2 text-sm">
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">System Type</p>
                           <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                             Lighting, Power, Data, Security, CCTV, Fire Alarm,
@@ -1170,27 +1170,27 @@ const UserGuide = () => {
                             Renewable Energy
                           </p>
                         </div>
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">Cable Type</p>
                           <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                             NYM-J, PVC/PVC, XLPE, MICC, SWA, Ethernet, Data
                             CAT6, Fiber Optic, Coaxial
                           </p>
                         </div>
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">Installation Method</p>
                           <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                             Surface, Concealed, Underground, Trunking
                           </p>
                         </div>
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">Outlet & Switch Types</p>
                           <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                             Power sockets, switches, dimmers, data ports, TV
                             points, USB chargers, circuit breakers
                           </p>
                         </div>
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">
                             Lighting Types & Wattage
                           </p>
@@ -1199,7 +1199,7 @@ const UserGuide = () => {
                             lights, floodlights, street lights (3W-60W range)
                           </p>
                         </div>
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">
                             Voltage & Circuit Ratings
                           </p>
@@ -1208,7 +1208,7 @@ const UserGuide = () => {
                             ratings 6A-63A
                           </p>
                         </div>
-                        <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                        <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                           <p className="font-medium">Cable Sizes</p>
                           <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                             1.0mm² to 150mm² for various applications and load
@@ -1378,27 +1378,27 @@ const UserGuide = () => {
                       Ceiling Finishes (Required Inputs):
                     </h4>
                     <div className="space-y-2 text-sm">
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Ceiling Material</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Gypsum Board, PVC, Acoustic Tiles, Exposed Concrete,
                           Suspended Grid, or Wood Panels
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Ceiling Area (m²)</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Total floor/ceiling area requiring treatment
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Supplementary Materials</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Metal channels, studs, screws, corner tape, fiber
                           mesh, cornice, filler
                         </p>
                       </div>
-                      <div className="p-2 bg-[#141414] dark:bg-blue-950/30 rounded border-l-4 border-blue-500">
+                      <div className="p-2 bg-[#141414] dark:bg-primary/20 rounded border-l-4 border-primary/50">
                         <p className="font-medium">Paint Finish</p>
                         <p className="text-[#a0a0a0] dark:text-[#a0a0a0]">
                           Ceiling paint with coverage calculations
@@ -1544,11 +1544,11 @@ const UserGuide = () => {
       duration: "10 minutes",
       content: (
         <div className="space-y-6">
-          <div className="bg-[#141414] dark:bg-blue-950/20 border border-[#d1d5db] dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg  text-white dark:text-blue-100 mb-3">
+          <div className="bg-[#141414] dark:bg-primary/20 border border-[#d1d5db] dark:border-primary/30 rounded-lg p-6">
+            <h3 className="text-lg  text-white dark:text-primary mb-3">
               What Are Variables?
             </h3>
-            <p className="text-[#ef443b] dark:text-blue-200">
+            <p className="text-[#ef443b] dark:text-primary">
               Variables are all the pricing parameters that affect your quote
               calculations - materials, labor rates, equipment costs, and
               regional adjustments. By customizing these, you ensure your quotes
@@ -1575,7 +1575,7 @@ const UserGuide = () => {
                   </p>
                 </div>
 
-                <div className="border-l-4 border-blue-500 pl-4 py-2">
+                <div className="border-l-4 border-primary/50 pl-4 py-2">
                   <p className=" text-white dark:text-white">
                     Equipment Rates
                   </p>
@@ -1712,7 +1712,7 @@ const UserGuide = () => {
                 If you use materials not in the base system, add them as custom
                 materials:
               </p>
-              <div className="space-y-2 text-sm bg-[#141414] dark:bg-blue-950/20 p-4 rounded">
+              <div className="space-y-2 text-sm bg-[#141414] dark:bg-primary/20 p-4 rounded">
                 <p className=" text-white dark:text-white">
                   Information Needed:
                 </p>
@@ -1777,7 +1777,7 @@ const UserGuide = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="border-[#d1d5db] dark:border-blue-800">
+                <Card className="border-[#d1d5db] dark:border-primary/30">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base">PDF Quote</CardTitle>
                   </CardHeader>
@@ -1927,7 +1927,7 @@ const UserGuide = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <div className="border-l-4 border-blue-500 pl-4">
+                <div className="border-l-4 border-primary/50 pl-4">
                   <p className=" text-white dark:text-white">
                     Personal Information
                   </p>
@@ -2022,11 +2022,11 @@ const UserGuide = () => {
       duration: "5 minutes",
       content: (
         <div className="space-y-6">
-          <div className="bg-[#141414] dark:bg-blue-950/20 border border-[#d1d5db] dark:border-blue-800 rounded-lg p-6">
-            <h3 className="text-lg  text-white dark:text-blue-100 mb-3">
+          <div className="bg-[#141414] dark:bg-primary/20 border border-[#d1d5db] dark:border-primary/30 rounded-lg p-6">
+            <h3 className="text-lg  text-white dark:text-primary mb-3">
               What is a PDF Quote?
             </h3>
-            <p className="text-[#ef443b] dark:text-blue-200">
+            <p className="text-[#ef443b] dark:text-primary">
               A PDF is a professional document format that looks exactly the
               same on every device. It's the industry standard for sending
               quotes to clients and is secure, reliable, and easy to share.
@@ -2403,7 +2403,7 @@ const UserGuide = () => {
                   </p>
                 </div>
 
-                <div className="border-l-4 border-blue-500 pl-4 py-2">
+                <div className="border-l-4 border-primary/50 pl-4 py-2">
                   <p className=" text-white dark:text-white">
                     Payment Processing
                   </p>
@@ -2520,7 +2520,7 @@ const UserGuide = () => {
 
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-[#141414] border-[#333333]:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl font-bold bg-[#141414] border-[#333333]:from-primary dark:to-primary bg-clip-text text-transparent mb-4">
             User Guide
           </h1>
           <p className="text-lg text-[#a0a0a0] dark:text-gray-300">
@@ -2578,7 +2578,7 @@ const UserGuide = () => {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-[#141414] dark:bg-blue-900 flex items-center justify-center text-[#ef443b] dark:text-blue-300">
+                        <div className="w-12 h-12 rounded-lg bg-[#141414] dark:bg-primary/30 flex items-center justify-center text-[#ef443b] dark:text-primary">
                           {section.icon}
                         </div>
                         <div>
@@ -2610,7 +2610,7 @@ const UserGuide = () => {
 
         {/* Footer CTA */}
         <div className="mt-12 text-center pb-12">
-          <Card className="bg-[#141414] border-[#333333]:from-blue-950/20 dark:to-indigo-950/20 border-[#d1d5db] dark:border-blue-800">
+          <Card className="bg-[#141414] border-[#333333]:from-primary/20 dark:to-indigo-950/20 border-[#d1d5db] dark:border-primary/30">
             <CardContent className="pt-8 pb-8 text-center">
               <h3 className="text-xl text-white dark:text-white mb-4">
                 Ready to Create Your First Quote?

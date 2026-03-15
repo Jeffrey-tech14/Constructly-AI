@@ -915,7 +915,7 @@ const DoorsWindowsEditor = ({
                   key={`internal-${actualIdx}`}
                   className={`p-4 rounded-3xl border`}
                 >
-                  <h5 className=" mb-3 capitalize flex items-center text-blue-900 dark:text-blue-100">
+                  <h5 className=" mb-3 capitalize flex items-center text-primary dark:text-primary">
                     <Building className="w-4 h-4 mr-2" />
                     Internal Wall Section
                   </h5>
@@ -4394,7 +4394,7 @@ const EditableDoorWindow = ({
                           Qty (Cans)
                         </label>
                         <Input
-                          className="h-8 text-xs bg-blue-50 dark:bg-blue-950/30"
+                          className="h-8 text-xs bg-primary/10 dark:bg-primary/20"
                           type="number"
                           min="0"
                           value={windowItem.glazing?.putty?.tinsNeeded || ""}

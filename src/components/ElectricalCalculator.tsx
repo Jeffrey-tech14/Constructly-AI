@@ -391,7 +391,7 @@ export default function ElectricalCalculator({
     const colors = {
       lighting: "bg-yellow-100 text-yellow-800",
       power: "bg-red-100 text-red-800",
-      data: "bg-blue-100 text-blue-800",
+      data: "bg-primary/10 text-primary",
       security: "bg-purple-100 text-purple-800",
       cctv: "bg-indigo-100 text-indigo-800",
       "fire-alarm": "bg-red-100 text-red-800",

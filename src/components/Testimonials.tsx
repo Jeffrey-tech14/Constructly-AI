@@ -126,7 +126,7 @@ export function TestimonialsSection() {
         <div className="max-w-5xl mx-auto relative mb-20 mt-10">
           <button
             onClick={prevTestimonial}
-            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-[#111418] dark:text-gray-300 dark:border-[#2a2d35] dark:hover:text-primary"
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-primary dark:bg-[#111418] dark:text-gray-300 dark:border-[#2a2d35] dark:hover:text-primary"
             aria-label="Previous testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -135,7 +135,7 @@ export function TestimonialsSection() {
 
           <button
             onClick={nextTestimonial}
-            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-[#111418] dark:text-gray-300 dark:border-[#2a2d35] dark:hover:text-primary"
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-primary dark:bg-[#111418] dark:text-gray-300 dark:border-[#2a2d35] dark:hover:text-primary"
             aria-label="Next testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -156,7 +156,7 @@ export function TestimonialsSection() {
                   <div className="rounded-2xl shadow-xl overflow-hidden border bg-gray-900 border-gray-800 dark:bg-[#111418] dark:border-[#2a2d35]">
                     <div className="grid grid-cols-1 lg:grid-cols-3">
                       <div className="lg:col-span-2 p-8 md:p-10">
-                        <div className="text-blue-600 text-5xl mb-6">
+                        <div className="text-primary text-5xl mb-6">
                           <Quote className="opacity-70 dark:text-white text-primary" />
                         </div>
                         <p className="text-xl mb-8 leading-relaxed italic text-white dark:text-gray-200">
@@ -164,7 +164,7 @@ export function TestimonialsSection() {
                         </p>
                         <div className="flex flex-col md:flex-row md:items-center justify-between">
                           <div className="flex items-center mb-4 md:mb-0">
-                            <div className="bg-gradient-to-br from-blue-600 to-purple-800 w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                            <div className="bg-gradient-to-br from-primary to-purple-800 w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                               {currentTestimonial.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-4">
@@ -215,7 +215,7 @@ export function TestimonialsSection() {
                           <div className="text-sm mb-2 text-gray-300 dark:text-gray-400">
                             Project Type:
                           </div>
-                          <div className="inline-flex px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                          <div className="inline-flex px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
                             Commercial Tower
                           </div>
                         </div>
@@ -240,7 +240,7 @@ export function TestimonialsSection() {
                   onClick={() => setActiveIndex(index)}
                   className={`w-3 h-3 rounded-full transition-colors ${
                     index === activeIndex
-                      ? "bg-blue-600"
+                      ? "bg-primary"
                       : "bg-gray-300 dark:bg-gray-600"
                   }`}
                   aria-label={`Go to testimonial ${index + 1}`}

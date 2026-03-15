@@ -221,15 +221,15 @@ const PreliminariesOptionsPage = ({
       </div>
 
       {/* Project Type Information */}
-      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+      <Card className="bg-primary/10 dark:bg-primary/30 border-primary/20 dark:border-primary/30">
         <CardContent className="pt-6">
           <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-primary dark:text-primary flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
+              <p className="text-sm font-medium text-primary dark:text-primary">
                 Customize Preliminary Works
               </p>
-              <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
+              <p className="text-sm text-primary dark:text-primary mt-1">
                 Select the preliminary items you need for your project. Some items are recommended for specific building types, but you can include any that apply to your project.
               </p>
             </div>
@@ -245,7 +245,7 @@ const PreliminariesOptionsPage = ({
           return (
             <Card
               key={preliminary.id}
-              className="transition-all border-blue-200 dark:border-blue-700 bg-card"
+              className="transition-all border-primary/20 dark:border-primary/30 bg-card"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -266,7 +266,7 @@ const PreliminariesOptionsPage = ({
                         {preliminary.description}
                       </p>
                       {applicabilityNote && (
-                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 font-medium">
+                        <p className="text-xs text-primary dark:text-primary mt-2 font-medium">
                           💡 {applicabilityNote}
                         </p>
                       )}
@@ -380,7 +380,7 @@ const PreliminariesOptionsPage = ({
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                         Total Cost:
                       </span>
-                      <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      <span className="text-lg font-bold text-primary dark:text-primary">
                         KES {preliminary.totalCost.toLocaleString()}
                       </span>
                     </div>
@@ -403,7 +403,7 @@ const PreliminariesOptionsPage = ({
       </div>
 
       {/* Summary Card */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-700">
+      <Card className="bg-gradient-to-r from-primary to-indigo-50 dark:from-primary/20 dark:to-indigo-900/20 border-primary/20 dark:border-primary/30">
         <CardHeader>
           <CardTitle className="text-foreground">
             Preliminaries Summary
@@ -424,12 +424,12 @@ const PreliminariesOptionsPage = ({
                 </div>
               ))}
           </div>
-          <div className="pt-3 border-t border-blue-200 dark:border-blue-700">
+          <div className="pt-3 border-t border-primary/20 dark:border-primary/30">
             <div className="flex justify-between items-center">
               <span className="text-base font-bold text-foreground">
                 Total Preliminaries Cost
               </span>
-              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <span className="text-2xl font-bold text-primary dark:text-primary">
                 KES {calculateTotal().toLocaleString()}
               </span>
             </div>

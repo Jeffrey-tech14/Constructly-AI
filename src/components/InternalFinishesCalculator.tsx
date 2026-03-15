@@ -633,7 +633,7 @@ export default function InternalFinishesCalculator({
       </Card>
       {/* Masonry Plaster Results */}
       {quote?.masonry_materials?.netPlaster > 0 && (
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-900">
+        <Card className="border-primary/20 bg-primary/10 dark:bg-primary/20 dark:border-primary/30">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               Plaster Finishes
@@ -937,7 +937,7 @@ export default function InternalFinishesCalculator({
                   onClick={() =>
                     addPainting(netInternalWallArea, "Interior Walls")
                   }
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
+                  className="w-full bg-primary hover:bg-primary/30 text-white  shadow-md"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Painting Surface
@@ -1206,11 +1206,11 @@ export default function InternalFinishesCalculator({
             {/* Kitchen Area Preview */}
             {wetAreaSettings.hasKitchen &&
               wetAreaSettings.kitchenPerimeter > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
-                  <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
+                  <Label className="text-xs font-bold text-primary dark:text-primary">
                     Kitchen Tile Area
                   </Label>
-                  <div className="text-xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                  <div className="text-xl font-bold text-primary dark:text-primary mt-2">
                     {(
                       wetAreaSettings.kitchenPerimeter *
                       wetAreaSettings.kitchenTileHeight

@@ -316,7 +316,7 @@ export default function DoorWindowPaintCalculator({
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="bg-gradient-to-r from-primary to-primary dark:from-primary/30 dark:to-primary/30 p-4 rounded-lg border border-primary/20 dark:border-primary/30">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">

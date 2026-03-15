@@ -172,7 +172,7 @@ const ProjectProgress = ({
       case "planning":
         return "hover:bg-purple-100 bg-purple-100 text-purple-800";
       case "started":
-        return "hover:bg-blue-100 bg-blue-100 text-blue-800";
+        return "hover:bg-primary/10 bg-primary/10 text-primary";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -190,7 +190,7 @@ const ProjectProgress = ({
       case "planning":
         return "bg-purple-300/10 ";
       case "started":
-        return "bg-blue-300/10";
+        return "bg-primary/20/10";
       case "in_progress":
         return "bg-amber-300/10 ";
       case "completed":
@@ -208,7 +208,7 @@ const ProjectProgress = ({
       case "planning":
         return "hover:bg-purple-800 bg-purple-800";
       case "started":
-        return "hover:bg-blue-800 bg-blue-800";
+        return "hover:bg-primary/30 bg-primary/30";
       case "in_progress":
         return "hover:bg-amber-800 bg-amber-800";
       case "completed":

@@ -958,7 +958,7 @@ export default function FlooringCalculator({
     <div className="space-y-6">
       {/* Section 1: Screeding Base - Input Only */}
       <Card>
-        <CardHeader className="bg-blue-50 dark:bg-blue-950/20">
+        <CardHeader className="bg-primary/10 dark:bg-primary/20">
           <CardTitle>Screeding Base</CardTitle>
           <CardDescription>
             Set base layer thickness for tiled floors
@@ -1020,7 +1020,7 @@ export default function FlooringCalculator({
                 <h3 className="text-sm  text-slate-700 dark:text-slate-300">
                   Screeding Materials (Base Layer)
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-300 dark:border-blue-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
                   <div>
                     <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
                       Cement Bags (50kg)
@@ -1726,11 +1726,11 @@ export default function FlooringCalculator({
                 {/* Result Display */}
                 {customSkirtingMaterial.useCustom ? (
                   <>
-                    <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
-                      <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                    <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
+                      <Label className="text-xs font-bold text-primary dark:text-primary">
                         Units Needed
                       </Label>
-                      <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                      <div className="text-2xl font-bold text-primary dark:text-primary mt-2">
                         {calculateCustomSkirtingUnitsNeeded(
                           skirting.totalSkirtingLength,
                           skirtingTileHeightM,
@@ -1738,7 +1738,7 @@ export default function FlooringCalculator({
                           customSkirtingMaterial.heightMm,
                         )}
                       </div>
-                      <p className="text-xs text-blue-700 dark:text-blue-200 mt-1">
+                      <p className="text-xs text-primary dark:text-primary mt-1">
                         {customSkirtingMaterial.widthMm}×
                         {customSkirtingMaterial.heightMm}mm each
                       </p>
@@ -1773,14 +1773,14 @@ export default function FlooringCalculator({
                     {getSkiritingTypeForFloor(flooringFinishes[0].material) ===
                       "tile" && (
                       <>
-                        <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
-                          <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                        <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
+                          <Label className="text-xs font-bold text-primary dark:text-primary">
                             Skirting Tile Area (m²)
                           </Label>
-                          <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                          <div className="text-2xl font-bold text-primary dark:text-primary mt-2">
                             {skirtingTileArea.toFixed(2)}
                           </div>
-                          <p className="text-xs text-blue-700 dark:text-blue-200 mt-1">
+                          <p className="text-xs text-primary dark:text-primary mt-1">
                             Est. tiles: {skirtingTileCount}
                           </p>
                         </div>
@@ -1946,11 +1946,11 @@ export default function FlooringCalculator({
                     className="mt-2"
                   />
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded border border-blue-200">
-                  <Label className="text-xs font-bold text-blue-900 dark:text-blue-100">
+                <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
+                  <Label className="text-xs font-bold text-primary dark:text-primary">
                     Corner Strip Total (Ksh)
                   </Label>
-                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-2">
+                  <div className="text-2xl font-bold text-primary dark:text-primary mt-2">
                     {formatCurrency(cornerStripTotalCost)}
                   </div>
                 </div>

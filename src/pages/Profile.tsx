@@ -243,7 +243,7 @@ const Profile = () => {
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={avatarUrl || undefined} />
                       <AvatarFallback className="text-2xl">
-                        <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                        <User className="w-6 h-6 text-primary dark:text-primary" />
                       </AvatarFallback>
                     </Avatar>
                     <Button
@@ -351,7 +351,7 @@ const Profile = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <div className="text-center">
-                      <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      <p className="text-xl md:text-2xl font-bold text-primary dark:text-primary">
                         {stats.total_projects}
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -396,7 +396,7 @@ const Profile = () => {
                           projectCompletionRate >= 75
                             ? "bg-green-500"
                             : projectCompletionRate >= 50
-                              ? "bg-blue-500"
+                              ? "bg-primary"
                               : "bg-red-500"
                         }`}
                         style={{ width: `${projectCompletionRate}%` }}

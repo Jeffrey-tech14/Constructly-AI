@@ -179,7 +179,7 @@ const Dashboard = () => {
     const colors = {
       draft: "bg-gray-100 text-gray-800 hover:bg-gray-300",
       planning: "bg-purple-100 text-purple-800 hover:bg-purple-300",
-      started: "bg-blue-100 text-blue-800 hover:bg-blue-300",
+      started: "bg-primary/10 text-primary/80 hover:bg-primary/30",
       in_progress: "bg-amber-100 text-amber-800 hover:bg-amber-300",
       completed: "bg-green-100 text-green-800 hover:bg-green-300",
       on_hold: "bg-red-100 text-red-800 hover:bg-red-300",
@@ -450,23 +450,23 @@ const Dashboard = () => {
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => navigate("/quotes/new")}
-                      className="w-full text-left p-4 rounded-lg border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-card flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-border hover:border-primary/30 dark:hover:border-primary transition-all duration-300 bg-card flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
+                        <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20 group-hover:bg-primary/20 dark:group-hover:bg-primary/80/50 transition-colors">
                           <FileText className="w-4 h-4" />
                         </div>
                         <span className="font-medium text-foreground">
                           New Quote
                         </span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary dark:group-hover:text-primary/40 transition-colors" />
                     </motion.button>
 
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowCalculator(true)}
-                      className="w-full text-left p-4 rounded-lg border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-card flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-border hover:border-primary/30 dark:hover:border-primary transition-all duration-300 bg-card flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
@@ -476,7 +476,7 @@ const Dashboard = () => {
                           Cost Calculator
                         </span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary dark:group-hover:text-primary/40 transition-colors" />
                     </motion.button>
                   </CardContent>
                 </Card>

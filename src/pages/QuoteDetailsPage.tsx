@@ -145,7 +145,7 @@ const QuoteDetailsPage = () => {
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+        return "bg-primary/10 text-primary hover:bg-primary/20";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -511,7 +511,7 @@ const QuoteDetailsPage = () => {
 
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="text-white bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90">
+                    <Button className="text-white bg-gradient-to-r from-primary to-primary hover:from-primary/40 hover:to-primary/90">
                       <FileText className="w-4 h-4 mr-2" />
                       Generate BOQ
                     </Button>

@@ -2868,7 +2868,7 @@ const QuoteBuilder = () => {
         );
       case "Enterprise":
         return (
-          <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300">
+          <Badge className="text-xs bg-primary/10 text-primary hover:bg-primary/10 dark:bg-primary/30/30 dark:text-primary">
             <Crown className="w-3 h-3 mr-1" />
             Enterprise
           </Badge>

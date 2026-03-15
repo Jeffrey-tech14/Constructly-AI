@@ -828,8 +828,8 @@ export default function ConcreteCalculatorForm({
       case "underground-tank":
         initializeSpecializedDetails(row);
         return (
-          <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-            <h4 className=" text-blue-800 dark:text-blue-200">
+          <div className="space-y-4 p-4 bg-primary/10 dark:bg-primary/30 rounded-md">
+            <h4 className=" text-primary dark:text-primary">
               Underground Tank Details
             </h4>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -1908,7 +1908,7 @@ export default function ConcreteCalculatorForm({
       </Label>
 
       {!qsSettings.clientProvidesWater && totals.waterRequired > 0 && (
-        <div className="mb-3 p-3 bg-green-50 border border-blue-200 dark:bg-green-500/30 dark:border-green-500/50 rounded-lg">
+        <div className="mb-3 p-3 bg-green-50 border border-primary/20 dark:bg-green-500/30 dark:border-green-500/50 rounded-lg">
           <p className="text-sm text-green-800 dark:text-white font-medium">
             💧 Water Cost Calculation:
           </p>
@@ -1929,7 +1929,7 @@ export default function ConcreteCalculatorForm({
       )}
 
       {qsSettings.clientProvidesWater && totals.waterRequired > 0 && (
-        <div className="mb-3 p-2 bg-green-50 border border-blue-200 dark:bg-green-500/30 dark:border-green-500/50 rounded-lg">
+        <div className="mb-3 p-2 bg-green-50 border border-primary/20 dark:bg-green-500/30 dark:border-green-500/50 rounded-lg">
           <p className="text-sm">
             💧 Water required: {totals.waterRequired?.toFixed(0)} liters (Client
             provided - no cost included)

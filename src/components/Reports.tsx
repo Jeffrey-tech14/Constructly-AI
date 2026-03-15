@@ -151,7 +151,7 @@ const Reports = () => {
         <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <FileText className="sm:w-7 sm:h-7 text-blue-600" />
+              <FileText className="sm:w-7 sm:h-7 text-primary" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Quotes
@@ -183,7 +183,7 @@ const Reports = () => {
         <Card className=" card-hover">
           <CardContent className="p-4">
             <div className="flex items-center">
-              <DollarSign className="sm:w-8 sm:h-8 text-blue-600" />
+              <DollarSign className="sm:w-8 sm:h-8 text-primary" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Revenue

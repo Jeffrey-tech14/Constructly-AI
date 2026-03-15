@@ -85,7 +85,7 @@ const ViewAllQuotes = () => {
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+        return "bg-primary/10 text-primary hover:bg-primary/20";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -356,7 +356,7 @@ const ViewAllQuotes = () => {
                           <div className="text-sm text-muted-foreground mb-1">
                             Labor
                           </div>
-                          <div className="text-lg  text-blue-600">
+                          <div className="text-lg  text-primary">
                             KSh{" "}
                             {formatCurrency(quote.labor_cost).toLocaleString()}
                           </div>
@@ -468,7 +468,7 @@ const ViewAllQuotes = () => {
                             <Button
                               size="sm"
                               onClick={() => setSelectedQuoteForExport(quote)}
-                              className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-blue-700 hover:from-primary/40 hover:to-primary/90"
+                              className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-primary hover:from-primary/40 hover:to-primary/90"
                             >
                               <FileText className="w-4 h-4 mr-2 text-white" />
                               Generate BOQ

@@ -155,7 +155,7 @@ const Calendar = () => {
         <h2 className="sm:text-2xl text-lg font-bold">Calendar</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="text-white hover:bg-blue-500">
+            <Button className="text-white hover:bg-primary">
               <Plus className="w-4 h-4 mr-2 text-white" />
               Add Event
             </Button>
@@ -311,10 +311,10 @@ const Calendar = () => {
                           !isCurrentMonth
                             ? "bg-slate-50 dark:glass border-slate-100 dark:border-slate-800 text-slate-400"
                             : isSelected
-                              ? "bg-primary border-blue-600 text-white shadow-md scale-105"
+                              ? "bg-primary border-primary/50 text-white shadow-md scale-105"
                               : isTodayDate
                                 ? "bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white shadow-sm"
-                                : "bg-white dark:bg-blue-900/10 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-blue-400 hover:shadow-md"
+                                : "bg-white dark:bg-primary/30 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-primary/50 hover:shadow-md"
                         }
                       `}
                     >
@@ -328,7 +328,7 @@ const Calendar = () => {
                           ${
                             isSelected
                               ? "bg-white/30 text-white"
-                              : "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300"
+                              : "bg-primary/10 dark:bg-primary/30 text-primary dark:text-primary"
                           }
                         `}
                         >
@@ -347,7 +347,7 @@ const Calendar = () => {
             <Card className="border border-slate-200 dark:border-slate-700 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center text-base">
-                  <CalendarDays className="w-5 h-5 mr-2 text-blue-500" />
+                  <CalendarDays className="w-5 h-5 mr-2 text-primary" />
                   Events for {format(selectedDate, "MMM d, yyyy")}
                 </CardTitle>
               </CardHeader>
@@ -355,7 +355,7 @@ const Calendar = () => {
                 {eventsForSelectedDate.map((event) => (
                   <div
                     key={event.id}
-                    className="p-4  bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:shadow-md transition-shadow"
+                    className="p-4  bg-primary/10 dark:bg-primary/30 rounded-lg hover:shadow-md transition-shadow"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">

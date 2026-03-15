@@ -515,7 +515,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
                   </div>
 
                   {wardrobe.quotationType === "lump-sum" ? (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
+                    <div className="bg-primary/10 dark:bg-primary/30 p-4 rounded-lg mb-4">
                       <h5 className="text-foreground mb-4">
                         Lump-Sum Pricing
                       </h5>
@@ -737,7 +737,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
           )}
 
           {wardrobes.length > 0 && (
-            <Card className="mt-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20">
+            <Card className="mt-6 bg-gradient-to-r from-primary to-green-50 dark:from-primary/20 dark:to-green-900/20">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div>
@@ -1023,7 +1023,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
           )}
 
           {kitchenCabinets.length > 0 && (
-            <Card className="mt-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20">
+            <Card className="mt-6 bg-gradient-to-r from-primary to-green-50 dark:from-primary/20 dark:to-green-900/20">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div>

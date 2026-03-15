@@ -134,8 +134,8 @@ export default function MasonryCalculatorForm({
   };
   return (
     <div className="space-y-4">
-      <div className="p-4 m-2 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h3 className=" text-lg text-primary dark:text-blue-100">
+      <div className="p-4 m-2 bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 rounded-lg">
+        <h3 className=" text-lg text-primary dark:text-primary">
           Total Cost: Ksh {results.grossTotalCost?.toLocaleString() || 0}
         </h3>
         <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
@@ -272,7 +272,7 @@ export default function MasonryCalculatorForm({
         {qsSettings.includesRingBeams &&
           (results.netRingBeamsCost > 0 || results.grossRingBeamsCost > 0) && (
             <Card className="border">
-              <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/30 dark:to-blue-900/30 border-b rounded-t-lg">
+              <div className="p-4 bg-gradient-to-r from-cyan-50 to-primary dark:from-cyan-900/30 dark:to-primary/30 border-b rounded-t-lg">
                 <h4 className=" text-cyan-900 dark:text-cyan-100">
                   Ring Beam Breakdown
                 </h4>
@@ -617,8 +617,8 @@ export default function MasonryCalculatorForm({
           </p>
         </div>
       ) : results.grossWaterCost > 0 ? (
-        <div className="p-3 bg-blue-50 dark:bg-primary/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+        <div className="p-3 bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 rounded-lg">
+          <div className="text-sm text-primary dark:text-primary space-y-1">
             <div className="font-medium">💧 Water Cost Calculation:</div>
             <div>• Water Required: {results.grossWater?.toFixed(0)} liters</div>
             <div>• Water-Cement Ratio: {qsSettings.cementWaterRatio}:1</div>
@@ -635,8 +635,8 @@ export default function MasonryCalculatorForm({
       <div className="space-y-4">
         {/* Wall Dimensions Section */}
         <Card className="border">
-          <div className="p-4 rounded-t-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-b">
-            <h3 className="text-lg  text-blue-900 dark:text-blue-100 flex items-center gap-2">
+          <div className="p-4 rounded-t-3xl bg-gradient-to-r from-primary to-indigo-50 dark:from-primary/30 dark:to-indigo-900/30 border-b">
+            <h3 className="text-lg  text-primary dark:text-primary flex items-center gap-2">
               <Layers className="w-5 h-5" />
               Wall Dimensions
             </h3>

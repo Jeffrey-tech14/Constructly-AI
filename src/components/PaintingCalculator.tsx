@@ -184,7 +184,7 @@ export default function PaintingCalculator({
         {!readonly && (
                       <Button
                         onClick={() => addPainting(0, "")}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
+                        className="w-full bg-primary hover:bg-primary/30 text-white  shadow-md"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Painting Surface

@@ -724,7 +724,7 @@ export default function ExternalFinishesCalculator({
 
                 {/* Cement & Sand Breakdown */}
                 {plasterCalculations && (
-                  <div className="space-y-3 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="space-y-3 bg-primary/10 dark:bg-primary/30 p-3 rounded-lg border border-primary/20 dark:border-primary/30">
                     <h4 className="text-sm">Material Breakdown</h4>
 
                     {/* Cement */}
@@ -787,7 +787,7 @@ export default function ExternalFinishesCalculator({
                     </div>
 
                     {/* Ratio & Total */}
-                    <div className="flex justify-between items-center p-2 bg-card rounded border border-blue-300 dark:border-blue-700">
+                    <div className="flex justify-between items-center p-2 bg-card rounded border border-primary/20 dark:border-primary/30">
                       <div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Ratio (C:S)
@@ -860,8 +860,8 @@ export default function ExternalFinishesCalculator({
 
         <CardContent>
           {externalFinishType === "keying" && (
-            <div className="p-4 mb-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="p-4 mb-6 bg-primary/10 dark:bg-primary/30 border border-primary/20 dark:border-primary/30 rounded-lg">
+              <p className="text-sm text-primary dark:text-primary">
                 <strong>Keying/Wall Pointing Mode:</strong> External finishes
                 are not available in this mode. Only wall preparation with
                 keying and pointing is applied.
@@ -1138,7 +1138,7 @@ export default function ExternalFinishesCalculator({
                   onClick={() =>
                     addPainting(netExternalWallArea, "Exterior Walls")
                   }
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white  shadow-md"
+                  className="w-full bg-primary hover:bg-primary/30 text-white  shadow-md"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Painting Surface

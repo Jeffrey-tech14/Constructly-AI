@@ -115,7 +115,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+        return "bg-primary/10 text-primary hover:bg-primary/20";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -163,7 +163,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
       case "planning":
         return "hover:bg-purple-400 bg-purple-800";
       case "started":
-        return "hover:bg-blue-400 bg-blue-800";
+        return "hover:bg-primary/20 bg-primary/30";
       case "in_progress":
         return "hover:bg-amber-400 bg-amber-800";
       case "completed":
@@ -258,7 +258,7 @@ const QuotesTab = ({ refreshKey }: { refreshKey: number }) => {
                 <Progress
                   indicatorColor={`${getStatusColor(quote.status)} `}
                   value={quote.progress_percentage}
-                  className="w-full h-3 bg-blue-50 dark:bg-white/80"
+                  className="w-full h-3 bg-primary/10 dark:bg-white/80"
                 />
               </div>
             </Card>

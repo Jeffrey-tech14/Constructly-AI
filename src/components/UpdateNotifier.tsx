@@ -62,7 +62,7 @@ export const UpdateNotifier = () => {
             ) : updateDownloaded ? (
               <CheckCircle className="w-5 h-5 text-green-500" />
             ) : (
-              <Download className="w-5 h-5 text-blue-500" />
+              <Download className="w-5 h-5 text-primary" />
             )}
             <AlertDialogTitle>
               {error

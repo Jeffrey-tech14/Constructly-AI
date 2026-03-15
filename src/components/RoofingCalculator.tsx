@@ -659,7 +659,7 @@ export default function RoofingCalculatorUI({
                                   <span className="font-medium">
                                     Price per Unit:
                                   </span>
-                                  <p className="text-blue-600 dark:text-blue-400 ">
+                                  <p className="text-primary dark:text-primary ">
                                     {formatCurrency(
                                       breakdown.wallPlates.unitPrice,
                                     )}
@@ -755,7 +755,7 @@ export default function RoofingCalculatorUI({
                                   <span className="font-medium">
                                     Price per Unit:
                                   </span>
-                                  <p className="text-blue-600 dark:text-blue-400 ">
+                                  <p className="text-primary dark:text-primary ">
                                     {formatCurrency(
                                       breakdown.tieBeams.unitPrice,
                                     )}
@@ -864,7 +864,7 @@ export default function RoofingCalculatorUI({
                                     <span className="font-medium">
                                       Price per Unit:
                                     </span>
-                                    <p className="text-blue-600 dark:text-blue-400 ">
+                                    <p className="text-primary dark:text-primary ">
                                       {formatCurrency(
                                         breakdown.kingPosts.unitPrice,
                                       )}
@@ -961,7 +961,7 @@ export default function RoofingCalculatorUI({
                                   <span className="font-medium">
                                     Price per Unit:
                                   </span>
-                                  <p className="text-blue-600 dark:text-blue-400 ">
+                                  <p className="text-primary dark:text-primary ">
                                     {formatCurrency(
                                       breakdown.rafters.unitPrice,
                                     )}
@@ -1057,7 +1057,7 @@ export default function RoofingCalculatorUI({
                                   <span className="font-medium">
                                     Price per Unit:
                                   </span>
-                                  <p className="text-blue-600 dark:text-blue-400 ">
+                                  <p className="text-primary dark:text-primary ">
                                     {formatCurrency(
                                       breakdown.purlins.unitPrice,
                                     )}
@@ -1151,7 +1151,7 @@ export default function RoofingCalculatorUI({
                                   <span className="font-medium">
                                     Price per Unit:
                                   </span>
-                                  <p className="text-blue-600 dark:text-blue-400 ">
+                                  <p className="text-primary dark:text-primary ">
                                     {formatCurrency(breakdown.struts.unitPrice)}
                                   </p>
                                 </div>
@@ -1390,7 +1390,7 @@ export default function RoofingCalculatorUI({
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
-                      <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-lg border border-primary/20 dark:border-primary/30">
                         <Label className="text-base  block mb-3">
                           Sheet Specifications
                         </Label>
@@ -1466,7 +1466,7 @@ export default function RoofingCalculatorUI({
                               <span className="font-medium">
                                 Price per Sheet:
                               </span>
-                              <p className="text-blue-600 dark:text-blue-400  text-lg">
+                              <p className="text-primary dark:text-primary  text-lg">
                                 {formatCurrency(
                                   breakdown.roofingSheets.unitPrice,
                                 )}
@@ -1504,7 +1504,7 @@ export default function RoofingCalculatorUI({
                         Roofing Sheets Cost Summary
                       </Label>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-lg border border-primary/20 dark:border-primary/30">
                           <h4 className=" text-sm mb-3">Base Cost</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
@@ -1523,7 +1523,7 @@ export default function RoofingCalculatorUI({
                               </span>
                             </div>
                             <div className="border-t pt-2 mt-2">
-                              <div className="flex justify-between  text-blue-600 dark:text-blue-400">
+                              <div className="flex justify-between  text-primary dark:text-primary">
                                 <span>Subtotal:</span>
                                 <span>
                                   {formatCurrency(
@@ -1780,7 +1780,7 @@ export default function RoofingCalculatorUI({
                                 m
                               </TableCell>
                             </TableRow>
-                            <TableRow className="bg-blue-50 dark:bg-blue-950 ">
+                            <TableRow className="bg-primary/10 dark:bg-primary/20 ">
                               <TableCell>Roofing Sheets</TableCell>
                               <TableCell>-</TableCell>
                               <TableCell className="text-right">

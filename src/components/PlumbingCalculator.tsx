@@ -278,7 +278,7 @@ export default function PlumbingCalculator({
 
   const getSystemColor = (type: PlumbingSystemType) => {
     const colors = {
-      "water-supply": "bg-blue-100 text-blue-800",
+      "water-supply": "bg-primary/10 text-primary",
       drainage: "bg-green-100 text-green-800",
       sewage: "bg-red-100 text-red-800",
       rainwater: "bg-cyan-100 text-cyan-800",

@@ -1250,7 +1250,7 @@ export default function CeilingCalculator({
             {!readonly && paintingList.length === 0 && (
               <Button
                 onClick={() => addPainting(ceilingArea, "Ceiling")}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                className="w-full bg-primary hover:bg-primary/30 text-white shadow-md"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Ceiling Painting

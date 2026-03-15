@@ -85,7 +85,7 @@ const UpdatePassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
           <p className="mt-4 text-gray-600">Initializing password reset...</p>
         </div>
       </div>
@@ -112,8 +112,8 @@ const UpdatePassword = () => {
             ) : (
               <>
                 <div className="flex justify-center mb-3">
-                  <div className="p-3 rounded-full bg-blue-900/30">
-                    <Lock className="w-6 h-6 text-blue-400" />
+                  <div className="p-3 rounded-full bg-primary/30">
+                    <Lock className="w-6 h-6 text-primary" />
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-white">
@@ -170,7 +170,7 @@ const UpdatePassword = () => {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white  py-2.5"
+                  className="w-full bg-primary hover:bg-primary/30 text-white  py-2.5"
                 >
                   {submitting ? (
                     <>

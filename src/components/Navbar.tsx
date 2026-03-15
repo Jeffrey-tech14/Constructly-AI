@@ -237,15 +237,15 @@ const Navbar = () => {
 
                       <DropdownMenuItem
                         onClick={() => navigate("/profile")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
                       >
-                        <div className="rounded-lg bg-blue-100 dark:bg-primary/30 items-center">
+                        <div className="rounded-lg bg-primary/10 dark:bg-primary/30 items-center">
                           <Avatar className="w-8 h-8 items-center justify-center text-center">
                             <AvatarImage
                               src={profile?.avatar_url || undefined}
                             />
                             <AvatarFallback className="items-center justify-center text-center">
-                              <User className="w-4 h-4 justify-center text-center text-primary dark:text-blue-400"></User>
+                              <User className="w-4 h-4 justify-center text-center text-primary dark:text-primary"></User>
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -260,10 +260,10 @@ const Navbar = () => {
                       {profile?.is_admin && (
                         <DropdownMenuItem
                           onClick={() => navigate("/admin")}
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
                         >
-                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-primary/30">
-                            <Settings2 className="w-4 h-4 text-primary dark:text-blue-400" />
+                          <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/30">
+                            <Settings2 className="w-4 h-4 text-primary dark:text-primary" />
                           </div>
                           <div>
                             <p className="font-medium">Admin Dashboard</p>
@@ -277,10 +277,10 @@ const Navbar = () => {
                       <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-[#1a1b22]" />
                       <DropdownMenuItem
                         onClick={() => navigate("/guide")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-blue-200 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
                       >
-                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-primary/30">
-                          <HelpCircle className="w-4 h-4 text-primary dark:text-blue-400" />
+                        <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/30">
+                          <HelpCircle className="w-4 h-4 text-primary dark:text-primary" />
                         </div>
                         <div>
                           <p className="font-medium">User Guide</p>

@@ -59,26 +59,32 @@ const Hero = ({ scrollTo }: any) => {
         <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-8">
 
           {/* LEFT SIDE: Floating Graphic */}
-          <div className="hidden md:flex w-full md:w-1/2 relative h-[300px] sm:h-[400px] lg:h-[470px] items-center justify-center">
+          <div className="hidden md:flex w-full md:w-1/2 relative h-[300px] sm:h-[400px] lg:h-[470px] items-center justify-center -ml-10">
             <motion.div 
               className="relative w-full h-full z-10 flex items-center justify-center p-4 sm:p-8"
-              initial={{ opacity: 0, scale: 0.8, x: -40 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              transition={{ duration: 1.2, ease: "easeOut", delay: 4.5 }}
+              initial={{ opacity: 0, scale: 0.6, x: -80, rotateY: 45, rotateZ: -10 }}
+              animate={{ opacity: 1, scale: 1.1, x: 0, rotateY: 0, rotateZ: 0 }}
+              transition={{ 
+                duration: 1.6, 
+                ease: [0.34, 1.56, 0.64, 1], // Boing effect
+                delay: 4.4 
+              }}
             >
-              <img
+              <motion.img
+                animate={{ y: [0, -15, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                 src="https://png.pngtree.com/png-vector/20240314/ourmid/pngtree-trendy-civil-engineering-png-image_11952952.png"
                 alt="Civil Engineering Graphic" 
-                className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-[0_20px_55px_rgba(240,81,78,0.22)]"
+                className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-[0_30px_60px_rgba(240,81,78,0.35)]"
               />
             </motion.div>
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
-              transition={{ duration: 1.5, delay: 5.0 }}
-              className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 w-[52%] h-[20px] sm:h-[32px] bg-black blur-[22px] rounded-full pointer-events-none flex items-center justify-center z-0"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 0.8, scale: 1 }}
+              transition={{ duration: 1.6, ease: "easeOut", delay: 4.6 }}
+              className="absolute bottom-2 sm:bottom-6 left-1/2 -translate-x-1/2 w-[70%] h-[25px] sm:h-[40px] bg-black blur-[28px] rounded-full pointer-events-none flex items-center justify-center z-0"
             >
-              <div className="w-[80%] h-[50%] bg-[#f0514e]/30 blur-[15px] rounded-full"></div>
+              <div className="w-[85%] h-[60%] bg-[#f0514e]/40 blur-[20px] rounded-full"></div>
             </motion.div>
           </div>
 

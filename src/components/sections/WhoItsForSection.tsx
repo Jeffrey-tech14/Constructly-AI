@@ -45,58 +45,114 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
   ];
 
   return (
-    <div id="who-its-for" className="bg-white antialiased text-[#1a1a1a]">
+    <div id="who-its-for" className="bg-[#fcfdfd] antialiased text-[#1a1a1a]">
       {/* SECTION 1: TECHNICAL HERO / KNOWLEDGE BASE */}
-      <section className="bg-gradient-to-b from-white to-[#f8f9fa] overflow-hidden">
+      <section className="bg-[#fcfcfc] overflow-hidden relative">
+        {/* The background pattern lines mimicking the reference image styling */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+           {/* Diagonal Chevron Line (Top to bottom right) */}
+           <div className="absolute top-[-30%] right-[35%] w-[1.5px] h-[150%] bg-gradient-to-b from-[#ef4444]/20 via-[#f97316]/30 to-transparent transform rotate-[40deg] origin-center -z-10"></div>
+           {/* Diagonal Chevron Line (Bottom to top right) */}
+           <div className="absolute bottom-[-50%] right-[40%] w-[1.5px] h-[150%] bg-gradient-to-t from-[#ef4444]/20 via-[#f97316]/30 to-transparent transform -rotate-[40deg] origin-center -z-10"></div>
+           
+           {/* Parallel accent lines */}
+           <div className="absolute top-[10%] right-[25%] w-[1px] h-[100%] bg-gradient-to-b from-transparent via-[#f97316]/10 to-transparent transform rotate-[40deg] origin-center -z-10"></div>
+           <div className="absolute bottom-[-10%] right-[30%] w-[1px] h-[100%] bg-gradient-to-t from-transparent via-[#f97316]/10 to-transparent transform -rotate-[40deg] origin-center -z-10"></div>
+
+           {/* Soft background glow left side */}
+           <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-[#f97316]/[0.02] blur-[80px] rounded-full transform -translate-y-1/2"></div>
+        </div>
+
+        {/* Global style specifically for this component to match image fonts exactly */}
+        <style>{`
+          .header-gradient-text {
+            background: linear-gradient(to right, #ea580c, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          .custom-red-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #ea580c 100%);
+          }
+        `}</style>
+
         {/* CHANGED: Removed 'flex-col', used 'flex-row' to force side-by-side on all screens. Added 'items-center' for vertical alignment. */}
-        <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-0 min-h-[500px]">
+        <div className="max-w-[1240px] mx-auto flex flex-col md:flex-row items-center gap-12 min-h-[500px] relative z-10 py-16 md:py-24">
           {/* LEFT COLUMN (TEXT) */}
-          {/* CHANGED: Width is now 45% on all screens. Padding reduces to 'p-4' on mobile. */}
-          <div className="w-full md:w-[45%] md:shrink-0 p-6 md:p-10 lg:p-12 flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-3 md:mb-6">
-              <span className="bg-[#00356B] text-white text-[7px] md:text-[9px] font-bold px-2 py-0.5 tracking-tighter uppercase rounded">
-                V 4.2.0
+          <div className="w-full md:w-[48%] md:shrink-0 px-6 lg:px-12 flex flex-col justify-center">
+            
+            {/* Version Pill */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[#0b3e74] text-[18px] md:text-[22px] font-bold tracking-tight">
+                jtech ai
               </span>
-              <span className="text-[#00356B] text-[7px] md:text-[9px] font-bold uppercase tracking-[2px]">
-                Process Documentation
+              <span className="text-[#0b3e74] text-[18px] md:text-[22px] font-bold tracking-tight">
+                 is out now
               </span>
             </div>
 
-            {/* CHANGED: Text size scales down (text-lg) on small screens */}
-            <h1 className="text-3xl md:text-4xl font-light text-[#00356B] mb-4 md:mb-6 leading-[1.2] tracking-tight">
-              Automated <span className="font-bold">Quantity Takeoff</span>
-              <br />& Costing Pipeline
+            {/* Giant Title */}
+            <h1 className="text-[52px] md:text-[72px] lg:text-[85px] leading-[1.05] tracking-tight mb-6 font-light text-[#111]">
+              Automated <br className="hidden md:block"/>
+              <span className="font-bold header-gradient-text">Takeoff</span>
             </h1>
 
-            <p className="text-[15px] md:text-[16px] text-gray-600 leading-relaxed mb-4 md:mb-8 max-w-md font-medium">
+            {/* Description Paragraph */}
+            <p className="text-[14px] md:text-[16px] text-[#4b5563] leading-relaxed mb-8 max-w-[420px] font-light">
               Our system transforms construction plans (PDF, DWG) into precise
               quantities and cost data in four automated, highly efficient
               phases.
             </p>
 
+            {/* Red CTA Button */}
             <div>
               <button
                 onClick={goToWorkflowDetails}
-                // CHANGED: Button padding and text size reduced for small screens
-                className="w-fit flex items-center gap-2 bg-[#D85C2C] text-white px-3 py-2 md:px-6 md:py-3 text-[11px] md:text-[12px] font-black uppercase tracking-[1.5px] hover:bg-[#b84520] transition-colors rounded-md shadow-sm"
+                className="custom-red-btn text-white px-8 py-3.5 text-[15px] font-bold rounded shadow-[0_4px_12px_rgba(239,68,68,0.3)] hover:shadow-[0_6px_16px_rgba(239,68,68,0.4)] transition-all hover:scale-[1.02]"
               >
-                Access Workflow Details{" "}
-                <ChevronRight
-                  className="w-2 h-2 md:w-3 md:h-3"
-                  strokeWidth={2}
-                />
+                Access Workflow Details
               </button>
             </div>
           </div>
 
-          {/* RIGHT COLUMN (IMAGE) */}
-          {/* CHANGED: Width is now 55% on all screens. Reduced padding significantly on mobile. */}
-          <div className="w-full md:w-[55%] md:shrink-0">
-            <img
-              src="https://gegosoft.com/wp-content/uploads/2023/03/boq_software_for_construction_projects.jpg"
-              alt="Automated quantity takeoff preview"
-              className="w-full h-auto object-contain"
-            />
+          {/* RIGHT COLUMN (IMAGE & NUMBER) */}
+          <div className="w-full md:w-[52%] md:shrink-0 relative mt-10 md:mt-0">
+             
+             {/* The large background number (like the '9') */}
+             <div className="absolute right-[-10%] top-1/2 transform -translate-y-1/2 flex items-center justify-center -z-10 translate-x-1/4 pointer-events-none">
+                {/* SVG representing the massive thick stroke 9/number from the image */}
+                <svg width="450" height="450" viewBox="0 0 100 100" className="drop-shadow-2xl opacity-90 overflow-visible">
+                  <defs>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#082b54" />
+                      <stop offset="60%" stopColor="#0b3e74" />
+                      <stop offset="100%" stopColor="#0b3e74" stopOpacity="0.4" />
+                    </linearGradient>
+                  </defs>
+                  {/* Creating a massive '4' shape utilizing thick paths */}
+                  <path d="M70,90 L70,70 L90,70" stroke="url(#grad1)" strokeWidth="20" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M70,90 L70,10" stroke="url(#grad1)" strokeWidth="20" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M70,70 L20,70 L70,10" stroke="url(#grad1)" strokeWidth="20" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+             </div>
+
+             {/* Interface Image Container */}
+            <div className="relative z-10 mr-12 md:mr-24 rounded-lg bg-[#272630] border-2 border-[#ff7b4b]/40 shadow-[-20px_20px_60px_-15px_rgba(0,0,0,0.4)] p-[2px]">
+              <div className="bg-[#1f1e24] rounded border border-gray-600/30 overflow-hidden shadow-inner">
+                {/* Simulated window header */}
+                <div className="h-6 bg-[#33323a] border-b border-black/20 flex items-center px-3 gap-2">
+                   <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                   <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                   <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                   <div className="mx-auto h-3 w-32 bg-white/5 rounded-sm"></div>
+                </div>
+                {/* Mockup image inner */}
+                <img
+                  src="https://gegosoft.com/wp-content/uploads/2023/03/boq_software_for_construction_projects.jpg"
+                  alt="Automated quantity takeoff preview"
+                  className="w-full h-auto object-cover opacity-90 mix-blend-lighten"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>

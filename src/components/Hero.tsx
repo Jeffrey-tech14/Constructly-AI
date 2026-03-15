@@ -8,43 +8,82 @@ const GlobalStyles = () => (
     .font-display { font-family: 'Outfit', sans-serif; }
 
     .hero-pattern {
-      background: #111418;
+      background: #08090b; /* Deep black base */
       position: relative;
       z-index: 1;
     }
 
+    /* The main geometric dark-gray chevron extending from the left */
     .hero-pattern::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
+      width: 55%;
       height: 100%;
-      /* AnyDesk style angled background */
-      background: linear-gradient(105deg, #222831 0%, #222831 42%, transparent 42.2%);
+      background: #14161a; /* Lighter geometric gray */
+      clip-path: polygon(0 0, 100% 45%, 0 100%);
       pointer-events: none;
       z-index: -2;
     }
 
+    /* A secondary geometric angle to give it that exact AnyDesk multi-layered look */
     .hero-pattern::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 80%;
+      height: 100%;
+      background: #0e1014; /* Mid-tone geometric gray */
+      clip-path: polygon(0 0, 100% 30%, 25% 100%, 0 100%);
+      pointer-events: none;
+      z-index: -3;
+    }
+
+    /* The subtle geometric angle for the other side (text side) */
+    .hero-diagonal-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      background: #14161a; /* Matching the multi-layered look behind text */
+      clip-path: polygon(55% 0, 100% 0, 100% 100%, 35% 100%);
+      pointer-events: none;
+      z-index: -4;
+    }
+
+    /* Additional layer for depth behind text */
+    .hero-diagonal-right::after {
       content: '';
       position: absolute;
       top: 0;
       right: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(-75deg, #1a1e24 0%, #1a1e24 30%, transparent 30.2%);
-      pointer-events: none;
-      z-index: -2;
+      background: #111317;
+      clip-path: polygon(70% 0, 100% 0, 100% 100%, 50% 100%);
+      z-index: -1;
     }
 
+    /* The intense red gradient glow behind the floating graphic */
     .hero-diagonal::before {
       content: '';
       position: absolute;
-      inset: 0;
+      top: 50%;
+      left: 25%; /* Center behind the left-side graphic */
+      width: 100vw;
+      height: 100vw;
+      max-width: 1000px;
+      max-height: 1000px;
+      transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: -1;
-      background: radial-gradient(circle at 70% 30%, rgba(240, 81, 78, 0.08), transparent 60%);
+      /* Multi-stop pure red/orange gradient for the fiery glow */
+      background: radial-gradient(circle, rgba(239, 68, 68, 0.45) 0%, rgba(239, 68, 68, 0.2) 30%, transparent 65%);
+      mix-blend-mode: screen;
+      filter: blur(50px);
     }
   `}</style>
 );
@@ -54,38 +93,27 @@ const Hero = ({ scrollTo }: any) => {
 
   return (
     <section className="antialiased w-full relative font-display hero-pattern hero-diagonal overflow-hidden">
+      <div className="hero-diagonal-right"></div>
       <GlobalStyles />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-[136px] pb-12 sm:pt-[160px] sm:pb-16">
         <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-8">
 
           {/* LEFT SIDE: Floating Graphic */}
           <div className="hidden md:flex w-full md:w-1/2 relative h-[300px] sm:h-[400px] lg:h-[470px] items-center justify-center -ml-10">
-            <motion.div 
+            <div 
               className="relative w-full h-full z-10 flex items-center justify-center p-4 sm:p-8"
-              initial={{ opacity: 0, scale: 0.6, x: -80, rotateY: 45, rotateZ: -10 }}
-              animate={{ opacity: 1, scale: 1.1, x: 0, rotateY: 0, rotateZ: 0 }}
-              transition={{ 
-                duration: 1.6, 
-                ease: [0.34, 1.56, 0.64, 1], // Boing effect
-                delay: 4.4 
-              }}
             >
-              <motion.img
-                animate={{ y: [0, -15, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              <img
                 src="https://png.pngtree.com/png-vector/20240314/ourmid/pngtree-trendy-civil-engineering-png-image_11952952.png"
                 alt="Civil Engineering Graphic" 
                 className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-[0_30px_60px_rgba(240,81,78,0.35)]"
               />
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 0.8, scale: 1 }}
-              transition={{ duration: 1.6, ease: "easeOut", delay: 4.6 }}
-              className="absolute bottom-2 sm:bottom-6 left-1/2 -translate-x-1/2 w-[70%] h-[25px] sm:h-[40px] bg-black blur-[28px] rounded-full pointer-events-none flex items-center justify-center z-0"
+            </div>
+            <div 
+              className="absolute bottom-2 sm:bottom-6 left-1/2 -translate-x-1/2 w-[70%] h-[25px] sm:h-[40px] bg-black blur-[28px] rounded-full pointer-events-none flex items-center justify-center z-0 opacity-80"
             >
               <div className="w-[85%] h-[60%] bg-[#f0514e]/40 blur-[20px] rounded-full"></div>
-            </motion.div>
+            </div>
           </div>
 
           {/* RIGHT SIDE: Content */}

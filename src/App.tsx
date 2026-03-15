@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -39,8 +39,10 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const [isDark, setIsDark] = useState(false);
   const isOnline = useOnlineStatus();
+  const location = useLocation();
   const isElectron =
     typeof window !== "undefined" && window.electronAPI !== undefined;
+  const usesPublicLayoutNavbar = ["/", "/faq", "/guide"].includes(location.pathname);
 
   useEffect(() => {
     // Check initial theme
@@ -76,8 +78,10 @@ const AppContent = () => {
       {/* Custom titlebar for Electron only */}
       {isElectron && <CustomTitleBar />}
 
-      <div className={`fixed inset-0 pointer-events-none z-0 ${isDark ? 'bg-partan-dark opacity-30' : 'bg-partan-light opacity-50'}`} style={{ top: isElectron ? "40px" : "0px" }} />
-      <Navbar />
+      {!usesPublicLayoutNavbar && (
+        <div className={`fixed inset-0 pointer-events-none z-0 ${isDark ? 'bg-partan-dark opacity-30' : 'bg-partan-light opacity-50'}`} style={{ top: isElectron ? "40px" : "0px" }} />
+      )}
+      {!usesPublicLayoutNavbar && <Navbar />}
       <div className="relative z-10">
         <Routes>
           <Route path="/" element={<Index />} />

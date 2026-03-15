@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ChevronRight,
-  Activity,
   Globe,
   Headphones,
   GraduationCap,
@@ -53,7 +52,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
         <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center gap-6 md:gap-0 min-h-[500px]">
           {/* LEFT COLUMN (TEXT) */}
           {/* CHANGED: Width is now 45% on all screens. Padding reduces to 'p-4' on mobile. */}
-          <div className="w-full md:w-[45%] p-6 md:p-12 lg:p-16 flex flex-col justify-center px-6">
+          <div className="w-full md:w-[45%] md:shrink-0 p-6 md:p-10 lg:p-12 flex flex-col justify-center">
             <div className="flex items-center gap-2 mb-3 md:mb-6">
               <span className="bg-[#00356B] text-white text-[7px] md:text-[9px] font-bold px-2 py-0.5 tracking-tighter uppercase rounded">
                 V 4.2.0
@@ -92,62 +91,12 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
 
           {/* RIGHT COLUMN (IMAGE) */}
           {/* CHANGED: Width is now 55% on all screens. Reduced padding significantly on mobile. */}
-          <div className="w-full md:w-[55%] relative flex items-center justify-center px-4 py-8 md:p-12 lg:p-16">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              // CHANGED: Removed max-w-lg constraint so it fits fluidly in the 55% width
-              className="relative w-full overflow-hidden z-10 rounded-xl md:rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-200/80 bg-white ring-1 ring-black/5"
-            >
-              {/* Window Header */}
-              <div className="h-4 md:h-8 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-2 md:px-3 select-none">
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#ff5f57] rounded-full" />
-                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#febc2e] rounded-full" />
-                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-[#28c840] rounded-full" />
-                </div>
-                {/* Hide title on very small screens if needed, or scale text */}
-                <div className="text-[9px] md:text-[11px] font-mono font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1 md:gap-2">
-                  <Activity
-                    className="w-2 h-2 md:w-3.5 md:h-3.5"
-                    strokeWidth={1.8}
-                  />{" "}
-                  <span className="truncate">AI-Takeoff_Client.exe</span>
-                </div>
-                <div className="w-4 md:w-6" />
-              </div>
-
-              {/* Image Content */}
-              <div className="relative aspect-video bg-black">
-                <img
-                  src="https://gegosoft.com/wp-content/uploads/2023/03/boq_software_for_construction_projects.jpg"
-                  alt="Digital Construction Blueprints Analysis"
-                  className="w-full h-full object-cover"
-                />
-
-                {/* Overlay UI elements - Scaled down for mobile */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-3 left-3 w-3 h-3 border-t border-l border-white/40" />
-                  <div className="absolute top-3 right-3 w-3 h-3 border-t border-r border-white/40" />
-                  <div className="absolute bottom-3 left-3 w-3 h-3 border-b border-l border-white/40" />
-                  <div className="absolute bottom-3 right-3 w-3 h-3 border-b border-r border-white/40" />
-                </div>
-
-                {/* Floating Badge */}
-                <div className="absolute bottom-2 left-2 md:bottom-3 md:left-3 bg-black/80 border border-white/10 px-1.5 py-0.5 md:px-2.5 md:py-1 flex items-center gap-2 rounded">
-                  <div className="flex items-center gap-1 text-[6px] md:text-[9px] font-mono text-[#86bc25] font-bold tracking-wider">
-                    <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-[#86bc25] rounded-full animate-pulse" />
-                    <span className="hidden md:inline">AI ANALYSIS</span>
-                    <span className="md:hidden">AI</span>
-                  </div>
-                  <div className="w-[1px] h-1.5 md:h-2.5 bg-white/20" />
-                  <div className="text-[6px] md:text-[9px] font-mono text-white/70 tracking-wider truncate max-w-[50px] md:max-w-none">
-                    Plan: A-01
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+          <div className="w-full md:w-[55%] md:shrink-0">
+            <img
+              src="https://gegosoft.com/wp-content/uploads/2023/03/boq_software_for_construction_projects.jpg"
+              alt="Automated quantity takeoff preview"
+              className="w-full h-auto object-contain"
+            />
           </div>
         </div>
       </section>
@@ -229,11 +178,11 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
           </div>
 
           <div className="bg-[#f18a2b] min-h-[300px] lg:min-h-[480px] px-8 py-10 md:px-12 lg:px-14 lg:py-16 text-white flex flex-col justify-center">
-            <h3 className="text-[34px] md:text-[52px] leading-[1.03] font-medium max-w-2xl tracking-[-0.01em]">
+            <h3 className="text-[28px] md:text-[42px] leading-[1.03] font-normal max-w-2xl tracking-[-0.01em]">
               Let us guide you to the right plan in less than a minute.
             </h3>
 
-            <p className="mt-8 text-[16px] md:text-[21px] font-semibold">
+            <p className="mt-8 text-[15px] md:text-[18px] font-normal">
               What do you need JTech AI for?
             </p>
 
@@ -248,7 +197,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
                   <div className="w-14 h-14 md:w-16 md:h-16 mx-auto rounded-full bg-[#7060b4] flex items-center justify-center">
                     <item.icon className="w-7 h-7 text-white" strokeWidth={1.8} />
                   </div>
-                  <p className="mt-3 text-[13px] md:text-[14px] leading-tight font-semibold text-white/95">
+                  <p className="mt-3 text-[13px] md:text-[14px] leading-tight font-normal text-white/95">
                     {item.label}
                   </p>
                 </div>
@@ -258,7 +207,7 @@ export default function WhoItsForSection({ scrollTo }: WhoItsForSectionProps) {
             <div className="mt-10">
               <button
                 onClick={() => navigate("/guide")}
-                className="bg-white text-[#e45d4d] px-8 py-3 rounded-xl text-[18px] font-bold shadow-[0_10px_20px_rgba(0,0,0,0.16)] hover:brightness-95 transition-all tracking-tight"
+                className="bg-white text-[#e45d4d] px-8 py-3 rounded-xl text-[18px] font-normal shadow-[0_10px_20px_rgba(0,0,0,0.16)] hover:brightness-95 transition-all tracking-tight"
               >
                 Try our User Guide
               </button>

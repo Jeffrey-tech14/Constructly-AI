@@ -1,0 +1,1 @@
+﻿const fs = require('fs'); let c = fs.readFileSync('src/components/sections/FaqSection.tsx', 'utf8'); c = c.split('text-[6b7280]').join('text-gray-600'); c = c.split('bg-[ffffff]').join('bg-white'); c = c.split('bg-[f8f9fa]').join('bg-[#f8f9fa]'); c = c.split('text-[e5e7eb]').join('text-gray-200'); fs.writeFileSync('src/components/sections/FaqSection.tsx', c);

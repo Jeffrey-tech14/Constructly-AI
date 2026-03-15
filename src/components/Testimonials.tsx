@@ -118,7 +118,7 @@ export function TestimonialsSection() {
   return (
     <section id="testimonials" className="bg-transparent">
       <div className="container mx-auto px-4 max-w-7xl relative z-10">
-        <p className="text-lg md:text-xl max-w-3xl mx-auto text-gray-600 dark:text-gray-400">
+        <p className="text-lg md:text-xl max-w-3xl mx-auto text-white dark:text-gray-400">
           Hear from industry professionals who have transformed their estimation
           process with our solution.
         </p>
@@ -126,7 +126,7 @@ export function TestimonialsSection() {
         <div className="max-w-5xl mx-auto relative mb-20 mt-10">
           <button
             onClick={prevTestimonial}
-            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-white text-gray-600 border-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
+            className="absolute top-1/2 -left-4 md:-left-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
             aria-label="Previous testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -135,7 +135,7 @@ export function TestimonialsSection() {
 
           <button
             onClick={nextTestimonial}
-            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-white text-gray-600 border-gray-200 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
+            className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all border bg-gray-800 text-white border-gray-700 hover:text-blue-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:text-primary"
             aria-label="Next testimonial"
             disabled={testimonials.length <= 1}
           >
@@ -153,13 +153,13 @@ export function TestimonialsSection() {
                   transition={{ duration: 0.5 }}
                   className={`rounded-2xl shadow-xl overflow-hidden border`}
                 >
-                  <div className="rounded-2xl shadow-xl overflow-hidden border bg-white border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="rounded-2xl shadow-xl overflow-hidden border bg-gray-900 border-gray-800 dark:bg-gray-800 dark:border-gray-700">
                     <div className="grid grid-cols-1 lg:grid-cols-3">
                       <div className="lg:col-span-2 p-8 md:p-10">
                         <div className="text-blue-600 text-5xl mb-6">
                           <Quote className="opacity-70 dark:text-white text-primary" />
                         </div>
-                        <p className="text-xl mb-8 leading-relaxed italic text-gray-800 dark:text-gray-200">
+                        <p className="text-xl mb-8 leading-relaxed italic text-white dark:text-gray-200">
                           "{currentTestimonial.quote}"
                         </p>
                         <div className="flex flex-col md:flex-row md:items-center justify-between">
@@ -168,10 +168,10 @@ export function TestimonialsSection() {
                               {currentTestimonial.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="ml-4">
-                              <h4 className="font-bold text-lg">
+                              <h4 className="font-bold text-lg text-white">
                                 {currentTestimonial.name}
                               </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                              <p className="text-sm text-gray-300 dark:text-gray-400">
                                 {currentTestimonial.title},{" "}
                                 {currentTestimonial.company}
                               </p>
@@ -192,27 +192,27 @@ export function TestimonialsSection() {
                         </div>
                       </div>
 
-                      <div className="p-8 md:p-10 border-t lg:border-t-0 lg:border-l bg-gradient-to-br from-blue-50 to-white border-gray-200 dark:from-gray-700 dark:to-gray-800 dark:border-gray-700">
-                        <h3 className="text-lg  mb-6">
+                      <div className="p-8 md:p-10 border-t lg:border-t-0 lg:border-l bg-gray-900 border-gray-700 dark:bg-gray-900 dark:border-gray-700">
+                        <h3 className="text-lg text-white mb-6">
                           Key Achievements
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                           {currentTestimonial.results.map((result) => (
                             <div
                               key={result.label}
-                              className="p-4 rounded-xl border shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                              className="p-4 rounded-xl border shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center text-center bg-gray-800 border-gray-700 dark:bg-gray-800 dark:border-gray-700"
                             >
-                              <div className="text-3xl font-extrabold mb-1">
+                              <div className="text-3xl font-extrabold mb-1 text-white">
                                 {result.value}
                               </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                              <div className="text-sm text-gray-300 dark:text-gray-400">
                                 {result.label}
                               </div>
                             </div>
                           ))}
                         </div>
-                        <div className="mt-6 pt-5 border-t border-gray-200 dark:border-gray-600">
-                          <div className="text-sm mb-2 text-gray-600 dark:text-gray-400">
+                        <div className="mt-6 pt-5 border-t border-gray-700 dark:border-gray-600">
+                          <div className="text-sm mb-2 text-gray-300 dark:text-gray-400">
                             Project Type:
                           </div>
                           <div className="inline-flex px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">

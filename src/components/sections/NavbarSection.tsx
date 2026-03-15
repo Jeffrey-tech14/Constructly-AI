@@ -123,7 +123,7 @@ const NavbarSection: React.FC<NavbarProps> = ({ scrollTo }) => {
 
       {/* Fixed Navbar Wrapper */}
       <div
-        className={`fixed top-0 w-full z-50 font-technical transition-all duration-300 ${
+        className={`fixed top-0 w-full z-[999] font-technical transition-all duration-300 ${
           ""
         }`}
         style={{ backgroundColor: THEME.BG }}

@@ -8,7 +8,7 @@ const GlobalStyles = () => (
     .font-display { font-family: 'Outfit', sans-serif; }
 
     .hero-pattern {
-      background: #000000;
+      background: #111418;
       position: relative;
       z-index: 1;
     }
@@ -21,7 +21,7 @@ const GlobalStyles = () => (
       width: 100%;
       height: 100%;
       /* AnyDesk style angled background */
-      background: linear-gradient(105deg, #181818 0%, #181818 42%, transparent 42.2%);
+      background: linear-gradient(105deg, #222831 0%, #222831 42%, transparent 42.2%);
       pointer-events: none;
       z-index: -2;
     }
@@ -33,7 +33,7 @@ const GlobalStyles = () => (
       right: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(-75deg, #111111 0%, #111111 30%, transparent 30.2%);
+      background: linear-gradient(-75deg, #1a1e24 0%, #1a1e24 30%, transparent 30.2%);
       pointer-events: none;
       z-index: -2;
     }

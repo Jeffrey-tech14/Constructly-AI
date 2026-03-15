@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      href="/logo.jpg"
+      type="image/jpeg"
+    />
+    <meta name="google" content="notranslate" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JTech AI - Professional Construction Management SaaS</title>
+    <meta
+      name="description"
+      content="Kenya's leading construction management platform. Create professional quotes, manage projects, and grow your construction business with JTech AI."
+    />
+    <meta name="author" content="Jeffrey" />
+    <meta
+      property="og:title"
+      content="JTech AI - Professional Construction Management SaaS"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:description"
+      content="AI-powered construction management platform. Generate accurate quotes, manage projects, and grow your business with Jtech AI."
+    />
+    <meta
+      property="og:image"
+      content="/logo4.jpg"
+    />
+    <meta property="og:url" content="https://jtechai.vercel.app" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@jtech_ke" />
+    <meta
+      name="twitter:image"
+      content="https://jtechai.vercel.app/jtech-small-color.png"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-color: #000B29; /* Matches Hero background */
+        --logo-gold: #d4af37;
+        --text-color: #ffffff;
+        --accent: #43b02a;
+        --transition-duration: 0.8s;
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--bg-color);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        color: var(--text-color);
+        overflow-x: hidden;
+      }
+
+      .app-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        /* Matches the background of the image to blend it seamlessly */
+        background: #000B29;
+        gap: 30px;
+        opacity: 0;
+        animation: fade-in var(--transition-duration) ease-out forwards;
+      }
+
+      /* Logo container to handle the complex structure */
+      .logo-outer {
+        position: relative;
+        z-index: 30;
+        transform: scale(1.1);
+        perspective: 1000px; /* Essential for 3D rotation */
+      }
+
+      /* Remodeled hexagonal interlocking logo as a sleek, background-less asset */
+      .logo-model {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        animation: 
+          logo-float 4s ease-in-out infinite,
+          logo-rotate-3d 8s linear infinite;
+        transform-style: preserve-3d;
+        mix-blend-mode: screen; /* Helps blend black background of jpg */
+      }
+
+      /* Adding a shimmer light effect across the gold facets */
+      .logo-model::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: linear-gradient(
+          120deg,
+          transparent 0%,
+          rgba(67, 176, 42, 0.2) 50%,
+          transparent 100%
+        );
+        filter: blur(12px);
+        transform: translateZ(10px);
+        animation: logo-shimmer 4s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      /* Brand Text */
+      .brand-text {
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: white;
+        margin-top: 10px;
+        margin-bottom: 30px;
+        opacity: 0;
+        animation: text-reveal 1s ease-out 0.6s forwards;
+        text-align: center;
+      }
+      .brand-text span {
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      /* Sleek Framer Motion-style morphing loader replacing the long bar */
+      .framer-style-spinner {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        animation: framer-spin 2.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+      }
+      
+      /* Base fade-in wrapper for spinner */
+      .spinner-wrapper {
+        opacity: 0;
+        animation: fade-in 1s ease-out 1.2s forwards;
+      }
+
+      .framer-box {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        opacity: 1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+
+      .box-1 { top: 0; left: 0; background: var(--accent); animation: box-pulse 1.5s infinite ease-in-out; }
+      .box-2 { top: 0; right: 0; background: #0067b1; animation: box-pulse 1.5s infinite ease-in-out 0.2s; }
+      .box-3 { bottom: 0; left: 0; background: var(--logo-gold); animation: box-pulse 1.5s infinite ease-in-out 0.6s; }
+      .box-4 { bottom: 0; right: 0; background: #e63946; animation: box-pulse 1.5s infinite ease-in-out 0.4s; }
+
+      /* Animations */
+
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      /* --- ADVANCED 3D ARCHITECTURAL ANIMATION --- */
+      .story-container {
+        width: 300px;
+        height: 300px;
+        perspective: 1500px; /* Enhanced perspective for deep 3D */
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .holo-wrapper {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        transform-style: preserve-3d;
+        transform: rotateX(60deg) rotateZ(45deg);
+        animation: 
+          continuous-rotate 6s linear infinite,
+          morph-to-doc 1.2s cubic-bezier(0.86, 0, 0.07, 1) forwards 3.2s;
+      }
+
+      /* Base Grid / Foundation */
+      .grid-layer {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border: 2px solid rgba(0, 103, 177, 0.6);
+        background-image: 
+          linear-gradient(rgba(0, 103, 177, 0.3) 2px, transparent 2px),
+          linear-gradient(90deg, rgba(0, 103, 177, 0.3) 2px, transparent 2px);
+        background-size: 20px 20px;
+        box-shadow: 0 0 30px rgba(0, 103, 177, 0.4), inset 0 0 20px rgba(0, 103, 177, 0.3);
+        transform: translateZ(0);
+        animation: grid-pulse 2s ease-in-out infinite, layer-fade 0.5s forwards 3.3s;
+      }
+
+      /* Building Floors */
+      .floor {
+        position: absolute;
+        left: 50%; top: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(67, 176, 42, 0.8);
+        background: rgba(0, 11, 41, 0.8);
+        box-shadow: inset 0 0 15px rgba(67, 176, 42, 0.4);
+        opacity: 0;
+        box-sizing: border-box;
+      }
+
+      .floor-1 { width: 100px; height: 100px; animation: build-floor-1 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.3s, layer-fade 0.5s forwards 3.2s; }
+      .floor-2 { width: 80px; height: 80px; animation: build-floor-2 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.6s, layer-fade 0.5s forwards 3.1s; }
+      .floor-3 { width: 60px; height: 60px; animation: build-floor-3 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.9s, layer-fade 0.5s forwards 3.0s; }
+      .floor-4 { 
+        width: 40px; height: 40px; 
+        background: rgba(67, 176, 42, 0.4);
+        box-shadow: 0 0 30px var(--accent), inset 0 0 20px var(--accent);
+        animation: build-floor-4 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 1.2s, layer-fade 0.5s forwards 2.9s; 
+      }
+
+      /* Connecting Pillars (Vertical Lines) */
+      .pillar {
+        position: absolute;
+        width: 2px;
+        background: rgba(0, 103, 177, 0.8);
+        box-shadow: 0 0 10px rgba(0, 103, 177, 0.8);
+        opacity: 0;
+      }
+      .p1 { left: 20px; top: 20px; height: 90px; transform: translateZ(5px) rotateX(90deg); transform-origin: top; animation: pillar-grow 0.6s ease-out forwards 0.8s, layer-fade 0.5s forwards 3.1s; }
+      .p2 { right: 20px; top: 20px; height: 90px; transform: translateZ(5px) rotateX(90deg); transform-origin: top; animation: pillar-grow 0.6s ease-out forwards 0.9s, layer-fade 0.5s forwards 3.1s; }
+      .p3 { left: 20px; bottom: 20px; height: 90px; transform: translateZ(5px) rotateX(90deg); transform-origin: top; animation: pillar-grow 0.6s ease-out forwards 1.0s, layer-fade 0.5s forwards 3.1s; }
+      .p4 { right: 20px; bottom: 20px; height: 90px; transform: translateZ(5px) rotateX(90deg); transform-origin: top; animation: pillar-grow 0.6s ease-out forwards 1.1s, layer-fade 0.5s forwards 3.1s; }
+
+      /* Vertical AI Scan Plane */
+      .scanner-plane {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        top: -20px; left: -20px;
+        background: linear-gradient(180deg, transparent 40%, rgba(67, 176, 42, 0.4) 95%, var(--accent) 100%);
+        border-bottom: 3px solid var(--accent);
+        box-shadow: 0 20px 40px rgba(67, 176, 42, 0.5);
+        opacity: 0;
+        transform-origin: center;
+        animation: advanced-scan 2.2s ease-in-out forwards 1.4s;
+      }
+
+      /* Document morph target (Quote generated) */
+      .boq-doc {
+        position: absolute;
+        inset: -25px; /* Widened to fit text */
+        background: linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(243,244,246,0.97) 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 0 1px #e5e7eb, 0 0 30px rgba(212, 175, 55, 0.3);
+        opacity: 0;
+        transform: translateZ(0) scale(0.8);
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        gap: 6px;
+        box-sizing: border-box;
+        animation: doc-appear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 3.4s;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+
+      .doc-header-wrap {
+        display: flex; gap: 8px; align-items: center; margin-bottom: 4px; border-bottom: 2px solid rgba(212, 175, 55, 0.3); padding-bottom: 6px;
+        opacity: 0; transform: translateY(-10px); animation: row-slide-down 0.5s forwards 3.7s;
+      }
+      .doc-logo { 
+        width: 24px; height: 24px; 
+        background: linear-gradient(135deg, #d4af37, #8a5a19); 
+        border-radius: 4px; box-shadow: 0 2px 5px rgba(212, 175, 55, 0.4); 
+        display: flex; justify-content: center; align-items: center; 
+        color: white; font-size: 14px; font-weight: bold; line-height: 1;
+      }
+      .doc-logo::after { content: "J"; }
+      .doc-title-wrap { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+      .doc-title { font-size: 9px; font-weight: 800; color: #111827; letter-spacing: 0.05em; margin: 0; line-height: 1; }
+      .doc-subtitle { font-size: 7px; color: #6b7280; margin: 0; line-height: 1; }
+      
+      .doc-table {
+        width: 100%; font-size: 7px; color: #374151; border-collapse: collapse; table-layout: fixed;
+      }
+      .doc-table th { font-weight: 800; color: #111827; text-align: left; border-bottom: 1px solid #d1d5db; padding-bottom: 3px; font-size: 6.5px; text-transform: uppercase; }
+      .doc-table td { padding: 3px 0; border-bottom: 1px solid #e5e7eb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      
+      .col-desc { width: 50%; }
+      .col-qty { width: 18%; text-align: center; }
+      .col-rate { width: 14%; text-align: right; }
+      .col-amount { width: 18%; text-align: right; font-weight: 700; color: #047857; }
+
+      .doc-row { opacity: 0; transform: translateX(-15px); }
+      .doc-row-0 { animation: row-slide-right 0.4s forwards 3.8s; }
+      .doc-row-1 { animation: row-slide-right 0.4s forwards 3.9s; }
+      .doc-row-2 { animation: row-slide-right 0.4s forwards 4.0s; }
+      .doc-row-3 { animation: row-slide-right 0.4s forwards 4.1s; }
+      
+      .doc-total {
+        margin-top: auto; width: 100%; display: flex; justify-content: space-between; align-items: center; border-top: 2px dashed #9ca3af; padding-top: 6px;
+        opacity: 0; transform: translateY(10px); animation: row-slide-up 0.5s forwards 4.5s;
+      }
+      .doc-total-label { font-size: 8px; font-weight: 800; color: #111827; }
+      .doc-total-val { font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); padding: 3px 6px; border-radius: 4px; box-shadow: 0 2px 6px rgba(67, 176, 42, 0.4); letter-spacing: 0.05em; }
+
+      /* Dynamic Story Text Container */
+      .story-text-container {
+        position: relative;
+        height: 30px;
+        margin-bottom: 35px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      }
+
+      .story-text {
+        position: absolute;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        opacity: 0;
+        white-space: nowrap;
+      }
+      .step-1 { 
+        background: linear-gradient(to bottom, #ffea8c 0%, #d4af37 40%, #8a5a19 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.6rem; 
+        letter-spacing: 0.12em; 
+        filter: drop-shadow(0 4px 15px rgba(212, 175, 55, 0.5));
+        animation: text-pulse-fade 2.4s forwards 0s; 
+      }
+      .step-2 { 
+        background: linear-gradient(to right, #ffea8c 0%, #d4af37 50%, #8a5a19 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 1.3rem;
+        filter: drop-shadow(0 2px 10px rgba(212, 175, 55, 0.4));
+        animation: step-fade-stay 2s forwards 2.6s; 
+      }
+
+      /* Keyframes */
+      @keyframes continuous-rotate {
+        0% { transform: rotateX(60deg) rotateZ(45deg); }
+        100% { transform: rotateX(60deg) rotateZ(405deg); }
+      }
+
+      @keyframes grid-pulse {
+        0%, 100% { box-shadow: 0 0 30px rgba(0, 103, 177, 0.4), inset 0 0 20px rgba(0, 103, 177, 0.3); }
+        50% { box-shadow: 0 0 50px rgba(0, 103, 177, 0.7), inset 0 0 40px rgba(0, 103, 177, 0.6); }
+      }
+
+      @keyframes build-floor-1 { to { opacity: 1; transform: translate(-50%, -50%) translateZ(30px); } }
+      @keyframes build-floor-2 { to { opacity: 1; transform: translate(-50%, -50%) translateZ(60px); } }
+      @keyframes build-floor-3 { to { opacity: 1; transform: translate(-50%, -50%) translateZ(90px); } }
+      @keyframes build-floor-4 { to { opacity: 1; transform: translate(-50%, -50%) translateZ(120px); } }
+
+      @keyframes pillar-grow {
+        from { opacity: 0; transform: translateZ(5px) rotateX(90deg) scaleY(0); }
+        to { opacity: 1; transform: translateZ(5px) rotateX(90deg) scaleY(1); }
+      }
+
+      @keyframes layer-fade { 
+        to { 
+          opacity: 0; filter: blur(10px); 
+          transform: translate(-50%, -50%) translateZ(0) scale(0.1); 
+        } 
+      }
+
+      @keyframes advanced-scan {
+        0% { opacity: 0; transform: translateZ(160px); }
+        15% { opacity: 1; }
+        50% { opacity: 1; transform: translateZ(60px); }
+        85% { opacity: 1; transform: translateZ(-20px); }
+        100% { opacity: 0; transform: translateZ(-50px); }
+      }
+
+      @keyframes morph-to-doc {
+        0% { transform: rotateX(60deg) rotateZ(45deg); }
+        100% { transform: rotateX(0deg) rotateZ(0deg) scale(1.4); }
+      }
+
+      @keyframes doc-appear {
+        0% { opacity: 0; transform: scale(0.6) rotateY(20deg); }
+        50% { opacity: 1; transform: scale(1.1) rotateY(-5deg); filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.4)); }
+        100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+      }
+
+      @keyframes row-slide-down { to { opacity: 1; transform: translateY(0); } }
+      @keyframes row-slide-right { to { opacity: 1; transform: translateX(0); } }
+      @keyframes row-slide-up { to { opacity: 1; transform: translateY(0); } }
+
+      @keyframes text-pulse-fade {
+        0% { opacity: 0; transform: translateY(15px) scale(0.9); }
+        15% { opacity: 1; transform: translateY(0) scale(1); }
+        75% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-15px) scale(1.05); filter: blur(5px); }
+      }
+
+      @keyframes step-fade-stay {
+        0% { opacity: 0; transform: translateY(15px); }
+        20% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes framer-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @keyframes box-pulse {
+        0%, 100% { transform: scale(1); border-radius: 6px; opacity: 1; }
+        50% { transform: scale(0.4); border-radius: 50%; opacity: 0.7; box-shadow: none; }
+      }
+
+      /* responsiveness */
+      @media (max-width: 500px) {
+        .logo-model {
+          width: 110px;
+          height: 110px;
+        }
+        .brand-text {
+          font-size: 1.7rem;
+        }
+        .framer-style-spinner {
+          width: 40px;
+          height: 40px;
+        }
+        .framer-box {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body lang="en">
+    <!-- Moved outside of #root and gave it an ID -->
+    <div class="app-loader" id="global-loader">
+      
+      <!-- HOLOGRAPHIC STORY: Blueprint to BOQ -->
+      <div class="story-container">
+        <div class="holo-wrapper">
+          <!-- 3D Explosion Layers / Building Construction -->
+          <div class="grid-layer"></div>
+          <div class="floor floor-1"></div>
+          <div class="pillar p1"></div>
+          <div class="pillar p2"></div>
+          <div class="pillar p3"></div>
+          <div class="pillar p4"></div>
+          <div class="floor floor-2"></div>
+          <div class="floor floor-3"></div>
+          <div class="floor floor-4"></div>
+          
+          <!-- Green Laser Sweep Scanner -->
+          <div class="scanner-plane"></div>
+
+          <!-- Quote Document Morph Result -->
+          <div class="boq-doc">
+             <div class="doc-header-wrap">
+                <div class="doc-logo"></div>
+                <div class="doc-title-wrap">
+                  <p class="doc-title">BILL OF QUANTITIES</p>
+                  <p class="doc-subtitle">Project: Residential Villa Gen-02</p>
+                </div>
+             </div>
+             <table class="doc-table">
+               <thead>
+                 <tr class="doc-row doc-row-0">
+                   <th class="col-desc">Description</th>
+                   <th class="col-qty">Qty</th>
+                   <th class="col-rate">Rate</th>
+                   <th class="col-amount">Amount</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <tr class="doc-row doc-row-1">
+                   <td class="col-desc">1. Foundation Works</td>
+                   <td class="col-qty">120 m³</td>
+                   <td class="col-rate">$38</td>
+                   <td class="col-amount">$4,560</td>
+                 </tr>
+                 <tr class="doc-row doc-row-2">
+                   <td class="col-desc">2. Blockwork (Ext)</td>
+                   <td class="col-qty">450 m²</td>
+                   <td class="col-rate">$14</td>
+                   <td class="col-amount">$6,300</td>
+                 </tr>
+                 <tr class="doc-row doc-row-3">
+                   <td class="col-desc">3. Structural Steel</td>
+                   <td class="col-qty">12 Ton</td>
+                   <td class="col-rate">$850</td>
+                   <td class="col-amount">$10,200</td>
+                 </tr>
+               </tbody>
+             </table>
+             <div class="doc-total">
+               <div class="doc-total-label">TOTAL ESTIMATE</div>
+               <div class="doc-total-val">$21,060.00</div>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Story Text -->
+      <div class="story-text-container">
+        <span class="story-text step-1">Jtech Ai</span>
+        <span class="story-text step-2">ACCURATE QUOTES IN MINUTES</span>
+      </div>
+
+      <div class="spinner-wrapper">
+        <div class="framer-style-spinner">
+          <div class="framer-box box-1"></div>
+          <div class="framer-box box-2"></div>
+          <div class="framer-box box-3"></div>
+          <div class="framer-box box-4"></div>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- React App Container -->
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Script to ensure the loader completes its animation before revealing the React project -->
+    <script>
+      // Prevent scrolling while loader is active
+      document.body.style.overflow = 'hidden';
+
+      window.addEventListener('DOMContentLoaded', () => {
+        // Force the loader to display for 4.5 seconds so all animations finish cleanly
+        setTimeout(() => {
+          const loader = document.getElementById('global-loader');
+          if (loader) {
+            loader.style.transition = 'opacity 0.8s ease-out, visibility 0.8s ease-out';
+            loader.style.opacity = '0';
+            loader.style.visibility = 'hidden';
+            // Restore scrolling once loader fades out
+            document.body.style.overflow = 'auto'; // or '' to remove
+            // Remove it from the DOM after the fade-out
+            setTimeout(() => loader.remove(), 800);
+          }
+        }, 4500); 
+      });
+    </script>
+  </body>
+</html>

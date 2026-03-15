@@ -1053,11 +1053,11 @@ const UploadPlan = () => {
           className="flex items-center justify-between mb-10"
         >
           <div className="text-center">
-            <div className="flex items-center sm:text-2xl text-xl bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white dark:from-white dark:via-white dark:to-white  bg-clip-text text-transparent">
+            <div className="flex items-center sm:text-2xl text-xl text-foreground tracking-tight">
               <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-blue-700 dark:text-white dark:text-white" />
               <h2 className="text-2xl ">Upload & Analyze Plan</h2>
             </div>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text mt-2">
+            <p className="text-sm sm:text-lg text-foreground tracking-tight mt-2">
               AI-powered extraction of rooms, dimensions, doors, and windows —
               instantly generate accurate construction estimates.
             </p>
@@ -2897,10 +2897,10 @@ const UploadPlan = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-[#111418] rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#2a2d35]">
+              <div className="flex items-center justify-between p-4 border-b border-border">
                 <h3 className="text-lg ">Plan Preview</h3>
                 <Button
                   variant="ghost"

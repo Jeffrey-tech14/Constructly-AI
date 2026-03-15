@@ -318,7 +318,7 @@ export default function QSSettings({
       <div className="grid grid-cols-1  ">
         <Card className="md:mr-2 mr-0">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <DollarSign className="w-5 h-5" />
               Financial Settings
             </CardTitle>

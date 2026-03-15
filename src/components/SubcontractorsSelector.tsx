@@ -51,7 +51,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg  mb-4 flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
+        <h3 className="text-lg  mb-4 flex items-center gap-2 text-foreground">
           <Zap className="w-5 h-5" />
           Subcontractor Charges
         </h3>
@@ -65,7 +65,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
               return (
                 <Card
                   key={service.id}
-                  className="p-4 border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418]"
+                  className="p-4 border border-border bg-card"
                 >
                   <div className="grid grid-cols-2">
                     <div className="flex items-center space-x-3">
@@ -89,7 +89,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
                           }
                         }}
                       />
-                      <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
+                      <h4 className="font-medium text-foreground">
                         {service.name}
                       </h4>
                     </div>
@@ -102,7 +102,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
                   {isChecked && selectedSubcontractor && (
                     <div className="mt-3 animate-fade-in space-y-3">
                       <div>
-                        <Label className="text-[#1a1a1a] dark:text-[#eceff4]">
+                        <Label className="text-foreground">
                           Payment Plan *
                         </Label>
                         <Select
@@ -128,7 +128,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
                       <div>
                         <Label
                           htmlFor={`contractorCost-${service.id}`}
-                          className="text-[#1a1a1a] dark:text-[#eceff4]"
+                          className="text-foreground"
                         >
                           Contractor Cost
                         </Label>
@@ -162,7 +162,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
                         <div>
                           <Label
                             htmlFor={`days-${service.id}`}
-                            className="text-[#1a1a1a] dark:text-[#eceff4]"
+                            className="text-foreground"
                           >
                             Number of Days
                           </Label>
@@ -196,7 +196,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
             .map((sub: any) => (
               <Card
                 key={sub.id}
-                className="p-4 border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418]"
+                className="p-4 border border-border bg-card"
               >
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
@@ -267,7 +267,7 @@ export const SubcontractorsSelector: React.FC<SubcontractorsSelectorProps> = ({
               </Card>
             ))}
 
-          <Card className="p-4 border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418] flex items-center justify-center">
+          <Card className="p-4 border border-border bg-card flex items-center justify-center">
             <Button
               onClick={() => {
                 const newId = `custom-${Date.now()}`;

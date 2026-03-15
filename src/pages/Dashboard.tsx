@@ -251,7 +251,7 @@ const Dashboard = () => {
         <div className="mb-4 animate-fade-in">
           <div className="sm:flex flex-1 justify-between items-center">
             <div>
-              <div className="sm:text-2xl items-center text-xl flex font-bold text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
+              <div className="sm:text-2xl items-center text-xl flex font-bold text-foreground tracking-tight">
                 <LayoutDashboard className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
                 <h2 className="text-xl sm:text-2xl">
                   {" "}
@@ -440,8 +440,8 @@ const Dashboard = () => {
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-4 border-b border-gray-200 dark:border-[#2a2d35]">
-                    <CardTitle className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] text-lg">
+                  <CardHeader className="pb-4 border-b border-border">
+                    <CardTitle className="flex items-center gap-2 text-foreground text-lg">
                       <Zap className="w-5 h-5" />
                       Quick Actions
                     </CardTitle>
@@ -450,13 +450,13 @@ const Dashboard = () => {
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => navigate("/quotes/new")}
-                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-[#2a2d35] hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-[#1a1b22] flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-card flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
                           <FileText className="w-4 h-4" />
                         </div>
-                        <span className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
+                        <span className="font-medium text-foreground">
                           New Quote
                         </span>
                       </div>
@@ -466,13 +466,13 @@ const Dashboard = () => {
                     <motion.button
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowCalculator(true)}
-                      className="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-[#2a2d35] hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-white dark:bg-[#1a1b22] flex items-center justify-between group"
+                      className="w-full text-left p-4 rounded-lg border border-border hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 bg-card flex items-center justify-between group"
                     >
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
                           <DollarSign className="w-4 h-4" />
                         </div>
-                        <span className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
+                        <span className="font-medium text-foreground">
                           Cost Calculator
                         </span>
                       </div>

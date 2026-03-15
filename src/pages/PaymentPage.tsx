@@ -73,7 +73,7 @@ const PaymentPage = () => {
             </div>
 
             {/* Features Grid */}
-            <div className="grid md:grid-cols-2 gap-6 py-8 border-t border-b border-gray-200 dark:border-[#2a2d35]">
+            <div className="grid md:grid-cols-2 gap-6 py-8 border-t border-b border-border">
               {[
                 {
                   icon: BarChart3,
@@ -105,7 +105,7 @@ const PaymentPage = () => {
                       </div>
                     </div>
                     <div>
-                      <h3 className=" text-[#1a1a1a] dark:text-[#eceff4]">
+                      <h3 className=" text-foreground">
                         {feature.title}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">

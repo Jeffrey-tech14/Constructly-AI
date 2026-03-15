@@ -206,7 +206,7 @@ const ViewAllQuotes = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
-            <h1 className="sm:text-2xl text-xl font-bold flex items-center gap-3 text-[#1a1a1a] dark:text-[#eceff4] tracking-tight">
+            <h1 className="sm:text-2xl text-xl font-bold flex items-center gap-3 text-foreground tracking-tight">
               <Building2 className="sm:w-7 sm:h-7 text-primary dark:text-white" />
               <h2 className="text-xl sm:text-2xl">All Construction Quotes</h2>
             </h1>

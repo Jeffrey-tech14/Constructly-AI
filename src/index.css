@@ -40,11 +40,11 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     
     /* 🎨 ORIGINAL THEME COLORS (Preserved but matched to Index) */
     --background: 180 33% 99%; /* #fcfdfd */
-    --foreground: 0 0% 10%; /* #1a1a1a */
+    --foreground: 0 0% 10%; /* #1a1a1a */ /* #1a1a1a */
     --card: 0 0% 100%; /* #ffffff */
     --card-foreground: 0 0% 10%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 1 85% 62%; /* #f0514e */
+    --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 98%;
     --secondary-foreground: 222.2 84% 4.9%;
     --muted: 210 40% 98%;
@@ -159,10 +159,10 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     --shadow-auth-button: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
     /* 📐 BORDER RADIUS */
-    --radius: 0.75rem;
+    --radius: 0.25rem;
     --radius-auth-form: 0.75rem;      /* rounded-xl */
     --radius-auth-input: 0.5rem;      /* rounded-lg */
-    --radius-auth-button: 0.375rem;   /* rounded-md */
+    --radius-auth-button: 0.25rem;   /* rounded-md */
 
     /* 🪟 SIDEBAR */
     --sidebar-background: 220 25% 98%;
@@ -176,135 +176,35 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
   }
 
   .dark {
-      /* 🌙 DARK MODE - UPDATED TO MATCH INDEX.TSX */
+      /* 🌙 DARK MODE - EXACT FRONTEND MATCH */
       --background: 220 16% 4%; /* #08090b */
       --foreground: 220 25% 95%; /* #eceff4 */
-
+      
       --card: 216 18% 8%; /* #14161a */
       --card-foreground: 220 25% 95%;
-
+      
       --popover: 216 18% 8%;
       --popover-foreground: 220 25% 95%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    /* 🎨 DARK MODE AUTH COLORS */
-    --primary-navy: 210 80% 25%;
-    --accent-orange: 19 90% 52%;
-    --success-lime: 82 75% 55%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --rose: 350 75% 25%;
-    --rose-glow: 350 85% 35%;
-
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 25% 65%;
-
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 220 25% 95%;
-
-    --border: 0 0% 100% / 0.05;
-    --input: 220 15% 18%;
-    --ring: 224.3 76.3% 94.1%;
-
-    /* 🌙 DARK MODE GRADIENTS */
-    --gradient-primary: linear-gradient(
-      135deg,
-      hsl(262 70% 55%) 0%,
-      hsl(262 75% 65%) 50%,
-      hsl(262 85% 45%) 100%
-    );
-
-    --gradient-secondary: linear-gradient(
-      135deg,
-      hsl(210 75% 25%) 0%,
-      hsl(210 85% 35%) 50%,
-      hsl(210 95% 25%) 100%
-    );
-
-    --gradient-accent: linear-gradient(
-      135deg,
-      hsl(270 65% 25%) 0%,
-      hsl(270 75% 35%) 50%,
-      hsl(350 75% 25%) 100%
-    );
-
-    --gradient-auth-overlay: linear-gradient(
-      135deg,
-      rgba(0, 40, 80, 0.95) 0%,
-      rgba(0, 30, 60, 0.85) 100%
-    );
-
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(56, 88%, 52%) 0%,
-      hsl(270 65% 45% / 0.9) 50%,
-      hsl(210 75% 45% / 0.95) 100%
-    );
-
-    --gradient-glass: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0.02) 100%
-    );
-
-    --gradient-card: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.05) 100%
-    );
-
-    /* 🌙 DARK MODE STRIPES */
-    --stripe-light: repeating-linear-gradient(
-      45deg,
-      hsl(210 10% 10%),
-      hsl(210 10% 10%) 110px,
-      hsl(210 10% 11%) 10px,
-      hsl(210, 10%, 11%) 200px
-    );
-
-    --stripe-primary: repeating-linear-gradient(
-      45deg,
-      hsl(262 80% 20% / 0.5),
-      hsl(262 80% 20% / 0.5) 10px,
-      hsl(262 80% 30% / 0.5) 10px,
-      hsl(262 80% 30% / 0.5) 20px
-    );
-
-    --stripe-accent: repeating-linear-gradient(
-      45deg,
-      hsl(270 65% 20% / 0.5),
-      hsl(270 65% 20% / 0.5) 10px,
-      hsl(270 65% 30% / 0.5) 10px,
-      hsl(270 65% 30% / 0.5) 20px
-    );
-
-    /* 🌙 DARK MODE GLASS */
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
-    /* 🌙 DARK MODE SHADOWS */
-    --shadow-elegant: 0 20px 60px -15px rgba(158, 70, 55, 0.4);
-    --shadow-glow: 0 0 60px rgba(158, 75, 65, 0.6);
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.2);
-    --shadow-auth-form: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-
-    /* 🪟 DARK MODE SIDEBAR */
-    --sidebar-background: 220 15% 10%;
-    --sidebar-foreground: 220 25% 95%;
-    --sidebar-primary: 158 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 220 25% 95%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 158 70% 55%;
-  }
+      
+      --primary: 1 85% 62%; /* #f0514e */
+      --primary-foreground: 0 0% 100%;
+      
+      --secondary: 216 18% 12%; 
+      --secondary-foreground: 220 25% 95%;
+      
+      --muted: 216 18% 12%;
+      --muted-foreground: 215 20% 65%;
+      
+      --accent: 1 85% 62%;
+      --accent-foreground: 0 0% 100%;
+      
+      --destructive: 0 62% 30%;
+      --destructive-foreground: 220 25% 95%;
+      
+      --border: 220 11% 19%; /* #2a2d35 */
+      --input: 220 11% 19%;
+      --ring: 1 85% 62%;
+    }
 }
 
 @layer base {

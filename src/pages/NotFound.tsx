@@ -96,7 +96,7 @@ const NotFound = () => {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, type: "spring", stiffness: 80 }}
-              className="text-8xl sm:text-9xl font-black bg-gradient-to-r from-[#B8860B] via-[#D4A574] to-[#B8860B] dark:from-[#D4A574] dark:via-[#B8860B] dark:to-[#D4A574] bg-clip-text text-transparent drop-shadow-lg"
+              className="text-8xl sm:text-9xl font-black text-foreground tracking-tight drop-shadow-lg"
             >
               404
             </motion.h1>

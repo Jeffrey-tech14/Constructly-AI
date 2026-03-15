@@ -1908,7 +1908,7 @@ const QuoteBuilder = () => {
                   <div>
                     <Label
                       htmlFor="projectName"
-                      className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                      className="flex items-center gap-2 text-foreground mb-2"
                     >
                       <Pickaxe className="w-4 h-4" />
                       Project Name *
@@ -1931,7 +1931,7 @@ const QuoteBuilder = () => {
                     <div>
                       <Label
                         htmlFor="clientName"
-                        className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                        className="flex items-center gap-2 text-foreground mb-2"
                       >
                         <Users className="w-4 h-4" />
                         Client Name *
@@ -1953,7 +1953,7 @@ const QuoteBuilder = () => {
                     <div>
                       <Label
                         htmlFor="clientEmail"
-                        className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                        className="flex items-center gap-2 text-foreground mb-2"
                       >
                         <Users className="w-4 h-4" />
                         Client Email *
@@ -1976,7 +1976,7 @@ const QuoteBuilder = () => {
                   </div>
 
                   <div>
-                    <Label className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2">
+                    <Label className="flex items-center gap-2 text-foreground mb-2">
                       <ClipboardList className="w-4 h-4" />
                       Contract Type *
                     </Label>
@@ -2013,7 +2013,7 @@ const QuoteBuilder = () => {
                   <div>
                     <Label
                       htmlFor="projectType"
-                      className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                      className="flex items-center gap-2 text-foreground mb-2"
                     >
                       <Building className="w-4 h-4" />
                       Project Type *
@@ -2043,7 +2043,7 @@ const QuoteBuilder = () => {
                   <div>
                     <Label
                       htmlFor="location"
-                      className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                      className="flex items-center gap-2 text-foreground mb-2"
                     >
                       <MapPin className="w-4 h-4" />
                       Project Location *
@@ -2065,7 +2065,7 @@ const QuoteBuilder = () => {
                   <div>
                     <Label
                       htmlFor="region"
-                      className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                      className="flex items-center gap-2 text-foreground mb-2"
                     >
                       <MapPin className="w-4 h-4" />
                       Region *
@@ -2092,7 +2092,7 @@ const QuoteBuilder = () => {
                   <div>
                     <Label
                       htmlFor="distanceKm"
-                      className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4] mb-2"
+                      className="flex items-center gap-2 text-foreground mb-2"
                     >
                       <Truck className="w-4 h-4" />
                       Distance from site location (KM)
@@ -2126,10 +2126,10 @@ const QuoteBuilder = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="mt-8"
               >
-                <Card className="border border-gray-200 dark:border-[#2a2d35] bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
+                <Card className="border border-border bg-[#fcfdfd] dark:bg-[#111418]">
                   <CardContent className="p-6 text-center">
                     <UploadCloud className="w-12 h-12 mx-auto mb-4" />
-                    <h3 className="text-lg  mb-2 text-[#1a1a1a] dark:text-[#eceff4]">
+                    <h3 className="text-lg  mb-2 text-foreground">
                       Upload Construction Plans
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">
@@ -2322,7 +2322,7 @@ const QuoteBuilder = () => {
 
               <TabsContent value="plumbing" className="space-y-4">
                 <div>
-                  <h3 className="text-lg  mb-4 flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
+                  <h3 className="text-lg  mb-4 flex items-center gap-2 text-foreground">
                     Plumbing Systems
                   </h3>
                   <PlumbingCalculator
@@ -2351,7 +2351,7 @@ const QuoteBuilder = () => {
 
               <TabsContent value="electrical" className="space-y-4">
                 <div>
-                  <h3 className="text-lg  mb-4 flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
+                  <h3 className="text-lg  mb-4 flex items-center gap-2 text-foreground">
                     Electrical Systems
                   </h3>
                   <ElectricalCalculator
@@ -2562,7 +2562,7 @@ const QuoteBuilder = () => {
                   <div>
                     <Label
                       htmlFor="customSpecs"
-                      className="text-[#1a1a1a] dark:text-[#eceff4]"
+                      className="text-foreground"
                     >
                       Additional Specifications
                     </Label>
@@ -2633,16 +2633,16 @@ const QuoteBuilder = () => {
               <>
                 {boqData.length > 0 && (
                   <div>
-                    <h3 className="text-lg  mb-4 text-[#1a1a1a] dark:text-[#eceff4]">
+                    <h3 className="text-lg  mb-4 text-foreground">
                       Bill of Quantities
                     </h3>
                     {boqData.map((section, index) => (
                       <Card
                         key={index}
-                        className="mb-4 border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418]"
+                        className="mb-4 border border-border bg-card"
                       >
                         <CardHeader>
-                          <CardTitle className="text-[#1a1a1a] dark:text-[#eceff4]">
+                          <CardTitle className="text-foreground">
                             {section.title}
                           </CardTitle>
                         </CardHeader>
@@ -2650,25 +2650,25 @@ const QuoteBuilder = () => {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Item
                                 </TableHead>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Description
                                 </TableHead>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Element
                                 </TableHead>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Unit
                                 </TableHead>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Qty
                                 </TableHead>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Rate
                                 </TableHead>
-                                <TableHead className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                <TableHead className="text-foreground">
                                   Amount
                                 </TableHead>
                               </TableRow>
@@ -2684,34 +2684,34 @@ const QuoteBuilder = () => {
                                         <>
                                           <TableCell
                                             colSpan={8}
-                                            className="font-bold text-base text-[#1a1a1a] dark:text-[#eceff4]"
+                                            className="font-bold text-base text-foreground"
                                           >
                                             {item.description || "-"}
                                           </TableCell>
                                         </>
                                       ) : (
                                         <>
-                                          <TableCell className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className="text-foreground">
                                             {item.itemNo || "-"}
                                           </TableCell>
-                                          <TableCell className=" text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className=" text-foreground">
                                             {item.description || "-"}
                                           </TableCell>
-                                          <TableCell className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className="text-foreground">
                                             {item.element || "-"}
                                           </TableCell>
-                                          <TableCell className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className="text-foreground">
                                             {item.unit || "-"}
                                           </TableCell>
-                                          <TableCell className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className="text-foreground">
                                             {item.quantity ?? "-"}
                                           </TableCell>
-                                          <TableCell className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className="text-foreground">
                                             {item.rate
                                               ? item.rate.toLocaleString()
                                               : "-"}
                                           </TableCell>
-                                          <TableCell className="text-[#1a1a1a] dark:text-[#eceff4]">
+                                          <TableCell className="text-foreground">
                                             {item.amount
                                               ? item.amount.toLocaleString()
                                               : "-"}
@@ -2734,7 +2734,7 @@ const QuoteBuilder = () => {
                             </TableBody>
                           </Table>
                           {section.items.length > 0 && (
-                            <div className="mt-4 text-right font-bold text-[#1a1a1a] dark:text-[#eceff4]">
+                            <div className="mt-4 text-right font-bold text-foreground">
                               Total: KSh{" "}
                               {section.items
                                 .reduce((sum, i) => sum + (i.amount || 0), 0)
@@ -2746,51 +2746,51 @@ const QuoteBuilder = () => {
                     ))}
                   </div>
                 )}
-                <Card className="border border-gray-200 dark:border-[#2a2d35] bg-white dark:bg-[#111418]">
+                <Card className="border border-border bg-card">
                   <CardHeader>
-                    <CardTitle className="text-[#1a1a1a] dark:text-[#eceff4]">
+                    <CardTitle className="text-foreground">
                       Labour and Total
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="space-y-2">
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Labour</p>
                         <p>KSh {calculation?.labor_cost?.toLocaleString()}</p>
                       </div>
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Profit</p>
                         <p>
                           KSh {calculation?.profit_amount?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Contingency</p>
                         <p>
                           KSh{" "}
                           {calculation?.contingency_amount?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Unknown Unknowns Reserve</p>
                         <p>
                           KSh{" "}
                           {calculation?.unknown_contingency_amount?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Overhead</p>
                         <p>
                           KSh {calculation?.overhead_amount?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Materials</p>
                         <p>
                           KSh {calculation?.materials_cost?.toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex justify-between text-[#1a1a1a] dark:text-[#eceff4]">
+                      <div className="flex justify-between text-foreground">
                         <p>Preliminaries</p>
                         <p>
                           KSh {calculation?.preliminariesCost?.toLocaleString()}
@@ -2799,7 +2799,7 @@ const QuoteBuilder = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <div className="flex justify-between font-bold text-lg text-[#1a1a1a] dark:text-[#eceff4]">
+                <div className="flex justify-between font-bold text-lg text-foreground">
                   <span>Total:</span>
                   <span>KSh {calculation.total_amount.toLocaleString()}</span>
                 </div>
@@ -2885,11 +2885,11 @@ const QuoteBuilder = () => {
     <div className="min-h-screen animate-fade-in transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-2xl text-xl font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+          <div className="flex sm:text-2xl text-xl font-bold text-foreground tracking-tight">
             <BuildingIcon className="sm:w-7 sm:h-7 sm:mt-0 mt-1 mr-2 text-primary dark:text-white" />
             <h2>Quote Builder</h2>
           </div>
-          <p className="bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white    text-transparent bg-clip-text text-sm sm:text-lg text-transparent mt-2">
+          <p className="text-foreground tracking-tight mt-2">
             Create accurate construction quotes with advanced calculations
           </p>
           <Stepper
@@ -2903,8 +2903,8 @@ const QuoteBuilder = () => {
 
         <div key={`step-${currentStep}`}>
           <Card className="mb-8 -p-5">
-            <CardHeader className="pb-4 border-b border-gray-200 dark:border-[#2a2d35]">
-              <CardTitle className="flex justify-between items-center gap-3 text-[#1a1a1a] dark:text-[#eceff4]">
+            <CardHeader className="pb-4 border-b border-border">
+              <CardTitle className="flex justify-between items-center gap-3 text-foreground">
                 <div className="flex gap-3  items-center">
                   <div className="p-2 rounded-full bg-primary/20 dark:bg-primary">
                     {steps[currentStep - 1]?.icon}

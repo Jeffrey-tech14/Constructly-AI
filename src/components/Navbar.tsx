@@ -273,10 +273,10 @@ const Navbar = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-64 border border-gray-200 dark:border-[#2a2d35] shadow-xl   rounded-xl p-2"
+                      className="w-64 border border-border shadow-xl   rounded-xl p-2"
                     >
                       <div className="px-3 py-2 border-b border-gray-100 dark:border-[#2a2d35] mb-2">
-                        <p className=" text-[#1a1a1a] dark:text-[#eceff4] truncate">
+                        <p className=" text-foreground truncate">
                           {profile?.name || user.email}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -353,15 +353,15 @@ const Navbar = () => {
                             </div>
                           </div>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="border border-gray-200 dark:border-[#2a2d35] rounded-3xl shadow-xl">
+                        <AlertDialogContent className="border border-border rounded-3xl shadow-xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
+                            <AlertDialogTitle className="flex items-center gap-2 text-foreground">
                               <LogOut className="w-5 h-5 text-red-500" />
                               Confirm Sign Out
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
                               Are you sure you want to sign out as{" "}
-                              <span className=" text-[#1a1a1a] dark:text-[#eceff4]">
+                              <span className=" text-foreground">
                                 {profile?.name || user.email}
                               </span>
                               ? You will need to sign in again to access your

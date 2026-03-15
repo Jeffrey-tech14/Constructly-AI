@@ -1336,7 +1336,7 @@ export default function ConcreteCalculatorForm({
         {row.foundationSteps?.map((step, index) => (
           <div
             key={step.id}
-            className="grid sm:grid-cols-5 gap-2 p-3 bg-white dark:bg-[#111418] rounded-2xl border"
+            className="grid sm:grid-cols-5 gap-2 p-3 bg-card rounded-2xl border"
           >
             <div className="flex items-center">
               <Badge

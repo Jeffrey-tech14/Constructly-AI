@@ -248,7 +248,7 @@ const QuotePaymentPage = () => {
         transition={{ duration: 0.4 }}
         className="max-w-lg w-full mx-4 text-center space-y-4"
       >
-        <h1 className="sm:text-3xl items-center text-2xl flex items-center justify-center font-bold bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-white dark:to-white bg-clip-text text-transparent">
+        <h1 className="sm:text-3xl items-center text-2xl flex items-center justify-center font-bold text-foreground tracking-tight">
           <Lock className="sm:w-7 sm:h-7 mr-2 text-blue-700 dark:text-white" />
           Unlock Quote
         </h1>

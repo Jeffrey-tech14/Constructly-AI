@@ -425,7 +425,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
         {/* WARDROBES & KITCHEN CABINETS COMBINED */}
         {/* ============================================ */}
         <div className="space-y-4">
-          <h3 className="text-xl mb-4 text-[#1a1a1a] dark:text-[#eceff4]">
+          <h3 className="text-xl mb-4 text-foreground">
             Wardrobes
           </h3>
 
@@ -434,7 +434,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
               <Card key={wardrobe.id} className="p-6">
                 <CardContent className="p-0">
                   <div className="flex items-start justify-between mb-4">
-                    <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
+                    <h4 className="font-medium text-foreground">
                       Item #{index + 1}: {wardrobe.name}
                     </h4>
                     {!readonly && (
@@ -516,7 +516,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
 
                   {wardrobe.quotationType === "lump-sum" ? (
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4">
-                      <h5 className="text-[#1a1a1a] dark:text-[#eceff4] mb-4">
+                      <h5 className="text-foreground mb-4">
                         Lump-Sum Pricing
                       </h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -545,7 +545,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
                     </div>
                   ) : (
                     <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mb-4">
-                      <h5 className="text-[#1a1a1a] dark:text-[#eceff4] mb-4">
+                      <h5 className="text-foreground mb-4">
                         Detailed Components
                       </h5>
 
@@ -712,7 +712,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
 
                   <div className="bg-gray-100 dark:bg-[#111418] p-4 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-[#1a1a1a] dark:text-[#eceff4]">
+                      <span className="text-foreground">
                         Total Cost:
                       </span>
                       <span className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -741,7 +741,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="text-[#1a1a1a] dark:text-[#eceff4]">
+                    <h4 className="text-foreground">
                       Total Wardrobes Cost
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -763,7 +763,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
           )}
 
           {/* KITCHEN CABINETS SECTION */}
-          <h3 className="text-xl  mt-8 mb-4 text-[#1a1a1a] dark:text-[#eceff4]">
+          <h3 className="text-xl  mt-8 mb-4 text-foreground">
             Kitchen Cabinets
           </h3>
 
@@ -772,7 +772,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
               <Card key={cabinet.id} className="p-6">
                 <CardContent className="p-0">
                   <div className="flex items-start justify-between mb-4">
-                    <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
+                    <h4 className="font-medium text-foreground">
                       Item #{index + 1}: {cabinet.name}
                     </h4>
                     {!readonly && (
@@ -882,7 +882,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
                     </div>
                   ) : (
                     <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mb-4">
-                      <h5 className="text-[#1a1a1a] dark:text-[#eceff4] mb-4">
+                      <h5 className="text-foreground mb-4">
                         Detailed Components
                       </h5>
 
@@ -994,7 +994,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
 
                   <div className="bg-gray-100 dark:bg-[#111418] p-4 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-[#1a1a1a] dark:text-[#eceff4]">
+                      <span className="text-foreground">
                         Total Cost:
                       </span>
                       <span className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -1027,7 +1027,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="text-[#1a1a1a] dark:text-[#eceff4]">
+                    <h4 className="text-foreground">
                       Total Kitchen Cabinets Cost
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -1512,7 +1512,7 @@ export const KitchenAndWardrobesCalculator: React.FC<
           <CardContent className="p-4">
             <div className="flex justify-between items-center">
               <div>
-                <h4 className="text-[#1a1a1a] dark:text-[#eceff4] font-semibold">
+                <h4 className="text-foreground font-semibold">
                   Total Wardrobes, Cabinets & Countertops Cost
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">

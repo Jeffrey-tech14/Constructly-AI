@@ -55,7 +55,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
       className="space-y-6"
     >
       <div>
-        <h3 className="text-lg  mb-4 flex items-center gap-2 text-[#1a1a1a] dark:text-[#eceff4]">
+        <h3 className="text-lg  mb-4 flex items-center gap-2 text-foreground">
           <Plus className="w-5 h-5" />
           Additional Services
         </h3>
@@ -95,7 +95,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
                         }}
                       />
                       <div>
-                        <h4 className="font-medium text-[#1a1a1a] dark:text-[#eceff4]">
+                        <h4 className="font-medium text-foreground">
                           {service.name}
                         </h4>
                         {service.description && (
@@ -119,7 +119,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
                   {isChecked && selectedService && (
                     <div className="mt-3 animate-fade-in space-y-3">
                       <div>
-                        <Label className="text-[#1a1a1a] dark:text-[#eceff4]">
+                        <Label className="text-foreground">
                           Payment Plan *
                         </Label>
                         <Select
@@ -143,7 +143,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
                       <div>
                         <Label
                           htmlFor={`serviceCost-${service.id}`}
-                          className="text-[#1a1a1a] dark:text-[#eceff4]"
+                          className="text-foreground"
                         >
                           {selectedService.payment_plan === "full"
                             ? "Total Cost"
@@ -175,7 +175,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
                       {selectedService.payment_plan === "interval" && (
                         <>
                           <div>
-                            <Label className="text-[#1a1a1a] dark:text-[#eceff4]">
+                            <Label className="text-foreground">
                               Unit
                             </Label>
                             <Select
@@ -201,7 +201,7 @@ export const ServicesSelector: React.FC<ServicesSelectorProps> = ({
                           <div>
                             <Label
                               htmlFor={`serviceDays-${service.id}`}
-                              className="text-[#1a1a1a] dark:text-[#eceff4]"
+                              className="text-foreground"
                             >
                               Number of {selectedService.unit || "days"}
                             </Label>

@@ -39,15 +39,15 @@ Unauthorized copying, distribution, or modification of this file is strictly pro
     --success-lime-hex: #86bc25;
     
     /* 🎨 ORIGINAL THEME COLORS (Preserved but matched to Index) */
-    --background: 220 16% 4%;
-    --foreground: 220 14% 96%; /* #1a1a1a */
-    --card: 220 13% 9%;
-    --card-foreground: 220 14% 96%;
+    --background: 180 33% 99%; /* #fcfdfd */
+    --foreground: 0 0% 10%; /* #1a1a1a */ /* #1a1a1a */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 0 0% 10%;
     --primary: 1 85% 62%; /* #f0514e */
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 98%;
     --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 215 20% 15%;
+    --muted: 210 40% 98%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 98%;
     --accent-foreground: 222.2 84% 4.9%;

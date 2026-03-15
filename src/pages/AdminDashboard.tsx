@@ -310,7 +310,7 @@ const AdminDashboard = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-8 text-center">
-          <h2 className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide text-red-600 mb-4">
+          <h2 className="sm:text-2xl text-lg font-bold text-red-600 mb-4">
             Access Denied
           </h2>
           <p className="text-muted-foreground">
@@ -333,8 +333,8 @@ const AdminDashboard = () => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
         <div className="mb-8">
-          <div className="flex items-center sm:text-2xl text-xl font-bold font-['Outfit'] tracking-wide text-foreground tracking-tight">
-            <Crown className="sm:w-7 sm:h-7 mr-2 text-[#f0514e] dark:text-white" />
+          <div className="flex items-center sm:text-2xl text-xl font-bold text-foreground tracking-tight">
+            <Crown className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
             <h2 className="text-xl sm:text-2xl">Admin Dashboard</h2>
           </div>
           <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
@@ -351,7 +351,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
+              <div className="sm:text-2xl text-lg font-bold">
                 {stats.totalUsers}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -368,7 +368,7 @@ const AdminDashboard = () => {
               <Coins className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
+              <div className="sm:text-2xl text-lg font-bold">
                 KSh {formatCurrency(stats.totalRevenue)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -385,7 +385,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
+              <div className="sm:text-2xl text-lg font-bold">
                 KSh {formatCurrency(stats.paidQuotesRevenue)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -402,7 +402,7 @@ const AdminDashboard = () => {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
+              <div className="sm:text-2xl text-lg font-bold">
                 {stats.totalQuotes}
               </div>
               <p className="text-xs text-muted-foreground">Generated quotes</p>
@@ -417,7 +417,7 @@ const AdminDashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="sm:text-2xl text-lg font-bold font-['Outfit'] tracking-wide">
+              <div className="sm:text-2xl text-lg font-bold">
                 {stats.activeProjects}
               </div>
               <p className="text-xs text-muted-foreground">In progress</p>
@@ -466,7 +466,7 @@ const AdminDashboard = () => {
                     >
                       <div>
                         {user.id === profile.id && (
-                          <Badge className="absolute -top-2 md:-top-3 transform translate-x-2 bg-primary text-white dark:bg-[#1a1c1e] dark:text-[#f0514e] rounded-full px-3 md:px-4 py-0.5 md:py-1 text-xs md:text-sm">
+                          <Badge className="absolute -top-2 md:-top-3 transform translate-x-2 bg-primary text-white dark:bg-white dark:text-primary rounded-full px-3 md:px-4 py-0.5 md:py-1 text-xs md:text-sm">
                             Me
                           </Badge>
                         )}
@@ -474,8 +474,8 @@ const AdminDashboard = () => {
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                           {/* User Info Section */}
                           <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
-                            {/* <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9 bg-[#f0514e]/10 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-[#1a1c1e]/10 bg-[#f0514e]/10">
-                              <Users className="w-4 h-4 md:w-5 md:h-5 text-[#f0514e] dark:text-white" />
+                            {/* <div className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white/10 bg-primary/10">
+                              <Users className="w-4 h-4 md:w-5 md:h-5 text-primary dark:text-white" />
                             </div> */}
 
                             <Avatar className="sm:w-8 sm:h-8 md:w-10 md:h-10 h-9 w-9  items-center">
@@ -483,7 +483,7 @@ const AdminDashboard = () => {
                                 src={user?.avatar_url || undefined}
                               />
                               <AvatarFallback className="text-2xl">
-                                <Users className="w-4 h-4 md:w-5 md:h-5 text-[#f0514e] dark:text-white"></Users>
+                                <Users className="w-4 h-4 md:w-5 md:h-5 text-primary dark:text-white"></Users>
                               </AvatarFallback>
                             </Avatar>
 

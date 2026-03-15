@@ -2002,7 +2002,7 @@ const QuoteBuilder = () => {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-sm text-gray-400 dark:text-gray-300 mt-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
                       {quoteData.contract_type === "full_contract"
                         ? "You provide all materials and labor"
                         : "Client provides materials, you provide labor only"}
@@ -2112,7 +2112,7 @@ const QuoteBuilder = () => {
                       }
                       className=""
                     />
-                    <p className="text-sm text-gray-400 dark:text-gray-300 mt-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
                       Used to calculate transport costs {transportCost}
                     </p>
                   </div>
@@ -2132,7 +2132,7 @@ const QuoteBuilder = () => {
                     <h3 className="text-lg  mb-2 text-foreground">
                       Upload Construction Plans
                     </h3>
-                    <p className="text-gray-400 dark:text-gray-300 mb-4">
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
                       Upload your construction plans for automatic room
                       detection and measurements
                     </p>
@@ -2684,7 +2684,7 @@ const QuoteBuilder = () => {
                                         <>
                                           <TableCell
                                             colSpan={8}
-                                            className="font-bold font-['Outfit'] tracking-wide text-base text-foreground"
+                                            className="font-bold text-base text-foreground"
                                           >
                                             {item.description || "-"}
                                           </TableCell>
@@ -2734,7 +2734,7 @@ const QuoteBuilder = () => {
                             </TableBody>
                           </Table>
                           {section.items.length > 0 && (
-                            <div className="mt-4 text-right font-bold font-['Outfit'] tracking-wide text-foreground">
+                            <div className="mt-4 text-right font-bold text-foreground">
                               Total: KSh{" "}
                               {section.items
                                 .reduce((sum, i) => sum + (i.amount || 0), 0)
@@ -2799,7 +2799,7 @@ const QuoteBuilder = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <div className="flex justify-between font-bold font-['Outfit'] tracking-wide text-lg text-foreground">
+                <div className="flex justify-between font-bold text-lg text-foreground">
                   <span>Total:</span>
                   <span>KSh {calculation.total_amount.toLocaleString()}</span>
                 </div>
@@ -2842,7 +2842,7 @@ const QuoteBuilder = () => {
           className="flex flex-col items-center gap-4"
         >
           <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
-          <p className="text-gray-400 dark:text-gray-300">
+          <p className="text-gray-600 dark:text-gray-300">
             Loading quote builder...
           </p>
         </motion.div>
@@ -2868,7 +2868,7 @@ const QuoteBuilder = () => {
         );
       case "Enterprise":
         return (
-          <Badge className="text-xs bg-[#f0514e]/10 text-[#f0514e] hover:bg-[#f0514e]/10 dark:bg-primary/30/30 dark:text-[#f0514e]">
+          <Badge className="text-xs bg-primary/10 text-primary hover:bg-primary/10 dark:bg-primary/30/30 dark:text-primary">
             <Crown className="w-3 h-3 mr-1" />
             Enterprise
           </Badge>
@@ -2885,8 +2885,8 @@ const QuoteBuilder = () => {
     <div className="min-h-screen animate-fade-in transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex sm:text-2xl text-xl font-bold font-['Outfit'] tracking-wide text-foreground tracking-tight">
-            <BuildingIcon className="sm:w-7 sm:h-7 sm:mt-0 mt-1 mr-2 text-[#f0514e] dark:text-white" />
+          <div className="flex sm:text-2xl text-xl font-bold text-foreground tracking-tight">
+            <BuildingIcon className="sm:w-7 sm:h-7 sm:mt-0 mt-1 mr-2 text-primary dark:text-white" />
             <h2>Quote Builder</h2>
           </div>
           <p className="text-foreground tracking-tight mt-2">
@@ -2913,7 +2913,7 @@ const QuoteBuilder = () => {
                     <div className="text-lg ">
                       {steps[currentStep - 1]?.name}
                     </div>
-                    <div className="text-sm text-gray-400 dark:text-gray-300 font-normal">
+                    <div className="text-sm text-gray-600 dark:text-gray-300 font-normal">
                       Step {currentStep} of {steps?.length}
                     </div>
                   </div>
@@ -3032,9 +3032,9 @@ export function Stepper({
       {/* Left chevron */}
       <button
         onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-[#1a1c1e]/80 dark:bg-[#111418] rounded-full p-1 shadow-md   hover:bg-[#1a1c1e]"
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-[#111418] rounded-full p-1 shadow-md   hover:bg-white"
       >
-        <ChevronLeft className="w-5 h-5 text-gray-300 dark:text-gray-200" />
+        <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
 
       <div
@@ -3098,9 +3098,9 @@ export function Stepper({
       {/* Right chevron */}
       <button
         onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2   -translate-y-1/2 z-10 bg-[#1a1c1e]/80 dark:bg-[#111418] rounded-full p-1 shadow-md hover:bg-[#1a1c1e]"
+        className="absolute right-0 top-1/2   -translate-y-1/2 z-10 bg-white/80 dark:bg-[#111418] rounded-full p-1 shadow-md hover:bg-white"
       >
-        <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-200" />
+        <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
     </div>
   );

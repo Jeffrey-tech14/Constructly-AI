@@ -1054,7 +1054,7 @@ const UploadPlan = () => {
         >
           <div className="text-center">
             <div className="flex items-center sm:text-2xl text-xl text-foreground tracking-tight">
-              <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-[#f0514e] dark:text-white dark:text-white" />
+              <UploadCloud className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white dark:text-white" />
               <h2 className="text-2xl ">Upload & Analyze Plan</h2>
             </div>
             <p className="text-sm sm:text-lg text-foreground tracking-tight mt-2">
@@ -1098,12 +1098,12 @@ const UploadPlan = () => {
                       >
                         <motion.div
                           whileHover={{ scale: 1.1 }}
-                          className={`w-12 h-12 rounded-full flex items-center justify-center font-bold font-['Outfit'] tracking-wide transition-all duration-300 ${
+                          className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
                             isDone
                               ? "bg-green-500 text-white shadow-lg"
                               : isActive
                                 ? "bg-primary text-white shadow-lg animate-pulse"
-                                : "bg-[#14161a] text-gray-500 dark:bg-[#1a1b22] dark:text-gray-400"
+                                : "bg-gray-100 text-gray-500 dark:bg-[#1a1b22] dark:text-gray-400"
                           }`}
                         >
                           {isDone ? (
@@ -1115,7 +1115,7 @@ const UploadPlan = () => {
                         <span
                           className={`text-sm font-medium ${
                             isActive || isDone
-                              ? "text-[#f0514e] dark:text-[#f0514e]"
+                              ? "text-primary dark:text-primary"
                               : "text-gray-500 dark:text-gray-400"
                           }`}
                         >
@@ -1125,7 +1125,7 @@ const UploadPlan = () => {
                     );
                   })}
                 </div>
-                <div className="w-full bg-[#14161a] dark:bg-[#1a1b22] rounded-full h-2">
+                <div className="w-full bg-gray-100 dark:bg-[#1a1b22] rounded-full h-2">
                   <motion.div
                     className="h-2 rounded-full"
                     initial={{ width: "0%" }}
@@ -1142,7 +1142,7 @@ const UploadPlan = () => {
                   />
                 </div>
                 <motion.p
-                  className="text-center text-sm text-gray-400 dark:text-gray-300 mt-4"
+                  className="text-center text-sm text-gray-600 dark:text-gray-300 mt-4"
                   key={currentStep}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -1176,7 +1176,7 @@ const UploadPlan = () => {
                         AI is analyzing your plan...
                       </span>
                       {analysisTimeLeft !== null && (
-                        <span className="text-xs text-[#f0514e] dark:text-[#f0514e] font-medium">
+                        <span className="text-xs text-primary dark:text-primary font-medium">
                           Est. time: {analysisTimeLeft}s
                         </span>
                       )}
@@ -1211,7 +1211,7 @@ const UploadPlan = () => {
                     {getErrorIcon()}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold font-['Outfit'] tracking-wide text-red-800 dark:text-red-200">
+                    <h3 className="text-lg font-bold text-red-800 dark:text-red-200">
                       {error.type === "network"
                         ? "Connection Error"
                         : error.type === "analysis"
@@ -1434,9 +1434,9 @@ const UploadPlan = () => {
                   {currentStep === "complete" && editablePlan && (
                     <div className="scrollbar-hide">
                       <div className="flex items-center justify-between mb-6">
-                        <h3 className="sm:text-xl font-bold font-['Outfit'] tracking-wide text-slate-800 dark:text-slate-100 flex items-center">
-                          <span className="bg-[#f0514e]/10 dark:bg-primary p-2 rounded-full mr-3">
-                            <FileText className="sm:w-5 sm:h-5 text-[#f0514e] dark:text-[#f0514e]" />
+                        <h3 className="sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                          <span className="bg-primary/10 dark:bg-primary p-2 rounded-full mr-3">
+                            <FileText className="sm:w-5 sm:h-5 text-primary dark:text-primary" />
                           </span>
                           Edit Extracted Plan
                         </h3>
@@ -1459,7 +1459,7 @@ const UploadPlan = () => {
                                 Wall Dimensions
                               </h4>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-4 bg-[#1a1c1e] dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
                                   <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                     External Wall Perimeter (m)
                                   </Label>
@@ -1489,7 +1489,7 @@ const UploadPlan = () => {
                                     className="bg-green-50 dark:bg-slate-700"
                                   />
                                 </div>
-                                <div className="p-4 bg-[#1a1c1e] dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-green-200 dark:border-green-700">
                                   <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                     External Wall Height (m)
                                   </Label>
@@ -1519,7 +1519,7 @@ const UploadPlan = () => {
                                     className="bg-green-50 dark:bg-slate-700"
                                   />
                                 </div>
-                                <div className="p-4 bg-[#1a1c1e] dark:bg-slate-800 rounded-3xl border border-primary/20 dark:border-primary/30">
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-primary/20 dark:border-primary/30">
                                   <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                     Internal Wall Perimeter (m)
                                   </Label>
@@ -1546,10 +1546,10 @@ const UploadPlan = () => {
                                           : prev,
                                       )
                                     }
-                                    className="bg-[#f0514e]/10 dark:bg-slate-700"
+                                    className="bg-primary/10 dark:bg-slate-700"
                                   />
                                 </div>
-                                <div className="p-4 bg-[#1a1c1e] dark:bg-slate-800 rounded-3xl border border-primary/20 dark:border-primary/30">
+                                <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl border border-primary/20 dark:border-primary/30">
                                   <Label className="text-sm text-slate-600 dark:text-slate-400 block mb-2">
                                     Internal Wall Height (m)
                                   </Label>
@@ -1576,7 +1576,7 @@ const UploadPlan = () => {
                                           : prev,
                                       )
                                     }
-                                    className="bg-[#f0514e]/10 dark:bg-slate-700"
+                                    className="bg-primary/10 dark:bg-slate-700"
                                   />
                                 </div>
                               </div>
@@ -1816,7 +1816,7 @@ const UploadPlan = () => {
                                 />
                               </div>
                             </div>
-                            <div className="p-4 bg-[#1a1c1e] dark:bg-slate-800 rounded-lg">
+                            <div className="p-4 bg-white dark:bg-slate-800 rounded-lg">
                               <p className="text-sm text-slate-600 dark:text-slate-300">
                                 <span className="">Note:</span> These values
                                 have been extracted from your plan. Please
@@ -1831,13 +1831,13 @@ const UploadPlan = () => {
                       {/* Bar Bending Schedule Results */}
                       {editablePlan.bar_schedule &&
                         editablePlan.bar_schedule.length > 0 && (
-                          <Card className="mb-8 border border-primary/20 dark:border-primary/30 bg-[#f0514e]/10 dark:bg-primary/20">
-                            <CardHeader className="bg-[#f0514e]/10 dark:bg-primary/30/30 rounded-t-lg">
-                              <CardTitle className="text-lg flex items-center text-[#f0514e] dark:text-[#f0514e]">
+                          <Card className="mb-8 border border-primary/20 dark:border-primary/30 bg-primary/10 dark:bg-primary/20">
+                            <CardHeader className="bg-primary/10 dark:bg-primary/30/30 rounded-t-lg">
+                              <CardTitle className="text-lg flex items-center text-primary dark:text-primary">
                                 <BarChart3 className="w-5 h-5 mr-2" />
                                 Bar Bending Schedule (BBS)
                               </CardTitle>
-                              <CardDescription className="text-[#f0514e] dark:text-[#f0514e] mt-2">
+                              <CardDescription className="text-primary dark:text-primary mt-2">
                                 Rebar Calculation Method:{" "}
                                 <span className="">
                                   {editablePlan.rebar_calculation_method ||
@@ -1850,19 +1850,19 @@ const UploadPlan = () => {
                                 <table className="w-full text-sm">
                                   <thead>
                                     <tr className="border-b border-primary/20 dark:border-primary/30">
-                                      <th className="text-left p-2  text-[#f0514e] dark:text-[#f0514e]">
+                                      <th className="text-left p-2  text-primary dark:text-primary">
                                         Bar Type
                                       </th>
-                                      <th className="text-left p-2  text-[#f0514e] dark:text-[#f0514e]">
+                                      <th className="text-left p-2  text-primary dark:text-primary">
                                         Length (m)
                                       </th>
-                                      <th className="text-left p-2  text-[#f0514e] dark:text-[#f0514e]">
+                                      <th className="text-left p-2  text-primary dark:text-primary">
                                         Quantity
                                       </th>
-                                      <th className="text-left p-2  text-[#f0514e] dark:text-[#f0514e]">
+                                      <th className="text-left p-2  text-primary dark:text-primary">
                                         Weight/m (kg)
                                       </th>
-                                      <th className="text-left p-2  text-[#f0514e] dark:text-[#f0514e]">
+                                      <th className="text-left p-2  text-primary dark:text-primary">
                                         Total Weight (kg)
                                       </th>
                                     </tr>
@@ -1872,9 +1872,9 @@ const UploadPlan = () => {
                                       (bar, idx) => (
                                         <tr
                                           key={idx}
-                                          className="border-b border-primary/20 dark:border-primary/30 hover:bg-[#f0514e]/10 dark:hover:bg-primary/30/30"
+                                          className="border-b border-primary/20 dark:border-primary/30 hover:bg-primary/10 dark:hover:bg-primary/30/30"
                                         >
-                                          <td className="p-2 text-[#f0514e] dark:text-[#f0514e] ">
+                                          <td className="p-2 text-primary dark:text-primary ">
                                             {bar.bar_type}
                                           </td>
                                           <td className="p-2 text-slate-700 dark:text-slate-300">
@@ -1916,14 +1916,14 @@ const UploadPlan = () => {
                                     className={`p-4 rounded-lg border ${
                                       section.type === "external"
                                         ? "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700"
-                                        : "bg-[#f0514e]/10 dark:bg-primary/20 border-primary/20 dark:border-primary/30"
+                                        : "bg-primary/10 dark:bg-primary/20 border-primary/20 dark:border-primary/30"
                                     }`}
                                   >
                                     <h5
                                       className={` mb-3 capitalize flex items-center ${
                                         section.type === "external"
                                           ? "text-green-900 dark:text-green-100"
-                                          : "text-[#f0514e] dark:text-[#f0514e]"
+                                          : "text-primary dark:text-primary"
                                       }`}
                                     >
                                       <Building className="w-4 h-4 mr-2" />
@@ -2450,8 +2450,8 @@ const UploadPlan = () => {
                           <div className="space-y-6">
                             {/* Plan File Upload Section */}
                             <div>
-                              <div className="border-2 border-dashed border-primary/20 dark:border-primary/50 rounded-2xl p-12 text-center transition-all hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl bg-[#f0514e]/10/30 dark:bg-primary/20">
-                                <UploadCloud className="w-16 h-16 mx-auto mb-4 text-[#f0514e] dark:text-[#f0514e]" />
+                              <div className="border-2 border-dashed border-primary/20 dark:border-primary/50 rounded-2xl p-12 text-center transition-all hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-xl bg-primary/10/30 dark:bg-primary/20">
+                                <UploadCloud className="w-16 h-16 mx-auto mb-4 text-primary dark:text-primary" />
                                 <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
                                   Drag & drop your plan or click to upload
                                 </p>
@@ -2631,7 +2631,7 @@ const UploadPlan = () => {
                                 disabled={
                                   (currentStep as string) === "analyzing"
                                 }
-                                className="w-full font-bold font-['Outfit'] tracking-wide py-6 h-auto text-lg shadow-lg hover:shadow-xl transition-all"
+                                className="w-full font-bold py-6 h-auto text-lg shadow-lg hover:shadow-xl transition-all"
                               >
                                 {(currentStep as string) === "analyzing" ? (
                                   <>
@@ -2652,7 +2652,7 @@ const UploadPlan = () => {
                                 </p>
                                 <Button
                                   onClick={handleUseExistingFile}
-                                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold font-['Outfit'] tracking-wide h-12"
+                                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
                                 >
                                   <Eye className="w-5 h-5 mr-2" />
                                   Use Existing Plan File
@@ -2677,7 +2677,7 @@ const UploadPlan = () => {
                             <Button
                               onClick={handleDone}
                               disabled={false}
-                              className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary/80 font-bold font-['Outfit'] tracking-wide  h-14 shadow-lg transition-all"
+                              className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary/80 font-bold  h-14 shadow-lg transition-all"
                             >
                               {currentStep !== "complete" ? (
                                 <>
@@ -2709,15 +2709,15 @@ const UploadPlan = () => {
                       onDrop={handlePlanDrop}
                       className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all hover:shadow-xl ${
                         planDragActive
-                          ? "border-primary/50 bg-[#f0514e]/10 dark:bg-primary/30/40 shadow-lg"
-                          : "border-primary/20 dark:border-primary/50 bg-[#f0514e]/10/30 dark:bg-primary/20 hover:border-primary/50 dark:hover:border-primary/50"
+                          ? "border-primary/50 bg-primary/10 dark:bg-primary/30/40 shadow-lg"
+                          : "border-primary/20 dark:border-primary/50 bg-primary/10/30 dark:bg-primary/20 hover:border-primary/50 dark:hover:border-primary/50"
                       }`}
                     >
                       <UploadCloud
                         className={`w-16 h-16 mx-auto mb-4 transition-colors ${
                           planDragActive
-                            ? "text-[#f0514e] dark:text-[#f0514e] animate-bounce"
-                            : "text-[#f0514e] dark:text-[#f0514e]"
+                            ? "text-primary dark:text-primary animate-bounce"
+                            : "text-primary dark:text-primary"
                         }`}
                       />
                       <p className="mb-4 text-slate-600 dark:text-slate-300 font-medium">
@@ -2848,7 +2848,7 @@ const UploadPlan = () => {
                     <Button
                       onClick={startAnalysis}
                       disabled={(currentStep as string) === "analyzing"}
-                      className="w-full font-bold font-['Outfit'] tracking-wide py-6 h-auto text-lg  shadow-lg hover:shadow-xl transition-all"
+                      className="w-full font-bold py-6 h-auto text-lg  shadow-lg hover:shadow-xl transition-all"
                     >
                       {(currentStep as string) === "analyzing" ? (
                         <>
@@ -2869,7 +2869,7 @@ const UploadPlan = () => {
                       </p>
                       <Button
                         onClick={handleUseExistingFile}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold font-['Outfit'] tracking-wide h-12"
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 font-bold h-12"
                       >
                         <Eye className="w-5 h-5 mr-2" />
                         Use Existing Plan File
@@ -2943,7 +2943,7 @@ function EditableDoorWindow({
   frameTypes,
 }: EditableDoorWindowProps) {
   return (
-    <div className="p-3 border rounded-3xl bg-[#1a1c1e] dark:bg-slate-800/50 space-y-3">
+    <div className="p-3 border rounded-3xl bg-white dark:bg-slate-800/50 space-y-3">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
         {/* Size Type */}
         <Select

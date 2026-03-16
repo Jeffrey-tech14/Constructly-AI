@@ -63,10 +63,12 @@ const Auth = () => {
     try {
       const { error } = await signInWithGoogle();
       if (error) throw error;
-      executeSuccess();
+      // For OAuth, don't call executeSuccess - the redirect will handle page transition
+      // The Supabase session will be detected on the callback page
     } catch (err: any) {
       setLoading(false);
       setError(err.message || "Google Sign In failed.");
+      console.error("Google OAuth error:", err);
     }
   };
 
@@ -110,9 +112,7 @@ const Auth = () => {
 
   return (
     <>
-      <div
-        className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative bg-white overflow-hidden"
-      >
+      <div className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative bg-white overflow-hidden">
         <div className="relative bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-[850px] min-h-[600px] md:min-h-[520px] z-10 border border-gray-100">
           {/* SIGN UP FORM */}
           <div
@@ -124,9 +124,7 @@ const Auth = () => {
               className="bg-white flex flex-col items-center justify-center h-full px-6 sm:px-10 text-center"
               onSubmit={handleEmailSignUp}
             >
-              <h1
-                className="font-bold text-2xl md:text-3xl mb-4 text-[#1a1a1a]"
-              >
+              <h1 className="font-bold text-2xl md:text-3xl mb-4 text-[#1a1a1a]">
                 Create Account
               </h1>
               <span className="text-xs text-gray-500 mb-6 font-medium">
@@ -248,9 +246,7 @@ const Auth = () => {
               className="bg-white flex flex-col items-center justify-center h-full px-6 sm:px-10 text-center"
               onSubmit={handleEmailSignIn}
             >
-              <h1
-                className="font-bold text-2xl md:text-3xl mb-6 text-[#1a1a1a]"
-              >
+              <h1 className="font-bold text-2xl md:text-3xl mb-6 text-[#1a1a1a]">
                 Sign In
               </h1>
 
@@ -353,14 +349,20 @@ const Auth = () => {
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
                   <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-white/10 backdrop-blur-sm p-2">
-                    <svg 
-                      viewBox="0 0 44 32" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg" 
+                    <svg
+                      viewBox="0 0 44 32"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
                       className="w-full h-full text-[#f0514e]"
                     >
-                      <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
-                      <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+                      <path
+                        d="M14 4 L26 16 L14 28 L2 16 Z"
+                        fill="currentColor"
+                      />
+                      <path
+                        d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z"
+                        fill="currentColor"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -389,14 +391,20 @@ const Auth = () => {
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
                   <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-white/10 backdrop-blur-sm p-2">
-                    <svg 
-                      viewBox="0 0 44 32" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg" 
+                    <svg
+                      viewBox="0 0 44 32"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
                       className="w-full h-full text-[#f0514e]"
                     >
-                      <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
-                      <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+                      <path
+                        d="M14 4 L26 16 L14 28 L2 16 Z"
+                        fill="currentColor"
+                      />
+                      <path
+                        d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z"
+                        fill="currentColor"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -434,9 +442,7 @@ const Auth = () => {
                     strokeWidth={2}
                   />
                 </div>
-                <h2
-                  className="text-xl font-bold text-[#1a1a1a] mb-2"
-                >
+                <h2 className="text-xl font-bold text-[#1a1a1a] mb-2">
                   Success!
                 </h2>
                 <p className="text-gray-500 text-sm">

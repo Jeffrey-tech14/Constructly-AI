@@ -104,50 +104,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
   useEffect(() => {
     let isMounted = true;
+    let authStateChangeReady = false;
+
     const initAuth = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-        if (!isMounted) return;
-        if (error) {
-          console.error("Session restoration error:", error);
-        }
-        if (session?.user) {
-          prevUserId.current = session.user.id;
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        }
-      } catch (err) {
-        console.error("Initial auth error:", err);
-      } finally {
-        if (isMounted) {
-          setAuthReady(true);
-          setLoading(false);
-        }
-      }
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        console.log("Auth state changed:", _event, session?.user?.id);
+
         if (!isMounted) return;
+
+        // Mark listener as ready on first call
+        if (!authStateChangeReady) {
+          authStateChangeReady = true;
+          if (isMounted) {
+            console.log("Auth ready - state listener initialized");
+            setAuthReady(true);
+            setLoading(false); // Mark loading as complete when listener is ready
+          }
+        }
+
         if (session?.user) {
+          console.log("User session established:", session.user.id);
           if (session.user.id !== prevUserId.current) {
             prevUserId.current = session.user.id;
             setUser(session.user);
             await fetchProfile(session.user.id);
           }
         } else {
+          console.log("User session cleared");
           prevUserId.current = null;
           setUser(null);
           setProfile(null);
         }
       });
+
+      // Get current session (this handles non-OAuth flows)
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
+
+        if (error) {
+          console.error("Session restoration error:", error);
+        }
+
+        if (session?.user) {
+          console.log("Existing session found:", session.user.id);
+          prevUserId.current = session.user.id;
+          setUser(session.user);
+          await fetchProfile(session.user.id);
+        } else {
+          console.log("No existing session found");
+          // No session found - wait for onAuthStateChange to signal ready
+          // Set a timeout fallback to ensure auth is marked ready
+          setTimeout(() => {
+            if (isMounted && !authStateChangeReady) {
+              console.log("Auth ready (timeout fallback)");
+              authStateChangeReady = true;
+              setAuthReady(true);
+              setLoading(false);
+            }
+          }, 500);
+        }
+      } catch (err) {
+        console.error("Initial auth error:", err);
+        if (isMounted) {
+          setAuthReady(true);
+          setLoading(false);
+        }
+      }
+
       return () => {
         isMounted = false;
         subscription?.unsubscribe();
       };
     };
+
     initAuth();
     return () => {
       isMounted = false;
@@ -205,14 +241,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    });
-    if (error) {
-      throw error;
+    try {
+      // Redirect to dashboard after OAuth - BrowserRouter is used (not hash-based)
+      const redirectUrl = `${window.location.origin}/dashboard`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { 
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      return { error };
+    } catch (err) {
+      console.error("Google OAuth error:", err);
+      throw err;
     }
-    return { error };
   };
   const signOut = async () => {
     await supabase.auth.signOut();

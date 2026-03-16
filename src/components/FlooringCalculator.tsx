@@ -654,7 +654,20 @@ export default function FlooringCalculator({
 
   const handleDeleteFinish = (id: string) => {
     if (onFinishesUpdate) {
-      const updatedFinishes = finishes.filter((f) => f.id !== id);
+      // First, deduplicate any items with the same ID (keep only the first occurrence)
+      const seen = new Set<string>();
+      console.log("Done");
+      let dedupedFinishes = finishes.filter((f) => {
+        if (seen.has(f.id)) {
+          return false; // Skip duplicate IDs
+        }
+        seen.add(f.id);
+        return true;
+      });
+
+      // Then remove the item with the specified ID
+      const updatedFinishes = dedupedFinishes.filter((f) => f.id !== id);
+      console.log(updatedFinishes);
       onFinishesUpdate(updatedFinishes);
     }
   };
@@ -838,6 +851,11 @@ export default function FlooringCalculator({
             f.element === "slab" && f.name?.toLowerCase().includes("ground"),
         );
         const slabArea = parseFloat(groundFloorSlab?.slabArea) || 0;
+        console.log(
+          "Auto-adding ceramic tile for ground floor slab area:",
+          slabArea,
+          groundFloorSlab,
+        );
 
         if (slabArea > 0) {
           const newCeramicTile: FinishElement = {

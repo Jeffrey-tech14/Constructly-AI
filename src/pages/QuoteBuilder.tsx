@@ -1349,89 +1349,6 @@ const QuoteBuilder = () => {
             voltage: parseFloat(system.voltage) || 230,
             isLumpsum: false,
           })) || prev.electrical_systems,
-
-        // Finishes (category-based structure)
-        finishes_calculations: extractedPlan.finishes_calculations
-          ? {
-              flooring:
-                extractedPlan.finishes_calculations.flooring?.map(
-                  (finish: any, index: number) => ({
-                    id: finish.id || `flooring-${index}`,
-                    category: "flooring" as const,
-                    material: finish.material || "",
-                    area: parseFloat(finish.area as any) || 0,
-                    quantity: parseFloat(finish.quantity as any) || 1,
-                    unit: finish.unit || "m²",
-                    location: finish.location || "Unknown",
-                  }),
-                ) || [],
-              ceiling:
-                extractedPlan.finishes_calculations.ceiling?.map(
-                  (finish: any, index: number) => ({
-                    id: finish.id || `ceiling-${index}`,
-                    category: "ceiling" as const,
-                    material: finish.material || "",
-                    area: parseFloat(finish.area as any) || 0,
-                    quantity: parseFloat(finish.quantity as any) || 1,
-                    unit: finish.unit || "m²",
-                    location: finish.location || "Unknown",
-                  }),
-                ) || [],
-              "wall-finishes":
-                extractedPlan.finishes_calculations["wall-finishes"]?.map(
-                  (finish: any, index: number) => ({
-                    id: finish.id || `wall-finishes-${index}`,
-                    category: "wall-finishes" as const,
-                    material: finish.material || "",
-                    area: parseFloat(finish.area as any) || 0,
-                    quantity: parseFloat(finish.quantity as any) || 1,
-                    unit: finish.unit || "m²",
-                    location: finish.location || "Unknown",
-                  }),
-                ) || [],
-              joinery:
-                extractedPlan.finishes_calculations.joinery?.map(
-                  (finish: any, index: number) => ({
-                    id: finish.id || `joinery-${index}`,
-                    category: "joinery" as const,
-                    material: finish.material || "",
-                    area: parseFloat(finish.area as any) || 0,
-                    quantity: parseFloat(finish.quantity as any) || 1,
-                    unit: finish.unit || "m²",
-                    location: finish.location || "Unknown",
-                  }),
-                ) || [],
-              external:
-                extractedPlan.finishes_calculations.external?.map(
-                  (finish: any, index: number) => ({
-                    id: finish.id || `external-${index}`,
-                    category: "external" as const,
-                    material: finish.material || "",
-                    area: parseFloat(finish.area as any) || 0,
-                    quantity: parseFloat(finish.quantity as any) || 1,
-                    unit: finish.unit || "m²",
-                    location: finish.location || "Unknown",
-                  }),
-                ) || [],
-            }
-          : prev.finishes_calculations,
-
-        // Legacy Finishes (backward compatibility)
-        finishes:
-          extractedPlan.finishes?.map((finish: any, index: number) => ({
-            id: finish.id || `finish-${index}`,
-            category: (finish.category as FinishCategory) || "flooring",
-            type: finish.type || "Ceramic Tiles",
-            material: finish.material || "Ceramic Tiles",
-            area: parseFloat(finish.area) || 0,
-            length: parseFloat(finish.length) || 0,
-            width: parseFloat(finish.width) || 0,
-            height: parseFloat(finish.height) || 0,
-            unit: "m²" as const,
-            quantity: parseFloat(finish.area) || 1,
-            location: finish.location || "Unknown",
-            specifications: finish.specifications || {},
-          })) || prev.finishes,
       }));
     }
   }, [extractedPlan]);
@@ -2560,10 +2477,7 @@ const QuoteBuilder = () => {
                     services={services}
                   />
                   <div>
-                    <Label
-                      htmlFor="customSpecs"
-                      className="text-foreground"
-                    >
+                    <Label htmlFor="customSpecs" className="text-foreground">
                       Additional Specifications
                     </Label>
                     <Textarea

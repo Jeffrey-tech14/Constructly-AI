@@ -197,19 +197,19 @@ const Dashboard = () => {
   }
 
   // Show loader while profile is not available
-  if (!profile) {
+  if (!profile || localDashboardLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin rounded-full h-8 w-8" />
-      </div>
-    );
-  }
-
-  // Now safe to use profile — it's guaranteed non-null
-  if (localDashboardLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin rounded-full h-8 w-8" />
+      <div className="min-h-screen bg-[#111418] flex flex-col items-center justify-center p-4">
+        <div className="relative w-24 h-24 mb-10">
+          {/* Base circle background */}
+          <div className="absolute inset-0 rounded-full border-4 border-[#0e1014]"></div>
+          
+          {/* Outer spin ring */}
+          <div className="absolute inset-0 rounded-full border-4 border-[#ef443b] border-t-transparent animate-spin"></div>
+          
+          {/* Inner spin ring */}
+          <div className="absolute inset-2 rounded-full border-4 border-[#ef443b]/30 border-b-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }}></div>
+        </div>
       </div>
     );
   }

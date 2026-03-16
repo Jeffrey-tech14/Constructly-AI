@@ -55,7 +55,7 @@ const UserGuide = () => {
  description: "Understand the basics of creating a construction quote",
  content: (
  <div className="space-y-6">
- <div className="bg-[#111418] border border-primary/20 rounded-lg p-6">
+ <div className="bg-[#15171c] border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg text-white font-medium mb-4">
  How JTech Works
  </h3>
@@ -72,59 +72,59 @@ const UserGuide = () => {
  </div>
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <Card>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
  <CardHeader className="pb-3">
  <CardTitle className="text-base flex items-center gap-2">
- <Settings className="w-5 h-5 text-[#ef443b]" />
+ <Settings className="w-5 h-5 text-blue-500" />
  Step 1: Configure Settings
  </CardTitle>
  </CardHeader>
  <CardContent>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Set your project details, material prices, labor rates, and
  other preferences specific to your location and standards.
  </p>
  </CardContent>
  </Card>
- <Card>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
  <CardHeader className="pb-3">
  <CardTitle className="text-base flex items-center gap-2">
- <FileUp className="w-5 h-5 text-[#ef443b]" />
+ <FileUp className="w-5 h-5 text-indigo-500" />
  Step 2: Upload Plan
  </CardTitle>
  </CardHeader>
  <CardContent>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Upload your architectural floor plan (PDF or image). Our AI
  will analyze it to extract dimensions and room information.
  </p>
  </CardContent>
  </Card>
 
- <Card>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
  <CardHeader className="pb-3">
  <CardTitle className="text-base flex items-center gap-2">
- <Calculator className="w-5 h-5 text-[#ef443b]" />
+ <Calculator className="w-5 h-5 text-purple-500" />
  Step 3: Run Calculations
  </CardTitle>
  </CardHeader>
  <CardContent>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  The system calculates all quantities (bricks, concrete, paint,
  etc.) and their costs based on your specifications.
  </p>
  </CardContent>
  </Card>
 
- <Card>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
  <CardHeader className="pb-3">
  <CardTitle className="text-base flex items-center gap-2">
- <Download className="w-5 h-5 text-[#ef443b]" />
+ <Download className="w-5 h-5 text-orange-500" />
  Step 4: Export Quote
  </CardTitle>
  </CardHeader>
  <CardContent>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Generate a professional PDF quote or Excel spreadsheet that
  you can send to clients or use for purchasing.
  </p>
@@ -142,8 +142,8 @@ const UserGuide = () => {
  duration: "5-10 minutes",
  content: (
  <div className="space-y-6">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">Preparing Your Plan</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
@@ -151,23 +151,23 @@ const UserGuide = () => {
  <h4 className=" text-white mb-2">
  What to Upload
  </h4>
- <ul className="space-y-2 text-sm text-gray-400 ">
+ <ul className="space-y-2 text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li className="flex items-start gap-2">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
  <span>
  <strong>Floor Plan:</strong> Clear architectural or
  technical drawing showing room layouts and dimensions
  </span>
  </li>
  <li className="flex items-start gap-2">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
  <span>
  <strong>File Format:</strong> PDF, JPG, PNG, or WebP (max
  20MB)
  </span>
  </li>
  <li className="flex items-start gap-2">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
  <span>
  <strong>Quality:</strong> Clear, legible drawing with
  visible dimensions and room labels
@@ -180,7 +180,7 @@ const UserGuide = () => {
  <h4 className=" text-white mb-2">
  What the AI Extracts
  </h4>
- <ul className="space-y-2 text-sm text-gray-400 ">
+ <ul className="space-y-2 text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Wall perimeters (external and internal)</li>
  <li>• Plan details and layout</li>
  <li>• Total building area</li>
@@ -190,8 +190,8 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">The Analysis Process</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
@@ -202,7 +202,7 @@ const UserGuide = () => {
  </div>
  <div>
  <p className="">Upload Your File</p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Select your floor plan file from your computer
  </p>
  </div>
@@ -214,7 +214,7 @@ const UserGuide = () => {
  </div>
  <div>
  <p className="">AI Analyzes the Plan</p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Our AI studies the drawing and extracts key measurements
  and information (takes 30-60 seconds)
  </p>
@@ -227,7 +227,7 @@ const UserGuide = () => {
  </div>
  <div>
  <p className="">Review & Confirm</p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Check the extracted data. You can edit any values that
  don't look right
  </p>
@@ -240,7 +240,7 @@ const UserGuide = () => {
  </div>
  <div>
  <p className="">Proceed to Quote Builder</p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Move on to configure your project settings and generate
  the quote
  </p>
@@ -251,7 +251,7 @@ const UserGuide = () => {
  </Card>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 Pro Tips
  </CardTitle>
@@ -282,23 +282,23 @@ const UserGuide = () => {
  duration: "10 minutes",
  content: (
  <div className="space-y-6">
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  A complete quote is broken down into different sections, each
  covering a specific aspect of the construction project:
  </p>
 
  <div className="space-y-4">
- <Card>
- <CardHeader className="bg-[#111418] ">
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="bg-[#15171c] ">
  <CardTitle className="text-base">
  Preliminaries & Site Setup
  </CardTitle>
  </CardHeader>
  <CardContent className="pt-4">
- <p className="text-sm text-gray-400 mb-3">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-3">
  Temporary works needed before construction starts:
  </p>
- <ul className="text-sm space-y-1 text-gray-400 ">
+ <ul className="text-sm space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Site clearance by area (calculated per m²)</li>
  <li>• Project identification signage</li>
  <li>• Site boundary hoarding/fencing</li>
@@ -308,17 +308,17 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader className="bg-[#111418] ">
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="bg-[#15171c] ">
  <CardTitle className="text-base">
  Earthworks & Excavation
  </CardTitle>
  </CardHeader>
  <CardContent className="pt-4">
- <p className="text-sm text-gray-400 mb-3">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-3">
  Digging and preparing the ground:
  </p>
- <ul className="text-sm space-y-1 text-gray-400 ">
+ <ul className="text-sm space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Excavation volume and labor</li>
  <li>• Backfill and compaction</li>
  <li>• Site leveling and grading</li>
@@ -327,17 +327,17 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader className="bg-[#111418] ">
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="bg-[#15171c] ">
  <CardTitle className="text-base">
  Concrete & Reinforcement
  </CardTitle>
  </CardHeader>
  <CardContent className="pt-4">
- <p className="text-sm text-gray-400 mb-3">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-3">
  Foundation and structural concrete:
  </p>
- <ul className="text-sm space-y-1 text-gray-400 ">
+ <ul className="text-sm space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Concrete mix calculations (m³)</li>
  <li>• Formwork (wooden framework)</li>
  <li>• Reinforcing steel (rebar) quantities</li>
@@ -346,15 +346,15 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader className="bg-[#111418] ">
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="bg-[#15171c] ">
  <CardTitle className="text-base">Walling & Masonry</CardTitle>
  </CardHeader>
  <CardContent className="pt-4">
- <p className="text-sm text-gray-400 mb-3">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-3">
  Building the walls:
  </p>
- <ul className="text-sm space-y-1 text-gray-400 ">
+ <ul className="text-sm space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Concrete blocks or bricks</li>
  <li>• Cement mortar for joints</li>
  <li>• Plastering (internal and external)</li>
@@ -363,15 +363,15 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader className="bg-[#111418] ">
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="bg-[#15171c] ">
  <CardTitle className="text-base">Finishes</CardTitle>
  </CardHeader>
  <CardContent className="pt-4">
- <p className="text-sm text-gray-400 mb-3">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-3">
  Final surface treatments:
  </p>
- <ul className="text-sm space-y-1 text-gray-400 ">
+ <ul className="text-sm space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Painting (walls and ceilings)</li>
  <li>• Roofing materials and labor</li>
  <li>• Ceiling treatments</li>
@@ -380,15 +380,15 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader className="bg-[#111418] ">
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="bg-[#15171c] ">
  <CardTitle className="text-base">MEP Systems</CardTitle>
  </CardHeader>
  <CardContent className="pt-4">
- <p className="text-sm text-gray-400 mb-3">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-3">
  Mechanical, Electrical & Plumbing:
  </p>
- <ul className="text-sm space-y-1 text-gray-400 ">
+ <ul className="text-sm space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Electrical wiring and fixtures</li>
  <li>• Water supply piping and fittings</li>
  <li>• Drainage and sanitary systems</li>
@@ -408,7 +408,7 @@ const UserGuide = () => {
  duration: "15 minutes",
  content: (
  <div className="space-y-6">
- <div className="bg-[#111418] border border-primary/20 rounded-lg p-6">
+ <div className="bg-[#15171c] border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg font-semibold text-white mb-3">
  How to Use Each Calculator
  </h3>
@@ -451,8 +451,8 @@ const UserGuide = () => {
  </TabsList>
 
  <TabsContent value="project" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">1.</span> Project Details
  </CardTitle>
@@ -463,21 +463,21 @@ const UserGuide = () => {
  Required Inputs:
  </h4>
  <div className="space-y-2 text-sm">
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Project Name</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  e.g., "Nairobi Residential 2BR"
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Client Name</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  e.g., "John Mwangi"
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Location/Region</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Affects regional price multipliers - Choose accurately
  </p>
  </div>
@@ -489,11 +489,11 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Project ID for tracking
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Regional pricing multipliers applied
  </li>
  </ul>
@@ -503,8 +503,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="qs-settings" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">2.</span> QS Settings
  (Quantity Surveyor Configuration)
@@ -519,31 +519,31 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Labor Cost %</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Percentage or fixed amount for labor costs
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Overhead %</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Percentage or fixed amount for overhead expenses
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Profit Margin %</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Your desired profit percentage or fixed amount
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Contingency %</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Buffer for unforeseen costs (typical: 5-10%)
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Permit Cost</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Fixed or percentage-based licensing and permit fees
  </p>
  </div>
@@ -558,31 +558,31 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-purple-950/20 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
  <p className="font-medium">Concrete Wastage:</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  5% (typ.)
  </p>
  </div>
  <div className="p-2 bg-purple-950/20 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
  <p className="font-medium">Reinforcement Wastage:</p>
- <p className="text-gray-400 ">4%</p>
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">4%</p>
  </div>
  <div className="p-2 bg-purple-950/20 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
  <p className="font-medium">Masonry Wastage:</p>
- <p className="text-gray-400 ">3%</p>
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">3%</p>
  </div>
  <div className="p-2 bg-purple-950/20 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
  <p className="font-medium">Finishes Wastage:</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  8% (flooring 10%, walls 8%, ceiling 10%)
  </p>
  </div>
  <div className="p-2 bg-purple-950/20 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
  <p className="font-medium">Roofing Wastage:</p>
- <p className="text-gray-400 ">7%</p>
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">7%</p>
  </div>
  <div className="p-2 bg-purple-950/20 dark:bg-purple-950/30 rounded border-l-4 border-purple-500">
  <p className="font-medium">MEP Wastage:</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Electrical 2%, Plumbing 3%
  </p>
  </div>
@@ -595,47 +595,47 @@ const UserGuide = () => {
  Professional QS Elements (Toggle Options):
  </h4>
  <div className="space-y-2 text-sm">
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Include Ring Beams</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Structural reinforcement at wall tops
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Include Lintels</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Over doors and windows
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Include Reinforcement</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Rebar in concrete and masonry
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">
  Include DPC (Damp Proof Course)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Moisture barrier in foundations
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Include Scaffolding</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  With daily rates configured
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Include Movement Joints</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Expansion joint spacing (6m typical)
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Include Waste Removal</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  At configured rate per m³
  </p>
  </div>
@@ -650,31 +650,31 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Concrete Mix Ratio</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Cement:Sand:Aggregate (typical: 1:2:4)
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Water-Cement Ratio</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  For concrete durability (typical: 0.5)
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Mortar Ratio</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Cement:Sand for masonry joints (typical: 1:4)
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Plaster Ratio</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Cement:Sand for plaster finish (typical: 1:4)
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Rebar Specifications</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Bar sizes (D8-D25), spacing, and lap lengths
  </p>
  </div>
@@ -687,19 +687,19 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  All cost calculations across all sections
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Material quantity calculations with wastage
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Labor and overhead costing
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Final quote total with profit and contingency
  </li>
  </ul>
@@ -709,8 +709,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="earthworks" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">3.</span> Earthworks &
  Site Prep
@@ -724,19 +724,19 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Excavation Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Trenches / Full Excavation / Leveling
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Excavation Depth (meters)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Typical: 1.0-1.5m for foundations
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Fill Material (m³)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  If site needs leveling - leave blank if level
  </p>
  </div>
@@ -748,15 +748,15 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Excavation volume (m³) & cost
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Fill material quantity & cost
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Labor days required
  </li>
  </ul>
@@ -766,8 +766,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="concrete" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">4.</span> Concrete Works
  </CardTitle>
@@ -780,26 +780,26 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Concrete Grade</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  C20 (standard) / C25 / C30
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Foundation Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Strip / Raft / Pad - Most common: Strip
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Concrete Elements</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Slabs (floors), Beams, Columns, Strip Footings, Raft
  Foundations
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Reinforcement</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Rebar sizing and spacing with overlap calculation
  </p>
  </div>
@@ -807,7 +807,7 @@ const UserGuide = () => {
  <p className="font-medium">
  Advanced Features (Optional)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Waterproofing details, Septic tanks, Underground
  storage tanks, Soak pits, Soakaways for drainage
  solutions
@@ -821,23 +821,23 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Concrete volume for each element (m³)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Rebar quantity and weight (kg)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Formwork requirements
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Total material costs
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Foundation specifications with dimensions
  </li>
  </ul>
@@ -847,8 +847,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="masonry" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">5.</span> Masonry & Walling
  </CardTitle>
@@ -863,7 +863,7 @@ const UserGuide = () => {
  <p className="font-medium">
  External Wall Perimeter (meters)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Total length of exterior walls
  </p>
  </div>
@@ -871,13 +871,13 @@ const UserGuide = () => {
  <p className="font-medium">
  Internal Wall Perimeter (meters)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Total length of interior partition walls
  </p>
  </div>
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">Wall Height (meters)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Height per floor/level
  </p>
  </div>
@@ -891,38 +891,38 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">Wall Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Brick / Block / Stone - Most common: Block
  </p>
  </div>
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">Block Types</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Large (200×200mm), Standard (150×200mm), Small
  (100×200mm), or Custom
  </p>
  </div>
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">Wall Thickness</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  230mm (single) / 450mm (cavity)
  </p>
  </div>
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">Mortar Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Cement ratio: 1:3 / 1:4 / 1:6 - Standard is 1:4
  </p>
  </div>
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">Plaster Type (Optional)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  None / One Side / Both Sides applied
  </p>
  </div>
  <div className="p-2 bg-red-50 dark:bg-red-950/30 rounded border-l-4 border-red-500">
  <p className="font-medium">DPC & Hoop Iron</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Damp Proof Course and reinforcement requirements
  calculated
  </p>
@@ -935,19 +935,19 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Number of bricks/blocks needed
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Mortar volume (m³)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Total walling cost
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Labor days for construction
  </li>
  </ul>
@@ -957,8 +957,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="roofing" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">6.</span> Roofing System
  </CardTitle>
@@ -971,19 +971,19 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Roof Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Pitched / Flat / Hip
  </p>
  </div>
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Roofing Material</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Concrete tiles / Metal sheets / Asphalt shingles
  </p>
  </div>
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Guttering Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  PVC / Aluminum - Size: 90mm or 120mm
  </p>
  </div>
@@ -991,7 +991,7 @@ const UserGuide = () => {
  <p className="font-medium">
  Roof Pitch (for pitched roofs)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Angle in degrees - Typical: 30-40°
  </p>
  </div>
@@ -1003,19 +1003,19 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Roof coverage area (m²)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Roofing material quantity with waste
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Guttering & downpipes length
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Total roofing system cost
  </li>
  </ul>
@@ -1025,8 +1025,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="flooring" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">6.5.</span> Flooring
  Systems
@@ -1040,7 +1040,7 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Floor Material</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Ceramic Tiles, Granite Tiles, Granite, Hardwood Wooden
  Panels, Cement Paste (Niro finish), PVC Vinyl
  Flooring, Epoxy Flooring, Terrazzo, SPC Flooring
@@ -1048,13 +1048,13 @@ const UserGuide = () => {
  </div>
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Floor Area (m²)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Total floor area requiring finishing
  </p>
  </div>
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Skirting Board (Optional)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Automatically matched to floor material (Tile,
  Hardwood, Stone, or PVC skirting). Not applicable for
  Niro finishes
@@ -1062,7 +1062,7 @@ const UserGuide = () => {
  </div>
  <div className="p-2 bg-amber-950/20 dark:bg-amber-950/30 rounded border-l-4 border-amber-500">
  <p className="font-medium">Skirting Height</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Perimeter length of skirting board required,
  calculated from room dimensions
  </p>
@@ -1075,19 +1075,19 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Floor material quantity (m²) with wastage
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Skirting board length & cost
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Underlayment and adhesive requirements
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Total flooring system cost with installation labor
  </li>
  </ul>
@@ -1097,8 +1097,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="mep" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">7.</span> MEP Systems
  (Electrical, Plumbing)
@@ -1111,55 +1111,55 @@ const UserGuide = () => {
  Electrical Calculator
  </h5>
  <div className="space-y-2 text-sm">
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">System Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Lighting, Power, Data, Security, CCTV, Fire Alarm,
  Access Control, AV Systems, Emergency Lighting,
  Renewable Energy
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Cable Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  NYM-J, PVC/PVC, XLPE, MICC, SWA, Ethernet, Data
  CAT6, Fiber Optic, Coaxial
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Installation Method</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Surface, Concealed, Underground, Trunking
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Outlet & Switch Types</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Power sockets, switches, dimmers, data ports, TV
  points, USB chargers, circuit breakers
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">
  Lighting Types & Wattage
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  LED downlights, fluorescent, halogen, emergency
  lights, floodlights, street lights (3W-60W range)
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">
  Voltage & Circuit Ratings
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Single 230V / Three Phase 400V with circuit breaker
  ratings 6A-63A
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Cable Sizes</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  1.0mm² to 150mm² for various applications and load
  demands
  </p>
@@ -1173,35 +1173,35 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">System Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Water Supply, Drainage, Sewage, Rainwater, Hot
  Water, Fire Fighting, Gas Piping, Irrigation
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Pipe Material</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  PVC-U, PVC-C, Copper, PEX, Galvanized Steel, HDPE,
  PPR, Cast Iron, Vitrified Clay
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Pipe Diameters</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  15mm to 200mm range for different applications and
  flow rates
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Fixture Types</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Water closets, urinals, lavatories, kitchen sinks,
  showers, bathtubs, bidets, floor drains, hose bibs
  </p>
  </div>
  <div className="p-2 bg-cyan-50 dark:bg-cyan-950/30 rounded border-l-4 border-cyan-500">
  <p className="font-medium">Quality Levels</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Standard, Premium, Luxury (for material and fitting
  selection)
  </p>
@@ -1215,19 +1215,19 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Cable lengths & circuit schedules (Electrical)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Pipe lengths & fixture schedules (Plumbing)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Material costs with labor
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  System capacity & specifications
  </li>
  </ul>
@@ -1237,8 +1237,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="finishes" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">8.</span> Internal &
  External Wall Finishes
@@ -1253,14 +1253,14 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border-l-4 border-yellow-500">
  <p className="font-medium">Material Selection</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Stone Cladding, Tile Cladding, Wood Paneling, Smooth
  Stucco, Gypsum Board, or Fluted Panels
  </p>
  </div>
  <div className="p-2 bg-yellow-50 dark:bg-yellow-950/30 rounded border-l-4 border-yellow-500">
  <p className="font-medium">Area Coverage (m²)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  How much wall area needs the finish
  </p>
  </div>
@@ -1268,7 +1268,7 @@ const UserGuide = () => {
  <p className="font-medium">
  Paint (Checkbox - Optional)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Enable multi-layer painting: skimming, undercoat,
  finishing coat
  </p>
@@ -1277,7 +1277,7 @@ const UserGuide = () => {
  <p className="font-medium">
  Wet Area Tiling (If Applicable)
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Tile size selection (150x150mm to 1200x600mm),
  adhesive, grout calculations
  </p>
@@ -1293,27 +1293,27 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Material Type</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Cladding, Marble, Limestone, Marzella, or Wall Master
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Plaster Finish</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Standard 25mm plaster thickness with cement/sand
  requirements
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Wall Pointing (Checkbox)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Optional 5mm mortar jointing with cement/sand
  calculations
  </p>
  </div>
  <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded border-l-4 border-orange-500">
  <p className="font-medium">Paint (Checkbox)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Multi-layer exterior painting with coverage
  calculations
  </p>
@@ -1327,29 +1327,29 @@ const UserGuide = () => {
  Ceiling Finishes (Required Inputs):
  </h4>
  <div className="space-y-2 text-sm">
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Ceiling Material</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Gypsum Board, PVC, Acoustic Tiles, Exposed Concrete,
  Suspended Grid, or Wood Panels
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Ceiling Area (m²)</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Total floor/ceiling area requiring treatment
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Supplementary Materials</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Metal channels, studs, screws, corner tape, fiber
  mesh, cornice, filler
  </p>
  </div>
- <div className="p-2 bg-[#111418] relative overflow-hidden rounded border-l-4 border-primary/50">
+ <div className="p-2 bg-[#15171c] relative overflow-hidden rounded border-l-4 border-primary/50">
  <p className="font-medium">Paint Finish</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Ceiling paint with coverage calculations
  </p>
  </div>
@@ -1362,23 +1362,23 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Material quantities with wastage
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Paint coverage and layers needed
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Tile, adhesive, and grout quantities
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Plaster and pointing material calculations
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Total material costs
  </li>
  </ul>
@@ -1388,8 +1388,8 @@ const UserGuide = () => {
  </TabsContent>
 
  <TabsContent value="kitchen" className="space-y-4 mt-4">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base flex items-center gap-2">
  <span className="text-[#ef443b]">9.</span> Kitchen &
  Wardrobes
@@ -1403,27 +1403,27 @@ const UserGuide = () => {
  <div className="space-y-2 text-sm">
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Cabinet Specification</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Detailed items (cupboards, drawers, doors) with unit
  pricing or lump-sum quote
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Countertop Material</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Granite / Tiles / Laminate / Engineered stone
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Countertop Granite Sizes</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Predefined: 1200×600, 1500×600 (default), 2000×600,
  2400×600, 3000×600 mm
  </p>
  </div>
  <div className="p-2 bg-green-950/20 dark:bg-green-950/30 rounded border-l-4 border-green-500">
  <p className="font-medium">Number of Units</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Upper & Lower cabinets separately
  </p>
  </div>
@@ -1435,19 +1435,19 @@ const UserGuide = () => {
  </h4>
  <ul className="space-y-2 text-sm">
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Cabinet schedule with dimensions
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Countertop area & cost (auto-filled prices)
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Hardware requirements list
  </li>
  <li className="flex gap-2">
- <CheckCircle2 className="w-4 h-4 text-[#ef443b] flex-shrink-0 mt-0.5" />{" "}
+ <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />{" "}
  Total kitchen cost with installation
  </li>
  </ul>
@@ -1458,7 +1458,7 @@ const UserGuide = () => {
  </Tabs>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50 mt-6">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 General Tips for All Calculators
  </CardTitle>
@@ -1493,7 +1493,7 @@ const UserGuide = () => {
  duration: "10 minutes",
  content: (
  <div className="space-y-6">
- <div className="bg-[#111418] border border-primary/20 rounded-lg p-6">
+ <div className="bg-[#15171c] border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg text-white mb-3">
  What Are Variables?
  </h3>
@@ -1505,8 +1505,8 @@ const UserGuide = () => {
  </p>
  </div>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">
  Main Variable Categories
  </CardTitle>
@@ -1517,7 +1517,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Material Prices
  </p>
- <p className="text-sm text-gray-400 mt-1">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mt-1">
  Unit prices for bricks, cement, paint, timber, etc. You can
  override base prices with your regional rates or custom
  suppliers.
@@ -1528,7 +1528,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Equipment Rates
  </p>
- <p className="text-sm text-gray-400 mt-1">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mt-1">
  Daily or hourly rental rates for equipment like excavators,
  cranes, compressors. Set based on your suppliers and
  regional availability.
@@ -1539,7 +1539,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Transport Rates
  </p>
- <p className="text-sm text-gray-400 mt-1">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mt-1">
  Cost per kilometer and base costs for different regions. The
  system uses these to calculate delivery costs automatically.
  </p>
@@ -1547,7 +1547,7 @@ const UserGuide = () => {
 
  <div className="border-l-4 border-purple-500 pl-4 py-2">
  <p className=" text-white ">Services</p>
- <p className="text-sm text-gray-400 mt-1">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mt-1">
  Subcontractor services, labor specializations, and other
  services you charge for or subcontract.
  </p>
@@ -1557,7 +1557,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Custom Materials & Equipment
  </p>
- <p className="text-sm text-gray-400 mt-1">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] mt-1">
  Add your own materials or equipment not in the base system.
  Perfect for specialized suppliers or unique products.
  </p>
@@ -1566,8 +1566,8 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">
  How to Access Variables
  </CardTitle>
@@ -1582,7 +1582,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Go to Settings
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Click your profile icon in the top right and select
  "Settings"
  </p>
@@ -1597,7 +1597,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Find Variables & Pricing
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Look for the "Variables & Pricing" section or tab
  </p>
  </div>
@@ -1611,7 +1611,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Choose a Category
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Select from Materials, Equipment, Transport, Services
  </p>
  </div>
@@ -1625,7 +1625,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Edit Prices
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Click on any item to edit the price, or click "Add" to
  create custom items
  </p>
@@ -1640,7 +1640,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Save Changes
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Changes are saved automatically. They apply to all future
  quotes
  </p>
@@ -1650,22 +1650,22 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">
  Adding Custom Materials
  </CardTitle>
  </CardHeader>
  <CardContent className="space-y-3">
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  If you use materials not in the base system, add them as custom
  materials:
  </p>
- <div className="space-y-2 text-sm bg-[#111418] relative overflow-hidden p-4 rounded">
+ <div className="space-y-2 text-sm bg-[#15171c] relative overflow-hidden p-4 rounded">
  <p className=" text-white ">
  Information Needed:
  </p>
- <ul className="space-y-1 text-gray-400 ">
+ <ul className="space-y-1 text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <li>• Material name (e.g., "Italian Marble Tile")</li>
  <li>• Price per unit (KES)</li>
  <li>• Unit of measurement (sq m, kg, liter, etc.)</li>
@@ -1681,7 +1681,7 @@ const UserGuide = () => {
  </Card>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 Variables Best Practices
  </CardTitle>
@@ -1720,40 +1720,40 @@ const UserGuide = () => {
  duration: "5 minutes",
  content: (
  <div className="space-y-6">
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">Export Options</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <Card className="border-primary/20">
+ <Card className="border-primary/20 bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
  <CardHeader className="pb-3">
  <CardTitle className="text-base">PDF Quote</CardTitle>
  </CardHeader>
  <CardContent className="space-y-2 text-sm">
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Professional formatted quote document ready to send to
  clients or suppliers.
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Includes:</strong> Project details, itemized
  costs, company branding, totals
  </p>
  </CardContent>
  </Card>
 
- <Card className="border-green-500/20 border-green-800/50">
+ <Card className="border-green-500/20 border-green-800/50 bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
  <CardHeader className="pb-3">
  <CardTitle className="text-base">
  Excel Spreadsheet
  </CardTitle>
  </CardHeader>
  <CardContent className="space-y-2 text-sm">
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Detailed spreadsheet for further analysis, purchasing, and
  budget planning.
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Includes:</strong> All calculations, formulas,
  sortable data, charts
  </p>
@@ -1763,8 +1763,8 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">Before Exporting</CardTitle>
  </CardHeader>
  <CardContent className="space-y-3">
@@ -1778,7 +1778,7 @@ const UserGuide = () => {
  />
  <label
  htmlFor="item1"
- className="text-gray-400 cursor-pointer"
+ className="text-[#a3a9b7] font-light leading-relaxed text-[15px] cursor-pointer"
  >
  Review all quantities and prices in each section
  </label>
@@ -1792,7 +1792,7 @@ const UserGuide = () => {
  />
  <label
  htmlFor="item2"
- className="text-gray-400 cursor-pointer"
+ className="text-[#a3a9b7] font-light leading-relaxed text-[15px] cursor-pointer"
  >
  Verify material prices match current market rates
  </label>
@@ -1806,7 +1806,7 @@ const UserGuide = () => {
  />
  <label
  htmlFor="item3"
- className="text-gray-400 cursor-pointer"
+ className="text-[#a3a9b7] font-light leading-relaxed text-[15px] cursor-pointer"
  >
  Check that wastage percentages match your standards
  </label>
@@ -1820,7 +1820,7 @@ const UserGuide = () => {
  />
  <label
  htmlFor="item4"
- className="text-gray-400 cursor-pointer"
+ className="text-[#a3a9b7] font-light leading-relaxed text-[15px] cursor-pointer"
  >
  Add any special notes or conditions to the quote
  </label>
@@ -1830,7 +1830,7 @@ const UserGuide = () => {
  </Card>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 Tips for Professional Quotes
  </CardTitle>
@@ -1865,13 +1865,13 @@ const UserGuide = () => {
  duration: "3 minutes",
  content: (
  <div className="space-y-6">
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Your profile is where you store and manage all your personal and
  company information used across the platform.
  </p>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">What's in Your Profile?</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
@@ -1880,7 +1880,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Personal Information
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Your name, email, phone number, and profile picture
  </p>
  </div>
@@ -1889,7 +1889,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Company Details
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Company name, registration number, address, and contact
  information
  </p>
@@ -1899,7 +1899,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Professional Settings
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Logo, branding and company name
  </p>
  </div>
@@ -1907,28 +1907,28 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">Updating Your Profile</CardTitle>
  </CardHeader>
  <CardContent className="space-y-3">
- <div className="bg-[#141414] dark:bg-[#111418] p-4 rounded space-y-2 text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-4 rounded space-y-2 text-sm">
  <div className="flex gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] flex-shrink-0 mt-0.5" />
+ <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
  <p>
  <strong>Edit Anytime:</strong> Update any information in
  your profile at any time
  </p>
  </div>
  <div className="flex gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] flex-shrink-0 mt-0.5" />
+ <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
  <p>
  <strong>Auto-Fill Quotes:</strong> Your company info
  automatically appears on generated quotes
  </p>
  </div>
  <div className="flex gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] flex-shrink-0 mt-0.5" />
+ <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
  <p>
  <strong>Logo & Branding:</strong> Upload your company logo
  which appears on all PDF exports
@@ -1939,7 +1939,7 @@ const UserGuide = () => {
  </Card>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 Pro Tips
  </CardTitle>
@@ -1971,7 +1971,7 @@ const UserGuide = () => {
  duration: "5 minutes",
  content: (
  <div className="space-y-6">
- <div className="bg-[#111418] border border-primary/20 rounded-lg p-6">
+ <div className="bg-[#15171c] border border-primary/20 rounded-lg p-6">
  <h3 className="text-lg text-white mb-3">
  What is a PDF Quote?
  </h3>
@@ -1982,8 +1982,8 @@ const UserGuide = () => {
  </p>
  </div>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">PDF Generation Flow</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
@@ -1996,7 +1996,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  You Click "Export to PDF"
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  System prepares all your quote data for formatting
  </p>
  </div>
@@ -2010,7 +2010,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  System Formats the Data
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  All quantities, prices, and calculations are formatted
  into professional tables and sections
  </p>
@@ -2025,7 +2025,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Applies Your Branding
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Your company logo, colors, and contact details are added
  to the document
  </p>
@@ -2040,7 +2040,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Generates PDF File
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Professional PDF document is created and ready to download
  </p>
  </div>
@@ -2054,7 +2054,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Ready to Share
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Download or send directly to clients via email
  </p>
  </div>
@@ -2063,59 +2063,59 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">
  What's Included in the PDF?
  </CardTitle>
  </CardHeader>
  <CardContent className="space-y-3">
  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
- <div className="bg-[#141414] dark:bg-[#111418] p-3 rounded text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-3 rounded text-sm">
  <p className=" text-white mb-1">
  Project Information
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Project name, location, client details
  </p>
  </div>
- <div className="bg-[#141414] dark:bg-[#111418] p-3 rounded text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-3 rounded text-sm">
  <p className=" text-white mb-1">
  Itemized Costs
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Every material item with quantities and prices
  </p>
  </div>
- <div className="bg-[#141414] dark:bg-[#111418] p-3 rounded text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-3 rounded text-sm">
  <p className=" text-white mb-1">
  Section Totals
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Subtotals for each trade (painting, concrete, etc.)
  </p>
  </div>
- <div className="bg-[#141414] dark:bg-[#111418] p-3 rounded text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-3 rounded text-sm">
  <p className=" text-white mb-1">
  Grand Total
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Final project cost with taxes and fees
  </p>
  </div>
- <div className="bg-[#141414] dark:bg-[#111418] p-3 rounded text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-3 rounded text-sm">
  <p className=" text-white mb-1">
  Company Details
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Your logo, name, contact info, registration
  </p>
  </div>
- <div className="bg-[#141414] dark:bg-[#111418] p-3 rounded text-sm">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-3 rounded text-sm">
  <p className=" text-white mb-1">
  Terms & Notes
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Payment terms, validity dates, special conditions
  </p>
  </div>
@@ -2124,7 +2124,7 @@ const UserGuide = () => {
  </Card>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 PDF Tips
  </CardTitle>
@@ -2171,8 +2171,8 @@ const UserGuide = () => {
  </div>
  </div>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">How It Works</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
@@ -2185,7 +2185,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Create a Quote (Free)
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Build your quote and it's automatically saved as a draft.
  No payment needed yet.
  </p>
@@ -2200,7 +2200,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Click "Unlock Quote"
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  When ready to access full features, click the unlock
  button and proceed to payment.
  </p>
@@ -2215,7 +2215,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Pay KES 200
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Securely pay via Paystack (card, M-Pesa, or bank
  transfer).
  </p>
@@ -2230,7 +2230,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Full Access Unlocked
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Access progress tracking, BOQ generation, editing, and
  exports.
  </p>
@@ -2240,8 +2240,8 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">
  What You Get After Payment
  </CardTitle>
@@ -2249,36 +2249,36 @@ const UserGuide = () => {
  <CardContent>
  <ul className="space-y-3 text-sm">
  <li className="flex items-start gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
- <span className="text-gray-400 ">
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+ <span className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Progress Tracking:</strong> See the percentage
  completion of your quote calculations
  </span>
  </li>
  <li className="flex items-start gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
- <span className="text-gray-400 ">
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+ <span className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Bill of Quantities (BOQ):</strong> Generate detailed
  BOQ in PDF, Excel, or Word format
  </span>
  </li>
  <li className="flex items-start gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
- <span className="text-gray-400 ">
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+ <span className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Edit Capabilities:</strong> Modify quote details and
  recalculate as needed
  </span>
  </li>
  <li className="flex items-start gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
- <span className="text-gray-400 ">
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+ <span className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Material Schedules:</strong> Access detailed
  material lists for ordering
  </span>
  </li>
  <li className="flex items-start gap-3">
- <CheckCircle2 className="w-5 h-5 text-[#ef443b] mt-0.5 flex-shrink-0" />
- <span className="text-gray-400 ">
+ <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+ <span className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  <strong>Download & Share:</strong> Export and send quotes to
  clients or suppliers
  </span>
@@ -2287,17 +2287,17 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">Payment Information</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4">
- <div className="bg-[#141414] dark:bg-[#111418] p-4 rounded space-y-3">
+ <div className="bg-[#141414] dark:bg-[#15171c] p-4 rounded space-y-3">
  <div>
  <p className=" text-white mb-1">
  Payment Method
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Secured by Paystack - accepts cards, M-Pesa, bank transfers,
  and more
  </p>
@@ -2307,7 +2307,7 @@ const UserGuide = () => {
  <p className=" text-white mb-1">
  Payment Type
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  One-time, non-refundable payment per quote (not recurring)
  </p>
  </div>
@@ -2316,7 +2316,7 @@ const UserGuide = () => {
  <p className=" text-white mb-1">
  Invoice & Receipt
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Automatic receipt sent to your email after successful
  payment
  </p>
@@ -2326,7 +2326,7 @@ const UserGuide = () => {
  <p className=" text-white mb-1">
  Security
  </p>
- <p className="text-sm text-gray-400 ">
+ <p className="text-sm text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  All payments are encrypted and processed securely by
  Paystack
  </p>
@@ -2335,8 +2335,8 @@ const UserGuide = () => {
  </CardContent>
  </Card>
 
- <Card>
- <CardHeader>
+ <Card className="bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base">
  Understanding Your Costs
  </CardTitle>
@@ -2347,7 +2347,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Quote Unlock Fee
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  KES 200 per quote (one-time payment)
  </p>
  </div>
@@ -2356,7 +2356,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  Payment Processing
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Paystack may charge a small fee (1-2%) depending on payment
  method - shown before you pay
  </p>
@@ -2366,7 +2366,7 @@ const UserGuide = () => {
  <p className=" text-white ">
  No Hidden Charges
  </p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Total cost is transparent and displayed before you complete
  payment
  </p>
@@ -2374,7 +2374,7 @@ const UserGuide = () => {
 
  <div className="border-l-4 border-purple-500 pl-4 py-2">
  <p className=" text-white ">Save More</p>
- <p className="text-gray-400 ">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Only pay for quotes you want to unlock - create draft quotes
  for free
  </p>
@@ -2384,7 +2384,7 @@ const UserGuide = () => {
  </Card>
 
  <Card className="border-amber-500/20 bg-amber-950/20 dark:bg-amber-950/20 border-amber-800/50">
- <CardHeader>
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-base text-amber-100 dark:text-amber-100">
  💡 Payment Tips
  </CardTitle>
@@ -2416,49 +2416,39 @@ const UserGuide = () => {
  return (
  <PublicLayout>
  
- <div className="w-full font-technical min-h-screen bg-[#141414] ug-container">
+ <div className="dark w-full font-technical min-h-screen bg-[#15171c] text-[#eceff4] text-base ug-container">
  {/* HERO SECTION */}
- <div className="w-full relative z-10 pt-12 pb-12 sm:pt-16 sm:pb-16">
- <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
- <div className="flex flex-col sm:flex-row items-center gap-8 sm:gap-4 lg:gap-8">
- <div className="w-full sm:w-1/2 flex flex-col items-center sm:items-start text-center sm:text-left pt-0 sm:pt-4 lg:pt-8 relative z-20">
- <div className="flex items-center gap-3 mb-6">
- <span className="text-[#ef443b] font-mono text-xs font-bold uppercase tracking-[3px]">
+ <div className="w-full relative z-10 pt-24 pb-24 sm:pt-32 sm:pb-32 bg-cover bg-center" style={{ backgroundImage: "linear-gradient(to right, rgba(17, 20, 24, 0.95), rgba(17, 20, 24, 0.7)), url('https://www.maticad.com/wp-content/uploads/2020/07/support_img_1_ok.jpg')" }}>
+ <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+ <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+ <div className="flex items-center justify-center gap-3 mb-6">
+ <span className="text-[#ef443b] font-mono text-sm font-bold uppercase tracking-[3px]">
  Documentation
  </span>
- <div className="h-[1px] w-12 bg-[#ef443b]/30" />
+ <div className="hidden sm:block h-[1px] w-12 bg-[#ef443b]/30" />
  </div>
 
  <motion.h1
- className="text-3xl md:text-4xl leading-[1.2] text-white mb-6 tracking-tight"
- initial={{ opacity: 0, x: -20 }}
- animate={{ opacity: 1, x: 0 }}
+ className="text-5xl md:text-6xl lg:text-7xl leading-[1.1] text-white mb-6 tracking-tight font-technical"
+ initial={{ opacity: 0, y: 20 }}
+ animate={{ opacity: 1, y: 0 }}
  transition={{ duration: 0.5 }}
  >
  <span className="font-light block">Platform</span>
- <span className="font-bold text-[#ef443b] block mt-1">
- User Guide
- </span>
+ <span className="font-bold text-[#ef443b] block mt-2">User Guide</span>
  </motion.h1>
 
- <p className="text-gray-400 text-base leading-relaxed mb-8 font-medium max-w-sm">
- Comprehensive manual on uploading plans, calculating costs, and building accurate quotes.
+ <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-10 font-light max-w-2xl mx-auto font-technical">
+ Comprehensive manual on uploading plans, calculating costs, and building accurate quotes securely and effectively.
  </p>
 
- <div className="flex">
  <a
  href="#guide-content"
  onClick={(e) => { e.preventDefault(); document.getElementById('guide-content')?.scrollIntoView({ behavior: 'smooth' }); }}
- className="h-12 px-8 flex items-center justify-center bg-[#ef443b] text-white font-black text-xs uppercase tracking-[1.5px] hover:bg-[#002a54] transition-colors rounded-md"
+ className="h-14 px-10 flex items-center justify-center bg-[#ef443b] text-white font-bold text-sm uppercase tracking-[1.5px] hover:bg-[#d83a31] transition-all rounded-md mt-4 shadow-[0_0_20px_rgba(239,68,59,0.3)] hover:shadow-[0_0_30px_rgba(239,68,59,0.5)]"
  >
  Start Reading
  </a>
- </div>
- </div>
-
- <div className="hidden sm:flex w-full sm:w-1/2 relative h-[300px] sm:h-[250px] md:h-[400px] lg:h-[450px] items-center justify-center p-4 sm:p-8">
- <img src="https://png.pngtree.com/png-vector/20240314/ourmid/pngtree-trendy-civil-engineering-png-image_11952952.png" alt="User Guide Graphic" className="max-w-full max-h-full w-auto h-auto object-contain drop-shadow-[0_20px_40px_rgba(216,92,44,0.15)]" />
- </div>
  </div>
  </div>
  </div>
@@ -2469,10 +2459,8 @@ const UserGuide = () => {
 
  {/* Header */}
  <div className="text-center mb-12">
- <h1 className="text-4xl font-bold bg-[#111418] border-white/5:from-primary dark:to-primary bg-clip-text text-transparent mb-4">
- User Guide
- </h1>
- <p className="text-lg text-gray-400 ">
+ <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight font-technical"><span className="text-[#ef443b] font-light">Platform</span> Documentation</h1>
+ <p className="text-lg text-[#a3a9b7] font-light leading-relaxed text-[15px] ">
  Learn how to create accurate construction quotes using JTech AI
  </p>
  </div>
@@ -2481,8 +2469,8 @@ const UserGuide = () => {
  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
  {/* Navigation Sidebar */}
  <div className="lg:col-span-1">
- <Card className="sticky top-16">
- <CardHeader>
+ <Card className="sticky top-16 bg-[#1a1c22] border-white/5 text-white shadow-2xl">
+ <CardHeader className="border-b border-white/5 pb-4">
  <CardTitle className="text-lg">Guide Contents</CardTitle>
  </CardHeader>
  <CardContent>
@@ -2494,7 +2482,7 @@ const UserGuide = () => {
  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
  activeSection === section.id
  ? "bg-[#ef443b] text-white"
- : "text-gray-400 hover:bg-[#111418] dark:hover:bg-gray-800"
+ : "text-[#a3a9b7] font-light leading-relaxed text-[15px] hover:bg-[#15171c] dark:hover:bg-gray-800"
  }`}
  >
  <div className="flex items-center gap-2">
@@ -2523,11 +2511,11 @@ const UserGuide = () => {
  key={section.id}
  className={activeSection === section.id ? "block" : "hidden"}
  >
- <Card className="mb-6">
- <CardHeader>
+ <Card className="mb-6 bg-[#1a1c22] border-white/5 shadow-2xl text-white hover:border-white/10 transition-colors">
+ <CardHeader className="border-b border-white/5 pb-4">
  <div className="flex items-start justify-between">
  <div className="flex items-start gap-4">
- <div className="w-12 h-12 rounded-lg bg-[#111418] dark:bg-primary/30 flex items-center justify-center text-[#ef443b] ">
+ <div className="w-12 h-12 rounded-lg bg-[#15171c] dark:bg-primary/30 flex items-center justify-center text-[#ef443b] ">
  {section.icon}
  </div>
  <div>
@@ -2559,12 +2547,12 @@ const UserGuide = () => {
 
  {/* Footer CTA */}
  <div className="mt-12 text-center pb-12">
- <Card className="bg-[#111418]  to-indigo-950/20 border-primary/20">
+ <Card className="bg-[#15171c]  to-indigo-950/20 border-primary/20">
  <CardContent className="pt-8 pb-8 text-center">
  <h3 className="text-xl text-white font-medium mb-4">
  Ready to Create Your First Quote?
  </h3>
- <p className="text-gray-400 mb-6">
+ <p className="text-[#a3a9b7] font-light leading-relaxed text-[15px] mb-6">
  Follow the steps in this guide to build accurate construction estimates in minutes.
  </p>
  <a

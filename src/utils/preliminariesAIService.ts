@@ -1,10 +1,6 @@
 // utils/preliminariesAIService.ts
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getEnv } from "@/utils/envConfig";
 
-const genAI = new GoogleGenerativeAI(
-  getEnv("NEXT_GEMINI_API_KEY") || getEnv("VITE_GEMINI_API_KEY"),
-);
+const GEMINI_PROXY_URL = "/.netlify/functions/gemini-proxy";
 
 export interface PrelimSection {
   title: string;
@@ -23,10 +19,8 @@ export const generatePreliminariesWithGemini = async (
   quoteData: any,
 ): Promise<PrelimSection[]> => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
     const prompt = `
-You are a construction estimation expert. Based on the following project data, generate appropriate preliminary costs based on the data. 
+You are a construction estimation expert. Based on the following project data, generate appropriate preliminary costs based on the data.
 
 PROJECT DATA:
 ${JSON.stringify(quoteData, null, 2)}
@@ -37,7 +31,7 @@ Please generate preliminary sections and items with these guidelines:
 3. Base the preliminaries only on the data provided
 4. DO NOT ADD ANYTHING THAT IS NOT IN THE DATA PROVIDED!
 5. Include transport costs, equipment, services and other similar data
-6. If linked to a trade (e.g. “Mixer for concrete works”) → skip it. Only include general (e.g. “Site generator”)
+6. If linked to a trade (e.g. "Mixer for concrete works") → skip it. Only include general (e.g. "Site generator")
 7. Do not include labor costs, overheads, contingency, or profit margins
 8. Structure the response as sections with items, each item having an item number, description, and amount
 9. Return ONLY valid JSON in this exact format:
@@ -60,9 +54,22 @@ Please generate preliminary sections and items with these guidelines:
 Ensure the response is pure JSON without any markdown formatting or additional text.
 `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const response = await fetch(GEMINI_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gemini-2.5-flash",
+        contents: [{ parts: [{ text: prompt }] }],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini proxy error: ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+    const text =
+      responseData.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     // Clean the response to extract only JSON
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -75,21 +82,21 @@ Ensure the response is pure JSON without any markdown formatting or additional t
       .replace(/```/g, "")
       .trim();
 
-    const data = JSON.parse(cleanJson);
+    const parsed = JSON.parse(cleanJson);
 
-    if (!data.sections || !Array.isArray(data.sections)) {
+    if (!parsed.sections || !Array.isArray(parsed.sections)) {
       throw new Error("Invalid response format from AI");
     }
 
     // Merge AI-generated items with standard preliminaries
-    const aiSections = data.sections;
+    const aiSections = parsed.sections;
 
     // Ensure standard section exists and is first
     let sections: PrelimSection[] = [];
 
     // Check if first section is "General Preliminaries"
     const generalPrelimIndex = aiSections.findIndex(
-      (s) => s.title === "General Preliminaries",
+      (s: any) => s.title === "General Preliminaries",
     );
     if (generalPrelimIndex >= 0) {
       // Merge AI items into existing General Preliminaries section

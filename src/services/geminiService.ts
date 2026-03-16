@@ -1,5 +1,3 @@
-import { getEnv } from "@/utils/envConfig";
-
 // New hierarchical structure for material schedule
 export interface MaterialScheduleItem {
   item_id: string | number;
@@ -39,21 +37,17 @@ export interface GeminiMaterialResponse {
   summary: MaterialScheduleSummary;
 }
 class GeminiService {
-  private apiKey = getEnv("VITE_GEMINI_API_KEY");
-  private baseUrl =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  private proxyUrl = "/.netlify/functions/gemini-proxy";
   async analyzeMaterials(quoteData: any): Promise<GeminiMaterialResponse> {
-    if (!this.apiKey) {
-      throw new Error("Gemini API key not set");
-    }
     const prompt = this.createAnalysisPrompt(quoteData);
     try {
-      const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
+      const response = await fetch(this.proxyUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          model: "gemini-2.5-flash",
           contents: [
             {
               parts: [

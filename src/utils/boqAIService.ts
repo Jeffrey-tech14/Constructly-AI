@@ -1,10 +1,8 @@
 // services/boqAIService.ts
 import { BOQItem, BOQSection } from "@/types/boq";
 import { generateProfessionalBOQ } from "@/utils/boqMappers";
-import { getEnv } from "@/utils/envConfig";
 
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const GEMINI_PROXY_URL = "/.netlify/functions/gemini-proxy";
 
 export const generateBOQWithAI = async (
   quoteData: any,
@@ -26,23 +24,16 @@ export const generateBOQWithAI = async (
 };
 
 const callGeminiAPI = async (quoteData: any): Promise<BOQSection[]> => {
-  const apiKey = getEnv("NEXT_GEMINI_API_KEY") || getEnv("VITE_GEMINI_API_KEY");
-
-  // If no API key, simulate AI failure to trigger fallback
-  if (!apiKey) {
-    console.warn("No Gemini API key configured");
-    throw new Error("No Gemini API key configured");
-  }
-
   const prompt = createAIPrompt(quoteData);
 
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    const response = await fetch(GEMINI_PROXY_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        model: "gemini-2.5-flash",
         contents: [
           {
             parts: [

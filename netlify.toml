@@ -1,0 +1,6 @@
+[functions]
+  node_bundler = "esbuild"
+
+[functions."gemini-proxy"]
+  # Max timeout allowed by Netlify is 26 seconds
+  timeout = 26

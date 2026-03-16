@@ -28,7 +28,7 @@ export default async (request: Request, _context: Context) => {
       generationConfig?: unknown;
     };
 
-    const geminiModel = model || "gemini-2.5-flash";
+    const geminiModel = model || "gemini-1.5-flash";
     const url = `${GEMINI_API_BASE}/${geminiModel}:generateContent?key=${apiKey}`;
 
     const geminiBody: Record<string, unknown> = { contents };

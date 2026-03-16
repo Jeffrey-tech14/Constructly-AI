@@ -46,13 +46,20 @@ class PlanParserService {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "gemini-1.5-flash",
           contents: [{ parts: contentParts }],
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Gemini proxy error: ${response.statusText}`);
+        let errorBody = "";
+        try {
+          const errData = await response.json();
+          errorBody = errData.error || errData.details || response.statusText;
+        } catch {
+          errorBody = await response.text() || response.statusText;
+        }
+        throw new Error(`Gemini proxy error: ${errorBody}`);
       }
 
       const data = await response.json();
@@ -79,7 +86,7 @@ class PlanParserService {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "gemini-1.5-flash",
           contents: [
             {
               parts: [
@@ -93,7 +100,14 @@ class PlanParserService {
       });
 
       if (!response.ok) {
-        throw new Error(`Gemini proxy error: ${response.statusText}`);
+        let errorBody = "";
+        try {
+          const errData = await response.json();
+          errorBody = errData.error || errData.details || response.statusText;
+        } catch {
+          errorBody = await response.text() || response.statusText;
+        }
+        throw new Error(`Gemini proxy error: ${errorBody}`);
       }
 
       const data = await response.json();

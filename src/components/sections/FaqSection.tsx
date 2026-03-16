@@ -18,8 +18,8 @@ import {
 
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-    .font-technical { font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    400;500;600;700;800&display=swap');
+    
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #222222; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef443b; border-radius: 2px; }
@@ -85,23 +85,23 @@ const mockFaqResults = [
 
 const CategorySidebar = () => (
   <aside className="w-full max-w-[220px] hidden md:block flex-shrink-0">
-    <div className="bg-[#1a1a1a] border border-[#d1d5db] rounded-xl shadow-none mb-6 sticky top-24 overflow-hidden">
-      <div className="p-4 bg-[#141414] flex justify-between items-center">
+    <div className="bg-[#1a1c22] border border-white/5 rounded-xl shadow-2xl mb-6 sticky top-24 overflow-hidden">
+      <div className="p-4 bg-[#15171c] flex justify-between items-center">
         <span className="text-xs font-bold text-[#ef443b] uppercase tracking-widest flex items-center gap-2">
           <Filter className="w-3 h-3" />
           Filters
         </span>
-        <ChevronUp className="w-3.5 h-3.5 text-[#707070]" />
+        <ChevronUp className="w-3.5 h-3.5 text-[#a3a9b7]" />
       </div>
       <div className="p-4 space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
         {faqCategories.map((category, index) => (
           <label
             key={index}
-            className="flex items-center text-base font-medium text-[#a0a0a0] hover:text-[#ef443b] cursor-pointer transition-colors group"
+            className="flex items-center text-base font-medium text-[#a3a9b7] font-light text-[15px] leading-relaxed hover:text-[#ef443b] cursor-pointer transition-colors group"
           >
             <input
               type="checkbox"
-              className="h-3.5 w-3.5 text-[#ef443b] border-gray-300 focus:ring-[#ef443b] mr-3 cursor-pointer"
+              className="h-3.5 w-3.5 text-[#ef443b] border-white/20 focus:ring-[#ef443b] mr-3 cursor-pointer"
               defaultChecked={category.checked}
             />
             <span className="group-hover:translate-x-1 transition-transform duration-200">
@@ -129,24 +129,24 @@ const FaqItem = ({ faq, index }) => {
     >
       {/* Icon Column */}
       <div className="hidden md:flex flex-col items-center pt-2 w-10 flex-shrink-0">
-        <div className="w-6 h-6 bg-[#eef5ff] flex items-center justify-center rounded-lg text-[#ef443b] border border-[#d1d5db]">
+        <div className="w-6 h-6 bg-[#ef443b]/10 flex items-center justify-center rounded-lg text-[#ef443b] border border-white/10">
           <IconComponent className="w-5 h-5" strokeWidth={1.8} />
         </div>
-        <div className="h-full w-px bg-[#e5e7eb] mt-4"></div>
+        <div className="h-full w-px bg-white/10 mt-4"></div>
       </div>
 
       {/* FAQ Card */}
-      <div className="flex-grow bg-[#1a1a1a] border border-[#d1d5db] rounded-xl shadow-none hover:shadow-none transition-all duration-300 group overflow-hidden">
+      <div className="flex-grow bg-[#1a1c22] border border-white/5 rounded-xl shadow-2xl hover:border-white/10 transition-all duration-300 group overflow-hidden">
         <div className="p-6 md:p-8">
           {/* Tags */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className="text-[#ef443b] text-xs font-bold font-mono bg-[#eef5ff] px-2 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[#ef443b] text-xs font-bold font-mono bg-[#ef443b]/10 px-2 py-0.5 rounded uppercase tracking-wider">
               {faq.id}
             </span>
             {faq.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-[#a0a0a0] bg-gray-100 rounded"
+                className="px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-[#a3a9b7] font-light text-[15px] leading-relaxed bg-[#2a2c32] rounded"
               >
                 {tag}
               </span>
@@ -154,27 +154,27 @@ const FaqItem = ({ faq, index }) => {
           </div>
 
           {/* Title */}
-          <h3 className="text-lg md:text-xl font-bold text-[#ef443b] mb-6 uppercase tracking-tight">
+          <h3 className="text-xl md:text-2xl font-bold text-[#ef443b] mb-4 font-technical tracking-tight">
             {faq.title}
           </h3>
 
           {/* Main Q&A */}
-          <div className="border border-[#e5e7eb] rounded-lg mb-4 overflow-hidden">
+          <div className="border border-white/5 rounded-lg mb-4 overflow-hidden">
             <div
               onClick={() => setIsOpenMain(!isOpenMain)}
               className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
-                isOpenMain ? "bg-[#141414]" : "bg-[#1a1a1a] hover:bg-[#141414]"
+                isOpenMain ? "bg-[#15171c]" : "bg-[#1a1c22] hover:bg-[#15171c]"
               }`}
             >
               <span
-                className={`font-medium text-sm md:text-base ${isOpenMain ? "text-[#ef443b]" : "text-gray-700"}`}
+                className={`font-medium text-sm md:text-base ${isOpenMain ? "text-[#ef443b]" : "text-[#a3a9b7]"}`}
               >
                 {faq.question}
               </span>
               {isOpenMain ? (
-                <ChevronUp className="w-4 h-4 text-[#707070]" />
+                <ChevronUp className="w-4 h-4 text-[#a3a9b7]" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-[#707070]" />
+                <ChevronDown className="w-4 h-4 text-[#a3a9b7]" />
               )}
             </div>
             <AnimatePresence>
@@ -185,7 +185,7 @@ const FaqItem = ({ faq, index }) => {
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="p-4 pt-0 bg-[#141414] text-sm md:text-base text-[#a0a0a0] leading-relaxed">
+                  <div className="p-4 pt-0 bg-[#15171c] text-sm md:text-base text-[#a3a9b7] font-light text-[15px] leading-relaxed leading-relaxed">
                     <p
                       dangerouslySetInnerHTML={{
                         __html: faq.answer.replace(
@@ -202,22 +202,22 @@ const FaqItem = ({ faq, index }) => {
 
           {/* Sub Q&A (if exists) */}
           {faq.historyText && (
-            <div className="border border-[#e5e7eb] rounded-lg overflow-hidden">
+            <div className="border border-white/5 rounded-lg overflow-hidden">
               <div
                 onClick={() => setIsOpenSub(!isOpenSub)}
                 className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
-                  isOpenSub ? "bg-[#141414]" : "bg-[#1a1a1a] hover:bg-[#141414]"
+                  isOpenSub ? "bg-[#15171c]" : "bg-[#1a1c22] hover:bg-[#15171c]"
                 }`}
               >
                 <span
-                  className={`font-medium text-sm md:text-base ${isOpenSub ? "text-[#ef443b]" : "text-[#a0a0a0]"}`}
+                  className={`font-medium text-sm md:text-base ${isOpenSub ? "text-[#ef443b]" : "text-[#a3a9b7]"}`}
                 >
                   {faq.historyText}
                 </span>
                 {isOpenSub ? (
-                  <Minus className="w-3.5 h-3.5 text-[#707070]" />
+                  <Minus className="w-3.5 h-3.5 text-[#a3a9b7]" />
                 ) : (
-                  <Plus className="w-3.5 h-3.5 text-[#707070]" />
+                  <Plus className="w-3.5 h-3.5 text-[#a3a9b7]" />
                 )}
               </div>
               <AnimatePresence>
@@ -228,7 +228,7 @@ const FaqItem = ({ faq, index }) => {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="p-4 pt-0 bg-[#141414] text-sm md:text-base text-[#a0a0a0] leading-relaxed">
+                    <div className="p-4 pt-0 bg-[#15171c] text-sm md:text-base text-[#a3a9b7] font-light text-[15px] leading-relaxed leading-relaxed">
                       <p
                         dangerouslySetInnerHTML={{
                           __html: faq.historyAnswer?.replace(
@@ -252,76 +252,68 @@ const FaqItem = ({ faq, index }) => {
 };
 
 const FaqSection = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   return (
     <>
-      <GlobalStyles />
-      <div id="faq" className="w-full font-technical bg-[#1a1a1a] min-h-screen">
-        {/* HERO SECTION – Redesigned to be clean & professional */}
-        <div className="w-full bg-[#1a1a1a] pt-24 pb-16">
-          <div className="max-w-[1200px] mx-auto px-5">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="w-full max-w-lg">
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="text-[#ef443b] font-mono text-xs font-bold uppercase tracking-[3px]">
-                    Support Center
-                  </span>
-                  <div className="h-[1px] w-12 bg-[#ef443b]/30" />
-                </div>
+      
+      <div id="faq" className="font-technical dark w-full bg-[#111418] text-[#eceff4] text-base min-h-screen">
+        {/* HERO SECTION */}
+<div className="w-full relative z-10 pt-32 pb-32 sm:pt-40 sm:pb-40 bg-cover bg-center font-technical" style={{ backgroundImage: "linear-gradient(to right, rgba(17, 20, 24, 0.95), rgba(17, 20, 24, 0.7)), url('https://png.pngtree.com/thumb_back/fh260/background/20220729/pngtree-3d-man-presenting-faq-concept-concept-frequetly-asked-question-isolated-photo-image_19292830.jpg')" }}>
+ <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+ <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
+ <div className="flex items-center justify-center gap-3 mb-6">
+ <span className="text-[#ef443b] font-mono text-sm font-bold uppercase tracking-[3px]">
+ Support Center
+ </span>
+ <div className="hidden sm:block h-[1px] w-12 bg-[#ef443b]/30" />
+ </div>
 
-                <motion.h1
-                  className="text-3xl md:text-4xl leading-[1.2] text-white mb-6 tracking-tight"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <span className="font-light block">Estimation</span>
-                  <span className="font-bold text-[#ef443b] block mt-1">
-                    Support Hub
-                  </span>
-                </motion.h1>
+ <motion.h1
+ className="text-5xl md:text-6xl lg:text-7xl leading-[1.1] text-white mb-6 tracking-tight font-technical"
+ initial={{ opacity: 0, y: 20 }}
+ animate={{ opacity: 1, y: 0 }}
+ transition={{ duration: 0.5 }}
+ >
+ <span className="font-light block">Frequently Asked</span>
+ <span className="font-bold text-[#ef443b] block mt-2">Questions</span>
+ </motion.h1>
 
-                <p className="text-[#a0a0a0] text-base leading-relaxed mb-8 font-medium max-w-sm">
-                  Find answers about file uploads, AI takeoff, cost calculation,
-                  and exporting quotes.
-                </p>
+ <p className="text-[#a3a9b7] font-light text-lg md:text-xl leading-relaxed mb-10 font-light max-w-2xl mx-auto font-technical">
+ Find answers about file uploads, AI takeoff, cost calculation, and exporting quotes quickly and effortlessly.
+ </p>
 
-                {/* Search Bar – Sharper, matches your form style */}
-                <div className="flex h-12 w-full border border-[#d1d5db] rounded-md overflow-hidden shadow-none">
-                  <div className="flex-1 flex items-center px-4 bg-[#1a1a1a]">
-                    <Search className="w-4 h-4 text-[#707070] mr-2" />
-                    <input
-                      type="text"
-                      placeholder="Search by topic or keyword..."
-                      className="w-full text-sm md:text-base font-medium text-white placeholder-gray-400 focus:outline-none bg-transparent"
-                    />
-                  </div>
-                  <button className="h-full px-6 bg-[#ef443b] text-white font-black text-xs uppercase tracking-[1.5px] hover:bg-[#002a54] transition-colors">
-                    Search
-                  </button>
-                </div>
-              </div>
-
-              {/* Optional: Keep video or replace with illustration */}
-              <div className="hidden lg:flex relative w-full justify-center items-center">
-                <img src="https://png.pngtree.com/png-vector/20240314/ourmid/pngtree-trendy-civil-engineering-png-image_11952952.png" alt="FAQ Graphic" className="w-auto h-auto max-w-full max-h-[400px] object-contain transform-gpu hover:translate-y-[-10px] transition-transform duration-500 drop-shadow-[0_20px_40px_rgba(239,68,59,0.15)]" />
-              </div>
-            </div>
-          </div>
-        </div>
+ <div className="flex h-14 w-full max-w-lg border border-white/20 rounded-md overflow-hidden bg-black/40 backdrop-blur-sm mx-auto shadow-2xl">
+    <div className="flex-1 flex items-center px-4">
+      <Search className="w-5 h-5 text-[#a3a9b7] font-light text-[15px] leading-relaxed mr-3" />
+      <input
+        type="text"
+        placeholder="Search by topic or keyword..."
+        className="w-full text-base font-light text-white placeholder-[#a3a9b7] focus:outline-none bg-transparent"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+    </div>
+    <button className="h-full px-8 bg-[#ef443b] text-white font-bold text-sm uppercase tracking-[1.5px] hover:bg-[#d83a31] transition-colors shadow-[0_0_20px_rgba(239,68,59,0.3)] hover:shadow-[0_0_30px_rgba(239,68,59,0.5)]">
+      Search
+    </button>
+ </div>
+ </div>
+ </div>
+ </div>
 
         {/* MAIN CONTENT */}
         <main className="max-w-[1200px] mx-auto flex py-16 px-5 gap-10">
           <CategorySidebar />
           <div className="w-full md:flex-1">
-            <div className="flex flex-col sm:flex-row items-center justify-between text-sm md:text-base text-[#a0a0a0] mb-8 pb-4">
-              <span className="font-bold text-white uppercase tracking-wider">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-sm md:text-base text-[#a3a9b7] font-light text-[15px] leading-relaxed mb-8 pb-4">
+              <span className="font-medium text-white tracking-wide font-technical text-lg">
                 Displaying <span className="text-[#ef443b]">3</span> Entries
               </span>
               <div className="flex items-center gap-4 mt-3 sm:mt-0">
-                <span className="font-bold uppercase tracking-wider text-[#a0a0a0]">
+                <span className="font-medium tracking-wide text-[#a3a9b7] font-technical text-[15px]">
                   Sort By:
                 </span>
-                <select className="bg-transparent font-bold text-[#ef443b] focus:outline-none cursor-pointer uppercase tracking-wide text-sm">
+                <select className="bg-transparent font-medium text-[#ef443b] focus:outline-none cursor-pointer tracking-wide text-sm font-technical">
                   <option>Relevance</option>
                   <option>Date Added</option>
                   <option>ID</option>
@@ -336,7 +328,7 @@ const FaqSection = () => {
             </div>
 
             <div className="mt-12 text-center">
-              <button className="px-8 py-3 border border-[#d1d5db] text-[#ef443b] font-black text-xs uppercase tracking-[1.5px] hover:bg-[#ef443b] hover:text-white transition-all rounded-md">
+              <button className="px-8 py-3 border border-white/10 text-[#ef443b] font-black text-xs uppercase tracking-[1.5px] hover:bg-[#ef443b] hover:text-white transition-all rounded-md">
                 View All FAQs
               </button>
             </div>
@@ -350,3 +342,4 @@ const FaqSection = () => {
 export default FaqSection;
 
 // Adjusted logo sizing and UI spacing
+

@@ -2234,7 +2234,7 @@ Create `.env` in project root:
 ```env
 # Supabase
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGc...
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Google Gemini
 VITE_GOOGLE_AI_KEY=AIzaSy...

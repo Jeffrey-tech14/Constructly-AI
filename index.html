@@ -42,7 +42,7 @@
 
     <style>
       :root {
-        --bg-color: #111418; /* Matches Hero background */
+        --bg-color: #2e333d; /* Matches Hero background */
         --logo-gold: #d4af37;
         --text-color: #ffffff;
         --accent: #43b02a;
@@ -51,10 +51,34 @@
 
       body {
         margin: 0;
-        background-color: var(--bg-color) !important;
+        background:
+            radial-gradient(1000px 420px at 8% 96%, rgba(240,81,78,0.08), transparent 60%),
+            radial-gradient(900px 380px at 92% 12%, rgba(240,81,78,0.06), transparent 62%),
+            #2e333d !important;
         font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
         color: var(--text-color);
         overflow-x: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: -2;
+        opacity: 0.24;
+        background-image:
+            repeating-linear-gradient(
+              135deg,
+              transparent 0,
+              transparent 220px,
+              rgba(240,81,78,0.28) 221px,
+              transparent 222px,
+              transparent 520px
+            );
       }
 
       /* Hero pattern replicated for loading screen */
@@ -65,22 +89,12 @@
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: linear-gradient(105deg, #222831 0%, #222831 42%, transparent 42.2%);
+        background: linear-gradient(105deg, #374151 0%, #374151 42%, transparent 42.2%);
         pointer-events: none;
         z-index: -2;
       }
 
-      body::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 100vw;
-        height: 100vh;
-        background: linear-gradient(-75deg, #1a1e24 0%, #1a1e24 30%, transparent 30.2%);
-        pointer-events: none;
-        z-index: -2;
-      }
+
 
       .app-loader {
         position: fixed;
@@ -606,9 +620,11 @@
             // Remove it from the DOM after the fade-out
             setTimeout(() => loader.remove(), 800);
           }
-        }, 4500); 
+        }, 800); 
       });
     </script>
   </body>
 </html>
 <!-- Adjusted logo sizing and UI spacing -->
+
+

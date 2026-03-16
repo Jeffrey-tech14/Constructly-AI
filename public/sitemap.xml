@@ -1,0 +1,49 @@
+@"
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset 
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 
+    http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <!-- Home Page -->
+    <url>
+        <loc>https://yourdomain.com/</loc>
+        <lastmod>2026-03-16T00:00:00+00:00</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+        <image:image>
+            <image:loc>https://yourdomain.com/brandlogo.png</image:loc>
+            <image:title>Constructly AI - AI Construction Estimating</image:title>
+            <image:caption>The leading AI construction estimating software.</image:caption>
+        </image:image>
+    </url>
+
+    <!-- FAQ Page -->
+    <url>
+        <loc>https://yourdomain.com/faq</loc>
+        <lastmod>2026-03-16T00:00:00+00:00</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- User Guide Page -->
+    <url>
+        <loc>https://yourdomain.com/guide</loc>
+        <lastmod>2026-03-16T00:00:00+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- Authentication / Login Portal -->
+    <url>
+        <loc>https://yourdomain.com/auth</loc>
+        <lastmod>2026-03-16T00:00:00+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+</urlset>
+"@

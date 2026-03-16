@@ -19,8 +19,19 @@ export const getEnv = (key: string): string | undefined => {
   }
 
   // Second priority: Build-time environment variables (Vite)
-  if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
-    return import.meta.env[key];
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    if (key === "VITE_SUPABASE_URL") return import.meta.env.VITE_SUPABASE_URL;
+    if (key === "VITE_SUPABASE_ANON_KEY") return import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (key === "VITE_GEMINI_API_KEY") return import.meta.env.VITE_GEMINI_API_KEY;
+    if (key === "VITE_PAYSTACK_PUBLIC_KEY") return import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    if (key === "VITE_PAYSTACK_SECRET_KEY") return import.meta.env.VITE_PAYSTACK_SECRET_KEY;
+    if (key === "VITE_PAYSTACK_PLAN_INTERMEDIATE") return import.meta.env.VITE_PAYSTACK_PLAN_INTERMEDIATE;
+    if (key === "VITE_PAYSTACK_PLAN_PROFESSIONAL") return import.meta.env.VITE_PAYSTACK_PLAN_PROFESSIONAL;
+    if (key === "NEXT_PUBLIC_SUPABASE_URL") return import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (key === "NEXT_PUBLIC_SUPABASE_ANON_KEY") return import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (key === "NEXT_GEMINI_API_KEY") return import.meta.env.NEXT_GEMINI_API_KEY;
+    if (key === "NEXT_PAYSTACK_PUBLIC_KEY") return import.meta.env.NEXT_PAYSTACK_PUBLIC_KEY;
+    if (key === "NEXT_PAYSTACK_SECRET_KEY") return import.meta.env.NEXT_PAYSTACK_SECRET_KEY;
   }
 
   // Fallback: undefined

@@ -1,4 +1,4 @@
-﻿import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -122,7 +122,7 @@ const Hero = ({ scrollTo }: any) => {
             <motion.div 
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 4.7 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
               className="inline-flex items-center gap-2 px-3 py-1 lg:px-4 lg:py-1.5 rounded-full bg-white/[0.03] border border-white/15 text-[#ed6a32] text-xs sm:text-sm font-semibold mb-6 lg:mb-8 tracking-wide"
             >
               <span className="relative flex h-2 w-2">
@@ -135,7 +135,7 @@ const Hero = ({ scrollTo }: any) => {
             <motion.h1 
               initial={{ x: 40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 4.9 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
               className="text-[2.2rem] sm:text-[3rem] md:text-[2.6rem] lg:text-[4rem] xl:text-[4.2rem] font-bold leading-[1.05] tracking-tight mb-6 flex flex-col md:block"
             >
               <span className="text-[#ed6a32] whitespace-nowrap">Generate Accurate</span> <br className="hidden md:block" />
@@ -145,7 +145,7 @@ const Hero = ({ scrollTo }: any) => {
             <motion.p 
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 5.1 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
               className="text-lg sm:text-xl md:text-lg lg:text-xl text-[#8f95a3] max-w-[560px] font-semibold leading-relaxed mb-8 sm:mb-12"
             >
               JTech simplifies estimating, letting you generate accurate Bills of Quantities in a fraction of the time.
@@ -154,7 +154,7 @@ const Hero = ({ scrollTo }: any) => {
             <motion.div 
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut", delay: 5.3 }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.7 }}
               className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
             >
               <button

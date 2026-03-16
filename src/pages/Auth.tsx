@@ -54,7 +54,7 @@ const Auth = () => {
     setSuccess(true);
     setTimeout(() => {
       navigate("/dashboard");
-    }, 2000);
+    }, 500); // reduced timeout for a snappier transition
   };
 
   const handleGoogleSignIn = async () => {
@@ -111,11 +111,9 @@ const Auth = () => {
   return (
     <>
       <div
-        className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative bg-[#0a0a0a] overflow-hidden"
+        className="min-h-screen w-full flex items-center justify-center p-4 font-technical relative bg-white overflow-hidden"
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(circle at 50% 0%, rgba(240, 81, 78, 0.15), transparent 70%)' }}></div>
-
-        <div className="relative bg-[#1a1c22] rounded-xl shadow-xl overflow-hidden w-full max-w-[850px] min-h-[600px] md:min-h-[520px] z-10">
+        <div className="relative bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-[850px] min-h-[600px] md:min-h-[520px] z-10 border border-gray-100">
           {/* SIGN UP FORM */}
           <div
             className={`absolute top-0 h-full transition-all duration-700 ease-in-out left-0 w-full md:w-1/2 z-[1] 
@@ -123,16 +121,15 @@ const Auth = () => {
             `}
           >
             <form
-              className="bg-[#1a1c22] flex flex-col items-center justify-center h-full px-6 sm:px-10 text-center"
+              className="bg-white flex flex-col items-center justify-center h-full px-6 sm:px-10 text-center"
               onSubmit={handleEmailSignUp}
             >
               <h1
-                className="font-bold text-2xl md:text-3xl mb-4"
-                style={{ color: "white" }}
+                className="font-bold text-2xl md:text-3xl mb-4 text-[#1a1a1a]"
               >
                 Create Account
               </h1>
-              <span className="text-xs text-[#a3a9b7] mb-6 font-medium">
+              <span className="text-xs text-gray-500 mb-6 font-medium">
                 Use your email for registration
               </span>
 
@@ -143,7 +140,7 @@ const Auth = () => {
                   placeholder="Full Name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="bg-[#15171c] border border-white/10 px-4 py-3 text-sm w-full outline-none rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B]"
+                  className="bg-[#f2f6f9] border border-gray-200 px-4 py-3 text-sm w-full outline-none text-[#1a1a1a] rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B]"
                 />
                 <input
                   type="email"
@@ -151,7 +148,7 @@ const Auth = () => {
                   placeholder="Email Address"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="bg-[#15171c] border border-white/10 px-4 py-3 text-sm w-full outline-none rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B]"
+                  className="bg-[#f2f6f9] border border-gray-200 px-4 py-3 text-sm w-full outline-none text-[#1a1a1a] rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B]"
                 />
                 <div className="relative">
                   <input
@@ -160,12 +157,12 @@ const Auth = () => {
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="bg-[#15171c] border border-white/10 px-4 py-3 text-sm w-full outline-none rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B] pr-10"
+                    className="bg-[#f2f6f9] border border-gray-200 px-4 py-3 text-sm w-full outline-none text-[#1a1a1a] rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B] pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a3a9b7] hover:text-[#a3a9b7] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-500 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -181,12 +178,12 @@ const Auth = () => {
                     placeholder="Confirm Password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="bg-[#15171c] border border-white/10 px-4 py-3 text-sm w-full outline-none rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B] pr-10"
+                    className="bg-[#f2f6f9] border border-gray-200 px-4 py-3 text-sm w-full outline-none text-[#1a1a1a] rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B] pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a3a9b7] hover:text-[#a3a9b7] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-500 transition-colors"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -214,9 +211,9 @@ const Auth = () => {
               </button>
 
               <div className="flex items-center gap-4 w-full my-6">
-                <div className="h-px bg-[#1a1c22]/10 w-full"></div>
+                <div className="h-px bg-white/10 w-full"></div>
                 <span className="text-xs font-bold text-gray-400">OR</span>
-                <div className="h-px bg-[#1a1c22]/10 w-full"></div>
+                <div className="h-px bg-white/10 w-full"></div>
               </div>
 
               <GoogleButton
@@ -226,7 +223,7 @@ const Auth = () => {
               />
 
               <div className="mt-6 md:hidden">
-                <p className="text-xs text-[#a3a9b7]">
+                <p className="text-xs text-gray-500">
                   Already have an account?
                 </p>
                 <button
@@ -248,12 +245,11 @@ const Auth = () => {
             `}
           >
             <form
-              className="bg-[#1a1c22] flex flex-col items-center justify-center h-full px-6 sm:px-10 text-center"
+              className="bg-white flex flex-col items-center justify-center h-full px-6 sm:px-10 text-center"
               onSubmit={handleEmailSignIn}
             >
               <h1
-                className="font-bold text-2xl md:text-3xl mb-6"
-                style={{ color: "white" }}
+                className="font-bold text-2xl md:text-3xl mb-6 text-[#1a1a1a]"
               >
                 Sign In
               </h1>
@@ -265,7 +261,7 @@ const Auth = () => {
                   placeholder="Email Address"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="bg-[#15171c] border border-white/10 px-4 py-3 text-sm w-full outline-none rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B]"
+                  className="bg-[#f2f6f9] border border-gray-200 px-4 py-3 text-sm w-full outline-none text-[#1a1a1a] rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B]"
                 />
                 <div className="relative">
                   <input
@@ -274,12 +270,12 @@ const Auth = () => {
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="bg-[#15171c] border border-white/10 px-4 py-3 text-sm w-full outline-none rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B] pr-10"
+                    className="bg-[#f2f6f9] border border-gray-200 px-4 py-3 text-sm w-full outline-none text-[#1a1a1a] rounded-lg focus:ring-1 focus:ring-[#00356B] focus:border-[#00356B] pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a3a9b7] hover:text-[#a3a9b7] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-500 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -292,8 +288,7 @@ const Auth = () => {
 
               <button
                 type="button"
-                className="text-xs mt-3 hover:underline font-medium transition-colors"
-                style={{ color: "white" }}
+                className="text-xs mt-3 hover:underline font-medium transition-colors text-[#1a1a1a]"
               >
                 Forgot Password?
               </button>
@@ -315,9 +310,9 @@ const Auth = () => {
               </button>
 
               <div className="flex items-center gap-4 w-full my-6">
-                <div className="h-px bg-[#1a1c22]/10 w-full"></div>
+                <div className="h-px bg-white/10 w-full"></div>
                 <span className="text-xs font-bold text-gray-400">OR</span>
-                <div className="h-px bg-[#1a1c22]/10 w-full"></div>
+                <div className="h-px bg-white/10 w-full"></div>
               </div>
 
               <GoogleButton
@@ -327,7 +322,7 @@ const Auth = () => {
               />
 
               <div className="mt-6 md:hidden">
-                <p className="text-xs text-[#a3a9b7]">Don't have an account?</p>
+                <p className="text-xs text-gray-500">Don't have an account?</p>
                 <button
                   type="button"
                   onClick={() => setIsSignUp(true)}
@@ -357,7 +352,7 @@ const Auth = () => {
                 `}
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-[#1a1c22]/10 backdrop-blur-sm p-2">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-white/10 backdrop-blur-sm p-2">
                     <svg 
                       viewBox="0 0 44 32" 
                       fill="none" 
@@ -393,7 +388,7 @@ const Auth = () => {
                 `}
               >
                 <div className="mb-6 h-20 w-20 flex items-center justify-center ">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-[#1a1c22]/10 backdrop-blur-sm p-2">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border-2 border-white/20 bg-white/10 backdrop-blur-sm p-2">
                     <svg 
                       viewBox="0 0 44 32" 
                       fill="none" 
@@ -427,7 +422,7 @@ const Auth = () => {
 
           {/* SUCCESS MESSAGE */}
           {success && (
-            <div className="fixed inset-0 z-[9999] bg-[#0a0a0a]/95 backdrop-blur-sm flex items-center justify-center">
+            <div className="fixed inset-0 z-[9999] bg-[#fcfdfd]/95 backdrop-blur-sm flex items-center justify-center">
               <div className="text-center">
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -440,11 +435,11 @@ const Auth = () => {
                   />
                 </div>
                 <h2
-                  className="text-xl font-bold text-white mb-2"
+                  className="text-xl font-bold text-[#1a1a1a] mb-2"
                 >
                   Success!
                 </h2>
-                <p className="text-[#a3a9b7] text-sm">
+                <p className="text-gray-500 text-sm">
                   Redirecting to dashboard...
                 </p>
               </div>
@@ -461,7 +456,7 @@ const GoogleButton = ({ onClick, disabled, text }: any) => (
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="w-full h-11 bg-[#1a1c22] border border-white/10 text-[#a3a9b7] text-sm font-medium rounded-md hover:bg-[#15171c] transition-colors flex items-center justify-center gap-3 shadow-sm"
+    className="w-full h-11 bg-white border border-gray-200 text-gray-500 text-sm font-medium rounded-md hover:bg-[#f2f6f9] transition-colors flex items-center justify-center gap-3 shadow-sm"
   >
     <svg className="w-5 h-5" viewBox="0 0 24 24">
       <path

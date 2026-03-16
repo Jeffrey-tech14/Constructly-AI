@@ -1,0 +1,1 @@
+const fs = require('fs'); let content = fs.readFileSync('src/components/sections/FaqSection.tsx', 'utf-8'); content = content.replace(/const GlobalStyles = \(\) => \([\s\S]*?\);\n/g, ''); content = content.replace(/<GlobalStyles \/>/g, ''); fs.writeFileSync('src/components/sections/FaqSection.tsx', content);

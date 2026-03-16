@@ -199,10 +199,10 @@ const Dashboard = () => {
   // Show loader while profile is not available
   if (!profile || localDashboardLoading) {
     return (
-      <div className="min-h-screen bg-[#111418] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
         <div className="relative w-24 h-24 mb-10">
           {/* Base circle background */}
-          <div className="absolute inset-0 rounded-full border-4 border-[#0e1014]"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-gray-100 dark:border-gray-800"></div>
           
           {/* Outer spin ring */}
           <div className="absolute inset-0 rounded-full border-4 border-[#ef443b] border-t-transparent animate-spin"></div>

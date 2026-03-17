@@ -1,1 +1,0 @@
-const fs = require('fs'); let content = fs.readFileSync('src/components/sections/NavbarSection.tsx', 'utf8'); content = content.replace(/#fb4b4e/g, '#f0514e'); fs.writeFileSync('src/components/sections/NavbarSection.tsx', content);

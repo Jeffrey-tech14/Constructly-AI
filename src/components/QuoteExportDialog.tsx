@@ -295,7 +295,7 @@ export const QuoteExportDialog = ({
                   </SelectItem>
                   <SelectItem value="docx">Docx (.docx) - Full BOQ</SelectItem>
                   <SelectItem value="material-schedule">
-                    📋 Material Schedule (PDF Only)
+                    Material Schedule (PDF Only)
                   </SelectItem>
                 </SelectContent>
               </Select>

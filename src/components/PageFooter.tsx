@@ -38,22 +38,28 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 
   // ✅ Updated Logo – uses Navbar theme colors
   const JTechAILogo = () => (
-    <div 
+    <div
       className="flex items-center gap-3 mb-6 cursor-pointer group"
       onClick={() => scrollTo("top")}
     >
       <div className="flex items-center justify-center">
-        <svg 
-          viewBox="0 0 44 32" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg" 
+        <svg
+          viewBox="0 0 44 32"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
           className="h-8 w-auto text-[#f0514e] transition-transform duration-300 group-hover:scale-105 flex-shrink-0"
         >
-          <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
-          <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+          <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor" />
+          <path
+            d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z"
+            fill="currentColor"
+          />
         </svg>
       </div>
-      <span className="text-[#f0f2f6] text-[28px] font-[800] tracking-wide" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      <span
+        className="text-[#f0f2f6] text-[28px] font-[800] tracking-wide"
+        style={{ fontFamily: "Outfit, sans-serif" }}
+      >
         JTech AI
       </span>
     </div>
@@ -88,10 +94,7 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded">
-                    <Lock
-                      className="w-4 h-4 text-white"
-                      strokeWidth={1.8}
-                    />
+                    <Lock className="w-4 h-4 text-white" strokeWidth={1.8} />
                     <span className="text-xs font-bold text-white">
                       SOC 2 Type II
                     </span>
@@ -156,20 +159,6 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
                   </a>
                 </div>
               </div>
-
-              {/* Newsletter – Sharp, clean form */}
-              <div className="relative">
-                <div className="flex border border-white/10 rounded-md overflow-hidden shadow-sm">
-                  <input
-                    type="email"
-                    placeholder="Enter email for updates"
-                    className="w-full bg-[#1a1c1e] py-3 pl-4 text-sm font-normal text-gray-300 placeholder:text-gray-400 focus:outline-none"
-                  />
-                  <button className="bg-[#f0514e] text-white px-4 flex items-center justify-center hover:brightness-110 transition-colors">
-                    <ArrowRight className="w-4 h-4" strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -185,6 +174,18 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
               <p className="text-white">System Status: Operational</p>
               <span className="text-white/30 mx-2">|</span>
               <p>© {new Date().getFullYear()} JTech AI Systems</p>
+              <span className="text-white/30 mx-2">|</span>
+              <p className="text-gray-400">
+                Designed and Developed by{" "}
+                <a
+                  href="https://jeffreyportfolio.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white hover:text-[#f0514e] transition-colors"
+                >
+                  JK Designs
+                </a>
+              </p>
             </div>
 
             <div className="flex gap-6">
@@ -215,8 +216,5 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 };
 
 export default PageFooter;
-
-
-
 
 // Adjusted logo sizing and UI spacing

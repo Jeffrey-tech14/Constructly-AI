@@ -42,6 +42,7 @@ Font.register({
 const styles = StyleSheet.create({
   page: {
     padding: 20,
+    paddingBottom: 100,
     fontSize: 10,
     fontFamily: "Outfit",
     lineHeight: 1.3,
@@ -150,13 +151,6 @@ const styles = StyleSheet.create({
     fontSize: 8,
     textAlign: "right",
   },
-  materialScheduleColHeaderRemarks: {
-    width: "12%",
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 8,
-    textAlign: "left",
-  },
   materialScheduleRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -204,12 +198,6 @@ const styles = StyleSheet.create({
     textAlign: "right",
     color: "#374151",
     fontWeight: "bold",
-  },
-  materialScheduleColRemarks: {
-    width: "12%",
-    fontSize: 7,
-    color: "#6B7280",
-    textAlign: "left",
   },
   sectionHeaderRow: {
     flexDirection: "row",
@@ -406,9 +394,6 @@ const MaterialSchedulePDF: React.FC<MaterialSchedulePDFProps> = ({
             <Text style={styles.materialScheduleColAmount}>
               {item.total_cost ? formatCurrency(item.total_cost) : "-"}
             </Text>
-            <Text style={styles.materialScheduleColRemarks}>
-              {item.calculated ? "Calculated" : ""}
-            </Text>
           </View>
         );
     }
@@ -505,7 +490,6 @@ const MaterialSchedulePDF: React.FC<MaterialSchedulePDFProps> = ({
             <Text style={styles.materialScheduleColHeaderAmount}>
               Total Cost
             </Text>
-            <Text style={styles.materialScheduleColHeaderRemarks}>Remarks</Text>
           </View>
 
           {/* Render sections */}

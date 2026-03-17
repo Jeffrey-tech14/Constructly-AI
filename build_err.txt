@@ -1,7 +1,0 @@
-
-> jtech-construction@1.0.0 build
-> vite build
-
-[36mvite v5.4.21 [32mbuilding for production...[36m[39m
-transforming...
-Terminate batch job (Y/N)? Terminate batch job (Y/N)? ^C

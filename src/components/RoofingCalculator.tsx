@@ -121,6 +121,9 @@ export default function RoofingCalculatorUI({
   const [isSynced, setIsSynced] = useState(false);
   const [syncedFromSlab, setSyncedFromSlab] = useState(false);
 
+  // State for validation errors
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
   // Auto-sync roofing geometry from slab when quote updates
   useEffect(() => {
     if (quote?.concrete_rows && quote?.wallDimensions) {
@@ -156,12 +159,59 @@ export default function RoofingCalculatorUI({
   const handleInputChange = useCallback(
     (field: keyof BuildingInputs, value: any) => {
       setInputs((prev) => ({ ...prev, [field]: value }));
+      // Clear validation errors when user makes changes
+      setValidationErrors([]);
     },
     [],
   );
 
+  // Validation function
+  const validateInputs = useCallback((): boolean => {
+    const errors: string[] = [];
+
+    // Check required numeric fields that must be > 0
+    if (inputs.footprintAreaM2 <= 0) {
+      errors.push("Footprint Area must be greater than 0");
+    }
+    if (inputs.externalPerimeterM <= 0) {
+      errors.push("External Perimeter must be greater than 0");
+    }
+    if (inputs.pitchDegrees <= 0) {
+      errors.push("Roof Pitch must be greater than 0");
+    }
+    if (inputs.eaveWidthM <= 0) {
+      errors.push("Eave Width must be greater than 0");
+    }
+    if (inputs.rasterSpacingMm <= 0) {
+      errors.push("Rafter Spacing must be greater than 0");
+    }
+    if (inputs.trussSpacingMm <= 0) {
+      errors.push("Truss Spacing must be greater than 0");
+    }
+    if (inputs.purlinSpacingM <= 0) {
+      errors.push("Purlin Spacing must be greater than 0");
+    }
+    if (inputs.roofingSheetEffectiveCoverWidthM <= 0) {
+      errors.push("Sheet Effective Cover Width must be greater than 0");
+    }
+    if (inputs.roofingSheetLengthM <= 0) {
+      errors.push("Sheet Standard Length must be greater than 0");
+    }
+    if (!inputs.roofType || inputs.roofType.trim() === "") {
+      errors.push("Roof Type must be selected");
+    }
+
+    setValidationErrors(errors);
+    return errors.length === 0;
+  }, [inputs]);
+
   // Handle calculation
   const handleCalculate = useCallback(() => {
+    // Validate all inputs before calculating
+    if (!validateInputs()) {
+      return;
+    }
+
     try {
       const result = calculateRoofMaterials(inputs);
       setBreakdown(result);
@@ -172,8 +222,17 @@ export default function RoofingCalculatorUI({
       }));
     } catch (error) {
       console.error("Calculation error:", error);
+      setValidationErrors([
+        "An error occurred during calculation. Please check your inputs.",
+      ]);
     }
-  }, [inputs, calculateRoofMaterials, onCalculationResult, setQuoteData]);
+  }, [
+    inputs,
+    calculateRoofMaterials,
+    onCalculationResult,
+    setQuoteData,
+    validateInputs,
+  ]);
 
   // Toggle section expansion
   const toggleSection = useCallback((section: string) => {
@@ -458,6 +517,23 @@ export default function RoofingCalculatorUI({
               </div>
             </div>
           </div>
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-red-700 dark:text-red-300 mb-2">
+                  Please correct the following errors:
+                </p>
+                <ul className="list-disc list-inside text-red-600 dark:text-red-400 space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {/* Calculate Button */}
           <div className="flex gap-2 justify-end pt-4 border-t">

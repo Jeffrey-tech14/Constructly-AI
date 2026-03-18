@@ -547,14 +547,14 @@ const QuoteDetailsPage = () => {
                     state: {
                       quoteId: quote.id,
                       quoteTitle: quote.title,
-                      amount: 1000,
+                      amount: 200,
                     },
                   })
                 }
                 className="text-white bg-gradient-to-r from-[#D85C2C] to-[#C94820] hover:from-[#C94820] hover:to-[#B83B1A]"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
-                Pay 1000 KSH
+                Pay 200 KSH
               </Button>
             )}
 

@@ -51,9 +51,7 @@ export function PaymentGate({
             {/* Quote Info */}
             <div className="space-y-2 rounded-lg bg-gray-50 p-4">
               <p className="text-sm font-medium text-gray-600">Quote Title</p>
-              <p className="truncate text-lg  text-[#00356B]">
-                {quoteTitle}
-              </p>
+              <p className="truncate text-lg  text-[#00356B]">{quoteTitle}</p>
             </div>
 
             {/* Price Display */}
@@ -63,9 +61,7 @@ export function PaymentGate({
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold text-[#00356B]">1,000</span>
-                <span className="text-2xl  text-[#86bc25]">
-                  KSH
-                </span>
+                <span className="text-2xl  text-[#86bc25]">KSH</span>
               </div>
               <p className="text-xs text-gray-500">
                 One-time payment • Non-refundable
@@ -74,9 +70,7 @@ export function PaymentGate({
 
             {/* Feature List */}
             <div className="space-y-3 rounded-lg bg-[#86bc25]/5 p-4">
-              <p className="text-sm  text-gray-700">
-                After payment, you can:
-              </p>
+              <p className="text-sm  text-gray-700">After payment, you can:</p>
               <ul className="space-y-2">
                 {[
                   "View quote progress and details",
@@ -103,7 +97,7 @@ export function PaymentGate({
                     state: {
                       quoteId,
                       quoteTitle,
-                      amount: 1000,
+                      amount: 200,
                       onPaymentComplete,
                     },
                   });
@@ -130,9 +124,7 @@ export function PaymentGate({
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-3 rounded-lg border-l-4 border-[#86bc25] bg-[#86bc25]/5 p-3"
               >
-                <p className="text-sm  text-[#00356B]">
-                  ✓ Quote saved
-                </p>
+                <p className="text-sm  text-[#00356B]">✓ Quote saved</p>
                 <p className="text-xs text-gray-600">
                   You can pay anytime by visiting your quotes list. This quote
                   will remain in your account until you choose to pay.

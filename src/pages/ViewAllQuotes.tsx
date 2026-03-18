@@ -436,7 +436,7 @@ const ViewAllQuotes = () => {
                               state: {
                                 quoteId: quote.id,
                                 quoteTitle: quote.title,
-                                amount: 1000,
+                                amount: 200,
                               },
                             })
                           }

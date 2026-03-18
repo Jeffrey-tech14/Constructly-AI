@@ -1056,19 +1056,19 @@ export function calculateConcrete(
     // Polythene only for slab elements
     if (waterproofing.includesPolythene && row.element === "slab") {
       polytheneArea = len * wid * num;
-      const polytheneMaterial = materials.find((m) =>
-        m.name?.toLowerCase().includes("polythene"),
-      )?.type;
+      const polytheneMaterial =
+        materials?.find((m) => m.name?.toLowerCase().includes("polythene"))
+          ?.type || {};
       const polythene_cost =
-        polytheneMaterial[waterproofing.polytheneGauge] || 0;
+        polytheneMaterial[waterproofing?.polytheneGauge] || 0;
       polytheneCost = polytheneArea * (polythene_cost || 0);
     }
 
     if (waterproofing.includesWaterproofing) {
       waterproofingArea = surfaceAreaM2;
-      const waterproofingMaterial = materials?.find((m) =>
-        m.name?.toLowerCase()?.includes("waterproof"),
-      )?.type;
+      const waterproofingMaterial =
+        materials?.find((m) => m.name?.toLowerCase()?.includes("waterproof"))
+          ?.type || {};
       if (waterproofingMaterial) {
         waterproofingCost =
           waterproofingArea *

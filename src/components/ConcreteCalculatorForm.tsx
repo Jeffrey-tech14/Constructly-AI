@@ -260,10 +260,11 @@ export default function ConcreteCalculatorForm({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const hasFoundationRow = quote.concrete_rows?.some(
+      const hasFoundationRow = quote?.concrete_rows?.some(
         (row: ConcreteRow) => row.element === "raft-foundation",
       );
-      const hasFoundationDetails = quote.foundationDetails?.[0].totalPerimeter;
+      const hasFoundationDetails =
+        quote?.foundationDetails?.[0]?.totalPerimeter;
 
       if (hasFoundationDetails && !hasFoundationRow) {
         addFoundationRow();
@@ -271,7 +272,7 @@ export default function ConcreteCalculatorForm({
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [quote.concrete_rows, quote.foundationDetails, addFoundationRow]);
+  }, [quote?.concrete_rows, quote?.foundationDetails, addFoundationRow]);
 
   const removeRow = useCallback(
     (id: string) => {

@@ -85,7 +85,7 @@ const ViewAllQuotes = () => {
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-primary/10 text-primary hover:bg-primary/20";
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -206,11 +206,11 @@ const ViewAllQuotes = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
-            <h1 className="sm:text-2xl text-xl font-bold flex items-center gap-3 text-foreground tracking-tight">
+            <h1 className="sm:text-2xl text-xl font-bold flex items-center gap-3 ">
               <Building2 className="sm:w-7 sm:h-7 text-primary dark:text-white" />
               <h2 className="text-xl sm:text-2xl">All Construction Quotes</h2>
             </h1>
-            <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-indigo-600 to-indigo-900 dark:from-white dark:via-blue-400 dark:to-purple-400  text-transparent bg-clip-text mt-2">
+            <p className="text-sm sm:text-lg mt-2">
               Manage and track all your construction quotes with ease
             </p>
           </div>
@@ -338,7 +338,7 @@ const ViewAllQuotes = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <Card className="dark:bg-[#111418]">
+                      <Card className="dark:bg-gray-900">
                         <CardContent className="text-center p-4">
                           <div className="text-sm text-muted-foreground mb-1">
                             Materials
@@ -351,18 +351,18 @@ const ViewAllQuotes = () => {
                           </div>
                         </CardContent>
                       </Card>
-                      <Card className="dark:bg-[#111418]">
+                      <Card className="dark:bg-gray-900">
                         <CardContent className="text-center p-4">
                           <div className="text-sm text-muted-foreground mb-1">
                             Labor
                           </div>
-                          <div className="text-lg  text-primary">
+                          <div className="text-lg  text-blue-600">
                             KSh{" "}
                             {formatCurrency(quote.labor_cost).toLocaleString()}
                           </div>
                         </CardContent>
                       </Card>
-                      <Card className="dark:bg-[#111418]">
+                      <Card className="dark:bg-gray-900">
                         <CardContent className="text-center p-4">
                           <div className="text-sm text-muted-foreground mb-1">
                             Add-ons
@@ -378,7 +378,7 @@ const ViewAllQuotes = () => {
                     </div>
 
                     {quote.custom_specs && (
-                      <Card className="dark:bg-[#111418] mb-6">
+                      <Card className="dark:bg-gray-900 mb-6">
                         <CardContent className="p-4">
                           <h4 className="font-medium mb-2">
                             Custom Specifications
@@ -436,7 +436,7 @@ const ViewAllQuotes = () => {
                               state: {
                                 quoteId: quote.id,
                                 quoteTitle: quote.title,
-                                amount: 200,
+                                amount: 1000,
                               },
                             })
                           }
@@ -468,7 +468,7 @@ const ViewAllQuotes = () => {
                             <Button
                               size="sm"
                               onClick={() => setSelectedQuoteForExport(quote)}
-                              className="text-white flex-1 sm:flex-none bg-gradient-to-r from-primary to-primary hover:from-primary/40 hover:to-primary/90"
+                              className="text-white flex-1 sm:flex-none hover:from-primary/40 hover:to-primary/90"
                             >
                               <FileText className="w-4 h-4 mr-2 text-white" />
                               Generate BOQ

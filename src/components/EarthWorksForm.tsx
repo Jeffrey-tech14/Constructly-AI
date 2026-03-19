@@ -760,9 +760,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
             <CardContent className="p-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="text-foreground">
-                    Total Earthworks Cost
-                  </h4>
+                  <h4 className="text-foreground">Total Earthworks Cost</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     {earthworks.length} item(s) • Total Volume:{" "}
                     {earthworks

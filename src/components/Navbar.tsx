@@ -121,11 +121,17 @@ const Navbar = () => {
             xmlns="http://www.w3.org/2000/svg"
             className="h-7 w-auto text-[#f0514e] transition-transform duration-300 group-hover:scale-105 flex-shrink-0"
           >
-            <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor"/>
-            <path d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z" fill="currentColor"/>
+            <path d="M14 4 L26 16 L14 28 L2 16 Z" fill="currentColor" />
+            <path
+              d="M30 4 L42 16 L30 28 L24 22 L30 16 L24 10 Z"
+              fill="currentColor"
+            />
           </svg>
         </div>
-        <span className="text-foreground text-[26px] font-[800] tracking-wide" style={{ fontFamily: 'Outfit, sans-serif' }}>
+        <span
+          className="text-foreground text-[26px] font-[800] tracking-wide"
+          style={{ fontFamily: "Outfit, sans-serif" }}
+        >
           JTech AI
         </span>
       </div>
@@ -224,10 +230,10 @@ const Navbar = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-64 border border-border shadow-xl   rounded-xl p-2"
+                      className="w-64 border border-gray-200 dark:border-gray-700 shadow-xl glass rounded-xl p-2"
                     >
-                      <div className="px-3 py-2 border-b border-gray-100 dark:border-[#2a2d35] mb-2">
-                        <p className=" text-foreground truncate">
+                      <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 mb-2">
+                        <p className=" text-gray-900 dark:text-white truncate">
                           {profile?.name || user.email}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -237,15 +243,15 @@ const Navbar = () => {
 
                       <DropdownMenuItem
                         onClick={() => navigate("/profile")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors  duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg dark:text-white cursor-pointer text-gray-700  transition-colors  duration-200"
                       >
-                        <div className="rounded-lg bg-primary/10 dark:bg-primary/30 items-center">
+                        <div className="rounded-lg bg-primary/30 items-center">
                           <Avatar className="w-8 h-8 items-center justify-center text-center">
                             <AvatarImage
                               src={profile?.avatar_url || undefined}
                             />
                             <AvatarFallback className="items-center justify-center text-center">
-                              <User className="w-4 h-4 justify-center text-center text-primary dark:text-primary"></User>
+                              <User className="w-4 h-4 justify-center text-center text-primary"></User>
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -260,10 +266,10 @@ const Navbar = () => {
                       {profile?.is_admin && (
                         <DropdownMenuItem
                           onClick={() => navigate("/admin")}
-                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                          className="flex items-center gap-3 p-3 rounded-lg dark:text-white cursor-pointer text-gray-700  transition-colors duration-200"
                         >
-                          <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/30">
-                            <Settings2 className="w-4 h-4 text-primary dark:text-primary" />
+                          <div className="p-2 rounded-lg bg-primary/30">
+                            <Settings2 className="w-4 h-4 text-primary" />
                           </div>
                           <div>
                             <p className="font-medium">Admin Dashboard</p>
@@ -274,13 +280,13 @@ const Navbar = () => {
                         </DropdownMenuItem>
                       )}
 
-                      <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-[#1a1b22]" />
+                      <DropdownMenuSeparator className="my-2 bg-gray-200 dark:bg-gray-700" />
                       <DropdownMenuItem
                         onClick={() => navigate("/guide")}
-                        className="flex items-center gap-3 p-3 rounded-lg cursor-pointer text-gray-700 hover:bg-primary/20 hover:text-background dark:text-gray-300 dark:hover:bg-primary/40 dark:hover:text-white transition-colors duration-200"
+                        className="flex items-center gap-3 p-3 rounded-lg dark:text-white cursor-pointer text-gray-700  transition-colors duration-200"
                       >
-                        <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/30">
-                          <HelpCircle className="w-4 h-4 text-primary dark:text-primary" />
+                        <div className="p-2 rounded-lg bg-primary/30">
+                          <HelpCircle className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="font-medium">User Guide</p>
@@ -304,15 +310,15 @@ const Navbar = () => {
                             </div>
                           </div>
                         </AlertDialogTrigger>
-                        <AlertDialogContent className="border border-border rounded-3xl shadow-xl">
+                        <AlertDialogContent className="border border-gray-200 dark:border-gray-700 rounded-3xl shadow-xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+                            <AlertDialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                               <LogOut className="w-5 h-5 text-red-500" />
                               Confirm Sign Out
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
                               Are you sure you want to sign out as{" "}
-                              <span className=" text-foreground">
+                              <span className=" text-gray-900 dark:text-white">
                                 {profile?.name || user.email}
                               </span>
                               ? You will need to sign in again to access your
@@ -320,7 +326,7 @@ const Navbar = () => {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-lg border-gray-300 dark:border-[#2a2d35] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <AlertDialogCancel className="rounded-lg border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                               Cancel
                             </AlertDialogCancel>
                             <AlertDialogAction

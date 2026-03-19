@@ -326,8 +326,8 @@ export default function ConcreteCalculatorForm({
   }, [user, profile, fetchMaterials]);
 
   /**
-   * Auto-calculate hardcore backfill depth for strip footings
-   * Formula: Finished Floor Level - slab thickness - maram blinding - concrete blinding - (excavation depth - footing thickness)
+   * Auto-calculate hardcore backfill depth for slabs
+   * Formula: depth of topsoil + ground floor elevation - slab thickness - maram blinding
    */
   useEffect(() => {
     setRows((prevRows) => {
@@ -345,47 +345,24 @@ export default function ConcreteCalculatorForm({
           const maramBlindingDepth = row.hasMaramBlinding
             ? parseFloat(row.maramBlindingDepth || "0") || 0
             : 0;
-          const concreteBlindingDepth = row.hasBlinding
-            ? parseFloat(row.blindingDepth || "0") || 0
-            : 0;
 
-          // Get excavation depth and footing thickness
-          const excavationDepth =
-            parseFloat(quote?.foundationDetails?.[0]?.height || "0.65") || 0.65;
+          // Get ground floor elevation and topsoil depth
+          const groundFloorElevation =
+            parseFloat(
+              quote?.foundationDetails?.[0]?.groundFloorElevation || "0",
+            ) || 0;
 
-          // Get footing thickness from block type mapping
-          const nameLower = row.name.toLowerCase();
-          const isInternal = nameLower.includes("internal");
-          const isExternal = nameLower.includes("external");
-          const wallType = isInternal
-            ? "internal"
-            : isExternal
-              ? "external"
-              : row.wallType;
+          const topsoilItem = quote?.earthwork?.find(
+            (e: any) => e.type === "topsoil-removal",
+          );
+          const topsoilDepth = parseFloat(topsoilItem?.depth || "0.2") || 0;
 
-          let footingThickness = 0;
-          if (wallType && quote?.wallSections) {
-            const wallSection = quote.wallSections.find(
-              (w: any) => w.type === wallType,
-            );
-            if (wallSection) {
-              const blockType = wallSection.blockType || "Standard Block";
-              const blockDimensions =
-                blockDimensionsMap[blockType] || "0.15x0.2x0.15";
-              const dims = blockDimensions
-                .split("x")
-                .map((d: string) => parseFloat(d.trim()));
-              footingThickness = dims.length >= 3 ? dims[2] : 0.15;
-            }
-          }
-
-          // Calculate hardcore depth
-          const topOfFootingLevel = excavationDepth - footingThickness;
+          // Calculate backfill depth: topsoil depth + ground floor elevation - slab thickness - maram blinding
           const hardcoreDepth =
-            topOfFootingLevel -
-            slabThickness -
-            maramBlindingDepth -
-            concreteBlindingDepth;
+            topsoilDepth +
+              groundFloorElevation -
+              slabThickness -
+              maramBlindingDepth || 0;
           const calculatedDepth = Math.max(0, hardcoreDepth).toString();
 
           if (row.backFillDepth !== calculatedDepth) {

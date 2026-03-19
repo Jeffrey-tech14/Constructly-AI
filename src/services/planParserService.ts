@@ -354,6 +354,7 @@ Return ONLY valid JSON with the structure implied by the fields above.
 Use reasonable estimates if exact dimensions are not visible, but adhere strictly to the Foundation Constraint (Single Concrete Footing System).
 Never guess. Never invent. Never explain.
 Use ALL available views to resolve dimensions.
+The default depth for a bungalow if not clearly stated is 0.65 m for excavation and 0.15 m for ground floor slab.
 **FOR BUNGALOWS, WE ONLY HAVE TWO COCRETE AND REINFORCEMENT OPRIONS; STRIP FOOTING AND GROUND FLOOR SLAB. DO NOT CREATE EXTRA ITEMS IF HOUSE IS A BUNGALOW.**
 
 

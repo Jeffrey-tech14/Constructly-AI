@@ -69,7 +69,7 @@ const ErrorPage = ({
       : "text-red-900 dark:text-red-100";
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center bg-[#fcfdfd] dark:bg-[#08090b] text-[#1a1a1a] dark:text-[#eceff4] transition-colors duration-400 justify-center p-4">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>

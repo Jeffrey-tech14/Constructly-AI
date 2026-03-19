@@ -30,11 +30,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Plus, Edit } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  Edit,
+  DoorOpen,
+  Grid3X3,
+  CookingPot,
+} from "lucide-react";
 
 // ============================================
-// WARDROBE EXPORTS & TYPES
+// TYPES (unchanged)
 // ============================================
 export interface WardrobeItem {
   id: string;
@@ -54,9 +60,6 @@ export interface WardrobeItem {
   totalPrice?: number;
 }
 
-// ============================================
-// KITCHEN CABINET EXPORTS & TYPES
-// ============================================
 export interface KitchenCabinet {
   id: string;
   name: string;
@@ -72,9 +75,6 @@ export interface KitchenCabinet {
   totalPrice?: number;
 }
 
-// ============================================
-// COUNTERTOP EXPORTS & TYPES
-// ============================================
 export interface Countertop {
   id: string;
   type: "granite" | "tiled";
@@ -82,7 +82,7 @@ export interface Countertop {
   width: number;
   area: number;
   material: string;
-  graniteSize?: string; // Standard size ID for granite
+  graniteSize?: string;
   cornerStrips: boolean;
   cornerStripLength: number;
   unitPrice: number;
@@ -99,7 +99,6 @@ const COUNTERTOP_MATERIALS = {
   tiled: ["Ceramic Tiles", "Porcelain Tiles", "Stone Tiles", "Mosaic Tiles"],
 };
 
-// Granite countertop standard sizes: Length × Width × Depth (mm)
 const GRANITE_SIZES = [
   { id: "1200x600x20", label: "1200 × 600 × 20 mm", length: 1.2, width: 0.6 },
   {
@@ -114,9 +113,6 @@ const GRANITE_SIZES = [
   { id: "3000x600x20", label: "3000 × 600 × 20 mm", length: 3.0, width: 0.6 },
 ];
 
-// ============================================
-// COMPONENT PROPS
-// ============================================
 interface KitchenAndWardrobesCalculatorProps {
   wardrobes: WardrobeItem[];
   setWardrobes: (wardrobes: WardrobeItem[]) => void;
@@ -126,7 +122,7 @@ interface KitchenAndWardrobesCalculatorProps {
 }
 
 // ============================================
-// MAIN COMPONENT
+// MAIN COMPONENT (redesigned layout)
 // ============================================
 export const KitchenAndWardrobesCalculator: React.FC<
   KitchenAndWardrobesCalculatorProps
@@ -153,7 +149,6 @@ export const KitchenAndWardrobesCalculator: React.FC<
   const getMaterialPrice = (materialName: string) => {
     if (!Array.isArray(materialPrices)) return 0;
 
-    // Look for Countertops or Kitchen Countertops category
     const countertopmaterial = materialPrices.find(
       (m: any) =>
         m.name?.toLowerCase().includes("countertop") ||
@@ -162,7 +157,6 @@ export const KitchenAndWardrobesCalculator: React.FC<
 
     if (!countertopmaterial) return 0;
 
-    // Check if materials are in type.materials object
     if (countertopmaterial.type?.materials) {
       const materials = countertopmaterial.type.materials;
       return (
@@ -170,7 +164,6 @@ export const KitchenAndWardrobesCalculator: React.FC<
       );
     }
 
-    // Check if type is an array with materials
     if (Array.isArray(countertopmaterial.type)) {
       const material = countertopmaterial.type.find(
         (t: any) =>
@@ -180,13 +173,10 @@ export const KitchenAndWardrobesCalculator: React.FC<
       return material?.price_kes_per_m2 || material?.price || 0;
     }
 
-    // Direct price lookup
     return countertopmaterial.price || 0;
   };
 
-  // ============================================
-  // WARDROBE HANDLERS
-  // ============================================
+  // ========== WARDROBE HANDLERS (unchanged) ==========
   const addWardrobe = () => {
     const newWardrobe: WardrobeItem = {
       id: `wardrobe-${Date.now()}`,
@@ -254,9 +244,80 @@ export const KitchenAndWardrobesCalculator: React.FC<
     return wardrobes.reduce((total, w) => total + (w.totalPrice || 0), 0);
   };
 
-  // ============================================
-  // COUNTERTOP HANDLERS
-  // ============================================
+  // ========== KITCHEN CABINET HANDLERS (unchanged) ==========
+  const addKitchenCabinet = () => {
+    const newCabinet: KitchenCabinet = {
+      id: `cabinet-${Date.now()}`,
+      name: "New Kitchen Cabinet",
+      quotationType: "lump-sum",
+      usesLumpSum: true,
+      lumpSumAmount: 0,
+      numCupboards: "0",
+      numDrawers: "0",
+      numDoors: "0",
+      quantity: "1",
+      unitPrice: "0",
+      totalPrice: 0,
+    };
+    setKitchenCabinets([...kitchenCabinets, newCabinet]);
+    setEditingCabinetId(newCabinet.id);
+    setEditCabinetForm(newCabinet);
+  };
+
+  const removeKitchenCabinet = (id: string) => {
+    setKitchenCabinets(kitchenCabinets.filter((c) => c.id !== id));
+    if (editingCabinetId === id) {
+      setEditingCabinetId(null);
+      setEditCabinetForm(null);
+    }
+  };
+
+  const updateKitchenCabinet = (
+    id: string,
+    field: string,
+    value: string | boolean | number,
+  ) => {
+    setKitchenCabinets(
+      kitchenCabinets.map((c) => {
+        if (c.id === id) {
+          const updated = { ...c, [field]: value };
+          if (field === "quotationType") {
+            updated.usesLumpSum = value === "lump-sum";
+            if (updated.usesLumpSum) {
+              updated.totalPrice = updated.lumpSumAmount || 0;
+            } else {
+              const qty = parseFloat(updated.quantity) || 0;
+              const price = parseFloat(updated.unitPrice || "0") || 0;
+              updated.totalPrice = qty * price;
+            }
+          } else if (
+            field === "lumpSumAmount" ||
+            field === "quantity" ||
+            field === "unitPrice"
+          ) {
+            if (updated.quotationType === "lump-sum") {
+              updated.totalPrice = updated.lumpSumAmount || 0;
+            } else {
+              const qty = parseFloat(updated.quantity) || 0;
+              const price = parseFloat(updated.unitPrice || "0") || 0;
+              updated.totalPrice = qty * price;
+            }
+          }
+          if (editingCabinetId === id) {
+            setEditCabinetForm(updated);
+          }
+          return updated;
+        }
+        return c;
+      }),
+    );
+  };
+
+  const calculateKitchenCabinetsTotalCost = (): number => {
+    return kitchenCabinets.reduce((total, c) => total + (c.totalPrice || 0), 0);
+  };
+
+  // ========== COUNTERTOP HANDLERS (unchanged) ==========
   const calculateCornerStripLength = (
     length: number,
     width: number,
@@ -338,509 +399,105 @@ export const KitchenAndWardrobesCalculator: React.FC<
     }).format(value);
   };
 
-  // ============================================
-  // KITCHEN CABINET HANDLERS
-  // ============================================
-  const addKitchenCabinet = () => {
-    const newCabinet: KitchenCabinet = {
-      id: `cabinet-${Date.now()}`,
-      name: "New Kitchen Cabinet",
-      quotationType: "lump-sum",
-      usesLumpSum: true,
-      lumpSumAmount: 0,
-      numCupboards: "0",
-      numDrawers: "0",
-      numDoors: "0",
-      quantity: "1",
-      unitPrice: "0",
-      totalPrice: 0,
-    };
-    setKitchenCabinets([...kitchenCabinets, newCabinet]);
-    setEditingCabinetId(newCabinet.id);
-    setEditCabinetForm(newCabinet);
-  };
-
-  const removeKitchenCabinet = (id: string) => {
-    setKitchenCabinets(kitchenCabinets.filter((c) => c.id !== id));
-    if (editingCabinetId === id) {
-      setEditingCabinetId(null);
-      setEditCabinetForm(null);
-    }
-  };
-
-  const updateKitchenCabinet = (
-    id: string,
-    field: string,
-    value: string | boolean | number,
-  ) => {
-    setKitchenCabinets(
-      kitchenCabinets.map((c) => {
-        if (c.id === id) {
-          const updated = { ...c, [field]: value };
-          if (field === "quotationType") {
-            updated.usesLumpSum = value === "lump-sum";
-            if (updated.usesLumpSum) {
-              updated.totalPrice = updated.lumpSumAmount || 0;
-            } else {
-              const qty = parseFloat(updated.quantity) || 0;
-              const price = parseFloat(updated.unitPrice || "0") || 0;
-              updated.totalPrice = qty * price;
-            }
-          } else if (
-            field === "lumpSumAmount" ||
-            field === "quantity" ||
-            field === "unitPrice"
-          ) {
-            if (updated.quotationType === "lump-sum") {
-              updated.totalPrice = updated.lumpSumAmount || 0;
-            } else {
-              const qty = parseFloat(updated.quantity) || 0;
-              const price = parseFloat(updated.unitPrice || "0") || 0;
-              updated.totalPrice = qty * price;
-            }
-          }
-          if (editingCabinetId === id) {
-            setEditCabinetForm(updated);
-          }
-          return updated;
-        }
-        return c;
-      }),
-    );
-  };
-
-  const calculateKitchenCabinetsTotalCost = (): number => {
-    return kitchenCabinets.reduce((total, c) => total + (c.totalPrice || 0), 0);
-  };
-
+  // ========== REDESIGNED JSX ==========
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-6"
+      className="space-y-8"
     >
-      <div className="space-y-6">
-        {/* ============================================ */}
-        {/* WARDROBES & KITCHEN CABINETS COMBINED */}
-        {/* ============================================ */}
+      {/* ========== WARDROBES SECTION ========== */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <DoorOpen className="w-6 h-6 text-primary" />
+            Wardrobes
+          </h2>
+          {!readonly && (
+            <Button onClick={addWardrobe} variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Wardrobe
+            </Button>
+          )}
+        </div>
+
         <div className="space-y-4">
-          <h3 className="text-xl mb-4 text-foreground">Wardrobes</h3>
-
-          <div className="space-y-4">
-            {wardrobes.map((wardrobe, index) => (
-              <Card key={wardrobe.id} className="p-6">
-                <CardContent className="p-0">
-                  <div className="flex items-start justify-between mb-4">
-                    <h4 className="font-medium text-foreground">
-                      Item #{index + 1}: {wardrobe.name}
-                    </h4>
-                    {!readonly && (
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => removeWardrobe(wardrobe.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div className="space-y-2">
-                      <Label htmlFor={`name-${wardrobe.id}`}>Item Name</Label>
-                      <Input
-                        id={`name-${wardrobe.id}`}
-                        type="text"
-                        value={wardrobe.name}
-                        onChange={(e) =>
-                          updateWardrobe(wardrobe.id, "name", e.target.value)
-                        }
-                        placeholder="e.g., Master Bedroom Wardrobe"
-                        readOnly={readonly}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`quote-type-${wardrobe.id}`}>
-                        Quote Type
-                      </Label>
-                      <Select
-                        value={wardrobe.quotationType}
-                        onValueChange={(value) =>
-                          updateWardrobe(
-                            wardrobe.id,
-                            "quotationType",
-                            value as "lump-sum" | "detailed",
-                          )
-                        }
-                        disabled={readonly}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="lump-sum">
-                            Lump-Sum Amount
-                          </SelectItem>
-                          <SelectItem value="detailed">
-                            Detailed Quote
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {wardrobe.quotationType === "detailed" && (
-                      <div className="space-y-2">
-                        <Label htmlFor={`qty-${wardrobe.id}`}>Quantity</Label>
-                        <Input
-                          id={`qty-${wardrobe.id}`}
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={wardrobe.quantity}
-                          onChange={(e) =>
-                            updateWardrobe(
-                              wardrobe.id,
-                              "quantity",
-                              e.target.value,
-                            )
-                          }
-                          readOnly={readonly}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {wardrobe.quotationType === "lump-sum" ? (
-                    <div className="bg-primary/10 dark:bg-primary/30 p-4 rounded-lg mb-4">
-                      <h5 className="text-foreground mb-4">Lump-Sum Pricing</h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`lump-sum-${wardrobe.id}`}>
-                            Total Amount (KES)
-                          </Label>
-                          <Input
-                            id={`lump-sum-${wardrobe.id}`}
-                            type="number"
-                            step="100"
-                            min="0"
-                            value={wardrobe.lumpSumAmount || 0}
-                            onChange={(e) =>
-                              updateWardrobe(
-                                wardrobe.id,
-                                "lumpSumAmount",
-                                parseFloat(e.target.value) || 0,
-                              )
-                            }
-                            placeholder="Enter total cost"
-                            readOnly={readonly}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mb-4">
-                      <h5 className="text-foreground mb-4">
-                        Detailed Components
-                      </h5>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`boards-${wardrobe.id}`}>
-                            Number of Boards
-                          </Label>
-                          <Input
-                            id={`boards-${wardrobe.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={wardrobe.numBoards || "0"}
-                            onChange={(e) =>
-                              updateWardrobe(
-                                wardrobe.id,
-                                "numBoards",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`hinges-${wardrobe.id}`}>
-                            Number of Hinges
-                          </Label>
-                          <Input
-                            id={`hinges-${wardrobe.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={wardrobe.numHinges || "0"}
-                            onChange={(e) =>
-                              updateWardrobe(
-                                wardrobe.id,
-                                "numHinges",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`locks-${wardrobe.id}`}>
-                            Number of Locks
-                          </Label>
-                          <Input
-                            id={`locks-${wardrobe.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={wardrobe.numLocks || "0"}
-                            onChange={(e) =>
-                              updateWardrobe(
-                                wardrobe.id,
-                                "numLocks",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`rails-${wardrobe.id}`}>
-                            Number of Drawer Rails
-                          </Label>
-                          <Input
-                            id={`rails-${wardrobe.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={wardrobe.numDrawerRails || "0"}
-                            onChange={(e) =>
-                              updateWardrobe(
-                                wardrobe.id,
-                                "numDrawerRails",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`glass-area-${wardrobe.id}`}>
-                            Glass Area (m²)
-                          </Label>
-                          <Input
-                            id={`glass-area-${wardrobe.id}`}
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            value={wardrobe.glassArea || "0"}
-                            onChange={(e) =>
-                              updateWardrobe(
-                                wardrobe.id,
-                                "glassArea",
-                                e.target.value,
-                              )
-                            }
-                            disabled={!wardrobe.hasGlass || readonly}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2 mb-4">
-                        <Checkbox
-                          id={`has-glass-${wardrobe.id}`}
-                          checked={wardrobe.hasGlass || false}
-                          onCheckedChange={(checked) =>
-                            updateWardrobe(wardrobe.id, "hasGlass", checked)
-                          }
-                          disabled={readonly}
-                        />
-                        <Label
-                          htmlFor={`has-glass-${wardrobe.id}`}
-                          className="font-normal"
-                        >
-                          Include Glass Doors/Panels
-                        </Label>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor={`unit-price-${wardrobe.id}`}>
-                          Unit Price (KES)
-                        </Label>
-                        <Input
-                          id={`unit-price-${wardrobe.id}`}
-                          type="number"
-                          step="100"
-                          min="0"
-                          value={wardrobe.unitPrice || "0"}
-                          onChange={(e) =>
-                            updateWardrobe(
-                              wardrobe.id,
-                              "unitPrice",
-                              e.target.value,
-                            )
-                          }
-                          readOnly={readonly}
-                        />
-                      </div>
-                    </div>
+          {wardrobes.map((wardrobe, index) => (
+            <Card key={wardrobe.id} className="overflow-hidden">
+              <CardHeader className="bg-muted/20 py-3">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-base">
+                    #{index + 1}: {wardrobe.name}
+                  </CardTitle>
+                  {!readonly && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => removeWardrobe(wardrobe.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   )}
-
-                  <div className="space-y-2 mb-4">
-                    <Label htmlFor={`notes-${wardrobe.id}`}>Notes</Label>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                {/* Input grid (unchanged content) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`name-${wardrobe.id}`}>Item Name</Label>
                     <Input
-                      id={`notes-${wardrobe.id}`}
+                      id={`name-${wardrobe.id}`}
                       type="text"
-                      value={wardrobe.notes || ""}
+                      value={wardrobe.name}
                       onChange={(e) =>
-                        updateWardrobe(wardrobe.id, "notes", e.target.value)
+                        updateWardrobe(wardrobe.id, "name", e.target.value)
                       }
-                      placeholder="Additional notes or specifications"
+                      placeholder="e.g., Master Bedroom Wardrobe"
                       readOnly={readonly}
                     />
                   </div>
 
-                  <div className="bg-gray-100 dark:bg-[#111418] p-4 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-foreground">Total Cost:</span>
-                      <span className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        KES{" "}
-                        {(wardrobe.totalPrice || 0).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {!readonly && (
-            <Button onClick={addWardrobe} className="mt-4" variant="outline">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Wardrobe Item
-            </Button>
-          )}
-
-          {wardrobes.length > 0 && (
-            <Card className="mt-6 bg-gradient-to-r from-primary to-green-50 dark:from-primary/20 dark:to-green-900/20">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="text-foreground">Total Wardrobes Cost</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {wardrobes.length} item(s)
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      KES{" "}
-                      {calculateWardrobesTotalCost().toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* KITCHEN CABINETS SECTION */}
-          <h3 className="text-xl  mt-8 mb-4 text-foreground">
-            Kitchen Cabinets
-          </h3>
-
-          <div className="space-y-4">
-            {kitchenCabinets.map((cabinet, index) => (
-              <Card key={cabinet.id} className="p-6">
-                <CardContent className="p-0">
-                  <div className="flex items-start justify-between mb-4">
-                    <h4 className="font-medium text-foreground">
-                      Item #{index + 1}: {cabinet.name}
-                    </h4>
-                    {!readonly && (
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => removeKitchenCabinet(cabinet.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
+                  <div className="space-y-2">
+                    <Label htmlFor={`quote-type-${wardrobe.id}`}>
+                      Quote Type
+                    </Label>
+                    <Select
+                      value={wardrobe.quotationType}
+                      onValueChange={(value) =>
+                        updateWardrobe(
+                          wardrobe.id,
+                          "quotationType",
+                          value as "lump-sum" | "detailed",
+                        )
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lump-sum">
+                          Lump-Sum Amount
+                        </SelectItem>
+                        <SelectItem value="detailed">Detailed Quote</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  {wardrobe.quotationType === "detailed" && (
                     <div className="space-y-2">
-                      <Label htmlFor={`cab-name-${cabinet.id}`}>
-                        Item Name
-                      </Label>
+                      <Label htmlFor={`qty-${wardrobe.id}`}>Quantity</Label>
                       <Input
-                        id={`cab-name-${cabinet.id}`}
-                        type="text"
-                        value={cabinet.name}
-                        onChange={(e) =>
-                          updateKitchenCabinet(
-                            cabinet.id,
-                            "name",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="e.g., Base Kitchen Cabinets"
-                        readOnly={readonly}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`cab-quote-type-${cabinet.id}`}>
-                        Quote Type
-                      </Label>
-                      <Select
-                        value={cabinet.quotationType}
-                        onValueChange={(value) =>
-                          updateKitchenCabinet(
-                            cabinet.id,
-                            "quotationType",
-                            value as "lump-sum" | "detailed",
-                          )
-                        }
-                        disabled={readonly}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="lump-sum">
-                            Lump-Sum Amount
-                          </SelectItem>
-                          <SelectItem value="detailed">
-                            Detailed Quote
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`cab-quantity-${cabinet.id}`}>
-                        Quantity
-                      </Label>
-                      <Input
-                        id={`cab-quantity-${cabinet.id}`}
+                        id={`qty-${wardrobe.id}`}
                         type="number"
                         step="1"
                         min="0"
-                        value={cabinet.quantity}
+                        value={wardrobe.quantity}
                         onChange={(e) =>
-                          updateKitchenCabinet(
-                            cabinet.id,
+                          updateWardrobe(
+                            wardrobe.id,
                             "quantity",
                             e.target.value,
                           )
@@ -848,115 +505,425 @@ export const KitchenAndWardrobesCalculator: React.FC<
                         readOnly={readonly}
                       />
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  {cabinet.quotationType === "lump-sum" ? (
-                    <div className="space-y-2 mb-4">
-                      <Label htmlFor={`cab-lump-sum-${cabinet.id}`}>
-                        Lump Sum Amount (KES)
-                      </Label>
-                      <Input
-                        id={`cab-lump-sum-${cabinet.id}`}
-                        type="number"
-                        step="100"
-                        min="0"
-                        value={cabinet.lumpSumAmount || "0"}
-                        onChange={(e) =>
-                          updateKitchenCabinet(
-                            cabinet.id,
-                            "lumpSumAmount",
-                            parseFloat(e.target.value) || 0,
-                          )
-                        }
-                        placeholder="Enter total cost"
-                        readOnly={readonly}
-                      />
-                    </div>
-                  ) : (
-                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg mb-4">
-                      <h5 className="text-foreground mb-4">
-                        Detailed Components
-                      </h5>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`cab-cupboards-${cabinet.id}`}>
-                            Number of Cupboards
-                          </Label>
-                          <Input
-                            id={`cab-cupboards-${cabinet.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={cabinet.numCupboards || "0"}
-                            onChange={(e) =>
-                              updateKitchenCabinet(
-                                cabinet.id,
-                                "numCupboards",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`cab-drawers-${cabinet.id}`}>
-                            Number of Drawers
-                          </Label>
-                          <Input
-                            id={`cab-drawers-${cabinet.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={cabinet.numDrawers || "0"}
-                            onChange={(e) =>
-                              updateKitchenCabinet(
-                                cabinet.id,
-                                "numDrawers",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor={`cab-doors-${cabinet.id}`}>
-                            Number of Doors
-                          </Label>
-                          <Input
-                            id={`cab-doors-${cabinet.id}`}
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={cabinet.numDoors || "0"}
-                            onChange={(e) =>
-                              updateKitchenCabinet(
-                                cabinet.id,
-                                "numDoors",
-                                e.target.value,
-                              )
-                            }
-                            readOnly={readonly}
-                          />
-                        </div>
-                      </div>
-
+                {wardrobe.quotationType === "lump-sum" ? (
+                  <div className="bg-primary/10 dark:bg-primary/30 p-4 rounded-lg">
+                    <h5 className="text-foreground mb-4">Lump-Sum Pricing</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor={`cab-unit-price-${cabinet.id}`}>
-                          Unit Price (KES)
+                        <Label htmlFor={`lump-sum-${wardrobe.id}`}>
+                          Total Amount (KES)
                         </Label>
                         <Input
-                          id={`cab-unit-price-${cabinet.id}`}
+                          id={`lump-sum-${wardrobe.id}`}
                           type="number"
                           step="100"
                           min="0"
-                          value={cabinet.unitPrice || "0"}
+                          value={wardrobe.lumpSumAmount || 0}
+                          onChange={(e) =>
+                            updateWardrobe(
+                              wardrobe.id,
+                              "lumpSumAmount",
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          placeholder="Enter total cost"
+                          readOnly={readonly}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <h5 className="text-foreground mb-4">
+                      Detailed Components
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor={`boards-${wardrobe.id}`}>
+                          Number of Boards
+                        </Label>
+                        <Input
+                          id={`boards-${wardrobe.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={wardrobe.numBoards || "0"}
+                          onChange={(e) =>
+                            updateWardrobe(
+                              wardrobe.id,
+                              "numBoards",
+                              e.target.value,
+                            )
+                          }
+                          readOnly={readonly}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`hinges-${wardrobe.id}`}>
+                          Number of Hinges
+                        </Label>
+                        <Input
+                          id={`hinges-${wardrobe.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={wardrobe.numHinges || "0"}
+                          onChange={(e) =>
+                            updateWardrobe(
+                              wardrobe.id,
+                              "numHinges",
+                              e.target.value,
+                            )
+                          }
+                          readOnly={readonly}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`locks-${wardrobe.id}`}>
+                          Number of Locks
+                        </Label>
+                        <Input
+                          id={`locks-${wardrobe.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={wardrobe.numLocks || "0"}
+                          onChange={(e) =>
+                            updateWardrobe(
+                              wardrobe.id,
+                              "numLocks",
+                              e.target.value,
+                            )
+                          }
+                          readOnly={readonly}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`rails-${wardrobe.id}`}>
+                          Number of Drawer Rails
+                        </Label>
+                        <Input
+                          id={`rails-${wardrobe.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={wardrobe.numDrawerRails || "0"}
+                          onChange={(e) =>
+                            updateWardrobe(
+                              wardrobe.id,
+                              "numDrawerRails",
+                              e.target.value,
+                            )
+                          }
+                          readOnly={readonly}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`glass-area-${wardrobe.id}`}>
+                          Glass Area (m²)
+                        </Label>
+                        <Input
+                          id={`glass-area-${wardrobe.id}`}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={wardrobe.glassArea || "0"}
+                          onChange={(e) =>
+                            updateWardrobe(
+                              wardrobe.id,
+                              "glassArea",
+                              e.target.value,
+                            )
+                          }
+                          disabled={!wardrobe.hasGlass || readonly}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Checkbox
+                        id={`has-glass-${wardrobe.id}`}
+                        checked={wardrobe.hasGlass || false}
+                        onCheckedChange={(checked) =>
+                          updateWardrobe(wardrobe.id, "hasGlass", checked)
+                        }
+                        disabled={readonly}
+                      />
+                      <Label
+                        htmlFor={`has-glass-${wardrobe.id}`}
+                        className="font-normal"
+                      >
+                        Include Glass Doors/Panels
+                      </Label>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`unit-price-${wardrobe.id}`}>
+                        Unit Price (KES)
+                      </Label>
+                      <Input
+                        id={`unit-price-${wardrobe.id}`}
+                        type="number"
+                        step="100"
+                        min="0"
+                        value={wardrobe.unitPrice || "0"}
+                        onChange={(e) =>
+                          updateWardrobe(
+                            wardrobe.id,
+                            "unitPrice",
+                            e.target.value,
+                          )
+                        }
+                        readOnly={readonly}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor={`notes-${wardrobe.id}`}>Notes</Label>
+                  <Input
+                    id={`notes-${wardrobe.id}`}
+                    type="text"
+                    value={wardrobe.notes || ""}
+                    onChange={(e) =>
+                      updateWardrobe(wardrobe.id, "notes", e.target.value)
+                    }
+                    placeholder="Additional notes or specifications"
+                    readOnly={readonly}
+                  />
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-foreground">Total Cost:</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      KES{" "}
+                      {(wardrobe.totalPrice || 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {wardrobes.length > 0 && (
+          <Card className="bg-gradient-to-r from-primary/10 to-green-50 dark:from-primary/20 dark:to-green-900/20">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className="text-foreground font-medium">
+                    Total Wardrobes Cost
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {wardrobes.length} item(s)
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    KES{" "}
+                    {calculateWardrobesTotalCost().toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+      {/* ========== KITCHEN CABINETS SECTION ========== */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <CookingPot className="w-6 h-6 text-primary" />
+            Kitchen Cabinets
+          </h2>
+          {!readonly && (
+            <Button onClick={addKitchenCabinet} variant="outline" size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Cabinet
+            </Button>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {kitchenCabinets.map((cabinet, index) => (
+            <Card key={cabinet.id} className="overflow-hidden">
+              <CardHeader className="bg-muted/20 py-3">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-base">
+                    #{index + 1}: {cabinet.name}
+                  </CardTitle>
+                  {!readonly && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => removeKitchenCabinet(cabinet.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                {/* Input grid (unchanged) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`cab-name-${cabinet.id}`}>Item Name</Label>
+                    <Input
+                      id={`cab-name-${cabinet.id}`}
+                      type="text"
+                      value={cabinet.name}
+                      onChange={(e) =>
+                        updateKitchenCabinet(cabinet.id, "name", e.target.value)
+                      }
+                      placeholder="e.g., Base Kitchen Cabinets"
+                      readOnly={readonly}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`cab-quote-type-${cabinet.id}`}>
+                      Quote Type
+                    </Label>
+                    <Select
+                      value={cabinet.quotationType}
+                      onValueChange={(value) =>
+                        updateKitchenCabinet(
+                          cabinet.id,
+                          "quotationType",
+                          value as "lump-sum" | "detailed",
+                        )
+                      }
+                      disabled={readonly}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lump-sum">
+                          Lump-Sum Amount
+                        </SelectItem>
+                        <SelectItem value="detailed">Detailed Quote</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`cab-quantity-${cabinet.id}`}>
+                      Quantity
+                    </Label>
+                    <Input
+                      id={`cab-quantity-${cabinet.id}`}
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={cabinet.quantity}
+                      onChange={(e) =>
+                        updateKitchenCabinet(
+                          cabinet.id,
+                          "quantity",
+                          e.target.value,
+                        )
+                      }
+                      readOnly={readonly}
+                    />
+                  </div>
+                </div>
+
+                {cabinet.quotationType === "lump-sum" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor={`cab-lump-sum-${cabinet.id}`}>
+                      Lump Sum Amount (KES)
+                    </Label>
+                    <Input
+                      id={`cab-lump-sum-${cabinet.id}`}
+                      type="number"
+                      step="100"
+                      min="0"
+                      value={cabinet.lumpSumAmount || "0"}
+                      onChange={(e) =>
+                        updateKitchenCabinet(
+                          cabinet.id,
+                          "lumpSumAmount",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      placeholder="Enter total cost"
+                      readOnly={readonly}
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <h5 className="text-foreground mb-4">
+                      Detailed Components
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                      <div className="space-y-2">
+                        <Label htmlFor={`cab-cupboards-${cabinet.id}`}>
+                          Number of Cupboards
+                        </Label>
+                        <Input
+                          id={`cab-cupboards-${cabinet.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={cabinet.numCupboards || "0"}
                           onChange={(e) =>
                             updateKitchenCabinet(
                               cabinet.id,
-                              "unitPrice",
+                              "numCupboards",
+                              e.target.value,
+                            )
+                          }
+                          readOnly={readonly}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`cab-drawers-${cabinet.id}`}>
+                          Number of Drawers
+                        </Label>
+                        <Input
+                          id={`cab-drawers-${cabinet.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={cabinet.numDrawers || "0"}
+                          onChange={(e) =>
+                            updateKitchenCabinet(
+                              cabinet.id,
+                              "numDrawers",
+                              e.target.value,
+                            )
+                          }
+                          readOnly={readonly}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`cab-doors-${cabinet.id}`}>
+                          Number of Doors
+                        </Label>
+                        <Input
+                          id={`cab-doors-${cabinet.id}`}
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={cabinet.numDoors || "0"}
+                          onChange={(e) =>
+                            updateKitchenCabinet(
+                              cabinet.id,
+                              "numDoors",
                               e.target.value,
                             )
                           }
@@ -964,538 +931,453 @@ export const KitchenAndWardrobesCalculator: React.FC<
                         />
                       </div>
                     </div>
-                  )}
 
-                  <div className="space-y-2 mb-4">
-                    <Label htmlFor={`cab-notes-${cabinet.id}`}>Notes</Label>
-                    <Input
-                      id={`cab-notes-${cabinet.id}`}
-                      type="text"
-                      value={cabinet.notes || ""}
-                      onChange={(e) =>
-                        updateKitchenCabinet(
-                          cabinet.id,
-                          "notes",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="Additional notes or specifications"
-                      readOnly={readonly}
-                    />
-                  </div>
-
-                  <div className="bg-gray-100 dark:bg-[#111418] p-4 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-foreground">Total Cost:</span>
-                      <span className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        KES{" "}
-                        {(cabinet.totalPrice || 0).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
+                    <div className="space-y-2">
+                      <Label htmlFor={`cab-unit-price-${cabinet.id}`}>
+                        Unit Price (KES)
+                      </Label>
+                      <Input
+                        id={`cab-unit-price-${cabinet.id}`}
+                        type="number"
+                        step="100"
+                        min="0"
+                        value={cabinet.unitPrice || "0"}
+                        onChange={(e) =>
+                          updateKitchenCabinet(
+                            cabinet.id,
+                            "unitPrice",
+                            e.target.value,
+                          )
+                        }
+                        readOnly={readonly}
+                      />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                )}
 
+                <div className="space-y-2">
+                  <Label htmlFor={`cab-notes-${cabinet.id}`}>Notes</Label>
+                  <Input
+                    id={`cab-notes-${cabinet.id}`}
+                    type="text"
+                    value={cabinet.notes || ""}
+                    onChange={(e) =>
+                      updateKitchenCabinet(cabinet.id, "notes", e.target.value)
+                    }
+                    placeholder="Additional notes or specifications"
+                    readOnly={readonly}
+                  />
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-foreground">Total Cost:</span>
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      KES{" "}
+                      {(cabinet.totalPrice || 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {kitchenCabinets.length > 0 && (
+          <Card className="bg-gradient-to-r from-primary/10 to-green-50 dark:from-primary/20 dark:to-green-900/20">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className="text-foreground font-medium">
+                    Total Kitchen Cabinets Cost
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {kitchenCabinets.length} item(s)
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    KES{" "}
+                    {calculateKitchenCabinetsTotalCost().toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      },
+                    )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+      {/* ========== COUNTERTOPS SECTION ========== */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <Grid3X3 className="w-6 h-6 text-primary" />
+            Kitchen Countertops
+          </h2>
           {!readonly && (
-            <Button
-              onClick={addKitchenCabinet}
-              className="mt-4"
-              variant="outline"
-            >
+            <Button onClick={handleAddCountertop} variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
-              Add Kitchen Cabinet Item
+              Add Countertop
             </Button>
           )}
-
-          {kitchenCabinets.length > 0 && (
-            <Card className="mt-6 bg-gradient-to-r from-primary to-green-50 dark:from-primary/20 dark:to-green-900/20">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="text-foreground">
-                      Total Kitchen Cabinets Cost
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {kitchenCabinets.length} item(s)
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      KES{" "}
-                      {calculateKitchenCabinetsTotalCost().toLocaleString(
-                        undefined,
-                        {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        },
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* KITCHEN COUNTERTOPS SECTION */}
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Area
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl">
-                    {totalCountertopArea.toFixed(2)} m²
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Corner Strips
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl">
-                    {totalCornerStripLength.toFixed(2)} m
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Cost
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl text-green-600">
-                    {formatCurrency(totalCountertopCost)}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>Kitchen Countertops</CardTitle>
-                    <CardDescription>
-                      Add granite or tiled countertops with corner strip details
-                    </CardDescription>
-                  </div>
-                  {!readonly && (
-                    <Button onClick={handleAddCountertop} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Countertop
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-6">
-                {editingCountertopId && editCountertopForm && (
-                  <Card className="border-l-4 border-l-amber-500">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        {countertops.some((c) => c.id === editingCountertopId)
-                          ? "Edit Countertop"
-                          : "New Countertop"}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <Label className="mb-3 block">Material Type</Label>
-                        <RadioGroup
-                          value={editCountertopForm.type}
-                          onValueChange={(value) =>
-                            setEditCountertopForm({
-                              ...editCountertopForm,
-                              type: value as "granite" | "tiled",
-                              material:
-                                value === "granite"
-                                  ? "Granite Polished"
-                                  : "Ceramic Tiles",
-                            })
-                          }
-                          disabled={readonly}
-                        >
-                          <div className="flex items-center space-x-2 mb-3">
-                            <RadioGroupItem value="granite" id="granite" />
-                            <Label htmlFor="granite" className="cursor-pointer">
-                              Granite
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="tiled" id="tiled" />
-                            <Label htmlFor="tiled" className="cursor-pointer">
-                              Tiled
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-
-                      {editCountertopForm.type === "granite" && (
-                        <div>
-                          <Label htmlFor="granite-size">
-                            Granite Size (LxWxH)
-                          </Label>
-                          <Select
-                            value={editCountertopForm.graniteSize}
-                            onValueChange={(value) => {
-                              const selectedSize = GRANITE_SIZES.find(
-                                (s) => s.id === value,
-                              );
-                              const materialPrice = getMaterialPrice(
-                                editCountertopForm.material,
-                              )?.price;
-                              setEditCountertopForm({
-                                ...editCountertopForm,
-                                graniteSize: value,
-                                length: selectedSize?.length || 1.5,
-                                width: selectedSize?.width || 0.6,
-                                unitPrice:
-                                  materialPrice || editCountertopForm.unitPrice,
-                              });
-                            }}
-                            disabled={readonly}
-                          >
-                            <SelectTrigger id="granite-size">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {GRANITE_SIZES.map((size) => (
-                                <SelectItem key={size.id} value={size.id}>
-                                  {size.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Selected: {editCountertopForm.length.toFixed(2)}m ×{" "}
-                            {editCountertopForm.width.toFixed(2)}m
-                          </p>
-                        </div>
-                      )}
-
-                      <div>
-                        <Label htmlFor="material">Material Options</Label>
-                        <Select
-                          value={editCountertopForm.material}
-                          onValueChange={(value) => {
-                            const materialPrice =
-                              getMaterialPrice(value)?.price;
-                            setEditCountertopForm({
-                              ...editCountertopForm,
-                              material: value,
-                              unitPrice:
-                                materialPrice || editCountertopForm.unitPrice,
-                            });
-                          }}
-                          disabled={readonly}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(
-                              COUNTERTOP_MATERIALS[
-                                editCountertopForm.type as keyof typeof COUNTERTOP_MATERIALS
-                              ] || []
-                            ).map((material) => (
-                              <SelectItem key={material} value={material}>
-                                {material}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="edit-length">Length (m)</Label>
-                          <Input
-                            id="edit-length"
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={editCountertopForm.length}
-                            onChange={(e) =>
-                              setEditCountertopForm({
-                                ...editCountertopForm,
-                                length: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            readOnly={
-                              readonly || editCountertopForm.type === "granite"
-                            }
-                            className={
-                              editCountertopForm.type === "granite"
-                                ? "bg-gray-100 dark:bg-[#1a1b22] cursor-not-allowed"
-                                : ""
-                            }
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-width">Width (m)</Label>
-                          <Input
-                            id="edit-width"
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            value={editCountertopForm.width}
-                            onChange={(e) =>
-                              setEditCountertopForm({
-                                ...editCountertopForm,
-                                width: parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            readOnly={
-                              readonly || editCountertopForm.type === "granite"
-                            }
-                            className={
-                              editCountertopForm.type === "granite"
-                                ? "bg-gray-100 dark:bg-[#1a1b22] cursor-not-allowed"
-                                : ""
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="border p-3 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label>Corner Strips</Label>
-                          <input
-                            type="checkbox"
-                            checked={true}
-                            disabled={true}
-                            className="w-4 h-4"
-                          />
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Corner strips: ~
-                          {calculateCornerStripLength(
-                            editCountertopForm.length,
-                            editCountertopForm.width,
-                          ).toFixed(2)}{" "}
-                          meters
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="edit-price">Unit Price (Ksh/m²)</Label>
-                        <Input
-                          id="edit-price"
-                          type="number"
-                          min="0"
-                          step="100"
-                          value={editCountertopForm.unitPrice}
-                          onChange={(e) =>
-                            setEditCountertopForm({
-                              ...editCountertopForm,
-                              unitPrice: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          readOnly={readonly}
-                        />
-                      </div>
-
-                      {editCountertopForm.length > 0 &&
-                        editCountertopForm.width > 0 && (
-                          <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded border border-amber-200">
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>
-                                <span>Area:</span>{" "}
-                                {(
-                                  editCountertopForm.length *
-                                  editCountertopForm.width
-                                ).toFixed(2)}{" "}
-                                m²
-                              </div>
-                              <div>
-                                <span>Cost:</span>{" "}
-                                {formatCurrency(
-                                  editCountertopForm.length *
-                                    editCountertopForm.width *
-                                    editCountertopForm.unitPrice,
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                      {!readonly && (
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            onClick={() => {
-                              setEditingCountertopId(null);
-                              setEditCountertopForm(null);
-                            }}
-                            variant="outline"
-                          >
-                            Cancel
-                          </Button>
-                          <Button onClick={handleSaveEdit}>
-                            Save Countertop
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {countertops.length > 0 ? (
-                  <div className="rounded-md border overflow-x-auto">
-                    <Table className="w-full">
-                      <TableHeader>
-                        <TableRow className="bg-muted/50">
-                          <TableHead className="w-[25%] text-left">
-                            Material
-                          </TableHead>
-                          <TableHead className="w-[18%] text-left">
-                            Dimensions
-                          </TableHead>
-                          <TableHead className="w-[12%] text-right">
-                            Area (m²)
-                          </TableHead>
-                          <TableHead className="w-[18%] text-center">
-                            Corner Strips
-                          </TableHead>
-                          <TableHead className="w-[15%] text-right">
-                            Unit Price
-                          </TableHead>
-                          <TableHead className="w-[12%] text-right">
-                            Total Cost
-                          </TableHead>
-                          {!readonly && (
-                            <TableHead className="w-[12%] text-right">
-                              Actions
-                            </TableHead>
-                          )}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {countertops.map((countertop) => (
-                          <TableRow
-                            key={countertop.id}
-                            className="hover:bg-muted/30"
-                          >
-                            <TableCell className="font-medium w-[25%]">
-                              <div>
-                                <div className="text-sm">
-                                  {countertop.material}
-                                </div>
-                                {countertop.type === "granite" &&
-                                  countertop.graniteSize && (
-                                    <div className="text-xs text-gray-500">
-                                      {GRANITE_SIZES.find(
-                                        (s) => s.id === countertop.graniteSize,
-                                      )?.label || countertop.graniteSize}
-                                    </div>
-                                  )}
-                                <div className="text-xs text-gray-500">
-                                  ({countertop.type})
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="w-[18%] text-sm">
-                              {countertop.length.toFixed(2)}m ×{" "}
-                              {countertop.width.toFixed(2)}m
-                            </TableCell>
-                            <TableCell className="text-right w-[12%] text-sm">
-                              {countertop.area.toFixed(2)}
-                            </TableCell>
-                            <TableCell className="text-center w-[18%]">
-                              {countertop.cornerStrips ? (
-                                <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs whitespace-nowrap">
-                                  {countertop.cornerStripLength.toFixed(2)}m
-                                </span>
-                              ) : (
-                                <span className="text-gray-400">—</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right w-[15%] text-sm">
-                              {formatCurrency(countertop.unitPrice)}/m²
-                            </TableCell>
-                            <TableCell className="text-right text-green-600 w-[12%] text-sm">
-                              {formatCurrency(countertop.totalCost)}
-                            </TableCell>
-                            {!readonly && (
-                              <TableCell className="text-right w-[12%]">
-                                <div className="flex gap-1 justify-end">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() =>
-                                      handleEditCountertop(countertop)
-                                    }
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() =>
-                                      handleDeleteCountertop(countertop.id)
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    {readonly
-                      ? "No countertops specified."
-                      : "No countertops added yet. Click 'Add Countertop' to begin."}
-                  </div>
-                )}
-
-                {countertops.length > 0 && (
-                  <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-muted">
-                    <div>
-                      <div className="text-xs">Total Area</div>
-                      <div className="text-lg">
-                        {totalCountertopArea.toFixed(2)} m²
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs">Total Corner Strips</div>
-                      <div className="text-lg">
-                        {totalCornerStripLength.toFixed(2)} m
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs">Total Cost</div>
-                      <div className="text-lg text-green-600">
-                        {formatCurrency(totalCountertopCost)}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
         </div>
-      </div>
 
+        {/* Inline edit form */}
+        {editingCountertopId && editCountertopForm && (
+          <Card className="border-l-4 border-l-amber-500">
+            <CardHeader>
+              <CardTitle className="text-lg">
+                {countertops.some((c) => c.id === editingCountertopId)
+                  ? "Edit Countertop"
+                  : "New Countertop"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="mb-3 block">Material Type</Label>
+                <RadioGroup
+                  value={editCountertopForm.type}
+                  onValueChange={(value) =>
+                    setEditCountertopForm({
+                      ...editCountertopForm,
+                      type: value as "granite" | "tiled",
+                      material:
+                        value === "granite"
+                          ? "Granite Polished"
+                          : "Ceramic Tiles",
+                    })
+                  }
+                  disabled={readonly}
+                >
+                  <div className="flex items-center space-x-2 mb-3">
+                    <RadioGroupItem value="granite" id="granite" />
+                    <Label htmlFor="granite" className="cursor-pointer">
+                      Granite
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="tiled" id="tiled" />
+                    <Label htmlFor="tiled" className="cursor-pointer">
+                      Tiled
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {editCountertopForm.type === "granite" && (
+                <div>
+                  <Label htmlFor="granite-size">Granite Size (LxWxH)</Label>
+                  <Select
+                    value={editCountertopForm.graniteSize}
+                    onValueChange={(value) => {
+                      const selectedSize = GRANITE_SIZES.find(
+                        (s) => s.id === value,
+                      );
+                      const materialPrice = getMaterialPrice(
+                        editCountertopForm.material,
+                      )?.price;
+                      setEditCountertopForm({
+                        ...editCountertopForm,
+                        graniteSize: value,
+                        length: selectedSize?.length || 1.5,
+                        width: selectedSize?.width || 0.6,
+                        unitPrice:
+                          materialPrice || editCountertopForm.unitPrice,
+                      });
+                    }}
+                    disabled={readonly}
+                  >
+                    <SelectTrigger id="granite-size">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GRANITE_SIZES.map((size) => (
+                        <SelectItem key={size.id} value={size.id}>
+                          {size.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Selected: {editCountertopForm.length.toFixed(2)}m ×{" "}
+                    {editCountertopForm.width.toFixed(2)}m
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="material">Material Options</Label>
+                <Select
+                  value={editCountertopForm.material}
+                  onValueChange={(value) => {
+                    const materialPrice = getMaterialPrice(value)?.price;
+                    setEditCountertopForm({
+                      ...editCountertopForm,
+                      material: value,
+                      unitPrice: materialPrice || editCountertopForm.unitPrice,
+                    });
+                  }}
+                  disabled={readonly}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(
+                      COUNTERTOP_MATERIALS[
+                        editCountertopForm.type as keyof typeof COUNTERTOP_MATERIALS
+                      ] || []
+                    ).map((material) => (
+                      <SelectItem key={material} value={material}>
+                        {material}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-length">Length (m)</Label>
+                  <Input
+                    id="edit-length"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={editCountertopForm.length}
+                    onChange={(e) =>
+                      setEditCountertopForm({
+                        ...editCountertopForm,
+                        length: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    readOnly={readonly || editCountertopForm.type === "granite"}
+                    className={
+                      editCountertopForm.type === "granite"
+                        ? "bg-gray-100 dark:bg-[#1a1b22] cursor-not-allowed"
+                        : ""
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-width">Width (m)</Label>
+                  <Input
+                    id="edit-width"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={editCountertopForm.width}
+                    onChange={(e) =>
+                      setEditCountertopForm({
+                        ...editCountertopForm,
+                        width: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    readOnly={readonly || editCountertopForm.type === "granite"}
+                    className={
+                      editCountertopForm.type === "granite"
+                        ? "bg-gray-100 dark:bg-[#1a1b22] cursor-not-allowed"
+                        : ""
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="border p-3 rounded">
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Corner Strips</Label>
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled={true}
+                    className="w-4 h-4"
+                  />
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Corner strips: ~
+                  {calculateCornerStripLength(
+                    editCountertopForm.length,
+                    editCountertopForm.width,
+                  ).toFixed(2)}{" "}
+                  meters
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-price">Unit Price (Ksh/m²)</Label>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={editCountertopForm.unitPrice}
+                  onChange={(e) =>
+                    setEditCountertopForm({
+                      ...editCountertopForm,
+                      unitPrice: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  readOnly={readonly}
+                />
+              </div>
+
+              {editCountertopForm.length > 0 &&
+                editCountertopForm.width > 0 && (
+                  <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded border border-amber-200">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span>Area:</span>{" "}
+                        {(
+                          editCountertopForm.length * editCountertopForm.width
+                        ).toFixed(2)}{" "}
+                        m²
+                      </div>
+                      <div>
+                        <span>Cost:</span>{" "}
+                        {formatCurrency(
+                          editCountertopForm.length *
+                            editCountertopForm.width *
+                            editCountertopForm.unitPrice,
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {!readonly && (
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    onClick={() => {
+                      setEditingCountertopId(null);
+                      setEditCountertopForm(null);
+                    }}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveEdit}>Save Countertop</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Countertops table */}
+        {countertops.length > 0 ? (
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-[25%]">Material</TableHead>
+                  <TableHead className="w-[18%]">Dimensions</TableHead>
+                  <TableHead className="w-[12%] text-right">
+                    Area (m²)
+                  </TableHead>
+                  <TableHead className="w-[18%] text-center">
+                    Corner Strips
+                  </TableHead>
+                  <TableHead className="w-[15%] text-right">
+                    Unit Price
+                  </TableHead>
+                  <TableHead className="w-[12%] text-right">
+                    Total Cost
+                  </TableHead>
+                  {!readonly && (
+                    <TableHead className="w-[12%] text-right">
+                      Actions
+                    </TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {countertops.map((countertop) => (
+                  <TableRow key={countertop.id} className="hover:bg-muted/30">
+                    <TableCell className="font-medium">
+                      <div>
+                        <div className="text-sm">{countertop.material}</div>
+                        {countertop.type === "granite" &&
+                          countertop.graniteSize && (
+                            <div className="text-xs text-gray-500">
+                              {GRANITE_SIZES.find(
+                                (s) => s.id === countertop.graniteSize,
+                              )?.label || countertop.graniteSize}
+                            </div>
+                          )}
+                        <div className="text-xs text-gray-500">
+                          ({countertop.type})
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {countertop.length.toFixed(2)}m ×{" "}
+                      {countertop.width.toFixed(2)}m
+                    </TableCell>
+                    <TableCell className="text-right text-sm">
+                      {countertop.area.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {countertop.cornerStrips ? (
+                        <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs whitespace-nowrap">
+                          {countertop.cornerStripLength.toFixed(2)}m
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right text-sm">
+                      {formatCurrency(countertop.unitPrice)}/m²
+                    </TableCell>
+                    <TableCell className="text-right text-green-600 text-sm">
+                      {formatCurrency(countertop.totalCost)}
+                    </TableCell>
+                    {!readonly && (
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleEditCountertop(countertop)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={() =>
+                              handleDeleteCountertop(countertop.id)
+                            }
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500 border rounded-lg bg-muted/10">
+            {readonly
+              ? "No countertops specified."
+              : "No countertops added yet. Click 'Add Countertop' to begin."}
+          </div>
+        )}
+      </section>
+
+      {/* ========== GRAND TOTAL ========== */}
       {(wardrobes.length > 0 ||
         kitchenCabinets.length > 0 ||
         countertops.length > 0) && (
@@ -1529,6 +1411,24 @@ export const KitchenAndWardrobesCalculator: React.FC<
             </div>
           </CardContent>
         </Card>
+      )}
+      {countertops.length > 0 && (
+        <div className="grid grid-cols-3 gap-4 p-4 rounded-lg bg-muted">
+          <div>
+            <div className="text-xs">Total Area</div>
+            <div className="text-lg">{totalCountertopArea.toFixed(2)} m²</div>
+          </div>
+          <div>
+            <div className="text-xs">Total Corner Strips</div>
+            <div className="text-lg">{totalCornerStripLength.toFixed(2)} m</div>
+          </div>
+          <div>
+            <div className="text-xs">Total Cost</div>
+            <div className="text-lg text-green-600">
+              {formatCurrency(totalCountertopCost)}
+            </div>
+          </div>
+        </div>
       )}
     </motion.div>
   );

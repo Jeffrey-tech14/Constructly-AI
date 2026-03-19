@@ -32,7 +32,7 @@ const QuotePaymentPage = () => {
   const {
     quoteId,
     quoteTitle,
-    amount = 200,
+    amount = 1000,
     onPaymentComplete,
   } = location.state || {};
 
@@ -248,11 +248,11 @@ const QuotePaymentPage = () => {
         transition={{ duration: 0.4 }}
         className="max-w-lg w-full mx-4 text-center space-y-4"
       >
-        <h1 className="sm:text-3xl items-center text-2xl flex items-center justify-center font-bold text-foreground tracking-tight">
-          <Lock className="sm:w-7 sm:h-7 mr-2 text-primary dark:text-white" />
+        <h1 className="sm:text-3xl items-center text-2xl flex items-center justify-center font-bold  bg-clip-text text-transparent">
+          <Lock className="sm:w-7 sm:h-7 mr-2 text-blue-700 dark:text-white" />
           Unlock Quote
         </h1>
-        <p className="text-sm sm:text-lg bg-gradient-to-r from-primary via-primary to-primary/90 dark:from-white dark:via-blue-400 dark:to-purple-400 text-transparent bg-clip-text mt-2">
+        <p className="text-sm sm:text-lg bg-gradient-to-r from-blue-700 via-primary to-primary/90 dark:from-white dark:via-blue-400 dark:to-purple-400 mt-2">
           One-time payment to access this quote
         </p>
 
@@ -268,15 +268,11 @@ const QuotePaymentPage = () => {
               <h4 className=" mb-2">Quote Details</h4>
               <div className="flex items-center justify-between mb-3">
                 <span>Quote Title</span>
-                <span className=" truncate ml-2 text-right">
-                  {quoteTitle}
-                </span>
+                <span className=" truncate ml-2 text-right">{quoteTitle}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Payment Amount</span>
-                <span className=" text-lg">
-                  KES {amount.toLocaleString()}
-                </span>
+                <span className=" text-lg">KES {amount.toLocaleString()}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 One-time • Non-refundable
@@ -354,7 +350,7 @@ const QuotePaymentPage = () => {
             </Button>
 
             <p className="text-center text-xs text-muted-foreground">
-              💳 Secure payment
+              Secure payment
             </p>
           </div>
         )}

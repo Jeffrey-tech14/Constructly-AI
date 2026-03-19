@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuoteBuilder } from "@/hooks/useQuoteBuilder";
+import useQuoteGuidance from "@/hooks/useQuoteGuidance";
+import QuoteGuidanceSidebar from "@/components/QuoteGuidanceSidebar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -95,31 +97,44 @@ import SubcontractorsSelector from "@/components/SubcontractorsSelector";
 import PreliminariesBuilder from "@/components/PreliminariesBuilder";
 import BOQBuilder from "@/components/BOQBuilder";
 
-// Stepper component (can be moved to separate file)
-const Stepper = ({
+export function Stepper({
   steps,
   currentStep,
   setCurrentStep,
   setDirection,
   handleCalculate,
-}: any) => {
+}) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to get a gradient color based on progress
   const getProgressColor = (stepId: number) => {
     const totalSteps = steps.length;
     const completionRatio = (stepId - 1) / (totalSteps - 1);
+
+    // Primary color: #f0514e
+    // Interpolate from primary to lighter shade (light mode) or darker shade (dark mode)
+    // Using HSL for easier manipulation
+
     if (stepId <= currentStep) {
-      const startHue = 207;
-      const startSat = 95;
-      const startLight = 29;
-      const endLight = 55;
+      // Primary: hsl(2, 97%, 62%) - #f0514e
+      // Light mode: lighter shade, Dark mode: similar but adjusted
+      const startHue = 2;
+      const startSat = 97;
+      const startLight = 62;
+
+      // End color: lighter in light mode, adjusted in dark mode
+      const endLight = 75; // lighter shade for light mode
+
+      // Interpolate between the two lightness values
       const currentLight =
         startLight + (endLight - startLight) * completionRatio;
+
       return `hsl(${startHue}, ${startSat}%, ${currentLight}%)`;
     }
     return undefined;
   };
 
+  // Center current step when it changes
   useEffect(() => {
     const activeStep = document.getElementById(`step-${currentStep}`);
     if (activeStep && scrollContainerRef.current) {
@@ -134,15 +149,17 @@ const Stepper = ({
   const scroll = (direction: "left" | "right") => {
     const container = scrollContainerRef.current;
     if (container) {
+      const scrollAmount = 200; // adjust as needed
       container.scrollBy({
-        left: direction === "left" ? -200 : 200,
+        left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
       });
     }
   };
 
+  // Calculate gradient for progress bar
   const progressGradient = steps
-    .map((step: any) => {
+    .map((step) => {
       const color = getProgressColor(step.id);
       const percentage = ((step.id - 1) / (steps.length - 1)) * 100;
       return color ? `${color} ${percentage}%` : null;
@@ -152,27 +169,31 @@ const Stepper = ({
 
   return (
     <div className="relative mt-2 mb-4 space-y-3">
+      {/* Left chevron */}
       <button
         onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-[#111418] rounded-full p-1 shadow-md hover:bg-white"
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/70 rounded-full p-1 shadow-md glass hover:bg-white"
       >
         <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
+
       <div
         ref={scrollContainerRef}
         className="flex overflow-x-auto no-scrollbar scroll-smooth gap-2 px-8 py-2"
       >
-        {steps.map((step: any) => {
+        {steps.map((step) => {
+          const newStep = step.id;
           const isActive = currentStep >= step.id;
           const progressColor = getProgressColor(step.id);
+
           return (
             <div
               key={step.id}
               id={`step-${step.id}`}
               onClick={() => {
-                setDirection(currentStep < step.id ? "right" : "left");
-                setCurrentStep(step.id);
-                if (step.id === 13) handleCalculate();
+                setDirection(currentStep < newStep ? "right" : "left");
+                setCurrentStep(newStep);
+                if (newStep === 13) handleCalculate();
               }}
               className={`flex items-center cursor-pointer flex-shrink-0 transition-all duration-500 ${
                 step.id < steps.length ? "flex-1" : ""
@@ -191,7 +212,9 @@ const Stepper = ({
               <div className="hidden xl:inline">
                 <p
                   className="ml-2 mr-2 text-sm font-medium transition-all duration-500"
-                  style={{ color: isActive ? progressColor : "#9ca3af" }}
+                  style={{
+                    color: isActive ? progressColor : "#9ca3af",
+                  }}
                 >
                   {step.name}
                 </p>
@@ -200,7 +223,9 @@ const Stepper = ({
           );
         })}
       </div>
-      <div className="mx-8 h-1.5 bg-secondary rounded-full overflow-hidden">
+
+      {/* Progress bar with gradient */}
+      <div className="mx-8 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
@@ -209,15 +234,17 @@ const Stepper = ({
           }}
         />
       </div>
+
+      {/* Right chevron */}
       <button
         onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-[#111418] rounded-full p-1 shadow-md hover:bg-white"
+        className="absolute right-0 top-1/2 glass -translate-y-1/2 z-10 bg-white/80 dark:bg-gray-800/70 rounded-full p-1 shadow-md hover:bg-white"
       >
         <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-200" />
       </button>
     </div>
   );
-};
+}
 
 const steps = [
   { id: 1, name: "Project Details", icon: <FileText className="w-5 h-5" /> },
@@ -334,10 +361,38 @@ export default function QuoteBuilderPage() {
   }
 
   const renderStepContent = () => {
+    const projectDetailsGuidance = useQuoteGuidance("projectDetails");
+    const qsSettingsGuidance = useQuoteGuidance("qsSettings");
+    const preliminariesGuidance = useQuoteGuidance("preliminaries");
+    const earthworksGuidance = useQuoteGuidance("earthworks");
+    const concreteGuidance = useQuoteGuidance("concrete");
+    const foundationWallingGuidance = useQuoteGuidance("foundationWalling");
+    const rebarGuidance = useQuoteGuidance("rebar");
+    const doorsWindowsGuidance = useQuoteGuidance("doorsWindows");
+    const masonryGuidance = useQuoteGuidance("masonry");
+    const plumbingGuidance = useQuoteGuidance("plumbing");
+    const electricalGuidance = useQuoteGuidance("electrical");
+    const roofingGuidance = useQuoteGuidance("roofing");
+    const flooringGuidance = useQuoteGuidance("flooring");
+    const internalFinishesGuidance = useQuoteGuidance("internalFinishes");
+    const externalFinishesGuidance = useQuoteGuidance("externalFinishes");
+    const ceilingGuidance = useQuoteGuidance("ceiling");
+    const kitchenWardrobGuidance = useQuoteGuidance("kitchenWardrobe");
+    const paintDoorsGuidance = useQuoteGuidance("paintDoors");
+    const otherFinishesGuidance = useQuoteGuidance("otherFinishes");
+    const equipmentGuidance = useQuoteGuidance("equipment");
+    const servicesGuidance = useQuoteGuidance("services");
+    const subcontractorsGuidance = useQuoteGuidance("subcontractors");
+    const boqGuidance = useQuoteGuidance("boq");
+    const reviewGuidance = useQuoteGuidance("review");
+
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
+          <QuoteGuidanceSidebar
+            guidanceData={projectDetailsGuidance}
+            title="Project Details Guide"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
@@ -562,483 +617,579 @@ export default function QuoteBuilderPage() {
                 </CardContent>
               </Card>
             </motion.div>
-          </div>
+          </QuoteGuidanceSidebar>
         );
       case 2:
         return (
-          <QSSettings
-            quoteData={quoteData}
-            setQuoteData={setQuoteData}
-            updatePercentageField={updatePercentageField}
-          />
+          <QuoteGuidanceSidebar
+            guidanceData={qsSettingsGuidance}
+            title="QS Settings Guide"
+          >
+            <QSSettings
+              quoteData={quoteData}
+              setQuoteData={setQuoteData}
+              updatePercentageField={updatePercentageField}
+            />
+          </QuoteGuidanceSidebar>
         );
       case 3:
         return (
-          <PreliminariesOptionsPage
-            quoteData={quoteData}
-            onPreliminaryUpdate={(options) =>
-              setQuoteData((prev) => ({ ...prev, preliminaryOptions: options }))
-            }
-          />
+          <QuoteGuidanceSidebar
+            guidanceData={preliminariesGuidance}
+            title="Preliminaries Guide"
+          >
+            <PreliminariesOptionsPage
+              quoteData={quoteData}
+              onPreliminaryUpdate={(options) =>
+                setQuoteData((prev) => ({
+                  ...prev,
+                  preliminaryOptions: options,
+                }))
+              }
+            />
+          </QuoteGuidanceSidebar>
         );
       case 4:
         return (
-          <div className="space-y-6">
-            <Tabs value={substructureTab} onValueChange={setSubstructureTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="earthworks">Earthworks</TabsTrigger>
-                <TabsTrigger value="concrete">Concrete</TabsTrigger>
-                <TabsTrigger value="foundation-walling">
-                  Foundation Walling
-                </TabsTrigger>
-                <TabsTrigger value="rebar">Reinforcement</TabsTrigger>
-              </TabsList>
-              <TabsContent value="earthworks">
-                <EarthworksForm
-                  earthworks={earthwork}
-                  excavationRates={materials}
-                  setEarthworks={setEarthWorks}
-                  setQuoteData={setQuoteData}
-                  setQuote={setQuoteData}
-                  quote={quoteData}
-                />
-              </TabsContent>
-              <TabsContent value="concrete">
-                <ConcreteCalculatorForm
-                  quote={quoteData}
-                  setQuote={setQuoteData}
-                  materialBasePrices={materialBasePrices}
-                  userMaterialPrices={userMaterialPrices}
-                  getEffectiveMaterialPrice={getEffectiveMaterialPrice}
-                />
-              </TabsContent>
-              <TabsContent value="foundation-walling">
-                <FoundationWallingCalculator
-                  quote={quoteData}
-                  onUpdate={(walls) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      foundationWalls: walls,
-                    }))
-                  }
-                  materials={materials}
-                />
-              </TabsContent>
-              <TabsContent value="rebar">
-                <h3 className="text-2xl mb-3">Reinforcement Calculator</h3>
-                <RebarCalculatorForm
-                  quote={quoteData}
-                  setQuote={setQuoteData}
-                  onExport={() => {}}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <QuoteGuidanceSidebar
+            guidanceData={
+              substructureTab === "earthworks"
+                ? earthworksGuidance
+                : substructureTab === "concrete"
+                  ? concreteGuidance
+                  : substructureTab === "foundation-walling"
+                    ? foundationWallingGuidance
+                    : rebarGuidance
+            }
+            title={`${substructureTab.charAt(0).toUpperCase() + substructureTab.slice(1).replace("-", " ")} Guide`}
+          >
+            <div className="space-y-6">
+              <Tabs value={substructureTab} onValueChange={setSubstructureTab}>
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="earthworks">Earthworks</TabsTrigger>
+                  <TabsTrigger value="concrete">Concrete</TabsTrigger>
+                  <TabsTrigger value="foundation-walling">
+                    Foundation Walling
+                  </TabsTrigger>
+                  <TabsTrigger value="rebar">Reinforcement</TabsTrigger>
+                </TabsList>
+                <TabsContent value="earthworks">
+                  <EarthworksForm
+                    earthworks={earthwork}
+                    excavationRates={materials}
+                    setEarthworks={setEarthWorks}
+                    setQuoteData={setQuoteData}
+                    setQuote={setQuoteData}
+                    quote={quoteData}
+                  />
+                </TabsContent>
+                <TabsContent value="concrete">
+                  <ConcreteCalculatorForm
+                    quote={quoteData}
+                    setQuote={setQuoteData}
+                    materialBasePrices={materialBasePrices}
+                    userMaterialPrices={userMaterialPrices}
+                    getEffectiveMaterialPrice={getEffectiveMaterialPrice}
+                  />
+                </TabsContent>
+                <TabsContent value="foundation-walling">
+                  <FoundationWallingCalculator
+                    quote={quoteData}
+                    onUpdate={(walls) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        foundationWalls: walls,
+                      }))
+                    }
+                    materials={materials}
+                  />
+                </TabsContent>
+                <TabsContent value="rebar">
+                  <h3 className="text-2xl mb-3">Reinforcement Calculator</h3>
+                  <RebarCalculatorForm
+                    quote={quoteData}
+                    setQuote={setQuoteData}
+                    onExport={() => {}}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </QuoteGuidanceSidebar>
         );
       case 5:
         return (
-          <div className="space-y-6">
-            <Tabs
-              value={superstructureTab}
-              onValueChange={setSuperstructureTab}
-            >
-              <TabsList className="grid w-full grid-cols-5 mb-3">
-                <TabsTrigger value="doors-windows">Doors & Windows</TabsTrigger>
-                <TabsTrigger value="masonry">Masonry</TabsTrigger>
-                <TabsTrigger value="plumbing">Plumbing</TabsTrigger>
-                <TabsTrigger value="electrical">Electrical</TabsTrigger>
-                <TabsTrigger value="roofing">Roofing</TabsTrigger>
-              </TabsList>
-              <TabsContent value="doors-windows">
-                <DoorsWindowsEditor
-                  wallSections={quoteData.wallSections || []}
-                  onUpdate={(sections) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      wallSections: sections,
-                    }))
-                  }
-                  materialData={materials}
-                />
-              </TabsContent>
-              <TabsContent value="masonry">
-                <MasonryCalculatorForm
-                  quote={quoteData}
-                  setQuote={setQuoteData}
-                  regionalMultipliers={regionalMultipliers}
-                  userRegion={quoteData.region}
-                  materialBasePrices={materialBasePrices}
-                  userMaterialPrices={userMaterialPrices}
-                  getEffectiveMaterialPrice={getEffectiveMaterialPrice}
-                />
-              </TabsContent>
-              <TabsContent value="plumbing">
-                <PlumbingCalculator
-                  plumbingSystems={plumbingSystems}
-                  onPlumbingSystemsUpdate={setPlumbingSystems}
-                  materialPrices={materials}
-                  setQuoteData={setQuoteData}
-                  quote={quoteData}
-                />
-              </TabsContent>
-              <TabsContent value="roofing">
-                <RoofingCalculator
-                  materialPrices={materials}
-                  onCalculationResult={(result) =>
-                    setQuoteData((prev) => ({
-                      ...prev,
-                      roofing_breakdown: result,
-                    }))
-                  }
-                  setQuoteData={setQuoteData}
-                  quote={quoteData}
-                />
-              </TabsContent>
-              <TabsContent value="electrical">
-                <ElectricalCalculator
-                  electricalSystems={electricalSystems}
-                  materialPrices={materials}
-                  onElectricalSystemsUpdate={setElectricalSystems}
-                  setQuoteData={setQuoteData}
-                  quote={quoteData}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <QuoteGuidanceSidebar
+            guidanceData={
+              superstructureTab === "doors-windows"
+                ? doorsWindowsGuidance
+                : superstructureTab === "masonry"
+                  ? masonryGuidance
+                  : superstructureTab === "plumbing"
+                    ? plumbingGuidance
+                    : superstructureTab === "electrical"
+                      ? electricalGuidance
+                      : roofingGuidance
+            }
+            title={`${superstructureTab.replace("-", " ").charAt(0).toUpperCase() + superstructureTab.replace("-", " ").slice(1)} Guide`}
+          >
+            <div className="space-y-6">
+              <Tabs
+                value={superstructureTab}
+                onValueChange={setSuperstructureTab}
+              >
+                <TabsList className="grid w-full grid-cols-5 mb-3">
+                  <TabsTrigger value="doors-windows">
+                    Doors & Windows
+                  </TabsTrigger>
+                  <TabsTrigger value="masonry">Masonry</TabsTrigger>
+                  <TabsTrigger value="plumbing">Plumbing</TabsTrigger>
+                  <TabsTrigger value="electrical">Electrical</TabsTrigger>
+                  <TabsTrigger value="roofing">Roofing</TabsTrigger>
+                </TabsList>
+                <TabsContent value="doors-windows">
+                  <DoorsWindowsEditor
+                    wallSections={quoteData.wallSections || []}
+                    onUpdate={(sections) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        wallSections: sections,
+                      }))
+                    }
+                    materialData={materials}
+                  />
+                </TabsContent>
+                <TabsContent value="masonry">
+                  <MasonryCalculatorForm
+                    quote={quoteData}
+                    setQuote={setQuoteData}
+                    regionalMultipliers={regionalMultipliers}
+                    userRegion={quoteData.region}
+                    materialBasePrices={materialBasePrices}
+                    userMaterialPrices={userMaterialPrices}
+                    getEffectiveMaterialPrice={getEffectiveMaterialPrice}
+                  />
+                </TabsContent>
+                <TabsContent value="plumbing">
+                  <PlumbingCalculator
+                    plumbingSystems={plumbingSystems}
+                    onPlumbingSystemsUpdate={setPlumbingSystems}
+                    materialPrices={materials}
+                    setQuoteData={setQuoteData}
+                    quote={quoteData}
+                  />
+                </TabsContent>
+                <TabsContent value="roofing">
+                  <RoofingCalculator
+                    materialPrices={materials}
+                    onCalculationResult={(result) =>
+                      setQuoteData((prev) => ({
+                        ...prev,
+                        roofing_breakdown: result,
+                      }))
+                    }
+                    setQuoteData={setQuoteData}
+                    quote={quoteData}
+                  />
+                </TabsContent>
+                <TabsContent value="electrical">
+                  <ElectricalCalculator
+                    electricalSystems={electricalSystems}
+                    materialPrices={materials}
+                    onElectricalSystemsUpdate={setElectricalSystems}
+                    setQuoteData={setQuoteData}
+                    quote={quoteData}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </QuoteGuidanceSidebar>
         );
       case 6:
         return (
-          <div className="space-y-6">
-            <Tabs value={finishesTab} onValueChange={setFinishesTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="flooring">Flooring</TabsTrigger>
-                <TabsTrigger value="walling">Walling</TabsTrigger>
-                <TabsTrigger value="ceiling">Ceiling</TabsTrigger>
-                <TabsTrigger value="others">Extra/Other Finishes</TabsTrigger>
-              </TabsList>
-              <TabsContent value="flooring">
-                <FlooringCalculator
-                  finishes={finishes}
-                  onFinishesUpdate={handleFinishesUpdate}
-                  materialPrices={materials}
-                  quote={quoteData}
-                />
-              </TabsContent>
-              <TabsContent value="walling">
-                <Tabs
-                  value={wallingFinishesTab}
-                  onValueChange={setWallingFinishesTab}
-                >
-                  <TabsList className="grid w-full grid-cols-2 mb-3">
-                    <TabsTrigger value="internalFinishes">
-                      Internal Walling
-                    </TabsTrigger>
-                    <TabsTrigger value="externalFinishes">
-                      External Walling
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="internalFinishes">
-                    <InternalFinishesCalculator
-                      finishes={finishes}
-                      onFinishesUpdate={handleFinishesUpdate}
-                      onFinishTypeChange={handleInternalWallTypeChange}
-                      materialPrices={materials}
-                      quote={quoteData}
-                      wallDimensions={quoteData.wallDimensions}
-                    />
-                  </TabsContent>
-                  <TabsContent value="externalFinishes">
-                    <ExternalFinishesCalculator
-                      finishes={finishes}
-                      onFinishesUpdate={handleFinishesUpdate}
-                      onFinishTypeChange={handleExternalWallTypeChange}
-                      materialPrices={materials}
-                      quote={quoteData}
-                      wallDimensions={quoteData.wallDimensions}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </TabsContent>
-              <TabsContent value="ceiling">
-                <CeilingCalculator
-                  finishes={finishes}
-                  onFinishesUpdate={handleFinishesUpdate}
-                  onCeilingTypeChange={handleCeilingTypeChange}
-                  materialPrices={materials}
-                  quote={quoteData}
-                />
-              </TabsContent>
-              <TabsContent value="others">
-                <Tabs
-                  value={otherFinishesTab}
-                  onValueChange={setOtherFinishesTab}
-                >
-                  <TabsList className="grid w-full grid-cols-3 mb-3">
-                    <TabsTrigger value="kitchen-wardrobes">
-                      Kitchen & Wardrobes
-                    </TabsTrigger>
-                    <TabsTrigger value="door-paint">
-                      Wood/Metal Paint
-                    </TabsTrigger>
-                    <TabsTrigger value="otherFinishes">
-                      Extra/Other Finishes
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="kitchen-wardrobes">
-                    <KitchenAndWardrobesCalculator
-                      wardrobes={wardrobes}
-                      setWardrobes={setWardrobes}
-                      quote={quoteData}
-                      materialPrices={materials}
-                    />
-                  </TabsContent>
-                  <TabsContent value="door-paint">
-                    <DoorWindowPaintCalculator
-                      paints={quoteData.doorWindowPaints || []}
-                      onPaintsUpdate={(paints) =>
-                        setQuoteData((prev) => ({
-                          ...prev,
-                          doorWindowPaints: paints,
-                        }))
-                      }
-                      materialPrices={materials}
-                      readonly={false}
-                    />
-                  </TabsContent>
-                  <TabsContent value="otherFinishes">
-                    <OtherFinishesCalculator
-                      otherFinishes={finishes}
-                      onOtherFinishesUpdate={handleFinishesUpdate}
-                      materialPrices={materials}
-                      quote={quoteData}
-                      wallDimensions={quoteData.wallDimensions}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </TabsContent>
-            </Tabs>
-          </div>
+          <QuoteGuidanceSidebar
+            guidanceData={
+              finishesTab === "flooring"
+                ? flooringGuidance
+                : finishesTab === "walling"
+                  ? wallingFinishesTab === "internalFinishes"
+                    ? internalFinishesGuidance
+                    : externalFinishesGuidance
+                  : finishesTab === "ceiling"
+                    ? ceilingGuidance
+                    : otherFinishesTab === "kitchen-wardrobes"
+                      ? kitchenWardrobGuidance
+                      : otherFinishesTab === "door-paint"
+                        ? paintDoorsGuidance
+                        : otherFinishesGuidance
+            }
+            title={`${finishesTab.charAt(0).toUpperCase() + finishesTab.slice(1)} Guide`}
+          >
+            <div className="space-y-6">
+              <Tabs value={finishesTab} onValueChange={setFinishesTab}>
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="flooring">Flooring</TabsTrigger>
+                  <TabsTrigger value="walling">Walling</TabsTrigger>
+                  <TabsTrigger value="ceiling">Ceiling</TabsTrigger>
+                  <TabsTrigger value="others">Extra/Other Finishes</TabsTrigger>
+                </TabsList>
+                <TabsContent value="flooring">
+                  <FlooringCalculator
+                    finishes={finishes}
+                    onFinishesUpdate={handleFinishesUpdate}
+                    materialPrices={materials}
+                    quote={quoteData}
+                  />
+                </TabsContent>
+                <TabsContent value="walling">
+                  <Tabs
+                    value={wallingFinishesTab}
+                    onValueChange={setWallingFinishesTab}
+                  >
+                    <TabsList className="grid w-full grid-cols-2 mb-3">
+                      <TabsTrigger value="internalFinishes">
+                        Internal Walling
+                      </TabsTrigger>
+                      <TabsTrigger value="externalFinishes">
+                        External Walling
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="internalFinishes">
+                      <InternalFinishesCalculator
+                        finishes={finishes}
+                        onFinishesUpdate={handleFinishesUpdate}
+                        onFinishTypeChange={handleInternalWallTypeChange}
+                        materialPrices={materials}
+                        quote={quoteData}
+                        wallDimensions={quoteData.wallDimensions}
+                      />
+                    </TabsContent>
+                    <TabsContent value="externalFinishes">
+                      <ExternalFinishesCalculator
+                        finishes={finishes}
+                        onFinishesUpdate={handleFinishesUpdate}
+                        onFinishTypeChange={handleExternalWallTypeChange}
+                        materialPrices={materials}
+                        quote={quoteData}
+                        wallDimensions={quoteData.wallDimensions}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </TabsContent>
+                <TabsContent value="ceiling">
+                  <CeilingCalculator
+                    finishes={finishes}
+                    onFinishesUpdate={handleFinishesUpdate}
+                    onCeilingTypeChange={handleCeilingTypeChange}
+                    materialPrices={materials}
+                    quote={quoteData}
+                  />
+                </TabsContent>
+                <TabsContent value="others">
+                  <Tabs
+                    value={otherFinishesTab}
+                    onValueChange={setOtherFinishesTab}
+                  >
+                    <TabsList className="grid w-full grid-cols-3 mb-3">
+                      <TabsTrigger value="kitchen-wardrobes">
+                        Kitchen & Wardrobes
+                      </TabsTrigger>
+                      <TabsTrigger value="door-paint">
+                        Wood/Metal Paint
+                      </TabsTrigger>
+                      <TabsTrigger value="otherFinishes">
+                        Extra/Other Finishes
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="kitchen-wardrobes">
+                      <KitchenAndWardrobesCalculator
+                        wardrobes={wardrobes}
+                        setWardrobes={setWardrobes}
+                        quote={quoteData}
+                        materialPrices={materials}
+                      />
+                    </TabsContent>
+                    <TabsContent value="door-paint">
+                      <DoorWindowPaintCalculator
+                        paints={quoteData.doorWindowPaints || []}
+                        onPaintsUpdate={(paints) =>
+                          setQuoteData((prev) => ({
+                            ...prev,
+                            doorWindowPaints: paints,
+                          }))
+                        }
+                        materialPrices={materials}
+                        readonly={false}
+                      />
+                    </TabsContent>
+                    <TabsContent value="otherFinishes">
+                      <OtherFinishesCalculator
+                        otherFinishes={finishes}
+                        onOtherFinishesUpdate={handleFinishesUpdate}
+                        materialPrices={materials}
+                        quote={quoteData}
+                        wallDimensions={quoteData.wallDimensions}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </QuoteGuidanceSidebar>
         );
       case 7:
         return (
-          <div className="space-y-6">
-            <Tabs value={extrasTab} onValueChange={setExtrasTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="equipment">Equipment</TabsTrigger>
-                <TabsTrigger value="services">Services & Extras</TabsTrigger>
-                <TabsTrigger value="subcontractors">Subcontractors</TabsTrigger>
-              </TabsList>
-              <TabsContent value="equipment">
-                <EquipmentSelector
-                  quoteData={quoteData}
-                  setQuoteData={setQuoteData}
-                  equipmentRates={equipmentRates}
-                  customEquipment={customEquipment}
-                />
-              </TabsContent>
-              <TabsContent value="services">
-                <ServicesSelector
-                  quoteData={quoteData}
-                  setQuoteData={setQuoteData}
-                  services={services}
-                />
-                <div className="mt-4">
-                  <Label htmlFor="customSpecs">Additional Specifications</Label>
-                  <Textarea
-                    id="customSpecs"
-                    placeholder="Any additional requirements..."
-                    rows={4}
-                    value={quoteData.custom_specs}
-                    onChange={(e) =>
-                      setQuoteData((prev) => ({
-                        ...prev,
-                        custom_specs: e.target.value,
-                      }))
-                    }
+          <QuoteGuidanceSidebar
+            guidanceData={
+              extrasTab === "equipment"
+                ? equipmentGuidance
+                : extrasTab === "services"
+                  ? servicesGuidance
+                  : subcontractorsGuidance
+            }
+            title={`${extrasTab.charAt(0).toUpperCase() + extrasTab.slice(1)} Guide`}
+          >
+            <div className="space-y-6">
+              <Tabs value={extrasTab} onValueChange={setExtrasTab}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="equipment">Equipment</TabsTrigger>
+                  <TabsTrigger value="services">Services & Extras</TabsTrigger>
+                  <TabsTrigger value="subcontractors">
+                    Subcontractors
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="equipment">
+                  <EquipmentSelector
+                    quoteData={quoteData}
+                    setQuoteData={setQuoteData}
+                    equipmentRates={equipmentRates}
+                    customEquipment={customEquipment}
                   />
-                </div>
-              </TabsContent>
-              <TabsContent value="subcontractors">
-                <SubcontractorsSelector
-                  quoteData={quoteData}
-                  setQuoteData={setQuoteData}
-                  subContractors={subContractors}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+                </TabsContent>
+                <TabsContent value="services">
+                  <ServicesSelector
+                    quoteData={quoteData}
+                    setQuoteData={setQuoteData}
+                    services={services}
+                  />
+                  <div className="mt-4">
+                    <Label htmlFor="customSpecs">
+                      Additional Specifications
+                    </Label>
+                    <Textarea
+                      id="customSpecs"
+                      placeholder="Any additional requirements..."
+                      rows={4}
+                      value={quoteData.custom_specs}
+                      onChange={(e) =>
+                        setQuoteData((prev) => ({
+                          ...prev,
+                          custom_specs: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </TabsContent>
+                <TabsContent value="subcontractors">
+                  <SubcontractorsSelector
+                    quoteData={quoteData}
+                    setQuoteData={setQuoteData}
+                    subContractors={subContractors}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </QuoteGuidanceSidebar>
         );
       case 8:
         return (
-          <PreliminariesBuilder
-            quoteData={quoteData}
-            onPreliminariesUpdate={setPreliminaries}
-            onSaveToQuote={(sections) =>
-              setQuoteData((prev) => ({ ...prev, preliminaries: sections }))
-            }
-          />
+          <QuoteGuidanceSidebar
+            guidanceData={preliminariesGuidance}
+            title="Preliminaries Builder Guide"
+          >
+            <PreliminariesBuilder
+              quoteData={quoteData}
+              onPreliminariesUpdate={setPreliminaries}
+              onSaveToQuote={(sections) =>
+                setQuoteData((prev) => ({ ...prev, preliminaries: sections }))
+              }
+            />
+          </QuoteGuidanceSidebar>
         );
       case 9:
-        return <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />;
+        return (
+          <QuoteGuidanceSidebar
+            guidanceData={boqGuidance}
+            title="Bill of Quantities Guide"
+          >
+            <BOQBuilder quoteData={quoteData} onBOQUpdate={setBoqData} />
+          </QuoteGuidanceSidebar>
+        );
       case 10:
         return (
-          <div className="space-y-6">
-            {calculation ? (
-              <>
-                {boqData.length > 0 && (
-                  <div>
-                    <h3 className="text-lg mb-4">Bill of Quantities</h3>
-                    {boqData.map((section, idx) => (
-                      <Card key={idx} className="mb-4">
-                        <CardHeader>
-                          <CardTitle>{section.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Item</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Element</TableHead>
-                                <TableHead>Unit</TableHead>
-                                <TableHead>Qty</TableHead>
-                                <TableHead>Rate</TableHead>
-                                <TableHead>Amount</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {section.items.length ? (
-                                section.items.map((item, i) => {
-                                  const isHeader =
-                                    item.element?.toLowerCase() === "header";
-                                  return isHeader ? (
-                                    <TableRow key={i}>
-                                      <TableCell
-                                        colSpan={8}
-                                        className="font-bold"
-                                      >
-                                        {item.description}
-                                      </TableCell>
-                                    </TableRow>
-                                  ) : (
-                                    <TableRow key={i}>
-                                      <TableCell>
-                                        {item.itemNo || "-"}
-                                      </TableCell>
-                                      <TableCell>{item.description}</TableCell>
-                                      <TableCell>{item.element}</TableCell>
-                                      <TableCell>{item.unit}</TableCell>
-                                      <TableCell>{item.quantity}</TableCell>
-                                      <TableCell>
-                                        {item.rate?.toLocaleString()}
-                                      </TableCell>
-                                      <TableCell>
-                                        {item.amount?.toLocaleString()}
-                                      </TableCell>
-                                    </TableRow>
-                                  );
-                                })
-                              ) : (
+          <QuoteGuidanceSidebar
+            guidanceData={reviewGuidance}
+            title="Review & Export Guide"
+          >
+            <div className="space-y-6">
+              {calculation ? (
+                <>
+                  {boqData.length > 0 && (
+                    <div>
+                      <h3 className="text-lg mb-4">Bill of Quantities</h3>
+                      {boqData.map((section, idx) => (
+                        <Card key={idx} className="mb-4">
+                          <CardHeader>
+                            <CardTitle>{section.title}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <Table>
+                              <TableHeader>
                                 <TableRow>
-                                  <TableCell
-                                    colSpan={8}
-                                    className="text-center"
-                                  >
-                                    No items
-                                  </TableCell>
+                                  <TableHead>Item</TableHead>
+                                  <TableHead>Description</TableHead>
+                                  <TableHead>Element</TableHead>
+                                  <TableHead>Unit</TableHead>
+                                  <TableHead>Qty</TableHead>
+                                  <TableHead>Rate</TableHead>
+                                  <TableHead>Amount</TableHead>
                                 </TableRow>
-                              )}
-                            </TableBody>
-                          </Table>
-                          <div className="mt-4 text-right font-bold">
-                            Total: KSh{" "}
-                            {section.items
-                              .reduce((sum, i) => sum + (i.amount || 0), 0)
-                              .toLocaleString()}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                              </TableHeader>
+                              <TableBody>
+                                {section.items.length ? (
+                                  section.items.map((item, i) => {
+                                    const isHeader =
+                                      item.element?.toLowerCase() === "header";
+                                    return isHeader ? (
+                                      <TableRow key={i}>
+                                        <TableCell
+                                          colSpan={8}
+                                          className="font-bold"
+                                        >
+                                          {item.description}
+                                        </TableCell>
+                                      </TableRow>
+                                    ) : (
+                                      <TableRow key={i}>
+                                        <TableCell>
+                                          {item.itemNo || "-"}
+                                        </TableCell>
+                                        <TableCell>
+                                          {item.description}
+                                        </TableCell>
+                                        <TableCell>{item.element}</TableCell>
+                                        <TableCell>{item.unit}</TableCell>
+                                        <TableCell>{item.quantity}</TableCell>
+                                        <TableCell>
+                                          {item.rate?.toLocaleString()}
+                                        </TableCell>
+                                        <TableCell>
+                                          {item.amount?.toLocaleString()}
+                                        </TableCell>
+                                      </TableRow>
+                                    );
+                                  })
+                                ) : (
+                                  <TableRow>
+                                    <TableCell
+                                      colSpan={8}
+                                      className="text-center"
+                                    >
+                                      No items
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                            <div className="mt-4 text-right font-bold">
+                              Total: KSh{" "}
+                              {section.items
+                                .reduce((sum, i) => sum + (i.amount || 0), 0)
+                                .toLocaleString()}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Labour and Total</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Labour</span>
+                        <span>
+                          KSh {calculation.labor_cost?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Profit</span>
+                        <span>
+                          KSh {calculation.profit_amount?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Contingency</span>
+                        <span>
+                          KSh {calculation.contingency_amount?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Unknown Unknowns Reserve</span>
+                        <span>
+                          KSh{" "}
+                          {calculation.unknown_contingency_amount?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Overhead</span>
+                        <span>
+                          KSh {calculation.overhead_amount?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Materials</span>
+                        <span>
+                          KSh {calculation.materials_cost?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Preliminaries</span>
+                        <span>
+                          KSh {calculation.preliminariesCost?.toLocaleString()}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>KSh {calculation.total_amount.toLocaleString()}</span>
                   </div>
-                )}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Labour and Total</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Labour</span>
-                      <span>
-                        KSh {calculation.labor_cost?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Profit</span>
-                      <span>
-                        KSh {calculation.profit_amount?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Contingency</span>
-                      <span>
-                        KSh {calculation.contingency_amount?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Unknown Unknowns Reserve</span>
-                      <span>
-                        KSh{" "}
-                        {calculation.unknown_contingency_amount?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Overhead</span>
-                      <span>
-                        KSh {calculation.overhead_amount?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Materials</span>
-                      <span>
-                        KSh {calculation.materials_cost?.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Preliminaries</span>
-                      <span>
-                        KSh {calculation.preliminariesCost?.toLocaleString()}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total:</span>
-                  <span>KSh {calculation.total_amount.toLocaleString()}</span>
+                  <div className="flex space-x-4">
+                    <Button
+                      onClick={handleSaveQuote}
+                      className="flex-1 rounded-full"
+                    >
+                      Save Quote
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-5 text-gray-500">
+                  No calculation done. Click on calculate to generate quotation.
                 </div>
-                <div className="flex space-x-4">
-                  <Button
-                    onClick={handleSaveQuote}
-                    className="flex-1 rounded-full"
-                  >
-                    Save Quote
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-5 text-gray-500">
-                No calculation done. Click on calculate to generate quotation.
+              )}
+              <div className="flex space-x-4">
+                <Button
+                  onClick={handleCalculate}
+                  disabled={calculationLoading}
+                  className="flex-1 rounded-full"
+                >
+                  {calculationLoading ? "Calculating..." : "Recalculate"}
+                </Button>
               </div>
-            )}
-            <div className="flex space-x-4">
-              <Button
-                onClick={handleCalculate}
-                disabled={calculationLoading}
-                className="flex-1 rounded-full"
-              >
-                {calculationLoading ? "Calculating..." : "Recalculate"}
-              </Button>
             </div>
-          </div>
+          </QuoteGuidanceSidebar>
         );
       default:
         return null;

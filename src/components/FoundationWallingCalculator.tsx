@@ -132,9 +132,9 @@ export default function FoundationWallingCalculator({
       quote?.concrete_rows?.find((c: any) => c.element === "blinding")
         ?.height || "0.1",
     );
-    const returnFillDepth = parseFloat(
-      quote?.foundationDetails?.[0]?.returnFillDepth || "0.5",
-    );
+    const excavationDepth = quote?.earthwork?.find(
+      (e: any) => e.type === "foundation-excavation",
+    )?.depth;
 
     if (
       (externalPerimeter <= 0 && internalPerimeter <= 0) ||
@@ -142,7 +142,7 @@ export default function FoundationWallingCalculator({
       topsoilDepth <= 0 ||
       slabThickness <= 0 ||
       blindingThickness <= 0 ||
-      returnFillDepth <= 0
+      excavationDepth <= 0
     ) {
       return { volume: 0, height: 0, externalVolume: 0, internalVolume: 0 };
     }
@@ -150,22 +150,18 @@ export default function FoundationWallingCalculator({
     const externalReturn = calculateReturnFillQuantities(
       externalPerimeter,
       externalThickness,
-      0,
-      returnFillDepth,
+      excavationDepth,
       elevation,
       topsoilDepth,
-      slabThickness,
-      blindingThickness,
+      "external",
     );
     const internalReturn = calculateReturnFillQuantities(
       internalPerimeter,
       internalThickness,
-      0,
-      returnFillDepth,
+      excavationDepth,
       elevation,
       topsoilDepth,
-      slabThickness,
-      blindingThickness,
+      "internal",
     );
 
     return {
@@ -642,7 +638,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Walling Area
               </p>
-              <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+              <p className="text-2xl font-bold ">
                 {calculateFoundationWallingArea().toFixed(2)} m²
               </p>
             </div>
@@ -650,7 +646,7 @@ export default function FoundationWallingCalculator({
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Total Volume
               </p>
-              <p className="text-2xl font-bold text-primary dark:text-primary">
+              <p className="text-2xl font-bold ">
                 {totals.totalVolume.toFixed(2)} m³
               </p>
             </div>
@@ -658,15 +654,13 @@ export default function FoundationWallingCalculator({
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Total Blocks
               </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {totals.totalBlocks}
-              </p>
+              <p className="text-2xl font-bold ">{totals.totalBlocks}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Total Block Ft
               </p>
-              <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+              <p className="text-2xl font-bold">
                 {totals.totalBlocksFeet?.toFixed(0) || 0}
               </p>
             </div>
@@ -674,15 +668,13 @@ export default function FoundationWallingCalculator({
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Cement (bags)
               </p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {totals.totalMortarCement}
-              </p>
+              <p className="text-2xl font-bold">{totals.totalMortarCement}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Sand (m³)
               </p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <p className="text-2xl font-bold">
                 {totals.totalMortarSand.toFixed(2)}
               </p>
             </div>

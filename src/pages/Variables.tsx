@@ -564,11 +564,11 @@ const Variables = () => {
     <div className=" scrollbar-hide min-h-screen animate-fade-in">
       <div className="container  scrollbar-hide mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <h1 className="sm:text-2xl text-xl flex items-center text-foreground tracking-tight">
+          <h1 className="sm:text-2xl text-xl flex items-center ">
             <Settings className="sm:w-7 sm:h-7 mr-3 text-primary dark:text-white" />
             <h2 className="text-xl sm:text-2xl">Variables & Pricing</h2>
           </h1>
-          <p className="text-sm sm:text-lg text-foreground tracking-tight mt-2">
+          <p className="text-sm sm:text-lg mt-2">
             Configure all pricing variables and settings for your construction
             projects
           </p>
@@ -606,8 +606,8 @@ const Variables = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-3 p-3 sm:p-4 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                  <p className="text-xs sm:text-sm text-primary dark:text-primary">
+                <div className="mb-3 p-3 sm:p-4 bg-gray-50 dark:bg-primary/20 rounded-lg">
+                  <p className="text-xs sm:text-sm">
                     <strong>Region:</strong> {profile?.location || "Nairobi"} -
                     Prices shown include regional multipliers for base prices.
                   </p>
@@ -825,17 +825,17 @@ const Variables = () => {
             </Card>
 
             {/* Custom Materials Section */}
-            <Card className="animate-slide-in border-primary/20 dark:border-primary/30">
+            <Card className="animate-slide-in">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-primary" />
+                    <Building className="w-5 h-5 mr-2" />
                     My Custom Materials
                   </CardTitle>
                   <Button
                     size="sm"
                     onClick={() => setShowAddMaterial(!showAddMaterial)}
-                    className="bg-primary hover:bg-primary/30 text-white"
+                    className="text-white"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Material
@@ -844,7 +844,7 @@ const Variables = () => {
               </CardHeader>
               <CardContent>
                 {showAddMaterial && (
-                  <Card className="mb-4 p-4 bg-primary/10 dark:bg-primary/30">
+                  <Card className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20">
                     <div className="flex gap-2 mb-4">
                       <Button
                         size="sm"
@@ -852,9 +852,6 @@ const Variables = () => {
                           materialInputMode === "simple" ? "default" : "outline"
                         }
                         onClick={() => setMaterialInputMode("simple")}
-                        className={
-                          materialInputMode === "simple" ? "bg-primary" : ""
-                        }
                       >
                         Single Material
                       </Button>
@@ -864,9 +861,6 @@ const Variables = () => {
                           materialInputMode === "json" ? "default" : "outline"
                         }
                         onClick={() => setMaterialInputMode("json")}
-                        className={
-                          materialInputMode === "json" ? "bg-primary" : ""
-                        }
                       >
                         Bulk (JSON)
                       </Button>
@@ -967,7 +961,7 @@ const Variables = () => {
                             size="sm"
                             onClick={handleAddCustomMaterial}
                             disabled={loading}
-                            className="bg-primary hover:bg-primary/30 text-white"
+                            className="text-white"
                           >
                             {loading ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -1033,7 +1027,7 @@ const Variables = () => {
                             size="sm"
                             onClick={handleAddMaterialsFromJSON}
                             disabled={loading}
-                            className="bg-primary hover:bg-primary/30 text-white"
+                            className="text-white"
                           >
                             {loading ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -1065,7 +1059,7 @@ const Variables = () => {
                     {customMaterials.map((material) => (
                       <Card
                         key={material.id}
-                        className="border-primary/20 dark:border-primary/30"
+                        className="border-blue-200 dark:border-blue-800"
                       >
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-3">
@@ -1129,7 +1123,7 @@ const Variables = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-[#111418]">
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-gray-800/20">
                     No custom materials added yet. Click "Add Material" to
                     create one.
                   </div>
@@ -1597,7 +1591,7 @@ const Variables = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-[#111418]">
+                  <div className="p-4 text-center text-muted-foreground rounded-lg bg-gray-50 dark:bg-gray-800/20">
                     No custom equipment added yet. Click "Add Equipment" to
                     create one.
                   </div>
@@ -1615,8 +1609,8 @@ const Variables = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-4 p-4 bg-primary/10 dark:bg-primary/20 rounded-lg">
-                  <p className="text-sm text-primary dark:text-primary">
+                <div className="mb-4 p-4 bg-gray-50 dark:bg-primary/20 rounded-lg">
+                  <p className="text-sm">
                     <strong>Your Region:</strong>{" "}
                     {profile?.location || "Not set"} - Transport rates shown for
                     all regions. Custom prices will override defaults.
@@ -1632,7 +1626,7 @@ const Variables = () => {
                           <div className="flex items-center justify-between mb-3">
                             <h4 className="font-medium">{rate.region}</h4>
                             {rate.region === profile?.location && (
-                              <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
                                 Your Region
                               </span>
                             )}

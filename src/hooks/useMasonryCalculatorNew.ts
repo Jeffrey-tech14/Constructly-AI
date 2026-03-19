@@ -1948,7 +1948,9 @@ export default function useMasonryCalculatorNew({
       netTransomGlassCost = 0,
       netTransomPuttyCost = 0,
       netWindowsCost = 0,
-      netWindowFramesCost = 0;
+      netWindowFramesCost = 0,
+      totalDoorWidth = 0,
+      totalWindowWidth = 0;
 
     const normalizeFastenerKey = (value: string) =>
       value.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -2028,6 +2030,13 @@ export default function useMasonryCalculatorNew({
     wallSections?.forEach((section) => {
       section.doors.forEach((door) => {
         doorsCount += door.count;
+
+        // Track door width for lintel calculation
+        const doorWidth =
+          door.sizeType === "standard"
+            ? parseSize(door.standardSize)[1] || 0
+            : Number(door.custom.width) || 0;
+        totalDoorWidth += doorWidth * door.count;
         const doorCustomPrice = Number(door.custom?.price ?? door.price);
         const hasDoorCustomPrice =
           Number.isFinite(doorCustomPrice) && doorCustomPrice > 0;
@@ -2218,6 +2227,13 @@ export default function useMasonryCalculatorNew({
 
       section.windows.forEach((window) => {
         windowsCount += window.count;
+
+        // Track window width for lintel calculation
+        const windowWidth =
+          window.sizeType === "standard"
+            ? parseSize(window.standardSize)[1] || 0
+            : Number(window.custom.width) || 0;
+        totalWindowWidth += windowWidth * window.count;
         const windowCustomPrice = Number(window.custom?.price ?? window.price);
         const hasWindowCustomPrice = Number.isFinite(windowCustomPrice);
         const windowLeafPrice = hasWindowCustomPrice
@@ -2326,10 +2342,13 @@ export default function useMasonryCalculatorNew({
 
     // Lintels
     if (qsSettings.includesLintels) {
-      // Total lintel length = total wall perimeter (external + internal)
+      // Total lintel length = sum of all door and window widths + 300mm (0.3m) overflow per opening
+      const openingOverflow = 0.3; // 300mm overflow per opening
       const totalLintelLength =
-        Number(wallDimensions.externalWallPerimiter) +
-        Number(wallDimensions.internalWallPerimiter);
+        totalDoorWidth +
+        totalWindowWidth +
+        doorsCount * openingOverflow +
+        windowsCount * openingOverflow;
 
       const lintelConcrete =
         totalLintelLength * qsSettings.lintelWidth * qsSettings.lintelDepth;
@@ -2366,7 +2385,9 @@ export default function useMasonryCalculatorNew({
 
     // Ring Beams
     if (qsSettings.includesRingBeams && wallDimensions.externalWallPerimiter) {
-      const ringBeamPerimeter = Number(wallDimensions.externalWallPerimiter);
+      const ringBeamPerimeter =
+        Number(wallDimensions.externalWallPerimiter) +
+        Number(wallDimensions.internalWallPerimiter);
       const ringBeamWidth =
         qsSettings.ringBeamWidth || qsSettings.lintelWidth || 0.2;
       const ringBeamDepth =

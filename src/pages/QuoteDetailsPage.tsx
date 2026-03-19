@@ -145,7 +145,7 @@ const QuoteDetailsPage = () => {
       case "planning":
         return "bg-purple-100 text-purple-800 hover:bg-purple-200";
       case "started":
-        return "bg-primary/10 text-primary hover:bg-primary/20";
+        return "bg-blue-100 text-blue-800 hover:bg-blue-200";
       case "in_progress":
         return "bg-amber-100 text-amber-800 hover:bg-amber-200";
       case "completed":
@@ -223,7 +223,7 @@ const QuoteDetailsPage = () => {
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-2xl md:text-3xl  flex items-center gap-3 text-foreground tracking-tight">
+                <h1 className="text-2xl md:text-3xl  flex items-center gap-3 ">
                   <Building2 className="w-7 h-7 text-primary dark:text-white" />
                   {quote.title}
                 </h1>
@@ -511,7 +511,7 @@ const QuoteDetailsPage = () => {
 
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="text-white bg-gradient-to-r from-primary to-primary hover:from-primary/40 hover:to-primary/90">
+                    <Button className="text-white hover:from-primary/40 hover:to-primary/90">
                       <FileText className="w-4 h-4 mr-2" />
                       Generate BOQ
                     </Button>
@@ -547,14 +547,14 @@ const QuoteDetailsPage = () => {
                     state: {
                       quoteId: quote.id,
                       quoteTitle: quote.title,
-                      amount: 200,
+                      amount: 1000,
                     },
                   })
                 }
                 className="text-white bg-gradient-to-r from-[#D85C2C] to-[#C94820] hover:from-[#C94820] hover:to-[#B83B1A]"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
-                Pay 200 KSH
+                Pay 1000 KSH
               </Button>
             )}
 

@@ -42,7 +42,7 @@ const AppContent = () => {
   const location = useLocation();
   const isElectron =
     typeof window !== "undefined" && window.electronAPI !== undefined;
-  const usesPublicLayoutNavbar = ["/", "/faq", "/guide"].includes(location.pathname);
+  const usesPublicLayoutNavbar = ["/", "/faq"].includes(location.pathname);
 
   useEffect(() => {
     // Check initial theme
@@ -76,7 +76,7 @@ const AppContent = () => {
   return (
     <div
       className="min-h-screen scrollbar-hide bg-[#fcfdfd] dark:bg-[#08090b] text-[#1a1a1a] dark:text-[#eceff4] transition-colors duration-400 relative"
-      style={{ fontFamily: 'Outfit, sans-serif' }}
+      style={{ fontFamily: "Outfit, sans-serif" }}
     >
       {/* Custom titlebar for Electron only */}
       {isElectron && <CustomTitleBar />}
@@ -96,7 +96,6 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/payments/quote"
             element={
@@ -169,7 +168,9 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/guide" element={<UserGuide />} />            <Route path="/faq" element={<FaqPage />} />          <Route path="*" element={<NotFound />} />
+          <Route path="/guide" element={<UserGuide />} />{" "}
+          <Route path="/faq" element={<FaqPage />} />{" "}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </div>
@@ -192,6 +193,5 @@ const App = () => (
 );
 
 export default App;
-
 
 // Adjusted logo sizing and UI spacing

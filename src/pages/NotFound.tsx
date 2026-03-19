@@ -96,7 +96,7 @@ const NotFound = () => {
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, type: "spring", stiffness: 80 }}
-              className="text-8xl sm:text-9xl font-black text-foreground tracking-tight drop-shadow-lg"
+              className="text-8xl sm:text-9xl font-black text-primary drop-shadow-lg"
             >
               404
             </motion.h1>
@@ -104,7 +104,7 @@ const NotFound = () => {
 
           {/* Error Message */}
           <motion.div variants={itemVariants} className="mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#00356B] dark:text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Page Lost on the Construction Site
             </h2>
             <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
@@ -123,7 +123,7 @@ const NotFound = () => {
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shadow-lg"
             >
-              <Search className="w-8 h-8 text-[#B8860B] dark:text-[#D4A574]" />
+              <Search className="w-8 h-8 text-primary" />
             </motion.div>
           </motion.div>
 
@@ -143,7 +143,7 @@ const NotFound = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={() => navigate("/")}
-                className="w-full sm:w-auto bg-[#B8860B] hover:bg-[#A67C00] text-white rounded-full h-12 px-8  shadow-lg transition-all group"
+                className="w-full sm:w-auto text-white rounded-full h-12 px-8  shadow-lg transition-all group"
               >
                 <Home className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
                 Back to Home
@@ -165,7 +165,7 @@ const NotFound = () => {
           {/* Footer Links Card */}
           <motion.div
             variants={itemVariants}
-            className=" -card rounded-2xl p-6 sm:p-8 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
+            className="glass-card rounded-2xl p-6 sm:p-8 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
           >
             <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium">
               Need help finding something?
@@ -175,7 +175,7 @@ const NotFound = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/help")}
-                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574]  transition-colors"
+                className="transition-colors"
               >
                 Browse Documentation →
               </motion.button>
@@ -186,7 +186,7 @@ const NotFound = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/support")}
-                className="text-[#B8860B] hover:text-[#00356B] dark:hover:text-[#D4A574]  transition-colors"
+                className="transition-colors"
               >
                 Contact Support →
               </motion.button>

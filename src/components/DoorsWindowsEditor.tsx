@@ -207,6 +207,7 @@ const DoorsWindowsEditor = ({
         },
       },
       architrave: {
+        enabled: true,
         selected: {
           type: "timber-architrave",
           size: "40x20mm",
@@ -227,6 +228,7 @@ const DoorsWindowsEditor = ({
         },
       },
       quarterRound: {
+        enabled: true,
         selected: {
           type: "timber-quarter-round",
           size: "20mm",
@@ -1159,6 +1161,45 @@ const EditableDoorWindow = ({
   const autoWindowArchitraveQty = getWindowHeightM() * 2 + getWindowWidthM();
 
   const getWindowGlassArea = () => getWindowHeightM() * getWindowWidthM();
+
+  // Calculate glass total when price, quantity, or dimensions change
+  React.useEffect(() => {
+    if (type !== "window") return;
+
+    const glassArea = getWindowGlassArea();
+    const quantity = windowItem.glazing?.glass?.quantity || 1;
+    const price =
+      windowItem.glazing?.glass?.pricePerM2 ??
+      getGlassUnitM2Price(
+        windowItem.glazing?.glass?.type || windowItem.glassType,
+        windowItem.standardSize,
+      ) ??
+      0;
+    const windowCount = windowItem.count || 1;
+    const total = glassArea * quantity * price * windowCount;
+
+    // Only update if total actually changed
+    if (windowItem.glazing?.glass?.total !== total) {
+      onUpdate("glazing", {
+        ...windowItem.glazing,
+        glass: {
+          ...windowItem.glazing?.glass,
+          total: total || undefined,
+        },
+      });
+    }
+  }, [
+    type,
+    windowItem.glazing?.glass?.pricePerM2,
+    windowItem.glazing?.glass?.quantity,
+    windowItem.count,
+    windowItem.sizeType,
+    windowItem.standardSize,
+    windowItem.custom?.height,
+    windowItem.custom?.width,
+    windowItem.glassType,
+    onUpdate,
+  ]);
 
   // Auto-sync frame size with door size
   React.useEffect(() => {
@@ -2607,6 +2648,25 @@ const EditableDoorWindow = ({
                   Architrave
                 </AccordionTrigger>
                 <AccordionContent className="px-3 pb-3">
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded mb-2">
+                    <Checkbox
+                      id="architrave-enable"
+                      checked={doorItem.architrave?.enabled ?? true}
+                      onCheckedChange={(checked) =>
+                        onUpdate("architrave", {
+                          ...doorItem.architrave,
+                          enabled: !!checked,
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="architrave-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Include Architrave
+                    </label>
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                     <div>
                       <label className="text-xs font-medium">
@@ -2769,6 +2829,25 @@ const EditableDoorWindow = ({
                   Quarter Round
                 </AccordionTrigger>
                 <AccordionContent className="px-3 pb-3">
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-slate-800/30 rounded mb-2">
+                    <Checkbox
+                      id="quarterround-enable"
+                      checked={doorItem.quarterRound?.enabled ?? true}
+                      onCheckedChange={(checked) =>
+                        onUpdate("quarterRound", {
+                          ...doorItem.quarterRound,
+                          enabled: !!checked,
+                        })
+                      }
+                      disabled={readonly}
+                    />
+                    <label
+                      htmlFor="quarterround-enable"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Include Quarter Round
+                    </label>
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
                     <div>
                       <label className="text-xs font-medium">
@@ -4267,16 +4346,17 @@ const EditableDoorWindow = ({
                           ) ??
                           ""
                         }
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const newPrice =
+                            parseFloat(e.target.value) || undefined;
                           onUpdate("glazing", {
                             ...windowItem.glazing,
                             glass: {
                               ...windowItem.glazing?.glass,
-                              pricePerM2:
-                                parseFloat(e.target.value) || undefined,
+                              pricePerM2: newPrice,
                             },
-                          })
-                        }
+                          });
+                        }}
                         disabled={readonly}
                       />
                     </div>
@@ -4287,15 +4367,16 @@ const EditableDoorWindow = ({
                         type="number"
                         min="1"
                         value={windowItem.glazing?.glass?.quantity || 1}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const newQuantity = parseFloat(e.target.value) || 1;
                           onUpdate("glazing", {
                             ...windowItem.glazing,
                             glass: {
                               ...windowItem.glazing?.glass,
-                              quantity: parseFloat(e.target.value) || 1,
+                              quantity: newQuantity,
                             },
-                          })
-                        }
+                          });
+                        }}
                         disabled={readonly}
                       />
                     </div>
@@ -4303,17 +4384,9 @@ const EditableDoorWindow = ({
                       <label className="text-xs font-medium">Total (Ksh)</label>
                       <Input
                         className="h-8 text-xs bg-gray-100 dark:bg-slate-700"
-                        value={getTotalPrice(
-                          getWindowGlassArea() *
-                            (windowItem.glazing?.glass?.quantity || 1),
-                          windowItem.glazing?.glass?.pricePerM2 ??
-                            getGlassUnitPrice(
-                              windowItem.glazing?.glass?.type ||
-                                windowItem.glassType,
-                            ) ??
-                            0,
-                          windowItem.count,
-                        ).toFixed(2)}
+                        value={(windowItem.glazing?.glass?.total || 0).toFixed(
+                          2,
+                        )}
                         disabled={true}
                       />
                     </div>

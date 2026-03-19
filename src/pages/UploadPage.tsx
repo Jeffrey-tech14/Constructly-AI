@@ -1663,11 +1663,11 @@ const UploadPlan = () => {
                                   External Wall Block Type
                                 </Label>
                                 <Select
-                                  value={getBlockTypeFromThickness(
+                                  value={
                                     editablePlan.wallSections?.find(
                                       (s) => s.type === "external",
-                                    )?.thickness,
-                                  )}
+                                    )?.blockType || "Standard Block"
+                                  }
                                   onValueChange={(value) => {
                                     setEditablePlan((prev) => {
                                       if (!prev) return prev;
@@ -1723,11 +1723,11 @@ const UploadPlan = () => {
                                   Internal Wall Block Type
                                 </Label>
                                 <Select
-                                  value={getBlockTypeFromThickness(
+                                  value={
                                     editablePlan.wallSections?.find(
                                       (s) => s.type === "internal",
-                                    )?.thickness,
-                                  )}
+                                    )?.blockType || "Standard Block"
+                                  }
                                   onValueChange={(value) => {
                                     setEditablePlan((prev) => {
                                       if (!prev) return prev;

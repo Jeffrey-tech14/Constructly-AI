@@ -326,71 +326,6 @@ export default function ConcreteCalculatorForm({
   }, [user, profile, fetchMaterials]);
 
   /**
-   * Auto-update strip footing widths based on block type
-   * Width = 3x the block thickness extracted from the blockType mapping
-   */
-  useEffect(() => {
-    setRows((prevRows) => {
-      let updated = false;
-      const blockDimensionsMap: { [key: string]: string } = {
-        "Large Block": "0.2x0.2x0.2",
-        "Standard Block": "0.15x0.2x0.15",
-        "Small Block": "0.1x0.2x0.1",
-      };
-
-      const newRows = prevRows.map((row) => {
-        if (row.element === "strip-footing") {
-          // Determine wall type from row name (should contain "internal" or "external")
-          const nameLower = row.name.toLowerCase();
-          const isInternal = nameLower.includes("internal");
-          const isExternal = nameLower.includes("external");
-          const wallType = isInternal
-            ? "internal"
-            : isExternal
-              ? "external"
-              : row.wallType;
-
-          if (wallType && quote?.wallSections) {
-            // Find the wall section matching this type
-            const wallSection = quote.wallSections.find(
-              (w: any) => w.type === wallType,
-            );
-            if (wallSection) {
-              // Get block dimensions from blockType mapping
-              const blockType = wallSection.blockType || "Standard Block";
-              const blockDimensions =
-                blockDimensionsMap[blockType] || "0.15x0.2x0.15";
-
-              // Extract thickness (third value) from blockDimensions
-              const dims = blockDimensions
-                .split("x")
-                .map((d: string) => parseFloat(d.trim()));
-              if (dims.length >= 3 && dims[2] > 0) {
-                const calculatedWidth = (dims[2] * 3).toString();
-                if (row.width !== calculatedWidth) {
-                  updated = true;
-                  return {
-                    ...row,
-                    width: calculatedWidth,
-                    wallType,
-                  };
-                }
-              }
-            }
-          }
-        }
-        return row;
-      });
-
-      if (updated) {
-        pushRowsDebounced(newRows);
-      }
-
-      return newRows;
-    });
-  }, [quote?.wallSections, pushRowsDebounced]);
-
-  /**
    * Auto-calculate hardcore backfill depth for strip footings
    * Formula: Finished Floor Level - slab thickness - maram blinding - concrete blinding - (excavation depth - footing thickness)
    */
@@ -2462,19 +2397,6 @@ export default function ConcreteCalculatorForm({
                       </b>
                     </p>
                   )}
-
-                  <div className="ml-4 mt-1 p-2 bg-card dark:bg-primary/20 rounded-lg text-xs">
-                    <p>
-                      <b>Water Breakdown:</b>
-                    </p>
-                    <p>• Mixing: {result.waterMixingL?.toFixed(0)} L</p>
-                    <p>• Curing: {result.waterCuringL?.toFixed(0)} L</p>
-                    <p>• Other uses: {result.waterOtherL?.toFixed(0)} L</p>
-                    <p>
-                      • Aggregate adjustment:{" "}
-                      {result.waterAggregateAdjustmentL?.toFixed(0)} L
-                    </p>
-                  </div>
 
                   {result.gravelVolume > 0 && (
                     <p>

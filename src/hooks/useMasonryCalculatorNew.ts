@@ -30,12 +30,14 @@ export interface Door {
     custom: { height: string; width: string; price?: number };
   };
   architrave?: {
+    enabled?: boolean;
     selected?: { type?: string; size?: string };
     customSize?: string;
     quantity?: number;
     price?: number;
   };
   quarterRound?: {
+    enabled?: boolean;
     selected?: { type?: string; size?: string };
     customSize?: string;
     quantity?: number;
@@ -154,6 +156,7 @@ export interface Window {
       thickness?: number;
       quantity?: number;
       pricePerM2?: number;
+      total?: number;
     };
     putty?: {
       quantity?: number;
@@ -2026,7 +2029,8 @@ export default function useMasonryCalculatorNew({
       section.doors.forEach((door) => {
         doorsCount += door.count;
         const doorCustomPrice = Number(door.custom?.price ?? door.price);
-        const hasDoorCustomPrice = Number.isFinite(doorCustomPrice);
+        const hasDoorCustomPrice =
+          Number.isFinite(doorCustomPrice) && doorCustomPrice > 0;
         const doorLeafPrice = hasDoorCustomPrice
           ? doorCustomPrice
           : getMaterialPrice("Doors", door.type);
@@ -2057,8 +2061,15 @@ export default function useMasonryCalculatorNew({
         doorFramesCount += door.count;
 
         // Helper function to get fastener price from materials (fixed for nested structure)
-        // Calculate door accessories costs
-        if (door.architrave?.quantity) {
+        // Calculate door accessories costs (only if door type is not Steel/Aluminium and enabled)
+        const isDoorAccessible =
+          door.type !== "Steel" && door.type !== "Aluminium";
+
+        if (
+          isDoorAccessible &&
+          door.architrave?.enabled !== false &&
+          door.architrave?.quantity
+        ) {
           const price = resolvePrice(
             door.architrave?.price,
             getFastenerPrice("architrave", door.architrave?.selected),
@@ -2073,7 +2084,11 @@ export default function useMasonryCalculatorNew({
           }
         }
 
-        if (door.quarterRound?.quantity) {
+        if (
+          isDoorAccessible &&
+          door.quarterRound?.enabled !== false &&
+          door.quarterRound?.quantity
+        ) {
           const price = resolvePrice(
             door.quarterRound?.price,
             getFastenerPrice("quarterRound", door.quarterRound?.selected),
@@ -2088,8 +2103,8 @@ export default function useMasonryCalculatorNew({
           }
         }
 
-        // Calculate ironmongery costs
-        if (door.ironmongery) {
+        // Calculate ironmongery costs (only if door type is not Steel/Aluminium and individual items enabled)
+        if (isDoorAccessible && door.ironmongery) {
           const hinge = door.ironmongery.hinges;
           const hasIronmongeryQty =
             (hinge?.quantity || 0) > 0 ||
@@ -2100,7 +2115,7 @@ export default function useMasonryCalculatorNew({
           if (hasIronmongeryQty) {
             netDoorIronmongQty += door.count;
           }
-          if (hinge?.quantity) {
+          if (hinge?.quantity && hinge?.enabled !== false) {
             const price = resolvePrice(
               hinge?.price,
               getFastenerPrice("hinges", hinge?.selected),
@@ -2113,7 +2128,7 @@ export default function useMasonryCalculatorNew({
           }
 
           const lock = door.ironmongery.locks;
-          if (lock?.quantity) {
+          if (lock?.quantity && lock?.enabled !== false) {
             const price = resolvePrice(
               lock?.price,
               getFastenerPrice("locks", lock?.selected),
@@ -2126,7 +2141,7 @@ export default function useMasonryCalculatorNew({
           }
 
           const handle = door.ironmongery.handles;
-          if (handle?.quantity) {
+          if (handle?.quantity && handle?.enabled !== false) {
             const price = resolvePrice(
               handle?.price,
               getFastenerPrice("handles", handle?.selected),
@@ -2139,7 +2154,7 @@ export default function useMasonryCalculatorNew({
           }
 
           const bolt = door.ironmongery.bolts;
-          if (bolt?.quantity) {
+          if (bolt?.quantity && bolt?.enabled !== false) {
             const price = resolvePrice(
               bolt?.price,
               getFastenerPrice("bolts", bolt?.selected),
@@ -2152,7 +2167,7 @@ export default function useMasonryCalculatorNew({
           }
 
           const closer = door.ironmongery.closers;
-          if (closer?.quantity) {
+          if (closer?.quantity && closer?.enabled !== false) {
             const price = resolvePrice(
               closer?.price,
               getFastenerPrice("closers", closer?.selected),
@@ -2165,34 +2180,38 @@ export default function useMasonryCalculatorNew({
           }
         }
 
-        // Calculate transom costs (custom pricing, not from materials)
-        if (door.transom?.quantity && door.transom?.price) {
-          const transomCost =
-            Number(door.transom.quantity) *
-            Number(door.transom.price) *
-            door.count;
-          netDoorTransomCost += transomCost;
-          totalOpeningsCost += transomCost;
-        }
-        if (door.transom?.quantity) {
+        // Calculate transom costs (only if door type is not Steel/Aluminium and enabled)
+        if (
+          isDoorAccessible &&
+          door.transom?.quantity &&
+          door.transom?.enabled !== false
+        ) {
+          if (door.transom?.price) {
+            const transomCost =
+              Number(door.transom.quantity) *
+              Number(door.transom.price) *
+              door.count;
+            netDoorTransomCost += transomCost;
+            totalOpeningsCost += transomCost;
+          }
           netDoorTransomQty += Number(door.transom.quantity) * door.count;
-        }
 
-        if (door.transom?.glazing?.glassAreaM2) {
-          const glassAreaPerUnit =
-            Number(door.transom.glazing.glassAreaM2) || 0;
-          const transomQty = Number(door.transom?.quantity) || 1;
-          const glassAreaTotal = glassAreaPerUnit * transomQty * door.count;
-          netTransomGlassArea += glassAreaTotal;
+          if (door.transom?.glazing?.glassAreaM2) {
+            const glassAreaPerUnit =
+              Number(door.transom.glazing.glassAreaM2) || 0;
+            const transomQty = Number(door.transom?.quantity) || 1;
+            const glassAreaTotal = glassAreaPerUnit * transomQty * door.count;
+            netTransomGlassArea += glassAreaTotal;
 
-          const glassPrice = resolvePrice(
-            door.transom.glazing?.glassPricePerM2,
-            getGlassPricePerM2("Clear"),
-          );
-          if (glassPrice > 0) {
-            const glassCost = glassAreaTotal * glassPrice;
-            netTransomGlassCost += glassCost;
-            totalOpeningsCost += glassCost;
+            const glassPrice = resolvePrice(
+              door.transom.glazing?.glassPricePerM2,
+              getGlassPricePerM2("Clear"),
+            );
+            if (glassPrice > 0) {
+              const glassCost = glassAreaTotal * glassPrice;
+              netTransomGlassCost += glassCost;
+              totalOpeningsCost += glassCost;
+            }
           }
         }
       });

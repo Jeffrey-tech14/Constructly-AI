@@ -144,6 +144,9 @@ You do not explain.
 You do not narrate.
 You do not invent data.
 You do not rename enums.
+Do not invent.
+Do not make any assumptions whatsoever about missing data. If data is not visible, labelled, or inferable, it does not exist.
+Do not hallucinate dimensions. If dimensions are not visible, labelled, or inferable from drawings, they do not exist.
 Any deviation invalidates the result.
 ════════════════════════════════════
 GLOBAL DATA RULES
@@ -283,18 +286,8 @@ Installation: "surface", "concealed", "underground", "trunking"
 Ratings: Amperes [6, 10, 13, 16, 20, 25, 32, 40, 45, 63]
 Wattage: [3, 5, 7, 9, 12, 15, 18, 20, 24, 30, 36, 40, 50, 60]
 ════════════════════════════════════
-FINISHES & ROOFING
+ROOFING
 ════════════════════════════════════
-FINISHES:
-Categories: "flooring", "ceiling", "wall-finishes", "joinery", "external"
-Constraint: Skip glass, blocks, or masonry not in this list.
-Common Materials:
-Flooring: "Ceramic Tiles", "Porcelain Tiles", "Hardwood", "Laminate", "Vinyl", "Polished Concrete", "Terrazzo", "Cement Floor Screed", "Self-leveling Floor Screed", "Anhydrite Floor Screed", "Resinous Floor Screed"
-Ceiling: "Blundering 40x40mm", "Blundering", "Gypsum Board", "PVC", "Acoustic Tiles", "Exposed Concrete", "Suspended Grid", "Wood Panels"
-Wall-Finishes: "Wallpaper", "Stone Cladding", "Tile Cladding", "Wood Paneling"
-Joinery: "Solid Wood", "Plywood", "MDF", "Melamine", "Laminate"
-External: "PVC Gutter", "Galvanized Steel Gutter", "Aluminum Gutter", "Copper Gutter", "PVC Fascia", "Painted Wood Fascia", "Aluminum Fascia", "Composite Fascia", "PVC Soffit", "Aluminum Soffit", "PVC Downpipe", "Galvanized Steel Downpipe"
-ROOFING:
 Types: "pitched", "flat", "gable", "hip", "mansard", "butterfly", "skillion"
 Materials: "concrete-tiles", "clay-tiles", "metal-sheets", "box-profile", "thatch", "slate", "asphalt-shingles", "green-roof", "membrane"
 Timber Sizes: "50x25", "50x50", "75x50", "100x50", "100x75", "150x50", "200x50"
@@ -304,7 +297,9 @@ Timber Types: "rafter", "wall-plate", "ridge-board", "purlin", "battens", "truss
 Underlayment: "felt-30", "felt-40", "synthetic", "rubberized", "breathable"
 Insulation: "glass-wool", "rock-wool", "eps", "xps", "polyurethane", "reflective-foil"
 Accessories: Use exact types for Gutters, Downpipes, Flashing, Fascia, Soffit (PVC, Galvanized Steel, Aluminum, Copper).
+════════════════════════════════════
 EQUIPMENT (Fixed IDs):
+════════════════════════════════════
 Bulldozer: 15846932-db16-4a28-a477-2e4b2e1e42d5
 Concrete Mixer: 3203526d-fa51-4878-911b-477b2b909db5
 Generator: 32c2ea0f-be58-47f0-bdcd-3027099eac4b
@@ -970,41 +965,6 @@ Use ALL available views to resolve dimensions.
       "voltage": 230 // default if not specified
     }
   ],
-  "finishes_calculations": {
-    "wall-finishes": [
-      {
-        "id": string,
-        "category": "wall-finishes",
-        "material": string, // from COMMON_MATERIALS["wall-finishes"]
-        "area": number,
-        "quantity": number,
-        "unit": "m²" | "m" | "pcs",
-        "location": string
-      }
-    ],
-    "joinery": [
-      {
-        "id": string,
-        "category": "joinery",
-        "material": string, // from COMMON_MATERIALS["joinery"]
-        "area": number,
-        "quantity": number,
-        "unit": "m²" | "m" | "pcs",
-        "location": string
-      }
-    ],
-    "external": [
-      {
-        "id": string,
-        "category": "external",
-        "material": string, // from COMMON_MATERIALS["external"]
-        "area": number,
-        "quantity": number,
-        "unit": "m²" | "m" | "pcs",
-        "location": string
-      }
-    ]
-  },
   ${
     hasBBSFile
       ? `"bar_schedule": [

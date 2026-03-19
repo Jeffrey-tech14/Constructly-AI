@@ -4,28 +4,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  RegionalMultiplier,
-  useDynamicPricing,
-} from "@/hooks/useDynamicPricing";
-import { useUserSettings } from "@/hooks/useUserSettings";
-import { EquipmentType } from "@/hooks/useUserSettings";
+import { RegionalMultiplier } from "@/hooks/useDynamicPricing";
 import { AdditionalService } from "@/hooks/useUserSettings";
 import { UserEquipmentRate } from "@/hooks/useUserSettings";
 import { UserServiceRate } from "@/hooks/useUserSettings";
-import { UserSubcontractorRate } from "@/hooks/useUserSettings";
-import { UserMaterialPrice } from "@/hooks/useUserSettings";
-import { UserTransportRate } from "@/hooks/useUserSettings";
 import { useLocation } from "react-router-dom";
-import { Sun } from "lucide-react";
-import { calculateConcrete } from "./useConcreteCalculator";
-import ConcreteCalculatorForm from "@/components/ConcreteCalculatorForm";
 import { ElectricalSystem } from "./useElectricalCalculator";
 import { PlumbingSystem } from "./usePlumbingCalculator";
-import {
-  FinishCalculation,
-  FinishElement,
-} from "./useUniversalFinishesCalculator";
+import { FinishElement } from "./useUniversalFinishesCalculator";
 import { RoofStructure } from "./useRoofingCalculator";
 import { MasonryQSSettings } from "./useMasonryCalculatorNew";
 import {
@@ -577,7 +563,6 @@ export const useQuoteCalculations = () => {
                 (percentageSettings.unknowns_contingency || 0 / 100),
             )
           : qsSettings?.unknown_contingency_amount || 0;
-
 
       // Calculate profit based on mode
       const profitAmount =

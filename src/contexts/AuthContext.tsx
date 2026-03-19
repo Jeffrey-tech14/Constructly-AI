@@ -110,29 +110,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        console.log("Auth state changed:", _event, session?.user?.id);
-
         if (!isMounted) return;
 
         // Mark listener as ready on first call
         if (!authStateChangeReady) {
           authStateChangeReady = true;
           if (isMounted) {
-            console.log("Auth ready - state listener initialized");
             setAuthReady(true);
             setLoading(false); // Mark loading as complete when listener is ready
           }
         }
 
         if (session?.user) {
-          console.log("User session established:", session.user.id);
           if (session.user.id !== prevUserId.current) {
             prevUserId.current = session.user.id;
             setUser(session.user);
             await fetchProfile(session.user.id);
           }
         } else {
-          console.log("User session cleared");
           prevUserId.current = null;
           setUser(null);
           setProfile(null);
@@ -153,17 +148,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (session?.user) {
-          console.log("Existing session found:", session.user.id);
           prevUserId.current = session.user.id;
           setUser(session.user);
           await fetchProfile(session.user.id);
         } else {
-          console.log("No existing session found");
           // No session found - wait for onAuthStateChange to signal ready
           // Set a timeout fallback to ensure auth is marked ready
           setTimeout(() => {
             if (isMounted && !authStateChangeReady) {
-              console.log("Auth ready (timeout fallback)");
               authStateChangeReady = true;
               setAuthReady(true);
               setLoading(false);
@@ -247,7 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { 
+        options: {
           redirectTo: redirectUrl,
           queryParams: {
             access_type: "offline",

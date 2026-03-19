@@ -195,6 +195,7 @@ export interface ExtractedPlan {
     length: string;
     width: string;
     depth: string;
+    area?: string;
     columnHeight?: string;
     mainBarSpacing?: string;
     distributionBarSpacing?: string;
@@ -203,6 +204,7 @@ export interface ExtractedPlan {
     slabLayers?: string;
     mainBarSize?: RebarSize;
     distributionBarSize?: RebarSize;
+    areaSelectionMode?: string;
     stirrupSize?: RebarSize;
     tieSize?: RebarSize;
     stirrupSpacing?: string;

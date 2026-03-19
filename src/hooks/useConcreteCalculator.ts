@@ -1138,19 +1138,6 @@ export function calculateConcrete(
     maramBlindingCost = maramBlindingVolume * (maramMaterial?.price || 0);
   }
 
-  // Compaction calculation
-  let compactionArea = 0;
-  let compactionCost = 0;
-  if (row.hasCompaction) {
-    const compactionAreaInput =
-      parseFloat(row.compactionArea || "0") || len * wid * num;
-    compactionArea = compactionAreaInput;
-    const compactionMaterial = materials.find((m) =>
-      m.name?.toLowerCase().includes("compaction"),
-    );
-    compactionCost = compactionArea * (compactionMaterial?.price || 0);
-  }
-
   // Anti-termite treatment calculation
   let antiTermiteTreatmentArea = 0;
   let antiTermiteTreatmentCost = 0;
@@ -1216,7 +1203,22 @@ export function calculateConcrete(
 
   // Block cost calculation - convert from per-foot pricing
 
-  const totalConcreteCost = cementCost + sandCost + waterCost + stoneCost;
+  const totalConcreteCost =
+    cementCost +
+    sandCost +
+    waterCost +
+    stoneCost +
+    formworkCost +
+    aggregateCost +
+    polytheneCost +
+    dpcCost +
+    waterproofingCost +
+    gravelCost +
+    blindingCost +
+    maramBlindingCost +
+    antiTermiteTreatmentCost +
+    returnFillCost +
+    backFillCost;
 
   const unitRate =
     totalConcreteVolume > 0 ? totalConcreteCost / totalConcreteVolume : 0;
@@ -1262,7 +1264,6 @@ export function calculateConcrete(
       gravelCost +
       blindingCost +
       maramBlindingCost +
-      compactionCost +
       antiTermiteTreatmentCost +
       returnFillCost +
       backFillCost,
@@ -1285,8 +1286,6 @@ export function calculateConcrete(
     blindingCost,
     maramBlindingVolume,
     maramBlindingCost,
-    compactionArea,
-    compactionCost,
     antiTermiteTreatmentArea,
     antiTermiteTreatmentCost,
     returnFillVolume,

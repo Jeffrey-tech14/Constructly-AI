@@ -1,7 +1,7 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { MasonryQSSettings } from "./useMasonryCalculatorNew";
 
 export interface FoundationWall {
@@ -314,6 +314,12 @@ export const useFoundationWallingCalculator = (quote: any) => {
         "Standard Block": "0.15x0.2x0.15",
         "Small Block": "0.1x0.2x0.1",
       };
+      const externalPerimeter = parseFloat(
+        quote?.wallDimensions?.externalWallPerimiter || "0",
+      );
+      const internalPerimeter = parseFloat(
+        quote?.wallDimensions?.internalWallPerimiter || "0",
+      );
 
       setWalls((prevWalls) =>
         prevWalls.map((wall) => {
@@ -325,10 +331,19 @@ export const useFoundationWallingCalculator = (quote: any) => {
             const blockDimensions =
               blockDimensionsMap[blockType] || "0.15x0.2x0.15";
             if (wall.blockDimensions !== blockDimensions) {
-              return {
-                ...wall,
-                blockDimensions,
-              };
+              if (wall.type === "external") {
+                return {
+                  ...wall,
+                  wallLength: String(externalPerimeter),
+                  blockDimensions,
+                };
+              } else {
+                return {
+                  ...wall,
+                  wallLength: String(internalPerimeter),
+                  blockDimensions,
+                };
+              }
             }
           }
           return wall;

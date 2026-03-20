@@ -1,8 +1,10 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuoteBuilder } from "@/hooks/useQuoteBuilder";
+import { useLocalStorageQuote } from "@/hooks/useLocalStorageQuote";
 import useQuoteGuidance from "@/hooks/useQuoteGuidance";
 import QuoteGuidanceSidebar from "@/components/QuoteGuidanceSidebar";
+import { SavedQuoteDialog } from "@/components/SavedQuoteDialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,7 +61,7 @@ import {
   MapPin,
   Truck,
   HardHat,
-  Loader2,
+  LoaderPinwheel,
   Paintbrush,
   ChevronRight,
   ChevronLeft,
@@ -331,6 +333,8 @@ export default function QuoteBuilderPage() {
     regionalMultipliers,
     getEffectiveMaterialPrice,
     handleFinishesUpdate,
+    handleScreeningSkirtingUpdate,
+    handleFoundationWallingUpdate,
     handleCeilingTypeChange,
     handleInternalWallTypeChange,
     handleExternalWallTypeChange,
@@ -343,6 +347,43 @@ export default function QuoteBuilderPage() {
 
   const navigate = useNavigate();
 
+  // Local storage quote recovery
+  const { loadQuoteFromStorage, deleteQuoteFromStorage, hasSavedQuote } =
+    useLocalStorageQuote();
+
+  const [showSavedQuoteDialog, setShowSavedQuoteDialog] = useState(false);
+  const [savedQuoteData, setSavedQuoteData] = useState<any>(null);
+
+  // Check for saved quote on mount
+  useEffect(() => {
+    if (hasSavedQuote()) {
+      const saved = loadQuoteFromStorage();
+      if (saved) {
+        setSavedQuoteData(saved.data);
+        setShowSavedQuoteDialog(true);
+      }
+    }
+  }, []);
+
+  const handleContinueSavedQuote = () => {
+    if (savedQuoteData) {
+      setQuoteData(savedQuoteData);
+      setShowSavedQuoteDialog(false);
+    }
+  };
+
+  const handleDeleteSavedQuote = () => {
+    deleteQuoteFromStorage();
+    setShowSavedQuoteDialog(false);
+    setSavedQuoteData(null);
+  };
+
+  const handleStartFreshQuote = () => {
+    deleteQuoteFromStorage();
+    setShowSavedQuoteDialog(false);
+    setSavedQuoteData(null);
+  };
+
   if (settingsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -351,7 +392,7 @@ export default function QuoteBuilderPage() {
           animate={{ opacity: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <Loader2 className="animate-spin h-8 w-8" />
+          <LoaderPinwheel className="animate-spin h-8 w-8" />
           <p className="text-gray-600 dark:text-gray-300">
             Loading quote builder...
           </p>
@@ -393,7 +434,7 @@ export default function QuoteBuilderPage() {
             guidanceData={projectDetailsGuidance}
             title="Project Details Guide"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 mx-2 gap-6">
               <div className="space-y-4">
                 <div>
                   <Label
@@ -701,6 +742,7 @@ export default function QuoteBuilderPage() {
                         foundationWalls: walls,
                       }))
                     }
+                    onFoundationWallingUpdate={handleFoundationWallingUpdate}
                     materials={materials}
                   />
                 </TabsContent>
@@ -836,6 +878,7 @@ export default function QuoteBuilderPage() {
                   <FlooringCalculator
                     finishes={finishes}
                     onFinishesUpdate={handleFinishesUpdate}
+                    onScreeningSkirtingUpdate={handleScreeningSkirtingUpdate}
                     materialPrices={materials}
                     quote={quoteData}
                   />
@@ -891,7 +934,7 @@ export default function QuoteBuilderPage() {
                   >
                     <TabsList className="grid w-full grid-cols-3 mb-3">
                       <TabsTrigger value="kitchen-wardrobes">
-                        Kitchen & Wardrobes
+                        Wardrobes & Kitchen Cabinets
                       </TabsTrigger>
                       <TabsTrigger value="door-paint">
                         Wood/Metal Paint
@@ -1261,6 +1304,17 @@ export default function QuoteBuilderPage() {
           )}
         </div>
       </div>
+
+      {/* Saved Quote Dialog */}
+      <SavedQuoteDialog
+        open={showSavedQuoteDialog}
+        savedQuoteTimestamp={savedQuoteData?.timestamp || Date.now()}
+        projectName={savedQuoteData?.title || "Untitled Project"}
+        clientName={savedQuoteData?.client_name || "Unknown Client"}
+        onContinue={handleContinueSavedQuote}
+        onStart={handleStartFreshQuote}
+        onDelete={handleDeleteSavedQuote}
+      />
     </div>
   );
 }

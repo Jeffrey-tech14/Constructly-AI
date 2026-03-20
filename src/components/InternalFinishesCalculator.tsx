@@ -1207,10 +1207,8 @@ export default function InternalFinishesCalculator({
             {wetAreaSettings.hasKitchen &&
               wetAreaSettings.kitchenPerimeter > 0 && (
                 <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
-                  <Label className="text-xs font-bold text-primary dark:text-primary">
-                    Kitchen Tile Area
-                  </Label>
-                  <div className="text-xl font-bold text-primary dark:text-primary mt-2">
+                  <Label className="text-xs font-bold">Kitchen Tile Area</Label>
+                  <div className="text-xl font-bold  mt-2">
                     {(
                       wetAreaSettings.kitchenPerimeter *
                       wetAreaSettings.kitchenTileHeight

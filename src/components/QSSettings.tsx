@@ -85,7 +85,7 @@ export default function QSSettings({
     mortarRatio: "1:4",
     plaster_ratio: "1:4",
     includesRingBeams: true,
-    includesLintels: true,
+    includesLintels: false,
     includesReinforcement: true,
     includesDPC: true,
     includesScaffolding: true,
@@ -93,6 +93,8 @@ export default function QSSettings({
     includesWasteRemoval: true,
     lintelDepth: 0.15,
     lintelWidth: 0.2,
+    ringBeamDepth: 0.2,
+    ringBeamWidth: 0.15,
     reinforcementSpacing: 3,
     verticalReinforcementSpacing: 1.2,
     DPCWidth: 0.225,
@@ -133,6 +135,16 @@ export default function QSSettings({
       qsSettings: newSettings,
     }));
   }, []);
+
+  // Initialize qsSettings in quoteData on mount if not already set
+  useEffect(() => {
+    if (
+      !quoteData.qsSettings ||
+      Object.keys(quoteData.qsSettings).length === 0
+    ) {
+      onSettingsChange(localSettings);
+    }
+  }, []); // Only run on mount
 
   const handleChange = (key: keyof MasonryQSSettings, value: any) => {
     const updated = { ...localSettings, [key]: value };
@@ -512,7 +524,9 @@ export default function QSSettings({
                 min="1"
                 max="50"
                 value={localSettings.wastageConcrete}
-                onChange={(e) => handleChange("wastageConcrete", e.target.value)}
+                onChange={(e) =>
+                  handleChange("wastageConcrete", e.target.value)
+                }
                 placeholder="5"
               />
             </div>
@@ -568,7 +582,9 @@ export default function QSSettings({
                 min="1"
                 max="50"
                 value={localSettings.wastageFinishes}
-                onChange={(e) => handleChange("wastageFinishes", e.target.value)}
+                onChange={(e) =>
+                  handleChange("wastageFinishes", e.target.value)
+                }
                 placeholder="8"
               />
             </div>
@@ -666,7 +682,9 @@ export default function QSSettings({
                 min="1"
                 max="50"
                 value={localSettings.wastagePlumbing}
-                onChange={(e) => handleChange("wastagePlumbing", e.target.value)}
+                onChange={(e) =>
+                  handleChange("wastagePlumbing", e.target.value)
+                }
                 placeholder="3"
               />
             </div>
@@ -697,16 +715,6 @@ export default function QSSettings({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="includes-lintels"
-                checked={localSettings.includesLintels}
-                onCheckedChange={(checked) =>
-                  handleChange("includesLintels", checked === true)
-                }
-              />
-              <Label htmlFor="includes-lintels">Include Lintels</Label>
-            </div>
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="includes-reinforcement"
@@ -804,27 +812,6 @@ export default function QSSettings({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="lintel-rebar-size">Lintel Rebar Size</Label>
-                <Select
-                  value={localSettings.lintelRebarSize}
-                  onValueChange={(value: RebarSize) =>
-                    handleChange("lintelRebarSize", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="D8">D8 (8mm)</SelectItem>
-                    <SelectItem value="D10">D10 (10mm)</SelectItem>
-                    <SelectItem value="D12">D12 (12mm)</SelectItem>
-                    <SelectItem value="D16">D16 (16mm)</SelectItem>
-                    <SelectItem value="D20">D20 (20mm)</SelectItem>
-                    <SelectItem value="D25">D25 (25mm)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <Label htmlFor="vertical-rebar-size">Vertical Rebar Size</Label>
                 <Select
@@ -936,163 +923,6 @@ export default function QSSettings({
                 />
               </div>
             </div>
-
-            {/* Ring Beams Include Toggle */}
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox
-                id="includes-ring-beams"
-                checked={localSettings.includesRingBeams || false}
-                onCheckedChange={(checked) =>
-                  handleChange("includesRingBeams", checked)
-                }
-              />
-              <Label
-                htmlFor="includes-ring-beams"
-                className="font-medium cursor-pointer"
-              >
-                Include Ring Beams
-              </Label>
-            </div>
-
-            {/* Ring Beam Reinforcement Settings */}
-            {localSettings.includesRingBeams && (
-              <div className="pt-4 border-t">
-                <h4 className="text-sm mb-3">
-                  Ring Beam Reinforcement
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <Label htmlFor="ring-beam-main-bars">Main Bars Count</Label>
-                    <Input
-                      id="ring-beam-main-bars"
-                      type="number"
-                      min="4"
-                      step="1"
-                      value={localSettings.ringBeamMainBarsCount || 8}
-                      onChange={(e) =>
-                        handleNumericChange(
-                          "ringBeamMainBarsCount",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ring-beam-rebar-size">Main Bar Size</Label>
-                    <Select
-                      value={localSettings.ringBeamRebarSize || "D12"}
-                      onValueChange={(value) =>
-                        handleChange("ringBeamRebarSize", value as RebarSize)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          "D6",
-                          "D8",
-                          "D10",
-                          "D12",
-                          "D14",
-                          "D16",
-                          "D18",
-                          "D20",
-                          "D22",
-                          "D25",
-                        ].map((size) => (
-                          <SelectItem key={size} value={size}>
-                            {size}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="ring-beam-stirrup-size">Stirrup Size</Label>
-                    <Select
-                      value={localSettings.ringBeamStirrupSize || "D8"}
-                      onValueChange={(value) =>
-                        handleChange("ringBeamStirrupSize", value as RebarSize)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {["D6", "D8", "D10", "D12", "D14", "D16"].map(
-                          (size) => (
-                            <SelectItem key={size} value={size}>
-                              {size}
-                            </SelectItem>
-                          ),
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="ring-beam-stirrup-spacing">
-                      Stirrup Spacing (mm)
-                    </Label>
-                    <Input
-                      id="ring-beam-stirrup-spacing"
-                      type="number"
-                      min="50"
-                      step="10"
-                      value={localSettings.ringBeamStirrupSpacing || 200}
-                      onChange={(e) =>
-                        handleNumericChange(
-                          "ringBeamStirrupSpacing",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-                {/* Development and Lap Length Factors */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <Label htmlFor="dev-length-factor">
-                      Development Length Factor (× bar diameter)
-                    </Label>
-                    <Input
-                      id="dev-length-factor"
-                      type="number"
-                      min="20"
-                      step="1"
-                      value={localSettings.developmentLengthFactor ?? 40}
-                      onChange={(e) =>
-                        handleNumericChange(
-                          "developmentLengthFactor",
-                          e.target.value,
-                        )
-                      }
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Default: 40 (min: 20)
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="lap-length-factor">
-                      Lap Length Factor (× bar diameter)
-                    </Label>
-                    <Input
-                      id="lap-length-factor"
-                      type="number"
-                      min="30"
-                      step="1"
-                      value={localSettings.lapLengthFactor ?? 50}
-                      onChange={(e) =>
-                        handleNumericChange("lapLengthFactor", e.target.value)
-                      }
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Default: 50 (min: 30)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -1108,34 +938,6 @@ export default function QSSettings({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="lintel-width">Lintel Width (m)</Label>
-              <Input
-                id="lintel-width"
-                type="number"
-                step="0.01"
-                min="0.1"
-                max="0.3"
-                value={localSettings.lintelWidth}
-                onChange={(e) =>
-                  handleNumericChange("lintelWidth", e.target.value)
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="lintel-depth">Lintel Depth (m)</Label>
-              <Input
-                id="lintel-depth"
-                type="number"
-                step="0.01"
-                min="0.1"
-                max="0.3"
-                value={localSettings.lintelDepth}
-                onChange={(e) =>
-                  handleNumericChange("lintelDepth", e.target.value)
-                }
-              />
-            </div>
-            <div>
               <Label htmlFor="reinforcement-spacing">
                 Bed Joint Spacing (courses)
               </Label>
@@ -1148,25 +950,6 @@ export default function QSSettings({
                 value={localSettings.reinforcementSpacing}
                 onChange={(e) =>
                   handleNumericChange("reinforcementSpacing", e.target.value)
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="vertical-reinforcement-spacing">
-                Vertical Rebar Spacing (m)
-              </Label>
-              <Input
-                id="vertical-reinforcement-spacing"
-                type="number"
-                step="0.1"
-                min="0.6"
-                max="2.0"
-                value={localSettings.verticalReinforcementSpacing}
-                onChange={(e) =>
-                  handleNumericChange(
-                    "verticalReinforcementSpacing",
-                    e.target.value,
-                  )
                 }
               />
             </div>

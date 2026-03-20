@@ -140,7 +140,7 @@ export const useQuotes = () => {
       .select()
       .single();
     if (error) throw error;
-    return data as Database;
+    return data as Quote;
   };
   const updateQuote = async (id: string, updates: Partial<Quote>) => {
     const { data, error } = await (supabase.from("quotes") as any)

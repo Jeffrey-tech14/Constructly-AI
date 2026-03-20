@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Loader2,
+  LoaderPinwheel,
   RefreshCw,
   TrendingUp,
   DollarSign,
@@ -102,7 +102,7 @@ const Reports = () => {
       },
       {} as {
         [key: string]: number;
-      }
+      },
     );
     const colors = {
       planning: "#490bf5ff",
@@ -119,7 +119,7 @@ const Reports = () => {
     }));
   }, [userQuotes]);
   const activeProjects = userQuotes.filter((q) =>
-    ["started", "in_progress"].includes(q.status)
+    ["started", "in_progress"].includes(q.status),
   );
   const completedProjects = userQuotes.filter((q) => q.status === "completed");
   const totalRevenue = userQuotes
@@ -136,7 +136,7 @@ const Reports = () => {
         >
           {refreshing || quotesLoading || reviewsLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />{" "}
+              <LoaderPinwheel className="w-4 h-4 mr-2 animate-spin text-white" />{" "}
               Refreshing...
             </>
           ) : (

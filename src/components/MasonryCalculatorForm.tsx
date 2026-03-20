@@ -150,7 +150,7 @@ export default function MasonryCalculatorForm({
         <div className="p-4">
           <h3 className="text-xl font-semibold text-primary flex items-center gap-2">
             <Calculator className="w-5 h-5" />
-            Total Project Cost
+            Masonry Cost Summary
           </h3>
           <div className="mt-2 text-3xl font-bold text-primary">
             Ksh {results.grossTotalCost?.toLocaleString() || 0}
@@ -280,6 +280,432 @@ export default function MasonryCalculatorForm({
         </div>
       </Card>
 
+      {/* ========== LINTELS & RING BEAMS SETTINGS ========== */}
+      <Card className="border">
+        <div className="p-4 border-b bg-muted/20">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Wrench className="w-5 h-5" />
+            Lintels & Ring Beams
+          </h3>
+        </div>
+        <div className="p-4 space-y-6">
+          {/* Lintels Section */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="includes-lintels"
+                checked={qsSettings.includesLintels || false}
+                onCheckedChange={(checked) =>
+                  onSettingsChange({
+                    ...qsSettings,
+                    includesLintels: checked === true,
+                  })
+                }
+              />
+              <Label
+                htmlFor="includes-lintels"
+                className="font-medium cursor-pointer"
+              >
+                Include Lintels
+              </Label>
+            </div>
+
+            {qsSettings.includesLintels && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pl-6">
+                <div>
+                  <Label htmlFor="lintel-width">Lintel Width (m)</Label>
+                  <Input
+                    id="lintel-width"
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    max="0.3"
+                    value={qsSettings.lintelWidth || 0.2}
+                    onChange={(e) =>
+                      onSettingsChange({
+                        ...qsSettings,
+                        lintelWidth: parseFloat(e.target.value) || 0.2,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lintel-depth">Lintel Depth (m)</Label>
+                  <Input
+                    id="lintel-depth"
+                    type="number"
+                    step="0.01"
+                    min="0.1"
+                    max="0.3"
+                    value={qsSettings.lintelDepth || 0.15}
+                    onChange={(e) =>
+                      onSettingsChange({
+                        ...qsSettings,
+                        lintelDepth: parseFloat(e.target.value) || 0.15,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lintel-rebar-size">Rebar Size</Label>
+                  <Select
+                    value={qsSettings.lintelRebarSize || "D12"}
+                    onValueChange={(value: RebarSize) =>
+                      onSettingsChange({
+                        ...qsSettings,
+                        lintelRebarSize: value,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="D8">D8 (8mm)</SelectItem>
+                      <SelectItem value="D10">D10 (10mm)</SelectItem>
+                      <SelectItem value="D12">D12 (12mm)</SelectItem>
+                      <SelectItem value="D16">D16 (16mm)</SelectItem>
+                      <SelectItem value="D20">D20 (20mm)</SelectItem>
+                      <SelectItem value="D25">D25 (25mm)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Ring Beams Section */}
+          <div className="space-y-4 pt-4 border-t">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="includes-ring-beams"
+                checked={qsSettings.includesRingBeams || false}
+                onCheckedChange={(checked) =>
+                  onSettingsChange({
+                    ...qsSettings,
+                    includesRingBeams: checked === true,
+                  })
+                }
+              />
+              <Label
+                htmlFor="includes-ring-beams"
+                className="font-medium cursor-pointer"
+              >
+                Include Ring Beams
+              </Label>
+            </div>
+
+            {qsSettings.includesRingBeams && (
+              <div className="space-y-4 pl-6">
+                {/* Ring Beam Dimensions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="ring-beam-width">Ring Beam Width (m)</Label>
+                    <Input
+                      id="ring-beam-width"
+                      type="number"
+                      step="0.01"
+                      min="0.1"
+                      max="0.3"
+                      value={qsSettings.ringBeamWidth || 0.15}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          ringBeamWidth: parseFloat(e.target.value) || 0.15,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-depth">Ring Beam Depth (m)</Label>
+                    <Input
+                      id="ring-beam-depth"
+                      type="number"
+                      step="0.01"
+                      min="0.1"
+                      max="0.3"
+                      value={qsSettings.ringBeamDepth || 0.2}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          ringBeamDepth: parseFloat(e.target.value) || 0.2,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <h4 className="text-sm font-medium">Ring Beam Reinforcement</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="ring-beam-main-bars">Main Bars Count</Label>
+                    <Input
+                      id="ring-beam-main-bars"
+                      type="number"
+                      min="4"
+                      step="1"
+                      value={qsSettings.ringBeamMainBarsCount || 8}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          ringBeamMainBarsCount:
+                            parseFloat(e.target.value) || 8,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-rebar-size">Main Bar Size</Label>
+                    <Select
+                      value={qsSettings.ringBeamRebarSize || "D12"}
+                      onValueChange={(value: RebarSize) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          ringBeamRebarSize: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[
+                          "D6",
+                          "D8",
+                          "D10",
+                          "D12",
+                          "D14",
+                          "D16",
+                          "D18",
+                          "D20",
+                          "D22",
+                          "D25",
+                        ].map((size) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-stirrup-size">Stirrup Size</Label>
+                    <Select
+                      value={qsSettings.ringBeamStirrupSize || "D8"}
+                      onValueChange={(value: RebarSize) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          ringBeamStirrupSize: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["D6", "D8", "D10", "D12", "D14", "D16"].map(
+                          (size) => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ring-beam-stirrup-spacing">
+                      Stirrup Spacing (mm)
+                    </Label>
+                    <Input
+                      id="ring-beam-stirrup-spacing"
+                      type="number"
+                      min="50"
+                      step="10"
+                      value={qsSettings.ringBeamStirrupSpacing || 200}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          ringBeamStirrupSpacing:
+                            parseFloat(e.target.value) || 200,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Development and Lap Length Factors */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="dev-length-factor">
+                      Development Length Factor (× bar diameter)
+                    </Label>
+                    <Input
+                      id="dev-length-factor"
+                      type="number"
+                      min="20"
+                      step="1"
+                      value={qsSettings.developmentLengthFactor ?? 40}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          developmentLengthFactor:
+                            parseFloat(e.target.value) || 40,
+                        })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Default: 40 (min: 20)
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="lap-length-factor">
+                      Lap Length Factor (× bar diameter)
+                    </Label>
+                    <Input
+                      id="lap-length-factor"
+                      type="number"
+                      min="30"
+                      step="1"
+                      value={qsSettings.lapLengthFactor ?? 50}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...qsSettings,
+                          lapLengthFactor: parseFloat(e.target.value) || 50,
+                        })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Default: 50 (min: 30)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Vertical Reinforcement Spacing */}
+                <div className="max-w-xs">
+                  <Label htmlFor="vertical-reinforcement-spacing">
+                    Vertical Rebar Spacing (m)
+                  </Label>
+                  <Input
+                    id="vertical-reinforcement-spacing"
+                    type="number"
+                    step="0.1"
+                    min="0.6"
+                    max="2.0"
+                    value={qsSettings.verticalReinforcementSpacing || 1.2}
+                    onChange={(e) =>
+                      onSettingsChange({
+                        ...qsSettings,
+                        verticalReinforcementSpacing:
+                          parseFloat(e.target.value) || 1.2,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Lintel Beam Results */}
+          {qsSettings.includesLintels &&
+            (results.netLintelsCost > 0 || results.grossLintelsCost > 0) && (
+              <div className="border-t pt-6 mt-6">
+                <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-4">
+                  Lintel Beam Results
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rebar (kg):</span>
+                      <span className="font-medium">
+                        {results.netLintelRebar?.toFixed(1) || 0} net →{" "}
+                        {results.grossLintelRebar?.toFixed(1) || 0} gross
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Concrete (m³):
+                      </span>
+                      <span className="font-medium">
+                        {results.netLintelConcrete?.toFixed(3) || 0} net →{" "}
+                        {results.grossLintelConcrete?.toFixed(3) || 0} gross
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rebar Cost:</span>
+                      <span className="font-medium">
+                        Ksh {results.netLintelRebarCost?.toLocaleString() || 0}{" "}
+                        → {results.grossLintelRebarCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Material Cost:
+                      </span>
+                      <span className="font-medium">
+                        Ksh {results.netLintelsCost?.toLocaleString() || 0} →{" "}
+                        {results.grossLintelsCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          {/* Ring Beam Results */}
+          {qsSettings.includesRingBeams &&
+            (results.netRingBeamsCost > 0 ||
+              results.grossRingBeamsCost > 0) && (
+              <div className="border-t pt-6 mt-6">
+                <h4 className="font-semibold text-cyan-900 dark:text-cyan-100 mb-4">
+                  Ring Beam Results
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rebar (kg):</span>
+                      <span className="font-medium">
+                        {results.netRingBeamRebar?.toFixed(1) || 0} net →{" "}
+                        {results.grossRingBeamRebar?.toFixed(1) || 0} gross
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Concrete (m³):
+                      </span>
+                      <span className="font-medium">
+                        {results.netRingBeamConcrete?.toFixed(3) || 0} net →{" "}
+                        {results.grossRingBeamConcrete?.toFixed(3) || 0} gross
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Rebar Cost:</span>
+                      <span className="font-medium">
+                        Ksh{" "}
+                        {results.netRingBeamRebarCost?.toLocaleString() || 0} →{" "}
+                        {results.grossRingBeamRebarCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        Material Cost:
+                      </span>
+                      <span className="font-medium">
+                        Ksh {results.netRingBeamsCost?.toLocaleString() || 0} →{" "}
+                        {results.grossRingBeamsCost?.toLocaleString() || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+        </div>
+      </Card>
+
       {/* ========== WASTE & MISCELLANEOUS ========== */}
       <Card className="border">
         <div className="p-4 border-b bg-muted/20">
@@ -309,7 +735,7 @@ export default function MasonryCalculatorForm({
 
       {/* ========== HOOP IRON ========== */}
       <Card className="border">
-        <div className="p-4 border-b bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30">
+        <div className="p-4 border-b bg-gradient-to-r rounded-t-3xl from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30">
           <h3 className="text-lg font-semibold flex items-center gap-2 text-red-800 dark:text-red-100">
             <Wrench className="w-5 h-5" />
             Hoop Iron
@@ -481,106 +907,6 @@ export default function MasonryCalculatorForm({
       {/* ========== COMPONENT BREAKDOWNS ========== */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold px-1">Detailed Breakdowns</h3>
-
-        {/* Lintels */}
-        {qsSettings.includesLintels &&
-          (results.netLintelsCost > 0 || results.grossLintelsCost > 0) && (
-            <Card className="border">
-              <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-b rounded-t-lg">
-                <h4 className="text-amber-900 dark:text-amber-100 font-semibold">
-                  Lintel Beam
-                </h4>
-              </div>
-              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rebar (kg):</span>
-                    <span className="font-medium">
-                      {results.netLintelRebar?.toFixed(1) || 0} net →{" "}
-                      {results.grossLintelRebar?.toFixed(1) || 0} gross
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Concrete (m³):
-                    </span>
-                    <span className="font-medium">
-                      {results.netLintelConcrete?.toFixed(3) || 0} net →{" "}
-                      {results.grossLintelConcrete?.toFixed(3) || 0} gross
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rebar Cost:</span>
-                    <span className="font-medium">
-                      Ksh {results.netLintelRebarCost?.toLocaleString() || 0} →{" "}
-                      {results.grossLintelRebarCost?.toLocaleString() || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Material Cost:
-                    </span>
-                    <span className="font-medium">
-                      Ksh {results.netLintelsCost?.toLocaleString() || 0} →{" "}
-                      {results.grossLintelsCost?.toLocaleString() || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-        {/* Ring Beams */}
-        {qsSettings.includesRingBeams &&
-          (results.netRingBeamsCost > 0 || results.grossRingBeamsCost > 0) && (
-            <Card className="border">
-              <div className="p-4 bg-gradient-to-r from-cyan-50 to-primary/10 dark:from-cyan-900/30 dark:to-primary/30 border-b rounded-t-lg">
-                <h4 className="text-cyan-900 dark:text-cyan-100 font-semibold">
-                  Ring Beam
-                </h4>
-              </div>
-              <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rebar (kg):</span>
-                    <span className="font-medium">
-                      {results.netRingBeamRebar?.toFixed(1) || 0} net →{" "}
-                      {results.grossRingBeamRebar?.toFixed(1) || 0} gross
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Concrete (m³):
-                    </span>
-                    <span className="font-medium">
-                      {results.netRingBeamConcrete?.toFixed(3) || 0} net →{" "}
-                      {results.grossRingBeamConcrete?.toFixed(3) || 0} gross
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Rebar Cost:</span>
-                    <span className="font-medium">
-                      Ksh {results.netRingBeamRebarCost?.toLocaleString() || 0}{" "}
-                      → {results.grossRingBeamRebarCost?.toLocaleString() || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Material Cost:
-                    </span>
-                    <span className="font-medium">
-                      Ksh {results.netRingBeamsCost?.toLocaleString() || 0} →{" "}
-                      {results.grossRingBeamsCost?.toLocaleString() || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
 
         {/* Doors & Windows */}
         {(results.netDoorsCost > 0 || results.netWindowsCost > 0) && (

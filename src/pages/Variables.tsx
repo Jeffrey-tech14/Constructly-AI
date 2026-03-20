@@ -25,7 +25,7 @@ import {
   Edit,
   Save,
   Trash,
-  Loader2,
+  LoaderPinwheel,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import renderMaterialEditor from "@/components/RenderMaterialEditor";
@@ -964,7 +964,7 @@ const Variables = () => {
                             className="text-white"
                           >
                             {loading ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <LoaderPinwheel className="w-4 h-4 animate-spin" />
                             ) : editingMaterial ? (
                               <>
                                 <Save className="w-4 h-4 mr-1" />
@@ -1030,7 +1030,7 @@ const Variables = () => {
                             className="text-white"
                           >
                             {loading ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <LoaderPinwheel className="w-4 h-4 animate-spin" />
                             ) : (
                               <>
                                 <Plus className="w-4 h-4 mr-1" />
@@ -1270,7 +1270,7 @@ const Variables = () => {
                                 className="w-full text-white"
                               >
                                 {loading ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <LoaderPinwheel className="w-4 h-4 animate-spin" />
                                 ) : (
                                   <>
                                     <Save className="w-4 h-4 mr-1" />
@@ -1390,7 +1390,7 @@ const Variables = () => {
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
                         {loading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <LoaderPinwheel className="w-4 h-4 animate-spin" />
                         ) : (
                           <>
                             <Plus className="w-4 h-4 mr-1" />
@@ -1566,7 +1566,7 @@ const Variables = () => {
                                 className="flex-1 text-white"
                               >
                                 {loading ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <LoaderPinwheel className="w-4 h-4 animate-spin" />
                                 ) : (
                                   <>
                                     <Save className="w-4 h-4 mr-1" />

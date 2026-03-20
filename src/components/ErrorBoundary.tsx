@@ -73,7 +73,9 @@ class ErrorBoundary extends Component<Props, State> {
       const isDarkMode = document.documentElement.classList.contains("dark");
 
       return (
-        <div className={`min-h-screen flex items-center justify-center p-4`}>
+        <div
+          className={`min-h-screen flex items-center justify-center bg-[#fcfdfd] dark:bg-[#08090b] text-[#1a1a1a] dark:text-[#eceff4] transition-colors duration-400 p-4`}
+        >
           <Card className="w-full max-w-2xl">
             <CardHeader className="space-y-4">
               <div className="flex items-center gap-3">

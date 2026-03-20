@@ -10,6 +10,7 @@ export interface EquipmentItem {
   usage_quantity: number;
   usage_unit: string;
   rate_per_unit: number;
+  equipment_quantity: number;
   total_cost: number;
 }
 
@@ -36,6 +37,7 @@ export const useEquipmentCalculator = (
                   : "unit"
                 : "day",
             rate_per_unit: equipment.rate_per_unit || equipment.daily_rate || 0,
+            equipment_quantity: 1,
             total_cost: equipment.rate_per_unit || equipment.daily_rate || 0,
           },
         ],
@@ -67,7 +69,10 @@ export const useEquipmentCalculator = (
             ? {
                 ...eq,
                 usage_quantity: quantity,
-                total_cost: quantity * (eq.rate_per_unit || 0),
+                total_cost:
+                  quantity *
+                  (eq.rate_per_unit || 0) *
+                  (eq.equipment_quantity || 1),
               }
             : eq,
         ),
@@ -101,7 +106,30 @@ export const useEquipmentCalculator = (
             ? {
                 ...eq,
                 rate_per_unit: rate,
-                total_cost: (eq.usage_quantity || 1) * rate,
+                total_cost:
+                  (eq.usage_quantity || 1) *
+                  rate *
+                  (eq.equipment_quantity || 1),
+              }
+            : eq,
+        ),
+      }));
+    },
+    [setQuoteData],
+  );
+
+  // Update equipment quantity (number of equipment units needed)
+  const updateEquipmentQuantity = useCallback(
+    (equipmentTypeId: string | number, quantity: number) => {
+      setQuoteData((prev: any) => ({
+        ...prev,
+        equipment: prev.equipment.map((eq: EquipmentItem) =>
+          eq.equipment_type_id === equipmentTypeId
+            ? {
+                ...eq,
+                equipment_quantity: quantity,
+                total_cost:
+                  (eq.usage_quantity || 1) * (eq.rate_per_unit || 0) * quantity,
               }
             : eq,
         ),
@@ -160,6 +188,7 @@ export const useEquipmentCalculator = (
     updateQuantity,
     updateUnit,
     updateRate,
+    updateEquipmentQuantity,
     updateName,
     getEquipmentItem,
     isEquipmentSelected,

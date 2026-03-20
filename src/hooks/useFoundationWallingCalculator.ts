@@ -235,16 +235,7 @@ export const useFoundationWallingCalculator = (quote: any) => {
       Array.isArray(quote.foundationWalls) &&
       quote.foundationWalls.length > 0
     ) {
-      return quote.foundationWalls.map((wall: any) => ({
-        id: wall.id || `wall-${Date.now()}-${Math.random()}`,
-        type: wall.type || "external",
-        blockType: wall.blockType || "Standard Block",
-        blockDimensions: wall.blockDimensions || "0.2x0.2x0.2",
-        wallHeight: String(wall.wallHeight || "2.0"),
-        wallLength: String(wall.wallLength || "0"),
-        numberOfWalls: String(wall.numberOfWalls || "1"),
-        mortarRatio: wall.mortarRatio || "1:4",
-      }));
+      return quote.foundationWalls;
     }
     return [];
   });

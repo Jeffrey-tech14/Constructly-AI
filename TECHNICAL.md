@@ -805,7 +805,7 @@ const handleSave = async () => {
 
 return (
   <Button onClick={handleSave} disabled={loading}>
-    {loading ? <Loader2 className="animate-spin" /> : "Save Quote"}
+    {loading ? <LoaderPinwheel className="animate-spin" /> : "Save Quote"}
   </Button>
 );
 ```

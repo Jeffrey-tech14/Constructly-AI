@@ -59,7 +59,7 @@ const PaymentPage = () => {
             <div className="text-center space-y-4">
               <div className="inline-block">
                 <div className="text-6xl font-bold text-[#00356B] mb-2">
-                  1,000
+                  200
                 </div>
                 <div className="text-2xl  text-[#86bc25]">KSH</div>
               </div>
@@ -105,9 +105,7 @@ const PaymentPage = () => {
                       </div>
                     </div>
                     <div>
-                      <h3 className=" text-foreground">
-                        {feature.title}
-                      </h3>
+                      <h3 className=" text-foreground">{feature.title}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {feature.desc}
                       </p>
@@ -126,7 +124,7 @@ const PaymentPage = () => {
                 {[
                   "Create a quote (saved as draft instantly, no payment needed)",
                   "View the quote summary",
-                  "Click 'Pay 1000 KSH' to unlock full access",
+                  "Click 'Pay 200 KSH' to unlock full access",
                   "Complete payment via Paystack (card, M-Pesa, bank transfer)",
                   "Unlock progress tracking, BOQ generation, and editing",
                   "Download and share your quote",
@@ -173,9 +171,7 @@ const PaymentPage = () => {
                       <Icon className="h-6 w-6 text-[#86bc25]" />
                     </div>
                   </div>
-                  <h3 className=" text-foreground">
-                    {benefit.title}
-                  </h3>
+                  <h3 className=" text-foreground">{benefit.title}</h3>
                   <p className="text-sm text-muted-foreground">
                     {benefit.desc}
                   </p>

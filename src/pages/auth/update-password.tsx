@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Lock, CheckCircle } from "lucide-react";
+import { LoaderPinwheel, Lock, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 const UpdatePassword = () => {
@@ -40,7 +40,7 @@ const UpdatePassword = () => {
       .then(({ error }) => {
         if (error) {
           setError(
-            "Failed to initialize password reset session. Please try again."
+            "Failed to initialize password reset session. Please try again.",
           );
         }
       })
@@ -85,7 +85,7 @@ const UpdatePassword = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+          <LoaderPinwheel className="w-8 h-8 animate-spin mx-auto text-primary" />
           <p className="mt-4 text-gray-600">Initializing password reset...</p>
         </div>
       </div>
@@ -174,7 +174,7 @@ const UpdatePassword = () => {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <LoaderPinwheel className="w-4 h-4 animate-spin mr-2" />
                       Updating...
                     </>
                   ) : (

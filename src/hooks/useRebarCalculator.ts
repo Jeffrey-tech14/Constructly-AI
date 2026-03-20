@@ -626,6 +626,7 @@ export interface CalcInput {
   steelIntensityKgPerM3?: string; // kg/m³ for INTENSITY_REBAR_MODE
   concreteVolumeM3?: number; // Calculated volume (m³)
   steelGrade?: SteelGrade; // For pricing in intensity mode
+  estimatedSteelKg?: number; // Calculated: concreteVolumeM3 * steelIntensityKgPerM3
 
   // Area selection fields - choose between direct area input or length x width
   areaSelectionMode?: AreaSelectionMode; // "LENGTH_WIDTH" or "DIRECT_AREA"
@@ -2132,7 +2133,7 @@ function createEmptyMeshResult(
       lapArea: 0,
       netArea: 0,
       wastePercentage: 0,
-      productType: (input.brcProductType || "sheet") as "sheet" | "roll",
+      productType: (input.brcProductType || "roll") as "sheet" | "roll",
       rollType: (input.brcRollType || "2.1x48") as "2.1x48" | "2.4x48",
       productArea: 0,
     },
@@ -2362,7 +2363,7 @@ function calculateMeshRebar(
   const area = effectiveL * effectiveW;
 
   // Determine BRC product type and roll type
-  const brcProductType = input.brcProductType || "sheet";
+  const brcProductType = input.brcProductType || "roll";
   const brcRollType = input.brcRollType || "2.1x48";
 
   // Calculate mesh reinforcement using area-based calculation

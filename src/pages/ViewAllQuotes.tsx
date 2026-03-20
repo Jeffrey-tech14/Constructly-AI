@@ -47,7 +47,7 @@ import {
   Trash2,
   Pen,
   Target,
-  Loader2,
+  LoaderPinwheel,
   CreditCard,
   Lock,
 } from "lucide-react";
@@ -196,7 +196,7 @@ const ViewAllQuotes = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
+          <LoaderPinwheel className="animate-spin rounded-full h-8 w-8"></LoaderPinwheel>
         </div>
       </div>
     );
@@ -395,7 +395,7 @@ const ViewAllQuotes = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 sm:flex-none"
+                          className="flex-1 sm:flex-none hover:text-white"
                           onClick={() => navigate(`/quotes/${quote.id}`)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
@@ -409,7 +409,7 @@ const ViewAllQuotes = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className=" flex-1 sm:flex-none"
+                              className=" flex-1 sm:flex-none hover:text-white"
                             >
                               <TrendingUp className="w-4 h-4 mr-2" />
                               Progress
@@ -436,7 +436,7 @@ const ViewAllQuotes = () => {
                               state: {
                                 quoteId: quote.id,
                                 quoteTitle: quote.title,
-                                amount: 1000,
+                                amount: 200,
                               },
                             })
                           }
@@ -445,13 +445,13 @@ const ViewAllQuotes = () => {
                         >
                           {paymentChecking ? (
                             <>
-                              <Loader2 className="animate-spin w-4 h-4 mr-2 text-white" />
+                              <LoaderPinwheel className="animate-spin w-4 h-4 mr-2 text-white" />
                               Checking...
                             </>
                           ) : (
                             <>
                               <CreditCard className="w-4 h-4 mr-2 text-white" />
-                              Pay 1000 KSH
+                              Pay 200 KSH
                             </>
                           )}
                         </Button>

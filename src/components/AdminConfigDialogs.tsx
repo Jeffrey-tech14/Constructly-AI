@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useMaterialPrices } from "@/hooks/useMaterialPrices";
-import { Settings, Plus, Edit, Loader2, Trash2 } from "lucide-react";
+import { Settings, Plus, Edit, LoaderPinwheel, Trash2 } from "lucide-react";
 ("use client");
 import { supabase } from "@/integrations/supabase/client";
 export const MaterialPricesDialog = () => {
@@ -567,7 +567,7 @@ export const EquipmentTypesDialog = () => {
             <div className="flex gap-2">
               <Button className="text-white" type="submit" disabled={loading}>
                 {loading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <LoaderPinwheel className="w-4 h-4 mr-2 animate-spin" />
                 ) : null}
                 {editingEquipment ? "Update" : "Create"} Equipment
               </Button>

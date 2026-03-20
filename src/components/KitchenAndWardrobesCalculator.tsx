@@ -410,10 +410,10 @@ export const KitchenAndWardrobesCalculator: React.FC<
       {/* ========== WARDROBES SECTION ========== */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold flex items-center gap-2">
+          <h4 className="text-2xl font-semibold flex items-center gap-2">
             <DoorOpen className="w-6 h-6 text-primary" />
             Wardrobes
-          </h2>
+          </h4>
           {!readonly && (
             <Button onClick={addWardrobe} variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
@@ -744,10 +744,10 @@ export const KitchenAndWardrobesCalculator: React.FC<
       {/* ========== KITCHEN CABINETS SECTION ========== */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold flex items-center gap-2">
+          <h4 className="text-2xl font-semibold flex items-center gap-2">
             <CookingPot className="w-6 h-6 text-primary" />
             Kitchen Cabinets
-          </h2>
+          </h4>
           {!readonly && (
             <Button onClick={addKitchenCabinet} variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />
@@ -1019,10 +1019,10 @@ export const KitchenAndWardrobesCalculator: React.FC<
       {/* ========== COUNTERTOPS SECTION ========== */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold flex items-center gap-2">
+          <h4 className="text-2xl font-semibold flex items-center gap-2">
             <Grid3X3 className="w-6 h-6 text-primary" />
             Kitchen Countertops
-          </h2>
+          </h4>
           {!readonly && (
             <Button onClick={handleAddCountertop} variant="outline" size="sm">
               <Plus className="w-4 h-4 mr-2" />

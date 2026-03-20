@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, Upload, Crop, Loader2 } from "lucide-react";
+import { X, Upload, Crop, LoaderPinwheel } from "lucide-react";
 import ReactCrop, {
   Crop as CropType,
   PixelCrop,
@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
-  aspect: number
+  aspect: number,
 ) {
   return centerCrop(
     makeAspectCrop(
@@ -27,10 +27,10 @@ function centerAspectCrop(
       },
       aspect,
       mediaWidth,
-      mediaHeight
+      mediaHeight,
     ),
     mediaWidth,
-    mediaHeight
+    mediaHeight,
   );
 }
 interface ProfilePictureUploadProps {
@@ -55,7 +55,7 @@ const ProfilePictureUpload = ({
       setCrop(undefined);
       const reader = new FileReader();
       reader.addEventListener("load", () =>
-        setImgSrc(reader.result?.toString() || "")
+        setImgSrc(reader.result?.toString() || ""),
       );
       reader.readAsDataURL(e.target.files[0]);
     }
@@ -66,7 +66,7 @@ const ProfilePictureUpload = ({
   }
   const getCroppedImg = async (
     image: HTMLImageElement,
-    crop: PixelCrop
+    crop: PixelCrop,
   ): Promise<Blob> => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -86,7 +86,7 @@ const ProfilePictureUpload = ({
       0,
       0,
       crop.width,
-      crop.height
+      crop.height,
     );
     return new Promise((resolve) => {
       canvas.toBlob(
@@ -97,7 +97,7 @@ const ProfilePictureUpload = ({
           resolve(blob);
         },
         "image/jpeg",
-        1
+        1,
       );
     });
   };
@@ -133,9 +133,7 @@ const ProfilePictureUpload = ({
     <Card className="w-full max-w-md  ">
       <CardContent className="pt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg  text-white">
-            Update Profile Picture
-          </h3>
+          <h3 className="text-lg  text-white">Update Profile Picture</h3>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="h-4 w-4" />
           </Button>
@@ -201,7 +199,7 @@ const ProfilePictureUpload = ({
                 disabled={!completedCrop || isUploading}
               >
                 {isUploading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <LoaderPinwheel className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Crop className="h-4 w-4 mr-2" />
                 )}

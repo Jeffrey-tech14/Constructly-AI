@@ -36,6 +36,9 @@ import {
   ChevronDown,
   ChevronUp,
   AlertCircle,
+  Ruler,
+  Home,
+  HardDrive,
 } from "lucide-react";
 import useRoofingCalculator, {
   BuildingInputs,
@@ -59,7 +62,6 @@ const ROOF_TYPES = [
   { value: "flat", label: "Flat Roof" },
 ];
 
-// Roofing sheet specifications (in meters)
 const SHEET_EFFECTIVE_COVER_WIDTHS = [
   { value: 1.0, label: "1000mm (1.0m)" },
   { value: 1.06, label: "1060mm (1.06m)" },
@@ -105,7 +107,6 @@ export default function RoofingCalculatorUI({
     trussSpacingMm: 600,
   });
 
-  // State for calculation result
   const [breakdown, setBreakdown] = useState<RoofMaterialBreakdown | null>(
     null,
   );
@@ -117,101 +118,71 @@ export default function RoofingCalculatorUI({
     roofing: true,
   });
 
-  // State for sync status
   const [isSynced, setIsSynced] = useState(false);
   const [syncedFromSlab, setSyncedFromSlab] = useState(false);
-
-  // State for validation errors
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Auto-sync roofing geometry from slab when quote updates
+  // Auto-sync roofing geometry from slab
   useEffect(() => {
     if (quote?.concrete_rows && quote?.wallDimensions) {
-      // Get slab footprint area
       const slabRow = quote.concrete_rows.find(
         (r: any) =>
           r.element === "slab" && r.name?.toLowerCase().includes("ground"),
       );
       const slabArea =
         slabRow?.slabArea || quote.concrete_rows[0]?.slabArea || 0;
-
-      // Get external perimeter
       const externalPerimeter =
         quote.wallDimensions?.externalWallPerimiter || 0;
 
       if (slabArea > 0 && externalPerimeter > 0) {
         const synced = syncRoofingFromSlabGeometry(slabArea, externalPerimeter);
-
-        // Update inputs with synced values
         setInputs((prev) => ({
           ...prev,
           footprintAreaM2: synced.roofingAreaM2,
           externalPerimeterM: synced.roofingPerimeterM,
         }));
-
         setIsSynced(true);
         setSyncedFromSlab(true);
       }
     }
   }, [quote?.concrete_rows, quote?.wallDimensions]);
 
-  // Handle input changes
   const handleInputChange = useCallback(
     (field: keyof BuildingInputs, value: any) => {
       setInputs((prev) => ({ ...prev, [field]: value }));
-      // Clear validation errors when user makes changes
       setValidationErrors([]);
     },
     [],
   );
 
-  // Validation function
   const validateInputs = useCallback((): boolean => {
     const errors: string[] = [];
-
-    // Check required numeric fields that must be > 0
-    if (inputs.footprintAreaM2 <= 0) {
+    if (inputs.footprintAreaM2 <= 0)
       errors.push("Footprint Area must be greater than 0");
-    }
-    if (inputs.externalPerimeterM <= 0) {
+    if (inputs.externalPerimeterM <= 0)
       errors.push("External Perimeter must be greater than 0");
-    }
-    if (inputs.pitchDegrees <= 0) {
+    if (inputs.pitchDegrees <= 0)
       errors.push("Roof Pitch must be greater than 0");
-    }
-    if (inputs.eaveWidthM <= 0) {
+    if (inputs.eaveWidthM <= 0)
       errors.push("Eave Width must be greater than 0");
-    }
-    if (inputs.rasterSpacingMm <= 0) {
+    if (inputs.rasterSpacingMm <= 0)
       errors.push("Rafter Spacing must be greater than 0");
-    }
-    if (inputs.trussSpacingMm <= 0) {
+    if (inputs.trussSpacingMm <= 0)
       errors.push("Truss Spacing must be greater than 0");
-    }
-    if (inputs.purlinSpacingM <= 0) {
+    if (inputs.purlinSpacingM <= 0)
       errors.push("Purlin Spacing must be greater than 0");
-    }
-    if (inputs.roofingSheetEffectiveCoverWidthM <= 0) {
+    if (inputs.roofingSheetEffectiveCoverWidthM <= 0)
       errors.push("Sheet Effective Cover Width must be greater than 0");
-    }
-    if (inputs.roofingSheetLengthM <= 0) {
+    if (inputs.roofingSheetLengthM <= 0)
       errors.push("Sheet Standard Length must be greater than 0");
-    }
-    if (!inputs.roofType || inputs.roofType.trim() === "") {
+    if (!inputs.roofType || inputs.roofType.trim() === "")
       errors.push("Roof Type must be selected");
-    }
-
     setValidationErrors(errors);
     return errors.length === 0;
   }, [inputs]);
 
-  // Handle calculation
   const handleCalculate = useCallback(() => {
-    // Validate all inputs before calculating
-    if (!validateInputs()) {
-      return;
-    }
-
+    if (!validateInputs()) return;
     try {
       const result = calculateRoofMaterials(inputs);
       setBreakdown(result);
@@ -234,22 +205,13 @@ export default function RoofingCalculatorUI({
     validateInputs,
   ]);
 
-  // Toggle section expansion
   const toggleSection = useCallback((section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   }, []);
 
-  // Format functions
-  const formatNumber = (value: number, decimals = 2) => {
-    return value.toFixed(decimals);
-  };
-
+  const formatNumber = (value: number, decimals = 2) => value.toFixed(decimals);
   const formatArea = (area: number) => `${formatNumber(area, 2)} m²`;
   const formatLength = (length: number) => `${formatNumber(length, 2)} m`;
-  const formatVolume = (volume: number) => `${formatNumber(volume, 3)} m³`;
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
@@ -262,18 +224,23 @@ export default function RoofingCalculatorUI({
   return (
     <div className="space-y-6">
       {/* Input Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Building Dimensions</CardTitle>
+      <Card className="border-border">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Home className="h-5 w-5 text-primary" />
+            Building Dimensions
+          </CardTitle>
           <CardDescription>
             Enter building and roof parameters for material calculation
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Building Inputs */}
-          <div>
-            <Label className="text-base  mb-4 block">Building Parameters</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CardContent className="pt-4 space-y-6">
+          {/* Building Parameters */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">
+              Building Parameters
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="footprint-area">Footprint Area (m²)</Label>
                 <Input
@@ -291,7 +258,6 @@ export default function RoofingCalculatorUI({
                   }
                 />
               </div>
-
               <div>
                 <Label htmlFor="perimeter">External Perimeter (m)</Label>
                 <Input
@@ -313,8 +279,10 @@ export default function RoofingCalculatorUI({
           </div>
 
           {/* Roof Parameters */}
-          <div>
-            <Label className="text-base  mb-4 block">Roof Parameters</Label>
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">
+              Roof Parameters
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <Label htmlFor="roof-type">Roof Type</Label>
@@ -336,7 +304,6 @@ export default function RoofingCalculatorUI({
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <Label htmlFor="pitch">Roof Pitch (degrees)</Label>
                 <Input
@@ -354,7 +321,6 @@ export default function RoofingCalculatorUI({
                   }
                 />
               </div>
-
               <div>
                 <Label htmlFor="eave-width">Eave Width (m)</Label>
                 <Input
@@ -371,31 +337,27 @@ export default function RoofingCalculatorUI({
                   }
                 />
               </div>
-
-              <div>
-                <Label htmlFor="king-post">Truss Type</Label>
-                <div className="flex items-center gap-2 mt-2">
-                  <Checkbox
-                    id="king-post"
-                    checked={inputs.roofTrussTypeKingPost}
-                    onCheckedChange={(checked) =>
-                      handleInputChange("roofTrussTypeKingPost", checked)
-                    }
-                  />
-                  <Label htmlFor="king-post" className="cursor-pointer text-sm">
-                    King Post
-                  </Label>
-                </div>
+              <div className="flex items-center gap-2 mt-6">
+                <Checkbox
+                  id="king-post"
+                  checked={inputs.roofTrussTypeKingPost}
+                  onCheckedChange={(checked) =>
+                    handleInputChange("roofTrussTypeKingPost", checked)
+                  }
+                />
+                <Label htmlFor="king-post" className="cursor-pointer text-sm">
+                  King Post Truss
+                </Label>
               </div>
             </div>
           </div>
 
-          {/* Spacing Parameters */}
-          <div>
-            <Label className="text-base  mb-4 block">
+          {/* Spacing & Dimensions */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">
               Spacing & Dimensions
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="rafter-spacing">Rafter Spacing (mm)</Label>
                 <Input
@@ -412,7 +374,6 @@ export default function RoofingCalculatorUI({
                   }
                 />
               </div>
-
               <div>
                 <Label htmlFor="truss-spacing">Truss Spacing (mm)</Label>
                 <Input
@@ -429,7 +390,6 @@ export default function RoofingCalculatorUI({
                   }
                 />
               </div>
-
               <div>
                 <Label htmlFor="purlin-spacing">Purlin Spacing (m)</Label>
                 <Input
@@ -449,11 +409,11 @@ export default function RoofingCalculatorUI({
             </div>
           </div>
 
-          {/* Roofing Sheet Parameters */}
-          <div>
-            <Label className="text-base  mb-4 block">
+          {/* Roofing Sheet Specifications */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">
               Roofing Sheet Specifications
-            </Label>
+            </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="sheet-cover-width">
@@ -483,7 +443,6 @@ export default function RoofingCalculatorUI({
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <Label htmlFor="sheet-length">Sheet Standard Length</Label>
                 <Select
@@ -507,8 +466,7 @@ export default function RoofingCalculatorUI({
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="text-xs text-gray-600 dark:text-gray-400 flex items-end pb-2">
+              <div className="text-xs text-muted-foreground flex items-end pb-2">
                 <span>
                   Total Width Range: 1050mm - 1130mm
                   <br />
@@ -520,13 +478,13 @@ export default function RoofingCalculatorUI({
 
           {/* Validation Errors */}
           {validationErrors.length > 0 && (
-            <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800 flex gap-3">
-              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-red-700 dark:text-red-300 mb-2">
+                <p className="font-medium text-destructive mb-2">
                   Please correct the following errors:
                 </p>
-                <ul className="list-disc list-inside text-red-600 dark:text-red-400 space-y-1">
+                <ul className="list-disc list-inside text-destructive space-y-1">
                   {validationErrors.map((error, index) => (
                     <li key={index}>{error}</li>
                   ))}
@@ -536,7 +494,7 @@ export default function RoofingCalculatorUI({
           )}
 
           {/* Calculate Button */}
-          <div className="flex gap-2 justify-end pt-4 border-t">
+          <div className="flex justify-end pt-4 border-t border-border">
             <Button onClick={handleCalculate} size="lg">
               <Calculator className="h-4 w-4 mr-2" />
               Calculate Materials
@@ -550,79 +508,55 @@ export default function RoofingCalculatorUI({
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Projected Roof Area
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatArea(breakdown.geometry.projectedRoofAreaM2)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  (with eaves)
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Effective Sloped Area
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatArea(breakdown.geometry.effectiveRoofAreaM2)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  (accounting for pitch)
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Rafter Length
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatLength(breakdown.geometry.rasterLengthM)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">(per side)</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Roof Pitch
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {breakdown.defaults.pitchDegrees}°
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {(breakdown.geometry.pitchRadians * (180 / Math.PI)).toFixed(
-                    1,
-                  )}
-                  ° in radians
-                </p>
-              </CardContent>
-            </Card>
+            {[
+              {
+                label: "Projected Roof Area",
+                value: formatArea(breakdown.geometry.projectedRoofAreaM2),
+                sub: "(with eaves)",
+              },
+              {
+                label: "Effective Sloped Area",
+                value: formatArea(breakdown.geometry.effectiveRoofAreaM2),
+                sub: "(accounting for pitch)",
+              },
+              {
+                label: "Rafter Length",
+                value: formatLength(breakdown.geometry.rasterLengthM),
+                sub: "(per side)",
+              },
+              {
+                label: "Roof Pitch",
+                value: `${breakdown.defaults.pitchDegrees}°`,
+                sub: `${(breakdown.geometry.pitchRadians * (180 / Math.PI)).toFixed(1)}° in radians`,
+              },
+            ].map((item, idx) => (
+              <Card key={idx} className="border-border">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {item.label}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-foreground">
+                    {item.value}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {item.sub}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Defaults Used */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Defaults Applied</CardTitle>
+          <Card className="border-border">
+            <CardHeader className="border-b border-border bg-muted/30">
+              <CardTitle className="text-sm font-medium text-foreground">
+                Defaults Applied
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Roof Type:</span>
                   <p className="text-muted-foreground">
@@ -661,7 +595,7 @@ export default function RoofingCalculatorUI({
 
             {/* Timbers Tab */}
             <TabsContent value="timbers">
-              <Card>
+              <Card className="border-border">
                 <CardHeader>
                   <CardTitle>Structural Timber Breakdown</CardTitle>
                   <CardDescription>
@@ -669,609 +603,88 @@ export default function RoofingCalculatorUI({
                     {breakdown.defaults.structuralTimberWastagePercent}% wastage
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Wall Plates */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleSection("wallPlates")}
-                        className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {expandedSections["wallPlates"] ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                          <div className="text-left">
-                            <h4 className="">{breakdown.wallPlates.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {breakdown.wallPlates.sizeXxY} mm
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          {formatLength(
-                            breakdown.wallPlates.totalLengthWithWastageM,
-                          )}
-                        </Badge>
-                      </button>
-                      {expandedSections["wallPlates"] && (
-                        <div className="p-4 border-t space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Base Length:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.wallPlates.totalLengthM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">With Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.wallPlates.totalLengthWithWastageM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.wallPlates.wasteageAllowanceM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Unit:</span>
-                              <p>{breakdown.wallPlates.unitLm}</p>
-                            </div>
-                          </div>
-                          {breakdown.wallPlates.unitPrice !== undefined && (
-                            <div className="border-t pt-4">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">
-                                    Price per Unit:
-                                  </span>
-                                  <p className="text-primary dark:text-primary ">
-                                    {formatCurrency(
-                                      breakdown.wallPlates.unitPrice,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (Base):
-                                  </span>
-                                  <p className="text-green-600 dark:text-green-400 ">
-                                    {formatCurrency(
-                                      breakdown.wallPlates.totalPrice || 0,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (with Wastage):
-                                  </span>
-                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
-                                    {formatCurrency(
-                                      breakdown.wallPlates
-                                        .totalPriceWithWastage || 0,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tie Beams */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleSection("tieBeams")}
-                        className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {expandedSections["tieBeams"] ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                          <div className="text-left">
-                            <h4 className="">{breakdown.tieBeams.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {breakdown.tieBeams.sizeXxY} mm
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          {formatLength(
-                            breakdown.tieBeams.totalLengthWithWastageM,
-                          )}
-                        </Badge>
-                      </button>
-                      {expandedSections["tieBeams"] && (
-                        <div className="p-4 border-t space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Base Length:</span>
-                              <p>
-                                {formatLength(breakdown.tieBeams.totalLengthM)}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">With Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.tieBeams.totalLengthWithWastageM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.tieBeams.wasteageAllowanceM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Qty:</span>
-                              <p>{breakdown.tieBeams.quantityPcs} pcs</p>
-                            </div>
-                          </div>
-                          {breakdown.tieBeams.unitPrice !== undefined && (
-                            <div className="border-t pt-4">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">
-                                    Price per Unit:
-                                  </span>
-                                  <p className="text-primary dark:text-primary ">
-                                    {formatCurrency(
-                                      breakdown.tieBeams.unitPrice,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (Base):
-                                  </span>
-                                  <p className="text-green-600 dark:text-green-400 ">
-                                    {formatCurrency(
-                                      breakdown.tieBeams.totalPrice || 0,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (with Wastage):
-                                  </span>
-                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
-                                    {formatCurrency(
-                                      breakdown.tieBeams
-                                        .totalPriceWithWastage || 0,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* King Posts */}
-                    {breakdown.kingPosts && (
-                      <div className="border rounded-lg overflow-hidden">
-                        <button
-                          onClick={() => toggleSection("kingPosts")}
-                          className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/80 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            {expandedSections["kingPosts"] ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                            <div className="text-left">
-                              <h4 className="">{breakdown.kingPosts.name}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {breakdown.kingPosts.sizeXxY} mm
-                              </p>
-                            </div>
-                          </div>
-                          <Badge variant="secondary">
-                            {formatLength(
-                              breakdown.kingPosts.totalLengthWithWastageM,
-                            )}
-                          </Badge>
-                        </button>
-                        {expandedSections["kingPosts"] && (
-                          <div className="p-4 border-t space-y-4">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">
-                                  Length per Truss:
-                                </span>
-                                <p>
-                                  {formatLength(
-                                    breakdown.kingPosts.lengthPerPieceM,
-                                  )}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="font-medium">
-                                  Base Length:
-                                </span>
-                                <p>
-                                  {formatLength(
-                                    breakdown.kingPosts.totalLengthM,
-                                  )}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="font-medium">
-                                  With Wastage:
-                                </span>
-                                <p>
-                                  {formatLength(
-                                    breakdown.kingPosts.totalLengthWithWastageM,
-                                  )}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="font-medium">Wastage:</span>
-                                <p>
-                                  {formatLength(
-                                    breakdown.kingPosts.wasteageAllowanceM,
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                            {breakdown.kingPosts.unitPrice !== undefined && (
-                              <div className="border-t pt-4">
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                  <div>
-                                    <span className="font-medium">
-                                      Price per Unit:
-                                    </span>
-                                    <p className="text-primary dark:text-primary ">
-                                      {formatCurrency(
-                                        breakdown.kingPosts.unitPrice,
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">
-                                      Total (Base):
-                                    </span>
-                                    <p className="text-green-600 dark:text-green-400 ">
-                                      {formatCurrency(
-                                        breakdown.kingPosts.totalPrice || 0,
-                                      )}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">
-                                      Total (with Wastage):
-                                    </span>
-                                    <p className="text-orange-600 dark:text-orange-400  text-lg">
-                                      {formatCurrency(
-                                        breakdown.kingPosts
-                                          .totalPriceWithWastage || 0,
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Rafters */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleSection("rafters")}
-                        className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {expandedSections["rafters"] ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                          <div className="text-left">
-                            <h4 className="">{breakdown.rafters.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {breakdown.rafters.sizeXxY} mm
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          {formatLength(
-                            breakdown.rafters.totalLengthWithWastageM,
-                          )}
-                        </Badge>
-                      </button>
-                      {expandedSections["rafters"] && (
-                        <div className="p-4 border-t space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Quantity:</span>
-                              <p>{breakdown.rafters.quantityPcs} pcs</p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Each Length:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.rafters.lengthPerPieceM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Total:</span>
-                              <p>
-                                {formatLength(breakdown.rafters.totalLengthM)}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">With Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.rafters.totalLengthWithWastageM,
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          {breakdown.rafters.unitPrice !== undefined && (
-                            <div className="border-t pt-4">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">
-                                    Price per Unit:
-                                  </span>
-                                  <p className="text-primary dark:text-primary ">
-                                    {formatCurrency(
-                                      breakdown.rafters.unitPrice,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (Base):
-                                  </span>
-                                  <p className="text-green-600 dark:text-green-400 ">
-                                    {formatCurrency(
-                                      breakdown.rafters.totalPrice || 0,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (with Wastage):
-                                  </span>
-                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
-                                    {formatCurrency(
-                                      breakdown.rafters.totalPriceWithWastage ||
-                                        0,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Purlins */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleSection("purlins")}
-                        className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {expandedSections["purlins"] ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                          <div className="text-left">
-                            <h4 className="">{breakdown.purlins.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {breakdown.purlins.sizeXxY} mm
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          {formatLength(
-                            breakdown.purlins.totalLengthWithWastageM,
-                          )}
-                        </Badge>
-                      </button>
-                      {expandedSections["purlins"] && (
-                        <div className="p-4 border-t space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Base Length:</span>
-                              <p>
-                                {formatLength(breakdown.purlins.totalLengthM)}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">With Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.purlins.totalLengthWithWastageM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.purlins.wasteageAllowanceM,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Unit:</span>
-                              <p>{breakdown.purlins.unitLm}</p>
-                            </div>
-                          </div>
-                          {breakdown.purlins.unitPrice !== undefined && (
-                            <div className="border-t pt-4">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">
-                                    Price per Unit:
-                                  </span>
-                                  <p className="text-primary dark:text-primary ">
-                                    {formatCurrency(
-                                      breakdown.purlins.unitPrice,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (Base):
-                                  </span>
-                                  <p className="text-green-600 dark:text-green-400 ">
-                                    {formatCurrency(
-                                      breakdown.purlins.totalPrice || 0,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (with Wastage):
-                                  </span>
-                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
-                                    {formatCurrency(
-                                      breakdown.purlins.totalPriceWithWastage ||
-                                        0,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Struts */}
-                    <div className="border rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleSection("struts")}
-                        className="w-full flex items-center justify-between p-4 bg-muted hover:bg-muted/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          {expandedSections["struts"] ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )}
-                          <div className="text-left">
-                            <h4 className="">{breakdown.struts.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {breakdown.struts.sizeXxY} mm
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          {formatLength(
-                            breakdown.struts.totalLengthWithWastageM,
-                          )}
-                        </Badge>
-                      </button>
-                      {expandedSections["struts"] && (
-                        <div className="p-4 border-t space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">Quantity:</span>
-                              <p>{breakdown.struts.quantityPcs} pcs</p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Each Length:</span>
-                              <p>
-                                {formatLength(breakdown.struts.lengthPerPieceM)}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Total:</span>
-                              <p>
-                                {formatLength(breakdown.struts.totalLengthM)}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">With Wastage:</span>
-                              <p>
-                                {formatLength(
-                                  breakdown.struts.totalLengthWithWastageM,
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          {breakdown.struts.unitPrice !== undefined && (
-                            <div className="border-t pt-4">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">
-                                    Price per Unit:
-                                  </span>
-                                  <p className="text-primary dark:text-primary ">
-                                    {formatCurrency(breakdown.struts.unitPrice)}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (Base):
-                                  </span>
-                                  <p className="text-green-600 dark:text-green-400 ">
-                                    {formatCurrency(
-                                      breakdown.struts.totalPrice || 0,
-                                    )}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="font-medium">
-                                    Total (with Wastage):
-                                  </span>
-                                  <p className="text-orange-600 dark:text-orange-400  text-lg">
-                                    {formatCurrency(
-                                      breakdown.struts.totalPriceWithWastage ||
-                                        0,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <CardContent className="space-y-4">
+                  {/* Wall Plates */}
+                  <TimberSection
+                    title={breakdown.wallPlates.name}
+                    size={breakdown.wallPlates.sizeXxY}
+                    data={breakdown.wallPlates}
+                    unitLabel="length"
+                    formatValue={formatLength}
+                    expanded={expandedSections["wallPlates"]}
+                    onToggle={() => toggleSection("wallPlates")}
+                    formatCurrency={formatCurrency}
+                  />
+                  {/* Tie Beams */}
+                  <TimberSection
+                    title={breakdown.tieBeams.name}
+                    size={breakdown.tieBeams.sizeXxY}
+                    data={breakdown.tieBeams}
+                    unitLabel="length"
+                    formatValue={formatLength}
+                    expanded={expandedSections["tieBeams"]}
+                    onToggle={() => toggleSection("tieBeams")}
+                    formatCurrency={formatCurrency}
+                  />
+                  {/* King Posts */}
+                  {breakdown.kingPosts && (
+                    <TimberSection
+                      title={breakdown.kingPosts.name}
+                      size={breakdown.kingPosts.sizeXxY}
+                      data={breakdown.kingPosts}
+                      unitLabel="length"
+                      formatValue={formatLength}
+                      expanded={expandedSections["kingPosts"]}
+                      onToggle={() => toggleSection("kingPosts")}
+                      formatCurrency={formatCurrency}
+                    />
+                  )}
+                  {/* Rafters */}
+                  <TimberSection
+                    title={breakdown.rafters.name}
+                    size={breakdown.rafters.sizeXxY}
+                    data={breakdown.rafters}
+                    unitLabel="length"
+                    formatValue={formatLength}
+                    expanded={expandedSections["rafters"]}
+                    onToggle={() => toggleSection("rafters")}
+                    formatCurrency={formatCurrency}
+                  />
+                  {/* Purlins */}
+                  <TimberSection
+                    title={breakdown.purlins.name}
+                    size={breakdown.purlins.sizeXxY}
+                    data={breakdown.purlins}
+                    unitLabel="length"
+                    formatValue={formatLength}
+                    expanded={expandedSections["purlins"]}
+                    onToggle={() => toggleSection("purlins")}
+                    formatCurrency={formatCurrency}
+                  />
+                  {/* Struts */}
+                  <TimberSection
+                    title={breakdown.struts.name}
+                    size={breakdown.struts.sizeXxY}
+                    data={breakdown.struts}
+                    unitLabel="length"
+                    formatValue={formatLength}
+                    expanded={expandedSections["struts"]}
+                    onToggle={() => toggleSection("struts")}
+                    formatCurrency={formatCurrency}
+                  />
 
                   {/* Timber Pricing Summary */}
                   {(breakdown.wallPlates.totalPrice !== undefined ||
                     breakdown.tieBeams.totalPrice !== undefined) && (
-                    <div className="mt-8 pt-8 border-t">
-                      <Label className="text-lg  mb-4 block">
+                    <div className="mt-8 pt-8 border-t border-border">
+                      <h4 className="text-sm font-medium mb-4">
                         Timber Costs Summary
-                      </Label>
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
-                          <h4 className=" text-sm">
+                          <h5 className="text-xs font-medium text-muted-foreground">
                             Base Costs (before wastage)
-                          </h4>
+                          </h5>
                           <div className="space-y-2 text-sm">
                             {breakdown.wallPlates.totalPrice !== undefined && (
                               <div className="flex justify-between">
@@ -1328,31 +741,29 @@ export default function RoofingCalculatorUI({
                               </div>
                             )}
                           </div>
-                          {breakdown.wallPlates.totalPrice !== undefined && (
-                            <div className="border-t pt-3 mt-3">
-                              <div className="flex justify-between ">
-                                <span>Subtotal:</span>
-                                <span className="text-green-600 dark:text-green-400">
-                                  {formatCurrency(
-                                    (breakdown.wallPlates.totalPrice || 0) +
-                                      (breakdown.tieBeams.totalPrice || 0) +
-                                      (breakdown.kingPosts?.totalPrice || 0) +
-                                      (breakdown.rafters.totalPrice || 0) +
-                                      (breakdown.purlins.totalPrice || 0) +
-                                      (breakdown.struts.totalPrice || 0),
-                                  )}
-                                </span>
-                              </div>
+                          <div className="border-t border-border pt-2 mt-2">
+                            <div className="flex justify-between font-medium">
+                              <span>Subtotal:</span>
+                              <span className="text-primary">
+                                {formatCurrency(
+                                  (breakdown.wallPlates.totalPrice || 0) +
+                                    (breakdown.tieBeams.totalPrice || 0) +
+                                    (breakdown.kingPosts?.totalPrice || 0) +
+                                    (breakdown.rafters.totalPrice || 0) +
+                                    (breakdown.purlins.totalPrice || 0) +
+                                    (breakdown.struts.totalPrice || 0),
+                                )}
+                              </span>
                             </div>
-                          )}
+                          </div>
                         </div>
 
                         <div className="space-y-3">
-                          <h4 className=" text-sm">
+                          <h5 className="text-xs font-medium text-muted-foreground">
                             With Wastage (
                             {breakdown.defaults.structuralTimberWastagePercent}
                             %)
-                          </h4>
+                          </h5>
                           <div className="space-y-2 text-sm">
                             {breakdown.wallPlates.totalPriceWithWastage !==
                               undefined && (
@@ -1421,30 +832,27 @@ export default function RoofingCalculatorUI({
                               </div>
                             )}
                           </div>
-                          {breakdown.wallPlates.totalPriceWithWastage !==
-                            undefined && (
-                            <div className="border-t pt-3 mt-3 bg-orange-50 dark:bg-orange-950 p-3 rounded">
-                              <div className="flex justify-between font-bold text-orange-600 dark:text-orange-400">
-                                <span>Total:</span>
-                                <span className="text-lg">
-                                  {formatCurrency(
-                                    (breakdown.wallPlates
-                                      .totalPriceWithWastage || 0) +
-                                      (breakdown.tieBeams
-                                        .totalPriceWithWastage || 0) +
-                                      (breakdown.kingPosts
-                                        ?.totalPriceWithWastage || 0) +
-                                      (breakdown.rafters
-                                        .totalPriceWithWastage || 0) +
-                                      (breakdown.purlins
-                                        .totalPriceWithWastage || 0) +
-                                      (breakdown.struts.totalPriceWithWastage ||
-                                        0),
-                                  )}
-                                </span>
-                              </div>
+                          <div className="border-t border-border pt-2 mt-2 bg-muted/30 p-3 rounded">
+                            <div className="flex justify-between font-bold text-foreground">
+                              <span>Total:</span>
+                              <span className="text-primary text-lg">
+                                {formatCurrency(
+                                  (breakdown.wallPlates.totalPriceWithWastage ||
+                                    0) +
+                                    (breakdown.tieBeams.totalPriceWithWastage ||
+                                      0) +
+                                    (breakdown.kingPosts
+                                      ?.totalPriceWithWastage || 0) +
+                                    (breakdown.rafters.totalPriceWithWastage ||
+                                      0) +
+                                    (breakdown.purlins.totalPriceWithWastage ||
+                                      0) +
+                                    (breakdown.struts.totalPriceWithWastage ||
+                                      0),
+                                )}
+                              </span>
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1455,7 +863,7 @@ export default function RoofingCalculatorUI({
 
             {/* Roofing Tab */}
             <TabsContent value="roofing">
-              <Card>
+              <Card className="border-border">
                 <CardHeader>
                   <CardTitle>Roofing Sheets</CardTitle>
                   <CardDescription>
@@ -1465,123 +873,120 @@ export default function RoofingCalculatorUI({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-lg border border-primary/20 dark:border-primary/30">
-                        <Label className="text-base  block mb-3">
-                          Sheet Specifications
-                        </Label>
-                        <div className="space-y-2 text-sm">
-                          <div>
-                            <span className="font-medium">Cover Width:</span>
-                            <p className="text-muted-foreground">
-                              {formatLength(
-                                breakdown.roofingSheets.sheetCoverAreaM2 /
-                                  inputs.roofingSheetLengthM,
-                              )}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Sheet Length:</span>
-                            <p className="text-muted-foreground">
-                              {formatLength(inputs.roofingSheetLengthM)}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="font-medium">Cover Area:</span>
-                            <p className="text-muted-foreground">
-                              {formatArea(
-                                breakdown.roofingSheets.sheetCoverAreaM2,
-                              )}
-                            </p>
-                          </div>
+                    {/* Specifications */}
+                    <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                      <h4 className="text-sm font-medium mb-3">
+                        Sheet Specifications
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium">Cover Width:</span>
+                          <p className="text-muted-foreground">
+                            {formatLength(
+                              breakdown.roofingSheets.sheetCoverAreaM2 /
+                                inputs.roofingSheetLengthM,
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Sheet Length:</span>
+                          <p className="text-muted-foreground">
+                            {formatLength(inputs.roofingSheetLengthM)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Cover Area:</span>
+                          <p className="text-muted-foreground">
+                            {formatArea(
+                              breakdown.roofingSheets.sheetCoverAreaM2,
+                            )}
+                          </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                        <Label className="text-base  block mb-3">
-                          Quantity Calculation
-                        </Label>
-                        <div className="space-y-2 text-sm">
+                    {/* Quantity Calculation */}
+                    <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                      <h4 className="text-sm font-medium mb-3">
+                        Quantity Calculation
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium">
+                            Effective Roof Area:
+                          </span>
+                          <p className="text-muted-foreground">
+                            {formatArea(breakdown.geometry.effectiveRoofAreaM2)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="font-medium">Base Quantity:</span>
+                          <p className="text-muted-foreground">
+                            {breakdown.roofingSheets.quantityRequired} pcs
+                          </p>
+                        </div>
+                        <div className="pt-2 border-t border-border">
+                          <span className="font-medium">With Wastage:</span>
+                          <p className="text-primary font-medium">
+                            {breakdown.roofingSheets.quantityWithWastagePercent}{" "}
+                            pcs
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pricing */}
+                    {breakdown.roofingSheets.unitPrice !== undefined && (
+                      <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                        <h4 className="text-sm font-medium mb-3">Pricing</h4>
+                        <div className="space-y-3 text-sm">
                           <div>
                             <span className="font-medium">
-                              Effective Roof Area:
+                              Price per Sheet:
                             </span>
-                            <p className="text-muted-foreground">
-                              {formatArea(
-                                breakdown.geometry.effectiveRoofAreaM2,
+                            <p className="text-primary font-medium">
+                              {formatCurrency(
+                                breakdown.roofingSheets.unitPrice,
                               )}
                             </p>
                           </div>
                           <div>
-                            <span className="font-medium">Base Quantity:</span>
-                            <p className="text-muted-foreground">
-                              {breakdown.roofingSheets.quantityRequired} pcs
+                            <span className="font-medium">
+                              Total (Base Quantity):
+                            </span>
+                            <p className="text-primary font-medium">
+                              {formatCurrency(
+                                breakdown.roofingSheets.totalPrice || 0,
+                              )}
                             </p>
                           </div>
-                          <div className="pt-2 border-t">
-                            <span className="">With Wastage:</span>
-                            <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                              {
-                                breakdown.roofingSheets
-                                  .quantityWithWastagePercent
-                              }{" "}
-                              pcs
+                          <div className="border-t border-border pt-2">
+                            <span className="font-medium">
+                              Total (with Wastage):
+                            </span>
+                            <p className="text-primary font-bold text-lg">
+                              {formatCurrency(
+                                breakdown.roofingSheets.totalPriceWithWastage ||
+                                  0,
+                              )}
                             </p>
                           </div>
                         </div>
                       </div>
-                      {breakdown.roofingSheets.unitPrice !== undefined && (
-                        <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
-                          <Label className="text-base  block mb-3">
-                            Pricing
-                          </Label>
-                          <div className="space-y-3 text-sm">
-                            <div>
-                              <span className="font-medium">
-                                Price per Sheet:
-                              </span>
-                              <p className="text-primary dark:text-primary  text-lg">
-                                {formatCurrency(
-                                  breakdown.roofingSheets.unitPrice,
-                                )}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="font-medium">
-                                Total (Base Quantity):
-                              </span>
-                              <p className="text-green-600 dark:text-green-400  text-lg">
-                                {formatCurrency(
-                                  breakdown.roofingSheets.totalPrice || 0,
-                                )}
-                              </p>
-                            </div>
-                            <div className="border-t pt-3">
-                              <span className="\">Total (with Wastage):</span>
-                              <p className="text-orange-600 dark:text-orange-400 font-bold text-xl">
-                                {formatCurrency(
-                                  breakdown.roofingSheets
-                                    .totalPriceWithWastage || 0,
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
 
-                  {/* Roofing Sheets Pricing Summary */}
+                  {/* Roofing Sheets Cost Summary */}
                   {breakdown.roofingSheets.totalPrice !== undefined && (
-                    <div className="mt-8 pt-8 border-t">
-                      <Label className="text-lg  mb-4 block">
+                    <div className="mt-8 pt-8 border-t border-border">
+                      <h4 className="text-sm font-medium mb-4">
                         Roofing Sheets Cost Summary
-                      </Label>
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-4 bg-primary/10 dark:bg-primary/20 rounded-lg border border-primary/20 dark:border-primary/30">
-                          <h4 className=" text-sm mb-3">Base Cost</h4>
+                        <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                          <h5 className="text-xs font-medium text-muted-foreground mb-3">
+                            Base Cost
+                          </h5>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Quantity:</span>
@@ -1598,10 +1003,10 @@ export default function RoofingCalculatorUI({
                                 )}
                               </span>
                             </div>
-                            <div className="border-t pt-2 mt-2">
-                              <div className="flex justify-between  text-primary dark:text-primary">
+                            <div className="border-t border-border pt-2 mt-2">
+                              <div className="flex justify-between font-medium">
                                 <span>Subtotal:</span>
-                                <span>
+                                <span className="text-primary">
                                   {formatCurrency(
                                     breakdown.roofingSheets.totalPrice || 0,
                                   )}
@@ -1611,11 +1016,11 @@ export default function RoofingCalculatorUI({
                           </div>
                         </div>
 
-                        <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
-                          <h4 className=" text-sm mb-3">
+                        <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                          <h5 className="text-xs font-medium text-muted-foreground mb-3">
                             With Wastage (
                             {breakdown.roofingSheets.wastageAllowancePercent}%)
-                          </h4>
+                          </h5>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Quantity:</span>
@@ -1635,10 +1040,10 @@ export default function RoofingCalculatorUI({
                                 )}
                               </span>
                             </div>
-                            <div className="border-t pt-2 mt-2">
-                              <div className="flex justify-between font-bold text-orange-600 dark:text-orange-400 text-lg">
+                            <div className="border-t border-border pt-2 mt-2">
+                              <div className="flex justify-between font-bold">
                                 <span>Total:</span>
-                                <span className="">
+                                <span className="text-primary">
                                   {formatCurrency(
                                     breakdown.roofingSheets
                                       .totalPriceWithWastage || 0,
@@ -1657,7 +1062,7 @@ export default function RoofingCalculatorUI({
 
             {/* Summary Tab */}
             <TabsContent value="summary">
-              <Card>
+              <Card className="border-border">
                 <CardHeader>
                   <CardTitle>Complete Material Summary</CardTitle>
                 </CardHeader>
@@ -1666,27 +1071,27 @@ export default function RoofingCalculatorUI({
                     {/* Total Costs Summary */}
                     {breakdown.totalCost !== undefined && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                          <Label className="text-sm font-medium text-green-700 dark:text-green-300">
+                        <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                          <p className="text-sm font-medium text-muted-foreground">
                             Total Cost (Base)
-                          </Label>
-                          <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">
+                          </p>
+                          <p className="text-3xl font-bold text-primary mt-2">
                             {formatCurrency(breakdown.totalCost)}
                           </p>
-                          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             Without wastage factor
                           </p>
                         </div>
-                        <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
-                          <Label className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                        <div className="p-4 bg-muted/30 rounded-lg border border-border">
+                          <p className="text-sm font-medium text-muted-foreground">
                             Total Cost (with Wastage)
-                          </Label>
-                          <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-2">
+                          </p>
+                          <p className="text-3xl font-bold text-primary mt-2">
                             {formatCurrency(
                               breakdown.totalCostWithWastage || 0,
                             )}
                           </p>
-                          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             Including material wastage
                           </p>
                         </div>
@@ -1695,10 +1100,10 @@ export default function RoofingCalculatorUI({
 
                     {/* Key Inputs Summary */}
                     <div>
-                      <Label className="text-base  mb-3 block">
+                      <h4 className="text-sm font-medium mb-3">
                         Building Inputs Used
-                      </Label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg text-sm">
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg text-sm">
                         <div>
                           <span className="font-medium">Footprint:</span>
                           <p>{formatArea(inputs.footprintAreaM2)}</p>
@@ -1712,12 +1117,12 @@ export default function RoofingCalculatorUI({
 
                     {/* Complete Material List */}
                     <div>
-                      <Label className="text-base  mb-3 block">
+                      <h4 className="text-sm font-medium mb-3">
                         All Materials Required
-                      </Label>
-                      <div className="border rounded-lg overflow-hidden">
+                      </h4>
+                      <div className="border rounded-md overflow-hidden">
                         <Table>
-                          <TableHeader>
+                          <TableHeader className="bg-muted/30">
                             <TableRow>
                               <TableHead>Material</TableHead>
                               <TableHead>Size</TableHead>
@@ -1749,7 +1154,7 @@ export default function RoofingCalculatorUI({
                                 {formatNumber(
                                   breakdown.wallPlates.wasteageAllowanceM,
                                   2,
-                                )}
+                                )}{" "}
                                 m
                               </TableCell>
                             </TableRow>
@@ -1771,7 +1176,7 @@ export default function RoofingCalculatorUI({
                                 {formatNumber(
                                   breakdown.tieBeams.wasteageAllowanceM,
                                   2,
-                                )}
+                                )}{" "}
                                 m
                               </TableCell>
                             </TableRow>
@@ -1794,7 +1199,7 @@ export default function RoofingCalculatorUI({
                                   {formatNumber(
                                     breakdown.kingPosts.wasteageAllowanceM,
                                     2,
-                                  )}
+                                  )}{" "}
                                   m
                                 </TableCell>
                               </TableRow>
@@ -1815,7 +1220,7 @@ export default function RoofingCalculatorUI({
                                 {formatNumber(
                                   breakdown.rafters.wasteageAllowanceM,
                                   2,
-                                )}
+                                )}{" "}
                                 m
                               </TableCell>
                             </TableRow>
@@ -1835,7 +1240,7 @@ export default function RoofingCalculatorUI({
                                 {formatNumber(
                                   breakdown.purlins.wasteageAllowanceM,
                                   2,
-                                )}
+                                )}{" "}
                                 m
                               </TableCell>
                             </TableRow>
@@ -1852,12 +1257,14 @@ export default function RoofingCalculatorUI({
                                 {formatNumber(
                                   breakdown.struts.wasteageAllowanceM,
                                   2,
-                                )}
+                                )}{" "}
                                 m
                               </TableCell>
                             </TableRow>
-                            <TableRow className="bg-primary/10 dark:bg-primary/20 ">
-                              <TableCell>Roofing Sheets</TableCell>
+                            <TableRow className="bg-muted/10">
+                              <TableCell className="font-medium">
+                                Roofing Sheets
+                              </TableCell>
                               <TableCell>-</TableCell>
                               <TableCell className="text-right">
                                 {
@@ -1882,13 +1289,11 @@ export default function RoofingCalculatorUI({
                     </div>
 
                     {/* Miscellaneous Allowance Note */}
-                    <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800 flex gap-3">
-                      <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <div className="p-4 bg-muted/30 rounded-lg border border-border flex gap-3">
+                      <AlertCircle className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                       <div className="text-sm">
-                        <p className="font-medium text-yellow-900 dark:text-yellow-100">
-                          Miscellaneous Allowance
-                        </p>
-                        <p className="text-yellow-800 dark:text-yellow-200">
+                        <p className="font-medium">Miscellaneous Allowance</p>
+                        <p className="text-muted-foreground">
                           An additional{" "}
                           {breakdown.miscellaneousAllowancePercent}% allowance
                           has been applied to all material quantities.
@@ -1901,6 +1306,97 @@ export default function RoofingCalculatorUI({
             </TabsContent>
           </Tabs>
         </>
+      )}
+    </div>
+  );
+}
+
+// Helper component for collapsible timber sections
+function TimberSection({
+  title,
+  size,
+  data,
+  unitLabel,
+  formatValue,
+  expanded,
+  onToggle,
+  formatCurrency,
+}: {
+  title: string;
+  size: string;
+  data: any;
+  unitLabel: string;
+  formatValue: (value: number) => string;
+  expanded: boolean;
+  onToggle: () => void;
+  formatCurrency: (amount: number) => string;
+}) {
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {expanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+          <div className="text-left">
+            <h4 className="font-medium">{title}</h4>
+            <p className="text-sm text-muted-foreground">{size} mm</p>
+          </div>
+        </div>
+        <Badge variant="secondary">
+          {formatValue(data.totalLengthWithWastageM)}
+        </Badge>
+      </button>
+      {expanded && (
+        <div className="p-4 border-t space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="font-medium">Base Length:</span>
+              <p>{formatValue(data.totalLengthM)}</p>
+            </div>
+            <div>
+              <span className="font-medium">With Wastage:</span>
+              <p>{formatValue(data.totalLengthWithWastageM)}</p>
+            </div>
+            <div>
+              <span className="font-medium">Wastage:</span>
+              <p>{formatValue(data.wasteageAllowanceM)}</p>
+            </div>
+            <div>
+              <span className="font-medium">Unit:</span>
+              <p>{data.unitLm}</p>
+            </div>
+          </div>
+          {data.unitPrice !== undefined && (
+            <div className="border-t pt-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="font-medium">Price per Unit:</span>
+                  <p className="text-primary">
+                    {formatCurrency(data.unitPrice)}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-medium">Total (Base):</span>
+                  <p className="text-primary">
+                    {formatCurrency(data.totalPrice || 0)}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-medium">Total (with Wastage):</span>
+                  <p className="text-primary font-bold">
+                    {formatCurrency(data.totalPriceWithWastage || 0)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

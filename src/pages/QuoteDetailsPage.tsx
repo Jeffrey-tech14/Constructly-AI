@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { quotePaymentService } from "@/services/quotePaymentService";
 import {
-  Loader2,
+  LoaderPinwheel,
   ArrowLeft,
   Lock,
   CheckCircle,
@@ -170,7 +170,7 @@ const QuoteDetailsPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin rounded-full h-8 w-8" />
+        <LoaderPinwheel className="animate-spin rounded-full h-8 w-8" />
       </div>
     );
   }
@@ -547,14 +547,14 @@ const QuoteDetailsPage = () => {
                     state: {
                       quoteId: quote.id,
                       quoteTitle: quote.title,
-                      amount: 1000,
+                      amount: 200,
                     },
                   })
                 }
                 className="text-white bg-gradient-to-r from-[#D85C2C] to-[#C94820] hover:from-[#C94820] hover:to-[#B83B1A]"
               >
                 <CreditCard className="w-4 h-4 mr-2" />
-                Pay 1000 KSH
+                Pay 200 KSH
               </Button>
             )}
 

@@ -40,6 +40,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
     updateQuantity,
     updateUnit,
     updateRate,
+    updateEquipmentQuantity,
     updateName,
     getEquipmentItem,
     isEquipmentSelected,
@@ -164,6 +165,30 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                                 )
                               }
                             />
+                          </div>
+                          <div>
+                            <Label
+                              htmlFor={`equipment-qty-${equipmentItem.id}`}
+                              className="text-foreground"
+                            >
+                              Equipment Count
+                            </Label>
+                            <Input
+                              id={`equipment-qty-${equipmentItem.id}`}
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={selectedEquipment.equipment_quantity || 1}
+                              onChange={(e) =>
+                                updateEquipmentQuantity(
+                                  equipmentItem.id,
+                                  parseFloat(e.target.value) || 1,
+                                )
+                              }
+                            />
+                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                              How many of this equipment are needed
+                            </p>
                           </div>
                           <div>
                             <Label
@@ -319,6 +344,30 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           </div>
                           <div>
                             <Label
+                              htmlFor={`equipment-qty-${customEq.id}`}
+                              className="text-foreground"
+                            >
+                              Equipment Count
+                            </Label>
+                            <Input
+                              id={`equipment-qty-${customEq.id}`}
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={selectedEquipment.equipment_quantity || 1}
+                              onChange={(e) =>
+                                updateEquipmentQuantity(
+                                  customEq.id,
+                                  parseFloat(e.target.value) || 1,
+                                )
+                              }
+                            />
+                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                              How many of this equipment are needed
+                            </p>
+                          </div>
+                          <div>
+                            <Label
                               htmlFor={`total-${customEq.id}`}
                               className="text-foreground"
                             >
@@ -369,7 +418,9 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
             )
             .map((eq: any) => {
               const totalCost =
-                (eq.usage_quantity || 0) * (eq.rate_per_unit || 0);
+                (eq.usage_quantity || 0) *
+                (eq.rate_per_unit || 0) *
+                (eq.equipment_quantity || 1);
               return (
                 <Card
                   key={eq.equipment_type_id}
@@ -476,6 +527,30 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                     </div>
                     <div>
                       <Label
+                        htmlFor={`custom-equipment-qty-${eq.equipment_type_id}`}
+                        className="text-foreground"
+                      >
+                        Equipment Count
+                      </Label>
+                      <Input
+                        id={`custom-equipment-qty-${eq.equipment_type_id}`}
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={eq.equipment_quantity || 1}
+                        onChange={(e) =>
+                          updateEquipmentQuantity(
+                            eq.equipment_type_id,
+                            parseFloat(e.target.value) || 1,
+                          )
+                        }
+                      />
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                        How many of this equipment are needed
+                      </p>
+                    </div>
+                    <div>
+                      <Label
                         htmlFor={`custom-total-${eq.equipment_type_id}`}
                         className="text-foreground"
                       >
@@ -497,7 +572,8 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
-                        /{eq.usage_unit || "unit"}
+                        /{eq.usage_unit || "unit"} ×{" "}
+                        {eq.equipment_quantity || 1} equipment
                       </p>
                     </div>
                   </div>
@@ -520,6 +596,7 @@ export const EquipmentSelector: React.FC<EquipmentSelectorProps> = ({
                       usage_quantity: 1,
                       usage_unit: "day",
                       rate_per_unit: 0,
+                      equipment_quantity: 1,
                       total_cost: 0,
                     },
                   ],

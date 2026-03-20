@@ -30,7 +30,7 @@ import {
   Camera,
   Check,
   CheckCircle,
-  Loader2,
+  LoaderPinwheel,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
@@ -62,7 +62,7 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="animate-spin rounded-full h-8 w-8" />
+          <LoaderPinwheel className="animate-spin rounded-full h-8 w-8" />
           <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
             Loading Profile...
           </h2>

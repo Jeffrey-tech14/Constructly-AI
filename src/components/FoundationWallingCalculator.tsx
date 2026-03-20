@@ -59,12 +59,14 @@ const getBlockThicknessFromType = (blockType: string): number => {
 interface Props {
   quote: any;
   onUpdate: (walls: FoundationWallingRow[]) => void;
+  onFoundationWallingUpdate?: (data: any) => void;
   materials?: any[];
 }
 
 export default function FoundationWallingCalculator({
   quote,
   onUpdate,
+  onFoundationWallingUpdate,
   materials = [],
 }: Props) {
   const {
@@ -80,13 +82,11 @@ export default function FoundationWallingCalculator({
   // --------------------------------------------------------------------
   // Derived data
   // --------------------------------------------------------------------
-  const externalPerimeter = useMemo(
-    () => parseFloat(quote?.wallDimensions?.externalWallPerimiter || "0"),
-    [quote?.wallDimensions?.externalWallPerimiter],
+  const externalPerimeter = parseFloat(
+    quote?.wallDimensions?.externalWallPerimiter || "0",
   );
-  const internalPerimeter = useMemo(
-    () => parseFloat(quote?.wallDimensions?.internalWallPerimiter || "0"),
-    [quote?.wallDimensions?.internalWallPerimiter],
+  const internalPerimeter = parseFloat(
+    quote?.wallDimensions?.internalWallPerimiter || "0",
   );
 
   const blockMaterial = materials?.find(
@@ -99,12 +99,9 @@ export default function FoundationWallingCalculator({
   );
   const blockPricePerFoot = standardNaturalBlockType?.price_kes || 0;
 
-  const totals = useMemo(
-    () => getTotalQuantities(blockPricePerFoot),
-    [getTotalQuantities, walls, blockPricePerFoot],
-  );
+  const totals = getTotalQuantities(blockPricePerFoot);
 
-  const returnFillCalculations = useMemo(() => {
+  const returnFillCalculations = (() => {
     const externalBlockType =
       quote?.wallSections?.find((s: any) => s.type === "external")?.blockType ||
       "Standard Block";
@@ -132,9 +129,7 @@ export default function FoundationWallingCalculator({
       quote?.concrete_rows?.find((c: any) => c.element === "blinding")
         ?.height || "0.1",
     );
-    const excavationDepth = quote?.earthwork?.find(
-      (e: any) => e.type === "foundation-excavation",
-    )?.depth;
+    const excavationDepth = quote?.foundationDetails[0]?.height;
 
     if (
       (externalPerimeter <= 0 && internalPerimeter <= 0) ||
@@ -146,7 +141,6 @@ export default function FoundationWallingCalculator({
     ) {
       return { volume: 0, height: 0, externalVolume: 0, internalVolume: 0 };
     }
-
     const externalReturn = calculateReturnFillQuantities(
       externalPerimeter,
       externalThickness,
@@ -165,19 +159,12 @@ export default function FoundationWallingCalculator({
     );
 
     return {
-      volume: externalReturn.volume + internalReturn.volume,
-      height: externalReturn.height,
+      internalHeight: internalReturn.height,
+      externalHeight: externalReturn.height,
       externalVolume: externalReturn.volume,
       internalVolume: internalReturn.volume,
     };
-  }, [
-    externalPerimeter,
-    internalPerimeter,
-    quote?.wallSections,
-    quote?.foundationDetails,
-    quote?.earthwork,
-    quote?.concrete_rows,
-  ]);
+  })();
 
   // --------------------------------------------------------------------
   // Effects
@@ -223,8 +210,7 @@ export default function FoundationWallingCalculator({
       excavationDepth +
       elevation -
       groundFloorSlabThickness -
-      stripFootingHeight +
-      topsoilDepth;
+      stripFootingHeight;
     const foundationWallHeight =
       calculatedHeight > 0 ? calculatedHeight.toFixed(2) : "1.0";
 
@@ -234,21 +220,23 @@ export default function FoundationWallingCalculator({
       // Length (only if not set or zero)
       const perimeter =
         wall.type === "external" ? externalPerimeter : internalPerimeter;
-      if (perimeter > 0) {
-        updates.wallLength = perimeter.toFixed(2).toString();
-      }
+      updates.wallLength = perimeter.toFixed(2).toString();
 
-      // Height (only if not set or zero)
-      if (!wall.wallHeight || parseFloat(wall.wallHeight) === 0) {
-        updates.wallHeight = foundationWallHeight;
-      }
+      updates.wallHeight = foundationWallHeight;
+      updates.returnFillDepth = (
+        wall.type === "external"
+          ? returnFillCalculations.externalHeight
+          : returnFillCalculations.internalHeight
+      ).toString();
 
-      // Backfill fields (only if empty)
-      if (!wall.elevation) updates.elevation = elevation.toString();
-      if (!wall.topsoilDepth) updates.topsoilDepth = topsoilDepth.toString();
-      if (!wall.slabThickness)
+      // Backfill fields (only if empty or zero)
+      if (!wall.elevation || parseFloat(wall.elevation) === 0)
+        updates.elevation = elevation.toString();
+      if (!wall.topsoilDepth || parseFloat(wall.topsoilDepth) === 0)
+        updates.topsoilDepth = topsoilDepth.toString();
+      if (!wall.slabThickness || parseFloat(wall.slabThickness) === 0)
         updates.slabThickness = groundFloorSlabThickness.toString();
-      if (!wall.blindingThickness) {
+      if (!wall.blindingThickness || parseFloat(wall.blindingThickness) === 0) {
         const blindingItem = concreteStructures.find(
           (c: any) => c.element === "blinding",
         );
@@ -259,19 +247,40 @@ export default function FoundationWallingCalculator({
         updateWall(wall.id, updates);
       }
     });
-  }, [
-    externalPerimeter,
-    internalPerimeter,
-    quote?.foundationDetails,
-    quote?.earthwork,
-    quote?.concrete_rows,
-    updateWall,
-  ]);
+  }, [walls, externalPerimeter, internalPerimeter, quote, updateWall]);
 
   // 3. Sync walls with parent
   useEffect(() => {
     onUpdate(walls);
   }, [walls, onUpdate]);
+
+  // 4. Sync foundation walling calculations to quote
+  useEffect(() => {
+    if (!onFoundationWallingUpdate) return;
+
+    // Build detailed wall calculations
+    const wallCalculations = walls.map((wall) => {
+      const calculations = calculateWallQuantities(wall, blockPricePerFoot);
+      return {
+        ...wall,
+        ...calculations,
+      };
+    });
+
+    onFoundationWallingUpdate({
+      walls: wallCalculations,
+      totals,
+      returnFillCalculations,
+      blockPricePerFoot,
+    });
+  }, [
+    walls,
+    totals,
+    returnFillCalculations,
+    blockPricePerFoot,
+    onFoundationWallingUpdate,
+    calculateWallQuantities,
+  ]);
 
   // --------------------------------------------------------------------
   // Render
@@ -347,7 +356,8 @@ export default function FoundationWallingCalculator({
                               type="number"
                               min="0"
                               step="0.1"
-                              value={wall.wallLength}
+                              key={wall.wallLength} // Force re-render when length changes
+                              value={wall.wallLength ?? ""}
                               onChange={(e) =>
                                 updateWall(wall.id, {
                                   wallLength: e.target.value,
@@ -363,10 +373,11 @@ export default function FoundationWallingCalculator({
                             </Label>
                             <Input
                               id={`${wall.id}-height`}
+                              key={wall.wallHeight}
                               type="number"
                               min="0"
                               step="0.1"
-                              value={wall.wallHeight}
+                              value={wall.wallHeight ?? ""}
                               onChange={(e) =>
                                 updateWall(wall.id, {
                                   wallHeight: e.target.value,
@@ -440,7 +451,8 @@ export default function FoundationWallingCalculator({
                                 id={`${wall.id}-elevation`}
                                 type="number"
                                 step="0.05"
-                                value={wall.elevation}
+                                value={wall.elevation ?? ""}
+                                key={wall.elevation}
                                 onChange={(e) =>
                                   updateWall(wall.id, {
                                     elevation: e.target.value,
@@ -460,7 +472,8 @@ export default function FoundationWallingCalculator({
                                 id={`${wall.id}-topsoil`}
                                 type="number"
                                 step="0.05"
-                                value={wall.topsoilDepth}
+                                value={wall.topsoilDepth ?? ""}
+                                key={wall.topsoilDepth}
                                 onChange={(e) =>
                                   updateWall(wall.id, {
                                     topsoilDepth: e.target.value,
@@ -481,7 +494,8 @@ export default function FoundationWallingCalculator({
                                 id={`${wall.id}-slab`}
                                 type="number"
                                 step="0.05"
-                                value={wall.slabThickness}
+                                value={wall.slabThickness ?? ""}
+                                key={wall.slabThickness}
                                 onChange={(e) =>
                                   updateWall(wall.id, {
                                     slabThickness: e.target.value,
@@ -504,7 +518,8 @@ export default function FoundationWallingCalculator({
                                 id={`${wall.id}-blinding`}
                                 type="number"
                                 step="0.05"
-                                value={wall.blindingThickness}
+                                value={wall.blindingThickness ?? ""}
+                                key={wall.blindingThickness}
                                 onChange={(e) =>
                                   updateWall(wall.id, {
                                     blindingThickness: e.target.value,
@@ -519,7 +534,7 @@ export default function FoundationWallingCalculator({
                             </div>
                             <div>
                               <Label htmlFor={`${wall.id}-fillDepth`}>
-                                Return Fill Depth (m)
+                                Return Fill Depth (combined) (m)
                               </Label>
                               <Input
                                 id={`${wall.id}-fillDepth`}
@@ -527,7 +542,8 @@ export default function FoundationWallingCalculator({
                                 step="0.05"
                                 min="0.05"
                                 max="1"
-                                value={wall.returnFillDepth || ""}
+                                value={wall.returnFillDepth ?? ""}
+                                key={wall.returnFillDepth}
                                 readOnly
                                 className="bg-gray-100 dark:bg-gray-600"
                                 placeholder="Auto-calculated"
@@ -721,15 +737,7 @@ export default function FoundationWallingCalculator({
           {returnFillCalculations.volume > 0 && (
             <>
               <h3 className="mt-4">Return Fill Summary</h3>
-              <div className="grid mt-2 grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Return Fill Height
-                  </p>
-                  <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
-                    {returnFillCalculations.height.toFixed(2)} m
-                  </p>
-                </div>
+              <div className="grid mt-2 grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     External Wall Perimeter
@@ -757,10 +765,10 @@ export default function FoundationWallingCalculator({
               </div>
               <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="bg-primary/10 dark:bg-primary/30 p-3 rounded border border-primary/20">
-                  <p className="text-xs text-primary dark:text-primary">
+                  <p className="text-xs text-primary dark:text-white">
                     External Wall Return Fill
                   </p>
-                  <p className="text-lg font-bold text-primary dark:text-primary">
+                  <p className="text-lg font-bold text-primary dark:text-white">
                     {returnFillCalculations.externalVolume.toFixed(2)} m³
                   </p>
                 </div>

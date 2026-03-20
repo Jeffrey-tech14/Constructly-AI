@@ -434,7 +434,32 @@ export default function RebarCalculatorForm({
     value: RebarRow[K],
   ) => {
     setRowsState((prev) => {
-      const next = prev.map((r) => (r.id === id ? { ...r, [key]: value } : r));
+      const next = prev.map((r) => {
+        if (r.id === id) {
+          const updated = { ...r, [key]: value };
+
+          // Calculate estimated steel when concrete volume or steel intensity changes
+          if (key === "concreteVolumeM3" || key === "steelIntensityKgPerM3") {
+            const concreteVolume =
+              key === "concreteVolumeM3"
+                ? parseFloat(value as any) || 0
+                : parseFloat(updated.concreteVolumeM3?.toString() || "0");
+            const steelIntensity =
+              key === "steelIntensityKgPerM3"
+                ? parseFloat(value as any) || 0
+                : parseFloat(updated.steelIntensityKgPerM3 || "0");
+
+            // Apply wastage percentage from QS settings
+            const wastageMultiplier = 1 + qsSettings.wastagePercent / 100;
+            updated.estimatedSteelKg = parseFloat(
+              (concreteVolume * steelIntensity * wastageMultiplier).toFixed(1),
+            );
+          }
+
+          return updated;
+        }
+        return r;
+      });
       pushRowsDebounced(next);
       return next;
     });
@@ -697,6 +722,31 @@ export default function RebarCalculatorForm({
       return newRows;
     });
   }, [rowsState.map((r) => r.element).join(","), pushRowsDebounced]);
+
+  /**
+   * Recalculate estimated steel when wastage percentage changes
+   */
+  useEffect(() => {
+    setRowsState((prevRows) => {
+      const newRows = prevRows.map((row) => {
+        if (row.concreteVolumeM3 && row.steelIntensityKgPerM3) {
+          const concreteVolume =
+            parseFloat(row.concreteVolumeM3.toString()) || 0;
+          const steelIntensity = parseFloat(row.steelIntensityKgPerM3 || "0");
+          const wastageMultiplier = 1 + qsSettings.wastagePercent / 100;
+          return {
+            ...row,
+            estimatedSteelKg: parseFloat(
+              (concreteVolume * steelIntensity * wastageMultiplier).toFixed(1),
+            ),
+          };
+        }
+        return row;
+      });
+      pushRowsDebounced(newRows);
+      return newRows;
+    });
+  }, [qsSettings.wastagePercent, pushRowsDebounced]);
 
   useEffect(() => {
     const rebarItems = results.flatMap((r) => {
@@ -1623,6 +1673,7 @@ export default function RebarCalculatorForm({
                         type="number"
                         min="0.1"
                         step="0.1"
+                        key={row.concreteVolumeM3}
                         value={row.concreteVolumeM3 || ""}
                         onChange={(e) =>
                           updateRow(
@@ -1690,13 +1741,7 @@ export default function RebarCalculatorForm({
                       </Label>
                       <div className="border rounded px-3 py-2 bg-white dark:bg-slate-950">
                         <p className="text-sm ">
-                          {row.concreteVolumeM3 && row.steelIntensityKgPerM3
-                            ? (
-                                parseFloat(row.concreteVolumeM3.toString()) *
-                                parseFloat(row.steelIntensityKgPerM3)
-                              ).toFixed(1)
-                            : "0.0"}
-                          {" kg"}
+                          {row.estimatedSteelKg || "0.0"} kg
                         </p>
                         <p className="text-xs text-gray-500">Auto-calculated</p>
                       </div>

@@ -33,6 +33,7 @@ import {
   RefreshCw,
   Brain,
   AlertCircle,
+  LoaderPinwheel,
 } from "lucide-react";
 import { BOQItem, BOQSection } from "@/types/boq";
 import { generateBOQWithAI } from "@/utils/boqAIService";
@@ -51,7 +52,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
   } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationMethod, setGenerationMethod] = useState<
-    "existing" | "ai" | "local" | "mock" | "none"
+    "existing" | "jtech" | "local" | "mock" | "none"
   >("none");
   const [lastError, setLastError] = useState<string | null>(null);
 
@@ -67,6 +68,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
     if (data.boq_data && Array.isArray(data.boq_data)) return data.boq_data;
     return [];
   };
+  console.log(quoteData);
 
   // Initialize BOQ from existing quoteData only - don't auto-generate
   useEffect(() => {
@@ -105,7 +107,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
       if (newBOQ && newBOQ.length > 0) {
         setBoqSections(newBOQ);
         onBOQUpdate(newBOQ);
-        setGenerationMethod("ai");
+        setGenerationMethod("jtech");
         setLastError(null);
       } else {
         throw new Error("No BOQ data generated");
@@ -245,7 +247,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
   if (isGenerating) {
     return (
       <div className="flex flex-col justify-center items-center p-8 space-y-4">
-        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        <LoaderPinwheel className="w-8 h-8 animate-spin text-primary" />
         <div className="text-center">
           <div className="">Generating BOQ</div>
         </div>
@@ -292,7 +294,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
             disabled={isGenerating}
           >
             {isGenerating ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              <LoaderPinwheel className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Brain className="w-4 h-4 mr-2" />
             )}
@@ -310,7 +312,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
             className={`px-2 py-1 rounded-full text-sm ${
               generationMethod === "existing"
                 ? "bg-green-100 text-green-800"
-                : generationMethod === "ai"
+                : generationMethod === "jtech"
                   ? "bg-green-100 text-green-800"
                   : generationMethod === "local"
                     ? "bg-primary/10 text-primary"
@@ -319,7 +321,7 @@ const BOQBuilder = ({ quoteData, onBOQUpdate }: BOQBuilderProps) => {
                       : "bg-gray-100 text-gray-800"
             }`}
           >
-            {generationMethod === "ai" || generationMethod === "existing" ? (
+            {generationMethod === "jtech" || generationMethod === "existing" ? (
               <Brain className="w-3 h-3 inline mr-1" />
             ) : null}
             {generationMethod.toUpperCase()}

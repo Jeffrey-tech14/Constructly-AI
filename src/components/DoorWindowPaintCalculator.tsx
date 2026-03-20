@@ -15,11 +15,16 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  PAINT_SUBTYPES_BY_CATEGORY,
+  PaintCategory,
+  PaintSubtype,
+} from "@/types/painting";
 
 interface DoorWindowPaint {
   id: string;
-  surfaceType: "wood" | "steel"; // Wood or Steel
-  paintType: "gloss" | "matt"; // Gloss or Matt
+  category: PaintCategory; // emulsion, enamel, wood-finish, metal-finish
+  subtype: PaintSubtype; // vinyl-matt, vinyl-silk, antibacterial, eggshell, gloss, etc.
   area: number; // m²
   coverage: number; // m²/litre (default 11)
   unitPrice: number; // Price per litre
@@ -37,24 +42,24 @@ interface Props {
 const PAINT_COVERAGE_RATE = 11; // m² per litre
 
 // Get paint type label
-const getPaintTypeLabel = (
-  surface: "wood" | "steel",
-  type: "gloss" | "matt",
-) => {
-  const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-  if (surface === "wood") {
-    return `Wood - ${typeLabel}`;
-  } else {
-    return `Steel - ${typeLabel}`;
-  }
+const getPaintTypeLabel = (category: PaintCategory, subtype: PaintSubtype) => {
+  const categoryOptions = PAINT_SUBTYPES_BY_CATEGORY[category];
+  if (!categoryOptions) return `${category} - ${subtype}`;
+
+  const subtypeOption = categoryOptions.find((s) => s.value === subtype);
+  return subtypeOption ? subtypeOption.label : `${category} - ${subtype}`;
 };
 
-// Extract paint prices for enamel (used for wood/steel)
-const extractDoorWindowPaintPrices = (
+/**
+ * Extract individual paint prices from material data
+ * Follows same pattern as extractPaintingPrices but for individual subtypes
+ */
+const extractPaintPrices = (
   materialPrices: any[],
-): { gloss?: number; matt?: number } => {
-  const prices: any = {};
+): Record<string, Record<string, number>> => {
+  const prices: Record<string, Record<string, number>> = {};
 
+  // Find paint category
   const paintCategory = materialPrices.find(
     (p: any) => p.name.toLowerCase() === "paint",
   );
@@ -63,24 +68,57 @@ const extractDoorWindowPaintPrices = (
     return prices;
   }
 
-  // Look for enamel-based paints (gloss/semi-gloss for wood and steel)
-  Object.entries(paintCategory.type.materials).forEach(([name, price]) => {
+  // Extract individual material prices for all paint subtypes
+  Object.entries(paintCategory.type.materials).forEach(([name, priceValue]) => {
     const lower = name.toLowerCase();
-    // Match gloss and high-sheen options
-    if (
-      lower.includes("gloss") ||
-      lower.includes("high sheen") ||
-      lower.includes("semi-gloss")
-    ) {
-      prices.gloss = price;
+    const price = Number(priceValue) || 0;
+
+    // Emulsion paints (water-based)
+    if (lower.includes("vinyl matt")) {
+      if (!prices.emulsion) prices.emulsion = {} as Record<string, number>;
+      prices.emulsion["vinyl-matt"] = price;
+    } else if (lower.includes("vinyl silk")) {
+      if (!prices.emulsion) prices.emulsion = {} as Record<string, number>;
+      prices.emulsion["vinyl-silk"] = price;
+    } else if (lower.includes("antibacterial")) {
+      if (!prices.emulsion) prices.emulsion = {} as Record<string, number>;
+      prices.emulsion["antibacterial"] = price;
     }
-    // Match matt options
-    if (lower.includes("matt") || lower.includes("matte")) {
-      prices.matt = price;
+
+    // Enamel paints (oil-based)
+    else if (lower.includes("eggshell")) {
+      if (!prices.enamel) prices.enamel = {} as Record<string, number>;
+      prices.enamel["eggshell"] = price;
+    } else if (lower.includes("gloss") && !lower.includes("semi")) {
+      if (!prices.enamel) prices.enamel = {} as Record<string, number>;
+      prices.enamel["gloss"] = price;
+    }
+    // Wood finishes
+    else if (lower.includes("wood satin")) {
+      if (!prices["wood-finish"])
+        prices["wood-finish"] = {} as Record<string, number>;
+      prices["wood-finish"]["satin"] = price;
+    }
+    // Metal finishes
+    else if (lower.includes("metal semi-gloss")) {
+      if (!prices["metal-finish"])
+        prices["metal-finish"] = {} as Record<string, number>;
+      prices["metal-finish"]["semi-gloss"] = price;
     }
   });
 
   return prices;
+};
+
+/**
+ * Get price for a specific paint
+ */
+const getPaintPrice = (
+  category: PaintCategory,
+  subtype: PaintSubtype,
+  prices: Record<string, Record<string, number>>,
+): number => {
+  return prices[category]?.[subtype] || 0;
 };
 
 export default function DoorWindowPaintCalculator({
@@ -93,11 +131,7 @@ export default function DoorWindowPaintCalculator({
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Extract paint prices from material data
-  const paintPrices = extractDoorWindowPaintPrices(materialPrices);
-
-  // Default prices if not found
-  const glossPrice = paintPrices.gloss || 0;
-  const mattPrice = paintPrices.matt || 0;
+  const paintPrices = extractPaintPrices(materialPrices);
 
   // Calculate liters needed and total cost
   const calculatePaint = (paint: DoorWindowPaint): DoorWindowPaint => {
@@ -114,13 +148,17 @@ export default function DoorWindowPaintCalculator({
 
   // Add new paint item
   const addPaint = () => {
+    const defaultCategory: PaintCategory = "enamel";
+    const defaultSubtype: PaintSubtype = "eggshell";
+    const price = getPaintPrice(defaultCategory, defaultSubtype, paintPrices);
+
     const newPaint: DoorWindowPaint = {
       id: `paint-${Date.now()}`,
-      surfaceType: "wood",
-      paintType: "gloss",
+      category: defaultCategory,
+      subtype: defaultSubtype,
       area: 0,
       coverage: PAINT_COVERAGE_RATE,
-      unitPrice: glossPrice,
+      unitPrice: price,
       totalCost: 0,
     };
 
@@ -136,19 +174,12 @@ export default function DoorWindowPaintCalculator({
       if (p.id === id) {
         let newPaint: DoorWindowPaint = { ...p, [field]: value };
 
-        // If surface or paint type changed, update unit price
-        if (field === "surfaceType" || field === "paintType") {
-          if (
-            value === "gloss" ||
-            (field === "paintType" && value === "gloss")
-          ) {
-            newPaint.unitPrice = glossPrice;
-          } else if (
-            value === "matt" ||
-            (field === "paintType" && value === "matt")
-          ) {
-            newPaint.unitPrice = mattPrice;
-          }
+        // If category or subtype changed, update unit price
+        if (field === "category" || field === "subtype") {
+          const category = field === "category" ? value : p.category;
+          const subtype = field === "subtype" ? value : p.subtype;
+          const price = getPaintPrice(category, subtype, paintPrices);
+          newPaint.unitPrice = price;
         }
 
         // Recalculate totals
@@ -221,7 +252,7 @@ export default function DoorWindowPaintCalculator({
                     <div className="flex items-start justify-between mb-4">
                       <h4 className="font-medium text-foreground">
                         Item #{index + 1}:{" "}
-                        {getPaintTypeLabel(paint.surfaceType, paint.paintType)}
+                        {getPaintTypeLabel(paint.category, paint.subtype)}
                       </h4>
                       {!readonly && (
                         <Button
@@ -236,41 +267,61 @@ export default function DoorWindowPaintCalculator({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor={`surface-${paint.id}`}>
-                          Surface Type
+                        <Label htmlFor={`category-${paint.id}`}>
+                          Paint Category
                         </Label>
                         <Select
-                          value={paint.surfaceType}
+                          value={paint.category}
                           onValueChange={(value: any) =>
-                            updatePaint(paint.id, "surfaceType", value)
+                            updatePaint(paint.id, "category", value)
                           }
                           disabled={readonly}
                         >
-                          <SelectTrigger id={`surface-${paint.id}`}>
+                          <SelectTrigger id={`category-${paint.id}`}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="wood">Wood</SelectItem>
-                            <SelectItem value="steel">Steel</SelectItem>
+                            <SelectItem value="emulsion">
+                              Emulsion (Water-Based)
+                            </SelectItem>
+                            <SelectItem value="enamel">
+                              Enamel (Oil-Based)
+                            </SelectItem>
+                            <SelectItem value="wood-finish">
+                              Wood Paint
+                            </SelectItem>
+                            <SelectItem value="metal-finish">
+                              Metal Paint
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`type-${paint.id}`}>Paint Type</Label>
+                        <Label htmlFor={`subtype-${paint.id}`}>
+                          Paint Type
+                        </Label>
                         <Select
-                          value={paint.paintType}
+                          value={paint.subtype}
                           onValueChange={(value: any) =>
-                            updatePaint(paint.id, "paintType", value)
+                            updatePaint(paint.id, "subtype", value)
                           }
                           disabled={readonly}
                         >
-                          <SelectTrigger id={`type-${paint.id}`}>
+                          <SelectTrigger id={`subtype-${paint.id}`}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="gloss">Gloss</SelectItem>
-                            <SelectItem value="matt">Matt</SelectItem>
+                            {PAINT_SUBTYPES_BY_CATEGORY[paint.category]?.map(
+                              (option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ),
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
@@ -316,7 +367,7 @@ export default function DoorWindowPaintCalculator({
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-primary to-primary dark:from-primary/30 dark:to-primary/30 p-4 rounded-lg border border-primary/20 dark:border-primary/30">
+                    <div className="p-4 rounded-lg border border-primary/20 dark:border-primary/30">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">

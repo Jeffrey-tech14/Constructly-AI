@@ -28,7 +28,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Edit, Search, Download } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Edit,
+  Search,
+  Download,
+  PaintRoller,
+} from "lucide-react";
 import useExternalFinishesCalculator from "@/hooks/useExternalFinishesCalculator";
 import usePaintingCalculator from "@/hooks/usePaintingCalculator";
 import PaintingLayerConfig from "@/components/PaintingLayerConfig";
@@ -546,258 +553,244 @@ export default function ExternalFinishesCalculator({
       </Card>
 
       {/* Wall Pointing Section - Only in Keying Mode */}
-      {externalFinishType === "keying" ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      {externalFinishType === "keying" && (
+        <Card className="border-border">
+          <CardHeader className="border-b border-border bg-muted/30">
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <PaintRoller className="h-5 w-5 text-primary" />
               Wall Pointing / Keying
             </CardTitle>
             <CardDescription>
-              Configure wall pointing requirements for external walls (5mm
-              thickness)
+              Configure wall pointing requirements for external walls
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pt-4 space-y-4">
             {wallPointingCalculations ? (
-              <div className="space-y-3 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Pointing material requirements (5mm thickness):
-                </p>
-
-                {/* Cement */}
-                <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-card rounded">
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Cement
-                    </p>
-                    <p className="font-medium">
-                      {wallPointingCalculations.cementBags.toFixed(2)} bags
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Unit Price
-                    </p>
-                    <p className="font-medium">
-                      {formatCurrency(wallPointingCalculations.cementPrice)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Cost
-                    </p>
-                    <p className="font-medium text-green-600">
-                      {formatCurrency(wallPointingCalculations.cementCost)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Sand */}
-                <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-card rounded">
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Sand
-                    </p>
-                    <p className="font-medium">
-                      {wallPointingCalculations.sandVolume.toFixed(3)} m³
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Unit Price
-                    </p>
-                    <p className="font-medium">
-                      {formatCurrency(wallPointingCalculations.sandPrice)}/m³
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Cost
-                    </p>
-                    <p className="font-medium text-green-600">
-                      {formatCurrency(wallPointingCalculations.sandCost)}
-                    </p>
-                  </div>
+              <>
+                {/* Calculations Table */}
+                <div className="rounded-md border border-border overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                      <tr className="border-b border-border">
+                        <th className="px-4 py-2 text-left font-medium">
+                          Material
+                        </th>
+                        <th className="px-4 py-2 text-right font-medium">
+                          Quantity
+                        </th>
+                        <th className="px-4 py-2 text-right font-medium">
+                          Unit Price
+                        </th>
+                        <th className="px-4 py-2 text-right font-medium">
+                          Cost
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border">
+                        <td className="px-4 py-2">Cement</td>
+                        <td className="px-4 py-2 text-right">
+                          {wallPointingCalculations.cementBags.toFixed(2)} bags
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          {formatCurrency(wallPointingCalculations.cementPrice)}
+                        </td>
+                        <td className="px-4 py-2 text-right font-medium text-green-600">
+                          {formatCurrency(wallPointingCalculations.cementCost)}
+                        </td>
+                      </tr>
+                      <tr className="border-b border-border">
+                        <td className="px-4 py-2">Sand</td>
+                        <td className="px-4 py-2 text-right">
+                          {wallPointingCalculations.sandVolume.toFixed(3)} m³
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          {formatCurrency(wallPointingCalculations.sandPrice)}
+                          /m³
+                        </td>
+                        <td className="px-4 py-2 text-right font-medium text-green-600">
+                          {formatCurrency(wallPointingCalculations.sandCost)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 {/* Total */}
-                <div className="flex justify-between items-center p-2 bg-card rounded border border-amber-300 dark:border-amber-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Total Wall Pointing Cost
-                  </p>
-                  <p className="text-lg font-bold text-green-600">
+                <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                  <span className="font-medium">Total Wall Pointing Cost</span>
+                  <span className="text-lg font-bold text-green-600">
                     {formatCurrency(wallPointingCalculations.totalCost)}
-                  </p>
+                  </span>
                 </div>
 
                 {!readonly && (
-                  <Button
-                    onClick={() => setWallPointingCalculations(null)}
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove Wall Pointing
-                  </Button>
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => setWallPointingCalculations(null)}
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove Wall Pointing
+                    </Button>
+                  </div>
                 )}
-              </div>
+              </>
             ) : (
               !readonly && (
-                <Button
-                  onClick={() => {
-                    const pointingCalcs = calculatePlasterComponents(
-                      netExternalWallArea,
-                      WALL_POINTING_THICKNESS_MM,
-                      true,
-                    );
-                    setWallPointingCalculations(pointingCalcs);
-                  }}
-                  className="w-full"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Wall Pointing
-                </Button>
+                <div className="flex justify-center py-6">
+                  <Button
+                    onClick={() => {
+                      const pointingCalcs = calculatePlasterComponents(
+                        netExternalWallArea,
+                        WALL_POINTING_THICKNESS_MM,
+                        true,
+                      );
+                      setWallPointingCalculations(pointingCalcs);
+                    }}
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Wall Pointing
+                  </Button>
+                </div>
               )
             )}
           </CardContent>
         </Card>
-      ) : null}
+      )}
 
       {/* External Plaster Section */}
-      {externalFinishType === "plaster" ? (
-        <Card className="">
-          <CardHeader className="">
-            <CardTitle className="flex items-center gap-2">
+      {externalFinishType === "plaster" && (
+        <Card className="border-border">
+          <CardHeader className="border-b border-border bg-muted/30">
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <PaintRoller className="h-5 w-5 text-primary" />
               External Plaster
             </CardTitle>
             <CardDescription>
-              Configure plaster thickness for external walls
+              Configure plaster thickness and view material requirements for
+              external walls
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pt-4 space-y-4">
             {plasterFinish ? (
-              <div className="space-y-4">
+              <>
                 {/* Thickness Input */}
-                <div className="bg-card p-3 rounded-lg">
+                <div className="space-y-2">
                   <Label
                     htmlFor="plaster-thickness"
                     className="text-sm font-medium"
                   >
-                    Plaster Thickness (mm)
+                    Plaster Thickness
                   </Label>
-                  <Input
-                    id="plaster-thickness"
-                    type="number"
-                    min="10"
-                    max="100"
-                    step="1"
-                    value={externalPlasterThickness}
-                    onChange={(e) =>
-                      setExternalPlasterThickness(
-                        parseFloat(e.target.value) || 25,
-                      )
-                    }
-                    className="mt-2"
-                    disabled={readonly}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Range: 10-100mm (default: 25mm)
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="plaster-thickness"
+                      type="number"
+                      min="10"
+                      max="100"
+                      step="1"
+                      value={externalPlasterThickness}
+                      onChange={(e) =>
+                        setExternalPlasterThickness(
+                          parseFloat(e.target.value) || 25,
+                        )
+                      }
+                      className="max-w-[150px]"
+                      disabled={readonly}
+                    />
+                    <span className="text-sm text-muted-foreground">mm</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Range: 10–100mm (default: 25mm)
                   </p>
                 </div>
 
-                {/* Calculations Display */}
-                <div className="grid grid-cols-2 gap-2 text-sm bg-card p-2 rounded">
+                {/* Area & Volume Summary */}
+                <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg">
                   <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Wall Area
+                    <p className="text-xs text-muted-foreground">Wall Area</p>
+                    <p className="text-sm font-medium">
+                      {netExternalWallArea.toFixed(2)} m²
                     </p>
-                    <p className="">{netExternalWallArea.toFixed(2)} m²</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Volume (m³)
+                    <p className="text-xs text-muted-foreground">Volume</p>
+                    <p className="text-sm font-medium">
+                      {plasterVolume.toFixed(3)} m³
                     </p>
-                    <p className="">{plasterVolume.toFixed(3)} m³</p>
                   </div>
                 </div>
 
-                {/* Cement & Sand Breakdown */}
+                {/* Material Breakdown Table */}
                 {plasterCalculations && (
-                  <div className="space-y-3 bg-primary/10 dark:bg-primary/30 p-3 rounded-lg border border-primary/20 dark:border-primary/30">
-                    <h4 className="text-sm">Material Breakdown</h4>
-
-                    {/* Cement */}
-                    <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-card rounded">
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Cement
-                        </p>
-                        <p className="font-medium">
-                          {plasterCalculations.cementBags.toFixed(2)} bags
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {plasterCalculations.cementKg.toFixed(1)} kg
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Unit Price
-                        </p>
-                        <p className="font-medium">
-                          {formatCurrency(plasterCalculations.cementPrice)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Total Cost
-                        </p>
-                        <p className="font-medium text-green-600">
-                          {formatCurrency(plasterCalculations.cementCost)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Sand */}
-                    <div className="grid grid-cols-3 gap-2 text-sm p-2 bg-card rounded">
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Sand
-                        </p>
-                        <p className="font-medium">
-                          {plasterCalculations.sandVolume.toFixed(3)} m³
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Unit Price
-                        </p>
-                        <p className="font-medium">
-                          {formatCurrency(plasterCalculations.sandPrice)}/m³
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Total Cost
-                        </p>
-                        <p className="font-medium text-green-600">
-                          {formatCurrency(plasterCalculations.sandCost)}
-                        </p>
-                      </div>
+                  <>
+                    <div className="rounded-md border border-border overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                          <tr className="border-b border-border">
+                            <th className="px-4 py-2 text-left font-medium">
+                              Material
+                            </th>
+                            <th className="px-4 py-2 text-right font-medium">
+                              Quantity
+                            </th>
+                            <th className="px-4 py-2 text-right font-medium">
+                              Unit Price
+                            </th>
+                            <th className="px-4 py-2 text-right font-medium">
+                              Cost
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-border">
+                            <td className="px-4 py-2">Cement</td>
+                            <td className="px-4 py-2 text-right">
+                              {plasterCalculations.cementBags.toFixed(2)} bags
+                              <div className="text-xs text-muted-foreground">
+                                {plasterCalculations.cementKg.toFixed(1)} kg
+                              </div>
+                            </td>
+                            <td className="px-4 py-2 text-right">
+                              {formatCurrency(plasterCalculations.cementPrice)}
+                            </td>
+                            <td className="px-4 py-2 text-right font-medium text-green-600">
+                              {formatCurrency(plasterCalculations.cementCost)}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-2">Sand</td>
+                            <td className="px-4 py-2 text-right">
+                              {plasterCalculations.sandVolume.toFixed(3)} m³
+                            </td>
+                            <td className="px-4 py-2 text-right">
+                              {formatCurrency(plasterCalculations.sandPrice)}/m³
+                            </td>
+                            <td className="px-4 py-2 text-right font-medium text-green-600">
+                              {formatCurrency(plasterCalculations.sandCost)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
 
                     {/* Ratio & Total */}
-                    <div className="flex justify-between items-center p-2 bg-card rounded border border-primary/20 dark:border-primary/30">
+                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                       <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          Ratio (C:S)
+                        <p className="text-xs text-muted-foreground">
+                          Mix Ratio (Cement : Sand)
                         </p>
-                        <p className="font-medium">
+                        <p className="text-sm font-medium">
                           {plasterCalculations.ratio}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           Total Material Cost
                         </p>
                         <p className="text-lg font-bold text-green-600">
@@ -805,32 +798,41 @@ export default function ExternalFinishesCalculator({
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
+                {/* Remove Button */}
                 {!readonly && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveFinish(plasterFinish.id)}
-                    className="w-full text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove Plaster
-                  </Button>
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemoveFinish(plasterFinish.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove Plaster
+                    </Button>
+                  </div>
                 )}
-              </div>
+              </>
             ) : (
               !readonly && (
-                <Button onClick={handleAddPlaster} className="w-full">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add External Plaster
-                </Button>
+                <div className="flex justify-center py-6">
+                  <Button
+                    onClick={handleAddPlaster}
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add External Plaster
+                  </Button>
+                </div>
               )
             )}
           </CardContent>
         </Card>
-      ) : null}
+      )}
 
       {/* Controls */}
       <Card>
@@ -861,7 +863,7 @@ export default function ExternalFinishesCalculator({
         <CardContent>
           {externalFinishType === "keying" && (
             <div className="p-4 mb-6 bg-primary/10 dark:bg-primary/30 border border-primary/20 dark:border-primary/30 rounded-lg">
-              <p className="text-sm text-primary dark:text-primary">
+              <p className="text-sm">
                 <strong>Keying/Wall Pointing Mode:</strong> External finishes
                 are not available in this mode. Only wall preparation with
                 keying and pointing is applied.

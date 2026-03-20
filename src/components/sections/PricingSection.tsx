@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, AlertCircle } from "lucide-react";
+import { LoaderPinwheel, AlertCircle } from "lucide-react";
 
 export default function PricingSection({
   tiersLoading,
@@ -15,7 +15,7 @@ export default function PricingSection({
   if (tiersLoading) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh] bg-[#1a1a1a]">
-        <Loader2 className="w-8 h-8 animate-spin text-white" />
+        <LoaderPinwheel className="w-8 h-8 animate-spin text-white" />
       </div>
     );
   }

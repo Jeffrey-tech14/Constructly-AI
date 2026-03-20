@@ -51,7 +51,7 @@ import {
   Bitcoin,
   BitcoinIcon,
   Coins,
-  Loader2,
+  LoaderPinwheel,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -157,9 +157,9 @@ const AdminDashboard = () => {
         ["started", "in_progress"].includes(q.status),
       ).length;
 
-      // Paid quotes revenue: 1000 KSH per paid quote
+      // Paid quotes revenue: 200 KSH per paid quote
       const totalPaidQuotes = paymentsData.length;
-      const paidQuotesRevenue = totalPaidQuotes * 1000;
+      const paidQuotesRevenue = totalPaidQuotes * 200;
 
       setUsers(usersWithStats);
       setQuotes(quotesData);
@@ -324,7 +324,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin rounded-full h-8 w-8"></Loader2>
+        <LoaderPinwheel className="animate-spin rounded-full h-8 w-8"></LoaderPinwheel>
       </div>
     );
   }

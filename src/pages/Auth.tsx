@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { LoaderPinwheel, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 // 🔴 RESTORE ORIGINAL BRAND COLORS
@@ -202,7 +202,7 @@ const Auth = () => {
                 style={{ backgroundColor: BRAND.ACCENT }}
               >
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  <LoaderPinwheel className="w-4 h-4 animate-spin mx-auto" />
                 ) : (
                   "Sign Up"
                 )}
@@ -299,7 +299,7 @@ const Auth = () => {
                 style={{ backgroundColor: BRAND.ACCENT }}
               >
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  <LoaderPinwheel className="w-4 h-4 animate-spin mx-auto" />
                 ) : (
                   "Login"
                 )}

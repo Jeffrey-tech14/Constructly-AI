@@ -2,14 +2,15 @@
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
+import { Edit, HelpCircle, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { GuidanceSection } from "@/hooks/useQuoteGuidance";
 
@@ -73,76 +74,97 @@ export function QuoteGuidanceSidebar({
           {/* Toggle button */}
           <Button
             variant="outline"
-            size="icon"
             onClick={handleToggle}
-            className="rounded-full shadow-lg hover:shadow-xl transition-shadow"
+            className="shadow-lg hover:shadow-xl transition-shadow"
             title={isOpen ? "Close guide" : "Open guide"}
           >
-            {isOpen ? (
-              <ChevronLeft className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
+            Help
+            <HelpCircle className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Collapsible overlay sidebar - slides in from right */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ x: 400, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 400, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed right-0 top-0 h-screen w-96 border-l border-border bg-card shadow-lg overflow-y-auto z-30"
-          >
-            {/* Sidebar content */}
-            <div className="p-6 space-y-6">
-              {/* Header */}
-              <div className="flex items-center gap-2 pb-4 border-b border-border">
-                <HelpCircle className="w-5 h-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">
-                  {title}
-                </h2>
-              </div>
+      {/* Dialog */}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-5xl max-h-[80vh] text-white overflow-y-auto">
+          <DialogHeader>
+            <div className="mb-4 rounded-2xl bg-red-600/20 border border-red-500/50 p-4">
+              <h3 className="text-lg font-semibold text-white">
+                If you see a NaN value, this means the field or a value in QS
+                settings is missing a required value or the calculation cannot
+                be completed.
+              </h3>
+              <p className="text-sm text-white">
+                If this is the case ensure all required fields are filled out
+                and that your QS settings are correct. If you continue to see
+                NaN values after verifying your inputs, please contact support
+                for assistance.
+              </p>
+            </div>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription className="text-white">
+              Guidance and explanations for the current step
+            </DialogDescription>
+          </DialogHeader>
 
-              {/* Guidance items */}
-              {guidanceData && Object.keys(guidanceData).length > 0 ? (
-                <div className="space-y-4">
-                  {Object.entries(guidanceData).map(([key, description]) => (
-                    <div
-                      key={key}
-                      className="space-y-1.5 pb-3 border-b border-border/50 last:border-b-0"
-                    >
-                      <h3 className="font-semibold text-sm text-foreground leading-tight">
-                        {key}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">
-                    No guidance available for this step.
+          {/* Guidance items */}
+          {guidanceData && Object.keys(guidanceData).length > 0 ? (
+            <div className="space-y-4">
+              {Object.entries(guidanceData).map(([key, description]) => (
+                <div
+                  key={key}
+                  className="space-y-1.5 pb-3 border-b text-white border-border/50 last:border-b-0"
+                >
+                  <h3 className="font-semibold text-white text-sm text-foreground leading-tight">
+                    {key}
+                  </h3>
+                  <p className="text-xs text-white leading-relaxed">
+                    {description}
                   </p>
                 </div>
-              )}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-sm text-white">
+                No guidance available for this step.
+              </p>
+            </div>
+          )}
 
-              {/* Footer note */}
-              <div className="pt-4 border-t border-border">
-                <p className="text-xs text-muted-foreground italic">
-                  This guide explains each field in the current step. Refer to
-                  it whenever you need clarification.
+          {/* Footer note */}
+          <div className="pt-4 border-t border-border mt-4">
+            <div className="mb-2 space-y-2 rounded-2xl bg-blue/20 px-3 py-2 text-white">
+              <div className="flex items-center gap-2 rounded-2xl bg-blue-500/20 p-3 font-semibold">
+                <HelpCircle className="w-5 h-5" />
+                Controls
+              </div>
+              <div className="space-y-1.5 text-md pl-2 text-white">
+                <p className="flex items-center text-md gap-2">
+                  <Edit className="w-5 h-5" />
+                  Use to modify values.
+                </p>
+                <p className="flex items-center text-md gap-2">
+                  <HelpCircle className="w-5 h-5" />
+                  Access this guide.
+                </p>
+                <p className="flex items-center text-md gap-2">
+                  <span className="text-yellow-400 text-md ">⚠</span>
+                  NaN values indicate missing or incomplete data.
+                </p>
+                <p className="flex items-center text-md gap-2">
+                  <Trash className="w-5 h-5" />
+                  Remove items.
                 </p>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <p className="text-xs text-white italic">
+              This guide explains each field in the current step. Refer to it
+              whenever you need clarification.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

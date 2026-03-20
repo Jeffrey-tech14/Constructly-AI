@@ -26,7 +26,7 @@ import {
   Pause,
   Pencil,
   CalendarIcon,
-  Loader2,
+  LoaderPinwheel,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useQuotes } from "@/hooks/useQuotes";
@@ -222,7 +222,7 @@ const ProjectProgress = ({
   if (loading) {
     return (
       <div className="pt-6 flex flex-col items-center justify-center text-center flex-1">
-        <Loader2 className="animate-spin text-white rounded-full h-8 w-8" />
+        <LoaderPinwheel className="animate-spin text-white rounded-full h-8 w-8" />
         <p className="text-white mt-5">Loading project progress...</p>
       </div>
     );
@@ -248,7 +248,7 @@ const ProjectProgress = ({
             <Label className="text-white">Progress Percentage</Label>
             <span
               className={`sm:text-2xl text-lg font-bold hover:bg-transparent ${getStatusColor(
-                progressData.status
+                progressData.status,
               )} bg-transparent`}
             >
               {progressData.progress_percentage}%
@@ -301,7 +301,7 @@ const ProjectProgress = ({
                   ...prev,
                   progress_percentage: Math.min(
                     100,
-                    Math.max(0, parseInt(e.target.value) || 0)
+                    Math.max(0, parseInt(e.target.value) || 0),
                   ),
                 }))
               }

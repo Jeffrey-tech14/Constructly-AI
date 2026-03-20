@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Plus, Calculator } from "lucide-react";
+import { Trash2, Plus, Calculator, RefreshCw } from "lucide-react";
 
 export interface EarthworkItem {
   id: string;
@@ -313,6 +313,56 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
     return earthworks.reduce((total, item) => total + calculatePrice(item), 0);
   };
 
+  // Sync depth for all items of the same type to the most recently updated depth
+  const syncEarthworkDepth = (id: string) => {
+    const sourceItem = earthworks.find((e) => e.id === id);
+    if (!sourceItem) return;
+
+    const itemsOfSameType = earthworks.filter(
+      (e) => e.type === sourceItem.type,
+    );
+    const sourceDepth = sourceItem.depth;
+
+    setEarthworks(
+      earthworks.map((item) => {
+        // Only sync items of the same type (excluding the source item itself)
+        if (item.type === sourceItem.type) {
+          const updatedItem = { ...item, depth: sourceDepth };
+
+          // Recalculate volume with new depth
+          updatedItem.volume = calculateVolume(
+            item.length,
+            item.width,
+            sourceDepth,
+            item.area,
+            item.areaSelectionMode,
+            item.type,
+          );
+
+          // Update cost when volume changes
+          updatedItem.cost =
+            parseFloat(updatedItem.volume) * getEarthworkRate();
+
+          // If updating foundation excavation depth, sync it back to foundationDetails.height
+          if (item.type === "foundation-excavation" && setQuote) {
+            setQuote((prev: any) => ({
+              ...prev,
+              foundationDetails: prev.foundationDetails?.map(
+                (foundation: any) => ({
+                  ...foundation,
+                  height: sourceDepth,
+                }),
+              ),
+            }));
+          }
+
+          return updatedItem;
+        }
+        return item;
+      }),
+    );
+  };
+
   // Update earthwork item
   const updateEarthwork = (
     id: string,
@@ -361,6 +411,21 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
                     row.id === groundFloorSlab.id
                       ? { ...row, slabArea: value }
                       : row,
+                  ),
+                }));
+              }
+            }
+
+            // If updating foundation excavation depth, sync it back to foundationDetails.height
+            if (item.type === "foundation-excavation" && field === "depth") {
+              if (setQuote) {
+                setQuote((prev: any) => ({
+                  ...prev,
+                  foundationDetails: prev.foundationDetails?.map(
+                    (foundation: any) => ({
+                      ...foundation,
+                      height: value,
+                    }),
                   ),
                 }));
               }
@@ -665,17 +730,30 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
 
                   <div className="space-y-2">
                     <Label htmlFor={`depth-${earthwork.id}`}>Depth (m)</Label>
-                    <Input
-                      id={`depth-${earthwork.id}`}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={earthwork.depth}
-                      onChange={(e) =>
-                        updateEarthwork(earthwork.id, "depth", e.target.value)
-                      }
-                      placeholder="0.0"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id={`depth-${earthwork.id}`}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={earthwork.depth}
+                        key={earthwork.depth}
+                        onChange={(e) =>
+                          updateEarthwork(earthwork.id, "depth", e.target.value)
+                        }
+                        placeholder="0.0"
+                        className="flex-1"
+                      />
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => syncEarthworkDepth(earthwork.id)}
+                        title={`Sync depth with other ${earthwork.type} items`}
+                        className="h-10 w-10"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Calculated Values */}
@@ -730,7 +808,7 @@ const EarthworksForm: React.FC<EarthworksFormProps> = ({
 
                 {/* Calculation Breakdown */}
                 <div className="mt-4 p-3 bg-primary/10 dark:bg-primary/30 rounded-lg">
-                  <p className="text-sm text-primary dark:text-primary">
+                  <p className="text-sm text-primary dark:text-white">
                     Calculation: {earthwork.volume}m³ × KES{" "}
                     {earthworkRate.toLocaleString(undefined, {
                       minimumFractionDigits: 2,

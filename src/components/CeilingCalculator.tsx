@@ -165,6 +165,69 @@ export default function CeilingCalculator({
     [materialPrices],
   );
 
+  // Helper: enrich finishes with pricing data from calculations
+  const enrichFinishesWithPricing = useCallback(
+    (finishesToEnrich: FinishElement[]): FinishElement[] => {
+      if (!Array.isArray(calculations) || calculations.length === 0) {
+        return finishesToEnrich;
+      }
+
+      return finishesToEnrich.map((finish) => {
+        const calculation = calculations.find((c) => c.id === finish.id);
+        if (calculation) {
+          return {
+            ...finish,
+            price: calculation.unitRate, // Store unit rate as price
+            metadata: {
+              ...finish.metadata,
+              unitRate: calculation.unitRate,
+              totalCost: calculation.totalCost,
+              totalCostWithWastage: calculation.totalCostWithWastage,
+              materialCost: calculation.materialCost,
+              materialCostWithWastage: calculation.materialCostWithWastage,
+              adjustedQuantity: calculation.adjustedQuantity,
+              wastage: calculation.wastage,
+            },
+          };
+        }
+        return finish;
+      });
+    },
+    [calculations],
+  );
+
+  // Sync pricing data whenever calculations update
+  const syncPricingDataToFinishes = useCallback(() => {
+    if (!Array.isArray(calculations) || calculations.length === 0) return;
+    if (!onFinishesUpdate) return;
+
+    // Find which finishes are missing pricing data
+    const needsEnrichment = ceilingFinishes.some(
+      (finish) =>
+        !finish.price &&
+        calculations.some((c) => c.id === finish.id && c.unitRate),
+    );
+
+    if (needsEnrichment) {
+      // Enrich all finishes with current calculation data
+      const enriched = enrichFinishesWithPricing(ceilingFinishes);
+      // Only update if something actually changed
+      if (JSON.stringify(enriched) !== JSON.stringify(ceilingFinishes)) {
+        onFinishesUpdate(enriched);
+      }
+    }
+  }, [
+    ceilingFinishes,
+    calculations,
+    onFinishesUpdate,
+    enrichFinishesWithPricing,
+  ]);
+
+  // Run sync whenever calculations change
+  useEffect(() => {
+    syncPricingDataToFinishes();
+  }, [syncPricingDataToFinishes]);
+
   // ---------- AUTO-MANAGEMENT LOGIC (runs on mount and when ceiling type changes) ----------
   const isInitializedRef = useRef(false);
   const prevCeilingTypeRef = useRef(ceilingType);
@@ -356,8 +419,17 @@ export default function CeilingCalculator({
     }
 
     // Always update when type changes or on first run
-    onFinishesUpdate?.(desiredCeilingFinishes);
-  }, [ceilingType]);
+    onFinishesUpdate?.(enrichFinishesWithPricing(desiredCeilingFinishes));
+  }, [
+    ceilingType,
+    slabArea,
+    perimeters,
+    ceilingFinishes,
+    onFinishesUpdate,
+    readonly,
+    enrichFinishesWithPricing,
+    getCeilingMaterialPrice,
+  ]);
 
   // ---------- PAINTING INITIALIZATION (separate, as it uses its own hook) ----------
   useEffect(() => {
@@ -438,7 +510,7 @@ export default function CeilingCalculator({
     if (!existingItem) {
       // Only pass ceiling finishes to onFinishesUpdate
       const updatedCeilingFinishes = [...ceilingFinishes, newFinish];
-      onFinishesUpdate?.(updatedCeilingFinishes);
+      onFinishesUpdate?.(enrichFinishesWithPricing(updatedCeilingFinishes));
     }
 
     setEditingId(newFinish.id);
@@ -451,7 +523,7 @@ export default function CeilingCalculator({
     if (
       JSON.stringify(ceilingFinishes) !== JSON.stringify(updatedCeilingFinishes)
     ) {
-      onFinishesUpdate?.(updatedCeilingFinishes);
+      onFinishesUpdate?.(enrichFinishesWithPricing(updatedCeilingFinishes));
     }
   };
 
@@ -470,7 +542,7 @@ export default function CeilingCalculator({
       const updatedCeilingFinishes = ceilingFinishes.map((f) =>
         f.id === editingId ? editForm : f,
       );
-      onFinishesUpdate(updatedCeilingFinishes);
+      onFinishesUpdate(enrichFinishesWithPricing(updatedCeilingFinishes));
       setEditingId(null);
       setEditForm(null);
     }

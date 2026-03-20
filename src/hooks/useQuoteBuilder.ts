@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { useToast } from "@/hooks/use-toast";
+import { useLocalStorageQuote } from "@/hooks/useLocalStorageQuote";
 import {
   useQuoteCalculations,
   CalculationResult,
@@ -234,6 +235,9 @@ export const useQuoteBuilder = () => {
   const { createQuote, updateQuote } = useQuotes();
   const { profile, user } = useAuth();
 
+  // Local storage for draft quotes
+  const { saveQuoteToStorage, deleteQuoteFromStorage } = useLocalStorageQuote();
+
   // ---------- State ----------
   const [currentStep, setCurrentStep] = useState(1);
   const [substructureTab, setSubstructureTab] = useState("earthworks");
@@ -310,6 +314,9 @@ export const useQuoteBuilder = () => {
     equipment: [],
     services: [],
     percentages: [],
+    hoop_iron: [],
+    foundation_walling: [],
+    flooring_screening_skirting: [],
     distance_km: 0,
     contract_type: "full_contract" as "full_contract" | "labor_only",
     region: "",
@@ -577,6 +584,11 @@ export const useQuoteBuilder = () => {
     setQuoteData((prev) => ({ ...prev, transport_costs: transportCost }));
   }, [transportCost]);
 
+  // Auto-save quote to local storage whenever quoteData changes
+  useEffect(() => {
+    saveQuoteToStorage(quoteData);
+  }, [quoteData, saveQuoteToStorage]);
+
   // ---------- Sync from extracted plan ----------
   useEffect(() => {
     if (!extractedPlan) return;
@@ -623,7 +635,7 @@ export const useQuoteBuilder = () => {
             id: foundation.id || `foundation-${index}`,
             type: foundation.foundationType || "strip-footing",
             width: foundation.width || "0.4",
-            height: foundation.height || "0.6",
+            height: "0.65",
             length: foundation.length || "0",
             wallThickness: foundation.wallThickness || "0.2",
             wallHeight: foundation.wallHeight || "1.0",
@@ -753,6 +765,8 @@ export const useQuoteBuilder = () => {
                 length: structure.length,
                 width: structure.width,
                 height: structure.height,
+                brcProductType: "roll",
+                brcRollType: "2.1x48",
               },
             ];
           },
@@ -942,6 +956,8 @@ export const useQuoteBuilder = () => {
                     )?.wallHeight ||
                     rebar.depth ||
                     0,
+                  areaSelectionMode: undefined,
+                  area: undefined,
                 },
                 {
                   ...baseRebar,
@@ -956,6 +972,8 @@ export const useQuoteBuilder = () => {
                     )?.wallHeight ||
                     rebar.depth ||
                     0,
+                  areaSelectionMode: undefined,
+                  area: undefined,
                 },
               ];
             }
@@ -974,6 +992,9 @@ export const useQuoteBuilder = () => {
                   areaSelectionMode: "DIRECT_AREA",
                   // Use area as the primary calculation input
                   area: extractedPlan.projectInfo.totalArea,
+                  length: undefined,
+                  width: undefined,
+                  depth: undefined,
                 },
               ];
             }
@@ -985,6 +1006,8 @@ export const useQuoteBuilder = () => {
                 length: rebar.length,
                 width: rebar.width,
                 depth: rebar.depth,
+                areaSelectionMode: undefined,
+                area: undefined,
               },
             ];
           }) || prev.rebar_rows,
@@ -1191,6 +1214,31 @@ export const useQuoteBuilder = () => {
     },
     [],
   );
+
+  const handleScreeningSkirtingUpdate = useCallback((data: any) => {
+    setQuoteData((prev: any) => ({
+      ...prev,
+      flooring_screening_skirting: {
+        screening: data.screening,
+        skirting: data.skirting,
+        skirtingMaterial: data.skirtingMaterial,
+        accessories: data.accessories,
+        tilingMaterials: data.tilingMaterials,
+      },
+    }));
+  }, []);
+
+  const handleFoundationWallingUpdate = useCallback((data: any) => {
+    setQuoteData((prev: any) => ({
+      ...prev,
+      foundation_walling: {
+        walls: data.walls,
+        totals: data.totals,
+        returnFillCalculations: data.returnFillCalculations,
+        blockPricePerFoot: data.blockPricePerFoot,
+      },
+    }));
+  }, []);
 
   const handleCeilingTypeChange = useCallback(
     (ceilingType: "gypsum" | "painting" | "other") => {
@@ -1492,7 +1540,12 @@ export const useQuoteBuilder = () => {
           materialPrices: materials,
           paintings_specifications: quoteData.paintings_specifications || [],
           paintings_totals: quoteData.paintings_totals || null,
+          foundation_walling: quoteData.foundation_walling || null,
+          flooring_screening_skirting:
+            quoteData.flooring_screening_skirting || null,
+          hoop_iron: quoteData.hoop_iron || null,
         } as any);
+
         toast({
           title: "Quote Updated",
           description: "Quote has been updated successfully",
@@ -1573,7 +1626,7 @@ export const useQuoteBuilder = () => {
             await quotePaymentService.createQuotePayment(
               newQuote.id,
               profile.id,
-              1000,
+              200,
             );
           } catch (paymentError) {
             console.error("Error creating payment record:", paymentError);
@@ -1582,8 +1635,7 @@ export const useQuoteBuilder = () => {
 
         toast({
           title: "Quote Saved",
-          description:
-            "Quote saved! You can pay 1000 KSH to access it anytime.",
+          description: "Quote saved! You can pay 200 KSH to access it anytime.",
         });
         navigate("/quotes/all");
       }
@@ -1671,6 +1723,8 @@ export const useQuoteBuilder = () => {
 
     // Handlers
     handleFinishesUpdate,
+    handleScreeningSkirtingUpdate,
+    handleFoundationWallingUpdate,
     handleCeilingTypeChange,
     handleInternalWallTypeChange,
     handleExternalWallTypeChange,

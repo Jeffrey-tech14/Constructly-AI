@@ -514,9 +514,9 @@ const PaintingLayerConfig: React.FC<PaintingLayerConfigProps> = ({
             {(painting.calculations.skimming ||
               painting.calculations.undercoat ||
               painting.calculations.finishing) && (
-              <div className="p-3 rounded-3xl border bg-gradient-to-br from-primary to-primary dark:from-primary/30 dark:to-primary/30 border-primary/20 dark:border-primary/30">
+              <div className="p-3 rounded-3xl border bg-slate-50 dark:bg-slate-900/30">
                 <div className="text-xs ">Total Layer Cost</div>
-                <div className="font-bold text-lg text-primary dark:text-primary">
+                <div className="font-bold text-lg ">
                   Ksh
                   {(
                     (painting.calculations.skimming?.totalCostWithWastage ||

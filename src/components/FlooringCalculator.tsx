@@ -95,6 +95,7 @@ interface FlooringCalculatorProps {
   finishes: FinishElement[];
   materialPrices: any[];
   onFinishesUpdate?: (finishes: FinishElement[]) => void;
+  onScreeningSkirtingUpdate?: (data: any) => void;
   readonly?: boolean;
   quote?: any;
 }
@@ -103,6 +104,7 @@ export default function FlooringCalculator({
   finishes,
   materialPrices,
   onFinishesUpdate,
+  onScreeningSkirtingUpdate,
   readonly = false,
   quote,
 }: FlooringCalculatorProps) {
@@ -156,6 +158,69 @@ export default function FlooringCalculator({
     quote,
     onFinishesUpdate,
   );
+
+  // Helper: enrich finishes with pricing data from calculations
+  const enrichFlooringWithPricing = useCallback(
+    (finishesToEnrich: FinishElement[]): FinishElement[] => {
+      if (!Array.isArray(calculations) || calculations.length === 0) {
+        return finishesToEnrich;
+      }
+
+      return finishesToEnrich.map((finish) => {
+        const calculation = calculations.find((c) => c.id === finish.id);
+        if (calculation) {
+          return {
+            ...finish,
+            price: calculation.unitRate, // Store unit rate as price
+            metadata: {
+              ...finish.metadata,
+              unitRate: calculation.unitRate,
+              totalCost: calculation.totalCost,
+              totalCostWithWastage: calculation.totalCostWithWastage,
+              materialCost: calculation.materialCost,
+              materialCostWithWastage: calculation.materialCostWithWastage,
+              adjustedQuantity: calculation.adjustedQuantity,
+              wastage: calculation.wastage,
+            },
+          };
+        }
+        return finish;
+      });
+    },
+    [calculations],
+  );
+
+  // Sync pricing data whenever calculations update
+  const syncFlooringPricingDataToFinishes = useCallback(() => {
+    if (!Array.isArray(calculations) || calculations.length === 0) return;
+    if (!onFinishesUpdate) return;
+
+    // Find which finishes are missing pricing data
+    const needsEnrichment = flooringFinishes.some(
+      (finish) =>
+        !finish.price &&
+        calculations.some((c) => c.id === finish.id && c.unitRate),
+    );
+
+    if (needsEnrichment) {
+      // Enrich all finishes with current calculation data
+      const enriched = enrichFlooringWithPricing(flooringFinishes);
+      // Only update if something actually changed
+      if (JSON.stringify(enriched) !== JSON.stringify(flooringFinishes)) {
+        onFinishesUpdate(enriched);
+      }
+    }
+  }, [
+    flooringFinishes,
+    calculations,
+    onFinishesUpdate,
+    enrichFlooringWithPricing,
+  ]);
+
+  // Run sync whenever calculations change
+  useEffect(() => {
+    syncFlooringPricingDataToFinishes();
+  }, [syncFlooringPricingDataToFinishes]);
 
   // --------------------------------------------------------------------
   // Local UI state
@@ -376,10 +441,17 @@ export default function FlooringCalculator({
           tileSize: "400x400",
         };
         // Only pass flooring items
-        onFinishesUpdate([...flooringFinishes, newCeramicTile]);
+        onFinishesUpdate(
+          enrichFlooringWithPricing([...flooringFinishes, newCeramicTile]),
+        );
       }
     }
-  }, [quote?.concrete_rows, flooringFinishes.length, onFinishesUpdate]);
+  }, [
+    quote?.concrete_rows,
+    flooringFinishes.length,
+    onFinishesUpdate,
+    enrichFlooringWithPricing,
+  ]);
 
   // Update skirting type when floor material changes (first item)
   useEffect(() => {
@@ -417,6 +489,26 @@ export default function FlooringCalculator({
       setTileUnitPrice(price || defaultTilePrice);
     }
   }, [tileType, tileSize, materialPrices, defaultTilePrice]);
+
+  // Sync screening and skirting data to quote whenever they change
+  useEffect(() => {
+    if (!onScreeningSkirtingUpdate) return;
+
+    onScreeningSkirtingUpdate({
+      screening: screeningBase,
+      skirting,
+      skirtingMaterial: customSkirtingMaterial,
+      accessories,
+      tilingMaterials,
+    });
+  }, [
+    screeningBase,
+    skirting,
+    customSkirtingMaterial,
+    accessories,
+    tilingMaterials,
+    onScreeningSkirtingUpdate,
+  ]);
 
   // Update screeding calculations when area or thickness changes
   const handleScreeningBaseChange = (
@@ -473,7 +565,9 @@ export default function FlooringCalculator({
       unit: "m²",
       location: "",
     };
-    onFinishesUpdate?.([...flooringFinishes, newFinish]);
+    onFinishesUpdate?.(
+      enrichFlooringWithPricing([...flooringFinishes, newFinish]),
+    );
     setEditingId(newFinish.id);
     setEditForm(newFinish);
   };
@@ -487,7 +581,7 @@ export default function FlooringCalculator({
       const updated = flooringFinishes.map((f) =>
         f.id === editingId ? editForm : f,
       );
-      onFinishesUpdate(updated);
+      onFinishesUpdate(enrichFlooringWithPricing(updated));
       setEditingId(null);
       setEditForm(null);
     }
@@ -499,7 +593,9 @@ export default function FlooringCalculator({
   };
 
   const handleDeleteFinish = (id: string) => {
-    onFinishesUpdate?.(flooringFinishes.filter((f) => f.id !== id));
+    onFinishesUpdate?.(
+      enrichFlooringWithPricing(flooringFinishes.filter((f) => f.id !== id)),
+    );
   };
 
   const handleEditFinish = (finish: FinishElement) => {
@@ -1286,13 +1382,13 @@ export default function FlooringCalculator({
                   <>
                     {skirtingTypeForFirst === "tile" && (
                       <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
-                        <Label className="text-xs font-bold text-primary">
+                        <Label className="text-xs font-bold">
                           Skirting Tile Area (m²)
                         </Label>
-                        <div className="text-2xl font-bold text-primary mt-2">
+                        <div className="text-2xl font-bold mt-2">
                           {skirtingTileArea.toFixed(2)}
                         </div>
-                        <p className="text-xs text-primary mt-1">
+                        <p className="text-xs mt-1">
                           Est. tiles: {skirtingTileCount}
                         </p>
                       </div>
@@ -1456,10 +1552,10 @@ export default function FlooringCalculator({
                   />
                 </div>
                 <div className="bg-primary/10 dark:bg-primary/20 p-3 rounded border border-primary/20">
-                  <Label className="text-xs font-bold text-primary">
+                  <Label className="text-xs font-bold ">
                     Corner Strip Total (Ksh)
                   </Label>
-                  <div className="text-2xl font-bold text-primary mt-2">
+                  <div className="text-2xl font-bold mt-2">
                     {formatCurrency(cornerStripTotalCost)}
                   </div>
                 </div>

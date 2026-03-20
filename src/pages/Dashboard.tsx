@@ -41,7 +41,7 @@ import {
   LayoutDashboard,
   Zap,
   ChevronRight,
-  Loader2,
+  LoaderPinwheel,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Calculator from "@/components/Calculator";
@@ -203,12 +203,15 @@ const Dashboard = () => {
         <div className="relative w-24 h-24 mb-10">
           {/* Base circle background */}
           <div className="absolute inset-0 rounded-full border-4 border-gray-100 dark:border-gray-800"></div>
-          
+
           {/* Outer spin ring */}
           <div className="absolute inset-0 rounded-full border-4 border-[#ef443b] border-t-transparent animate-spin"></div>
-          
+
           {/* Inner spin ring */}
-          <div className="absolute inset-2 rounded-full border-4 border-[#ef443b]/30 border-b-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }}></div>
+          <div
+            className="absolute inset-2 rounded-full border-4 border-[#ef443b]/30 border-b-transparent animate-spin"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+          ></div>
         </div>
       </div>
     );

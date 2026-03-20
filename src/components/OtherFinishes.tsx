@@ -1,7 +1,13 @@
 // © 2025 Jeff. All rights reserved.
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import {
   Card,
   CardContent,
@@ -47,7 +53,7 @@ interface CustomManualItem {
   name: string;
   location: string;
   unitPrice: number;
-  unit: typeof CUSTOM_UNITS[number];
+  unit: (typeof CUSTOM_UNITS)[number];
   quantity: number;
 }
 
@@ -72,10 +78,12 @@ export default function OtherFinishesCalculator({
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<CustomManualItem | null>(null);
-  
+
   // Custom manual item form state
   const [showCustomForm, setShowCustomForm] = useState(false);
-  const [customFormData, setCustomFormData] = useState<Partial<CustomManualItem>>({
+  const [customFormData, setCustomFormData] = useState<
+    Partial<CustomManualItem>
+  >({
     name: "",
     location: "",
     unitPrice: 0,
@@ -83,25 +91,35 @@ export default function OtherFinishesCalculator({
     quantity: 0,
   });
 
+  // Memoize joinery items to avoid unnecessary recomputations
+  const joinery = useMemo(
+    () => otherFinishes.filter((finish) => finish.category === "joinery"),
+    [otherFinishes],
+  );
+
+  // Reset edit state when the underlying data changes (prevents stale edits)
+  useEffect(() => {
+    setEditingId(null);
+    setEditForm(null);
+  }, [joinery]); // Whenever joinery changes (add/delete/edit), clear edit state
+
   // Calculate items directly from user input
   const calculations = useMemo(() => {
-    return otherFinishes
-      .filter((finish) => finish.category === "joinery")
-      .map((finish) => {
-        const unitPrice = finish.price || 0;
-        const totalCost = unitPrice * finish.quantity;
-        
-        return {
-          id: finish.id,
-          name: finish.material,
-          location: finish.location || "",
-          quantity: finish.quantity,
-          unit: finish.unit,
-          unitPrice: unitPrice,
-          totalCost: totalCost,
-        };
-      });
-  }, [otherFinishes]);
+    return joinery.map((finish) => {
+      const unitPrice = finish.price || 0;
+      const totalCost = unitPrice * finish.quantity;
+
+      return {
+        id: finish.id,
+        name: finish.material,
+        location: finish.location || "",
+        quantity: finish.quantity,
+        unit: finish.unit,
+        unitPrice: unitPrice,
+        totalCost: totalCost,
+      };
+    });
+  }, [joinery]);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -121,16 +139,24 @@ export default function OtherFinishesCalculator({
     });
   }, [calculations, searchTerm]);
 
+  // Helper to generate unique IDs
+  const generateId = () =>
+    `custom-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+
   const handleAddCustomItem = () => {
-    if (!customFormData.name || customFormData.unitPrice === undefined || customFormData.quantity === undefined) {
+    if (
+      !customFormData.name ||
+      customFormData.unitPrice === undefined ||
+      customFormData.quantity === undefined
+    ) {
       alert("Please fill in all required fields");
       return;
     }
 
     const newCustomItem: FinishElement = {
-      id: `custom-item-${Date.now()}`,
+      id: generateId(),
       category: "joinery",
-      material: customFormData.name || "Custom Item",
+      material: customFormData.name,
       location: customFormData.location || "",
       area: 0,
       unit: (customFormData.unit || "m²") as "m²" | "m" | "pcs",
@@ -138,8 +164,9 @@ export default function OtherFinishesCalculator({
       price: customFormData.unitPrice || 0,
     };
 
+    const updatedJoinery = [...joinery, newCustomItem];
     if (onOtherFinishesUpdate) {
-      onOtherFinishesUpdate([...otherFinishes, newCustomItem]);
+      onOtherFinishesUpdate(updatedJoinery);
     }
 
     // Reset form
@@ -162,7 +189,7 @@ export default function OtherFinishesCalculator({
         name: finish.material,
         location: finish.location || "",
         quantity: finish.quantity,
-        unit: (finish.unit || "m²") as typeof CUSTOM_UNITS[number],
+        unit: (finish.unit || "m²") as (typeof CUSTOM_UNITS)[number],
         unitPrice: finish.price || 0,
       });
     }
@@ -171,7 +198,7 @@ export default function OtherFinishesCalculator({
   const handleSaveEdit = () => {
     if (!editForm || !editingId) return;
 
-    const updatedOtherFinishes = otherFinishes.map((finish) =>
+    const updatedJoinery = joinery.map((finish) =>
       finish.id === editingId
         ? {
             ...finish,
@@ -179,13 +206,13 @@ export default function OtherFinishesCalculator({
             location: editForm.location,
             quantity: editForm.quantity,
             unit: editForm.unit as "m²" | "m" | "pcs",
-            unitPrice: editForm.unitPrice,
+            price: editForm.unitPrice,
           }
         : finish,
     );
 
     if (onOtherFinishesUpdate) {
-      onOtherFinishesUpdate(updatedOtherFinishes);
+      onOtherFinishesUpdate(updatedJoinery);
     }
     setEditingId(null);
     setEditForm(null);
@@ -197,18 +224,14 @@ export default function OtherFinishesCalculator({
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
-
-    const updatedOtherFinishes = otherFinishes.filter((finish) => finish.id !== id);
-
+    const updatedJoinery = joinery.filter((finish) => finish.id !== id);
     if (onOtherFinishesUpdate) {
-      onOtherFinishesUpdate(updatedOtherFinishes);
+      onOtherFinishesUpdate(updatedJoinery);
     }
   };
 
   const handleEditFormChange = (field: keyof CustomManualItem, value: any) => {
     if (!editForm) return;
-
     setEditForm((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
@@ -269,15 +292,15 @@ export default function OtherFinishesCalculator({
             <CardTitle className="text-sm font-medium">Total Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {totals.totalItems}
-            </div>
+            <div className="text-2xl font-bold">{totals.totalItems}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Quantity</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Quantity
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -311,8 +334,8 @@ export default function OtherFinishesCalculator({
 
             <div className="flex flex-col sm:flex-row gap-2 items-center">
               {!readonly && (
-                <Button 
-                  onClick={() => setShowCustomForm(!showCustomForm)} 
+                <Button
+                  onClick={() => setShowCustomForm(!showCustomForm)}
                   size="sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -388,7 +411,9 @@ export default function OtherFinishesCalculator({
                   </div>
 
                   <div>
-                    <Label htmlFor="custom-unit-price">Unit Price (KSH) *</Label>
+                    <Label htmlFor="custom-unit-price">
+                      Unit Price (KSH) *
+                    </Label>
                     <Input
                       id="custom-unit-price"
                       type="number"
@@ -457,9 +482,7 @@ export default function OtherFinishesCalculator({
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleAddCustomItem}>
-                    Add Custom Item
-                  </Button>
+                  <Button onClick={handleAddCustomItem}>Add Custom Item</Button>
                 </div>
               </CardContent>
             </Card>
@@ -469,9 +492,7 @@ export default function OtherFinishesCalculator({
           {editingId && editForm && (
             <Card className="mb-6 border-l-4 border-l-blue-500">
               <CardHeader>
-                <CardTitle className="text-lg">
-                  Edit Custom Item
-                </CardTitle>
+                <CardTitle className="text-lg">Edit Custom Item</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -591,23 +612,18 @@ export default function OtherFinishesCalculator({
                       className="text-center py-8 text-muted-foreground"
                     >
                       No custom items found.{" "}
-                      {!readonly &&
-                        "Add custom items to get started."}
+                      {!readonly && "Add custom items to get started."}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredCalculations.map((calc) => (
                     <TableRow key={calc.id}>
-                      <TableCell className="font-medium">
-                        {calc.name}
-                      </TableCell>
+                      <TableCell className="font-medium">{calc.name}</TableCell>
                       <TableCell>{calc.location || "-"}</TableCell>
                       <TableCell className="text-right">
                         {formatQuantity(calc.quantity, calc.unit)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {calc.unit}
-                      </TableCell>
+                      <TableCell className="text-right">{calc.unit}</TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(calc.unitPrice)}
                       </TableCell>
@@ -651,11 +667,12 @@ export default function OtherFinishesCalculator({
                 </div>
                 <div>
                   <span className="font-medium">Total Quantity:</span>{" "}
-                  {filteredCalculations.reduce((sum, calc) => sum + calc.quantity, 0).toFixed(2)}
+                  {filteredCalculations
+                    .reduce((sum, calc) => sum + calc.quantity, 0)
+                    .toFixed(2)}
                 </div>
                 <div className="">
-                  <span>Grand Total:</span>{" "}
-                  {formatCurrency(totals.totalCost)}
+                  <span>Grand Total:</span> {formatCurrency(totals.totalCost)}
                 </div>
               </div>
             </div>

@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Brain,
   AlertCircle,
+  LoaderPinwheel,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { generatePreliminariesWithGemini } from "@/utils/preliminariesAIService";
@@ -124,13 +125,13 @@ const PreliminariesBuilder = ({
 
   const mergeSectionsWithAI = (
     existingSections: PrelimSection[],
-    aiSections: PrelimSection[]
+    aiSections: PrelimSection[],
   ): PrelimSection[] => {
     // For each existing section, keep user items and replace AI items
     const mergedSections = existingSections.map((section) => {
       const userItems = section.items.filter((item) => item.source === "user");
       const aiSection = aiSections?.find(
-        (aiSec) => aiSec.title === section.title
+        (aiSec) => aiSec.title === section.title,
       );
 
       if (aiSection) {
@@ -169,7 +170,7 @@ const PreliminariesBuilder = ({
     sectionIndex: number,
     itemIndex: number,
     field: keyof PrelimItem,
-    value: any
+    value: any,
   ) => {
     const newSections = [...sections];
     const item = newSections[sectionIndex].items[itemIndex];
@@ -281,7 +282,7 @@ const PreliminariesBuilder = ({
             variant="outline"
           >
             {isGenerating ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              <LoaderPinwheel className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Brain className="w-4 h-4 mr-2" />
             )}
@@ -300,7 +301,7 @@ const PreliminariesBuilder = ({
 
       {isGenerating && (
         <div className="flex justify-center items-center p-4">
-          <RefreshCw className="w-6 h-6 animate-spin mr-2" />
+          <LoaderPinwheel className="w-6 h-6 animate-spin mr-2" />
           <span>Generating preliminaries...</span>
         </div>
       )}
@@ -357,7 +358,7 @@ const PreliminariesBuilder = ({
                                 sectionIndex,
                                 itemIndex,
                                 "description",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           />
@@ -377,7 +378,7 @@ const PreliminariesBuilder = ({
                                 sectionIndex,
                                 itemIndex,
                                 "amount",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                           />

@@ -21,7 +21,7 @@ win:
   target:
     - nsis
     - portable
-  icon: public/jtech-small-color.png
+  icon: public/jtech-icon.svg
 
 nsis:
   oneClick: false
@@ -37,7 +37,7 @@ mac:
   target:
     - dmg
     - zip
-  icon: public/jtech-small-color.png
+  icon: public/jtech-icon.svg
   category: public.app-category.productivity
 
 dmg:

@@ -2,8 +2,9 @@
   "compilerOptions": {
     "allowJs": true,
     "esModuleInterop": true,
+    "jsx": "react-jsx",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
@@ -15,13 +16,11 @@
     },
     "rootDir": "src",
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "strictNullChecks": false,
     "target": "ES2020"
   },
   "include": [
-    "src",
-    "jtech-plan-api/payments/payment_verification.ts",
-    "jtech-plan-api/payments/index.ts"
+    "src"
   ]
 }

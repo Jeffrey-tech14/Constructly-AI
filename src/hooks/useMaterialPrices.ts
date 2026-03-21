@@ -110,7 +110,7 @@ export const useMaterialPrices = () => {
     try {
       const { error } = await supabase
         .from("material_base_prices")
-        .insert([material]);
+        .insert([material as any]);
       if (error) throw error;
       await fetchData();
     } catch (error) {

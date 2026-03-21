@@ -357,26 +357,14 @@ export const useUserSettings = () => {
   const updateLabourPercent = async (margin: number) => {
     if (!user) return { error: "User not authenticated" };
     try {
-      const { data: existingProfile } = await supabase
+      const { error } = await supabase
         .from("profiles")
-        .select("name, email")
-        .eq("id", user.id)
-        .single();
-      const { data, error } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            name: existingProfile?.name || "",
-            email: existingProfile?.email || user.email || "",
-            labour_percent: margin,
-          },
-          { onConflict: "id" }
-        )
-        .select("labour_percent")
-        .single();
+        .update({
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
       if (error) throw error;
-      return { data: data?.labour_percent, error: null };
+      return { data: margin, error: null };
     } catch (err) {
       console.error("Error updating labour:", err);
       return {

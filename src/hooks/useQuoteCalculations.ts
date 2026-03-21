@@ -390,7 +390,7 @@ export const useQuoteCalculations = () => {
       source: "custom",
     }));
 
-    setEquipmentRates([...merged, ...customEquipmentItems]);
+    setEquipmentRates([...merged, ...customEquipmentItems] as any);
   }, [user]);
 
   useEffect(() => {

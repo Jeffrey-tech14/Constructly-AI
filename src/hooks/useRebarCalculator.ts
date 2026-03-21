@@ -3554,8 +3554,8 @@ export const useRebarPrices = (region: string) => {
             .eq("region", region)
             .maybeSingle();
 
-          if (userOverride?.type) {
-            userOverride.type.forEach((item: any) => {
+          if (userOverride?.type && Array.isArray(userOverride.type)) {
+            (userOverride.type as any[]).forEach((item: any) => {
               if (item.size && REBAR_PROPERTIES[item.size as RebarSize]) {
                 prices[item.size as RebarSize] = item.price_kes_per_kg || 0;
               }

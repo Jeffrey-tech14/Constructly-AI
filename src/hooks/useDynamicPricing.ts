@@ -516,7 +516,7 @@ export const useDynamicPricing = () => {
       const { error } = await supabase.from("user_service_overrides").upsert({
         user_id: user.id,
         service_id: serviceId,
-        custom_price: priceInCents,
+        price: priceInCents,
         region,
       });
       if (!error) {

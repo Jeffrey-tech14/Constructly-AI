@@ -19,18 +19,9 @@
     "strictNullChecks": false,
     "target": "ES2020"
   },
-  "files": [],
   "include": [
     "src",
     "jtech-plan-api/payments/payment_verification.ts",
     "jtech-plan-api/payments/index.ts"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
   ]
 }

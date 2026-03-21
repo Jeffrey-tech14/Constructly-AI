@@ -607,6 +607,57 @@ const AdminDashboard = () => {
                                     </>
                                   )}
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleAdminAction(
+                                      "send_magic_link",
+                                      user.id,
+                                      user.email,
+                                      user.name,
+                                    )
+                                  }
+                                  disabled={actionLoading === `send_magic_link-${user.id}`}
+                                >
+                                  <Shield className="w-4 h-4 mr-2" />
+                                  {actionLoading === `send_magic_link-${user.id}`
+                                    ? "Sending..."
+                                    : "Send Magic Link"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleAdminAction(
+                                      "send_password_reset",
+                                      user.id,
+                                      user.email,
+                                      user.name,
+                                    )
+                                  }
+                                  disabled={actionLoading === `send_password_reset-${user.id}`}
+                                >
+                                  <Ban className="w-4 h-4 mr-2" />
+                                  {actionLoading === `send_password_reset-${user.id}`
+                                    ? "Sending..."
+                                    : "Send Password Reset"}
+                                </DropdownMenuItem>
+                                {user.id !== profile.id && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAdminAction(
+                                        "delete_user",
+                                        user.id,
+                                        user.email,
+                                        user.name,
+                                      )
+                                    }
+                                    disabled={actionLoading === `delete_user-${user.id}`}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    <UserX className="w-4 h-4 mr-2" />
+                                    {actionLoading === `delete_user-${user.id}`
+                                      ? "Deleting..."
+                                      : "Delete Account"}
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>

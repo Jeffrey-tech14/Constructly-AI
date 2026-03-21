@@ -21,7 +21,7 @@ win:
   target:
     - nsis
     - portable
-  icon: public/jtech-icon.svg
+  icon: public/jtech-icon.ico
 
 nsis:
   oneClick: false
@@ -37,7 +37,7 @@ mac:
   target:
     - dmg
     - zip
-  icon: public/jtech-icon.svg
+  icon: public/jtech-icon.ico
   category: public.app-category.productivity
 
 dmg:
@@ -54,7 +54,7 @@ linux:
   target:
     - AppImage
     - deb
-  icon: public/jtech-small-color.png
+  icon: public/jtech-icon.ico
 
 publish:
   provider: github

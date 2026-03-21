@@ -190,13 +190,13 @@ const PageFooter = ({ scrollTo }: PageFooterProps) => {
 
             <div className="flex gap-6">
               <a
-                href="#"
+                href="/#/privacy-policy"
                 className="hover:text-white flex items-center gap-1.5 transition-colors"
               >
                 <ShieldCheck className="w-3 h-3" strokeWidth={2} /> Privacy
               </a>
               <a
-                href="#"
+                href="/#/terms-of-service"
                 className="hover:text-white flex items-center gap-1.5 transition-colors"
               >
                 <FileText className="w-3 h-3" strokeWidth={2} /> Terms

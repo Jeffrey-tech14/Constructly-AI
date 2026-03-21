@@ -30,6 +30,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import ErrorPage from "./pages/ErrorPage";
 import UserGuide from "./components/UserGuide";
 import FaqPage from "./pages/FaqPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import CustomTitleBar from "./components/CustomTitleBar";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
@@ -42,7 +44,12 @@ const AppContent = () => {
   const location = useLocation();
   const isElectron =
     typeof window !== "undefined" && window.electronAPI !== undefined;
-  const usesPublicLayoutNavbar = ["/", "/faq"].includes(location.pathname);
+  const usesPublicLayoutNavbar = [
+    "/",
+    "/faq",
+    "/privacy-policy",
+    "/terms-of-service",
+  ].includes(location.pathname);
 
   useEffect(() => {
     // Check initial theme
@@ -168,8 +175,10 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="/guide" element={<UserGuide />} />{" "}
-          <Route path="/faq" element={<FaqPage />} />{" "}
+          <Route path="/guide" element={<UserGuide />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

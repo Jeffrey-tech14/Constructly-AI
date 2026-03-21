@@ -42,37 +42,27 @@ const QuotePaymentPage = () => {
   const [transactionRef, setTransactionRef] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const PAYSTACK_PUBLIC_KEY =
-    getEnv("NEXT_PAYSTACK_PUBLIC_KEY") || getEnv("VITE_PAYSTACK_PUBLIC_KEY");
+  const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
   const handlePaystackSuccess = async (reference: any) => {
     setPaymentStatus("processing");
     try {
-      // Verify payment
-      const response = await fetch(
-        `https://api.paystack.co/transaction/verify/${reference.reference}`,
+      // Verify payment via edge function (secret key stays server-side)
+      const { data, error } = await supabase.functions.invoke(
+        "verify-paystack-payment",
         {
-          headers: {
-            Authorization: `Bearer ${getEnv("NEXT_PAYSTACK_SECRET_KEY") || getEnv("VITE_PAYSTACK_SECRET_KEY")}`,
+          body: {
+            reference: reference.reference,
+            quoteId,
           },
         },
       );
 
-      if (!response.ok) {
+      if (error) {
         throw new Error("Payment verification failed");
       }
 
-      const data = await response.json();
-
-      if (data.data.status === "success") {
-        // Update payment status in database
-        await quotePaymentService.updatePaymentStatus(
-          quoteId,
-          "completed",
-          data.data.id,
-          reference.reference,
-        );
-
+      if (data?.success) {
         setPaymentStatus("success");
         toast({
           title: "Payment Successful",
@@ -86,7 +76,7 @@ const QuotePaymentPage = () => {
           navigate("/quotes/all");
         }, 2000);
       } else {
-        throw new Error("Payment not completed");
+        throw new Error(data?.error || "Payment not completed");
       }
     } catch (error) {
       console.error("Error processing payment:", error);

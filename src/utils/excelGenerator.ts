@@ -2,7 +2,13 @@
 // Unauthorized copying, distribution, or modification of this file is strictly prohibited.
 
 import * as XLSX from "xlsx";
-import { WorkItem } from "@/services/geminiService";
+interface WorkItem {
+  description: string;
+  unit: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+}
 
 interface ExcelExportOptions {
   quote: any;

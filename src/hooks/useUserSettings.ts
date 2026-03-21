@@ -338,22 +338,14 @@ export const useUserSettings = () => {
         .select("name, email")
         .eq("id", user.id)
         .single();
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            name: existingProfile?.name || "",
-            email: existingProfile?.email || user.email || "",
-            overall_profit_margin: margin,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        )
-        .select("overall_profit_margin")
-        .single();
+        .update({
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
       if (error) throw error;
-      return { data: data?.overall_profit_margin, error: null };
+      return { data: margin, error: null };
     } catch (err) {
       console.error("Error updating profit margin:", err);
       return {

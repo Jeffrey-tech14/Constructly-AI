@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePaystackPayment } from "react-paystack";
 import { quotePaymentService } from "@/services/quotePaymentService";
 import { supabase } from "@/integrations/supabase/client";
-import { getEnv } from "@/utils/envConfig";
 import {
   LoaderPinwheel,
   CheckCircle,

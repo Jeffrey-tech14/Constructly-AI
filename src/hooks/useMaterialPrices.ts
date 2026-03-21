@@ -59,7 +59,7 @@ export const useMaterialPrices = () => {
       ]);
       if (materialsResponse.error) throw materialsResponse.error;
       if (multipliersResponse.error) throw multipliersResponse.error;
-      setMaterials(materialsResponse.data || []);
+      setMaterials((materialsResponse.data || []) as any);
       setMultipliers(multipliersResponse.data || []);
     } catch (error) {
       console.error("Error fetching material prices:", error);

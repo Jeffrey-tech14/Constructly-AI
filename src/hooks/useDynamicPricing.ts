@@ -183,7 +183,7 @@ export const useDynamicPricing = () => {
         .eq("material_id", materialId)
         .eq("region", region)
         .single();
-      let updatedType = userOverride?.type;
+      let updatedType: any = userOverride?.type;
       if (!updatedType) {
         const { data: base } = await supabase
           .from("material_base_prices")

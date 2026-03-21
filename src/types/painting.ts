@@ -194,5 +194,6 @@ export const DEFAULT_PAINTING_CONFIG = {
     category: "emulsion" as PaintCategory,
     subtype: "vinyl-matt" as PaintSubtype,
     coats: 2,
-  }, // default finish type for finish-level category
+    finishType: "vinyl-matt",
+  },
 };

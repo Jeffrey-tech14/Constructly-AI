@@ -33,7 +33,6 @@ export const PageSections = ({
       <FeaturesSection scrollTo={scrollTo} />
 
       <PricingSection
-        tiers={tiers}
         tiersLoading={tiersLoading}
         tiersError={tiersError}
       />

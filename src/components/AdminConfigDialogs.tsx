@@ -391,6 +391,7 @@ export const EquipmentTypesDialog = () => {
       const payload = {
         name: formData.name,
         rate_per_unit: parseFloat(formData.rate_per_unit) || 0,
+        total_cost: parseFloat(formData.rate_per_unit) || 0,
         usage_unit: formData.usage_unit,
         description: formData.description,
       };

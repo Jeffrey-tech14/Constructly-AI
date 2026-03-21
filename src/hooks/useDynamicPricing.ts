@@ -28,7 +28,8 @@ export interface UserLaborOverride {
 export interface UserServiceOverride {
   id: string;
   service_id: string;
-  custom_price: number;
+  custom_price?: number;
+  price?: number;
   region: string;
 }
 export interface UserEquipmentOverride {

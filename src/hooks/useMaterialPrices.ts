@@ -74,7 +74,7 @@ export const useMaterialPrices = () => {
     try {
       const { error } = await supabase
         .from("material_base_prices")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id);
       if (error) throw error;
       await fetchData();

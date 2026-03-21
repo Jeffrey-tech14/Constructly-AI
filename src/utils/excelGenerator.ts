@@ -3,11 +3,14 @@
 
 import * as XLSX from "xlsx";
 interface WorkItem {
-  description: string;
-  unit: string;
-  quantity: number;
-  rate: number;
-  amount: number;
+  workDescription: string;
+  description?: string;
+  unit?: string;
+  quantity?: number;
+  rate?: number;
+  amount?: number;
+  subtotal?: number;
+  materials?: any[];
 }
 
 interface ExcelExportOptions {

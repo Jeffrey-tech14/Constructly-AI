@@ -1285,6 +1285,7 @@ export type Database = {
         Args: { curlopt: string; value: string }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       jwt_claims: { Args: never; Returns: Json }
       send_review_email: {
         Args: {

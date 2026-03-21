@@ -3524,8 +3524,8 @@ export const useRebarPrices = (region: string) => {
           .eq("name", "BRC Mesh")
           .single();
 
-        if (meshBase?.type) {
-          meshBase.type.forEach((item: any) => {
+        if (meshBase?.type && Array.isArray(meshBase.type)) {
+          (meshBase.type as any[]).forEach((item: any) => {
             if (item.grade && MESH_PROPERTIES[item.grade]) {
               meshPriceMap[item.grade] = item.price_kes_per_sqm || 0;
             }
@@ -3538,8 +3538,8 @@ export const useRebarPrices = (region: string) => {
           .eq("name", "Rebar")
           .single();
 
-        if (base?.type) {
-          base.type.forEach((item: any) => {
+        if (base?.type && Array.isArray(base.type)) {
+          (base.type as any[]).forEach((item: any) => {
             if (item.size && REBAR_PROPERTIES[item.size as RebarSize]) {
               prices[item.size as RebarSize] = item.price_kes_per_kg || 0;
             }
@@ -3554,8 +3554,8 @@ export const useRebarPrices = (region: string) => {
             .eq("region", region)
             .maybeSingle();
 
-          if (userOverride?.type) {
-            userOverride.type.forEach((item: any) => {
+          if (userOverride?.type && Array.isArray(userOverride.type)) {
+            (userOverride.type as any[]).forEach((item: any) => {
               if (item.size && REBAR_PROPERTIES[item.size as RebarSize]) {
                 prices[item.size as RebarSize] = item.price_kes_per_kg || 0;
               }

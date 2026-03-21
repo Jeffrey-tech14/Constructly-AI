@@ -59,7 +59,7 @@ export const useMaterialPrices = () => {
       ]);
       if (materialsResponse.error) throw materialsResponse.error;
       if (multipliersResponse.error) throw multipliersResponse.error;
-      setMaterials(materialsResponse.data || []);
+      setMaterials((materialsResponse.data || []) as any);
       setMultipliers(multipliersResponse.data || []);
     } catch (error) {
       console.error("Error fetching material prices:", error);
@@ -74,7 +74,7 @@ export const useMaterialPrices = () => {
     try {
       const { error } = await supabase
         .from("material_base_prices")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id);
       if (error) throw error;
       await fetchData();
@@ -110,7 +110,7 @@ export const useMaterialPrices = () => {
     try {
       const { error } = await supabase
         .from("material_base_prices")
-        .insert([material]);
+        .insert([material as any]);
       if (error) throw error;
       await fetchData();
     } catch (error) {

@@ -28,7 +28,8 @@ export interface UserLaborOverride {
 export interface UserServiceOverride {
   id: string;
   service_id: string;
-  custom_price: number;
+  custom_price?: number;
+  price?: number;
   region: string;
 }
 export interface UserEquipmentOverride {
@@ -182,7 +183,7 @@ export const useDynamicPricing = () => {
         .eq("material_id", materialId)
         .eq("region", region)
         .single();
-      let updatedType = userOverride?.type;
+      let updatedType: any = userOverride?.type;
       if (!updatedType) {
         const { data: base } = await supabase
           .from("material_base_prices")
@@ -515,7 +516,7 @@ export const useDynamicPricing = () => {
       const { error } = await supabase.from("user_service_overrides").upsert({
         user_id: user.id,
         service_id: serviceId,
-        custom_price: priceInCents,
+        price: priceInCents,
         region,
       });
       if (!error) {

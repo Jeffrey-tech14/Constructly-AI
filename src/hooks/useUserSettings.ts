@@ -139,7 +139,7 @@ export const useUserSettings = () => {
         .from("subcontractor_prices")
         .select("*")
         .order("name");
-      if (data) setSubcontractorRates(data);
+      if (data) setSubcontractorRates(data as any);
     } catch (err) {
       console.error("Error fetching subcontractors:", err);
     }
@@ -338,22 +338,14 @@ export const useUserSettings = () => {
         .select("name, email")
         .eq("id", user.id)
         .single();
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            name: existingProfile?.name || "",
-            email: existingProfile?.email || user.email || "",
-            overall_profit_margin: margin,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        )
-        .select("overall_profit_margin")
-        .single();
+        .update({
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
       if (error) throw error;
-      return { data: data?.overall_profit_margin, error: null };
+      return { data: margin, error: null };
     } catch (err) {
       console.error("Error updating profit margin:", err);
       return {
@@ -365,26 +357,14 @@ export const useUserSettings = () => {
   const updateLabourPercent = async (margin: number) => {
     if (!user) return { error: "User not authenticated" };
     try {
-      const { data: existingProfile } = await supabase
+      const { error } = await supabase
         .from("profiles")
-        .select("name, email")
-        .eq("id", user.id)
-        .single();
-      const { data, error } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            name: existingProfile?.name || "",
-            email: existingProfile?.email || user.email || "",
-            labour_percent: margin,
-          },
-          { onConflict: "id" }
-        )
-        .select("labour_percent")
-        .single();
+        .update({
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq("id", user.id);
       if (error) throw error;
-      return { data: data?.labour_percent, error: null };
+      return { data: margin, error: null };
     } catch (err) {
       console.error("Error updating labour:", err);
       return {

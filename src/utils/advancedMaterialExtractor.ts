@@ -363,7 +363,7 @@ export class AdvancedMaterialExtractor {
   private static convertGeminiToMaterials(
     analysis: GeminiMaterialResponse
   ): MaterialSchedule {
-    return analysis.materials.map((mat) => ({
+    return (analysis as any).materials?.map((mat: any) => ({
       itemNo: `M${(this.itemCounter++).toString().padStart(3, "0")}`,
       category: mat.category || this.autoCategory(mat.description),
       element: mat.element || this.autoElement(mat.description),

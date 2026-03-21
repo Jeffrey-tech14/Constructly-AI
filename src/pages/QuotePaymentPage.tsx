@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePaystackPayment } from "react-paystack";
 import { quotePaymentService } from "@/services/quotePaymentService";
 import { supabase } from "@/integrations/supabase/client";
+import { getEnv } from "@/utils/envConfig";
 import {
   LoaderPinwheel,
   CheckCircle,
@@ -42,27 +43,37 @@ const QuotePaymentPage = () => {
   const [transactionRef, setTransactionRef] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+  const PAYSTACK_PUBLIC_KEY =
+    getEnv("NEXT_PAYSTACK_PUBLIC_KEY") || getEnv("VITE_PAYSTACK_PUBLIC_KEY");
 
   const handlePaystackSuccess = async (reference: any) => {
     setPaymentStatus("processing");
     try {
-      // Verify payment via edge function (secret key stays server-side)
-      const { data, error } = await supabase.functions.invoke(
-        "verify-paystack-payment",
+      // Verify payment
+      const response = await fetch(
+        `https://api.paystack.co/transaction/verify/${reference.reference}`,
         {
-          body: {
-            reference: reference.reference,
-            quoteId,
+          headers: {
+            Authorization: `Bearer ${getEnv("NEXT_PAYSTACK_SECRET_KEY") || getEnv("VITE_PAYSTACK_SECRET_KEY")}`,
           },
         },
       );
 
-      if (error) {
+      if (!response.ok) {
         throw new Error("Payment verification failed");
       }
 
-      if (data?.success) {
+      const data = await response.json();
+
+      if (data.data.status === "success") {
+        // Update payment status in database
+        await quotePaymentService.updatePaymentStatus(
+          quoteId,
+          "completed",
+          data.data.id,
+          reference.reference,
+        );
+
         setPaymentStatus("success");
         toast({
           title: "Payment Successful",
@@ -76,7 +87,7 @@ const QuotePaymentPage = () => {
           navigate("/quotes/all");
         }, 2000);
       } else {
-        throw new Error(data?.error || "Payment not completed");
+        throw new Error("Payment not completed");
       }
     } catch (error) {
       console.error("Error processing payment:", error);

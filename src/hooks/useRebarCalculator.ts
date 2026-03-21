@@ -3538,8 +3538,8 @@ export const useRebarPrices = (region: string) => {
           .eq("name", "Rebar")
           .single();
 
-        if (base?.type) {
-          base.type.forEach((item: any) => {
+        if (base?.type && Array.isArray(base.type)) {
+          (base.type as any[]).forEach((item: any) => {
             if (item.size && REBAR_PROPERTIES[item.size as RebarSize]) {
               prices[item.size as RebarSize] = item.price_kes_per_kg || 0;
             }

@@ -227,6 +227,8 @@ const AdminDashboard = () => {
     };
   }, []);
 
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
   const toggleAdminStatus = async (userId: string, isAdmin: boolean) => {
     try {
       const { error } = await supabase
@@ -251,6 +253,62 @@ const AdminDashboard = () => {
         description: "Failed to update admin status",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleAdminAction = async (
+    action: string,
+    userId: string,
+    email: string,
+    userName: string,
+  ) => {
+    const actionLabel =
+      action === "delete_user"
+        ? "Delete"
+        : action === "send_magic_link"
+          ? "Magic Link"
+          : "Password Reset";
+
+    if (action === "delete_user") {
+      const confirmed = window.confirm(
+        `Are you sure you want to permanently delete ${userName}'s account? This cannot be undone.`,
+      );
+      if (!confirmed) return;
+    }
+
+    setActionLoading(`${action}-${userId}`);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "admin-user-management",
+        {
+          body: {
+            action,
+            userId,
+            email,
+            redirectTo: `${window.location.origin}/dashboard`,
+          },
+        },
+      );
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({
+        title: "Success",
+        description: data?.message || `${actionLabel} completed`,
+      });
+
+      if (action === "delete_user") {
+        fetchDashboardData();
+      }
+    } catch (err: any) {
+      toast({
+        title: `${actionLabel} Failed`,
+        description: err.message || `Failed to perform ${actionLabel}`,
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -549,6 +607,57 @@ const AdminDashboard = () => {
                                     </>
                                   )}
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleAdminAction(
+                                      "send_magic_link",
+                                      user.id,
+                                      user.email,
+                                      user.name,
+                                    )
+                                  }
+                                  disabled={actionLoading === `send_magic_link-${user.id}`}
+                                >
+                                  <Shield className="w-4 h-4 mr-2" />
+                                  {actionLoading === `send_magic_link-${user.id}`
+                                    ? "Sending..."
+                                    : "Send Magic Link"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleAdminAction(
+                                      "send_password_reset",
+                                      user.id,
+                                      user.email,
+                                      user.name,
+                                    )
+                                  }
+                                  disabled={actionLoading === `send_password_reset-${user.id}`}
+                                >
+                                  <Ban className="w-4 h-4 mr-2" />
+                                  {actionLoading === `send_password_reset-${user.id}`
+                                    ? "Sending..."
+                                    : "Send Password Reset"}
+                                </DropdownMenuItem>
+                                {user.id !== profile.id && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleAdminAction(
+                                        "delete_user",
+                                        user.id,
+                                        user.email,
+                                        user.name,
+                                      )
+                                    }
+                                    disabled={actionLoading === `delete_user-${user.id}`}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    <UserX className="w-4 h-4 mr-2" />
+                                    {actionLoading === `delete_user-${user.id}`
+                                      ? "Deleting..."
+                                      : "Delete Account"}
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>

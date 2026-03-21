@@ -73,13 +73,14 @@
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
     "docx": "^9.5.1",
+    "electron-updater": "^6.8.3",
     "embla-carousel-react": "^8.3.0",
     "file-saver": "^2.0.5",
     "forge-apis": "^0.9.10",
     "framer-motion": "^12.23.9",
     "fs-extra": "^11.3.0",
     "input-otp": "^1.2.4",
-    "jspdf": "^3.0.2",
+    "jspdf": "4.2.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
@@ -106,8 +107,7 @@
     "vitest": "^4.0.16",
     "web-ifc": "^0.0.69",
     "xlsx": "^0.18.5",
-    "zod": "^3.23.8",
-    "electron-updater": "^6.8.3"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

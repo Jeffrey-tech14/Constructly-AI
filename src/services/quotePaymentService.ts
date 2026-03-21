@@ -8,7 +8,7 @@ export interface QuotePayment {
   quote_id: string;
   user_id: string;
   amount_ksh: number;
-  payment_status: "pending" | "processing" | "completed" | "failed";
+  payment_status: string;
   payment_reference: string | null;
   transaction_id: string | null;
   payment_method: string | null;

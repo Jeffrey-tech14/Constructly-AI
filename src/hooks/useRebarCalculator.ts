@@ -3524,8 +3524,8 @@ export const useRebarPrices = (region: string) => {
           .eq("name", "BRC Mesh")
           .single();
 
-        if (meshBase?.type) {
-          meshBase.type.forEach((item: any) => {
+        if (meshBase?.type && Array.isArray(meshBase.type)) {
+          (meshBase.type as any[]).forEach((item: any) => {
             if (item.grade && MESH_PROPERTIES[item.grade]) {
               meshPriceMap[item.grade] = item.price_kes_per_sqm || 0;
             }

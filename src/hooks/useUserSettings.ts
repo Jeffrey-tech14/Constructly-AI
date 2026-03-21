@@ -139,7 +139,7 @@ export const useUserSettings = () => {
         .from("subcontractor_prices")
         .select("*")
         .order("name");
-      if (data) setSubcontractorRates(data);
+      if (data) setSubcontractorRates(data as any);
     } catch (err) {
       console.error("Error fetching subcontractors:", err);
     }
